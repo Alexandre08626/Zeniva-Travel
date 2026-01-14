@@ -41,9 +41,21 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
       `}</style>
       <div className="mb-6 flex items-center justify-between header-main" style={{ paddingTop: '6px' }}>
         <div className="flex items-center gap-4 header-left">
-          <Link href="/" className="flex items-center gap-3">
-            <Image src="/branding/logo.png" alt="Zeniva logo" width={56} height={56} className="hidden sm:block" />
-            <span className="sm:hidden text-lg font-extrabold" style={{ color: TITLE_TEXT }}>Zeniva</span>
+          {/* Mobile: logo et titre centrés, rien d'autre */}
+          <div className="w-full flex flex-col items-center justify-center sm:hidden">
+            <Image src="/branding/logo.png" alt="Zeniva logo" width={56} height={56} className="mx-auto mb-1" />
+            <span className="text-lg font-extrabold text-center" style={{ color: TITLE_TEXT }}>Zeniva Travel</span>
+          </div>
+          {/* Desktop: logo et titre comme avant */}
+          <Link href="/" className="items-center gap-3 hidden sm:flex">
+            <Image src="/branding/logo.png" alt="Zeniva logo" width={56} height={56} />
+            <div>
+              <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>Zeniva Travel</div>
+              <div className="text-xs flex items-center gap-1" style={{ color: MUTED_TEXT }}>
+                Powered by Lina AI
+                <img src="/branding/lina-avatar.png" alt="Lina AI" width={20} height={20} style={{ borderRadius: '50%' }} />
+              </div>
+            </div>
           </Link>
           
           <nav className="hidden md:flex items-center gap-3 ml-4">
@@ -63,7 +75,7 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
           </svg>
         </button>
 
-        <div className="flex items-center gap-2 header-right">
+        <div className="flex items-center gap-2 header-right sm:flex hidden">
           {!loggedIn && (
             <Link
               href="/partner"

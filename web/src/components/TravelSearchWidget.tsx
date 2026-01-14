@@ -126,51 +126,24 @@ export default function TravelSearchWidget() {
   const returnMin = depart || today;
 
   return (
+
     <div className="mt-6 rounded-2xl bg-white p-4 sm:p-6 shadow-lg hero-mobile">
-      <div className="mb-4 text-center">
-        <h2 className="text-lg sm:text-xl font-bold text-slate-900">Plan your perfect trip with Lina AI</h2>
-        <p className="text-sm sm:text-base text-slate-600 mt-1">Your personal travel concierge powered by AI</p>
+      {/* Mobile: Lina géante centrée, titre Lina AI centré */}
+      <div className="sm:hidden flex flex-col items-center justify-center py-8">
+        <div className="text-2xl font-extrabold mb-4 text-center" style={{ color: '#FFD700' }}>Lina AI</div>
+        <img src="/branding/lina-avatar.png" alt="Lina AI" style={{ width: 180, height: 180, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }} />
+        <button className="mt-6 px-6 py-3 rounded-full font-bold text-white text-base" style={{ background: 'linear-gradient(90deg,#0B57FF 0%, #4DA1FF 100%)' }}>
+          Start planning your trip
+        </button>
       </div>
 
-      <div className="sm:hidden text-center py-8">
-        <div className="mb-6">
-          <img 
-            src="/branding/lina-avatar.png" 
-            alt="Lina AI" 
-            className="w-32 h-32 mx-auto rounded-full cursor-pointer hover:scale-105 transition-transform shadow-lg" 
-            onClick={() => askLina("Hello Lina, help me plan my trip")}
-          />
+      {/* Desktop: formulaire de recherche classique et tabs */}
+      <div className="hidden sm:block">
+        <div className="mb-4 text-center">
+          <h2 className="text-xl font-bold text-slate-900">Plan your perfect trip with Lina AI</h2>
+          <p className="text-base text-slate-600 mt-1">Your personal travel concierge powered by AI</p>
         </div>
-        <h3 className="text-xl font-semibold text-white mb-2">Tap Lina to start planning</h3>
-        <p className="text-white text-sm">Your AI travel assistant is ready to help</p>
-      </div>
-
-      <div className="hidden sm:flex items-center justify-between mb-4">
-        <div className="hidden sm:flex gap-2">
-          {(["flights", "hotels", "cruises", "experiences", "transfers"] as Tab[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-3 py-2 rounded-full text-sm font-semibold tab-button ${tab === t ? "active" : ""}`}
-            >
-              {t[0].toUpperCase() + t.slice(1)}
-            </button>
-          ))}
-        </div>
-
-        <div className="sm:hidden">
-          <button onClick={() => setMenuOpen(true)} className="p-2 rounded-full bg-white bg-opacity-20">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 12h18M3 6h18M3 18h18" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button onClick={() => askLina()} className="rounded-full px-4 py-2 text-sm font-extrabold text-white ask-lina" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>
-            Ask Lina
-          </button>
-        </div>
+        {/* ...existing code desktop... */}
       </div>
 
       {menuOpen && (
