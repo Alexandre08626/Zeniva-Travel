@@ -48,11 +48,33 @@ export default function AgentDashboardPage() {
     [hq]
   );
 
-  const [mode, setMode] = useState<"manual" | "lina" | "hybrid">("hybrid");
   const [query, setQuery] = useState("");
   const [selectedClient, setSelectedClient] = useState("Unassigned");
   const [scopes, setScopes] = useState<string[]>(["flights", "hotels", "resorts", "excursions", "transfers", "cars", "yachts"]);
   const [auditTrail, setAuditTrail] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<'flights' | 'hotels' | 'transfers'>('flights');
+  const [flightFields, setFlightFields] = useState({
+    from: '',
+    to: '',
+    departDate: '',
+    returnDate: '',
+    passengers: 1,
+    cabin: 'economy'
+  });
+  const [hotelFields, setHotelFields] = useState({
+    destination: '',
+    checkIn: '',
+    checkOut: '',
+    guests: 1,
+    rooms: 1
+  });
+  const [transferFields, setTransferFields] = useState({
+    pickup: '',
+    dropoff: '',
+    date: '',
+    time: '',
+    passengers: 1
+  });
 
   useEffect(() => {
     const checkUnread = () => {
@@ -76,43 +98,38 @@ export default function AgentDashboardPage() {
     { key: "yachts", label: "Yachts" },
   ];
 
-  const quickActions = [
-    { label: "Create flight search", value: "Flight search: add routes, dates, cabin" },
-    { label: "Create hotel search", value: "Hotel search: city, dates, board, budget" },
-    { label: "Create full trip", value: "Build a 7-day Cancun luxury trip for 2 adults, budget 5k" },
-    { label: "Open client file", value: "Open client file and summarize" },
-    { label: "Draft proposal", value: "Draft proposal for client with flights + hotel" },
-    { label: "Draft email", value: "Prepare follow-up email" },
-    { label: "Bookable check", value: "Run bookable check on open trip" },
-    { label: "Open Lina Chat", value: "Start Lina chat for this file" },
-    { label: "Call Lina (voice)", value: "Call Lina for live assistance" },
-  ];
-
-  const modeOptions: { key: "manual" | "lina" | "hybrid"; label: string }[] = [
-    { key: "manual", label: "Manual Mode" },
-    { key: "lina", label: "Lina AI Mode" },
-    { key: "hybrid", label: "Hybrid" },
-  ];
-
   const clients = ["Unassigned", "Martin Dupuis", "HQ – Escapes", "VIP – Lavoie", "Corporate – NovaTech"];
 
   const toggleScope = (key: string) => {
     setScopes((prev) => (prev.includes(key) ? prev.filter((s) => s !== key) : [...prev, key]));
   };
 
-  const handleQuickAction = (value: string) => {
-    setQuery(value);
-    const entry = `${new Date().toLocaleTimeString()} · Quick action queued (${mode}): ${value}`;
+  const handlePrimarySubmit = () => {
+    let q = '';
+    if (activeTab === 'flights') {
+      q = `Flight search: from ${flightFields.from} to ${flightFields.to}, depart ${flightFields.departDate}, return ${flightFields.returnDate}, ${flightFields.passengers} passengers, ${flightFields.cabin} class`;
+    } else if (activeTab === 'hotels') {
+      q = `Hotel search: ${hotelFields.destination}, check-in ${hotelFields.checkIn}, check-out ${hotelFields.checkOut}, ${hotelFields.guests} guests, ${hotelFields.rooms} rooms`;
+    } else if (activeTab === 'transfers') {
+      q = `Transfer search: pickup ${transferFields.pickup}, dropoff ${transferFields.dropoff}, date ${transferFields.date}, time ${transferFields.time}, ${transferFields.passengers} passengers`;
+    }
+    if (!q.trim()) return;
+    const entry = `${new Date().toLocaleTimeString()} · PRIMARY · Client: ${selectedClient} · Scope: ${scopes.join("/")} · ${q.trim()}`;
     setAuditTrail((prev) => [entry, ...prev].slice(0, 6));
+    router.push(`/agent/proposals?q=${encodeURIComponent(q.trim())}`);
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const submitHybrid = () => {
     if (!query.trim()) return;
-    const entry = `${new Date().toLocaleTimeString()} · ${mode.toUpperCase()} · Client: ${selectedClient} · Scope: ${scopes.join("/")} · ${query.trim()}`;
+    const entry = `${new Date().toLocaleTimeString()} · HYBRID · Client: ${selectedClient} · Scope: ${scopes.join("/")} · ${query.trim()}`;
     setAuditTrail((prev) => [entry, ...prev].slice(0, 6));
     setQuery(query.trim());
     router.push(`/agent/proposals${query.trim() ? `?q=${encodeURIComponent(query.trim())}` : ""}`);
+  };
+
+  const handleHybridSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    submitHybrid();
   };
 
   return (
@@ -197,183 +214,251 @@ export default function AgentDashboardPage() {
                 ))}
               </div>
 
-            <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+            <form onSubmit={handleHybridSubmit} className="mt-6 space-y-5">
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:gap-6">
-                <div className="flex-1 space-y-2">
-                  <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Command / itinerary brief</label>
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                    <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-inner sm:flex-1">
-                      <span className="rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-700">/</span>
-                      <input
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Build a 7-day Cancun luxury trip for 2 adults, budget 5k"
-                        className="w-full text-sm outline-none"
-                        aria-label="Lina Agent command"
-                      />
+                <div className="flex-1 space-y-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Primary Search Bar — Classic</p>
+                    <div className="flex gap-1 mb-4">
+                      {['flights', 'hotels', 'transfers'].map(tab => (
+                        <button
+                          key={tab}
+                          type="button"
+                          onClick={() => setActiveTab(tab as 'flights' | 'hotels' | 'transfers')}
+                          className={`rounded-full px-4 py-2 text-sm font-semibold ${activeTab === tab ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-700'}`}
+                        >
+                          {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                        </button>
+                      ))}
                     </div>
-                    <button
-                      type="submit"
-                      className="whitespace-nowrap rounded-full px-4 py-2 text-sm font-bold text-white shadow-lg sm:self-stretch"
-                      style={{ background: "linear-gradient(90deg, #2563eb, #0ea5e9)" }}
-                    >
-                      Start search
-                    </button>
+                    {activeTab === 'flights' && (
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500">From</label>
+                          <input
+                            type="text"
+                            value={flightFields.from}
+                            onChange={e => setFlightFields({...flightFields, from: e.target.value})}
+                            placeholder="Departure city"
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500">To</label>
+                          <input
+                            type="text"
+                            value={flightFields.to}
+                            onChange={e => setFlightFields({...flightFields, to: e.target.value})}
+                            placeholder="Arrival city"
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500">Depart Date</label>
+                          <input
+                            type="date"
+                            value={flightFields.departDate}
+                            onChange={e => setFlightFields({...flightFields, departDate: e.target.value})}
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500">Return Date</label>
+                          <input
+                            type="date"
+                            value={flightFields.returnDate}
+                            onChange={e => setFlightFields({...flightFields, returnDate: e.target.value})}
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500">Passengers</label>
+                          <input
+                            type="number"
+                            value={flightFields.passengers}
+                            onChange={e => setFlightFields({...flightFields, passengers: parseInt(e.target.value) || 1})}
+                            min="1"
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500">Cabin Class</label>
+                          <select
+                            value={flightFields.cabin}
+                            onChange={e => setFlightFields({...flightFields, cabin: e.target.value})}
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          >
+                            <option value="economy">Economy</option>
+                            <option value="premium">Premium Economy</option>
+                            <option value="business">Business</option>
+                            <option value="first">First</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                    {activeTab === 'hotels' && (
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500">Destination</label>
+                          <input
+                            type="text"
+                            value={hotelFields.destination}
+                            onChange={e => setHotelFields({...hotelFields, destination: e.target.value})}
+                            placeholder="City or hotel name"
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500">Check-in</label>
+                          <input
+                            type="date"
+                            value={hotelFields.checkIn}
+                            onChange={e => setHotelFields({...hotelFields, checkIn: e.target.value})}
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500">Check-out</label>
+                          <input
+                            type="date"
+                            value={hotelFields.checkOut}
+                            onChange={e => setHotelFields({...hotelFields, checkOut: e.target.value})}
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500">Guests</label>
+                          <input
+                            type="number"
+                            value={hotelFields.guests}
+                            onChange={e => setHotelFields({...hotelFields, guests: parseInt(e.target.value) || 1})}
+                            min="1"
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500">Rooms</label>
+                          <input
+                            type="number"
+                            value={hotelFields.rooms}
+                            onChange={e => setHotelFields({...hotelFields, rooms: parseInt(e.target.value) || 1})}
+                            min="1"
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {activeTab === 'transfers' && (
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500">Pickup Location</label>
+                          <input
+                            type="text"
+                            value={transferFields.pickup}
+                            onChange={e => setTransferFields({...transferFields, pickup: e.target.value})}
+                            placeholder="Pickup address"
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500">Dropoff Location</label>
+                          <input
+                            type="text"
+                            value={transferFields.dropoff}
+                            onChange={e => setTransferFields({...transferFields, dropoff: e.target.value})}
+                            placeholder="Dropoff address"
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500">Date</label>
+                          <input
+                            type="date"
+                            value={transferFields.date}
+                            onChange={e => setTransferFields({...transferFields, date: e.target.value})}
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500">Time</label>
+                          <input
+                            type="time"
+                            value={transferFields.time}
+                            onChange={e => setTransferFields({...transferFields, time: e.target.value})}
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-slate-500">Passengers</label>
+                          <input
+                            type="number"
+                            value={transferFields.passengers}
+                            onChange={e => setTransferFields({...transferFields, passengers: parseInt(e.target.value) || 1})}
+                            min="1"
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    <div className="mt-4">
+                      <button
+                        type="button"
+                        onClick={handlePrimarySubmit}
+                        className="rounded-full px-6 py-3 text-sm font-bold text-white shadow-lg"
+                        style={{ background: "linear-gradient(90deg, #2563eb, #0ea5e9)" }}
+                      >
+                        Start Classic Search
+                      </button>
+                    </div>
                   </div>
-                  <p className="text-xs" style={{ color: MUTED_TEXT }}>
-                    Hybrid keeps manual controls active while Lina enriches with AI. Every dispatch is logged; agent validation required before any booking.
-                  </p>
+                  <div className="border-t border-slate-200 pt-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Hybrid Search — AI-Assisted</p>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 mt-2">
+                      <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-inner sm:flex-1">
+                        <span className="rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-700">/</span>
+                        <input
+                          value={query}
+                          onChange={(e) => setQuery(e.target.value)}
+                          placeholder="Build a 7-day Cancun luxury trip for 2 adults, budget 5k"
+                          className="w-full text-sm outline-none"
+                          aria-label="Hybrid search command"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={submitHybrid}
+                        className="whitespace-nowrap rounded-full px-4 py-2 text-sm font-bold text-white shadow-lg sm:self-stretch"
+                        style={{ background: "linear-gradient(90deg, #2563eb, #0ea5e9)" }}
+                      >
+                        Start Hybrid Search
+                      </button>
+                    </div>
+                    <p className="text-xs mt-2" style={{ color: MUTED_TEXT }}>
+                      Hybrid = Human control + Lina intelligence. Assists with ideas and speeds up manual work.
+                    </p>
+                  </div>
                 </div>
 
                 <div className="md:w-[320px] space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Mode</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {modeOptions.map((option) => {
-                      const active = mode === option.key;
-                      return (
-                        <button
-                          type="button"
-                          key={option.key}
-                          onClick={() => setMode(option.key)}
-                          className="rounded-full border px-3 py-2 text-xs font-bold transition"
-                          style={{
-                            backgroundColor: active ? PREMIUM_BLUE : "#fff",
-                            color: active ? "#fff" : TITLE_TEXT,
-                            borderColor: active ? PREMIUM_BLUE : "#e2e8f0",
-                          }}
-                        >
-                          {option.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <p className="text-xs" style={{ color: MUTED_TEXT }}>
-                    Manual = structured search; Lina = AI-only; Hybrid = both (default).
-                  </p>
-                </div>
-              </div>
-
-              {mode === "lina" && (
-                <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 shadow-sm">
-                  <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Choose Lina interface</p>
-                      <p className="text-sm" style={{ color: MUTED_TEXT }}>
-                        Agent production only. AI chat is separate from agent-to-agent comms. Voice (DID) and audit-ready.
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2 text-xs font-semibold">
-                      <Link
-                        href="/agent/lina"
-                        className="rounded-full border border-slate-300 bg-white px-3 py-1.5 shadow-sm hover:border-slate-400"
-                        style={{ color: TITLE_TEXT }}
-                      >
-                        Lina Agent (production)
-                      </Link>
-                      <Link
-                        href="/agent/lina"
-                        className="rounded-full border border-slate-300 bg-slate-900 text-white px-3 py-1.5 shadow-sm hover:border-slate-200"
-                      >
-                        Open Lina Chat (agent AI)
-                      </Link>
-                      <Link
-                        href="/call"
-                        className="rounded-full border border-emerald-300 bg-emerald-600 text-white px-3 py-1.5 shadow-sm hover:border-emerald-200"
-                      >
-                        Appel Lina (DID)
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="grid gap-4 md:grid-cols-[2fr,1fr]">
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Search scope (manual)</p>
-                  <div className="flex flex-wrap gap-2">
-                    {scopeOptions.map(({ key, label }) => {
-                      const active = scopes.includes(key);
-                      return (
-                        <button
-                          type="button"
-                          key={key}
-                          onClick={() => toggleScope(key)}
-                          className="rounded-full border px-3 py-1.5 text-xs font-semibold transition"
-                          style={{
-                            backgroundColor: active ? "#0f172a" : "#fff",
-                            color: active ? "#fff" : TITLE_TEXT,
-                            borderColor: active ? "#0f172a" : "#e2e8f0",
-                          }}
-                        >
-                          {label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <p className="text-xs" style={{ color: MUTED_TEXT }}>
-                    Comparable results stay structured and attachable to the active client dossier.
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Link to client file</p>
-                  <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
-                    <select
-                      value={selectedClient}
-                      onChange={(e) => setSelectedClient(e.target.value)}
-                      className="w-full bg-transparent text-sm outline-none"
-                      aria-label="Select client file"
-                    >
-                      {clients.map((client) => (
-                        <option key={client} value={client}>
-                          {client}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <p className="text-xs" style={{ color: MUTED_TEXT }}>
-                    All actions are tied to a dossier and mirrored to Audit Log; HQ sees everything.
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Quick commands</p>
-                <div className="flex flex-wrap gap-2">
-                  {quickActions.map(({ label, value }) => (
-                    <button
-                      type="button"
-                      key={label}
-                      onClick={() => handleQuickAction(value)}
-                      className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-800 hover:border-slate-400 transition"
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="submit"
-                    className="rounded-full px-4 py-2 text-sm font-bold text-white shadow-lg"
-                    style={{ background: "linear-gradient(90deg, #2563eb, #0ea5e9)" }}
-                  >
-                    Dispatch (no auto-book)
-                  </button>
-                  <Link
-                    href="/agent/lina"
-                    className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold bg-white/80 backdrop-blur"
-                    style={{ color: TITLE_TEXT }}
-                  >
-                    Open Lina workspace
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Lina Chat</p>
+                  <Link href="/agent/chat" className="block w-fit">
+                    <img
+                      src="/branding/lina-avatar.png"
+                      alt="Lina avatar"
+                      className="h-16 w-16 rounded-full border border-slate-200 shadow-sm"
+                    />
                   </Link>
+                  <p className="text-xs" style={{ color: MUTED_TEXT }}>
+                    Click to open Lina Chat Mode for conversation, planning, and voice call option.
+                  </p>
                 </div>
-                <p className="text-xs" style={{ color: MUTED_TEXT }}>
-                  Safety: Lina never books without explicit agent validation; HQ override logged in Audit Log.
-                </p>
               </div>
+
+
+
+
+
+
 
               <div className="rounded-xl border border-slate-100 bg-slate-900/80 text-slate-50 p-3 shadow-lg">
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-200">Live audit trail</p>
