@@ -64,7 +64,7 @@ export default function AgentChatPage() {
           id: channelId,
           label: ticket.title,
           scope: "Help Center",
-          unread: 1
+          unread: ticket.status === 'open' ? 1 : 0
         });
         newMessages[channelId] = ticket.messages.map((msg: any) => ({
           role: msg.role === 'user' ? 'agent' : 'hq',
@@ -78,6 +78,26 @@ export default function AgentChatPage() {
     setChannels(newChannels);
     setMessages(newMessages);
   }, []);
+
+  // Mark help ticket as read when selected
+  useEffect(() => {
+    if (channelId.startsWith('help-')) {
+      const ticketNumber = channelId.replace('help-', '');
+      const helpTickets = JSON.parse(localStorage.getItem('helpTickets') || '[]');
+      const updatedTickets = helpTickets.map((ticket: any) => {
+        if (ticket.ticket === ticketNumber) {
+          return { ...ticket, status: 'read' };
+        }
+        return ticket;
+      });
+      localStorage.setItem('helpTickets', JSON.stringify(updatedTickets));
+
+      // Update channels unread count
+      setChannels(prev => prev.map(ch => 
+        ch.id === channelId ? { ...ch, unread: 0 } : ch
+      ));
+    }
+  }, [channelId]);
 
   const title = useMemo(() => channels.find((c) => c.id === channelId)?.label || "Chat", [channelId]);
 
