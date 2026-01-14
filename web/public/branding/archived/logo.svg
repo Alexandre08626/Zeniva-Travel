@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="240" height="240" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Zeniva logo">
+  <rect width="240" height="240" rx="24" fill="#FEFBF9"/>
+  <g transform="translate(24,24)">
+    <path d="M24 96 L120 24 L216 96 L120 168 Z" fill="#19A7B2" opacity="0.95"/>
+    <path d="M120 40 L200 92 L184 104 L120 70 Z" fill="#1857A6"/>
+    <path d="M24 120 H192" stroke="#1857A6" stroke-width="12" stroke-linecap="round" opacity="0.9"/>
+  </g>
+</svg>
