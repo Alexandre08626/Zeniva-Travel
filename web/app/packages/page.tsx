@@ -5,6 +5,16 @@ import { useSearchParams, useRouter } from "next/navigation";
 import PACKAGES from "@/src/data/packages";
 import { createTrip, applyTripPatch } from "@/lib/store/tripsStore";
 
+type Package = {
+  slug: string;
+  title: string;
+  price: string;
+  duration: string;
+  destination: string;
+  collections: string[];
+  image: string;
+};
+
 function PackagesContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -16,7 +26,7 @@ function PackagesContent() {
     return PACKAGES.filter((p) => p.destination.toLowerCase().includes(target));
   }, [country]);
 
-  const handleBook = (pkg) => {
+  const handleBook = (pkg: Package) => {
     const tripId = createTrip({ title: pkg.title, destination: pkg.destination });
     // Parse duration, assume 5 days if not specified
     const days = parseInt(pkg.duration) || 5;
