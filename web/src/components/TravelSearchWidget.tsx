@@ -87,6 +87,10 @@ export default function TravelSearchWidget() {
 
   return (
     <div className="mt-6 rounded-2xl bg-white p-6 shadow-lg">
+      <div className="mb-4 text-center">
+        <h2 className="text-xl font-bold text-slate-900">Plan your perfect trip with Lina AI</h2>
+        <p className="text-sm text-slate-600">Your personal travel concierge powered by AI</p>
+      </div>
       <div className="flex items-center justify-between mb-4">
         <div className="flex gap-2">
           {(["flights", "hotels", "cruises", "experiences", "transfers"] as Tab[]).map((t) => (
