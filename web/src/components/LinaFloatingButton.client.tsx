@@ -9,8 +9,8 @@ type Message = {
 
 const COMPANY_INFO = {
   name: "Zeniva Travel",
-  address: "8 THE GREEN STE A, Dover, Delaware",
-  headquarters: "780 Lynnhaven Parkway, Virginia Beach, 23452",
+  address: "780 Lynnhaven Parkway, Virginia Beach, 23452",
+  headquarters: "8 The Green, Dover, Delaware",
   phone: "757-940-7276",
   email: "info@zeniva.ca"
 };
