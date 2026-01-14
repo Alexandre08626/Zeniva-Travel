@@ -42,21 +42,8 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
       <div className="mb-6 flex items-center justify-between header-main" style={{ paddingTop: '6px' }}>
         <div className="flex items-center gap-4 header-left">
           <Link href="/" className="flex items-center gap-3">
-            <Image src="/branding/logo.png" alt="Zeniva logo" width={56} height={56} />
-            <div className="hidden sm:block">
-              <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>Zeniva Travel</div>
-              <div className="text-xs flex items-center gap-1" style={{ color: MUTED_TEXT }}>
-                Powered by Lina AI
-                <img src="/branding/lina-avatar.png" alt="Lina AI" width={20} height={20} style={{ borderRadius: '50%' }} />
-              </div>
-            </div>
-            <div className="sm:hidden">
-              <div className="text-sm font-extrabold" style={{ color: TITLE_TEXT }}>Zeniva</div>
-              <div className="text-xs flex items-center gap-1" style={{ color: MUTED_TEXT }}>
-                Lina AI
-                <img src="/branding/lina-avatar.png" alt="Lina AI" width={16} height={16} style={{ borderRadius: '50%' }} />
-              </div>
-            </div>
+            <Image src="/branding/logo.png" alt="Zeniva logo" width={56} height={56} className="hidden sm:block" />
+            <span className="sm:hidden text-lg font-extrabold" style={{ color: TITLE_TEXT }}>Zeniva</span>
           </Link>
           
           <nav className="hidden md:flex items-center gap-3 ml-4">
@@ -70,20 +57,20 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
           </nav>
         </div>
 
-        <button onClick={() => setMenuOpen(true)} className="hidden mobile-menu-btn p-2">
+        <button onClick={() => setMenuOpen(true)} className="hidden mobile-menu-btn p-1 sm:p-2">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
 
-        <div className="flex items-center gap-3 header-right">
+        <div className="flex items-center gap-2 header-right">
           {!loggedIn && (
             <Link
               href="/partner"
-              className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold mr-2 header-partner"
+              className="rounded-full border border-slate-200 px-2 py-1 text-xs font-semibold mr-1 header-partner sm:px-4 sm:py-2 sm:text-sm"
               style={{ color: TITLE_TEXT }}
             >
-              Partner with us
+              Partner
             </Link>
           )}
 
@@ -111,10 +98,10 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
           </>
         ) : (
           <>
-            <Link href="/signup" className="rounded-full px-4 py-2 text-sm font-semibold text-white" style={{ backgroundColor: PREMIUM_BLUE, opacity: 0.96 }}>
+            <Link href="/signup" className="rounded-full px-2 py-1 text-xs font-semibold text-white sm:px-4 sm:py-2 sm:text-sm" style={{ backgroundColor: PREMIUM_BLUE, opacity: 0.96 }}>
               Sign up
             </Link>
-            <Link href="/login" className="rounded-full border px-4 py-2 text-sm font-semibold" style={{ borderColor: PREMIUM_BLUE, color: PREMIUM_BLUE, opacity: 0.92 }}>
+            <Link href="/login" className="rounded-full border px-2 py-1 text-xs font-semibold sm:px-4 sm:py-2 sm:text-sm" style={{ borderColor: PREMIUM_BLUE, color: PREMIUM_BLUE, opacity: 0.92 }}>
               Log in
             </Link>
           </>
