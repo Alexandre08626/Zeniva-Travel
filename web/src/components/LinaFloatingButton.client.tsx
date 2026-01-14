@@ -65,6 +65,29 @@ export default function LinaFloatingButton() {
         type: 'bot',
         content: responses[option] || "How can I assist you?"
       }]);
+
+      // Create ticket for agent
+      const ticketNumber = "HC-" + Date.now();
+      const ticketData = {
+        ticket: ticketNumber,
+        title: "Help Center - " + option,
+        messages: [
+          { role: 'user', text: option, ts: new Date().toLocaleTimeString() },
+          { role: 'bot', text: responses[option], ts: new Date().toLocaleTimeString() }
+        ],
+        status: 'open',
+        created: new Date().toISOString()
+      };
+
+      const existingTickets = JSON.parse(localStorage.getItem('helpTickets') || '[]');
+      existingTickets.push(ticketData);
+      localStorage.setItem('helpTickets', JSON.stringify(existingTickets));
+
+      setMessages(prev => [...prev, {
+        id: Date.now() + 2,
+        type: 'bot',
+        content: `Your support ticket has been created: ${ticketNumber}. An agent will respond shortly.`
+      }]);
     }
   };
 
