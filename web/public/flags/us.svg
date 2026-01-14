@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 7410 3900">
+  <rect width="7410" height="3900" fill="#b22234"/>
+  <g fill="#fff">
+    <rect width="7410" height="300" y="300"/>
+    <rect width="7410" height="300" y="900"/>
+    <rect width="7410" height="300" y="1500"/>
+    <rect width="7410" height="300" y="2100"/>
+    <rect width="7410" height="300" y="2700"/>
+    <rect width="7410" height="300" y="3300"/>
+  </g>
+  <rect width="2964" height="2100" fill="#3c3b6e"/>
+  <g fill="#fff">
+    <g id="s">
+      <g id="t">
+        <g id="u">
+          <polygon points="247,90 322,303 124,186 370,186 172,303"/>
+          <use href="#t" x="247"/>
+          <use href="#t" x="494"/>
+          <use href="#t" x="741"/>
+          <use href="#t" x="988"/>
+        </g>
+        <use href="#u" y="210"/>
+      </g>
+      <use href="#t" y="420"/>
+    </g>
+    <use href="#s" y="420"/>
+    <use href="#s" y="840"/>
+    <use href="#s" y="1260"/>
+    <use href="#s" y="1680"/>
+  </g>
+</svg>
