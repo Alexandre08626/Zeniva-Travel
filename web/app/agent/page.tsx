@@ -1,10 +1,17 @@
 "use client";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { PREMIUM_BLUE, TITLE_TEXT, MUTED_TEXT, ACCENT_GOLD } from "../../src/design/tokens";
 import { useAuthStore, isHQ, logout } from "../../src/lib/authStore";
+
+interface HelpTicket {
+  ticket: string;
+  title: string;
+  status: 'open' | 'read';
+  messages: { role: string; text: string; ts: string }[];
+}
 
 const modules = [
   { id: "clients", title: "Clients", desc: "Traveler profiles, preferences, history", href: "#clients" },
@@ -18,6 +25,7 @@ export default function AgentDashboardPage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const hq = isHQ(user);
+  const [unreadCount, setUnreadCount] = useState(0);
   const navLinks = useMemo(
     () => [
       { label: "Dashboard", href: "/agent" },
@@ -45,6 +53,18 @@ export default function AgentDashboardPage() {
   const [selectedClient, setSelectedClient] = useState("Unassigned");
   const [scopes, setScopes] = useState<string[]>(["flights", "hotels", "resorts", "excursions", "transfers", "cars", "yachts"]);
   const [auditTrail, setAuditTrail] = useState<string[]>([]);
+
+  useEffect(() => {
+    const checkUnread = () => {
+      const helpTickets: HelpTicket[] = JSON.parse(localStorage.getItem('helpTickets') || '[]');
+      const unread = helpTickets.filter((ticket) => ticket.status === 'open').length;
+      setUnreadCount(unread);
+    };
+
+    checkUnread();
+    const interval = setInterval(checkUnread, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const scopeOptions = [
     { key: "flights", label: "Flights" },
@@ -128,8 +148,13 @@ export default function AgentDashboardPage() {
 
         <nav className="flex flex-wrap gap-2 text-sm">
           {navLinks.map((item) => (
-            <Link key={item.href} href={item.href} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-800 hover:border-slate-400">
+            <Link key={item.href} href={item.href} className="relative rounded-full border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-800 hover:border-slate-400">
               {item.label}
+              {item.label === "Chat" && unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                  {unreadCount}
+                </span>
+              )}
             </Link>
           ))}
         </nav>
