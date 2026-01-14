@@ -5,46 +5,43 @@ import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE, ACCENT_GOLD } from "../../../src/
 import { sendMessageToLina } from "../../../src/lib/linaClient";
 import { useAuthStore, isHQ } from "../../../src/lib/authStore";
 
-const channels = [
-  { id: "global", label: "Global", scope: "All agents", unread: 2 },
-  { id: "hq", label: "HQ", scope: "HQ only", unread: 1 },
-  { id: "ops", label: "Ops", scope: "Production", unread: 0 },
-  { id: "agent-alice", label: "Alice", scope: "Direct", unread: 0 },
-  { id: "agent-marco", label: "Marco", scope: "Direct", unread: 0 },
-  { id: "dossier-trip-104", label: "Dossier TRIP-104", scope: "Client file", unread: 0 },
-  { id: "dossier-yacht-55", label: "Yacht YCHT-55", scope: "Client file", unread: 1 },
-];
-
-const seedMessages: Record<string, { role: "agent" | "hq" | "lina"; author: string; text: string; ts: string }[]> = {
-  global: [
-    { role: "hq", author: "HQ", text: "Daily: push proposals before 4pm ET.", ts: "09:02" },
-    { role: "agent", author: "Alice", text: "Need help with honeymoon Maldives, budget 12k.", ts: "09:05" },
-  ],
-  hq: [
-    { role: "hq", author: "HQ", text: "Audit payments after wire cutoff.", ts: "08:55" },
-  ],
-  "dossier-yacht-55": [
-    { role: "agent", author: "Marco", text: "Client approved 7-day Med yacht, need crew confirmation.", ts: "08:40" },
-  ],
-};
-
-const quickActions = [
-  "Share dossier TRIP-104 to Sara",
-  "Transfer client Lavoie to Marco",
-  "Ask HQ for payment override",
-  "Request proposal support",
-  "@Lina summarize this thread",
-  "Link booking ORD-1032",
-];
-
 export default function AgentChatPage() {
   const user = useAuthStore((s) => s.user);
   const [channelId, setChannelId] = useState("global");
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState(seedMessages);
+  const [messages, setMessages] = useState<Record<string, { role: "agent" | "hq" | "lina"; author: string; text: string; ts: string }[]>>({
+    global: [
+      { role: "hq", author: "HQ", text: "Daily: push proposals before 4pm ET.", ts: "09:02" },
+      { role: "agent", author: "Alice", text: "Need help with honeymoon Maldives, budget 12k.", ts: "09:05" },
+    ],
+    hq: [
+      { role: "hq", author: "HQ", text: "Audit payments after wire cutoff.", ts: "08:55" },
+    ],
+    "dossier-yacht-55": [
+      { role: "agent", author: "Marco", text: "Client approved 7-day Med yacht, need crew confirmation.", ts: "08:40" },
+    ],
+  });
   const [sending, setSending] = useState(false);
   const [linaBusy, setLinaBusy] = useState(false);
+  const [channels, setChannels] = useState([
+    { id: "global", label: "Global", scope: "All agents", unread: 2 },
+    { id: "hq", label: "HQ", scope: "HQ only", unread: 1 },
+    { id: "ops", label: "Ops", scope: "Production", unread: 0 },
+    { id: "agent-alice", label: "Alice", scope: "Direct", unread: 0 },
+    { id: "agent-marco", label: "Marco", scope: "Direct", unread: 0 },
+    { id: "dossier-trip-104", label: "Dossier TRIP-104", scope: "Client file", unread: 0 },
+    { id: "dossier-yacht-55", label: "Yacht YCHT-55", scope: "Client file", unread: 1 },
+  ]);
   const listRef = useRef<HTMLDivElement | null>(null);
+
+  const quickActions = [
+    "Share dossier TRIP-104 to Sara",
+    "Transfer client Lavoie to Marco",
+    "Ask HQ for payment override",
+    "Request proposal support",
+    "@Lina summarize this thread",
+    "Link booking ORD-1032",
+  ];
 
   const history = messages[channelId] || [];
   const canHQ = isHQ(user);
@@ -53,6 +50,34 @@ export default function AgentChatPage() {
     if (!listRef.current) return;
     listRef.current.scrollTop = listRef.current.scrollHeight;
   }, [history, channelId]);
+
+  // Load help tickets
+  useEffect(() => {
+    const helpTickets = JSON.parse(localStorage.getItem('helpTickets') || '[]');
+    const newChannels = [...channels];
+    const newMessages = { ...messages };
+
+    helpTickets.forEach((ticket: any) => {
+      const channelId = `help-${ticket.ticket}`;
+      if (!newChannels.find(c => c.id === channelId)) {
+        newChannels.push({
+          id: channelId,
+          label: ticket.title,
+          scope: "Help Center",
+          unread: 1
+        });
+        newMessages[channelId] = ticket.messages.map((msg: any) => ({
+          role: msg.role === 'user' ? 'agent' : 'hq',
+          author: msg.role === 'user' ? 'User' : 'Bot',
+          text: msg.text,
+          ts: msg.ts
+        }));
+      }
+    });
+
+    setChannels(newChannels);
+    setMessages(newMessages);
+  }, []);
 
   const title = useMemo(() => channels.find((c) => c.id === channelId)?.label || "Chat", [channelId]);
 
