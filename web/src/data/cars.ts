@@ -1,0 +1,46 @@
+import { CarComponent } from "../lib/agent/types";
+
+export const cars: CarComponent[] = [
+  {
+    id: "CAR-4001",
+    type: "car",
+    productKind: "travel",
+    status: "Quoted",
+    pickup: "NCE Airport",
+    dropoff: "NCE Airport",
+    start: "2024-07-01",
+    end: "2024-07-07",
+    category: "SUV Premium",
+    supplier: "Sixt",
+    pricing: {
+      currency: "EUR",
+      net: 780,
+      sell: 980,
+      marginAmount: 200,
+      marginPct: 25,
+      commissionAmount: 147,
+      commissionPct: 15,
+    },
+  },
+  {
+    id: "CAR-4002",
+    type: "car",
+    productKind: "travel",
+    status: "Quoted",
+    pickup: "BCN Downtown",
+    dropoff: "BCN Downtown",
+    start: "2024-07-10",
+    end: "2024-07-13",
+    category: "Convertible",
+    supplier: "Hertz",
+    pricing: {
+      currency: "EUR",
+      net: 320,
+      sell: 430,
+      marginAmount: 110,
+      marginPct: 34,
+      commissionAmount: 64,
+      commissionPct: 15,
+    },
+  },
+];

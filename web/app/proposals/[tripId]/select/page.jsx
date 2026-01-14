@@ -1,0 +1,729 @@
+"use client";
+import { useEffect, useMemo, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { BRAND_BLUE, LIGHT_BG, MUTED_TEXT, PREMIUM_BLUE, TITLE_TEXT } from "../../../../src/design/tokens";
+import { useTripsStore, generateProposal, setProposalSelection, applyTripPatch } from "../../../../lib/store/tripsStore";
+import SelectedSummary from "../../../../src/components/SelectedSummary";
+import { getImagesForDestination, getPartnerHotelImages } from "../../../../src/lib/images";
+import yachtsData from "../../../../src/data/ycn_packages.json";
+import airbnbsData from "../../../../src/data/airbnbs.json";
+import { activities as activitiesData } from "../../../../src/data/activities";
+import { transfers as transfersData } from "../../../../src/data/transfers";
+
+// Mock hotels fallback when Duffel stays fails (404 in sandbox) - declare ONLY ONCE at the top of the file!
+const getMockHotels = (destination) => {
+  const dest = destination?.toLowerCase() || "";
+  if (dest.includes("paris")) {
+    return [
+      { id: "mock-paris-1", name: "Hotel Ritz Paris", location: "Place Vendôme, Paris", price: "USD 1260/night", room: "Deluxe Suite", image: "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80" },
+      { id: "mock-paris-2", name: "Hotel Plaza Athénée", location: "Avenue Montaigne, Paris", price: "USD 998/night", room: "Superior Room", image: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=900&q=80" },
+    ];
+  } else if (dest.includes("miami") || dest.includes("mia")) {
+    return [
+      { id: "mock-miami-1", name: "The Ritz-Carlton South Beach", location: "South Beach, Miami", price: "USD 600/night", room: "Ocean View Suite", image: "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80" },
+      { id: "mock-miami-2", name: "Fontainebleau Miami Beach", location: "Miami Beach, FL", price: "USD 450/night", room: "Standard Room", image: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=900&q=80" },
+    ];
+  } else {
+    return [
+      { id: "mock-stay-1", name: "Hotel Playa", location: "Resort Area", price: "USD 420/night", room: "King Room", image: "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80" },
+      { id: "mock-stay-2", name: "Boutique Central", location: "City Center", price: "USD 380/night", room: "Suite", image: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=900&q=80" },
+    ];
+  }
+};
+
+const iataMap = {
+  "Quebec": "YQB",
+  "Québec": "YQB",
+  "Montreal": "YUL",
+  "Montréal": "YUL",
+  "Toronto": "YYZ",
+  "Vancouver": "YVR",
+  "Miami": "MIA",
+  "Paris": "CDG",
+  "New York": "JFK",
+  "London": "LHR",
+  "Cancun": "CUN",
+};
+
+function resolveIATA(city) {
+  if (!city) return "";
+  const upper = city.toUpperCase();
+  if (iataMap[upper]) return iataMap[upper];
+  // If already 3 letters, assume IATA
+  if (upper.length === 3 && /^[A-Z]{3}$/.test(upper)) return upper;
+  return upper.slice(0, 3); // fallback
+}
+
+export default function ProposalSelectPage() {
+  const params = useParams();
+  const router = useRouter();
+  const tripId = Array.isArray(params.tripId) ? params.tripId[0] : params.tripId;
+
+  const [flights, setFlights] = useState([]);
+  const [hotels, setHotels] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [transfers, setTransfers] = useState([]);
+  const [loadingFlights, setLoadingFlights] = useState(false);
+  const [loadingHotels, setLoadingHotels] = useState(false);
+  const [loadingActivities, setLoadingActivities] = useState(false);
+  const [loadingTransfers, setLoadingTransfers] = useState(false);
+  const [errorFlights, setErrorFlights] = useState(null);
+  const [errorHotels, setErrorHotels] = useState(null);
+  const [errorActivities, setErrorActivities] = useState(null);
+  const [errorTransfers, setErrorTransfers] = useState(null);
+
+  const { proposal, selection, tripDraft, snapshot } = useTripsStore((s) => ({
+    proposal: s.proposals[tripId],
+    selection: s.selections[tripId] || { flight: null, hotel: null, activity: null, transfer: null },
+    tripDraft: s.tripDrafts[tripId] || {},
+    snapshot: s.snapshots[tripId] || {},
+  }));
+
+  useEffect(() => {
+    if (tripId && !proposal) {
+      generateProposal(tripId);
+    }
+    
+    // Auto-initialize tripDraft with snapshot data if missing
+    if (snapshot && Object.keys(snapshot).length > 0) {
+      const missingData = {};
+      if (!tripDraft.departureCity && snapshot.departure) {
+        missingData.departureCity = snapshot.departure.split(' - ')[0] || snapshot.departure;
+      }
+      if (!tripDraft.destination && snapshot.destination) {
+        missingData.destination = snapshot.destination.split(' - ')[0] || snapshot.destination;
+      }
+      if (!tripDraft.checkIn && snapshot.dates) {
+        const dates = snapshot.dates.split(' → ');
+        if (dates[0]) missingData.checkIn = dates[0];
+        if (dates[1]) missingData.checkOut = dates[1];
+      }
+      if (!tripDraft.adults && snapshot.travelers) {
+        const adultsMatch = snapshot.travelers.match(/(\d+)\s+adult/);
+        if (adultsMatch) missingData.adults = parseInt(adultsMatch[1]);
+      }
+      
+      if (Object.keys(missingData).length > 0) {
+        applyTripPatch(tripId, missingData);
+      }
+    }
+  }, [tripId, proposal, snapshot, tripDraft]);
+
+  const heroImage = useMemo(() => {
+    // Use selected accommodation image if available, otherwise fallback to destination images
+    if (selection?.hotel?.image) {
+      return selection.hotel.image;
+    }
+    const dest = tripDraft?.destination || proposal?.title || "trip";
+    return getImagesForDestination(dest)[0];
+  }, [tripDraft, proposal, selection]);
+
+  // Basic date parsing from tripDraft.checkIn/checkOut
+  const parsedDates = useMemo(() => {
+    const depart = tripDraft?.checkIn || "";
+    const ret = tripDraft?.checkOut || "";
+    return { depart, ret };
+  }, [tripDraft]);
+
+  // Fallback helpers to pull origin/destination from an existing selection route like "YUL → CUN"
+  const parsedRoute = useMemo(() => {
+    const route = selection?.flight?.route || "";
+    if (!route.includes("→")) return { origin: "", destination: "" };
+    const [o, d] = route.split("→").map((s) => s.trim());
+    return { origin: o, destination: d };
+  }, [selection?.flight?.route]);
+
+  useEffect(() => {
+    const origin = resolveIATA(tripDraft?.departureCity) || 
+                   resolveIATA(snapshot?.departure?.split(' - ')[0]) || 
+                   parsedRoute.origin || "";
+    const destination = resolveIATA(tripDraft?.destination) || 
+                       resolveIATA(snapshot?.destination?.split(' - ')[0]) || 
+                       parsedRoute.destination || "";
+    const date = tripDraft?.checkIn || 
+                parsedDates.depart || 
+                (snapshot?.dates?.split(' → ')[0]) || 
+                selection?.flight?.date || "";
+
+    if (!origin || !destination || !date) {
+      setFlights([]);
+      setErrorFlights("Flight search needs origin, destination, and departure date. Please go back to chat with Lina to complete your trip details.");
+      return;
+    }
+
+    const run = async () => {
+      setLoadingFlights(true);
+      setErrorFlights(null);
+      try {
+        const qs = new URLSearchParams({ origin: origin.toUpperCase(), destination: destination.toUpperCase(), date });
+        const res = await fetch(`/api/partners/duffel?${qs.toString()}`);
+        const json = await res.json();
+        if (!res.ok || !json?.ok) throw new Error(json?.error || res.statusText);
+        const offers = json?.result?.data?.offers || json?.result?.offers || json?.offers || [];
+        const mapped = offers.map((o, idx) => {
+          const slice = o?.slices?.[0];
+          const firstSeg = slice?.segments?.[0];
+          const lastSeg = slice?.segments?.[slice?.segments?.length - 1];
+          const departureTime = firstSeg?.departing_at ? new Date(firstSeg.departing_at) : null;
+          const arrivalTime = lastSeg?.arriving_at ? new Date(lastSeg.arriving_at) : null;
+          const durationMs = departureTime && arrivalTime ? arrivalTime - departureTime : 0;
+          const durationHours = Math.floor(durationMs / (1000 * 60 * 60));
+          const durationMinutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+          const duration = durationMs > 0 ? `${durationHours}h ${durationMinutes}m` : "";
+          const date = departureTime ? departureTime.toLocaleDateString() : "";
+          const flightNumber = firstSeg?.marketing_carrier_flight_number || firstSeg?.operating_carrier_flight_number || "";
+          const originName = firstSeg?.origin?.iata_city_name || firstSeg?.origin?.name || origin;
+          const destinationName = lastSeg?.destination?.iata_city_name || lastSeg?.destination?.name || destination;
+          return {
+            id: o?.id || `offer-${idx}`,
+            airline: firstSeg?.marketing_carrier?.name || firstSeg?.operating_carrier?.name || "Airline",
+            route: `${origin.toUpperCase()} → ${destination.toUpperCase()}`,
+            times: `${firstSeg?.departing_at?.slice(11, 16) || ""} – ${lastSeg?.arriving_at?.slice(11, 16) || ""}`,
+            fare: o?.cabin_class || o?.cabin || "",
+            price: o?.total_currency && o?.total_amount ? `${o.total_currency} ${o.total_amount}` : "Price on request",
+            bags: o?.baggage?.included || "",
+            flightNumber,
+            duration,
+            date,
+            originName,
+            destinationName,
+            layovers: slice?.segments?.length - 1 || 0,
+          };
+        });
+        setFlights(mapped);
+      } catch (e) {
+        setFlights([]);
+        setErrorFlights(e?.message || "Failed to load flights");
+      } finally {
+        setLoadingFlights(false);
+      }
+    };
+
+    run();
+  }, [tripDraft?.departureCity, tripDraft?.destination, tripDraft?.checkIn, selection?.flight?.route, selection?.flight?.date]);
+
+  useEffect(() => {
+    const accommodationType = tripDraft?.accommodationType;
+    const style = tripDraft?.style || "";
+    const destination = tripDraft?.destination || "Paris";
+    const checkIn = tripDraft?.checkIn || "2026-02-01";
+    const checkOut = tripDraft?.checkOut || "2026-02-03";
+
+    // Check if yachts should be loaded based on accommodationType or style
+    const shouldLoadYachts = accommodationType === "Yacht" || 
+                            style.toLowerCase().includes('yacht') || 
+                            style.toLowerCase().includes('boat') || 
+                            style.toLowerCase().includes('charter');
+
+    if (shouldLoadYachts) {
+      // Load yachts from Zeniva inventory
+      const filteredYachts = yachtsData.filter(y => y.destination.toLowerCase().includes(destination.toLowerCase()) || !destination);
+      const mappedYachts = filteredYachts.map(y => ({
+        id: y.id,
+        name: y.title,
+        location: y.destination,
+        price: y.prices?.[0] || "Price on request",
+        room: "Yacht",
+        image: y.images?.[0] || y.thumbnail || "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=80",
+        images: y.images || [y.thumbnail].filter(Boolean), // Include all images for gallery
+        specs: y.specs,
+        amenities: y.amenities,
+      }));
+      setHotels(mappedYachts);
+      setProposalSelection(tripId, { hotel: mappedYachts[0] || null });
+      // Ensure accommodationType is set to "Yacht" in trip draft
+      if (tripDraft?.accommodationType !== "Yacht") {
+        applyTripPatch(tripId, { accommodationType: "Yacht" });
+      }
+      setLoadingHotels(false);
+      return;
+    }
+
+    if (accommodationType === "Airbnb" || style.toLowerCase().includes('airbnb') || style.toLowerCase().includes('private') || style.toLowerCase().includes('residence')) {
+      // Load all Airbnbs from Zeniva inventory (no destination filtering)
+      const filteredAirbnbs = airbnbsData; // Show all 100+ listings
+      const mappedAirbnbs = filteredAirbnbs.map(a => {
+        const desc = a.description;
+        const bedroomsMatch = desc.match(/Bedrooms\s*\n\s*(\d+)/i);
+        const bathroomsMatch = desc.match(/Bathrooms\s*\n\s*(\d+)/i);
+        const bedrooms = bedroomsMatch ? bedroomsMatch[1] : '?';
+        const bathrooms = bathroomsMatch ? bathroomsMatch[1] : '?';
+        return {
+          id: a.id,
+          name: a.title,
+          location: a.location,
+          price: "Price on request", // or parse from description
+          room: `${bedrooms} bed • ${bathrooms} bath`,
+          image: a.images?.[0] || a.thumbnail,
+        };
+      });
+      setHotels(mappedAirbnbs);
+      setProposalSelection(tripId, { hotel: mappedAirbnbs[0] || null });
+      // Ensure accommodationType is set to "Airbnb" in trip draft
+      if (tripDraft?.accommodationType !== "Airbnb") {
+        applyTripPatch(tripId, { accommodationType: "Airbnb" });
+      }
+      setLoadingHotels(false);
+      return;
+    }
+
+    // Default to Hotel: call Duffel stays
+    if (!destination || !checkIn || !checkOut) {
+      setHotels([]);
+      setErrorHotels("Missing destination or dates in trip draft");
+      return;
+    }
+
+    const run = async () => {
+      setLoadingHotels(true);
+      setErrorHotels(null);
+      try {
+        const qs = new URLSearchParams({
+          destination: destination,
+          checkIn,
+          checkOut,
+          guests: "2",
+          rooms: "1",
+        }).toString();
+        console.log("Fetching hotels with qs:", qs);
+        const res = await fetch(`/api/partners/duffel-stays?${qs}`);
+        const json = await res.json();
+        console.log("Hotels API response:", json);
+        
+        // Handle 503 service unavailable errors by using mocks directly
+        if (res.status === 503 || json?.meta?.status === 503 || json?.temporary) {
+          console.log("Duffel Stays API temporarily unavailable (503), using mock hotels");
+          const mocks = getMockHotels(destination);
+          setHotels(mocks);
+          setProposalSelection(tripId, { hotel: mocks[0] });
+          setErrorHotels("Hotel search temporarily unavailable (showing sample options)");
+          return;
+        }
+        
+        if (!res.ok || !json?.ok) throw new Error(json?.error || res.statusText);
+        const list = json?.offers || [];
+        console.log("Setting hotels:", list);
+        if (list.length === 0) {
+          console.log("No offers found, using mock hotels");
+          const mocks = getMockHotels(destination);
+          setHotels(mocks);
+          setProposalSelection(tripId, { hotel: mocks[0] });
+        } else {
+          setHotels(list);
+          setProposalSelection(tripId, { hotel: list[0] || null });
+        }
+      } catch (e) {
+        console.error("Hotels fetch error:", e);
+        const mocks = getMockHotels(destination);
+        setHotels(mocks);
+        setProposalSelection(tripId, { hotel: mocks[0] });
+        setErrorHotels(e?.message || "Failed to load hotels (showing mock options)");
+      } finally {
+        setLoadingHotels(false);
+      }
+    };
+
+    run();
+  }, [tripDraft?.accommodationType, tripDraft?.destination, tripDraft?.checkIn, tripDraft?.checkOut, tripDraft?.adults, tripDraft?.budget, tripId, selection?.hotel?.location]);
+
+  // Load activities from Hotelbeds API
+  useEffect(() => {
+    const destination = tripDraft?.destination || selection?.hotel?.location || "";
+    const checkIn = tripDraft?.checkIn || "";
+    const checkOut = tripDraft?.checkOut || "";
+
+    if (!destination || !checkIn || !checkOut) {
+      setActivities([]);
+      setErrorActivities("Missing destination or dates in trip draft");
+      return;
+    }
+
+    const run = async () => {
+      setLoadingActivities(true);
+      setErrorActivities(null);
+      try {
+        console.log(`🔄 Loading activities for ${destination}`);
+        const response = await fetch('/api/partners/hotelbeds/activities', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            destination: destination,
+            from: checkIn,
+            to: checkOut,
+            adults: tripDraft?.adults || 2,
+            children: 0,
+            language: "en"
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data?.ok) {
+          throw new Error(data?.error || `API returned ${response.status}`);
+        }
+
+        const mappedActivities = (data.activities || []).map(a => ({
+          id: a.id,
+          name: a.title,
+          location: a.location,
+          date: a.startDateTime ? new Date(a.startDateTime).toLocaleDateString() : "",
+          time: a.startDateTime ? new Date(a.startDateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "",
+          price: a.price,
+          supplier: a.supplierRef,
+          description: a.description || a.title,
+          image: a.images?.[0] || "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=80",
+          images: a.images || [],
+          type: 'activity',
+          rawPayload: a
+        }));
+
+        setActivities(mappedActivities);
+        console.log(`✅ Loaded ${mappedActivities.length} activities`);
+
+        // Auto-select first activity if none selected and activities were requested
+        if (mappedActivities.length > 0 && !selection?.activity && tripDraft?.includeActivities) {
+          setProposalSelection(tripId, { activity: mappedActivities[0] });
+        }
+      } catch (e) {
+        console.error('Failed to load activities:', e);
+        setActivities([]);
+        setErrorActivities(e?.message || "Failed to load activities");
+      } finally {
+        setLoadingActivities(false);
+      }
+    };
+
+    run();
+  }, [tripDraft?.destination, tripDraft?.checkIn, tripDraft?.checkOut, tripDraft?.adults, tripDraft?.includeActivities, tripId, selection?.hotel?.location, selection?.activity]);
+
+  // Load transfers from Hotelbeds API
+  useEffect(() => {
+    const destination = tripDraft?.destination || selection?.hotel?.location || "";
+    const checkIn = tripDraft?.checkIn || "";
+
+    if (!destination || !checkIn) {
+      setTransfers([]);
+      setErrorTransfers("Missing destination or check-in date in trip draft");
+      return;
+    }
+
+    const run = async () => {
+      setLoadingTransfers(true);
+      setErrorTransfers(null);
+      try {
+        console.log(`🔄 Loading transfers for ${destination}`);
+        const response = await fetch('/api/partners/hotelbeds/transfers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pickupLocation: `${destination} Airport`,
+            dropoffLocation: `${destination} City Center`,
+            pickupDate: checkIn,
+            pickupTime: "10:00",
+            adults: tripDraft?.adults || 2,
+            children: 0,
+            transferType: "PRIVATE",
+            direction: "ONE_WAY"
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data?.ok) {
+          throw new Error(data?.error || `API returned ${response.status}`);
+        }
+
+        const mappedTransfers = (data.transfers || []).map(t => ({
+          id: t.id,
+          name: t.title,
+          route: t.location,
+          date: t.startDateTime ? new Date(t.startDateTime).toLocaleDateString() : "",
+          price: t.price,
+          supplier: t.supplierRef,
+          vehicle: t.vehicle?.name || t.transferType,
+          shared: t.transferType === "SHARED",
+          image: t.images?.[0] || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=900&q=80",
+          images: t.images || [],
+          type: 'transfer',
+          rawPayload: t
+        }));
+
+        setTransfers(mappedTransfers);
+        console.log(`✅ Loaded ${mappedTransfers.length} transfers`);
+
+        // Auto-select first transfer if none selected and transfers were requested
+        if (mappedTransfers.length > 0 && !selection?.transfer && tripDraft?.includeTransfers) {
+          setProposalSelection(tripId, { transfer: mappedTransfers[0] });
+        }
+      } catch (e) {
+        console.error('Failed to load transfers:', e);
+        setTransfers([]);
+        setErrorTransfers(e?.message || "Failed to load transfers");
+      } finally {
+        setLoadingTransfers(false);
+      }
+    };
+
+    run();
+  }, [tripDraft?.destination, tripDraft?.checkIn, tripDraft?.adults, tripDraft?.includeTransfers, tripId, selection?.hotel?.location, selection?.transfer]);
+
+  const onSelectFlight = (flight) => {
+    setProposalSelection(tripId, { flight });
+  };
+
+  const onSelectHotel = (hotel) => {
+    setProposalSelection(tripId, { hotel });
+  };
+
+  const onSelectActivity = (activity) => {
+    setProposalSelection(tripId, { activity });
+  };
+
+  const onSelectTransfer = (transfer) => {
+    setProposalSelection(tripId, { transfer });
+  };
+
+  // Auto-select the first loaded flight if none chosen yet so the summary shows the live route/pricing.
+  useEffect(() => {
+    if (!selection?.flight && flights.length > 0) {
+      setProposalSelection(tripId, { flight: flights[0] });
+    }
+  }, [flights, selection?.flight, tripId]);
+
+  const onContinue = () => {
+    router.push(`/proposals/${tripId}/review`);
+  };
+
+  if (!tripId) return null;
+
+  return (
+    <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
+      <div className="mx-auto max-w-6xl px-4 py-6 space-y-6">
+        <header className="flex items-center justify-between">
+          <div>
+            <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
+              Proposal {tripId}
+            </div>
+            <h1 className="text-2xl font-black" style={{ color: TITLE_TEXT }}>
+              Select your flights and {tripDraft?.accommodationType?.toLowerCase() === 'hotel' ? 'hotel' : tripDraft?.accommodationType?.toLowerCase() === 'yacht' ? 'yacht' : 'villa'}
+            </h1>
+          </div>
+          <button
+            onClick={() => router.push(`/chat/${tripId}`)}
+            className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold"
+            style={{ color: PREMIUM_BLUE }}
+          >
+            Back to chat
+          </button>
+        </header>
+
+        <div className="relative h-56 w-full overflow-hidden rounded-2xl">
+          <img src={heroImage} alt="Destination" className="h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/35 to-black/5" />
+          <div className="absolute left-6 bottom-6 text-white">
+            <div className="text-sm font-semibold">{tripDraft?.destination || "Your trip"}</div>
+            <div className="text-2xl font-extrabold">Pick your combo</div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+          <div className="lg:col-span-2 space-y-5">
+            <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Flights</div>
+                  <h2 className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>Pick one</h2>
+                </div>
+              </div>
+              {loadingFlights && <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700">Loading flights…</div>}
+              {errorFlights && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">{errorFlights}</div>}
+              <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+                {flights.map((f) => {
+                  const active = selection?.flight?.id === f.id;
+                  return (
+                    <button
+                      key={f.id}
+                      onClick={() => onSelectFlight(f)}
+                      className={`w-full text-left rounded-xl border px-4 py-3 shadow-sm transition ${
+                        active ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm font-bold" style={{ color: TITLE_TEXT }}>
+                          {f.airline} • {f.route}
+                        </div>
+                        <div className="text-sm font-extrabold" style={{ color: PREMIUM_BLUE }}>{f.price}</div>
+                      </div>
+                      <div className="mt-1 text-xs" style={{ color: MUTED_TEXT }}>
+                        {f.times} • {f.fare} • {f.bags}
+                      </div>
+                    </button>
+                  );
+                })}
+                {!loadingFlights && flights.length === 0 && !errorFlights && (
+                  <div className="rounded-xl border border-dashed border-slate-200 bg-white p-3 text-xs text-slate-600">No flights yet. Ensure trip draft has origin/destination/date.</div>
+                )}
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>{tripDraft?.accommodationType === 'Hotel' ? 'Hotels' : tripDraft?.accommodationType === 'Yacht' ? 'Yachts' : 'Villas'}</div>
+                  <h2 className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>Pick one</h2>
+                </div>
+              </div>
+              {loadingHotels && <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700">Loading stays…</div>}
+              {errorHotels && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">{errorHotels}</div>}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[420px] overflow-y-auto pr-1">
+                {hotels.map((h) => {
+                  const active = selection?.hotel?.id === h.id;
+                  const hotelImages = getPartnerHotelImages(tripDraft?.destination || h.location || h.name);
+                  const image = h.image || hotelImages[0];
+                  const isYacht = h.room === "Yacht";
+                  const images = isYacht ? (h.images || [image]) : [image];
+                  
+                  return (
+                    <button
+                      key={h.id}
+                      onClick={() => onSelectHotel(h)}
+                      className={`text-left rounded-xl border overflow-hidden shadow-sm transition ${
+                        active ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white"
+                      }`}
+                    >
+                      <div className="h-32 w-full overflow-hidden relative">
+                        {images.length > 1 ? (
+                          // Photo gallery for yachts
+                          <div className="flex h-full">
+                            <img src={images[0]} alt={h.name} className="h-full w-2/3 object-cover" />
+                            <div className="flex-1 grid grid-cols-1 gap-0.5 p-0.5">
+                              {images.slice(1, 4).map((img, idx) => (
+                                <img key={idx} src={img} alt={`${h.name} ${idx + 2}`} className="h-full w-full object-cover rounded-sm" />
+                              ))}
+                              {images.length > 4 && (
+                                <div className="h-full w-full bg-black bg-opacity-50 flex items-center justify-center rounded-sm">
+                                  <span className="text-white text-xs font-bold">+{images.length - 4}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          // Single image for hotels
+                          <img src={image} alt={h.name} className="h-full w-full object-cover" />
+                        )}
+                      </div>
+                      <div className="p-3 space-y-1">
+                        <div className="text-sm font-bold" style={{ color: TITLE_TEXT }}>{h.name}</div>
+                        <div className="text-xs" style={{ color: MUTED_TEXT }}>{h.room} • {h.location}</div>
+                        <div className="text-sm font-extrabold" style={{ color: PREMIUM_BLUE }}>{h.price}</div>
+                      </div>
+                    </button>
+                  );
+                })}
+                {!loadingHotels && hotels.length === 0 && !errorHotels && (
+                  <div className="rounded-xl border border-dashed border-slate-200 bg-white p-3 text-xs text-slate-600">No stays yet. Ensure destination + check-in/check-out are set.</div>
+                )}
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Activities</div>
+                  <h2 className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>Optional experiences</h2>
+                </div>
+              </div>
+              {loadingActivities && <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700">Loading activities…</div>}
+              {errorActivities && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">{errorActivities}</div>}
+              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                {activities.map((a) => {
+                  const active = selection?.activity?.id === a.id;
+                  return (
+                    <button
+                      key={a.id}
+                      onClick={() => onSelectActivity(a)}
+                      className={`w-full text-left rounded-xl border px-4 py-3 shadow-sm transition ${
+                        active ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm font-bold" style={{ color: TITLE_TEXT }}>
+                          {a.name}
+                        </div>
+                        <div className="text-sm font-extrabold" style={{ color: PREMIUM_BLUE }}>{a.price}</div>
+                      </div>
+                      <div className="mt-1 text-xs" style={{ color: MUTED_TEXT }}>
+                        {a.date} at {a.time} • {a.supplier}
+                      </div>
+                    </button>
+                  );
+                })}
+                {!loadingActivities && activities.length === 0 && !errorActivities && (
+                  <div className="rounded-xl border border-dashed border-slate-200 bg-white p-3 text-xs text-slate-600">No activities available for this destination.</div>
+                )}
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Transfers</div>
+                  <h2 className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>Ground transportation</h2>
+                </div>
+              </div>
+              {loadingTransfers && <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700">Loading transfers…</div>}
+              {errorTransfers && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">{errorTransfers}</div>}
+              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                {transfers.map((t) => {
+                  const active = selection?.transfer?.id === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => onSelectTransfer(t)}
+                      className={`w-full text-left rounded-xl border px-4 py-3 shadow-sm transition ${
+                        active ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm font-bold" style={{ color: TITLE_TEXT }}>
+                          {t.name}
+                        </div>
+                        <div className="text-sm font-extrabold" style={{ color: PREMIUM_BLUE }}>{t.price}</div>
+                      </div>
+                      <div className="mt-1 text-xs" style={{ color: MUTED_TEXT }}>
+                        {t.route} • {t.date} • {t.supplier}
+                      </div>
+                    </button>
+                  );
+                })}
+                {!loadingTransfers && transfers.length === 0 && !errorTransfers && (
+                  <div className="rounded-xl border border-dashed border-slate-200 bg-white p-3 text-xs text-slate-600">No transfers available for this route.</div>
+                )}
+              </div>
+            </section>
+          </div>
+
+          <aside className="space-y-3 sticky top-4">
+            <SelectedSummary
+              flight={selection?.flight}
+              hotel={selection?.hotel}
+              activity={selection?.activity}
+              transfer={selection?.transfer}
+              tripDraft={tripDraft}
+              onProceed={onContinue}
+            />
+            <button
+              onClick={onContinue}
+              disabled={!selection?.flight || !selection?.hotel}
+              className="w-full rounded-full px-4 py-3 text-sm font-extrabold text-white"
+              style={{ backgroundColor: BRAND_BLUE, opacity: selection?.flight && selection?.hotel ? 1 : 0.6 }}
+            >
+              Continue to review
+            </button>
+            <div className="rounded-xl border border-slate-200 bg-white p-3 text-xs" style={{ color: MUTED_TEXT }}>
+              Selections are saved for this proposal. You can adjust later before payment.
+            </div>
+          </aside>
+        </div>
+      </div>
+    </main>
+  );
+}
