@@ -160,9 +160,10 @@ export default function AgentChatPage() {
                   onClick={() => setChannelId(c.id)}
                   className="w-full rounded-xl border px-3 py-2 text-left transition"
                   style={{
-                    backgroundColor: active ? "#111827" : "#0f172a",
-                    borderColor: active ? PREMIUM_BLUE : "#1e293b",
+                    backgroundColor: active ? "#111827" : c.unread > 0 ? "#1e1b4b" : "#0f172a",
+                    borderColor: active ? PREMIUM_BLUE : c.unread > 0 ? "#dc2626" : "#1e293b",
                     color: "white",
+                    boxShadow: c.unread > 0 ? "0 0 0 2px rgba(220, 38, 38, 0.3)" : "none",
                   }}
                 >
                   <div className="flex items-center justify-between text-xs font-semibold">
