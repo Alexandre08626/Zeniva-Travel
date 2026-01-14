@@ -1,0 +1,46 @@
+import { TransferComponent } from "../lib/agent/types";
+
+export const transfers: TransferComponent[] = [
+  {
+    id: "TRF-3001",
+    type: "transfer",
+    productKind: "travel",
+    status: "Quoted",
+    from: "CDG",
+    to: "Hotel Lutetia",
+    date: "2024-06-14",
+    vehicle: "Mercedes V-Class",
+    shared: false,
+    supplier: "Blacklane",
+    pricing: {
+      currency: "EUR",
+      net: 220,
+      sell: 320,
+      marginAmount: 100,
+      marginPct: 45,
+      commissionAmount: 64,
+      commissionPct: 20,
+    },
+  },
+  {
+    id: "TRF-3002",
+    type: "transfer",
+    productKind: "travel",
+    status: "Quoted",
+    from: "FCO",
+    to: "JK Place",
+    date: "2024-06-18",
+    vehicle: "BMW 7 Series",
+    shared: false,
+    supplier: "NCC Roma",
+    pricing: {
+      currency: "EUR",
+      net: 180,
+      sell: 260,
+      marginAmount: 80,
+      marginPct: 44,
+      commissionAmount: 52,
+      commissionPct: 20,
+    },
+  },
+];

@@ -1,0 +1,615 @@
+[
+  {
+    "id": "43ft-leopard-power-cat-2017",
+    "title": "43ft Leopard Power Cat (2017)",
+    "destination": "Haulover",
+    "prices": [
+      "4 hrs $1,700 all in",
+      "6 hrs $2,200 all in",
+      "8 hrs $2,700 all in",
+      "24 hrs $3,000 + gratuity + APA",
+      "1 week $18,000 + gratuity + APA"
+    ],
+    "calendar": "http://calendar.ycn.miami/white",
+    "media": "http://media.ycn.miami/white",
+    "amenities": [
+      "👨🏻‍✈️ Captain + Stew",
+      "🧊 Cooler, Ice, Sodas, Water",
+      "🏄🏼‍♀️ Floating mat, kayak, floating noodles, snorkeling gear",
+      "📍 Bill Bird Marina, FLL (+$1,000), WPB (+$1,500)"
+    ],
+    "specs": "3 beds | 2 baths | 6 sleeps + 2 crews",
+    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/blob-8d40ce2.png/:/cr=t:7.94%25",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/blob-8d40ce2.png/:/cr=t:7.94%25"
+    ]
+  },
+  {
+    "id": "45ft-lagoon-450f-2018",
+    "title": "45ft Lagoon 450F (2018)",
+    "destination": "Key West",
+    "prices": [
+      "2 hrs $2,000 + gratuity",
+      "4 hrs $3,200 + gratuity",
+      "8 hrs $5,500 + gratuity"
+    ],
+    "calendar": "http://calendar.ycn.miami/somewhere",
+    "media": "http://media.ycn.miami/somewhere",
+    "amenities": [
+      "👨🏻‍✈️ Captain + stew",
+      "🧊 Cooler, Ice, Sodas, Water",
+      "📍 Key West"
+    ],
+    "specs": null,
+    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/45%20Lagoon%20_%20photo%201.jpeg/:/cr=t:4.77%25",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/45%20Lagoon%20_%20photo%201.jpeg/:/cr=t:4.77%25"
+    ]
+  },
+  {
+    "id": "44ft-aquila-power-catamaran-2024",
+    "title": "44ft Aquila Power Catamaran (2024)",
+    "destination": "Nassau",
+    "prices": [
+      "4 hrs $3,300 all in",
+      "6 hrs $4,125 all in",
+      "8 hrs $4,950 all in",
+      "24 hrs $5,000 + gratuity + APA",
+      "1 week $30,000 + gratuity + APA"
+    ],
+    "calendar": "http://calendar.ycn.miami/moka",
+    "media": "http://media.ycn.miami/moka",
+    "amenities": [
+      "👨🏻‍✈️ Captain + Stew",
+      "🧊 Cooler, Ice, Sodas, Water",
+      "🏄🏼‍♀️ Large floating mat",
+      "📍 36 Devonshire (Nassau)"
+    ],
+    "specs": "3 beds | 3 baths | 6 sleeps + 2 crews",
+    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/Screenshot%202025-09-04%20at%205.19.17%E2%80%AFPM.png/:/cr=t:0%25",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/Screenshot%202025-09-04%20at%205.19.17%E2%80%AFPM.png/:/cr=t:0%25"
+    ]
+  },
+  {
+    "id": "45ft-jeanneau-db43-2024",
+    "title": "45ft Jeanneau DB43 (2024)",
+    "destination": "N. Bay Village",
+    "prices": [
+      "4 hrs $1,500 + gratuity",
+      "6 hrs $1,950 + gratuity",
+      "8 hrs $2,700 + gratuity",
+      "Day trip to Bimini $4,800 all in"
+    ],
+    "calendar": "http://calendar.ycn.miami/lumablu",
+    "media": "http://media.ycn.miami/lumablu",
+    "amenities": [
+      "👨🏻‍✈️ Captain",
+      "🧊 Cooler, Ice, Sodas, Water",
+      "🏄🏼‍♀️ Floating mat",
+      "📍 Yaya Restaurant (N. Bay Village)"
+    ],
+    "specs": null,
+    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/ols/2024%20Jeanneau%20DB-43%20OB-22.jpg/:/cr=t:0%25",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/ols/2024%20Jeanneau%20DB-43%20OB-22.jpg/:/cr=t:0%25"
+    ]
+  },
+  {
+    "id": "45ft-searay-420-sundancer-2004",
+    "title": "45ft SeaRay 420 Sundancer  (2004)",
+    "destination": "Key West",
+    "prices": [
+      "2 hrs $1,500 + gratuity",
+      "4 hrs $2,200 + gratuity",
+      "8 hrs $3,600 + gratuity"
+    ],
+    "calendar": "http://calendar.ycn.miami/GA",
+    "media": "http://media.ycn.miami/GA",
+    "amenities": [
+      "👨🏻‍✈️ Captain",
+      "🧊 Cooler, Ice, Sodas, Water",
+      "📍 Key West"
+    ],
+    "specs": null,
+    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/blob-ec942be.png/:/cr=t:0%25",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/blob-ec942be.png/:/cr=t:0%25"
+    ]
+  },
+  {
+    "id": "48ft-sailing-catamaran-1990-2020",
+    "title": "48ft Sailing Catamaran (1990/2020)",
+    "destination": "Coconut Grove",
+    "prices": [
+      "4 hrs $2,200 + gratuity",
+      "6 hrs $2,600 + gratuity",
+      "8 hrs $3,000 + gratuity"
+    ],
+    "calendar": "http://calendar.ycn.miami/bubble",
+    "media": "http://media.ycn.miami/bubble",
+    "amenities": [
+      "👨🏻‍✈️ Captain + Stew",
+      "🧊 Cooler, Ice, Sodas, Water, Towels",
+      "🏄🏼‍♀️ Floating mat, Dinghy",
+      "📍 Bayshore landing&nbsp;"
+    ],
+    "specs": null,
+    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/blob-c27b70e.png/:/cr=t:41.88%25",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/blob-c27b70e.png/:/cr=t:41.88%25"
+    ]
+  },
+  {
+    "id": "50ft-azimut-50-fly-2017",
+    "title": "50ft Azimut 50 Fly (2017)",
+    "destination": "Haulover",
+    "prices": [
+      "4 hrs $1,900 + gratuity",
+      "6 hrs $2,500 + gratuity",
+      "8 hrs $3,100 + gratuity",
+      "24 hrs $4,500 + gratuity + APA",
+      "1 week $27,000 + gratuity + APA"
+    ],
+    "calendar": "http://calendar.ycn.miami/kilauea",
+    "media": "http://media.ycn.miami/kilauea",
+    "amenities": [
+      "👨🏻‍✈️ Captain + Stew",
+      "🧊 Cooler, Ice, Sodas, Water, Towels, Starlink",
+      "🏄🏼‍♀️ Floating mat",
+      "📍 Bill Bird Marina"
+    ],
+    "specs": "3 beds | 2 baths | 6 sleeps + 2 crews",
+    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/blob-eb5f87a.png/:/cr=t:0%25",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/blob-eb5f87a.png/:/cr=t:0%25"
+    ]
+  },
+  {
+    "id": "52ft-prestige-500-fly-2017",
+    "title": "52ft Prestige 500 Fly (2017)",
+    "destination": "N. Bay Village",
+    "prices": [
+      "4 hrs $1,800 + gratuity",
+      "6 hrs $2,400 + gratuity",
+      "8 hrs $3,000 + gratuity",
+      "24 hrs $4,000 + gratuity + APA",
+      "1 week $24,000 + gratuity + APA"
+    ],
+    "calendar": "http://calendar.ycn.miami/ww",
+    "media": "http://media.ycn.miami/ww",
+    "amenities": [
+      "👨🏻‍✈️ Captain + Stew",
+      "🧊 Cooler, Ice, Sodas, Water, Towels, Starlink, Led lights",
+      "🏄🏼‍♀️ Floating mat, Jetski",
+      "📍 Yaya restaurant (N. Bay Village)"
+    ],
+    "specs": "3 beds | 2 baths | 6 sleeps + 2 crews",
+    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/52%20Prestige%20_%20Photo%2025.jpg/:/cr=t:0%25",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/52%20Prestige%20_%20Photo%2025.jpg/:/cr=t:0%25"
+    ]
+  },
+  {
+    "id": "68ft-azimut-66-fly-2016",
+    "title": "68ft Azimut 66 Fly (2016)",
+    "destination": "Haulover",
+    "prices": [
+      "4 hrs $3,200 + gratuity",
+      "6 hrs $4,300 + gratuity",
+      "8 hrs $5,000 + gratuity",
+      "24 hrs $6,500 + gratuity + APA",
+      "1 week $36,000 + gratuity + APA"
+    ],
+    "calendar": "http://calendar.ycn.miami/LGB",
+    "media": "http://media.ycn.miami/lgb",
+    "amenities": [
+      "👨🏻‍✈️ Captain + Stew",
+      "🧊 Cooler, Ice, Sodas, Water &amp; Towels",
+      "🏄🏼‍♀️ Floating mat",
+      "📍 Bill Bird Marina or Venetian (+$400)"
+    ],
+    "specs": "4 beds | 3 baths | 8 sleeps + 2 crews",
+    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/68%20Azimut%20_%20Photo%208.jpg/:/cr=t:0%25",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/68%20Azimut%20_%20Photo%208.jpg/:/cr=t:0%25"
+    ]
+  },
+  {
+    "id": "70ft-lagoon-630-fly-2020",
+    "title": "70ft Lagoon 630 Fly (2020)",
+    "destination": "Nassau",
+    "prices": [
+      "2 hrs $3,500 + 7.5% tax + 15% gratuity",
+      "4 hrs $4,700 + 7.5% tax + 15% gratuity",
+      "6 hrs $6,500 + 7.5% tax + 15% gratuity",
+      "8 hrs $8,500 + 7.5% tax + 15% gratuity",
+      "1 week $54,000 + 7.5% tax + 15% gratuity + APA"
+    ],
+    "calendar": null,
+    "media": "http://media.ycn.miami/atlantia",
+    "amenities": [
+      "👨🏻‍✈️ Captain + First mate + Stew",
+      "🧊 Open bar, Snacks, Ice, Sodas, Water &amp; Towels",
+      "🏄🏼‍♀️ Jetski, Seabob, Tender, Tubes, Paddleboards, Snorkeling, Floating mat",
+      "📍 Bay Street Marina (Nassau)"
+    ],
+    "specs": "6 beds | 7 baths | 8 sleeps + 3 crews",
+    "thumbnail": "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?auto=format&fit=crop&w=900&q=80",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/lagoon-benatau_64-atlantia-drone-no-name-on-it.png/:/cr=t:21.31%25"
+    ]
+  },
+  {
+    "id": "70ft-azimut-68-fly-2023",
+    "title": "70ft Azimut 68 Fly (2023)",
+    "destination": "Haulover",
+    "prices": [
+      "4 hrs $4,100 + all in",
+      "6 hrs $5,200 + all in",
+      "8 hrs $6,300 + all in",
+      "24 hrs $7,200 + gratuity + APA",
+      "1 week $43,200 + gratuity + APA"
+    ],
+    "calendar": "http://calendar.ycn.miami/spysea",
+    "media": "http://media.ycn.miami/spysea",
+    "amenities": [
+      "👨🏻‍✈️ Captain + Stew",
+      "🧊 Cooler, Ice, Sodas, Water &amp; Towels",
+      "🏄🏼‍♀️ Large floating mat",
+      "📍 Bill Bird Marina, FLL (+$1,250), WPB (+$2,250)"
+    ],
+    "specs": "4 beds | 3 baths | 8 sleeps + 2 crews",
+    "thumbnail": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=80",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/blob-3d0a532.png/:/cr=t:7.63%25"
+    ]
+  },
+  {
+    "id": "70ft-sunreef-power-cat-2017-2025",
+    "title": "70ft Sunreef Power Cat (2017/2025)",
+    "destination": "Haulover",
+    "prices": [
+      "4 hrs $5,000 all in",
+      "6 hrs $6,500 all in",
+      "8 hrs $8,000 all in",
+      "24 hrs $9,000 + gratuity + APA",
+      "1 week $54,000 + gratuity + APA"
+    ],
+    "calendar": "http://calendar.ycn.miami/blue",
+    "media": "http://media.ycn.miami/blue",
+    "amenities": [
+      "👨🏻‍✈️ Captain + Stew + Deckhand",
+      "🧊 Cooler, Ice, Sodas, Water &amp; Towels",
+      "🏄🏼‍♀️ Jacuzzi, Jetski, 2x Paddleboards, 2x Seabobs, Wakeboard, Snorkel gears, Fishing rods",
+      "📍 Bill Bird Marina, FLL (+$1,500), WPB (+$2,500)"
+    ],
+    "specs": "4 beds | 4 baths | 8 sleeps + 3 crews",
+    "thumbnail": "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=900&q=80",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/Screenshot%202025-09-04%20at%203.24.53%E2%80%AFPM.png/:/cr=t:21.69%25"
+    ]
+  },
+  {
+    "id": "72ft-azimut-72-fly-2021",
+    "title": "72ft Azimut 72 fly (2021)",
+    "destination": "Miami Beach",
+    "prices": [
+      "4 hrs $3,300 all in",
+      "6 hrs $4,400 all in",
+      "8 hrs $5,500 all in",
+      "24 hrs $6,000 + gratuity + APA",
+      "1 week $36,000 + gratuity + APA"
+    ],
+    "calendar": "http://calendar.ycn.miami/donvoyage",
+    "media": "http://media.ycn.miami/donvoyage",
+    "amenities": [
+      "👨🏻‍✈️ Captain + Stew&nbsp;",
+      "🧊 Cooler, Ice, Sodas, Water &amp; Towels",
+      "🏄🏼‍♀️ Large floating mat",
+      "📍 Miami Beach Marina"
+    ],
+    "specs": "4 beds | 4 baths | 8 sleeps + 2 crews",
+    "thumbnail": "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=900&q=80",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/72%20Azimut%20_%20Photo%209.webp/:/cr=t:0%25"
+    ]
+  },
+  {
+    "id": "80ft-azimut-78-fly-2024",
+    "title": "80ft Azimut 78 fly (2024)",
+    "destination": "Fort Lauderdale",
+    "prices": [
+      "4 hrs $5,000 + gratuity",
+      "6 hrs $6,000 + gratuity&nbsp;",
+      "8 hrs $7,000 + gratuity&nbsp;"
+    ],
+    "calendar": null,
+    "media": "http://media.ycn.miami/islandtime",
+    "amenities": [
+      "👨🏻‍✈️ Captain + Stew + Deckhand",
+      "🧊 Cooler, Ice, Sodas, Water &amp; Towels",
+      "🏄🏼‍♀️ Large floating mat",
+      "📍 Fort Lauderdale (750 S Federal Hwy, Pompano Beach FL 33062)"
+    ],
+    "specs": "4 beds | 4 baths | 8 sleeps + 2 crews",
+    "thumbnail": "https://images.unsplash.com/photo-1502657877623-f66bf489d236?auto=format&fit=crop&w=900&q=80",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/1-824deea.jpg/:/cr=t:0%25"
+    ]
+  },
+  {
+    "id": "60-azimut-fly-2015",
+    "title": "60 Azimut Fly (2015)",
+    "destination": "Miami Beach",
+    "prices": [
+      "4 hrs $2,800 + gratuity",
+      "6 hrs $3,300 + gratuity",
+      "8 hrs $4,000 + gratuity"
+    ],
+    "calendar": "http://calendar.ycn.miami/supreme2",
+    "media": "http://media.ycn.miami/supreme2",
+    "amenities": [
+      "👨🏻‍✈️ Captain + Stew",
+      "🧊 Cooler, Ice, Sodas, Water and Towels",
+      "📍Miami Beach Marina"
+    ],
+    "specs": null,
+    "thumbnail": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=900&q=80",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/60%20Azimut%20_%20Photo%2018.jpg/:/cr=t:11.09%25"
+    ]
+  },
+  {
+    "id": "62-prestige-620-fly-2014",
+    "title": "62 Prestige 620 Fly (2014)",
+    "destination": "Miami Beach",
+    "prices": [
+      "4 hrs $2,800 + gratuity",
+      "6 hrs $3,500 + gratuity",
+      "8 hrs $4,500 + gratuity"
+    ],
+    "calendar": "http://calendar.ycn.miami/worldwide",
+    "media": "http://media.ycn.miami/worldwide",
+    "amenities": [
+      "👨🏻‍✈️ Captain + Stew",
+      "🧊 Cooler, Ice, Sodas, Water and Towels",
+      "🏄🏼‍♀️ Floating carpet, Inflatable island, Water scooter",
+      "📍Miami Beach Marina"
+    ],
+    "specs": null,
+    "thumbnail": "https://images.unsplash.com/photo-1578662996442-48f60103fc96?auto=format&fit=crop&w=900&q=80",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/Screenshot%202025-08-08%20at%2010.59.34%E2%80%AFAM.png/:/cr=t:0%25"
+    ]
+  },
+  {
+    "id": "64-azimut-fly-2013",
+    "title": "64 Azimut Fly (2013)",
+    "destination": "Fort Lauderdale",
+    "prices": [
+      "4 hrs $3,500 + gratuity",
+      "6 hrs $4,300 + gratuity",
+      "8 hrs $5,100 + gratuity"
+    ],
+    "calendar": "http://calendar.ycn.miami/thirdwind",
+    "media": "http://media.ycn.miami/thirdwind",
+    "amenities": [
+      "👨🏻‍✈️ Captain + Stew",
+      "🧊 Cooler, Ice, Sodas, Water and Towels",
+      "🏄🏼‍♀️ 2 Seabobs, Floating carpet, Snorkeling gear",
+      "📍Cox's Landing"
+    ],
+    "specs": null,
+    "thumbnail": "https://images.unsplash.com/photo-1540946485063-a40da27545f8?auto=format&fit=crop&w=900&q=80",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/Screenshot%202025-08-08%20at%2010.56.04%E2%80%AFAM.png/:/cr=t:0%25"
+    ]
+  },
+  {
+    "id": "68-galeon-640-fly-2025",
+    "title": "68 Galeon 640 Fly (2025)",
+    "destination": "Key Biscayne",
+    "prices": [
+      "4 hrs $4,300 + gratuity",
+      "6 hrs $5,300 + gratuity",
+      "8 hrs $6,300 + gratuity"
+    ],
+    "calendar": "http://calendar.ycn.miami/dtm",
+    "media": "http://media.ycn.miami/dtm",
+    "amenities": [
+      "👨🏻‍✈️ Captain + Stew",
+      "🧊 Cooler, Ice, Sodas, Water and Towels",
+      "🏄🏼‍♀️ Inflatable Pool, 5x Seabobs, Williams Tender",
+      "📍Rickenbacker Marina"
+    ],
+    "specs": null,
+    "thumbnail": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?auto=format&fit=crop&w=900&q=80",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/blob-6dc22ac.png/:/cr=t:0%25"
+    ]
+  },
+  {
+    "id": "72-azimut-s7-2019",
+    "title": "72 Azimut S7 (2019)",
+    "destination": "N. Bay Village",
+    "prices": [
+      "4 hrs $4,500 all in",
+      "6 hrs $5,700 all in",
+      "8 hrs $6,900 all in"
+    ],
+    "calendar": "http://calendar.ycn.miami/wydoing",
+    "media": "http://media.ycn.miami/wyd",
+    "amenities": [
+      "👨🏻‍✈️ Captain + Stew",
+      "🧊 Cooler, Ice, Sodas, Water and Towels",
+      "🏄🏼‍♀️ 2x paddle-boards &amp; floating mat",
+      "📍 360 Condominiums&nbsp;"
+    ],
+    "specs": null,
+    "thumbnail": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/72%20Azimut%20_%20Photo%205.JPG/:/cr=t:0%25"
+    ]
+  },
+  {
+    "id": "80-numarine-2018",
+    "title": "80 Numarine (2018)",
+    "destination": "Miami River",
+    "prices": [
+      "4 hrs $5,000 + gratuity",
+      "6 hrs $6,000 + gratuity",
+      "8 hrs $7,000 + gratuity"
+    ],
+    "calendar": "http://calendar.ycn.miami/adonis",
+    "media": "http://media.ycn.miami/adonis",
+    "amenities": [
+      "👨🏻‍✈️ Captain + 2 Stews",
+      "🧊 Cooler, Ice, Sodas, Water and Towels",
+      "📍 River Landing"
+    ],
+    "specs": null,
+    "thumbnail": "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?auto=format&fit=crop&w=900&q=80",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/blob-49bb438.png/:/cr=t:0%25"
+    ]
+  },
+  {
+    "id": "84-azimut-2013",
+    "title": "84 Azimut (2013)",
+    "destination": "Coconut Grove",
+    "prices": [
+      "4 hrs $5,250 + gratuity",
+      "6 hrs $6,300 + gratuity",
+      "8 hrs $6,900 + gratuity"
+    ],
+    "calendar": "http://calendar.ycn.miami/sky",
+    "media": "http://media.ycn.miami/sky",
+    "amenities": [
+      "👨🏻‍✈️ Captain + 2 Stews",
+      "🧊 Cooler, Ice, Sodas, Water and Towels",
+      "🏄🏼‍♀️ 2 Jet Skis, 2 Seabobs, Jacuzzi, floating carpet",
+      "📍 Grove Harbour Marina"
+    ],
+    "specs": null,
+    "thumbnail": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=80",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/blob-f95add9.png/:/cr=t:8.74%25"
+    ]
+  },
+  {
+    "id": "88-princess-2012",
+    "title": "88 Princess (2012)",
+    "destination": "Miami Beach",
+    "prices": [
+      "4 hrs $5,500 + gratuity",
+      "6 hrs $6,400 + gratuity",
+      "8 hrs $7,400 + gratuity"
+    ],
+    "calendar": "http://calendar.ycn.miami/pfo",
+    "media": "http://media.ycn.miami/pfo",
+    "amenities": [
+      "👨🏻‍✈️ Captain + 2 Stews",
+      "🧊 Cooler, Ice, Sodas, Water and Towels",
+      "🏄🏼‍♀️ Jacuzzi, Float Mat, Paddle Boards",
+      "📍 Miami Beach Marina"
+    ],
+    "specs": null,
+    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/Screenshot%202025-08-08%20at%2011.04.48%E2%80%AFAM.png/:/cr=t:0%25,l:0.18%25,w:99.64%25,h:100%25/rs=w:360,h:270.6766917293233,cg:true",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/Screenshot%202025-08-08%20at%2011.04.48%E2%80%AFAM.png/:/cr=t:0%25"
+    ]
+  },
+  {
+    "id": "94-azimut-s10-2024",
+    "title": "94 Azimut S10 (2024)",
+    "destination": "Bayside",
+    "prices": [
+      "4 hrs $7,800 + gratuity",
+      "6 hrs $9,800 + gratuity",
+      "8 hrs $10,800 + gratuity"
+    ],
+    "calendar": "http://calendar.ycn.miami/rosa",
+    "media": "http://media.ycn.miami/rosa",
+    "amenities": [
+      "👨🏻‍✈️ Captain + 2 Stews",
+      "🧊 Cooler, Ice, Sodas, Water and Towels",
+      "🏄🏼‍♀️ 2 Jet Skis, 4 Seabobs, Lounge &amp; Swimming pool platforms, Inflatable Slide",
+      "📍 Bayside Marina"
+    ],
+    "specs": null,
+    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/94%20Azimut%20_%20Rosa%20Yacht.png/:/cr=t:5.36%25,l:5.6%25,w:88.79%25,h:89.28%25/rs=w:360,h:270.6766917293233,cg:true,m",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/94%20Azimut%20_%20Rosa%20Yacht.png/:/cr=t:5.36%25"
+    ]
+  },
+  {
+    "id": "96-sunseeker-2015-2022",
+    "title": "96 Sunseeker (2015/2022)",
+    "destination": "Miami Beach",
+    "prices": [
+      "4 hrs $6,300 all in",
+      "6 hrs $7,500 all in",
+      "8 hrs $8,700 all in"
+    ],
+    "calendar": "http://calendar.ycn.miami/rmmjob",
+    "media": "http://media.ycn.miami/rmmjob",
+    "amenities": [
+      "👨🏻‍✈️ Captain + 2 Stews",
+      "🧊 Cooler, Ice, Sodas, Water and Towels &nbsp;",
+      "🏄🏼‍♀️ 2 Sun-chill pads",
+      "📍Miami Beach Marina"
+    ],
+    "specs": null,
+    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/Screenshot%202025-08-08%20at%2011.18.16%E2%80%AFAM.png/:/cr=t:0%25,l:0.18%25,w:99.64%25,h:100%25/rs=w:360,h:270.6766917293233,cg:true",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/Screenshot%202025-08-08%20at%2011.18.16%E2%80%AFAM.png/:/cr=t:0%25"
+    ]
+  },
+  {
+    "id": "97-sanlorenzo-2012-2023",
+    "title": "97 SanLorenzo (2012/2023)",
+    "destination": "Miami Beach",
+    "prices": [
+      "4 hrs $7,000 + gratuity",
+      "6 hrs $8,500 + gratuity",
+      "8 hrs $10,000 + gratuity",
+      "24 hrs $11,000 + gratuity + expenses"
+    ],
+    "calendar": "http://calendar.ycn.miami/astonish",
+    "media": "http://media.ycn.miami/astonish",
+    "amenities": [
+      "👨🏻‍✈️ Captain + 2 Stews",
+      "🧊 Cooler, Ice, Sodas, Water and Towels",
+      "🏄🏼‍♀️ Jungle Gym, Trampoline, Inflatable pool",
+      "📍 Miami Beach Marina"
+    ],
+    "specs": "4 beds | 4 baths | 8 sleeps + 4 crews",
+    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/97%20San%20Lorenzo%20_%20Astonish.png/:/cr=t:10.14%25,l:27.99%25,w:52.19%25,h:80.65%25/rs=w:360,h:270.6766917293233,cg:true,m",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/97%20San%20Lorenzo%20_%20Astonish.png/:/cr=t:10.14%25"
+    ]
+  },
+  {
+    "id": "118-azimut-grande-36-metri-2025",
+    "title": "118 Azimut Grande 36 Metri (2025)",
+    "destination": "Island Gardens",
+    "prices": [
+      "8 hrs $29,000 all in",
+      "1 week $184,000 all in + APA"
+    ],
+    "calendar": null,
+    "media": "http://media.ycn.miami/tycoon",
+    "amenities": [
+      "👨🏻‍✈️ Captain + 3 Stews + Deckhand",
+      "🧊 Cooler, Ice, Sodas, Water and Towels &nbsp;",
+      "🏄🏼‍♀️ Jet Ski, Boat Tender, Snorkeling Gear, Water-slide, Noodles, Starlink",
+      "📍Island Gardens Marina"
+    ],
+    "specs": "5 beds | 5 baths | 11 sleeps + 5 crews",
+    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/blob-cb6bc4f.png/:/cr=t:7.35%25,l:21.87%25,w:71.51%25,h:80.65%25/rs=w:360,h:270.6766917293233,cg:true,m",
+    "images": [
+      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/blob-cb6bc4f.png/:/cr=t:7.35%25"
+    ]
+  }
+]
