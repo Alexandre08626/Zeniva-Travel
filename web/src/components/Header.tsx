@@ -35,6 +35,9 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
             display: block;
           }
         }
+        .mobile-menu-btn {
+          display: none;
+        }
       `}</style>
       <div className="mb-6 flex items-center justify-between header-main" style={{ paddingTop: '6px' }}>
         <div className="flex items-center gap-4 header-left">
