@@ -15,49 +15,75 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
   const agent = authUser ? isAgent(authUser) : false;
 
   return (
-    <div className="mb-6 flex items-center justify-between" style={{ paddingTop: '6px' }}>
-      <div className="flex items-center gap-4">
-        <Link href="/" className="flex items-center gap-3">
-          <Image src="/branding/logo.png" alt="Zeniva logo" width={56} height={56} />
-          <div className="hidden sm:block">
-            <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>Zeniva Travel</div>
-            <div className="text-xs flex items-center gap-1" style={{ color: MUTED_TEXT }}>
-              Powered by Lina AI
-              <img src="/branding/lina-avatar.png" alt="Lina AI" width={20} height={20} style={{ borderRadius: '50%' }} />
+    <>
+      <style>{`
+        @media (max-width: 640px) {
+          .header-main {
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            padding-bottom: 1rem;
+          }
+          .header-left {
+            text-align: center;
+          }
+          .header-right {
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 100%;
+          }
+          .header-partner {
+            display: none;
+          }
+          .header-login {
+            width: 100%;
+            text-align: center;
+          }
+        }
+      `}</style>
+      <div className="mb-6 flex items-center justify-between header-main" style={{ paddingTop: '6px' }}>
+        <div className="flex items-center gap-4 header-left">
+          <Link href="/" className="flex items-center gap-3">
+            <Image src="/branding/logo.png" alt="Zeniva logo" width={56} height={56} />
+            <div className="hidden sm:block">
+              <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>Zeniva Travel</div>
+              <div className="text-xs flex items-center gap-1" style={{ color: MUTED_TEXT }}>
+                Powered by Lina AI
+                <img src="/branding/lina-avatar.png" alt="Lina AI" width={20} height={20} style={{ borderRadius: '50%' }} />
+              </div>
             </div>
-          </div>
-          <div className="sm:hidden">
-            <div className="text-sm font-extrabold" style={{ color: TITLE_TEXT }}>Zeniva</div>
-            <div className="text-xs flex items-center gap-1" style={{ color: MUTED_TEXT }}>
-              Lina AI
-              <img src="/branding/lina-avatar.png" alt="Lina AI" width={16} height={16} style={{ borderRadius: '50%' }} />
+            <div className="sm:hidden">
+              <div className="text-sm font-extrabold" style={{ color: TITLE_TEXT }}>Zeniva</div>
+              <div className="text-xs flex items-center gap-1" style={{ color: MUTED_TEXT }}>
+                Lina AI
+                <img src="/branding/lina-avatar.png" alt="Lina AI" width={16} height={16} style={{ borderRadius: '50%' }} />
+              </div>
             </div>
-          </div>
-        </Link>
-        
-        <nav className="hidden md:flex items-center gap-3 ml-4">
-          <Link href="/yachts" className="text-sm text-slate-700 hover:underline">Yacht Charters</Link>
-          <Link href="/partners/resorts" className="text-sm text-slate-700 hover:underline">Partner Resorts</Link>
-          <Link href="/collections/group" className="text-sm text-slate-700 hover:underline">Group Trips</Link>
-          <Link href="/airbnbs" className="text-sm text-slate-700 hover:underline">Partner Airbnbs</Link>
-          {loggedIn && (
-            <Link href="/documents" className="text-sm text-slate-900 font-semibold hover:underline">My Travel Documents</Link>
-          )}
-        </nav>
-      </div>
-
-      <div className="flex items-center gap-3">
-        {!loggedIn && (
-          <Link
-            href="/partner"
-            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold mr-2"
-            style={{ color: TITLE_TEXT }}
-          >
-            Partner with us
           </Link>
-        )}
+          
+          <nav className="hidden md:flex items-center gap-3 ml-4">
+            <Link href="/yachts" className="text-sm text-slate-700 hover:underline">Yacht Charters</Link>
+            <Link href="/partners/resorts" className="text-sm text-slate-700 hover:underline">Partner Resorts</Link>
+            <Link href="/collections/group" className="text-sm text-slate-700 hover:underline">Group Trips</Link>
+            <Link href="/airbnbs" className="text-sm text-slate-700 hover:underline">Partner Airbnbs</Link>
+            {loggedIn && (
+              <Link href="/documents" className="text-sm text-slate-900 font-semibold hover:underline">My Travel Documents</Link>
+            )}
+          </nav>
+        </div>
 
-        {loggedIn ? (
+        <div className="flex items-center gap-3 header-right">
+          {!loggedIn && (
+            <Link
+              href="/partner"
+              className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold mr-2 header-partner"
+              style={{ color: TITLE_TEXT }}
+            >
+              Partner with us
+            </Link>
+          )}
+
+          {loggedIn ? (
           <>
             <div className="max-w-[220px] truncate text-xs font-semibold" style={{ color: MUTED_TEXT }} title={email}>
               {email}
