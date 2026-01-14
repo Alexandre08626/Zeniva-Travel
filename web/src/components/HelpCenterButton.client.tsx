@@ -15,7 +15,7 @@ const COMPANY_INFO = {
   email: "info@zeniva.ca"
 };
 
-export default function LinaFloatingButton() {
+export default function HelpCenterButton() {
   const [showModal, setShowModal] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {

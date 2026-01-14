@@ -5,7 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import BackButton from "../src/components/BackButton";
 import { Providers } from "./providers";
-import LinaFloatingButton from "../src/components/LinaFloatingButton.client";
+import HelpCenterButton from "../src/components/HelpCenterButton.client";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +32,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Providers>
           <BackButton />
-          <LinaFloatingButton />
+          <HelpCenterButton />
           {children}
         </Providers>
       </body>
