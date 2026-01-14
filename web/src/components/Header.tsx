@@ -22,7 +22,7 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
             flex-direction: column;
             align-items: center;
             gap: 1rem;
-            padding-bottom: 1rem;
+            padding-bottom: 0;
           }
           .header-left {
             text-align: center;
