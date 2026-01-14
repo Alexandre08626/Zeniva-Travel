@@ -131,7 +131,21 @@ export default function TravelSearchWidget() {
         <h2 className="text-lg sm:text-xl font-bold text-slate-900">Plan your perfect trip with Lina AI</h2>
         <p className="text-sm sm:text-base text-slate-600 mt-1">Your personal travel concierge powered by AI</p>
       </div>
-      <div className="flex items-center justify-between mb-4">
+
+      <div className="sm:hidden text-center py-8">
+        <div className="mb-6">
+          <img 
+            src="/branding/lina-avatar.png" 
+            alt="Lina AI" 
+            className="w-32 h-32 mx-auto rounded-full cursor-pointer hover:scale-105 transition-transform shadow-lg" 
+            onClick={() => askLina("Hello Lina, help me plan my trip")}
+          />
+        </div>
+        <h3 className="text-xl font-semibold text-white mb-2">Tap Lina to start planning</h3>
+        <p className="text-white text-sm">Your AI travel assistant is ready to help</p>
+      </div>
+
+      <div className="hidden sm:flex items-center justify-between mb-4">
         <div className="hidden sm:flex gap-2">
           {(["flights", "hotels", "cruises", "experiences", "transfers"] as Tab[]).map((t) => (
             <button
@@ -177,7 +191,7 @@ export default function TravelSearchWidget() {
         </div>
       )}
 
-      <div>
+      <div className="hidden sm:block">
         {tab === "flights" && (
           <form onSubmit={searchFlights} className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <input value={from} onChange={(e) => setFrom(e.target.value)} placeholder="From (airport/city)" required className="w-full rounded-2xl bg-slate-50 px-4 py-3" />

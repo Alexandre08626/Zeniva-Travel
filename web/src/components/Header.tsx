@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import React from "react";
+import React, { useState } from "react";
 import { PREMIUM_BLUE, TITLE_TEXT, MUTED_TEXT } from "../design/tokens";
 import { logout, useAuthStore, isAgent } from "../lib/authStore";
 import LocaleSwitcher from "./LocaleSwitcher";
@@ -13,31 +13,26 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
   const loggedIn = authUser ? true : isLoggedIn;
   const email = authUser?.email || userEmail;
   const agent = authUser ? isAgent(authUser) : false;
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <>
       <style>{`
         @media (max-width: 640px) {
           .header-main {
-            flex-direction: column;
+            flex-direction: row;
+            justify-content: space-between;
             align-items: center;
-            gap: 1rem;
             padding-bottom: 0;
           }
           .header-left {
-            text-align: center;
+            flex: 1;
           }
           .header-right {
-            flex-direction: column;
-            gap: 0.5rem;
-            width: 100%;
-          }
-          .header-partner {
             display: none;
           }
-          .header-login {
-            width: 100%;
-            text-align: center;
+          .mobile-menu-btn {
+            display: block;
           }
         }
       `}</style>
@@ -71,6 +66,12 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
             )}
           </nav>
         </div>
+
+        <button onClick={() => setMenuOpen(true)} className="hidden mobile-menu-btn p-2">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
 
         <div className="flex items-center gap-3 header-right">
           {!loggedIn && (
@@ -121,6 +122,24 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
           {!loggedIn && <LocaleSwitcher orientation="horizontal" className="h-9" />}
         </div>
       </div>
+
+      {menuOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50" onClick={() => setMenuOpen(false)}>
+          <div className="fixed bottom-0 left-0 right-0 bg-white p-6 rounded-t-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex flex-col gap-4">
+              <Link href="/partner" className="text-center py-3 bg-slate-100 rounded-lg font-semibold" onClick={() => setMenuOpen(false)}>
+                Partner with us
+              </Link>
+              <Link href="/signup" className="text-center py-3 bg-blue-500 text-white rounded-lg font-semibold" onClick={() => setMenuOpen(false)}>
+                Sign up
+              </Link>
+              <Link href="/login" className="text-center py-3 border border-slate-300 rounded-lg font-semibold" onClick={() => setMenuOpen(false)}>
+                Log in
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
