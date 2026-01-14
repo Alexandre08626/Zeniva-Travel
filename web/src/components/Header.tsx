@@ -16,29 +16,7 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <>
-      <style>{`
-        @media (max-width: 640px) {
-          .header-main {
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 0;
-          }
-          .header-left {
-            flex: 1;
-          }
-          .header-right {
-            display: none;
-          }
-          .mobile-menu-btn {
-            display: block;
-          }
-        }
-        .mobile-menu-btn {
-          display: none;
-        }
-      `}</style>
+    <div>
       <div className="mb-6 flex items-center justify-between header-main" style={{ paddingTop: '6px' }}>
         <div className="flex items-center gap-4 header-left">
           {/* Mobile: logo et titre centrés, rien d'autre */}
@@ -142,6 +120,7 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }
