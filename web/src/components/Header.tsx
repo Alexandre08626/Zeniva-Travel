@@ -18,12 +18,12 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
     <div className="mb-6 flex items-center justify-between" style={{ paddingTop: '6px' }}>
       <div className="flex items-center gap-4">
         <Link href="/" className="flex items-center gap-3">
-          <Image src="/branding/logo.png" alt="Zeniva logo" width={56} height={56} />
+          <Image src="/branding/logo.svg" alt="Zeniva logo" width={56} height={56} />
           <div className="hidden sm:block">
             <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>Zeniva Travel</div>
             <div className="text-xs flex items-center gap-1" style={{ color: MUTED_TEXT }}>
               Powered by Lina AI
-              <Image src="/branding/lina.svg" alt="Lina AI" width={16} height={16} />
+              <Image src="/branding/lina.svg" alt="Lina AI" width={20} height={20} />
             </div>
           </div>
         </Link>
