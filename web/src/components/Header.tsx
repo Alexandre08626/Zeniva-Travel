@@ -117,7 +117,7 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
           </>
         )}
 
-        <div className="flex items-center gap-2 ml-4">
+        <div className="hidden sm:flex items-center gap-2 ml-4">
           <Image src="/branding/lina-avatar.png" alt="Lina avatar" width={40} height={40} className="rounded-full" />
           {!loggedIn && <LocaleSwitcher orientation="horizontal" className="h-9" />}
         </div>
