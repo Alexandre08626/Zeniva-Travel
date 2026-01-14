@@ -4,10 +4,27 @@ import featuredTrips from "../../src/data/lina_featured_trips.json";
 import { createTrip, applyTripPatch } from "../../lib/store/tripsStore";
 import { useRouter } from "next/navigation";
 
+type Trip = {
+  id: string;
+  title: string;
+  description: string;
+  destination: string;
+  dates: string;
+  price: number;
+  currency: string;
+  image: string;
+  partner: string;
+  details: {
+    flight: boolean;
+    hotel: boolean;
+    activities: string[];
+  };
+};
+
 export default function FeaturedTripsByLina() {
   const router = useRouter();
 
-  const handleBook = (trip) => {
+  const handleBook = (trip: Trip) => {
     const destination = trip.destination.split(',')[0].trim();
     const tripId = createTrip({ title: trip.title, destination });
 
