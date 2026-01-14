@@ -1,23 +1,9 @@
 "use client";
 import "../globals.css";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 
 export default function AgentLayout({ children }: { children: React.ReactNode }) {
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  useEffect(() => {
-    const checkUnread = () => {
-      const helpTickets = JSON.parse(localStorage.getItem('helpTickets') || '[]');
-      const unread = helpTickets.filter((ticket: any) => ticket.status === 'open').length;
-      setUnreadCount(unread);
-    };
-
-    checkUnread();
-    // Check every 5 seconds
-    const interval = setInterval(checkUnread, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <div className="bg-slate-50 text-slate-900 min-h-screen">
@@ -28,16 +14,11 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
             <span>Back to main site</span>
           </a>
           <div className="flex items-center gap-4">
-            <Link href="/agent/chat" className="relative flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
+            <Link href="/agent/chat" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               <span>Agent Chat</span>
-              {unreadCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {unreadCount}
-                </span>
-              )}
             </Link>
             <div className="flex items-center gap-2 text-xs text-slate-500">
               <span>Agent mode</span>
