@@ -23,14 +23,14 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
             <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>Zeniva Travel</div>
             <div className="text-xs flex items-center gap-1" style={{ color: MUTED_TEXT }}>
               Powered by Lina AI
-              <Image src="/branding/lina-avatar.png" alt="Lina AI" width={20} height={20} />
+              <img src="/branding/lina-avatar.png" alt="Lina AI" width={20} height={20} style={{ borderRadius: '50%' }} />
             </div>
           </div>
           <div className="sm:hidden">
             <div className="text-sm font-extrabold" style={{ color: TITLE_TEXT }}>Zeniva</div>
             <div className="text-xs flex items-center gap-1" style={{ color: MUTED_TEXT }}>
               Lina AI
-              <Image src="/branding/lina-avatar.png" alt="Lina AI" width={16} height={16} />
+              <img src="/branding/lina-avatar.png" alt="Lina AI" width={16} height={16} style={{ borderRadius: '50%' }} />
             </div>
           </div>
         </Link>
