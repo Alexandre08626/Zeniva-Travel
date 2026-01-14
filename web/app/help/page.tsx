@@ -2,6 +2,13 @@
 import { useState, useEffect } from "react";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../src/design/tokens";
 
+type Message = {
+  id: number;
+  type: 'user' | 'bot';
+  content: string;
+  options?: { label: string; value: string }[];
+};
+
 const COMPANY_INFO = {
   name: "Zeniva Travel",
   address: "123 Travel Street, Paradise City, PC 12345",
@@ -10,7 +17,7 @@ const COMPANY_INFO = {
 };
 
 export default function HelpPage() {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", reason: "" });
@@ -33,7 +40,7 @@ export default function HelpPage() {
     ]);
   }, []);
 
-  const handleOptionClick = (value) => {
+  const handleOptionClick = (value: string) => {
     setMessages(prev => [...prev, { id: Date.now(), type: "user", content: value }]);
     
     if (value === "human" || value === "custom") {
@@ -45,7 +52,7 @@ export default function HelpPage() {
       }]);
     } else {
       // Handle other options
-      const responses = {
+      const responses: Record<string, string> = {
         website: "I'm sorry you're experiencing a website issue. Can you please describe the problem?",
         booking: "For booking issues, please provide your booking reference number and describe the issue.",
         general: "Feel free to ask your general question!"
@@ -72,7 +79,7 @@ export default function HelpPage() {
     }, 1000);
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Here you would send the form data to the backend or email
     console.log("Form submitted:", formData);
