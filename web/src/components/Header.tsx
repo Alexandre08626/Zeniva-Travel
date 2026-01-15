@@ -7,6 +7,7 @@ import { PREMIUM_BLUE, TITLE_TEXT, MUTED_TEXT } from "../design/tokens";
 import { logout, useAuthStore, isAgent } from "../lib/authStore";
 import LocaleSwitcher from "./LocaleSwitcher";
 import Pill from "./Pill";
+import LinaAvatar from "./LinaAvatar";
 
 export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean; userEmail?: string }) {
   const authUser = useAuthStore((s) => s.user);
@@ -31,7 +32,7 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
               <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>Zeniva Travel</div>
               <div className="text-xs flex items-center gap-1" style={{ color: MUTED_TEXT }}>
                 Powered by Lina AI
-                <img src="/branding/lina-avatar.png" alt="Lina AI" width={20} height={20} style={{ borderRadius: '50%' }} />
+                <LinaAvatar size="sm" />
               </div>
             </div>
           </Link>

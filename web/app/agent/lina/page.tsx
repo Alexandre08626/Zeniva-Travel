@@ -6,6 +6,7 @@ import { useRequireRole } from "../../../src/lib/roleGuards";
 import { addAudit, useAuthStore } from "../../../src/lib/authStore";
 import { PREMIUM_BLUE, MUTED_TEXT, ACCENT_GOLD } from "../../../src/design/tokens";
 import { askOpenAI } from "../../../src/lib/askOpenAI";
+import LinaAvatar from "../../../src/components/LinaAvatar";
 
 import { Role } from "../../../src/lib/authStore";
 
@@ -480,7 +481,7 @@ export default function LinaCommandCenter() {
             border: '1.5px solid #e3e8f0'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 24 }}>
-              <Image src="/branding/lina-avatar.png" alt="Lina" width={54} height={54} style={{ borderRadius: '50%', border: '2px solid #fff', boxShadow: '0 2px 8px #e3e8f0' }} />
+              <LinaAvatar size="lg" style={{ border: '2px solid #fff', boxShadow: '0 2px 8px #e3e8f0', width: 80, height: 80 }} />
               <div>
                 <div style={{ fontWeight: 900, fontSize: 26, color: '#1a2340', letterSpacing: 0.2 }}>Production-grade control</div>
                 <div style={{ color: '#6b7a90', fontWeight: 500, fontSize: 15, marginTop: 2 }}>Hybrid bar for manual provider search + Lina AI. Every action audited and tied to a dossier.</div>
@@ -546,8 +547,8 @@ export default function LinaCommandCenter() {
       <div className="mx-auto max-w-6xl px-5 py-8 space-y-4">
         <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div className="flex items-start gap-3">
-            <div className="h-12 w-12 rounded-full border border-slate-700 bg-slate-800 overflow-hidden shrink-0">
-              <Image src="/branding/lina-avatar.png" alt="Lina" width={48} height={48} className="h-full w-full object-cover" />
+            <div className="h-20 w-20 rounded-full border border-slate-700 bg-slate-800 overflow-hidden shrink-0">
+              <LinaAvatar size="lg" className="h-full w-full" />
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Lina Command Center · Agent</p>
@@ -669,8 +670,8 @@ export default function LinaCommandCenter() {
                 </div>
 
                 <div className="flex items-center gap-3 rounded-xl border border-slate-800 bg-gradient-to-r from-slate-900 to-slate-950 p-3 shadow-sm">
-                  <div className="h-12 w-12 rounded-full border border-slate-700 bg-slate-800 overflow-hidden">
-                    <Image src="/branding/lina-avatar.png" alt="Lina" width={48} height={48} className="h-full w-full object-cover" />
+                  <div className="h-20 w-20 rounded-full border border-slate-700 bg-slate-800 overflow-hidden">
+                    <LinaAvatar size="lg" className="h-full w-full" />
                   </div>
                   <div className="text-sm">
                     <p className="font-bold text-white">Lina est en ligne</p>

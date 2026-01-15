@@ -36,7 +36,6 @@ export default function AgentChatPage() {
 
   const quickActions = [
     "Share dossier TRIP-104 to Sara",
-    "Transfer client Lavoie to Marco",
     "Ask HQ for payment override",
     "Request proposal support",
     "@Lina summarize this thread",

@@ -25,7 +25,7 @@ export default function LinaFloatingButton({ onClick }: { onClick: () => void })
       }}
       aria-label="Ouvrir Lina, copilote IA"
     >
-      <span style={{ fontSize: 28, marginRight: 8 }}>🤖</span>
+      <span style={{ fontSize: 40, marginRight: 8 }}>🤖</span>
       Lina
       <span style={{
         background: "#fff",
