@@ -445,7 +445,7 @@ export default function AgentDashboardPage() {
                     <img
                       src="/branding/lina-avatar.png"
                       alt="Lina avatar"
-                      className="h-16 w-16 rounded-full border border-slate-200 shadow-sm"
+                      className="h-20 w-20 rounded-full border border-slate-200 shadow-sm"
                     />
                   </Link>
                   <p className="text-xs" style={{ color: MUTED_TEXT }}>
