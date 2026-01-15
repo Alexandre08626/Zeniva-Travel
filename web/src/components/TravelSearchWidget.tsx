@@ -3,6 +3,7 @@ import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BRAND_BLUE, PREMIUM_BLUE } from "../design/tokens";
+import LinaAvatar from "./LinaAvatar";
 
 <style>{`
   @media (max-width: 640px) {
@@ -131,7 +132,7 @@ export default function TravelSearchWidget() {
       {/* Mobile: Lina géante centrée, titre Lina AI centré */}
       <div className="sm:hidden flex flex-col items-center justify-center py-8">
         <div className="text-2xl font-extrabold mb-4 text-center" style={{ color: '#FFD700' }}>Lina AI</div>
-        <img src="/branding/lina-avatar.png" alt="Lina AI" style={{ width: 180, height: 180, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }} />
+        <LinaAvatar size="lg" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }} />
         <button className="mt-6 px-6 py-3 rounded-full font-bold text-white text-base" style={{ background: 'linear-gradient(90deg,#0B57FF 0%, #4DA1FF 100%)' }}>
           Start planning your trip
         </button>

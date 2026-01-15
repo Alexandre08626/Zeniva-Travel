@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { GRADIENT_START, GRADIENT_END } from "../design/tokens";
 
 type Message = {
   id: number;
@@ -144,28 +145,37 @@ export default function HelpCenterButton() {
           bottom: 32,
           right: 32,
           zIndex: 1000,
-          background: "#1e40af",
+          background: `linear-gradient(110deg, ${GRADIENT_START} 0%, ${GRADIENT_END} 60%)`,
           color: "#fff",
           border: "none",
           borderRadius: 999,
-          boxShadow: "0 4px 24px rgba(30,64,175,0.3)",
-          padding: "14px 28px 14px 18px",
+          boxShadow: `0 4px 24px rgba(8, 26, 74, 0.3)`,
+          padding: "14px 28px",
           fontWeight: 600,
           fontSize: 18,
           letterSpacing: 0.5,
           display: "flex",
           alignItems: "center",
-          gap: 12,
+          justifyContent: "center",
           cursor: "pointer",
           transition: "all 0.2s ease"
         }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.05)";
+          e.currentTarget.style.boxShadow = `0 6px 32px rgba(8, 26, 74, 0.4)`;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+          e.currentTarget.style.boxShadow = `0 4px 24px rgba(8, 26, 74, 0.3)`;
+        }}
+        onMouseDown={(e) => {
+          e.currentTarget.style.transform = "scale(0.95)";
+        }}
+        onMouseUp={(e) => {
+          e.currentTarget.style.transform = "scale(1.05)";
+        }}
         aria-label="Open Zeniva Travel Customer Support"
       >
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: 10 }}>
-          <path d="M12 1a9 9 0 00-9 9v4c0 1.1.9 2 2 2h2v-3c0-.55.45-1 1-1s1 .45 1 1v3h4v-3c0-.55.45-1 1-1s1 .45 1 1v3h2c1.1 0 2-.9 2-2v-4a9 9 0 00-9-9z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M12 15v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M8 19h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
         Help Center
       </button>
 

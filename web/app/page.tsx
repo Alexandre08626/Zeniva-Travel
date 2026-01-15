@@ -7,6 +7,7 @@ import Footer from "../src/components/Footer";
 import TravelSearchWidget from "../src/components/TravelSearchWidget";
 import LinaWidget from "../src/components/LinaWidget";
 import AutoTranslate from "../src/components/AutoTranslate";
+import LinaAvatar from "../src/components/LinaAvatar";
 import dynamic from "next/dynamic";
 import FeaturedTripsSection from "../src/components/FeaturedTripsSection";
 
@@ -308,7 +309,7 @@ export default function HomePage() {
           <div className="relative z-10 max-w-3xl">
             <div className="flex items-center gap-4 mb-6">
               <div className="h-16 w-16 rounded-full bg-white/10 flex items-center justify-center overflow-hidden">
-                <img src="/branding/lina-avatar.png" alt="Lina" className="h-full w-full object-cover" />
+                <LinaAvatar size="md" className="h-full w-full" />
               </div>
               <div>
                 <h3 className="text-2xl font-black">Lina AI, Your Travel Genius</h3>

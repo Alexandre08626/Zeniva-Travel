@@ -33,13 +33,19 @@ function CallLayout({ sidebar, chat, snapshot, videoCall }) {
               Switch to Chat
             </a>
             <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: MUTED_TEXT }}>
-              <img
-                src="/branding/lina-avatar.png"
-                alt="Lina avatar"
-                width={40}
-                height={40}
-                className="rounded-full shadow-sm"
-              />
+              <button
+                onClick={() => router.push('/agent/lina')}
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              >
+                <img
+                  src="/branding/lina-avatar.png"
+                  alt="Lina avatar"
+                  width={40}
+                  height={40}
+                  className="rounded-full shadow-sm cursor-pointer"
+                />
+                <span>Chat with Lina</span>
+              </button>
             </div>
           </div>
         </header>
