@@ -12,6 +12,7 @@ const LINA_URL =
   "https://studio.d-id.com/agents/share?id=v2_agt_IqZ8PnzM&key=WjI5dloyeGxMVzloZFhSb01ud3hNVFUxTXpJeE5EQTRNREl5TmpJMU1qTTJORFk2TkVwSWNVWk9WM0ZGVjNJNFZXSm1abU16VGxaRA==";
 
 function CallLayout({ sidebar, chat, snapshot, videoCall }) {
+  const router = useRouter();
   return (
     <main className="min-h-screen" style={{ backgroundColor: "#f9fbff" }}>
       <div className="mx-auto max-w-7xl px-4 py-6">
