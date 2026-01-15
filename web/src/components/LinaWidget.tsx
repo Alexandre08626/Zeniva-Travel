@@ -7,7 +7,7 @@ export default function LinaWidget({ size = 280 }: { size?: number }) {
   const router = useRouter();
 
   const handleClick = () => {
-    router.push('/agent/lina');
+    router.push('/chat');
   };
 
   return (
