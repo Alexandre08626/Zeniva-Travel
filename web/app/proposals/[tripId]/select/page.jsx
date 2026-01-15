@@ -134,21 +134,32 @@ export default function ProposalSelectPage() {
   }, [selection?.flight?.route]);
 
   useEffect(() => {
-    const origin = resolveIATA(tripDraft?.departureCity) || 
-                   resolveIATA(snapshot?.departure?.split(' - ')[0]) || 
-                   parsedRoute.origin || "";
-    const destination = resolveIATA(tripDraft?.destination) || 
-                       resolveIATA(snapshot?.destination?.split(' - ')[0]) || 
-                       parsedRoute.destination || "";
-    const date = tripDraft?.checkIn || 
-                parsedDates.depart || 
-                (snapshot?.dates?.split(' → ')[0]) || 
-                selection?.flight?.date || "";
+    let origin = resolveIATA(tripDraft?.departureCity) || 
+                 resolveIATA(snapshot?.departure?.split(' - ')[0]) || 
+                 parsedRoute.origin || "";
+    let destination = resolveIATA(tripDraft?.destination) || 
+                     resolveIATA(snapshot?.destination?.split(' - ')[0]) || 
+                     parsedRoute.destination || "";
+    let date = tripDraft?.checkIn || 
+              parsedDates.depart || 
+              (snapshot?.dates?.split(' → ')[0]) || 
+              selection?.flight?.date || "";
 
     if (!origin || !destination || !date) {
-      setFlights([]);
-      setErrorFlights("Flight search needs origin, destination, and departure date. Please go back to chat with Lina to complete your trip details.");
-      return;
+      // Try to use default values for testing
+      const defaultOrigin = "CDG"; // Paris Charles de Gaulle
+      const defaultDestination = "JFK"; // New York JFK
+      const defaultDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // 30 days from now
+
+      console.log("Missing flight data:", { origin, destination, date });
+      console.log("Using defaults for testing:", { defaultOrigin, defaultDestination, defaultDate });
+
+      // Use defaults for testing
+      origin = origin || defaultOrigin;
+      destination = destination || defaultDestination;
+      date = date || defaultDate;
+
+      setErrorFlights(`Using default values for testing: ${origin} → ${destination} on ${date}. Please complete your trip details in chat with Lina.`);
     }
 
     const run = async () => {
