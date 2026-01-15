@@ -13,7 +13,6 @@ const LINA_URL =
 
 function CallLayout({ sidebar, chat, snapshot, videoCall }) {
   const router = useRouter();
-  const router = useRouter();
   return (
     <main className="min-h-screen" style={{ backgroundColor: "#f9fbff" }}>
       <div className="mx-auto max-w-7xl px-4 py-6">
