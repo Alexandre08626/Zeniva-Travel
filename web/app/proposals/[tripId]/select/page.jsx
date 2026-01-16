@@ -158,8 +158,6 @@ export default function ProposalSelectPage() {
       origin = origin || defaultOrigin;
       destination = destination || defaultDestination;
       date = date || defaultDate;
-
-      setErrorFlights(`Using default values for testing: ${origin} → ${destination} on ${date}. Please complete your trip details in chat with Lina.`);
     }
 
     const run = async () => {

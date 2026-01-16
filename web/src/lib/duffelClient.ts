@@ -37,13 +37,17 @@ export async function searchDuffelOffers(params: Record<string, any> = {}) {
         const txt = await res.text();
         // If version unsupported, try next candidate
         if (res.status === 400 && txt.includes('unsupported_version')) {
-          lastError = new Error(`Duffel version ${version} unsupported: ${txt}`);
+          lastError = new Error(`Duffel version ${version} unsupported: ${txt.slice(0, 200)}`);
           continue;
         }
-        throw new Error(`Duffel API error (${version}): ${res.status} ${txt}`);
+        throw new Error(`Duffel API error (${version}): ${res.status} ${txt.slice(0, 200)}`);
       }
 
-      return res.json();
+      try {
+        return await res.json();
+      } catch (jsonErr) {
+        throw new Error(`Duffel API returned invalid JSON (${version}): ${(jsonErr as Error).message}`);
+      }
     } catch (err) {
       lastError = err;
     }
@@ -91,10 +95,14 @@ export async function searchStays(params: {
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`Stays search failed: ${response.status} ${error}`);
+    throw new Error(`Stays search failed: ${response.status} ${error.slice(0, 200)}`);
   }
 
-  return response.json();
+  try {
+    return await response.json();
+  } catch (jsonErr) {
+    throw new Error(`Stays API returned invalid JSON: ${(jsonErr as Error).message}`);
+  }
 }
 
 export async function fetchStayRates(searchResultId: string) {
