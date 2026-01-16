@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 
-// Hotelbeds test environment credentials
-const HOTELBEDS_API_KEY = "1504c90e768f256957f02a57a18d7e68";
-const HOTELBEDS_API_SECRET = "2fa6e25b37";
-const HOTELBEDS_BASE_URL = "https://api.test.hotelbeds.com";
+// Hotelbeds credentials from environment variables
+const HOTELBEDS_API_KEY = process.env.HOTELBEDS_API_KEY || "1504c90e768f256957f02a57a18d7e68";
+const HOTELBEDS_API_SECRET = process.env.HOTELBEDS_API_SECRET || "2fa6e25b37";
+const HOTELBEDS_BASE_URL = process.env.HOTELBEDS_BASE_URL_TEST || "https://api.test.hotelbeds.com";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
