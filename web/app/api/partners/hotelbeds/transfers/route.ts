@@ -134,7 +134,21 @@ export async function POST(req: Request) {
       });
     }
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      const errorText = await response.text();
+      console.error(`[${requestId}] JSON parse error:`, parseError, `Response text (first 200 chars):`, errorText.substring(0, 200));
+      return NextResponse.json({
+        ok: true,
+        transfers: getMockTransfers(pickupLocation, dropoffLocation),
+        fallback: true,
+        error: `JSON parse error: ${String(parseError).substring(0, 200)}`,
+        requestId,
+        responseTime
+      });
+    }
     console.log(`[${requestId}] Found ${data.transfers?.length || 0} transfers`);
 
     // Transform Hotelbeds response to UnifiedItem format

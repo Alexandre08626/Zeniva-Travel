@@ -100,7 +100,27 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: true, offers, rawCount: offers.length });
   } catch (err: any) {
     console.error('Duffel Stays API error:', err?.message || String(err));
-    
+
+    // If Duffel denies access to Live mode (403), return friendly mock fallback so the UI can continue
+    if (err?.message?.includes('403') && err?.message?.toLowerCase().includes('not approved')) {
+      console.warn('Duffel Stays Live access denied — returning mock offers as fallback');
+      const mockOffers = [
+        {
+          id: `mock-stay-1-${destination}`,
+          name: `Sample Hotel near ${destination}`,
+          location: destination,
+          price: "EUR 120/night",
+          room: "Standard Room",
+          perks: ["Free cancellation", "Breakfast included"],
+          rating: 4,
+          image: "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80",
+          searchResultId: `mock-${Date.now()}`
+        }
+      ];
+
+      return NextResponse.json({ ok: true, offers: mockOffers, fallback: true, error: err?.message || String(err) }, { status: 200 });
+    }
+
     // Check if it's a 503 service unavailable error
     if (err?.message?.includes('503') || err?.message?.includes('service_unavailable')) {
       return NextResponse.json({ 
@@ -109,7 +129,7 @@ export async function GET(req: Request) {
         temporary: true 
       }, { status: 503 });
     }
-    
+
     return NextResponse.json({ ok: false, error: err?.message || String(err) }, { status: 502 });
   }
 }
