@@ -328,9 +328,13 @@ function HotelsSearchContent() {
                         <p className="text-xs text-slate-600">{h.location}</p>
                         <p className="text-xs text-slate-600">{h.room}</p>
                         <div className="flex flex-wrap gap-1 text-[11px] text-slate-700">
-                          {h.perks?.map((p) => (
-                            <span key={p} className="rounded-full bg-white border px-2 py-[3px]">{p}</span>
-                          ))}
+                          {(h.perks || []).map((p: any, idx: number) => {
+                            const label = typeof p === 'string' ? p : (p && (p.label || p.name)) || JSON.stringify(p);
+                            const key = `${label}-${idx}`;
+                            return (
+                              <span key={key} className="rounded-full bg-white border px-2 py-[3px]">{label}</span>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
@@ -372,9 +376,13 @@ function HotelsSearchContent() {
                         <p className="text-xs text-slate-600">{h.location}</p>
                         <p className="text-xs text-slate-600">{h.room}</p>
                         <div className="flex flex-wrap gap-1 text-[11px] text-slate-700">
-                          {h.perks?.map((p) => (
-                            <span key={p} className="rounded-full bg-white border px-2 py-[3px]">{p}</span>
-                          ))}
+                          {(h.perks || []).map((p: any, idx: number) => {
+                            const label = typeof p === 'string' ? p : (p && (p.label || p.name)) || JSON.stringify(p);
+                            const key = `${label}-${idx}`;
+                            return (
+                              <span key={key} className="rounded-full bg-white border px-2 py-[3px]">{label}</span>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
