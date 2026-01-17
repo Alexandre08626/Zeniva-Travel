@@ -1,9 +1,12 @@
 {
-  "name": "zeniva-web-root",
+  "name": "zeniva-root",
   "private": true,
   "scripts": {
-    "dev": "npm --prefix web run dev",
+    "vercel-build": "npm --prefix web run build",
     "build": "npm --prefix web run build",
-    "start": "npm --prefix web run start"
+    "dev": "npm --prefix web run dev"
+  },
+  "dependencies": {
+    "next": "16.1.1"
   }
 }
