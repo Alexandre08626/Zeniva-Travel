@@ -1,0 +1,38 @@
+{
+  "ok": true,
+  "offers": [
+    {
+      "id": "srr_0000B2LlhgvBd5oLX8Vkdx",
+      "name": "Duffel Test Hotel",
+      "location": "",
+      "price": "Price on request",
+      "room": "Room available",
+      "perks": [
+        {
+          "description": "Parking",
+          "type": "parking"
+        },
+        {
+          "description": "Gym",
+          "type": "gym"
+        },
+        {
+          "description": "Wi-Fi",
+          "type": "wifi"
+        },
+        {
+          "description": "24-Hour Front Desk",
+          "type": "24_hour_front_desk"
+        },
+        {
+          "description": "Hearing Impaired Services",
+          "type": "accessibility_hearing"
+        }
+      ],
+      "rating": 4,
+      "image": "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80",
+      "searchResultId": "srr_0000B2LlhgvBd5oLX8Vkdx"
+    }
+  ],
+  "rawCount": 1
+}

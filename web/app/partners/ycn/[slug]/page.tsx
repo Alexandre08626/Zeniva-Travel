@@ -2,6 +2,7 @@ import { getYcnPackages } from '@/src/data/partners/ycn';
 import { getImagesForDestination } from '@/src/lib/images';
 import Link from 'next/link';
 import Image from 'next/image';
+import YcnGallery from '@/src/components/YcnGallery.client';
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -22,11 +23,42 @@ export default async function YcnPartnerPage({ params }: { params: Promise<{ slu
 
   const destinationKey = item.destination || item.title || 'yacht';
   const partnerImages = (item.images && item.images.length ? item.images : []).filter(Boolean);
-  const gallery = Array.from(new Set([
+  let gallery = Array.from(new Set([
     item.thumbnail,
     ...partnerImages,
     ...(partnerImages.length === 0 ? getImagesForDestination(destinationKey) : []),
   ].filter(Boolean))) as string[];
+
+  // If the partner didn't provide images, try to fetch a gallery from the partner site (server-side)
+  if (gallery.length < 3) {
+    try {
+      const partnerUrl = `https://ycn.miami/${slug}`;
+      const resp = await fetch(partnerUrl, { method: 'GET' });
+      if (resp.ok) {
+        const html = await resp.text();
+        // crude but effective extraction of <img src="...">
+        const matches = Array.from(html.matchAll(/<img[^>]+src=['"]([^'"\s>]+)['"]/gi)).map((m) => m[1]);
+        const unique = Array.from(new Set(matches));
+        const normalized = unique
+          .map((src) => {
+            try {
+              return new URL(src, 'https://ycn.miami').toString();
+            } catch (e) {
+              return null;
+            }
+          })
+          .filter((s): s is string => Boolean(s))
+          .filter((s) => /\.(jpe?g|png|webp|avif)(\?|$)/i.test(s));
+        const cleaned = normalized.slice(0, 12);
+        if (cleaned.length > 0) {
+          gallery = Array.from(new Set([...gallery, ...cleaned]));
+        }
+      }
+    } catch (e) {
+      console.log('Failed to fetch partner images from ycn.miami for', slug, e);
+    }
+  }
+
   const hero = gallery[0] || '/branding/icon-proposals.svg';
 
   return (
@@ -58,7 +90,7 @@ export default async function YcnPartnerPage({ params }: { params: Promise<{ slu
                   </a>
                 )}
                 <Link href="/payment" className="inline-flex items-center px-4 py-2 rounded-full bg-black text-white text-sm font-semibold shadow">
-                  Pay now
+                  Book now
                 </Link>
                 <Link href="/chat?prompt=Plan%20a%20yacht%20charter" className="inline-flex items-center px-4 py-2 rounded-full bg-black text-white text-sm font-semibold shadow">
                   Book with concierge
@@ -89,25 +121,10 @@ export default async function YcnPartnerPage({ params }: { params: Promise<{ slu
           </div>
         </div>
 
-        {gallery.length > 1 && (
-          <div className="bg-white rounded-2xl shadow p-6">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">Gallery</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {gallery.map((img, i) => (
-                <div key={i} className="h-40 rounded-xl overflow-hidden bg-slate-100">
-                  <Image
-                    src={img}
-                    alt={`${item.title} photo ${i + 1}`}
-                    width={900}
-                    height={520}
-                    className="h-full w-full object-cover"
-                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <div>
+          {/* Client-side gallery: allows requesting partner photos when missing */}
+          <YcnGallery initialGallery={gallery} slug={slug} />
+        </div>
 
         <div className="flex gap-3">
           <Link href="/yachts" className="inline-flex items-center px-4 py-2 rounded-full bg-white border text-sm font-semibold text-slate-800 shadow-sm">Back to yachts</Link>

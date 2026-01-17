@@ -3,6 +3,9 @@
 import React, { useMemo, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useAuthStore } from "../../../src/lib/authStore";
+import { useTripsStore, createTrip } from "../../../lib/store/tripsStore";
+import { upsertDocuments, getDocumentsForUser, DocumentRecord } from "../../../src/lib/documentsStore";
 
 type Params = {
   destination?: string;
@@ -59,6 +62,10 @@ function HotelsSearchContent() {
   const [selectedRateId, setSelectedRateId] = useState<string>("");
   const [quote, setQuote] = useState<any>(null);
   const [bookingStep, setBookingStep] = useState<'search' | 'rates' | 'quote' | 'booking'>('search');
+
+  const user = useAuthStore((s) => s.user);
+  const userId = user?.email || "";
+  const { trips } = useTripsStore((s) => ({ trips: s.trips }));
 
   const summary = useMemo(() => {
     const stay = checkIn && checkOut ? `${checkIn} → ${checkOut}` : checkIn || checkOut || "Select dates";
@@ -137,6 +144,31 @@ function HotelsSearchContent() {
       }
 
       setBookingStep('booking');
+
+      // Persist a document record so the confirmation appears in My Travel Documents
+      try {
+        const booking = json.booking || json;
+        const docId = booking?.id || booking?.booking_reference || `booking-${Date.now()}`;
+        const tripId = trips[0]?.id || createTrip({ title: selectedSearchResult?.name || 'Hotel booking', destination: selectedSearchResult?.location || '', dates: `${checkIn} → ${checkOut}`, travelers: guests });
+        const existing = (getDocumentsForUser(userId) || {})[tripId] || [];
+        const now = new Date().toISOString();
+        const doc: DocumentRecord = {
+          id: String(docId),
+          tripId,
+          userId,
+          type: 'confirmation',
+          title: `Hotel confirmation (${selectedSearchResult?.name || 'Hotel'})`,
+          provider: booking?.provider || 'Duffel',
+          confirmationNumber: booking?.booking_reference || booking?.reference || booking?.id || '',
+          url: `/test/duffel-stays/confirmation?docId=${encodeURIComponent(String(docId))}`,
+          updatedAt: now,
+          details: booking ? JSON.stringify(booking) : undefined,
+        };
+        upsertDocuments(userId, tripId, [doc, ...existing]);
+      } catch (err) {
+        console.error('Failed to upsert confirmation document:', err);
+      }
+
       // Handle successful booking - could redirect to confirmation page
       alert('Booking created successfully!');
     } catch (e: any) {

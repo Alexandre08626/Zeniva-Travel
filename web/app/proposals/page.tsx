@@ -4,7 +4,7 @@ import Link from "next/link";
 import Header from "../../src/components/Header";
 import Footer from "../../src/components/Footer";
 import { LIGHT_BG, TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE, ACCENT_GOLD } from "../../src/design/tokens";
-import { useTripsStore } from "../../lib/store/tripsStore";
+import { useTripsStore, deleteTrip } from "../../lib/store/tripsStore";
 
 function formatDate(value?: string) {
   if (!value) return "Saved now";
@@ -153,13 +153,15 @@ export default function ProposalsPage() {
                     >
                       Continue booking
                     </Link>
-                    <Link
-                      href={`/proposals/${p.tripId}`}
-                      className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold"
-                      style={{ color: TITLE_TEXT }}
+                    <button
+                      className="rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50"
+                      onClick={() => {
+                        if (!confirm('Supprimer cette proposition ? Cette action est irréversible.')) return;
+                        deleteTrip(p.tripId);
+                      }}
                     >
-                      View details
-                    </Link>
+                      Supprimer
+                    </button>
                       <button
                         className="rounded-full px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-emerald-600 to-blue-600 border-2 border-emerald-500 hover:border-blue-500 hover:from-emerald-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl"
                         style={{ minWidth: 140 }}

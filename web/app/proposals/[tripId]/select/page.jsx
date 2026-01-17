@@ -47,8 +47,15 @@ const iataMap = {
 
 function resolveIATA(city) {
   if (!city) return "";
+  const normalized = city.trim().toLowerCase();
+  // Case-insensitive lookup in iataMap
+  for (const [k, v] of Object.entries(iataMap)) {
+    const key = k.toLowerCase();
+    if (key === normalized || normalized.includes(key) || key.includes(normalized)) {
+      return v;
+    }
+  }
   const upper = city.toUpperCase();
-  if (iataMap[upper]) return iataMap[upper];
   // If already 3 letters, assume IATA
   if (upper.length === 3 && /^[A-Z]{3}$/.test(upper)) return upper;
   return upper.slice(0, 3); // fallback
@@ -541,7 +548,20 @@ export default function ProposalSelectPage() {
                   <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Flights</div>
                   <h2 className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>Pick one</h2>
                 </div>
+
+                {/* Allow user to change ONLY the departure city here (destination/dates locked for this organized trip) */}
+                <div className="mt-3 mb-3 flex gap-3 items-center">
+                  <label className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Departure</label>
+                  <input
+                    value={tripDraft?.departureCity || ''}
+                    onChange={(e) => applyTripPatch(tripId, { departureCity: e.target.value })}
+                    placeholder="Enter departure city (e.g., YUL, New York)"
+                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm w-64"
+                  />
+                  <div className="text-xs text-slate-400">Only departure can be changed for this organized trip.</div>
+                </div>
               </div>
+
               {loadingFlights && <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700">Loading flights…</div>}
               {errorFlights && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">{errorFlights}</div>}
               <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
@@ -568,7 +588,30 @@ export default function ProposalSelectPage() {
                   );
                 })}
                 {!loadingFlights && flights.length === 0 && !errorFlights && (
-                  <div className="rounded-xl border border-dashed border-slate-200 bg-white p-3 text-xs text-slate-600">No flights yet. Ensure trip draft has origin/destination/date.</div>
+                  <div className="rounded-xl border border-dashed border-slate-200 bg-white p-3 text-xs text-slate-600">
+                    <div>No flights yet. Ensure trip draft has origin/destination/date.</div>
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        onClick={() => {
+                          const defaultOrigin = "Paris";
+                          const defaultDestination = "New York";
+                          const defaultCheckIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                          const defaultCheckOut = new Date(Date.now() + 33 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                          applyTripPatch(tripId, { departureCity: defaultOrigin, destination: defaultDestination, checkIn: defaultCheckIn, checkOut: defaultCheckOut });
+                        }}
+                        className="rounded-full px-3 py-1 text-xs font-semibold border border-slate-200 bg-white"
+                      >
+                        Auto-fill sample trip
+                      </button>
+                      {/* Editing whole trip details is disabled for organized featured trips; only departure is editable here */}
+                      <button
+                        onClick={() => alert('Editing full trip details is disabled on this page. Change only the departure city.')}
+                        className="rounded-full px-3 py-1 text-xs font-semibold border border-slate-200 bg-white"
+                      >
+                        Edit trip details (locked)
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
             </section>
@@ -600,7 +643,6 @@ export default function ProposalSelectPage() {
                     >
                       <div className="h-32 w-full overflow-hidden relative">
                         {images.length > 1 ? (
-                          // Photo gallery for yachts
                           <div className="flex h-full">
                             <img src={images[0]} alt={h.name} className="h-full w-2/3 object-cover" />
                             <div className="flex-1 grid grid-cols-1 gap-0.5 p-0.5">
@@ -615,7 +657,6 @@ export default function ProposalSelectPage() {
                             </div>
                           </div>
                         ) : (
-                          // Single image for hotels
                           <img src={image} alt={h.name} className="h-full w-full object-cover" />
                         )}
                       </div>

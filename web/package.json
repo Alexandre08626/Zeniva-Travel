@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:lina": "node scripts/test-lina.mjs"
+    "test:lina": "node scripts/test-lina.mjs",
+    "test:duffel:e2e": "node scripts/duffel-stays-e2e.mjs",
+    "pack:duffel:artifacts": "node scripts/pack-duffel-artifacts.mjs"
   },
   "dependencies": {
     "html-pdf-node": "^1.0.8",

@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Turbopack root forced to the `web` directory to avoid workspace-root resolution
+  // when multiple lockfiles exist in the repository root.
+  turbopack: {
+    // point to the current directory (the `web` project) — do NOT use `./web` from inside `web/`
+    root: ".",
+  },
   images: {
     remotePatterns: [
       {

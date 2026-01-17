@@ -24,17 +24,37 @@ type Trip = {
 export default function FeaturedTripsByLina() {
   const router = useRouter();
 
+  const parseDates = (datesStr: string) => {
+    if (!datesStr) return {};
+    // Matches formats like "March 15-20, 2026" or "Jun 1-10, 2026"
+    const m = datesStr.match(/([A-Za-z]+)\s+(\d{1,2})-(\d{1,2}),\s*(\d{4})/);
+    if (m) {
+      const [, monthName, dayStartStr, dayEndStr, yearStr] = m;
+      const dayStart = parseInt(dayStartStr, 10);
+      const dayEnd = parseInt(dayEndStr, 10);
+      const year = parseInt(yearStr, 10);
+      // convert month name to month number (1-12)
+      const month = new Date(`${monthName} 1, ${year}`).getMonth() + 1;
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const checkIn = `${year}-${pad(month)}-${pad(dayStart)}`;
+      const checkOut = `${year}-${pad(month)}-${pad(dayEnd)}`;
+      return { checkIn, checkOut };
+    }
+    return {};
+  };
+
   const handleBook = (trip: Trip) => {
     const destination = trip.destination.split(',')[0].trim();
     const tripId = createTrip({ title: trip.title, destination });
 
-    let checkIn, checkOut;
-    if (trip.id === 'paris-romantic-getaway') {
-      checkIn = '2026-03-15';
-      checkOut = '2026-03-20';
-    } else if (trip.id === 'miami-beach-vacation') {
-      checkIn = '2026-04-10';
-      checkOut = '2026-04-15';
+    let { checkIn, checkOut } = parseDates(trip.dates) as { checkIn?: string; checkOut?: string };
+
+    // Fallback defaults when dates not parseable
+    if (!checkIn) {
+      const defaultCheckIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const defaultCheckOut = new Date(Date.now() + 33 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      checkIn = defaultCheckIn;
+      checkOut = defaultCheckOut;
     }
 
     applyTripPatch(tripId, {
@@ -45,7 +65,7 @@ export default function FeaturedTripsByLina() {
       children: 0,
       currency: trip.currency,
       budget: trip.price,
-      departureCity: "New York", // Default origin for flights
+      // departureCity intentionally left undefined so the client chooses origin on the Select page
     });
 
     router.push(`/proposals/${tripId}/select`);

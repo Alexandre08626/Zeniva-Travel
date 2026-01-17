@@ -262,13 +262,6 @@ export default function HomePage() {
               </h2>
               <p className="text-slate-600">Browse curated travel collections tailored by Lina.</p>
             </div>
-            <Link
-              href="/yachts"
-              className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-primary-600 hover:text-primary-700"
-            >
-              Yacht Charters
-              <span aria-hidden>→</span>
-            </Link>
           </div>
           <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
             {COLLECTIONS.map((c) => (
