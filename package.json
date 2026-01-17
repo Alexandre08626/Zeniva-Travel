@@ -1,0 +1,13 @@
+{
+  "name": "zeniva-web-root",
+  "private": true,
+  "scripts": {
+    "dev": "cd web && npm run dev",
+    "build": "cd web && npm run build",
+    "start": "cd web && npm run start",
+    "lint": "cd web && npm run lint"
+  },
+  "dependencies": {
+    "next": "16.1.1"
+  }
+}
