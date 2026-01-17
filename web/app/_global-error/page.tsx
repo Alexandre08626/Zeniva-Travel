@@ -1,15 +1,17 @@
-import React from 'react';
+export const dynamic = 'force-dynamic';
 
 export default function GlobalErrorPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-white">
-      <div className="text-center p-8">
-        <h1 className="text-2xl font-semibold">Something went wrong</h1>
-        <p className="mt-3 text-sm text-slate-600">We're sorry — the team has been notified.</p>
-        <div className="mt-6">
-          <a href="/" className="text-blue-600 underline">Return to home</a>
+    <html>
+      <body style={{display: 'flex', minHeight: '100vh', alignItems:'center', justifyContent:'center'}}>
+        <div style={{textAlign: 'center'}}>
+          <h1>Something went wrong</h1>
+          <p>We're sorry — please try again later.</p>
+          <div style={{marginTop: 12}}>
+            <a href="/">Return to home</a>
+          </div>
         </div>
-      </div>
-    </main>
+      </body>
+    </html>
   );
 }
