@@ -103,6 +103,26 @@ npm run test:lina
 
 This posts to `/api/lina` with a sample prompt and fails fast if the provider or env are misconfigured.
 
+### Duffel Stays end-to-end demo
+
+We provide a convenience E2E script that performs a full Stays search → rates → quote → booking flow (saves artifacts and a confirmation screenshot).
+
+Prerequisites:
+- Dev server running: `npm run dev` (from `web/`)
+- Use Duffel **test** keys (or request Duffel to activate Live mode). Duffel test keys begin with `duffel_test_`.
+
+Run the demo script:
+
+```bash
+# from the repo root
+cd web
+npm run test:duffel:e2e
+```
+
+Artifacts (search results, rates, quote, booking and a screenshot) are written to `web/scripts/artifacts/`.
+
+If your Duffel account is not yet approved for Live mode, the server will automatically attempt an Amadeus fallback or return mock offers for UI testing.
+
 ## API Endpoints
 
 - `/api/partners/duffel` - Flight search

@@ -26,6 +26,30 @@ function TripCard({
   const confirmations = docs.filter((d) => d.type === "confirmation" || d.type === "hotel" || d.type === "transfer" || d.type === "excursion");
   const files = docs.filter((d) => d.type !== "confirmation");
 
+  // Deduplicate by id to avoid rendering duplicate keys (preserve first occurrence)
+  const confirmationsUnique = (() => {
+    const byId = new Map<string, DocumentRecord>();
+    for (const d of confirmations) {
+      if (!d || !d.id) continue;
+      if (!byId.has(d.id)) byId.set(d.id, d);
+      else console.warn(`Duplicate document id found for trip ${tripId}:`, d.id);
+    }
+    return Array.from(byId.values());
+  })();
+
+  const filesUnique = (() => {
+    const byId = new Map<string, DocumentRecord>();
+    for (const d of files) {
+      if (!d || !d.id) continue;
+      if (!byId.has(d.id)) byId.set(d.id, d);
+      else console.warn(`Duplicate document id found for trip ${tripId}:`, d.id);
+    }
+    return Array.from(byId.values());
+  })();
+
+  // Build a set of confirmation ids so files can point to the confirmation view when applicable
+  const confirmationIds = new Set(confirmationsUnique.map((d) => d.id));
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -65,21 +89,33 @@ function TripCard({
       <div className="grid gap-4 md:grid-cols-2">
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2">
           <div className="text-sm font-bold" style={{ color: TITLE_TEXT }}>Confirmations & References</div>
-          {confirmations.length === 0 ? (
+          {confirmationsUnique.length === 0 ? (
             <div className="text-xs" style={{ color: MUTED_TEXT }}>No confirmations yet.</div>
           ) : (
             <ul className="space-y-2 text-sm" style={{ color: TITLE_TEXT }}>
-              {confirmations.map((d) => (
-                <li key={d.id} className="rounded-lg bg-white border border-slate-200 px-3 py-2">
-                  <div className="font-bold">{d.title}</div>
-                  <div className="text-xs" style={{ color: MUTED_TEXT }}>
-                    {d.provider || "Provider"} · Ref: {d.confirmationNumber || "TBC"}
-                  </div>
-                  {d.updatedAt && (
-                    <div className="text-[11px]" style={{ color: MUTED_TEXT }}>
-                      Updated {new Date(d.updatedAt).toLocaleString()}
+              {confirmationsUnique.map((d) => (
+                <li key={`${tripId}-${d.id}`} className="rounded-lg bg-white border border-slate-200 px-3 py-2 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="font-bold">{d.title}</div>
+                    <div className="text-xs" style={{ color: MUTED_TEXT }}>
+                      {d.provider || "Provider"} · Ref: {d.confirmationNumber || "TBC"}
                     </div>
-                  )}
+                    {d.updatedAt && (
+                      <div className="text-[11px]" style={{ color: MUTED_TEXT }}>
+                        Updated {new Date(d.updatedAt).toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-shrink-0">
+                    <Link
+                      href={`/test/duffel-stays/confirmation?docId=${encodeURIComponent(d.id)}`}
+                      className="rounded-full px-3 py-1 text-xs font-bold text-white"
+                      style={{ backgroundColor: PREMIUM_BLUE }}
+                    >
+                      View confirmation
+                    </Link>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -88,29 +124,33 @@ function TripCard({
 
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2">
           <div className="text-sm font-bold" style={{ color: TITLE_TEXT }}>Documents</div>
-          {files.length === 0 ? (
+          {filesUnique.length === 0 ? (
             <div className="text-xs" style={{ color: MUTED_TEXT }}>No documents yet.</div>
           ) : (
             <ul className="space-y-2 text-sm" style={{ color: TITLE_TEXT }}>
-              {files.map((d) => (
-                <li key={d.id} className="rounded-lg bg-white border border-slate-200 px-3 py-2 flex items-center justify-between gap-3">
-                  <div>
-                    <div className="font-bold">{d.title}</div>
-                    <div className="text-xs" style={{ color: MUTED_TEXT }}>
-                      {d.provider || "Provider"} · Ref: {d.confirmationNumber || "TBC"}
+              {filesUnique.map((d) => {
+                const isConfirmation = confirmationIds.has(d.id);
+                const href = isConfirmation ? `/test/duffel-stays/confirmation?docId=${encodeURIComponent(d.id)}` : (d.url || `/test/duffel-stays/confirmation?docId=${encodeURIComponent(d.id)}`);
+                return (
+                  <li key={`${tripId}-${d.id}`} className="rounded-lg bg-white border border-slate-200 px-3 py-2 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="font-bold">{d.title}</div>
+                      <div className="text-xs" style={{ color: MUTED_TEXT }}>
+                        {d.provider || "Provider"} · Ref: {d.confirmationNumber || "TBC"}
+                      </div>
                     </div>
-                  </div>
-                  <a
-                    href={d.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-full px-3 py-1 text-xs font-bold text-white"
-                    style={{ backgroundColor: PREMIUM_BLUE }}
-                  >
-                    View / Download
-                  </a>
-                </li>
-              ))}
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-full px-3 py-1 text-xs font-bold text-white"
+                      style={{ backgroundColor: PREMIUM_BLUE }}
+                    >
+                      View / Download
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
@@ -150,6 +190,7 @@ export default function DocumentsPage() {
   const { trips, snapshots } = useTripsStore((s) => ({ trips: s.trips, snapshots: s.snapshots }));
   const userId = user?.email || "";
   const documents = useDocumentsStore((s) => (userId ? s.documents[userId] || {} : {}));
+  const localDocuments = useDocumentsStore((s) => s.documents['__local__'] || {});
 
   // Seed sample docs for demo when a logged-in user has none yet
   useEffect(() => {
@@ -203,26 +244,44 @@ export default function DocumentsPage() {
           </div>
 
           {loggedOut ? (
-            <div className="mt-8 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
-              <div className="text-lg font-bold" style={{ color: TITLE_TEXT }}>Please log in to view your travel documents.</div>
-              <p className="text-sm font-semibold mt-2" style={{ color: MUTED_TEXT }}>
-                Documents are secured to your account.
-              </p>
-              <div className="mt-4 flex justify-center gap-3">
-                <Link
-                  href="/login"
-                  className="rounded-full px-4 py-2 text-sm font-bold text-white"
-                  style={{ backgroundColor: PREMIUM_BLUE }}
-                >
-                  Log in
-                </Link>
-                <Link
-                  href="/signup"
-                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold"
-                  style={{ color: TITLE_TEXT }}
-                >
-                  Create account
-                </Link>
+            <div className="mt-8 space-y-6">
+              {/* Show locally saved docs when available */}
+              {Object.keys(localDocuments || {}).length > 0 && (
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                  <div className="text-lg font-bold" style={{ color: TITLE_TEXT }}>Saved on this device</div>
+                  <div className="text-sm font-semibold mt-2" style={{ color: MUTED_TEXT }}>
+                    These documents were saved locally after booking. <strong>Log in to save them to your account.</strong>
+                  </div>
+
+                  <div className="mt-4 space-y-5">
+                    {Object.entries(localDocuments).map(([tripId, docs]) => (
+                      <TripCard key={`local-${tripId}`} tripId={tripId} title={trips.find((t: any) => t.id === tripId)?.title || 'Trip'} docs={docs} />       
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
+                <div className="text-lg font-bold" style={{ color: TITLE_TEXT }}>Please log in to view your travel documents.</div>
+                <p className="text-sm font-semibold mt-2" style={{ color: MUTED_TEXT }}>
+                  Documents are secured to your account.
+                </p>
+                <div className="mt-4 flex justify-center gap-3">
+                  <Link
+                    href="/login"
+                    className="rounded-full px-4 py-2 text-sm font-bold text-white"
+                    style={{ backgroundColor: PREMIUM_BLUE }}
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold"
+                    style={{ color: TITLE_TEXT }}
+                  >
+                    Create account
+                  </Link>
+                </div>
               </div>
             </div>
           ) : list.length === 0 ? (

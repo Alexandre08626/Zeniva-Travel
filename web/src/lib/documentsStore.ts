@@ -82,16 +82,27 @@ export function setDocumentsForUser(userId: string, docsByTrip: Record<string, D
 
 export function upsertDocuments(userId: string, tripId: string, docs: DocumentRecord[]) {
   if (!userId || !tripId) return;
-  setState((s) => ({
-    ...s,
-    documents: {
-      ...s.documents,
-      [userId]: {
-        ...(s.documents[userId] || {}),
-        [tripId]: docs,
+  setState((s) => {
+    const existing = s.documents[userId]?.[tripId] || [];
+    // Merge new docs first, then existing, and keep unique ids (preserve latest first)
+    const byId = new Map<string, DocumentRecord>();
+    for (const d of [...docs, ...existing]) {
+      if (!d || !d.id) continue;
+      if (!byId.has(d.id)) byId.set(d.id, d);
+    }
+    const merged = Array.from(byId.values());
+
+    return {
+      ...s,
+      documents: {
+        ...s.documents,
+        [userId]: {
+          ...(s.documents[userId] || {}),
+          [tripId]: merged,
+        },
       },
-    },
-  }));
+    };
+  });
 }
 
 export function seedDocuments(userId: string, tripId: string) {

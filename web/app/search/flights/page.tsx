@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { searchDuffelOffers } from "../../../src/lib/duffelClient";
+import FlightOffers from '../../../src/components/FlightOffers.client';
 
 type Params = {
   from?: string;
@@ -63,21 +64,32 @@ function mapDuffelOffers(result: any): OfferCard[] {
 }
 
 async function loadOffers(params: Params) {
-  const { from, to, depart, passengers = "1" } = params;
+  const { from, to, depart, ret, passengers = "1" } = params;
 
   if (!from || !to || !depart) {
     return { offers: [], message: "Veuillez saisir origine, destination et date de départ." };
   }
 
+  const slices: any[] = [
+    {
+      origin: String(from).toUpperCase(),
+      destination: String(to).toUpperCase(),
+      departure_date: depart,
+    },
+  ];
+
+  // Add return slice for round-trip searches
+  if (ret) {
+    slices.push({
+      origin: String(to).toUpperCase(),
+      destination: String(from).toUpperCase(),
+      departure_date: ret,
+    });
+  }
+
   const body = {
     passengers: Array.from({ length: Number(passengers) || 1 }).map(() => ({ type: "adult" })),
-    slices: [
-      {
-        origin: String(from).toUpperCase(),
-        destination: String(to).toUpperCase(),
-        departure_date: depart,
-      },
-    ],
+    slices,
   };
 
   try {
@@ -141,31 +153,9 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
           {message && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">{message}</div>}
 
           <div className="space-y-3">
-            {offers.map((r) => (
-              <div key={r.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-sm flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-sm font-bold text-slate-800">
-                    {r.carrier[0] || "?"}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-800">{r.carrier} · {r.code}</p>
-                    <p className="text-xl font-black text-slate-900">{r.depart} → {r.arrive}</p>
-                    <p className="text-sm text-slate-600">{r.duration} · {r.stops} · {r.cabin}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 md:flex-col md:items-end">
-                  <span className="text-lg font-black text-slate-900">{r.price}</span>
-                  <div className="flex items-center gap-2">
-                    {r.badge && <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">{r.badge}</span>}
-                    <button className="rounded-full bg-black px-4 py-2 text-sm font-semibold text-white shadow hover:bg-slate-900">Hold / Book</button>
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            {offers.length === 0 && !message && (
-              <div className="rounded-xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-600">No offers returned.</div>
-            )}
+            {/* Use client component for interactive selection */}
+            {/* @ts-ignore */}
+            <FlightOffers offers={offers} roundTrip={!!ret} />
           </div>
         </section>
 
@@ -174,7 +164,7 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
             <p className="text-sm font-semibold text-slate-800">Search context</p>
             <span className="text-xs text-slate-500">Visible to agents only</span>
           </div>
-          <pre className="text-xs bg-slate-50 p-3 rounded border border-slate-100 overflow-x-auto">{JSON.stringify(searchParams, null, 2)}</pre>
+          <pre className="text-xs bg-slate-50 p-3 rounded border border-slate-100 overflow-x-auto">{JSON.stringify(resolved, null, 2)}</pre>
         </section>
       </div>
     </main>

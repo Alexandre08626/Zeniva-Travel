@@ -101,8 +101,25 @@ export async function GET(req: Request) {
   } catch (err: any) {
     console.error('Duffel Stays API error:', err?.message || String(err));
 
-    // If Duffel denies access to Live mode (403), return friendly mock fallback so the UI can continue
+    // If Duffel denies access to Live mode (403), try Amadeus fallback first so the UI can show real hotels
     if (err?.message?.includes('403') && err?.message?.toLowerCase().includes('not approved')) {
+      console.warn('Duffel Stays Live access denied — attempting Amadeus fallback');
+      try {
+        const cityCode = (destination || '').slice(0, 3).toUpperCase();
+        const amadeusUrl = `${process.env.BASE_URL || 'http://localhost:3000'}/api/partners/amadeus?cityCode=${encodeURIComponent(cityCode)}&checkIn=${encodeURIComponent(checkIn)}&checkOut=${encodeURIComponent(checkOut)}&adults=${encodeURIComponent(guests)}`;
+        console.log('Calling Amadeus fallback URL:', amadeusUrl);
+        const amRes = await fetch(amadeusUrl);
+        const amJson = await amRes.json();
+        if (amRes.ok && amJson?.ok && Array.isArray(amJson.offers) && amJson.offers.length > 0) {
+          console.log('Amadeus fallback returned', amJson.offers.length, 'offers');
+          return NextResponse.json({ ok: true, offers: amJson.offers, fallback: 'amadeus' }, { status: 200 });
+        } else {
+          console.warn('Amadeus fallback failed or returned no offers, returning mock offers');
+        }
+      } catch (fallbackErr) {
+        console.error('Amadeus fallback error:', fallbackErr);
+      }
+
       console.warn('Duffel Stays Live access denied — returning mock offers as fallback');
       const mockOffers = [
         {

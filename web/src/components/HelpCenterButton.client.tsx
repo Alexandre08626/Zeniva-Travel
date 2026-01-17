@@ -9,11 +9,11 @@ type Message = {
 };
 
 const COMPANY_INFO = {
-  name: "Zeniva Travel",
-  address: "780 Lynnhaven Parkway, Virginia Beach, 23452",
-  headquarters: "8 The Green, Dover, Delaware",
-  phone: "757-940-7276",
-  email: "info@zeniva.ca"
+  name: process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva Travel',
+  address: process.env.NEXT_PUBLIC_BUSINESS_ADDRESS || '780 Lynnhaven Parkway, Virginia Beach, 23452',
+  headquarters: process.env.NEXT_PUBLIC_BUSINESS_HEADQUARTERS || '8 The Green, Dover, Delaware',
+  phone: process.env.NEXT_PUBLIC_SUPPORT_PHONE || '757-940-7276',
+  email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'info@zeniva.ca'
 };
 
 export default function HelpCenterButton() {
@@ -22,7 +22,7 @@ export default function HelpCenterButton() {
     {
       id: 1,
       type: 'bot',
-      content: "Hello! Welcome to Zeniva Travel Customer Support. I'm here to help you with any questions, issues, or assistance you need. How can I help you today?"
+      content: `Hello! Welcome to ${COMPANY_INFO.name} Customer Support. I'm here to help you with any questions, issues, or assistance you need. How can I help you today?`
     }
   ]);
   const [showForm, setShowForm] = useState(false);
@@ -174,7 +174,7 @@ export default function HelpCenterButton() {
         onMouseUp={(e) => {
           e.currentTarget.style.transform = "scale(1.05)";
         }}
-        aria-label="Open Zeniva Travel Customer Support"
+        aria-label={`Open ${COMPANY_INFO.name} Customer Support`}
       >
         Help Center
       </button>
@@ -208,7 +208,7 @@ export default function HelpCenterButton() {
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ padding: 20, borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h2 style={{ margin: 0, fontSize: 24, fontWeight: 600 }}>Zeniva Travel Support</h2>
+              <h2 style={{ margin: 0, fontSize: 24, fontWeight: 600 }}>{COMPANY_INFO.name} Support</h2>
               <div>
                 <button onClick={resetChat} style={{ marginRight: 10, padding: "5px 10px", background: "#f3f4f6", border: "none", borderRadius: 4, cursor: "pointer" }}>
                   New Chat

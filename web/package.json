@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:lina": "node scripts/test-lina.mjs"
+    "test:lina": "node scripts/test-lina.mjs",
+    "test:duffel:e2e": "node scripts/duffel-stays-e2e.mjs",
+    "pack:duffel:artifacts": "node scripts/pack-duffel-artifacts.mjs"
   },
   "dependencies": {
     "html-pdf-node": "^1.0.8",
@@ -22,9 +24,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.23",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
     "playwright-chromium": "^1.57.0",
+    "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
     "typescript": "^5"
   }

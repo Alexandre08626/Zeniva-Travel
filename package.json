@@ -1,0 +1,12 @@
+{
+  "name": "zeniva-root",
+  "private": true,
+  "scripts": {
+    "vercel-build": "npm --prefix web run build",
+    "build": "npm --prefix web run build",
+    "dev": "npm --prefix web run dev"
+  },
+  "dependencies": {
+    "next": "16.1.1"
+  }
+}

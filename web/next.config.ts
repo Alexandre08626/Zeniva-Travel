@@ -1,6 +1,18 @@
+import path from "path";
 import type { NextConfig } from "next";
 
+const rootDir = path.resolve(__dirname);
+
 const nextConfig: NextConfig = {
+  // Turbopack root forced to the `web` directory to avoid workspace-root resolution
+  // when multiple lockfiles exist in the repository root.
+  // Use an absolute path so Vercel's build (e.g. /vercel/path0/web) matches outputFileTracingRoot.
+  turbopack: {
+    // point to the current directory (the `web` project) — must be absolute
+    root: rootDir,
+  },
+  // Ensure outputFileTracingRoot matches turbopack.root (they must be identical on Vercel)
+  outputFileTracingRoot: rootDir,
   images: {
     remotePatterns: [
       {

@@ -30,5 +30,69 @@
       "hotel": true,
       "activities": ["Pool Party", "Boat Tour", "Club LIV"]
     }
+  },
+  {
+    "id": "tokyo-culture",
+    "title": "Tokyo Culture",
+    "description": "Immerse in Tokyo: Michelin dining, private city tours, and cultural experiences.",
+    "destination": "Tokyo, Japan",
+    "dates": "Jun 1-10, 2026",
+    "price": 5100,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1549692520-acc6669e2f0c?auto=format&fit=crop&w=900&q=80",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "activities": ["Sushi masterclass", "Temple tour", "Sumo museum"]
+    }
+  },
+  {
+    "id": "bali-bliss",
+    "title": "Bali Bliss",
+    "description": "7 nights of villas, rice terraces and private beach dinners.",
+    "destination": "Bali, Indonesia",
+    "dates": "Mar 15-22, 2026",
+    "price": 4850,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1505765052191-2b9d2c4b9a46?auto=format&fit=crop&w=900&q=80",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "activities": ["Private temple tour", "Beach day", "Spa retreat"]
+    }
+  },
+  {
+    "id": "dubai-luxe",
+    "title": "Dubai Luxe",
+    "description": "Luxury stay with desert safari, Burj Khalifa access and private yacht day.",
+    "destination": "Dubai, UAE",
+    "dates": "Aug 1-8, 2026",
+    "price": 4200,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=900&q=80",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "activities": ["Desert safari", "Burj Khalifa", "Private yacht"]
+    }
+  },
+  {
+    "id": "santorini-sunsets",
+    "title": "Santorini Sunsets",
+    "description": "Cycladic charm, caldera views, private sunset cruise and wine tastings.",
+    "destination": "Santorini, Greece",
+    "dates": "May 20-26, 2026",
+    "price": 2890,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1508873696983-2dfd5898f3ea?auto=format&fit=crop&w=900&q=80",
+    "partner": "YCN",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "activities": ["Sunset cruise", "Wine tasting", "Private caldera dinner"]
+    }
   }
 ]
