@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../../src/design/tokens";
 
-export default function ConfirmationPage({ searchParams }: { searchParams: { docId?: string } }) {
-  const docId = searchParams?.docId;
+export default async function ConfirmationPage({ searchParams }: { searchParams: Promise<{ docId?: string }> }) {
+  const { docId } = await searchParams;
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: "#F3F6FB" }}>
