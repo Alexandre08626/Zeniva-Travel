@@ -43,7 +43,7 @@ import LinaAvatar from "./LinaAvatar";
   }
 `}</style>
 
-type Tab = "flights" | "hotels" | "cruises" | "experiences" | "transfers";
+type Tab = "flights" | "hotels" | "cruises" | "experiences" | "transfers" | "cars";
 
 export default function TravelSearchWidget() {
   const router = useRouter();
@@ -85,6 +85,12 @@ export default function TravelSearchWidget() {
   const [transferDate, setTransferDate] = useState("");
   const [transferPassengers, setTransferPassengers] = useState(2);
 
+  // Rental cars
+  const [carPickup, setCarPickup] = useState("");
+  const [carPickupDate, setCarPickupDate] = useState("");
+  const [carDropoffDate, setCarDropoffDate] = useState("");
+  const [carDrivers, setCarDrivers] = useState(1);
+
   const searchFlights = (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!from || !to || !depart) return;
@@ -116,6 +122,12 @@ export default function TravelSearchWidget() {
     router.push(`/search/transfers?${params.toString()}`);
   };
 
+  const searchCars = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const params = new URLSearchParams({ pickup: carPickup, pickupDate: carPickupDate, dropoffDate: carDropoffDate, drivers: String(carDrivers) });
+    router.push(`/search/cars?${params.toString()}`);
+  };
+
   const askLina = (prompt?: string) => {
     const derived = prompt || (from && to
       ? `Find flights ${from} to ${to} for ${passengers} pax${depart ? ` around ${depart}` : ""}${cabin ? ` in ${cabin}` : ""}${oneWay ? ", one-way" : ret ? `, return ${ret}` : ""}`
@@ -144,6 +156,25 @@ export default function TravelSearchWidget() {
           <h2 className="text-xl font-bold text-slate-900">Plan your perfect trip with Lina AI</h2>
           <p className="text-base text-slate-600 mt-1">Your personal travel concierge powered by AI</p>
         </div>
+
+        {/* Tabs (desktop) */}
+        <div className="mb-4 flex items-center justify-center gap-3">
+          {[
+            { key: 'flights', label: 'Flights' },
+            { key: 'hotels', label: 'Hotels' },
+            { key: 'transfers', label: 'Transfers' },
+            { key: 'cars', label: 'Rental car' },
+            { key: 'experiences', label: 'Experience' },
+          ].map((t: any) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`tab-button ${tab === t.key ? 'active' : ''} rounded-full px-4 py-2 font-semibold text-sm`}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
         {/* ...existing code desktop... */}
       </div>
 
@@ -270,6 +301,19 @@ export default function TravelSearchWidget() {
 
             <div className="md:col-span-2 flex justify-end">
               <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>Search transfers</button>
+            </div>
+          </form>
+        )}
+
+        {tab === "cars" && (
+          <form onSubmit={searchCars} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input value={carPickup} onChange={(e)=>setCarPickup(e.target.value)} placeholder="Pickup location" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
+            <input value={carPickupDate} onChange={(e)=>setCarPickupDate(e.target.value)} placeholder="Pickup date" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="date" />
+            <input value={carDropoffDate} onChange={(e)=>setCarDropoffDate(e.target.value)} placeholder="Dropoff date" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="date" />
+            <input value={carDrivers} onChange={(e)=>setCarDrivers(Number(e.target.value))} placeholder="Drivers" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="number" />
+
+            <div className="md:col-span-2 flex justify-end">
+              <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>Search cars</button>
             </div>
           </form>
         )}

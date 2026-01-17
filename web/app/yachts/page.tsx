@@ -96,7 +96,7 @@ export default function YachtsPage() {
                         href="/payment"
                         className="rounded-full bg-black px-3 py-1 text-xs font-semibold text-white shadow hover:bg-slate-900"
                       >
-                        Pay now
+                        Book now
                       </Link>
                     </div>
                   </div>

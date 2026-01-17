@@ -2,10 +2,10 @@
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../src/design/tokens";
 
 const COMPANY_INFO = {
-  name: "Zeniva Travel",
-  address: "123 Travel Street, Paradise City, PC 12345",
-  phone: "+1 (555) 123-4567",
-  email: "info@zeniva.ca"
+  name: process.env.BUSINESS_NAME || process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva Travel',
+  address: process.env.BUSINESS_ADDRESS || process.env.NEXT_PUBLIC_BUSINESS_ADDRESS || '123 Travel Street, Paradise City, PC 12345',
+  phone: process.env.SUPPORT_PHONE || process.env.NEXT_PUBLIC_SUPPORT_PHONE || '+1 (555) 123-4567',
+  email: process.env.SUPPORT_EMAIL || process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'info@zeniva.ca'
 };
 
 export default function HelpPage() {

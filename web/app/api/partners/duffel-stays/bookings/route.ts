@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import fs from "fs";
+import path from "path";
 import { createStayBooking } from "../../../../../src/lib/duffelClient";
 
 const guestSchema = z.object({
@@ -30,6 +32,28 @@ export async function POST(req: Request) {
     }
 
     const result = await createStayBooking(parsed.data);
+
+    // Persist a copy of the booking artifact for test/demo flows so the confirmation page can read it
+    try {
+      const artifactsDir = path.resolve(process.cwd(), 'scripts', 'artifacts');
+      if (!fs.existsSync(artifactsDir)) fs.mkdirSync(artifactsDir, { recursive: true });
+      const bookingData = result.data;
+      const id = bookingData?.id || bookingData?.booking_reference || `booking-${Date.now()}`;
+      try {
+        fs.writeFileSync(path.join(artifactsDir, `booking-${id}.json`), JSON.stringify(bookingData, null, 2));
+      } catch (err: any) {
+        console.error('Failed to write booking artifact (id file):', err?.message || err);
+      }
+      try {
+        // also write the canonical last booking file for convenience
+        fs.writeFileSync(path.join(artifactsDir, 'booking.json'), JSON.stringify(bookingData, null, 2));
+      } catch (err: any) {
+        console.error('Failed to write booking artifact (last booking):', err?.message || err);
+      }
+    } catch (err: any) {
+      console.error('Failed to persist booking artifact directory:', err?.message || err);
+    }
+
     return NextResponse.json({ ok: true, booking: result.data });
   } catch (err: any) {
     return NextResponse.json({ ok: false, error: err?.message || String(err) }, { status: 502 });
