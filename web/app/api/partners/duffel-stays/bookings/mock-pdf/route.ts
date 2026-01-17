@@ -1,10 +1,19 @@
-import { NextResponse } from 'next/server';
-
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const docId = url.searchParams.get('docId') || 'unknown';
+  const docId = url.searchParams.get("docId") || "unknown";
+  const filename = `confirmation-${docId}.pdf`;
 
-  // Redirect to a static placeholder PDF to ensure the download works reliably
-  const redirectUrl = `/test-confirmation.pdf`;
-  return NextResponse.redirect(redirectUrl);
+  // Small test PDF (base64) used as a placeholder for downloads.
+  const pdfBase64 =
+    "JVBERi0xLjQKJeLjz9MKNCAwIG9iago8PC9MZW5ndGggNTc+PgpzdHJlYW0KQlQgICAgVGVzdCBQREYgY29udGVudAplbmRzdHJlYW0KZW5kb2JqCnhyZWYKMCA1CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDY3MyAwMDAwMCBuIAowMDAwMDAwMTg2IDAwMDAwIG4gCjAwMDAwMDAyNTkgMDAwMDAgbiAKMDAwMDAwMDM4MyAwMDAwMCBuIAp0cmFpbGVyCjw8L1Jvb3QgMSAwIFIvU2l6ZSA1Pj4Kc3RhcnR4cmVmCjQ0MQolJUVPRgo=";
+
+  const buffer = Buffer.from(pdfBase64, "base64");
+
+  return new Response(buffer, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+    },
+  });
 }
