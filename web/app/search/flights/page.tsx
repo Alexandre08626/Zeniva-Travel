@@ -164,7 +164,7 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
             <p className="text-sm font-semibold text-slate-800">Search context</p>
             <span className="text-xs text-slate-500">Visible to agents only</span>
           </div>
-          <pre className="text-xs bg-slate-50 p-3 rounded border border-slate-100 overflow-x-auto">{JSON.stringify(searchParams, null, 2)}</pre>
+          <pre className="text-xs bg-slate-50 p-3 rounded border border-slate-100 overflow-x-auto">{JSON.stringify(resolved, null, 2)}</pre>
         </section>
       </div>
     </main>
