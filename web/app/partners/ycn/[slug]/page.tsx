@@ -4,13 +4,21 @@ import Link from 'next/link';
 import Image from 'next/image';
 import YcnGallery from '@/src/components/YcnGallery.client';
 import YachtRequestForm from '@/src/components/yachts/YachtRequestForm.client';
+import YachtRatePicker from '@/src/components/yachts/YachtRatePicker.client';
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
-export default async function YcnPartnerPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function YcnPartnerPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { slug } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : {};
   const data = getYcnPackages();
   const item = data.find((p: any) => slugify(p.title) === slug);
 
@@ -61,6 +69,15 @@ export default async function YcnPartnerPage({ params }: { params: Promise<{ slu
   }
 
   const hero = gallery[0] || '/branding/icon-proposals.svg';
+  const hoursParam = typeof resolvedSearchParams?.hours === "string" ? resolvedSearchParams.hours : undefined;
+  const priceParam = typeof resolvedSearchParams?.price === "string" ? resolvedSearchParams.price : undefined;
+  const noteParam = typeof resolvedSearchParams?.note === "string" ? resolvedSearchParams.note : undefined;
+  const bookNowQuery = new URLSearchParams();
+  bookNowQuery.set("yacht", item.title);
+  if (hoursParam) bookNowQuery.set("hours", hoursParam);
+  if (priceParam) bookNowQuery.set("price", priceParam);
+  if (noteParam) bookNowQuery.set("note", noteParam);
+  const bookNowHref = bookNowQuery.toString() ? `/payment?${bookNowQuery.toString()}` : "/payment";
 
   return (
     <main className="min-h-screen p-6 bg-slate-50">
@@ -90,7 +107,7 @@ export default async function YcnPartnerPage({ params }: { params: Promise<{ slu
                     Availability
                   </a>
                 )}
-                <Link href="/payment" className="inline-flex items-center px-4 py-2 rounded-full bg-black text-white text-sm font-semibold shadow">
+                <Link href={bookNowHref} className="inline-flex items-center px-4 py-2 rounded-full bg-black text-white text-sm font-semibold shadow">
                   Book now
                 </Link>
                 <Link href="/chat?prompt=Plan%20a%20yacht%20charter" className="inline-flex items-center px-4 py-2 rounded-full bg-black text-white text-sm font-semibold shadow">
@@ -109,6 +126,7 @@ export default async function YcnPartnerPage({ params }: { params: Promise<{ slu
                 <ul className="space-y-1 text-slate-700">
                   {(item.prices || []).map((r: string, i: number) => <li key={i}>{r}</li>)}
                 </ul>
+                <YachtRatePicker rates={item.prices || []} />
               </div>
               {item.amenities && item.amenities.length > 0 && (
                 <div>
@@ -130,6 +148,12 @@ export default async function YcnPartnerPage({ params }: { params: Promise<{ slu
         <div className="flex gap-3">
           <Link href="/yachts" className="inline-flex items-center px-4 py-2 rounded-full bg-white border text-sm font-semibold text-slate-800 shadow-sm">Back to yachts</Link>
           <Link href="/chat?prompt=Plan%20a%20yacht%20charter" className="inline-flex items-center px-4 py-2 rounded-full bg-black text-white text-sm font-semibold shadow">Plan with Lina</Link>
+        </div>
+
+        <div className="flex justify-end">
+          <Link href={bookNowHref} className="inline-flex items-center px-5 py-3 rounded-full bg-black text-white text-sm font-semibold shadow">
+            Book now
+          </Link>
         </div>
 
         <YachtRequestForm yachtName={item.title} sourcePath={`/partners/ycn/${slug}`} />

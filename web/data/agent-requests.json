@@ -1,0 +1,32 @@
+[
+  {
+    "id": "5364c8be-7642-434b-b9ce-0bd79e509687",
+    "createdAt": "2026-01-20T06:47:47.805Z",
+    "channelIds": [
+      "agent-jason",
+      "hq"
+    ],
+    "message": "New yacht request (Yacht detail page)\nBoat name: 45ft Jeanneau DB43 (2024)\nDesired date: 2026-02-06\nClient full name: ALEXANDRE BLAIS\nClient phone: 5817487436\nClient email: info@zeniva.ca\nSource page: /partners/ycn/45ft-jeanneau-db43-2024",
+    "yachtName": "45ft Jeanneau DB43 (2024)",
+    "desiredDate": "2026-02-06",
+    "fullName": "ALEXANDRE BLAIS",
+    "phone": "5817487436",
+    "email": "info@zeniva.ca",
+    "sourcePath": "/partners/ycn/45ft-jeanneau-db43-2024"
+  },
+  {
+    "id": "51a4191f-a9de-4519-b867-c68ee36853c4",
+    "createdAt": "2026-01-20T17:58:38.463Z",
+    "channelIds": [
+      "agent-jason",
+      "hq"
+    ],
+    "message": "New yacht request (Yacht detail page)\nBoat name: 43ft Leopard Power Cat (2017)\nDesired date: 2026-02-06\nClient full name: ALEXANDRE BLAIS\nClient phone: 5817487436\nClient email: info@zeniva.ca\nSource page: /partners/ycn/43ft-leopard-power-cat-2017",
+    "yachtName": "43ft Leopard Power Cat (2017)",
+    "desiredDate": "2026-02-06",
+    "fullName": "ALEXANDRE BLAIS",
+    "phone": "5817487436",
+    "email": "info@zeniva.ca",
+    "sourcePath": "/partners/ycn/43ft-leopard-power-cat-2017"
+  }
+]

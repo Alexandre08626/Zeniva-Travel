@@ -4,8 +4,29 @@ import Header from "../../src/components/Header";
 import Footer from "../../src/components/Footer";
 import { LIGHT_BG, TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../src/design/tokens";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 export default function PaymentPage() {
+  const searchParams = useSearchParams();
+  const yachtParam = searchParams.get("yacht") || "Yacht charter";
+  const hoursParam = searchParams.get("hours");
+  const priceParam = searchParams.get("price");
+  const noteParam = searchParams.get("note");
+
+  const hours = hoursParam ? Number.parseInt(hoursParam, 10) : NaN;
+  const price = priceParam ? Number.parseInt(priceParam, 10) : NaN;
+  const hasCustomPrice = Number.isFinite(price);
+
+  const baseRate = hasCustomPrice ? (price as number) : 1700;
+  const gratuity = hasCustomPrice ? 0 : 255;
+  const taxes = hasCustomPrice ? 0 : 68;
+  const totalDue = hasCustomPrice ? baseRate : baseRate + gratuity + taxes;
+
+  const formatMoney = (value: number) => new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(value);
+
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
       <div className="mx-auto max-w-[900px] px-5 pb-12 pt-6">
@@ -66,13 +87,16 @@ export default function PaymentPage() {
 
             <aside className="rounded-xl border border-slate-200 p-4 space-y-3 bg-slate-50">
               <h2 className="text-sm font-semibold text-slate-700">Booking summary</h2>
-              <div className="text-base font-bold" style={{ color: TITLE_TEXT }}>43ft Leopard Power Cat (2017)</div>
-              <div className="text-sm text-slate-600">Haulover · Sat, Mar 22 · 4h · 8 guests</div>
+              <div className="text-base font-bold" style={{ color: TITLE_TEXT }}>{yachtParam}</div>
+              <div className="text-sm text-slate-600">
+                {Number.isFinite(hours) ? `${hours}h` : "Duration"}
+                {noteParam ? ` · ${noteParam}` : ""}
+              </div>
               <div className="border-t border-slate-200 pt-3 space-y-2 text-sm text-slate-700">
-                <div className="flex justify-between"><span>Base rate</span><span>$1,700.00</span></div>
-                <div className="flex justify-between"><span>Gratuity (15%)</span><span>$255.00</span></div>
-                <div className="flex justify-between"><span>Taxes & fees</span><span>$68.00</span></div>
-                <div className="flex justify-between font-bold text-slate-900"><span>Total due</span><span>$2,023.00</span></div>
+                <div className="flex justify-between"><span>Base rate</span><span>{formatMoney(baseRate)}</span></div>
+                <div className="flex justify-between"><span>Gratuity</span><span>{formatMoney(gratuity)}</span></div>
+                <div className="flex justify-between"><span>Taxes & fees</span><span>{formatMoney(taxes)}</span></div>
+                <div className="flex justify-between font-bold text-slate-900"><span>Total due</span><span>{formatMoney(totalDue)}</span></div>
               </div>
               <div className="rounded-lg bg-white border border-slate-200 p-3 text-xs text-slate-600">
                 Need changes? Contact concierge before paying. Funds are held until charter confirmation.

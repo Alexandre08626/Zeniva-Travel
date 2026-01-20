@@ -2,6 +2,8 @@
 export const mockListings = [
   {
     id: 'listing-1',
+    partnerId: 'partner-yacht-01',
+    ownerId: 'owner-001',
     title: 'Luxury Yacht Mediterranean Explorer',
     type: 'yacht',
     status: 'published',
@@ -24,6 +26,8 @@ export const mockListings = [
   },
   {
     id: 'listing-2',
+    partnerId: 'partner-home-01',
+    ownerId: 'owner-002',
     title: 'Cozy Mountain Chalet with Spectacular Views',
     type: 'home',
     status: 'published',
@@ -46,6 +50,8 @@ export const mockListings = [
   },
   {
     id: 'listing-3',
+    partnerId: 'partner-resort-01',
+    ownerId: 'owner-003',
     title: 'Boutique Beach Resort - Premium Suite',
     type: 'hotel',
     status: 'published',
@@ -68,6 +74,8 @@ export const mockListings = [
   },
   {
     id: 'listing-4',
+    partnerId: 'partner-home-02',
+    ownerId: 'owner-004',
     title: 'Modern Downtown Loft - City Center',
     type: 'home',
     status: 'draft',

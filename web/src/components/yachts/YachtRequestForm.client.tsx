@@ -116,7 +116,7 @@ export default function YachtRequestForm({ yachtName, sourcePath }: Props) {
   return (
     <section className="bg-white rounded-2xl shadow p-6">
       <div className="flex flex-col gap-2 mb-6">
-        <p className="text-sm uppercase tracking-wide text-rose-600 font-semibold">Emergency contact</p>
+        <p className="text-sm uppercase tracking-wide text-blue-600 font-semibold">Emergency contact</p>
         <h2 className="text-2xl font-black text-slate-900">Request this yacht</h2>
         <p className="text-sm text-slate-600">Fast booking help. We will contact you immediately after you submit the request.</p>
       </div>
@@ -180,39 +180,27 @@ export default function YachtRequestForm({ yachtName, sourcePath }: Props) {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded-xl bg-emerald-600 text-white font-semibold py-3 text-sm hover:bg-emerald-700 transition disabled:opacity-60"
+              className="w-full rounded-xl bg-blue-600 text-white font-semibold py-3 text-sm hover:bg-blue-700 transition disabled:opacity-60"
             >
               {submitting ? "Sending..." : "Send request"}
             </button>
-            {error && <p className="text-sm text-rose-600">{error}</p>}
-            {success && <p className="text-sm text-emerald-600">Request sent. Jason and admin have received your details.</p>}
+            {error && <p className="text-sm text-blue-600">{error}</p>}
           </div>
         </form>
 
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 h-fit lg:sticky lg:top-24">
-          <p className="text-xs uppercase tracking-wide text-rose-600 font-semibold">Emergency contact</p>
+        <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 h-fit lg:sticky lg:top-24">
+          {success && <p className="text-sm text-blue-600">Request sent. Jason and admin have received your details.</p>}
           <p className="text-lg font-bold text-slate-900 mt-2">Jason Lanthier</p>
           <p className="text-sm text-slate-600">Yacht Agent</p>
           <a
             href="tel:5813072678"
-            className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-rose-600 text-white py-2 text-sm font-semibold shadow hover:bg-rose-700 transition"
+            className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-blue-600 text-white py-2 text-sm font-semibold shadow hover:bg-blue-700 transition"
           >
             Call agent Jason Lanthier — 581-307-2678
           </a>
         </div>
       </div>
 
-      <div className="fixed bottom-4 right-4 z-50">
-        <div className="flex flex-col items-end gap-2">
-          <span className="text-[10px] uppercase tracking-wide text-rose-700 font-semibold bg-rose-100 px-2 py-1 rounded-full">Emergency contact</span>
-          <a
-            href="tel:5813072678"
-            className="inline-flex items-center justify-center rounded-full bg-rose-600 text-white px-4 py-2 text-xs font-semibold shadow-lg hover:bg-rose-700 transition"
-          >
-            Call agent Jason Lanthier — 581-307-2678
-          </a>
-        </div>
-      </div>
     </section>
   );
 }

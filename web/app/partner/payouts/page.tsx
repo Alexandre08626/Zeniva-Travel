@@ -53,7 +53,7 @@ export default function PayoutsPage() {
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Payout Method</h2>
         <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">🏦</span>
             </div>
             <div>

@@ -175,8 +175,8 @@ export default function NewListingPage() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none"
                 />
               </div>
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-900">
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <p className="text-sm text-emerald-900">
                   💡 Tip: You can be as specific or general as you want. Exact addresses will only be shown to confirmed guests.
                 </p>
               </div>
@@ -328,8 +328,8 @@ export default function NewListingPage() {
                 </div>
               </div>
 
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-900">
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <p className="text-sm text-emerald-900">
                   🎉 You&apos;re all set! Review your listing details and publish when ready.
                 </p>
               </div>

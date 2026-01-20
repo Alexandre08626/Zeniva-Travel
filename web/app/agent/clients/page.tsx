@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { listClients, addClient } from "../../../src/lib/agent/store";
 import { useAuthStore } from "../../../src/lib/authStore";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../src/design/tokens";
@@ -17,6 +17,26 @@ export default function ClientsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const clients = useMemo(() => clientsState, [clientsState]);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/clients")
+      .then((res) => res.json())
+      .then((payload) => {
+        if (!active) return;
+        const records = Array.isArray(payload?.data) ? payload.data : [];
+        if (!records.length) return;
+
+        const local = listClients();
+        const merged = mergeClients(local, records);
+        setClientsState(merged);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleCreate = () => {
     setError(null);
@@ -41,6 +61,24 @@ export default function ClientsPage() {
       primaryDivision: division as any,
       assignedAgent: agentEmail.trim() || undefined,
     });
+    try {
+      fetch("/api/clients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: entry.id,
+          name: entry.name,
+          email: entry.email,
+          ownerEmail: entry.ownerEmail,
+          phone: entry.phone,
+          origin: entry.origin,
+          assignedAgents: entry.assignedAgents || [],
+          primaryDivision: entry.primaryDivision,
+        }),
+      });
+    } catch (_) {
+      // ignore
+    }
     setClientsState(listClients());
     setName("");
     setEmail("");
@@ -58,7 +96,7 @@ export default function ClientsPage() {
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Clients</p>
             <h1 className="text-3xl font-black" style={{ color: TITLE_TEXT }}>Client roster</h1>
-            <p className="text-sm" style={{ color: MUTED_TEXT }}>All clients booked via Zeniva. Assign an agent to trigger commission; otherwise 100% Zeniva Travel.</p>
+            <p className="text-sm" style={{ color: MUTED_TEXT }}>All clients are listed here. If assigned to an agent, commission applies; otherwise 100% Zeniva Travel.</p>
           </div>
           <Link href="/agent/trips" className="rounded-full px-4 py-2 text-sm font-bold text-white" style={{ backgroundColor: PREMIUM_BLUE }}>
             View trips
@@ -155,7 +193,11 @@ export default function ClientsPage() {
                     <td className="py-2 pr-3 text-xs" style={{ color: MUTED_TEXT }}>{c.phone || "-"}</td>
                     <td className="py-2 pr-3 text-xs font-semibold"><span className="rounded-full bg-slate-100 px-2 py-1">{c.primaryDivision || "TRAVEL"}</span></td>
                     <td className="py-2 pr-3" style={{ color: TITLE_TEXT }}>{c.ownerEmail}</td>
-                    <td className="py-2 pr-3 text-xs font-semibold"><span className="rounded-full bg-slate-100 px-2 py-1">{c.origin}</span></td>
+                    <td className="py-2 pr-3 text-xs font-semibold">
+                      <span className={`rounded-full px-2 py-1 ${c.origin === "agent" ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"}`}>
+                        {c.origin === "agent" ? "Agent-added" : "Direct"}
+                      </span>
+                    </td>
                     <td className="py-2 pr-3 text-xs" style={{ color: MUTED_TEXT }}>{c.assignedAgents?.join(", ") || "-"}</td>
                     <td className="py-2 pr-3 text-xs" style={{ color: MUTED_TEXT }}>
                       {c.assignedAgents && c.assignedAgents.length > 0 ? "Agent commission" : "100% Zeniva Travel"}
@@ -169,4 +211,45 @@ export default function ClientsPage() {
       </div>
     </main>
   );
+}
+
+type ClientRow = {
+  id: string;
+  name: string;
+  email?: string;
+  ownerEmail: string;
+  phone?: string;
+  origin: "house" | "agent";
+  assignedAgents?: string[];
+  primaryDivision?: string;
+};
+
+function mergeClients(local: ClientRow[], remote: ClientRow[]) {
+  const byKey = new Map<string, ClientRow>();
+  const makeKey = (c: ClientRow) => (c.email ? c.email.toLowerCase() : c.id);
+
+  local.forEach((client) => {
+    byKey.set(makeKey(client), client);
+  });
+
+  remote.forEach((client) => {
+    const key = makeKey(client);
+    const existing = byKey.get(key);
+    if (!existing) {
+      byKey.set(key, client);
+      return;
+    }
+
+    const assignedAgents = Array.from(new Set([...(existing.assignedAgents || []), ...(client.assignedAgents || [])]));
+    const origin = assignedAgents.length > 0 ? "agent" : (existing.origin || client.origin);
+
+    byKey.set(key, {
+      ...existing,
+      ...client,
+      assignedAgents,
+      origin,
+    });
+  });
+
+  return Array.from(byKey.values());
 }

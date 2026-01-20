@@ -1,14 +1,14 @@
 import { Division, type Role } from "../authStore";
 
 export type AgentStatus = "active" | "inactive" | "suspended";
-export type AgentRoleLabel = "Travel Agent" | "Yacht Partner" | "HQ" | "Admin";
+export type AgentRoleLabel = "Travel Agent" | "Yacht Partner" | "HQ" | "Admin" | "Partner";
 
 export type AgentDirectoryEntry = {
   id: string;
   name: string;
   email: string;
   roleLabel: AgentRoleLabel;
-  roleKey: "hq" | "admin" | "travel-agent" | "yacht-partner";
+  roleKey: "hq" | "admin" | "travel-agent" | "yacht-partner" | "partner";
   status: AgentStatus;
   code: string;
   avatar: string;
@@ -154,7 +154,7 @@ export function getAgentById(id: string) {
 }
 
 function makeAgentCode(roleKey: AgentDirectoryEntry["roleKey"]) {
-  const prefix = roleKey === "hq" ? "Z-HQ" : roleKey === "admin" ? "ZA" : roleKey === "yacht-partner" ? "ZY" : "ZT";
+  const prefix = roleKey === "hq" ? "Z-HQ" : roleKey === "admin" ? "ZA" : roleKey === "yacht-partner" ? "ZY" : roleKey === "partner" ? "ZP" : "ZT";
   const rand = Math.floor(100 + Math.random() * 900);
   return `${prefix}-${rand}`;
 }
@@ -163,6 +163,7 @@ function roleToLabel(role: Role): AgentDirectoryEntry["roleLabel"] {
   if (role === "hq") return "HQ";
   if (role === "admin") return "Admin";
   if (role === "yacht-partner") return "Yacht Partner";
+  if (role === "partner_owner" || role === "partner_staff") return "Partner";
   return "Travel Agent";
 }
 
@@ -170,6 +171,7 @@ function roleToKey(role: Role): AgentDirectoryEntry["roleKey"] {
   if (role === "hq") return "hq";
   if (role === "admin") return "admin";
   if (role === "yacht-partner") return "yacht-partner";
+  if (role === "partner_owner" || role === "partner_staff") return "partner";
   return "travel-agent";
 }
 
@@ -189,7 +191,7 @@ export function addAgentFromAccount(account: { name: string; email: string; role
     status: account.status || "active",
     code: makeAgentCode(roleKey),
     avatar: "/branding/lina-avatar.png",
-    divisions: account.divisions && account.divisions.length ? account.divisions : ["TRAVEL"],
+    divisions: account.divisions && account.divisions.length ? account.divisions : roleKey === "partner" ? [] : ["TRAVEL"],
     createdAt: new Date().toISOString(),
     linkedToTravel: (account.divisions || ["TRAVEL"]).includes("TRAVEL"),
     linkedToYacht: (account.divisions || []).includes("YACHT"),

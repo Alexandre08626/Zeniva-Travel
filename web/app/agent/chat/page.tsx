@@ -9,10 +9,11 @@ export default function AgentChatPage() {
   const user = useAuthStore((s) => s.user);
   const [channelId, setChannelId] = useState("global");
   const [input, setInput] = useState("");
+  const [channelSearch, setChannelSearch] = useState("");
   const [messages, setMessages] = useState<Record<string, { role: "agent" | "hq" | "lina"; author: string; text: string; ts: string }[]>>({
     global: [
       { role: "hq", author: "HQ", text: "Daily: push proposals before 4pm ET.", ts: "09:02" },
-      { role: "agent", author: "Alice", text: "Need help with honeymoon Maldives, budget 12k.", ts: "09:05" },
+      { role: "agent", author: "Alice", text: "Need help with Maldives honeymoon, budget $12k.", ts: "09:05" },
     ],
     hq: [
       { role: "hq", author: "HQ", text: "Audit payments after wire cutoff.", ts: "08:55" },
@@ -42,6 +43,12 @@ export default function AgentChatPage() {
     "@Lina summarize this thread",
     "Link booking ORD-1032",
   ];
+
+  const filteredChannels = useMemo(() => {
+    const search = channelSearch.trim().toLowerCase();
+    if (!search) return channels;
+    return channels.filter((c) => c.label.toLowerCase().includes(search) || c.scope.toLowerCase().includes(search));
+  }, [channels, channelSearch]);
 
   const history = messages[channelId] || [];
   const canHQ = isHQ(user);
@@ -116,7 +123,7 @@ export default function AgentChatPage() {
       ensureChannel("hq", "HQ", "HQ only");
 
       stored.forEach((req: any) => {
-        const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["agent-jason", "hq"];
+        const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["hq"];
         targets.forEach((id) => {
           const idx = next.findIndex((c) => c.id === id);
           if (idx >= 0) {
@@ -141,7 +148,7 @@ export default function AgentChatPage() {
       stored.forEach((req: any) => {
         const ts = new Date(req.createdAt || Date.now()).toLocaleTimeString().slice(0, 5);
         const message = { role: "hq" as const, author: "Client Request", text: req.message || "New yacht request", ts };
-        const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["agent-jason", "hq"];
+        const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["hq"];
         targets.forEach((id) => {
           next[id] = [...(next[id] || []), message];
         });
@@ -173,7 +180,7 @@ export default function AgentChatPage() {
           ensureChannel("hq", "HQ", "HQ only");
 
           stored.forEach((req: any) => {
-            const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["agent-jason", "hq"];
+            const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["hq"];
             targets.forEach((id) => {
               const idx = next.findIndex((c) => c.id === id);
               if (idx >= 0) {
@@ -198,7 +205,7 @@ export default function AgentChatPage() {
           stored.forEach((req: any) => {
             const ts = new Date(req.createdAt || Date.now()).toLocaleTimeString().slice(0, 5);
             const message = { role: "hq" as const, author: "Client Request", text: req.message || "New yacht request", ts };
-            const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["agent-jason", "hq"];
+            const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["hq"];
             targets.forEach((id) => {
               const exists = (next[id] || []).some((m) => m.text === message.text && m.ts === message.ts);
               if (!exists) {
@@ -257,148 +264,173 @@ export default function AgentChatPage() {
   };
 
   return (
-    <main className="min-h-screen" style={{ backgroundColor: "#0b1220" }}>
-      <div className="mx-auto max-w-6xl px-5 py-8 grid gap-4 md:grid-cols-[280px,1fr,280px]">
-        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Channels</p>
-              <p className="text-sm font-bold text-white">Chat interne</p>
-            </div>
-            <span className="rounded-full bg-emerald-600 px-2 py-1 text-[11px] font-bold text-white">HQ sees all</span>
+    <main className="min-h-screen bg-slate-50">
+      <div className="mx-auto max-w-7xl px-5 py-8 space-y-6">
+        <header className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Agent workspace</p>
+            <h1 className="text-2xl font-black" style={{ color: TITLE_TEXT }}>Chat interne</h1>
+            <p className="text-sm" style={{ color: MUTED_TEXT }}>Coordinate dossiers, handoffs, urgent cases, and HQ requests.</p>
           </div>
-          <div className="space-y-1">
-            {channels.map((c) => {
-              const active = c.id === channelId;
-              const hiddenHQ = c.id === "hq" && !canHQ;
-              if (hiddenHQ) return null;
-              return (
-                <button
-                  key={c.id}
-                  onClick={() => setChannelId(c.id)}
-                  className="w-full rounded-xl border px-3 py-2 text-left transition"
-                  style={{
-                    backgroundColor: active ? "#111827" : c.unread > 0 ? "#1e1b4b" : "#0f172a",
-                    borderColor: active ? PREMIUM_BLUE : c.unread > 0 ? "#dc2626" : "#1e293b",
-                    color: "white",
-                    boxShadow: c.unread > 0 ? "0 0 0 2px rgba(220, 38, 38, 0.3)" : "none",
-                  }}
-                >
-                  <div className="flex items-center justify-between text-xs font-semibold">
-                    <span>{c.label}</span>
-                    {c.unread ? <span className="rounded-full bg-rose-600 px-2 py-[2px] text-[10px] text-white">{c.unread}</span> : null}
-                  </div>
-                  <p className="text-[11px] text-slate-400">{c.scope}</p>
-                </button>
-              );
-            })}
+          <div className="flex flex-wrap gap-2">
+            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">HQ sees all</span>
+            <Link href="/agent" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm">Dashboard</Link>
+            <Link href="/agent/finance" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm">Finance (HQ)</Link>
           </div>
-          <div className="rounded-xl border border-slate-800 bg-slate-900 p-3 text-xs text-slate-200">
-            <p className="font-semibold uppercase tracking-[0.12em] text-slate-400">Usage</p>
-            <ul className="mt-2 space-y-1">
-              <li>• Global: annonces, SLA</li>
-              <li>• HQ ↔ agents</li>
-              <li>• Dossier: collaboration par client</li>
-              <li>• Fichiers et liens vers dossiers</li>
-              <li>• @Lina pour résumé / actions</li>
-            </ul>
-          </div>
-        </div>
+        </header>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 flex flex-col" style={{ minHeight: "75vh" }}>
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="grid gap-5 lg:grid-cols-[280px,1fr,300px]">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Channels</p>
+                <p className="text-sm font-bold text-slate-900">All threads</p>
+              </div>
+              <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-600">{filteredChannels.length}</span>
+            </div>
+            <label className="text-xs font-semibold text-slate-600">
+              Search
+              <input
+                value={channelSearch}
+                onChange={(e) => setChannelSearch(e.target.value)}
+                placeholder="Agent, dossier, HQ"
+                className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700"
+              />
+            </label>
+            <div className="space-y-2">
+              {filteredChannels.map((c) => {
+                const active = c.id === channelId;
+                const hiddenHQ = c.id === "hq" && !canHQ;
+                if (hiddenHQ) return null;
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => setChannelId(c.id)}
+                    className={`w-full rounded-xl border px-3 py-2 text-left transition ${active ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white hover:border-slate-300"}`}
+                  >
+                    <div className="flex items-center justify-between text-xs font-semibold text-slate-800">
+                      <span>{c.label}</span>
+                      {c.unread ? <span className="rounded-full bg-blue-600 px-2 py-[2px] text-[10px] text-white">{c.unread}</span> : null}
+                    </div>
+                    <p className="text-[11px] text-slate-500">{c.scope}</p>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+              <p className="font-semibold uppercase tracking-[0.12em] text-slate-500">Usage</p>
+              <ul className="mt-2 space-y-1">
+                <li>• Global: announcements, SLAs</li>
+                <li>• HQ ↔ agents</li>
+                <li>• Dossier: client collaboration</li>
+                <li>• @Lina for summaries / actions</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm flex flex-col" style={{ minHeight: "72vh" }}>
+            <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Channel</p>
+                <h2 className="text-xl font-black" style={{ color: TITLE_TEXT }}>{title}</h2>
+                <p className="text-xs" style={{ color: MUTED_TEXT }}>
+                  History retained. HQ sees everything. Dossiers and actions are tracked.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <span className="rounded-full bg-blue-100 px-3 py-1 text-[11px] font-semibold text-blue-700">Live</span>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-600">{history.length} messages</span>
+              </div>
+            </div>
+
+            <div ref={listRef} className="flex-1 overflow-y-auto space-y-3 py-4 pr-1">
+              {history.length === 0 && (
+                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm" style={{ color: MUTED_TEXT }}>
+                  No messages yet. Share a dossier, request help, or mention @Lina.
+                </div>
+              )}
+              {history.map((m, idx) => {
+                const isOwn = m.author === (user?.name || "Agent") && m.role === (canHQ ? "hq" : "agent");
+                const bubbleStyle = isOwn
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : m.role === "lina"
+                    ? "bg-amber-50 text-amber-900 border-amber-200"
+                    : "bg-slate-50 text-slate-900 border-slate-200";
+                return (
+                  <div key={idx} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
+                    <div className={`max-w-[80%] rounded-2xl border px-4 py-3 shadow-sm ${bubbleStyle}`}>
+                      <div className="flex items-center justify-between gap-4 text-[11px] font-semibold opacity-70">
+                        <span>{m.author}</span>
+                        <span>{m.ts}</span>
+                      </div>
+                      <div className="mt-1 whitespace-pre-line text-sm font-semibold">{m.text}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="border-t border-slate-200 pt-4 space-y-3">
+              <div className="flex flex-wrap gap-2 text-[11px] font-semibold">
+                {quickActions.map((qa) => (
+                  <button
+                    key={qa}
+                    onClick={() => onQuick(qa)}
+                    className="rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-700 hover:border-slate-300"
+                  >
+                    {qa}
+                  </button>
+                ))}
+              </div>
+              <form onSubmit={onSubmit} className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="@Lina summarize, transfer a dossier, share a client, request HQ help"
+                  className="flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-900 outline-none focus:border-slate-400"
+                />
+                <button
+                  type="submit"
+                  disabled={sending}
+                  className="rounded-2xl px-5 py-3 text-sm font-extrabold text-white"
+                  style={{ backgroundColor: PREMIUM_BLUE, opacity: sending ? 0.8 : 1 }}
+                >
+                  {sending ? "Sending…" : "Send"}
+                </button>
+              </form>
+              {linaBusy && <p className="text-xs text-slate-500">Lina is processing…</p>}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Channel</p>
-              <h1 className="text-xl font-black text-white">{title}</h1>
-              <p className="text-xs" style={{ color: MUTED_TEXT }}>
-                Partage dossiers, transferts, demandes d'aide, HQ peut voir tout. Historique conservé (audit).
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Dossier / Files</p>
+              <p className="text-sm" style={{ color: MUTED_TEXT }}>
+                Link a dossier or proposal. Files and links appear here (audited, HQ-visible).
               </p>
             </div>
-            <div className="flex gap-2">
-              <Link href="/agent" className="rounded-full border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-200">Go to dashboard</Link>
-              <Link href="/agent/finance" className="rounded-full border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-200">Finance (HQ)</Link>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700 space-y-2">
+              <p className="font-semibold">Quick links</p>
+              <ul className="space-y-1 text-xs">
+                <li>• Open dossier TRIP-104</li>
+                <li>• Open dossier YCHT-55</li>
+                <li>• Active proposals (3)</li>
+                <li>• Recent payments</li>
+              </ul>
             </div>
-          </div>
-
-          <div ref={listRef} className="flex-1 overflow-y-auto space-y-2 py-3 pr-1">
-            {history.length === 0 && (
-              <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900 p-4 text-sm" style={{ color: MUTED_TEXT }}>
-                Pas encore de messages. Partagez un dossier, demandez de l'aide, ou mentionnez @Lina.
-              </div>
-            )}
-            {history.map((m, idx) => (
-              <div key={idx} className="rounded-xl border border-slate-800 bg-slate-900 p-3 shadow-sm">
-                <div className="flex items-center justify-between text-[11px] font-semibold" style={{ color: MUTED_TEXT }}>
-                  <span>{m.author}</span>
-                  <span>{m.ts}</span>
-                </div>
-                <div className="mt-1 whitespace-pre-line text-sm font-semibold" style={{ color: m.role === "lina" ? ACCENT_GOLD : "white" }}>
-                  {m.text}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="border-t border-slate-800 pt-3 space-y-3">
-            <div className="flex flex-wrap gap-2 text-[11px] font-semibold">
-              {quickActions.map((qa) => (
-                <button
-                  key={qa}
-                  onClick={() => onQuick(qa)}
-                  className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-slate-200 hover:border-slate-500"
-                >
-                  {qa}
-                </button>
-              ))}
+            <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-sm text-slate-700">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-500">Lina help</p>
+              <ul className="mt-2 space-y-1 text-xs">
+                <li>• Summarize this conversation</li>
+                <li>• Extract actions and owners</li>
+                <li>• Draft a client reply</li>
+                <li>• Identify risks (payment, docs)</li>
+              </ul>
             </div>
-            <form onSubmit={onSubmit} className="flex items-center gap-2">
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="@Lina résume, transfère un dossier, partage un client, demande aide HQ"
-                className="flex-1 rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm font-semibold text-white outline-none focus:border-slate-600"
-              />
-              <button
-                type="submit"
-                disabled={sending}
-                className="rounded-2xl px-4 py-3 text-sm font-extrabold text-white"
-                style={{ backgroundColor: PREMIUM_BLUE, opacity: sending ? 0.8 : 1 }}
-              >
-                {sending ? "Envoi…" : "Envoyer"}
-              </button>
-            </form>
-            {linaBusy && <p className="text-xs text-slate-300">Lina traite la demande…</p>}
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 space-y-3">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Dossier / Pièces</p>
-            <p className="text-sm" style={{ color: MUTED_TEXT }}>
-              Liez un dossier ou une proposition. Fichiers et liens apparaissent ici (audités, visibles HQ).
-            </p>
-          </div>
-          <div className="rounded-xl border border-slate-800 bg-slate-900 p-3 text-sm text-slate-200 space-y-2">
-            <p className="font-semibold">Liens rapides</p>
-            <ul className="space-y-1 text-xs">
-              <li>• Ouvrir dossier TRIP-104</li>
-              <li>• Ouvrir dossier YCHT-55</li>
-              <li>• Propositions actives (3)</li>
-              <li>• Paiements récents</li>
-            </ul>
-          </div>
-          <div className="rounded-xl border border-indigo-500 bg-indigo-600/10 p-3 text-sm text-slate-100">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-200">Lina aide</p>
-            <ul className="mt-2 space-y-1 text-xs">
-              <li>• Résumer cette conversation</li>
-              <li>• Extraire actions et propriétaires</li>
-              <li>• Préparer réponse client</li>
-              <li>• Identifier risques (paiement, docs)</li>
-            </ul>
-          </div>
-          <div className="rounded-xl border border-slate-800 bg-slate-900 p-3 text-xs text-slate-300">
-            <p className="font-semibold uppercase tracking-[0.12em] text-slate-400">Audit</p>
-            <p>Historique conservé. HQ voit tout. Partage par dossier/agent.</p>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500">
+              <p className="font-semibold uppercase tracking-[0.12em] text-slate-400">Audit</p>
+              <p>History retained. HQ sees all. Shared by dossier/agent.</p>
+            </div>
           </div>
         </div>
       </div>

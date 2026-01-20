@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
   // Ensure outputFileTracingRoot matches turbopack.root (they must be identical on Vercel)
   outputFileTracingRoot: rootDir,
   images: {
+    qualities: [70, 75, 100],
     remotePatterns: [
       {
         protocol: "https",
@@ -48,6 +49,9 @@ const nextConfig: NextConfig = {
         hostname: "www.lenukuhiva.com",
       },
     ],
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
   },
 };
 

@@ -3,6 +3,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signup, useAuthStore, type Role, updatePartnerProfile } from "../../src/lib/authStore";
 import { addAgentFromAccount } from "../../src/lib/agent/agents";
+import { addClient } from "../../src/lib/agent/store";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -30,7 +31,7 @@ export default function SignupPage() {
   const [inviteCode, setInviteCode] = useState(deriveInvite("travel-agent"));
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
     try {
@@ -45,6 +46,29 @@ export default function SignupPage() {
           inviteCode: inviteCode ? inviteCode.trim() : undefined,
           divisions: [],
         });
+        addAgentFromAccount({
+          name: name.trim() || "Partner Owner",
+          email: email.trim(),
+          role: "partner_owner",
+          divisions: [],
+          status: "active",
+        });
+        try {
+          await fetch("/api/accounts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: name.trim() || "Partner Owner",
+              email: email.trim(),
+              role: "partner_owner",
+              roles: ["partner_owner"],
+              divisions: [],
+              status: "active",
+            }),
+          });
+        } catch (err) {
+          console.error("Failed to sync partner account", err);
+        }
         // Immediately attach partner company profile to the signed-in account
         try {
           setTimeout(() => {
@@ -80,6 +104,33 @@ export default function SignupPage() {
         inviteCode: mode === "agent" ? inviteCode.trim() : undefined,
         divisions: mode === "agent" ? ["TRAVEL", "YACHT", "VILLAS", "GROUPS", "RESORTS"] : [],
       });
+      if (mode === "traveler") {
+        const entry = addClient({
+          name: name.trim() || "Traveler",
+          email: email.trim(),
+          ownerEmail: "info@zeniva.ca",
+          phone: "",
+          primaryDivision: "TRAVEL",
+        });
+        try {
+          await fetch("/api/clients", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: entry.id,
+              name: entry.name,
+              email: entry.email,
+              ownerEmail: entry.ownerEmail,
+              phone: entry.phone,
+              origin: "house",
+              assignedAgents: [],
+              primaryDivision: entry.primaryDivision,
+            }),
+          });
+        } catch (err) {
+          console.error("Failed to sync client", err);
+        }
+      }
       if (mode === "agent") {
         addAgentFromAccount({
           name: name.trim() || "Agent",
@@ -88,6 +139,22 @@ export default function SignupPage() {
           divisions: ["TRAVEL", "YACHT", "VILLAS", "GROUPS", "RESORTS"],
           status: "active",
         });
+        try {
+          await fetch("/api/accounts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: name.trim() || "Agent",
+              email: email.trim(),
+              role: agentRole,
+              roles: [agentRole],
+              divisions: ["TRAVEL", "YACHT", "VILLAS", "GROUPS", "RESORTS"],
+              status: "active",
+            }),
+          });
+        } catch (err) {
+          console.error("Failed to sync account", err);
+        }
       }
       router.push(mode === "agent" ? "/agent" : "/proposals");
     } catch (err) {

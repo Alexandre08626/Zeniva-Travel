@@ -182,7 +182,7 @@ export default function SettingsPage() {
                 <h3 className="font-medium text-gray-900 mb-3">Payment Method</h3>
                 <div className="p-4 border border-gray-200 rounded-lg flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded flex items-center justify-center text-white font-bold">
+                    <div className="w-12 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded flex items-center justify-center text-white font-bold">
                       💳
                     </div>
                     <div>

@@ -550,6 +550,33 @@ export function updateSelfProfile(update: {
   });
 }
 
+// DEV: reset password by email (client-side). Replace with secure server flow in production.
+export function resetPasswordByEmail(email: string, newPassword: string) {
+  if (!email || !newPassword) throw new Error("Email and new password are required");
+  const normalized = normalizeEmail(email);
+  setState((s) => {
+    const idx = s.accounts.findIndex((a) => normalizeEmail(a.email) === normalized);
+    if (idx < 0) throw new Error("Account not found");
+    const existing = s.accounts[idx];
+    const updated = withDefaultsAccount({ ...existing, password: newPassword });
+    const nextAccounts = [...s.accounts];
+    nextAccounts[idx] = updated;
+    const updatedUser = s.user && normalizeEmail(s.user.email) === normalized
+      ? (() => {
+          const { password: _pw, ...publicUser } = updated;
+          void _pw;
+          return publicUser as PublicUser;
+        })()
+      : s.user;
+    return {
+      ...s,
+      accounts: nextAccounts,
+      user: updatedUser,
+      auditLog: [...s.auditLog, makeAudit("password:reset", normalized, "account", normalized)],
+    };
+  });
+}
+
 // NOTE: client-side helper. In production this must call a secure server-side API to update partner profile and trigger KYC workflows.
 export function updatePartnerProfile(update: {
   partnerId?: string;

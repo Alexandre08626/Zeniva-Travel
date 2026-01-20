@@ -42,6 +42,7 @@ export default function AgentDashboardPage() {
             { label: "Control Tower", href: "/agent/control-tower" },
             { label: "Finance", href: "/agent/finance" },
             { label: "Agent Command", href: "/agent/agents" },
+            { label: "Partners", href: "/agent/partners" },
           ]
         : []),
       { label: "Settings", href: "/agent/settings" },

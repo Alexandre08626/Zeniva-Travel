@@ -40,7 +40,7 @@ export async function POST(request: Request) {
 
     const channelIds = Array.isArray(body.channelIds) && body.channelIds.length
       ? Array.from(new Set(body.channelIds))
-      : ["agent-jason", "hq"];
+      : ["hq"];
 
     const newRequest = {
       id: body.id || (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`),

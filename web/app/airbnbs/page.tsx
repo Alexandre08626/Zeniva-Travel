@@ -20,19 +20,38 @@ interface AirbnbItem {
 export default function AirbnbsPage() {
   const [items, setItems] = useState<AirbnbItem[]>([]);
   const [visible, setVisible] = useState(12);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
-    fetch("/api/public/listings?type=home")
+    const partnerReq = fetch("/api/partners/airbnbs")
       .then((r) => r.json())
-      .then((res) => {
-        const data: AirbnbItem[] = (res && res.data) || [];
+      .then((res) => (Array.isArray(res) ? res : []))
+      .catch(() => []);
+    const publicReq = fetch("/api/public/listings?type=home")
+      .then((r) => r.json())
+      .then((res) => (res && res.data) || [])
+      .catch(() => []);
+
+    Promise.all([partnerReq, publicReq])
+      .then(([partnerData, publicData]) => {
         if (!active) return;
-        setItems(data || []);
+        const normalizedPublic: AirbnbItem[] = (publicData || []).map((p: any) => ({
+          id: p.id,
+          title: p.title,
+          location: p.data?.location || p.data?.destination || "",
+          description: p.data?.description || "",
+          thumbnail: p.data?.thumbnail || (p.data?.images && p.data.images[0]) || "",
+          images: p.data?.images || [],
+          url: p.url,
+        }));
+        setItems([...(partnerData || []), ...normalizedPublic]);
+        setLoading(false);
       })
       .catch(() => {
         if (!active) return;
         setItems([]);
+        setLoading(false);
       });
     return () => {
       active = false;
@@ -61,7 +80,11 @@ export default function AirbnbsPage() {
           </Link>
         </div>
 
-        {mapped.length === 0 ? (
+        {loading ? (
+          <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-600 shadow">
+            Loading residences...
+          </div>
+        ) : mapped.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-600 shadow">
             No residences available right now. Please check back soon.
           </div>

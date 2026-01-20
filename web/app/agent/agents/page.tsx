@@ -14,12 +14,13 @@ const statusLabels: Record<string, string> = {
 
 export default function AgentsDirectoryPage() {
   const user = useAuthStore((s) => s.user);
+  const accounts = useAuthStore((s) => s.accounts);
   const router = useRouter();
   const [roleFilter, setRoleFilter] = useState<"all" | "travel" | "yacht" | "admin">("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "suspended">("all");
   const [data, setData] = useState(listAgents());
 
-  const isHQorAdmin = !!user && (user.role === "hq" || user.role === "admin");
+  const isHQorAdmin = !!user && user.role === "hq" && user.email?.toLowerCase() === "info@zeniva.ca";
   const isAgentSelf = !!user && user.role !== "traveler";
 
   useEffect(() => {
@@ -34,6 +35,67 @@ export default function AgentsDirectoryPage() {
     });
     setData(listAgents());
   }, [user]);
+
+  useEffect(() => {
+    if (!accounts || accounts.length === 0) return;
+    const agentRoles: Role[] = ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "partner_owner", "partner_staff"];
+    const agentRoleSet = new Set(agentRoles);
+
+    accounts.forEach((account) => {
+      const roles = account.roles && account.roles.length ? account.roles : (account.role ? [account.role] : []);
+      const agentRole = roles.find((r) => agentRoleSet.has(r));
+      if (!agentRole) return;
+
+      addAgentFromAccount({
+        name: account.name || "Agent",
+        email: account.email,
+        role: agentRole,
+        divisions: account.divisions,
+        status: account.status === "suspended" ? "suspended" : account.status === "disabled" ? "inactive" : "active",
+      });
+    });
+
+    setData(listAgents());
+  }, [accounts]);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/accounts")
+      .then((res) => res.json())
+      .then((payload) => {
+        if (!active) return;
+        const records = Array.isArray(payload?.data) ? payload.data : [];
+        if (!records.length) return;
+
+        const agentRoles: Role[] = ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "partner_owner", "partner_staff"];
+        const agentRoleSet = new Set(agentRoles);
+
+        records.forEach((account: any) => {
+          const roles = Array.isArray(account.roles) && account.roles.length
+            ? account.roles
+            : account.role
+              ? [account.role]
+              : [];
+          const agentRole = roles.find((r: Role) => agentRoleSet.has(r));
+          if (!agentRole) return;
+
+          addAgentFromAccount({
+            name: account.name || "Agent",
+            email: account.email,
+            role: agentRole,
+            divisions: account.divisions,
+            status: account.status === "suspended" ? "suspended" : account.status === "disabled" ? "inactive" : "active",
+          });
+        });
+
+        setData(listAgents());
+      })
+      .catch(() => undefined);
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const filtered = useMemo(() => {
     const source = isHQorAdmin ? data : data.filter((a) => a.email.toLowerCase() === (user?.email || "").toLowerCase());

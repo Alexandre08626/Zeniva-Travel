@@ -1,6 +1,5 @@
 "use client";
-import React, { useMemo, useState } from "react";
-import { usePathname } from "next/navigation";
+import React, { useState } from "react";
 import { GRADIENT_START, GRADIENT_END } from "../design/tokens";
 
 type Message = {
@@ -18,8 +17,6 @@ const COMPANY_INFO = {
 };
 
 export default function HelpCenterButton() {
-  const pathname = usePathname();
-  const isPartner = useMemo(() => pathname?.startsWith("/partner"), [pathname]);
   const [showModal, setShowModal] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -148,15 +145,11 @@ export default function HelpCenterButton() {
           bottom: 32,
           right: 32,
           zIndex: 1000,
-          background: isPartner
-            ? "linear-gradient(110deg, #10B981 0%, #059669 60%)"
-            : `linear-gradient(110deg, ${GRADIENT_START} 0%, ${GRADIENT_END} 60%)`,
+          background: `linear-gradient(110deg, ${GRADIENT_START} 0%, ${GRADIENT_END} 60%)`,
           color: "#fff",
           border: "none",
           borderRadius: 999,
-          boxShadow: isPartner
-            ? "0 4px 24px rgba(5, 150, 105, 0.35)"
-            : "0 4px 24px rgba(8, 26, 74, 0.3)",
+          boxShadow: "0 4px 24px rgba(8, 26, 74, 0.3)",
           padding: "14px 28px",
           fontWeight: 600,
           fontSize: 18,
@@ -169,15 +162,11 @@ export default function HelpCenterButton() {
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = "scale(1.05)";
-          e.currentTarget.style.boxShadow = isPartner
-            ? "0 6px 32px rgba(5, 150, 105, 0.45)"
-            : "0 6px 32px rgba(8, 26, 74, 0.4)";
+          e.currentTarget.style.boxShadow = "0 6px 32px rgba(8, 26, 74, 0.4)";
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = "scale(1)";
-          e.currentTarget.style.boxShadow = isPartner
-            ? "0 4px 24px rgba(5, 150, 105, 0.35)"
-            : "0 4px 24px rgba(8, 26, 74, 0.3)";
+          e.currentTarget.style.boxShadow = "0 4px 24px rgba(8, 26, 74, 0.3)";
         }}
         onMouseDown={(e) => {
           e.currentTarget.style.transform = "scale(0.95)";

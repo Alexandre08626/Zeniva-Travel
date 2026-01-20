@@ -56,7 +56,7 @@ export default function BookingsPage() {
   };
 
   const statusColors = {
-    requested: 'bg-blue-50 text-blue-700 border-blue-200',
+    requested: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     confirmed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     cancelled: 'bg-red-50 text-red-700 border-red-200',
     completed: 'bg-gray-100 text-gray-700 border-gray-200'
