@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Settings as SettingsIcon, Building2, Users, Bell, Shield, CreditCard } from 'lucide-react';
+import { Building2, Users, Bell, Shield, CreditCard } from 'lucide-react';
+import PageHeader from '../../../src/components/partner/PageHeader';
 
 type Tab = 'profile' | 'staff' | 'notifications' | 'security' | 'billing';
 
@@ -18,14 +19,15 @@ export default function SettingsPage() {
 
   return (
     <div>
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-gray-900 flex items-center gap-3">
-          <SettingsIcon className="w-8 h-8 text-emerald-600" />
-          Settings
-        </h1>
-        <p className="text-gray-600 mt-2">Manage your account and preferences</p>
-      </div>
+      <PageHeader
+        title="Settings"
+        subtitle="Manage your account and preferences"
+        backHref="/partner/dashboard"
+        breadcrumbs={[
+          { label: 'Partner', href: '/partner/dashboard' },
+          { label: 'Settings' }
+        ]}
+      />
 
       <div className="flex gap-6">
         {/* Sidebar Navigation */}

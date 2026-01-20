@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Package, Plus, Grid, List, Search, Edit, Eye, Trash2, Copy, MoreVertical } from 'lucide-react';
 import { mockListings } from '../../../src/lib/mockData';
 import { ConfirmModal } from '../../../src/components/partner/Modal';
+import PageHeader from '../../../src/components/partner/PageHeader';
 
 type ViewMode = 'grid' | 'table';
 type StatusFilter = 'all' | 'published' | 'draft' | 'paused';
@@ -67,16 +68,15 @@ export default function PartnerListingsPage() {
 
   return (
     <div>
-      {/* Page Header */}
-      <div className="mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-semibold text-gray-900 flex items-center gap-3">
-              <Package className="w-8 h-8 text-emerald-600" />
-              Listings
-            </h1>
-            <p className="text-gray-600 mt-2">Manage your properties, yachts, and hotels</p>
-          </div>
+      <PageHeader
+        title="Listings"
+        subtitle="Manage your properties, yachts, and hotels"
+        backHref="/partner/dashboard"
+        breadcrumbs={[
+          { label: 'Partner', href: '/partner/dashboard' },
+          { label: 'Listings' }
+        ]}
+        actions={
           <Link
             href="/partner/listings/new"
             className="px-4 py-2.5 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors flex items-center gap-2 shadow-sm"
@@ -84,8 +84,8 @@ export default function PartnerListingsPage() {
             <Plus className="w-5 h-5" />
             Create Listing
           </Link>
-        </div>
-      </div>
+        }
+      />
 
       {/* Filters & Search Bar */}
       <div className="mb-6 bg-white rounded-xl border border-gray-200 p-4">

@@ -3,6 +3,7 @@ import { getImagesForDestination } from '@/src/lib/images';
 import Link from 'next/link';
 import Image from 'next/image';
 import YcnGallery from '@/src/components/YcnGallery.client';
+import YachtRequestForm from '@/src/components/yachts/YachtRequestForm.client';
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -130,6 +131,8 @@ export default async function YcnPartnerPage({ params }: { params: Promise<{ slu
           <Link href="/yachts" className="inline-flex items-center px-4 py-2 rounded-full bg-white border text-sm font-semibold text-slate-800 shadow-sm">Back to yachts</Link>
           <Link href="/chat?prompt=Plan%20a%20yacht%20charter" className="inline-flex items-center px-4 py-2 rounded-full bg-black text-white text-sm font-semibold shadow">Plan with Lina</Link>
         </div>
+
+        <YachtRequestForm yachtName={item.title} sourcePath={`/partners/ycn/${slug}`} />
       </div>
     </main>
   );

@@ -1,11 +1,5 @@
 "use client";
 import React, { useMemo, useState } from 'react';
-import {
-  useReactTable,
-  getCoreRowModel,
-  flexRender,
-} from '@tanstack/react-table';
-import type { CellContext } from '@tanstack/react-table';
 import { Calendar, Package, ExternalLink } from 'lucide-react';
 
 type Booking = {
@@ -28,41 +22,14 @@ export default function BookingsTable({ bookings = [] }: { bookings?: Booking[] 
   const [filter, setFilter] = useState<'all'|'requested'|'confirmed'|'completed'|'cancelled'>('all');
   const data = useMemo(() => (bookings || []).filter((b) => (filter === 'all' ? true : b.status === filter)), [bookings, filter]);
 
-  const columns = useMemo(
-    () => [
-      { header: 'Guest', accessorKey: 'guest' },
-      { header: 'Listing', accessorKey: 'listing' },
-      { header: 'Dates', accessorKey: 'dates' },
-      { 
-        header: 'Status',
-        accessorKey: 'status',
-        cell: (info: CellContext<Booking, unknown>) => {
-          const status = String(info.getValue()) as keyof typeof statusStyles;
-          return (
-            <span className={`px-2.5 py-1 rounded-md text-xs font-medium border ${statusStyles[status] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
-              {String(info.getValue()).charAt(0).toUpperCase() + String(info.getValue()).slice(1)}
-            </span>
-          );
-        }
-      },
-      { header: 'Total', accessorKey: 'total', cell: (info: CellContext<Booking, unknown>) => <span className="font-semibold">{String(info.getValue())}</span> },
-      { 
-        header: '', 
-        id: 'actions',
-        cell: (info: CellContext<Booking, unknown>) => (
-          <button
-            onClick={() => console.log('view', info.row.id)}
-            className="px-3 py-1.5 text-sm font-medium text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors flex items-center gap-1"
-          >
-            View <ExternalLink className="w-3 h-3" />
-          </button>
-        )
-      },
-    ],
-    []
-  );
-
-  const table = useReactTable({ data, columns, getCoreRowModel: getCoreRowModel() });
+  const formatStatus = (status: Booking['status']) => {
+    const key = status as keyof typeof statusStyles;
+    return (
+      <span className={`px-2.5 py-1 rounded-md text-xs font-medium border ${statusStyles[key] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
+        {String(status).charAt(0).toUpperCase() + String(status).slice(1)}
+      </span>
+    );
+  };
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 w-full hover:shadow-md transition-shadow duration-200">
@@ -109,24 +76,35 @@ export default function BookingsTable({ bookings = [] }: { bookings?: Booking[] 
         ) : (
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
-              {table.getHeaderGroups().map(headerGroup => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map(header => (
-                    <th key={header.id} className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                    </th>
-                  ))}
-                </tr>
-              ))}
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Guest</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Listing</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Dates</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Total</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider"></th>
+              </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {table.getRowModel().rows.map(row => (
-                <tr key={row.id} className="hover:bg-gray-50 transition-colors">
-                  {row.getVisibleCells().map(cell => (
-                    <td key={cell.id} className="px-6 py-4 text-gray-900">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
+              {data.map((booking) => (
+                <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 text-gray-900">
+                    <div className="font-medium text-gray-900">{booking.guest}</div>
+                  </td>
+                  <td className="px-6 py-4 text-gray-900">{booking.listing}</td>
+                  <td className="px-6 py-4 text-gray-900">{booking.dates}</td>
+                  <td className="px-6 py-4 text-gray-900">{formatStatus(booking.status)}</td>
+                  <td className="px-6 py-4 text-gray-900">
+                    <span className="font-semibold">{booking.total}</span>
+                  </td>
+                  <td className="px-6 py-4 text-gray-900">
+                    <button
+                      onClick={() => console.log('view', booking.id)}
+                      className="px-3 py-1.5 text-sm font-medium text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors flex items-center gap-1"
+                    >
+                      View <ExternalLink className="w-3 h-3" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

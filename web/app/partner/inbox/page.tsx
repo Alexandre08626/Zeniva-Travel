@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { MessageSquare, Send, Search } from 'lucide-react';
+import { Send, Search } from 'lucide-react';
+import PageHeader from '../../../src/components/partner/PageHeader';
 import { mockThreads } from '../../../src/lib/mockData';
 
 export default function InboxPage() {
@@ -48,14 +49,15 @@ export default function InboxPage() {
 
   return (
     <div>
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-gray-900 flex items-center gap-3">
-          <MessageSquare className="w-8 h-8 text-emerald-600" />
-          Inbox
-        </h1>
-        <p className="text-gray-600 mt-2">Communicate with your guests</p>
-      </div>
+      <PageHeader
+        title="Inbox"
+        subtitle="Communicate with your guests"
+        backHref="/partner/dashboard"
+        breadcrumbs={[
+          { label: 'Partner', href: '/partner/dashboard' },
+          { label: 'Inbox' }
+        ]}
+      />
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex" style={{ height: 'calc(100vh - 280px)' }}>
         {/* Threads List */}

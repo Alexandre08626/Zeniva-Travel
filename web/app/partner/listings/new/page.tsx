@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import PageHeader from '../../../../src/components/partner/PageHeader';
 import { ArrowLeft, ArrowRight, Check, Home, Anchor, Building2, MapPin, Users, ImageIcon, DollarSign, Calendar, FileText, LucideIcon } from 'lucide-react';
 
 type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
@@ -59,11 +60,16 @@ export default function NewListingPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-gray-900">Create New Listing</h1>
-        <p className="text-gray-600 mt-2">Step {currentStep} of {steps.length}</p>
-      </div>
+      <PageHeader
+        title="Create New Listing"
+        subtitle={`Step ${currentStep} of ${steps.length}`}
+        backHref="/partner/listings"
+        breadcrumbs={[
+          { label: 'Partner', href: '/partner/dashboard' },
+          { label: 'Listings', href: '/partner/listings' },
+          { label: 'New' }
+        ]}
+      />
 
       {/* Progress Steps */}
       <div className="mb-8 bg-white rounded-xl border border-gray-200 p-6">

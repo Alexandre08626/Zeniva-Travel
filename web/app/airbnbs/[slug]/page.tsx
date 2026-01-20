@@ -31,7 +31,7 @@ export default async function AirbnbDetailPage({ params }: { params: Promise<{ s
           <div className="p-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
               <div>
-                <p className="text-sm uppercase tracking-wide text-slate-500">Partner Airbnb</p>
+                <p className="text-sm uppercase tracking-wide text-slate-500">Airbnb</p>
                 <h1 className="text-3xl font-black text-slate-900">{item.title}</h1>
                 {item.location && <p className="text-slate-600 mt-1">{item.location}</p>}
               </div>

@@ -1,6 +1,6 @@
 "use client";
 import React, { useMemo, useState } from 'react';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import PageHeader from '../../../src/components/partner/PageHeader';
 import { DayPicker, DateRange } from 'react-day-picker';
 import { addDays, format, startOfToday } from 'date-fns';
 import 'react-day-picker/dist/style.css';
@@ -25,13 +25,15 @@ export default function CalendarPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-gray-900 flex items-center gap-3">
-          <CalendarIcon className="w-8 h-8 text-emerald-600" />
-          Calendar
-        </h1>
-        <p className="text-gray-600 mt-2">Manage availability and pricing for your listings</p>
-      </div>
+      <PageHeader
+        title="Calendar"
+        subtitle="Manage availability and pricing for your listings"
+        backHref="/partner/dashboard"
+        breadcrumbs={[
+          { label: 'Partner', href: '/partner/dashboard' },
+          { label: 'Calendar' }
+        ]}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-6">
         <div className="bg-white rounded-xl border border-gray-200 p-6">

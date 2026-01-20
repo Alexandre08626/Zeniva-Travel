@@ -1,18 +1,20 @@
 "use client";
 import React from "react";
-import Link from "next/link";
+import PageHeader from "../../../src/components/partner/PageHeader";
 
 export default function PartnerPreviewPage() {
   return (
     <main className="min-h-screen p-10 bg-slate-50">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">Visual preview — Publish flow</h1>
-            <p className="text-sm text-slate-600">This mockup shows the partner publish flow and how a listing appears on public pages (Airbnb / Yacht / Hotel).</p>
-          </div>
-          <Link href="/partner/dashboard" className="px-3 py-2 border rounded">Back to dashboard</Link>
-        </div>
+        <PageHeader
+          title="Visual preview — Publish flow"
+          subtitle="This mockup shows the partner publish flow and how a listing appears on public pages (Airbnb / Yacht / Hotel)."
+          backHref="/partner/dashboard"
+          breadcrumbs={[
+            { label: 'Partner', href: '/partner/dashboard' },
+            { label: 'Preview' }
+          ]}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <section className="bg-white p-4 rounded shadow">

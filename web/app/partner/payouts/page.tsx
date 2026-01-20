@@ -2,19 +2,21 @@
 import React from 'react';
 import Link from 'next/link';
 import { Wallet, TrendingUp, Download, CheckCircle, Clock } from 'lucide-react';
+import PageHeader from '../../../src/components/partner/PageHeader';
 import { mockPayouts } from '../../../src/lib/mockData';
 
 export default function PayoutsPage() {
   return (
     <div>
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-gray-900 flex items-center gap-3">
-          <Wallet className="w-8 h-8 text-emerald-600" />
-          Payouts
-        </h1>
-        <p className="text-gray-600 mt-2">Track your earnings and payment history</p>
-      </div>
+      <PageHeader
+        title="Payouts"
+        subtitle="Track your earnings and payment history"
+        backHref="/partner/dashboard"
+        breadcrumbs={[
+          { label: 'Partner', href: '/partner/dashboard' },
+          { label: 'Payouts' }
+        ]}
+      />
 
       {/* Balance Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

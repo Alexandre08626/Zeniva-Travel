@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useAuthStore } from "../../../src/lib/authStore";
 import Link from 'next/link';
 import KpiCard from '../../../src/components/partner/KpiCard';
+import PageHeader from '../../../src/components/partner/PageHeader';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import ActionCenter from '../../../src/components/partner/ActionCenter';
 import BookingsTable from '../../../src/components/partner/BookingsTable';
@@ -72,6 +73,32 @@ export default function PartnerDashboardPage() {
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
 
+  const headerActions = (
+    <>
+      <Link
+        href="/partner/calendar"
+        className="px-4 py-2.5 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2"
+      >
+        <Calendar className="w-4 h-4" />
+        View Calendar
+      </Link>
+      <button
+        onClick={() => setInviteModalOpen(true)}
+        className="px-4 py-2.5 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2"
+      >
+        <Users className="w-4 h-4" />
+        Invite Staff
+      </button>
+      <Link
+        href="/partner/listings/new"
+        className="px-4 py-2.5 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors shadow-sm flex items-center gap-2"
+      >
+        <Plus className="w-4 h-4" />
+        Create Listing
+      </Link>
+    </>
+  );
+
   const handleInviteStaff = () => {
     if (inviteEmail && inviteEmail.includes('@')) {
       if (typeof window !== 'undefined') {
@@ -93,38 +120,16 @@ export default function PartnerDashboardPage() {
 
   return (
     <div>
-      {/* Page Header */}
-      <div className="mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-3">
-          <div>
-            <h1 className="text-3xl font-semibold text-gray-900">Dashboard</h1>
-            <p className="text-gray-600 mt-2">Manage listings, bookings, payouts, and guest messages</p>
-          </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <Link
-              href="/partner/calendar"
-              className="px-4 py-2.5 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2"
-            >
-              <Calendar className="w-4 h-4" />
-              View Calendar
-            </Link>
-            <button 
-              onClick={() => setInviteModalOpen(true)}
-              className="px-4 py-2.5 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2"
-            >
-              <Users className="w-4 h-4" />
-              Invite Staff
-            </button>
-            <Link
-              href="/partner/listings/new"
-              className="px-4 py-2.5 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors shadow-sm flex items-center gap-2"
-            >
-                <Plus className="w-4 h-4" />
-                Create Listing
-              </Link>
-            </div>
-          </div>
-        </div>
+      <PageHeader
+        title="Dashboard"
+        subtitle="Manage listings, bookings, payouts, and guest messages"
+        backHref="/partner"
+        breadcrumbs={[
+          { label: 'Partner', href: '/partner/dashboard' },
+          { label: 'Dashboard' }
+        ]}
+        actions={headerActions}
+      />
 
         {/* KPI Row */}
         <section className="mb-8">

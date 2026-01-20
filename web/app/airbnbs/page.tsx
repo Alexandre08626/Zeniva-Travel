@@ -52,9 +52,9 @@ export default function AirbnbsPage() {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <p className="text-sm uppercase tracking-wide text-slate-500">Partner Airbnbs</p>
+            <p className="text-sm uppercase tracking-wide text-slate-500">Airbnbs</p>
             <h1 className="text-3xl font-black mt-1">Residences curated by Zeniva</h1>
-            <p className="text-slate-600 mt-2">Browse our partner stays and message us to book.</p>
+            <p className="text-slate-600 mt-2">Browse stays and message us to book.</p>
           </div>
           <Link href="/chat?prompt=Plan%20an%20Airbnb%20stay" className="hidden md:inline-flex px-4 py-2 rounded-full bg-black text-white text-sm font-semibold shadow">
             Chat to book

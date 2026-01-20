@@ -28,6 +28,7 @@ export default function AgentChatPage() {
     { id: "hq", label: "HQ", scope: "HQ only", unread: 1 },
     { id: "ops", label: "Ops", scope: "Production", unread: 0 },
     { id: "agent-alice", label: "Alice", scope: "Direct", unread: 0 },
+    { id: "agent-jason", label: "Jason Lanthier", scope: "Direct", unread: 0 },
     { id: "agent-marco", label: "Marco", scope: "Direct", unread: 0 },
     { id: "dossier-trip-104", label: "Dossier TRIP-104", scope: "Client file", unread: 0 },
     { id: "dossier-yacht-55", label: "Yacht YCHT-55", scope: "Client file", unread: 1 },
@@ -97,6 +98,124 @@ export default function AgentChatPage() {
       ));
     }
   }, [channelId]);
+
+  // Load yacht request form submissions
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem("yachtRequests") || "[]");
+    if (!stored.length) return;
+
+    setChannels((prev) => {
+      const next = [...prev];
+      const ensureChannel = (id: string, label: string, scope: string) => {
+        if (!next.find((c) => c.id === id)) {
+          next.push({ id, label, scope, unread: 0 });
+        }
+      };
+
+      ensureChannel("agent-jason", "Jason Lanthier", "Direct");
+      ensureChannel("hq", "HQ", "HQ only");
+
+      stored.forEach((req: any) => {
+        const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["agent-jason", "hq"];
+        targets.forEach((id) => {
+          const idx = next.findIndex((c) => c.id === id);
+          if (idx >= 0) {
+            const current = next[idx];
+            next[idx] = { ...current, unread: (current.unread || 0) + 1 };
+          }
+        });
+      });
+
+      return next;
+    });
+
+    setMessages((prev) => {
+      const next = { ...prev };
+      const ensureMessages = (id: string) => {
+        if (!next[id]) next[id] = [];
+      };
+
+      ensureMessages("agent-jason");
+      ensureMessages("hq");
+
+      stored.forEach((req: any) => {
+        const ts = new Date(req.createdAt || Date.now()).toLocaleTimeString().slice(0, 5);
+        const message = { role: "hq" as const, author: "Client Request", text: req.message || "New yacht request", ts };
+        const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["agent-jason", "hq"];
+        targets.forEach((id) => {
+          next[id] = [...(next[id] || []), message];
+        });
+      });
+
+      return next;
+    });
+  }, []);
+
+  // Load partner requests from server
+  useEffect(() => {
+    let active = true;
+    fetch("/api/agent/requests")
+      .then((r) => r.json())
+      .then((res) => {
+        if (!active) return;
+        const stored = (res && res.data) || [];
+        if (!stored.length) return;
+
+        setChannels((prev) => {
+          const next = [...prev];
+          const ensureChannel = (id: string, label: string, scope: string) => {
+            if (!next.find((c) => c.id === id)) {
+              next.push({ id, label, scope, unread: 0 });
+            }
+          };
+
+          ensureChannel("agent-jason", "Jason Lanthier", "Direct");
+          ensureChannel("hq", "HQ", "HQ only");
+
+          stored.forEach((req: any) => {
+            const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["agent-jason", "hq"];
+            targets.forEach((id) => {
+              const idx = next.findIndex((c) => c.id === id);
+              if (idx >= 0) {
+                const current = next[idx];
+                next[idx] = { ...current, unread: (current.unread || 0) + 1 };
+              }
+            });
+          });
+
+          return next;
+        });
+
+        setMessages((prev) => {
+          const next = { ...prev };
+          const ensureMessages = (id: string) => {
+            if (!next[id]) next[id] = [];
+          };
+
+          ensureMessages("agent-jason");
+          ensureMessages("hq");
+
+          stored.forEach((req: any) => {
+            const ts = new Date(req.createdAt || Date.now()).toLocaleTimeString().slice(0, 5);
+            const message = { role: "hq" as const, author: "Client Request", text: req.message || "New yacht request", ts };
+            const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["agent-jason", "hq"];
+            targets.forEach((id) => {
+              const exists = (next[id] || []).some((m) => m.text === message.text && m.ts === message.ts);
+              if (!exists) {
+                next[id] = [...(next[id] || []), message];
+              }
+            });
+          });
+
+          return next;
+        });
+      })
+      .catch(() => undefined);
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const title = useMemo(() => channels.find((c) => c.id === channelId)?.label || "Chat", [channelId]);
 

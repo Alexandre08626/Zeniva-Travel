@@ -25,10 +25,13 @@ const navItems = [
   { label: 'Settings', href: '/partner/settings', icon: Settings },
 ];
 
-export default function PartnerSidebar() {
-  const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
-
+function PartnerNavContent({
+  pathname,
+  onNavigate,
+}: {
+  pathname?: string | null;
+  onNavigate: () => void;
+}) {
   const isActive = (href: string) => {
     if (href === '/partner/dashboard') {
       return pathname === href;
@@ -36,7 +39,7 @@ export default function PartnerSidebar() {
     return pathname?.startsWith(href);
   };
 
-  const NavContent = () => (
+  return (
     <div className="flex flex-col h-full">
       <nav className="flex-1 px-4 py-6 space-y-1">
         {navItems.map((item) => {
@@ -46,7 +49,7 @@ export default function PartnerSidebar() {
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => setMobileOpen(false)}
+              onClick={onNavigate}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
                 active
                   ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
@@ -74,6 +77,12 @@ export default function PartnerSidebar() {
       </div>
     </div>
   );
+}
+
+export default function PartnerSidebar() {
+  const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const handleNavigate = () => setMobileOpen(false);
 
   return (
     <>
@@ -92,7 +101,7 @@ export default function PartnerSidebar() {
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-xl font-bold text-gray-900">Partner Portal</h2>
             </div>
-            <NavContent />
+            <PartnerNavContent pathname={pathname} onNavigate={handleNavigate} />
           </div>
         </div>
       )}
@@ -105,7 +114,7 @@ export default function PartnerSidebar() {
             <p className="text-sm text-gray-600 mt-1">Manage your properties</p>
           </Link>
         </div>
-        <NavContent />
+        <PartnerNavContent pathname={pathname} onNavigate={handleNavigate} />
       </aside>
     </>
   );

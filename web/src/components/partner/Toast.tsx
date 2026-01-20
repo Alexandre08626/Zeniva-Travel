@@ -57,13 +57,14 @@ export function ToastContainer() {
 
   React.useEffect(() => {
     // Global function to show toasts
-    (window as any).showToast = (message: string, type: ToastType = 'success') => {
+    const toastWindow = window as Window;
+    toastWindow.showToast = (message: string, type: ToastType = 'success') => {
       const id = Date.now().toString();
       setToasts(prev => [...prev, { id, message, type }]);
     };
 
     return () => {
-      delete (window as any).showToast;
+      delete toastWindow.showToast;
     };
   }, []);
 
@@ -89,6 +90,6 @@ export function ToastContainer() {
 // Type augmentation for window
 declare global {
   interface Window {
-    showToast: (message: string, type?: ToastType) => void;
+    showToast?: (message: string, type?: ToastType) => void;
   }
 }

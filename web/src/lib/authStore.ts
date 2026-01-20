@@ -243,9 +243,9 @@ function ensureSeedDefaultAgents() {
     },
     {
       email: "yacht@zeniva.ca",
-      name: "Jason Yacht",
+      name: "Jason Lanthier",
       password: HQ_PASSWORD,
-      roles: ["yacht-partner"],
+      roles: ["yacht-partner", "travel-agent"],
       agentLevel: "Agent",
       inviteCode: "ZENIVA-AGENT",
       divisions: ["YACHT"],
@@ -255,7 +255,25 @@ function ensureSeedDefaultAgents() {
 
   seeds.forEach((seed) => {
     const exists = state.accounts.find((a) => normalizeEmail(a.email) === normalizeEmail(seed.email));
-    if (exists) return;
+    if (exists) {
+      const mergedRoles = Array.from(new Set([...(exists.roles || (exists.role ? [exists.role] : [])), ...(seed.roles || [])])) as Role[];
+      const updated = withDefaultsAccount({
+        ...exists,
+        name: seed.name || exists.name,
+        password: exists.password || seed.password,
+        roles: mergedRoles,
+        role: mergedRoles[0],
+        agentLevel: exists.agentLevel || seed.agentLevel,
+        inviteCode: exists.inviteCode || seed.inviteCode,
+        divisions: (exists.divisions && exists.divisions.length ? exists.divisions : seed.divisions) || [],
+        status: exists.status || seed.status,
+      });
+      setState((s) => {
+        const nextAccounts = s.accounts.map((a) => (normalizeEmail(a.email) === normalizeEmail(seed.email) ? updated : a));
+        return { ...s, accounts: nextAccounts };
+      });
+      return;
+    }
     const normalized = withDefaultsAccount(seed);
     setState((s) => ({ ...s, accounts: [normalized, ...s.accounts] }));
   });

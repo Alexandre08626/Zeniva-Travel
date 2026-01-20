@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { BookOpen, Search, Eye, CheckCircle, XCircle, Calendar } from 'lucide-react';
+import PageHeader from '../../../src/components/partner/PageHeader';
 import { mockBookings } from '../../../src/lib/mockData';
 import { ConfirmModal } from '../../../src/components/partner/Modal';
 
@@ -64,13 +65,15 @@ export default function BookingsPage() {
   return (
     <div>
       {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-gray-900 flex items-center gap-3">
-          <BookOpen className="w-8 h-8 text-emerald-600" />
-          Bookings
-        </h1>
-        <p className="text-gray-600 mt-2">Manage reservations and guest requests</p>
-      </div>
+        <PageHeader
+          title="Bookings"
+          subtitle="Manage reservations and guest requests"
+          backHref="/partner/dashboard"
+          breadcrumbs={[
+            { label: 'Partner', href: '/partner/dashboard' },
+            { label: 'Bookings' }
+          ]}
+        />
 
       {/* Filters */}
       <div className="mb-6 bg-white rounded-xl border border-gray-200 p-4">
