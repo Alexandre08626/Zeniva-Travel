@@ -11,7 +11,12 @@ export function useRequireRole(roles: Role[], redirectTo = "/login") {
       router.push(redirectTo);
       return;
     }
-    if (!roles.includes(user.role)) {
+    // HQ has access to everything including partner spaces
+    const userRoles = user.roles || (user.role ? [user.role] : []);
+    const hasHQAccess = user.email?.toLowerCase() === 'info@zeniva.ca' || userRoles.includes('hq');
+    const hasRequiredRole = userRoles.some((r) => roles.includes(r));
+    
+    if (!hasHQAccess && !hasRequiredRole) {
       router.push(redirectTo);
     }
   }, [user, roles, router, redirectTo]);

@@ -25,6 +25,8 @@ export default async function ConfirmationPage({ searchParams }: { searchParams:
               <div className="flex gap-3">
                 <a
                   href={`/api/partners/duffel-stays/bookings/mock-pdf?docId=${encodeURIComponent(docId)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="rounded-full px-4 py-2 text-sm font-bold text-white"
                   style={{ backgroundColor: PREMIUM_BLUE }}
                 >

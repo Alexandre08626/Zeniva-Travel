@@ -12,12 +12,19 @@
     "pack:duffel:artifacts": "node scripts/pack-duffel-artifacts.mjs"
   },
   "dependencies": {
+    "@tanstack/react-table": "^8.21.3",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "html-pdf-node": "^1.0.8",
+    "lucide-react": "^0.562.0",
     "next": "16.1.1",
     "puppeteer": "^24.35.0",
     "react": "19.2.3",
+    "react-day-picker": "^9.13.0",
     "react-dom": "19.2.3",
-    "zod": "^3.23.8"
+    "react-hook-form": "^7.71.1",
+    "recharts": "^3.6.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

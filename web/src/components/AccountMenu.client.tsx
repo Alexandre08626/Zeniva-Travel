@@ -1,0 +1,65 @@
+'use client';
+
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore, logout, switchActiveSpace } from '@/src/lib/authStore';
+import LinaAvatar from './LinaAvatar';
+
+export default function AccountMenu() {
+  const user = useAuthStore((s) => s.user);
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+
+  const roles = user?.roles || (user?.role ? [user.role] : []);
+  // HQ has access to all spaces including partner for admin purposes
+  const isHQ = user?.email?.toLowerCase() === 'info@zeniva.ca' || roles.includes('hq');
+  const canPartner = isHQ || roles.includes('partner_owner') || roles.includes('partner_staff');
+  const canAgent = roles.some((r) => ['hq','admin','finance','support','travel-agent'].includes(r));
+  const canTraveler = roles.includes('traveler') || !!user?.travelerProfile;
+
+  function goTo(space: 'traveler'|'partner'|'agent') {
+    if (space === 'traveler' && !canTraveler) {
+      router.push('/create-traveler-profile');
+      return;
+    }
+    switchActiveSpace(space);
+    // Force full page reload to ensure cookies are applied by middleware
+    setTimeout(() => {
+      const targetUrl = space === 'partner' ? '/partner/dashboard' : space === 'traveler' ? '/app' : '/agent';
+      window.location.href = targetUrl;
+    }, 150);
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  return (
+    <div className="relative">
+      <div>
+        <button onClick={() => setOpen(!open)} className="flex items-center space-x-2 p-2 rounded-full border bg-white shadow-sm hover:shadow-md transition-shadow">
+          <LinaAvatar size="sm" />
+          <span className="hidden sm:inline text-sm font-medium truncate max-w-[120px]">{user.name}</span>
+        </button>
+        {open && (
+          <div className="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg border p-3 text-sm z-50">
+            <div className="mb-2 text-sm text-gray-600">Signed in as <strong className="text-gray-900">{user.email}</strong></div>
+            <div className="space-y-2">
+              <button onClick={() => goTo('traveler')} className="w-full text-left px-3 py-2 rounded hover:bg-gray-50">Switch to Traveler</button>
+              {canPartner && <button onClick={() => goTo('partner')} className="w-full text-left px-3 py-2 rounded hover:bg-gray-50">Switch to Partner</button>}
+              {canAgent && <button onClick={() => goTo('agent')} className="w-full text-left px-3 py-2 rounded hover:bg-gray-50">Switch to Agent</button>}
+              
+              <div className="border-t pt-2">
+                <button onClick={() => { router.push('/reset-password'); setOpen(false); }} className="w-full text-left px-3 py-2 rounded hover:bg-gray-50">Reset password</button>
+              </div>
+
+              <div className="border-t pt-2">
+                <button onClick={() => { logout(); router.push('/'); }} className="w-full text-left px-3 py-2 rounded hover:bg-gray-50">Sign out</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

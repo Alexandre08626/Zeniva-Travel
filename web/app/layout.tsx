@@ -3,7 +3,6 @@ import React from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import BackButton from "../src/components/BackButton";
 import { Providers } from "./providers";
 import HelpCenterButton from "../src/components/HelpCenterButton.client";
 
@@ -31,7 +30,6 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Providers>
-          <BackButton />
           <HelpCenterButton />
           {children}
         </Providers>

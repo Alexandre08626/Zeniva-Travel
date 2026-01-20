@@ -6,18 +6,36 @@ const HQ_EMAIL = "info@zeniva.ca";
 const HQ_PASSWORD = "Baton08!!";
 
 export type Division = "TRAVEL" | "YACHT" | "VILLAS" | "GROUPS" | "RESORTS";
-export type Role = "traveler" | "hq" | "admin" | "travel-agent" | "yacht-partner" | "finance" | "support";
+export type Role = "traveler" | "hq" | "admin" | "travel-agent" | "yacht-partner" | "finance" | "support" | "partner_owner" | "partner_staff";
 export type AgentLevel = "Agent" | "Senior Agent" | "Manager" | null;
 export type Account = {
   email: string;
   name: string;
   password: string;
-  role: Role;
+  // Multiple roles per user (single identity supporting traveler + partner + agent)
+  roles?: Role[];
+  role?: Role; // legacy single-role field (kept for backward compatibility)
   agentLevel?: AgentLevel;
   inviteCode?: string;
   divisions?: Division[];
   status?: "active" | "disabled" | "suspended";
   createdAt?: string;
+  // Partner profile fields (optional)
+  partnerId?: string; // if the account is tied to a partner
+  partnerCompany?: {
+    legalName?: string;
+    displayName?: string;
+    country?: string;
+    currency?: string;
+    language?: string;
+    phone?: string;
+    kycStatus?: "pending" | "verified" | "rejected";
+  } | null;
+  // Traveler profile
+  travelerProfile?: {
+    displayName?: string;
+    phone?: string;
+  } | null;
 };
 
 type AuditEntry = {
@@ -30,7 +48,7 @@ type AuditEntry = {
   meta?: Record<string, unknown>;
 };
 
-export type PublicUser = Omit<Account, "password">;
+export type PublicUser = Omit<Account, "password"> & { activeSpace?: "traveler" | "partner" | "agent"; roles?: Role[] };
 type AuthState = { user: PublicUser | null; accounts: Account[]; auditLog: AuditEntry[] };
 
 const defaultState: AuthState = { user: null, accounts: [], auditLog: [] };
@@ -45,14 +63,26 @@ const PERMISSIONS: Record<Role, string[]> = {
   "yacht-partner": ["dossiers:own", "proposals:own", "orders:submit", "documents:own"],
   finance: ["finance:all", "orders:approve", "invoices:all", "refunds:all", "exports:csv"],
   support: ["documents:division", "dossiers:division"],
+  // Partner roles and permissions
+  partner_owner: [
+    "partner:dashboard",
+    "partner:listings:write",
+    "partner:listings:read",
+    "partner:bookings:manage",
+    "partner:media:write",
+    "partner:payouts:read",
+    "partner:team:manage",
+  ],
+  partner_staff: ["partner:listings:read", "partner:bookings:manage", "partner:media:write"],
 };
 
 function withDefaultsAccount(a: Account): Account {
-  const role: Role = (a.role || "traveler") as Role;
-  const isAgentRole = AGENT_ROLES.includes(role);
+  const roles = a.roles && a.roles.length ? a.roles : [(a.role || "traveler") as Role];
+  const isAgentRole = roles.some((r) => AGENT_ROLES.includes(r));
   return {
     ...a,
-    role,
+    roles,
+    role: roles[0], // keep legacy field for compatibility
     agentLevel: isAgentRole ? a.agentLevel || "Agent" : null,
     divisions: isAgentRole ? (a.divisions && a.divisions.length > 0 ? a.divisions : [...DIVISIONS]) : [],
     status: a.status || "active",
@@ -92,6 +122,17 @@ function hydrate() {
   }
   ensureSeedHQ();
   ensureSeedDefaultAgents();
+  
+  // Force update current user's name if they are HQ
+  if (state.user && normalizeEmail(state.user.email) === normalizeEmail(HQ_EMAIL)) {
+    const hqAccount = state.accounts.find(a => normalizeEmail(a.email) === normalizeEmail(HQ_EMAIL));
+    if (hqAccount && state.user.name !== hqAccount.name) {
+      setState((s) => ({
+        ...s,
+        user: s.user ? { ...s.user, name: hqAccount.name } : s.user
+      }));
+    }
+  }
 }
 
 const listeners = new Set<() => void>();
@@ -149,13 +190,17 @@ function ensureSeedHQ() {
   if (idx >= 0) {
     const existing = state.accounts[idx];
     const needsUpdate =
-      existing.password !== HQ_PASSWORD || existing.role !== "hq" || existing.inviteCode !== "ZENIVA-HQ";
+      existing.password !== HQ_PASSWORD || 
+      existing.name !== "Alexandre Blais" ||
+      !(existing.roles && existing.roles.includes("hq") && existing.roles.includes("partner_owner")) || 
+      existing.inviteCode !== "ZENIVA-HQ";
     if (!needsUpdate) return;
 
     const updated: Account = withDefaultsAccount({
       ...existing,
+      name: "Alexandre Blais",
       password: HQ_PASSWORD,
-      role: "hq",
+      roles: ["hq", "partner_owner"],
       inviteCode: "ZENIVA-HQ",
       divisions: existing.divisions && existing.divisions.length ? existing.divisions : [...DIVISIONS],
       agentLevel: existing.agentLevel || "Manager",
@@ -172,9 +217,10 @@ function ensureSeedHQ() {
 
   const hq: Account = withDefaultsAccount({
     email,
-    name: "Zeniva HQ",
+    name: "Alexandre Blais",
     password: HQ_PASSWORD,
-    role: "hq",
+    // Seed HQ also as a partner in dev so the dev user can test partner flows
+    roles: ["hq", "partner_owner"],
     divisions: [...DIVISIONS],
     agentLevel: "Manager",
     inviteCode: "ZENIVA-HQ",
@@ -189,7 +235,7 @@ function ensureSeedDefaultAgents() {
       email: "agent@zeniva.ca",
       name: "Justine Caron",
       password: HQ_PASSWORD,
-      role: "travel-agent",
+      roles: ["travel-agent"],
       agentLevel: "Agent",
       inviteCode: "ZENIVA-AGENT",
       divisions: ["TRAVEL"],
@@ -199,7 +245,7 @@ function ensureSeedDefaultAgents() {
       email: "yacht@zeniva.ca",
       name: "Jason Yacht",
       password: HQ_PASSWORD,
-      role: "yacht-partner",
+      roles: ["yacht-partner"],
       agentLevel: "Agent",
       inviteCode: "ZENIVA-AGENT",
       divisions: ["YACHT"],
@@ -220,15 +266,17 @@ export function signup(params: {
   email: string;
   password: string;
   role?: Role;
+  roles?: Role[];
   agentLevel?: AgentLevel;
   inviteCode?: string;
   divisions?: Division[];
 }) {
-  const { name, email, password, role = "traveler", agentLevel = null, inviteCode, divisions } = params;
+  const { name, email, password, role = "traveler", roles = undefined, agentLevel = null, inviteCode, divisions } = params;
   if (!email || !password) throw new Error("Email and password are required");
 
   const normalizedEmail = email.trim();
-  const isAgentRole = AGENT_ROLES.includes(role);
+  const finalRoles = roles && roles.length ? roles : [role];
+  const isAgentRole = finalRoles.some((r) => AGENT_ROLES.includes(r));
   if (isAgentRole) {
     requireInviteCode(inviteCode);
   }
@@ -237,7 +285,8 @@ export function signup(params: {
     name: name || (isAgentRole ? "Agent" : "Traveler"),
     email: normalizedEmail,
     password,
-    role,
+    roles: finalRoles,
+    role: finalRoles[0],
     agentLevel: isAgentRole ? agentLevel || "Agent" : null,
     inviteCode: isAgentRole ? inviteCode?.trim() : undefined,
     divisions: isAgentRole ? (divisions && divisions.length ? divisions : [...DIVISIONS]) : [],
@@ -279,6 +328,17 @@ export function signup(params: {
   return { name: baseAccount.name, email: baseAccount.email, role: baseAccount.role, agentLevel: baseAccount.agentLevel };
 }
 
+// Cookie helpers (simple, dev-friendly)
+function setCookie(name: string, value: string, days = 7) {
+  if (typeof document === "undefined") return;
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; expires=${expires}; samesite=lax`;
+}
+function deleteCookie(name: string) {
+  if (typeof document === "undefined") return;
+  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; samesite=lax`;
+}
+
 export function login(email: string, password: string, opts?: { role?: Role | "agent"; allowedRoles?: Role[] }) {
   if (!email || !password) throw new Error("Credentials are required");
 
@@ -289,30 +349,99 @@ export function login(email: string, password: string, opts?: { role?: Role | "a
   const account = findAccount(email, password);
   if (!account) throw new Error("Invalid credentials");
   const allowedRoles = opts?.allowedRoles || (opts?.role === "agent" ? AGENT_ROLES : undefined);
-  if (allowedRoles && !allowedRoles.includes(account.role)) {
+  const accountRoles = (account.roles && account.roles.length ? account.roles : (account.role ? [account.role] : ["traveler"])) as Role[];
+  if (allowedRoles && !accountRoles.some((r) => allowedRoles.includes(r))) {
     throw new Error(opts?.role === "agent" ? "This account is not an agent account" : "This account is not allowed here");
   }
+
+  // determine default activeSpace
+  const hasPartnerRole = accountRoles.some((r) => r === "partner_owner" || r === "partner_staff");
+  const defaultActiveSpace = hasPartnerRole ? "partner" : accountRoles.includes("hq") || accountRoles.some((r) => AGENT_ROLES.includes(r)) ? "agent" : "traveler";
+
+  // set cookies for middleware and server-aware routing
+  if (typeof window !== "undefined") {
+    setCookie("zeniva_active_space", defaultActiveSpace, 7);
+    setCookie("zeniva_roles", JSON.stringify(accountRoles), 7);
+    setCookie("zeniva_email", account.email, 7);
+    if (account.travelerProfile) setCookie("zeniva_has_traveler_profile", "1", 7);
+  }
+
   setState((s) => ({
     ...s,
     user: {
       name: account.name,
       email: account.email,
-      role: account.role,
+      roles: accountRoles,
+      role: accountRoles[0] as Role,
       agentLevel: account.agentLevel,
       inviteCode: account.inviteCode,
       divisions: account.divisions,
       status: account.status,
+      activeSpace: defaultActiveSpace,
+      travelerProfile: account.travelerProfile,
+      partnerCompany: account.partnerCompany,
+      partnerId: account.partnerId,
     },
     auditLog: [...s.auditLog, makeAudit("login", account.email, "account", account.email)],
   }));
-  return { name: account.name, email: account.email, role: account.role, agentLevel: account.agentLevel };
+  return { name: account.name, email: account.email, roles: accountRoles, agentLevel: account.agentLevel, activeSpace: defaultActiveSpace };
 }
 
 export function logout(redirectTo = "/") {
   setState((s) => ({ ...s, user: null }));
   if (typeof window !== "undefined") {
+    deleteCookie("zeniva_active_space");
+    deleteCookie("zeniva_roles");
+    deleteCookie("zeniva_email");
+    deleteCookie("zeniva_has_traveler_profile");
     window.location.href = redirectTo;
   }
+}
+
+// Switch the active UI space without logging out
+export function switchActiveSpace(space: "traveler" | "partner" | "agent") {
+  if (!state.user) throw new Error("Not authenticated");
+  if (typeof document !== "undefined") {
+    setCookie("zeniva_active_space", space, 7);
+  }
+  setState((s) => ({
+    ...s,
+    user: s.user ? ({ ...s.user, activeSpace: space } as PublicUser) : s.user,
+    auditLog: [...s.auditLog, makeAudit("switch:space", s.user?.email || "unknown", "session", undefined, { space })],
+  }));
+}
+
+// Quick create traveler profile (15-30s flow)
+export function createTravelerProfile(update: { displayName?: string; phone?: string }) {
+  const current = state.user;
+  if (!current) throw new Error("Not authenticated");
+  const email = current.email;
+  setState((s) => {
+    const idx = s.accounts.findIndex((a) => normalizeEmail(a.email) === normalizeEmail(email));
+    if (idx < 0) throw new Error("Account not found");
+    const existing = s.accounts[idx];
+    const nextAccount: Account = withDefaultsAccount({
+      ...existing,
+      travelerProfile: {
+        displayName: update.displayName ?? existing.travelerProfile?.displayName,
+        phone: update.phone ?? existing.travelerProfile?.phone,
+      },
+      // ensure traveler role exists
+      roles: (existing.roles && existing.roles.length ? existing.roles : []).concat("traveler"),
+    });
+    const nextAccounts = [...s.accounts];
+    nextAccounts[idx] = nextAccount;
+    const { password: _pw, ...publicUser } = nextAccount;
+    void _pw;
+    // set cookie to inform middleware
+    if (typeof document !== "undefined") setCookie("zeniva_has_traveler_profile", "1", 7);
+    return {
+      ...s,
+      accounts: nextAccounts,
+      user: publicUser as PublicUser,
+      auditLog: [...s.auditLog, makeAudit("traveler:create", email, "account", email, { created: Object.keys(update) })],
+    };
+  });
 }
 
 export function getUser() {
@@ -320,17 +449,29 @@ export function getUser() {
 }
 
 export function isAgent(user = state.user) {
-  return user ? AGENT_ROLES.includes(user.role) : false;
+  const roles = user ? (user.roles || (user.role ? [user.role] : [])) : [];
+  return roles.some((r) => AGENT_ROLES.includes(r));
+}
+
+export function isPartner(user = state.user) {
+  const roles = user ? (user.roles || (user.role ? [user.role] : [])) : [];
+  return roles.includes("partner_owner") || roles.includes("partner_staff");
+}
+
+export function hasPartnerPermission(user: PublicUser | null | undefined, permission: string) {
+  return hasPermission(user, permission);
 }
 
 export function hasDivision(user: PublicUser | null | undefined, division: Division) {
   if (!user) return false;
-  if (user.role === "hq") return true;
+  const roles = user.roles || (user.role ? [user.role] : []);
+  if (roles.includes("hq")) return true;
   return (user.divisions || []).includes(division);
 }
 
 export function isHQ(user = state.user) {
-  return user?.role === "hq";
+  const roles = user ? (user.roles || (user.role ? [user.role] : [])) : [];
+  return roles.includes("hq");
 }
 
 export function updateAccountStatus(email: string, status: "active" | "disabled" | "suspended") {
@@ -391,6 +532,49 @@ export function updateSelfProfile(update: {
   });
 }
 
+// NOTE: client-side helper. In production this must call a secure server-side API to update partner profile and trigger KYC workflows.
+export function updatePartnerProfile(update: {
+  partnerId?: string;
+  legalName?: string;
+  displayName?: string;
+  country?: string;
+  currency?: string;
+  language?: string;
+  phone?: string;
+  kycStatus?: "pending" | "verified" | "rejected";
+}) {
+  const current = state.user;
+  if (!current) throw new Error("Not authenticated");
+  const email = current.email;
+  setState((s) => {
+    const idx = s.accounts.findIndex((a) => normalizeEmail(a.email) === normalizeEmail(email));
+    if (idx < 0) throw new Error("Account not found");
+    const existing = s.accounts[idx];
+    const nextAccount: Account = withDefaultsAccount({
+      ...existing,
+      partnerId: update.partnerId || existing.partnerId || `partner_${Math.random().toString(36).slice(2,8)}`,
+      partnerCompany: {
+        legalName: update.legalName ?? existing.partnerCompany?.legalName,
+        displayName: update.displayName ?? existing.partnerCompany?.displayName,
+        country: update.country ?? existing.partnerCompany?.country,
+        currency: update.currency ?? existing.partnerCompany?.currency,
+        language: update.language ?? existing.partnerCompany?.language,
+        phone: update.phone ?? existing.partnerCompany?.phone,
+        kycStatus: update.kycStatus ?? existing.partnerCompany?.kycStatus ?? "pending",
+      },
+    });
+    const nextAccounts = [...s.accounts];
+    nextAccounts[idx] = nextAccount;
+    const { password: _pw, ...publicUser } = nextAccount;
+    void _pw;
+    return {
+      ...s,
+      accounts: nextAccounts,
+      user: publicUser as PublicUser,
+      auditLog: [...s.auditLog, makeAudit("partner:profile-update", email, "partner", nextAccount.partnerId, { updated: Object.keys(update) })],
+    };
+  });
+}
 function makeAudit(action: string, actor: string, targetType: string, targetId?: string, meta?: Record<string, unknown>): AuditEntry {
   return { id: uid(), actor, action, targetType, targetId, timestamp: new Date().toISOString(), meta };
 }
@@ -402,7 +586,11 @@ export function addAudit(action: string, targetType: string, targetId?: string, 
 
 export function hasPermission(user: PublicUser | null | undefined, permission: string) {
   if (!user) return false;
-  if (user.role === "hq") return true;
-  const perms = PERMISSIONS[user.role] || [];
-  return perms.includes("*") || perms.includes(permission);
+  const roles = user.roles || (user.role ? [user.role] : []);
+  if (roles.includes("hq")) return true;
+  for (const r of roles) {
+    const perms = PERMISSIONS[r] || [];
+    if (perms.includes("*") || perms.includes(permission)) return true;
+  }
+  return false;
 }

@@ -23,16 +23,27 @@ export default function YachtsPage() {
 
   useEffect(() => {
     let active = true;
-    fetch('/api/partners/ycn')
-      .then((r) => r.json())
-      .then((data: YcnItem[]) => {
-        if (!active) return;
-        setItems(data || []);
-      })
-      .catch(() => {
-        if (!active) return;
-        setItems([]);
-      });
+    // fetch curated YCN fleet
+    const ycnReq = fetch('/api/partners/ycn').then((r) => r.json()).catch(() => []);
+    // fetch partner-published yachts
+    const partnerReq = fetch('/api/public/listings?type=yacht').then((r) => r.json()).then((res) => (res && res.data) || []).catch(() => []);
+
+    Promise.all([ycnReq, partnerReq]).then(([ycnData, partnerData]) => {
+      if (!active) return;
+      // Normalize partner yacht shape to YcnItem
+      const partnerItems: YcnItem[] = (partnerData || []).map((p: any) => ({
+        title: p.title,
+        destination: p.data?.location || p.data?.destination || "",
+        thumbnail: p.data?.thumbnail || (p.data?.images && p.data.images[0]) || undefined,
+        prices: p.data?.prices || [],
+        images: p.data?.images || [],
+      }));
+      setItems([...(ycnData || []), ...partnerItems]);
+    }).catch(() => {
+      if (!active) return;
+      setItems([]);
+    });
+
     return () => {
       active = false;
     };

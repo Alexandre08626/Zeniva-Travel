@@ -1,20 +1,30 @@
 "use client";
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { login, useAuthStore } from "../../src/lib/authStore";
 
 export default function LoginPage() {
   const router = useRouter();
+  const search = useSearchParams();
   const user = useAuthStore((s) => s.user);
+  const space = search?.get("space");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [mode, setMode] = useState<"traveler" | "agent">("traveler");
+  const [mode, setMode] = useState<"traveler" | "agent" | "partner">(
+    space === "agent" ? "agent" : space === "partner" ? "partner" : "traveler"
+  );
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     setError(null);
     try {
+      if (mode === "partner") {
+        // Allow partner owners/staff and Zeniva HQ/Admin to access partner workspace for dev/admin purposes
+        login(email.trim(), password, { allowedRoles: ["partner_owner", "partner_staff", "hq", "admin"] });
+        router.push("/partner/dashboard");
+        return;
+      }
       login(email.trim(), password, { role: mode });
       router.push(mode === "agent" ? "/agent" : "/proposals");
     } catch (err) {
@@ -45,22 +55,29 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit} className="max-w-md w-full bg-white p-6 shadow rounded space-y-4">
         <div>
           <h1 className="text-2xl font-semibold">Sign in</h1>
-          <p className="text-sm text-gray-600">Choose your space: Traveler or Zeniva Agent.</p>
+          <p className="text-sm text-gray-600">Choose your space: Traveler, Zeniva Agent or Partner.</p>
         </div>
-        <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Sign-in type">
+        <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Sign-in type">
           <button
             type="button"
             onClick={() => setMode("traveler")}
             className={`rounded border px-3 py-2 text-sm font-semibold ${mode === "traveler" ? "border-black bg-black text-white" : "border-gray-300 text-gray-800"}`}
           >
-            Traveler sign-in
+            Traveler
           </button>
           <button
             type="button"
             onClick={() => setMode("agent")}
             className={`rounded border px-3 py-2 text-sm font-semibold ${mode === "agent" ? "border-black bg-black text-white" : "border-gray-300 text-gray-800"}`}
           >
-            Agent sign-in
+            Agent
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("partner")}
+            className={`rounded border px-3 py-2 text-sm font-semibold ${mode === "partner" ? "border-black bg-black text-white" : "border-gray-300 text-gray-800"}`}
+          >
+            Partner
           </button>
         </div>
         <label className="block text-sm font-medium">
@@ -88,13 +105,35 @@ export default function LoginPage() {
           <button type="submit" className="w-full py-2 px-3 bg-black text-white rounded hover:bg-gray-800">
             Sign in
           </button>
-          <button
-            type="button"
-            onClick={() => router.push("/signup")}
-            className="w-full py-2 px-3 border rounded hover:bg-gray-50"
-          >
-            Create an account
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => router.push("/signup")}
+              className="w-full py-2 px-3 border rounded hover:bg-gray-50"
+            >
+              Create an account
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push('/signup?space=partner')}
+              className="w-full py-2 px-3 border rounded hover:bg-gray-50"
+            >
+              Partner sign-up
+            </button>
+          </div>
+
+          {/* Dev helper: quick HQ login (dev only) */}
+          {process.env.NODE_ENV !== 'production' && (
+            <div className="mt-2 text-center">
+              <button
+                type="button"
+                onClick={() => { setEmail('info@zeniva.ca'); setPassword('Baton08!!'); setMode('agent'); }}
+                className="text-xs text-slate-500 hover:underline"
+              >
+                Dev: Sign in as HQ
+              </button>
+            </div>
+          )}
         </div>
       </form>
     </div>

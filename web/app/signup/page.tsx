@@ -1,13 +1,14 @@
 "use client";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { signup, useAuthStore, type Role } from "../../src/lib/authStore";
+import { signup, useAuthStore, type Role, updatePartnerProfile } from "../../src/lib/authStore";
 import { addAgentFromAccount } from "../../src/lib/agent/agents";
 
 export default function SignupPage() {
   const router = useRouter();
+  const search = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const user = useAuthStore((s) => s.user);
-  const [mode, setMode] = useState<"traveler" | "agent">("traveler");
+  const [mode, setMode] = useState<"traveler" | "agent" | "partner">(search.get("space") === "partner" ? "partner" : "traveler");
   const deriveInvite = (role: string) => {
     if (role === "hq") return "ZENIVA-HQ";
     if (role === "admin") return "ZENIVA-ADMIN";
@@ -18,6 +19,12 @@ export default function SignupPage() {
   };
   const [agentRole, setAgentRole] = useState<Role>("travel-agent");
   const [name, setName] = useState("");
+  const [companyLegalName, setCompanyLegalName] = useState("");
+  const [companyDisplayName, setCompanyDisplayName] = useState("");
+  const [companyPhone, setCompanyPhone] = useState("");
+  const [companyCountry, setCompanyCountry] = useState("");
+  const [companyCurrency, setCompanyCurrency] = useState("");
+  const [companyLanguage, setCompanyLanguage] = useState("en");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [inviteCode, setInviteCode] = useState(deriveInvite("travel-agent"));
@@ -27,6 +34,43 @@ export default function SignupPage() {
     e.preventDefault();
     setError(null);
     try {
+      if (mode === "partner") {
+        // Create partner owner account and pre-fill partner company info (KYC pending)
+        signup({
+          name: name.trim() || "Partner Owner",
+          email: email.trim(),
+          password,
+          role: "partner_owner",
+          agentLevel: undefined,
+          inviteCode: inviteCode ? inviteCode.trim() : undefined,
+          divisions: [],
+        });
+        // Immediately attach partner company profile to the signed-in account
+        try {
+          setTimeout(() => {
+            // lazy call to avoid race with signup persistence
+            try {
+              updatePartnerProfile({
+                legalName: companyLegalName,
+                displayName: companyDisplayName,
+                phone: companyPhone,
+                country: companyCountry,
+                currency: companyCurrency,
+                language: companyLanguage,
+                kycStatus: "pending",
+              });
+            } catch (ex) {
+              console.error("updatePartnerProfile error:", ex);
+            }
+            router.push("/partner/onboarding");
+          }, 200);
+        } catch (err) {
+          console.error("partner signup flow error:", err);
+          router.push("/partner/onboarding");
+        }
+        return;
+      }
+
       signup({
         name: name.trim() || (mode === "agent" ? "Agent" : "Traveler"),
         email: email.trim(),
@@ -76,20 +120,27 @@ export default function SignupPage() {
           <h1 className="text-2xl font-semibold">Create an account</h1>
           <p className="text-sm text-gray-600">Choose your space: Traveler or Zeniva Agent.</p>
         </div>
-        <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Account type">
+        <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Account type">
           <button
             type="button"
             onClick={() => setMode("traveler")}
             className={`rounded border px-3 py-2 text-sm font-semibold ${mode === "traveler" ? "border-black bg-black text-white" : "border-gray-300 text-gray-800"}`}
           >
-            Traveler account
+            Traveler
           </button>
           <button
             type="button"
             onClick={() => setMode("agent")}
             className={`rounded border px-3 py-2 text-sm font-semibold ${mode === "agent" ? "border-black bg-black text-white" : "border-gray-300 text-gray-800"}`}
           >
-            Agent account
+            Agent
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("partner")}
+            className={`rounded border px-3 py-2 text-sm font-semibold ${mode === "partner" ? "border-black bg-black text-white" : "border-gray-300 text-gray-800"}`}
+          >
+            Partner
           </button>
         </div>
         {mode === "agent" && (
@@ -121,6 +172,40 @@ export default function SignupPage() {
             placeholder="Ex: Lina Voyageur"
           />
         </label>
+
+        {mode === "partner" && (
+          <div className="space-y-3 mt-2">
+            <label className="block text-sm font-medium">
+              Company legal name
+              <input className="mt-1 w-full border rounded px-3 py-2" value={companyLegalName} onChange={(e)=>setCompanyLegalName(e.target.value)} />
+            </label>
+            <label className="block text-sm font-medium">
+              Company display name
+              <input className="mt-1 w-full border rounded px-3 py-2" value={companyDisplayName} onChange={(e)=>setCompanyDisplayName(e.target.value)} />
+            </label>
+            <label className="block text-sm font-medium">
+              Phone
+              <input className="mt-1 w-full border rounded px-3 py-2" value={companyPhone} onChange={(e)=>setCompanyPhone(e.target.value)} />
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="block text-sm font-medium">
+                Country
+                <input className="mt-1 w-full border rounded px-3 py-2" value={companyCountry} onChange={(e)=>setCompanyCountry(e.target.value)} />
+              </label>
+              <label className="block text-sm font-medium">
+                Currency
+                <input className="mt-1 w-full border rounded px-3 py-2" value={companyCurrency} onChange={(e)=>setCompanyCurrency(e.target.value)} />
+              </label>
+            </div>
+            <label className="block text-sm font-medium">
+              Language
+              <select className="mt-1 w-full border rounded px-3 py-2" value={companyLanguage} onChange={(e)=>setCompanyLanguage(e.target.value)}>
+                <option value="en">English</option>
+                <option value="fr">French</option>
+              </select>
+            </label>
+          </div>
+        )}
         <label className="block text-sm font-medium">
           Email
           <input

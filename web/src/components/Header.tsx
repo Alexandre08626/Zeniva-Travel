@@ -4,10 +4,12 @@ import Link from "next/link";
 import Image from "next/image";
 import React, { useState } from "react";
 import { PREMIUM_BLUE, TITLE_TEXT, MUTED_TEXT } from "../design/tokens";
-import { logout, useAuthStore, isAgent } from "../lib/authStore";
+import { logout, useAuthStore, isAgent, isPartner } from "../lib/authStore";
 import LocaleSwitcher from "./LocaleSwitcher";
 import Pill from "./Pill";
 import LinaAvatar from "./LinaAvatar";
+import AccountMenu from "./AccountMenu.client";
+import { Bell, Search } from 'lucide-react';
 
 export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean; userEmail?: string }) {
   const authUser = useAuthStore((s) => s.user);
@@ -43,7 +45,12 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
             <Link href="/collections/group" className="text-sm text-slate-700 hover:underline">Group Trips</Link>
             <Link href="/airbnbs" className="text-sm text-slate-700 hover:underline">Partner Airbnbs</Link>
             {loggedIn && (
-              <Link href="/documents" className="text-sm text-slate-900 font-semibold hover:underline">My Travel Documents</Link>
+              <>
+                <Link href="/documents" className="text-sm text-slate-900 font-semibold hover:underline">My Travel Documents</Link>
+                {isPartner(authUser) && (
+                  <Link href="/partner/dashboard" className="text-sm text-slate-900 font-semibold hover:underline">Partner</Link>
+                )}
+              </>
             )}
           </nav>
         </div>
@@ -55,28 +62,8 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
         </button>
 
         <div className="flex items-center gap-2 header-right sm:flex hidden">
-          {!loggedIn && (
-            <Link
-              href="/partner"
-              className="rounded-full border border-slate-200 px-2 py-1 text-xs font-semibold mr-1 header-partner sm:px-4 sm:py-2 sm:text-sm"
-              style={{ color: TITLE_TEXT }}
-            >
-              Partner
-            </Link>
-          )}
-
           {loggedIn ? (
           <>
-            <div className="max-w-[220px] truncate text-xs font-semibold" style={{ color: MUTED_TEXT }} title={email}>
-              {email}
-            </div>
-            <button
-              className="rounded-full border px-4 py-2 text-sm font-semibold"
-              style={{ borderColor: "#000000ff", color: "#01000aff" }}
-              onClick={() => logout()}
-            >
-              Log out
-            </button>
             {agent && (
               <Link
                 href="/agent"
@@ -98,9 +85,19 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
           </>
         )}
 
-        <div className="hidden sm:flex items-center gap-2 ml-4">
-          <Image src="/branding/lina-avatar.png" alt="Lina avatar" width={40} height={40} className="rounded-full" />
-          {!loggedIn && <LocaleSwitcher orientation="horizontal" className="h-9" />}
+        <div className="hidden sm:flex items-center gap-3 ml-4">
+          <div className="hidden md:block">
+            <button aria-label="Search" className="p-2 rounded-lg hover:bg-gray-100"><Search size={18} /></button>
+          </div>
+          <button aria-label="Notifications" className="p-2 rounded-lg hover:bg-gray-100"><Bell size={18} /></button>
+          {loggedIn ? (
+            <AccountMenu />
+          ) : (
+            <>
+              <Image src="/branding/lina-avatar.png" alt="Lina avatar" width={40} height={40} className="rounded-full" />
+              <LocaleSwitcher orientation="horizontal" className="h-9" />
+            </>
+          )}
         </div>
       </div>
 
@@ -108,9 +105,6 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50" onClick={() => setMenuOpen(false)}>
           <div className="fixed bottom-0 left-0 right-0 bg-white p-6 rounded-t-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex flex-col gap-4">
-              <Link href="/partner" className="text-center py-3 bg-slate-100 rounded-lg font-semibold" onClick={() => setMenuOpen(false)}>
-                Partner with us
-              </Link>
               <Link href="/signup" className="text-center py-3 bg-blue-500 text-white rounded-lg font-semibold" onClick={() => setMenuOpen(false)}>
                 Sign up
               </Link>
