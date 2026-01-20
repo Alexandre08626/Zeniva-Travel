@@ -43,7 +43,7 @@ export default function InboxPage() {
     setMessageText('');
     
     if (typeof window !== 'undefined') {
-      window.showToast('Message sent successfully', 'success');
+      window.showToast?.('Message sent successfully', 'success');
     }
   };
 

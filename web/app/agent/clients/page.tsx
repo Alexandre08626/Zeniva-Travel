@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { listClients, addClient } from "../../../src/lib/agent/store";
+import type { Client, Division } from "../../../src/lib/agent/types";
 import { useAuthStore } from "../../../src/lib/authStore";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../src/design/tokens";
 
@@ -10,9 +11,9 @@ export default function ClientsPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [division, setDivision] = useState("TRAVEL");
+  const [division, setDivision] = useState<Division>("TRAVEL");
   const [agentEmail, setAgentEmail] = useState("");
-  const [clientsState, setClientsState] = useState(listClients());
+  const [clientsState, setClientsState] = useState<Client[]>(listClients());
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,11 +25,12 @@ export default function ClientsPage() {
       .then((res) => res.json())
       .then((payload) => {
         if (!active) return;
-        const records = Array.isArray(payload?.data) ? payload.data : [];
-        if (!records.length) return;
+        const records: any[] = Array.isArray(payload?.data) ? payload.data : [];
+        const remote = records.map((record: any) => toClient(record)).filter(Boolean) as Client[];
+        if (!remote.length) return;
 
         const local = listClients();
-        const merged = mergeClients(local, records);
+        const merged = mergeClients(local, remote);
         setClientsState(merged);
       })
       .catch(() => undefined);
@@ -58,7 +60,7 @@ export default function ClientsPage() {
       email: email.trim(),
       ownerEmail: user?.email || "agent@zeniva.ca",
       phone: phone.trim(),
-      primaryDivision: division as any,
+      primaryDivision: division,
       assignedAgent: agentEmail.trim() || undefined,
     });
     try {
@@ -136,7 +138,7 @@ export default function ClientsPage() {
               Division
               <select
                 value={division}
-                onChange={(e) => setDivision(e.target.value)}
+                onChange={(e) => setDivision(e.target.value as Division)}
                 className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               >
                 <option value="TRAVEL">Travel</option>
@@ -213,20 +215,31 @@ export default function ClientsPage() {
   );
 }
 
-type ClientRow = {
-  id: string;
-  name: string;
-  email?: string;
-  ownerEmail: string;
-  phone?: string;
-  origin: "house" | "agent";
-  assignedAgents?: string[];
-  primaryDivision?: string;
-};
+const DIVISIONS: Division[] = ["TRAVEL", "YACHT", "VILLAS", "GROUPS", "RESORTS"];
 
-function mergeClients(local: ClientRow[], remote: ClientRow[]) {
-  const byKey = new Map<string, ClientRow>();
-  const makeKey = (c: ClientRow) => (c.email ? c.email.toLowerCase() : c.id);
+function toDivision(value?: string): Division | undefined {
+  if (!value) return undefined;
+  const normalized = value.toUpperCase();
+  return DIVISIONS.includes(normalized as Division) ? (normalized as Division) : undefined;
+}
+
+function toClient(record: any): Client | null {
+  if (!record?.id || !record?.name || !record?.ownerEmail) return null;
+  return {
+    id: String(record.id),
+    name: String(record.name),
+    email: record.email ? String(record.email) : undefined,
+    ownerEmail: String(record.ownerEmail),
+    phone: record.phone ? String(record.phone) : undefined,
+    origin: record.origin === "agent" ? "agent" : "house",
+    assignedAgents: Array.isArray(record.assignedAgents) ? record.assignedAgents.map((agent: string) => String(agent)) : [],
+    primaryDivision: toDivision(record.primaryDivision),
+  };
+}
+
+function mergeClients(local: Client[], remote: Client[]) {
+  const byKey = new Map<string, Client>();
+  const makeKey = (c: Client) => (c.email ? c.email.toLowerCase() : c.id);
 
   local.forEach((client) => {
     byKey.set(makeKey(client), client);

@@ -5,23 +5,12 @@ import crypto from "crypto";
 const HOTELBEDS_API_KEY = process.env.HOTELBEDS_API_KEY || "REDACTED_HOTELBEDS_KEY";
 const HOTELBEDS_API_SECRET = process.env.HOTELBEDS_API_SECRET || "REDACTED_HOTELBEDS_SECRET";
 const HOTELBEDS_BASE_URL = process.env.HOTELBEDS_BASE_URL_TEST || "https://api.test.hotelbeds.com";
-const HOTELBEDS_USE_MTLS = process.env.HOTELBEDS_USE_MTLS === "true";
 
 // Generate X-Signature for Hotelbeds authentication
 function generateXSignature(apiKey: string, secret: string): { signature: string, timestamp: number } {
   const timestamp = Math.floor(Date.now() / 1000);
   const signature = crypto.createHash('sha256').update(apiKey + secret + timestamp).digest('hex');
   return { signature, timestamp };
-}
-
-// Create HTTPS agent for mTLS if needed
-function createHttpsAgent() {
-  if (HOTELBEDS_USE_MTLS) {
-    // For mTLS, we would need to configure certificates
-    // This is a placeholder - actual implementation would require certificate files
-    throw new Error("mTLS not yet implemented - certificate configuration required");
-  }
-  return null;
 }
 
 export async function POST(req: Request) {

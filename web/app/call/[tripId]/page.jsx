@@ -1,7 +1,6 @@
 "use client";
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import ChatLayout from "../../../components/chat/ChatLayout";
 import ConversationsSidebar from "../../../components/chat/ConversationsSidebar";
 import ChatThread from "../../../components/chat/ChatThread";
 import TripSnapshotPanel from "../../../components/chat/TripSnapshotPanel";

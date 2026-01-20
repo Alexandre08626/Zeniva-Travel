@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import Link from "next/link";
 import Header from "../../src/components/Header";
 import Footer from "../../src/components/Footer";
@@ -192,12 +192,6 @@ export default function DocumentsPage() {
   const documents = useDocumentsStore((s) => (userId ? s.documents[userId] || {} : {}));
   const localDocuments = useDocumentsStore((s) => s.documents['__local__'] || {});
 
-  // Seed sample docs for demo when a logged-in user has none yet
-  const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   useEffect(() => {
     if (!userId) return;
     const hasDocs = Object.keys(documents || {}).length > 0;
@@ -251,7 +245,7 @@ export default function DocumentsPage() {
           {loggedOut ? (
             <div className="mt-8 space-y-6">
               {/* Show locally saved docs when available */}
-              {isMounted && Object.keys(localDocuments || {}).length > 0 && (
+              {Object.keys(localDocuments || {}).length > 0 && (
                 <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
                   <div className="text-lg font-bold" style={{ color: TITLE_TEXT }}>Saved on this device</div>
                   <div className="text-sm font-semibold mt-2" style={{ color: MUTED_TEXT }}>

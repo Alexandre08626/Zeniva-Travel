@@ -39,7 +39,7 @@ export default function PartnerListingsPage() {
       };
       setListings(prev => [...prev, newListing]);
       if (typeof window !== 'undefined') {
-        window.showToast('Listing duplicated successfully', 'success');
+        window.showToast?.('Listing duplicated successfully', 'success');
       }
     }
   };
@@ -51,7 +51,7 @@ export default function PartnerListingsPage() {
   const executeDelete = () => {
     setListings(prev => prev.filter(l => l.id !== deleteModal.listingId));
     if (typeof window !== 'undefined') {
-      window.showToast('Listing deleted successfully', 'success');
+      window.showToast?.('Listing deleted successfully', 'success');
     }
     setDeleteModal({ isOpen: false, listingId: '' });
   };
@@ -62,7 +62,7 @@ export default function PartnerListingsPage() {
       l.id === id ? { ...l, status: newStatus } : l
     ));
     if (typeof window !== 'undefined') {
-      window.showToast(`Listing ${newStatus}`, 'success');
+      window.showToast?.(`Listing ${newStatus}`, 'success');
     }
   };
 

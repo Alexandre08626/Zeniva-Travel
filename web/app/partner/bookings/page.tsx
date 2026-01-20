@@ -41,14 +41,14 @@ export default function BookingsPage() {
         b.id === bookingId ? { ...b, status: 'confirmed' } : b
       ));
       if (typeof window !== 'undefined') {
-        window.showToast('Booking confirmed successfully!', 'success');
+        window.showToast?.('Booking confirmed successfully!', 'success');
       }
     } else if (action === 'decline') {
       setBookings(prev => prev.map(b => 
         b.id === bookingId ? { ...b, status: 'cancelled' } : b
       ));
       if (typeof window !== 'undefined') {
-        window.showToast('Booking declined', 'warning');
+        window.showToast?.('Booking declined', 'warning');
       }
     }
     

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuthStore } from "../../../src/lib/authStore";
-import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../src/design/tokens";
+import { TITLE_TEXT, MUTED_TEXT } from "../../../src/design/tokens";
 
 const allowedEmails = new Set(["info@zeniva.ca"]);
 
@@ -28,7 +28,6 @@ export default function PartnerAccountsPage() {
   useEffect(() => {
     if (!canView) return;
     let active = true;
-    setLoading(true);
     fetch("/api/accounts")
       .then((res) => res.json())
       .then((payload) => {

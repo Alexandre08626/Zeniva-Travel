@@ -37,7 +37,8 @@ export default function ResetPasswordPage() {
       setStatus('success');
     } catch (err) {
       setStatus('error');
-      setError(err?.message || 'Erreur, réessayez.');
+      const message = err instanceof Error ? err.message : 'Erreur, réessayez.';
+      setError(message);
     }
   }
 

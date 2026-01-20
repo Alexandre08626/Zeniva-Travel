@@ -1,9 +1,9 @@
 "use client";
-import { FormEvent, useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { login, useAuthStore } from "../../src/lib/authStore";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const search = useSearchParams();
   const user = useAuthStore((s) => s.user);
@@ -137,5 +137,13 @@ export default function LoginPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="max-w-md w-full bg-white p-6 shadow rounded"><h1 className="text-2xl font-semibold">Sign in</h1></div></div>}>
+      <LoginContent />
+    </Suspense>
   );
 }

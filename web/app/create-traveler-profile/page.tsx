@@ -1,10 +1,10 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { createTravelerProfile, switchActiveSpace } from '@/src/lib/authStore';
 
-export default function CreateTravelerProfilePage() {
+function CreateTravelerProfileContent() {
   const router = useRouter();
   const params = useSearchParams();
   const returnTo = params?.get('returnTo') || '/';
@@ -43,5 +43,13 @@ export default function CreateTravelerProfilePage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function CreateTravelerProfilePage() {
+  return (
+    <Suspense fallback={<div className="p-8 max-w-md mx-auto"><h1 className="text-2xl font-semibold">Create traveler profile</h1></div>}>
+      <CreateTravelerProfileContent />
+    </Suspense>
   );
 }

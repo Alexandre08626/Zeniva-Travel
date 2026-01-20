@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 // src/app/page.tsx
 import Link from "next/link";
 import { PREMIUM_BLUE, LIGHT_BG, TITLE_TEXT, GRADIENT_START, GRADIENT_END } from "../src/design/tokens";

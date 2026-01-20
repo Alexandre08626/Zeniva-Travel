@@ -51,7 +51,7 @@ export default function NewListingPage() {
 
   const handlePublish = () => {
     if (typeof window !== 'undefined') {
-      window.showToast('Listing published successfully! 🎉', 'success');
+      window.showToast?.('Listing published successfully! 🎉', 'success');
     }
     setTimeout(() => {
       window.location.href = '/partner/listings';

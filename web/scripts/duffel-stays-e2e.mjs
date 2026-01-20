@@ -64,7 +64,7 @@ async function main() {
   const searchRes = await fetch(searchUrl);
   const searchText = await searchRes.text();
   let searchJson = null;
-  try { searchJson = JSON.parse(searchText); } catch(e) { console.error('Invalid JSON from search:', searchText.slice(0,500)); process.exit(1); }
+  try { searchJson = JSON.parse(searchText); } catch(_err) { console.error('Invalid JSON from search:', searchText.slice(0,500)); process.exit(1); }
   fs.writeFileSync(path.join(artifactsDir, 'search.json'), JSON.stringify(searchJson, null, 2));
 
   if (!searchJson || (!searchJson.offers && !searchJson.data)) {
@@ -109,7 +109,7 @@ async function main() {
   if (quoteId) {
     const bookingRes = await fetch(`${BASE}/api/partners/duffel-stays/bookings`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ quote_id: quoteId, phone_number: '+15555555555', email: 'tester@example.com', guests: [{ given_name: 'Alpha', family_name: 'Tester', born_on: '1990-01-01' }] }) });
     const bookingText = await bookingRes.text();
-    try { bookingJson = JSON.parse(bookingText); } catch(e) { console.error('Invalid booking JSON:', bookingText); }
+    try { bookingJson = JSON.parse(bookingText); } catch(_err) { console.error('Invalid booking JSON:', bookingText); }
     fs.writeFileSync(path.join(artifactsDir, 'booking.json'), JSON.stringify(bookingJson?.booking || bookingJson || { error: bookingText }, null, 2));
   } else {
     console.warn('No quoteId; using mock booking artifact');

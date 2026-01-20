@@ -1,6 +1,5 @@
 "use client";
 import Link from "next/link";
-import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useRequireRole } from "../../../src/lib/roleGuards";
 import { addAudit, useAuthStore } from "../../../src/lib/authStore";

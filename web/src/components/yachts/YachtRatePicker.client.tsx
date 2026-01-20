@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 type RateOption = {
@@ -61,36 +61,22 @@ export default function YachtRatePicker({ rates }: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [selectedId, setSelectedId] = useState(() => options[0]?.id ?? "");
-
-  useEffect(() => {
-    if (!options.length) return;
+  const selected = useMemo(() => {
+    if (!options.length) return null;
     const hoursParam = searchParams.get("hours");
     const priceParam = searchParams.get("price");
-    if (!hoursParam || !priceParam) return;
-
-    const hours = Number.parseInt(hoursParam, 10);
-    const price = Number.parseInt(priceParam, 10);
-    if (!Number.isFinite(hours) || !Number.isFinite(price)) return;
-
-    const match = options.find((option) => option.hours === hours && option.price === price);
-    if (match && match.id !== selectedId) {
-      setSelectedId(match.id);
+    if (hoursParam && priceParam) {
+      const hours = Number.parseInt(hoursParam, 10);
+      const price = Number.parseInt(priceParam, 10);
+      if (Number.isFinite(hours) && Number.isFinite(price)) {
+        const match = options.find((option) => option.hours === hours && option.price === price);
+        if (match) return match;
+      }
     }
-  }, [options, searchParams, selectedId]);
+    return options[0];
+  }, [options, searchParams]);
 
-  useEffect(() => {
-    if (!options.length) {
-      setSelectedId("");
-      return;
-    }
-
-    if (!options.find((option) => option.id === selectedId)) {
-      setSelectedId(options[0].id);
-    }
-  }, [options, selectedId]);
-
-  const selected = options.find((option) => option.id === selectedId) ?? options[0];
+  const selectedId = selected?.id ?? "";
 
   useEffect(() => {
     if (!selected) return;
@@ -134,7 +120,19 @@ export default function YachtRatePicker({ rates }: Props) {
           Duration
           <select
             value={selectedId}
-            onChange={(e) => setSelectedId(e.target.value)}
+            onChange={(e) => {
+              const nextOption = options.find((option) => option.id === e.target.value);
+              if (!nextOption) return;
+              const next = new URLSearchParams(searchParams.toString());
+              next.set("hours", String(nextOption.hours));
+              next.set("price", String(nextOption.price));
+              if (nextOption.note) {
+                next.set("note", nextOption.note);
+              } else {
+                next.delete("note");
+              }
+              router.replace(`${pathname}?${next.toString()}`);
+            }}
             className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
           >
             {options.map((option) => (

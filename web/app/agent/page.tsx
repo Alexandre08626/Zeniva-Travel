@@ -51,7 +51,7 @@ export default function AgentDashboardPage() {
   );
 
   const [query, setQuery] = useState("");
-  const [selectedClient, setSelectedClient] = useState("Unassigned");
+  const [selectedClient] = useState("Unassigned");
   const [scopes, setScopes] = useState<string[]>(["flights", "hotels", "resorts", "excursions", "transfers", "cars", "yachts"]);
   const [auditTrail, setAuditTrail] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'flights' | 'hotels' | 'transfers'>('flights');
@@ -89,22 +89,6 @@ export default function AgentDashboardPage() {
     const interval = setInterval(checkUnread, 5000);
     return () => clearInterval(interval);
   }, []);
-
-  const scopeOptions = [
-    { key: "flights", label: "Flights" },
-    { key: "hotels", label: "Hotels" },
-    { key: "resorts", label: "Resorts" },
-    { key: "excursions", label: "Excursions" },
-    { key: "transfers", label: "Transfers" },
-    { key: "cars", label: "Cars" },
-    { key: "yachts", label: "Yachts" },
-  ];
-
-  const clients = ["Unassigned", "Martin Dupuis", "HQ – Escapes", "VIP – Lavoie", "Corporate – NovaTech"];
-
-  const toggleScope = (key: string) => {
-    setScopes((prev) => (prev.includes(key) ? prev.filter((s) => s !== key) : [...prev, key]));
-  };
 
   const handlePrimarySubmit = () => {
     let q = '';

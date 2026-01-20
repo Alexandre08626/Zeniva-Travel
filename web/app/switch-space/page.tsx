@@ -1,10 +1,10 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { switchActiveSpace } from '@/src/lib/authStore';
 
-export default function SwitchSpacePage() {
+function SwitchSpaceContent() {
   const router = useRouter();
   const params = useSearchParams();
   const target = params?.get('target') || 'traveler';
@@ -26,5 +26,13 @@ export default function SwitchSpacePage() {
       <h1>Switching space…</h1>
       <p>If nothing happens, <a href={returnTo}>click here</a>.</p>
     </div>
+  );
+}
+
+export default function SwitchSpacePage() {
+  return (
+    <Suspense fallback={<div className="p-8"><h1>Switching space…</h1></div>}>
+      <SwitchSpaceContent />
+    </Suspense>
   );
 }

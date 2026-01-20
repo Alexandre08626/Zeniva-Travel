@@ -52,8 +52,10 @@ export function formatCurrency(amount: number): string {
 }
 
 export function computePrice(selection: any, tripDraft: any) {
-  const travelers = tripDraft?.adults || 2;
-  const nights = tripDraft?.checkIn && tripDraft?.checkOut ? Math.max(1, Math.round((new Date(tripDraft.checkOut).getTime() - new Date(tripDraft.checkIn).getTime()) / (1000 * 60 * 60 * 24))) : 5;
+  const travelers = parseTravelers(tripDraft?.adults ?? tripDraft?.travelers ?? tripDraft?.guests);
+  const nights = parseNights(
+    tripDraft?.dates || (tripDraft?.checkIn && tripDraft?.checkOut ? `${tripDraft.checkIn} - ${tripDraft.checkOut}` : undefined)
+  );
 
   const flightBase = parseMoney(selection?.flight?.price) ?? 1850;
   const hotelNightly = parseMoney(selection?.hotel?.price) ?? 420;

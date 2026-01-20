@@ -102,13 +102,13 @@ export default function PartnerDashboardPage() {
   const handleInviteStaff = () => {
     if (inviteEmail && inviteEmail.includes('@')) {
       if (typeof window !== 'undefined') {
-        window.showToast(`Invitation sent to ${inviteEmail}`, 'success');
+        window.showToast?.(`Invitation sent to ${inviteEmail}`, 'success');
       }
       setInviteEmail('');
       setInviteModalOpen(false);
     } else {
       if (typeof window !== 'undefined') {
-        window.showToast('Please enter a valid email address', 'error');
+        window.showToast?.('Please enter a valid email address', 'error');
       }
     }
   };

@@ -1,5 +1,4 @@
 "use client";
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useAuthStore } from "../../lib/authStore";
@@ -12,10 +11,8 @@ export default function BookingConfirmation({ booking, businessInfo }: { booking
   const [needsLogin, setNeedsLogin] = useState(false);
   const [showRaw, setShowRaw] = useState(false);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const user = useAuthStore((s:any) => s.user);
   const userId = user?.email || "";
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { trips } = useTripsStore((s:any) => ({ trips: s.trips }));
 
   const addToDocumentsAs = (targetUserId: string) => {
@@ -128,7 +125,6 @@ export default function BookingConfirmation({ booking, businessInfo }: { booking
           <div className="mt-2">
             <strong>Occupants:</strong>
             <ul className="mt-1 text-sm list-disc pl-5">
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               {(booking.guests || []).map((g:any, i:number) => <li key={i}>{g.given_name || g.first_name || ''} {g.family_name || g.last_name || ''}{g.born_on ? ` (born ${g.born_on})` : ''}</li>)}
             </ul>
           </div>
