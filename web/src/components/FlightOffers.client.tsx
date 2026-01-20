@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type OfferCard = {
   id: string;
@@ -14,11 +15,52 @@ type OfferCard = {
   badge?: string;
 };
 
-export default function FlightOffers({ offers = [], roundTrip = false }: { offers: OfferCard[]; roundTrip?: boolean }) {
-  const [selected, setSelected] = useState<string[]>([]);
+type SearchContext = {
+  from?: string;
+  to?: string;
+  depart?: string;
+  ret?: string;
+  passengers?: string;
+  cabin?: string;
+};
 
-  function toggle(id: string) {
-    setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+export default function FlightOffers({
+  offers = [],
+  roundTrip = false,
+  searchContext,
+}: {
+  offers: OfferCard[];
+  roundTrip?: boolean;
+  searchContext?: SearchContext;
+}) {
+  const [selected, setSelected] = useState<string[]>([]);
+  const router = useRouter();
+
+  function goToPayment(offer: OfferCard) {
+    const params = new URLSearchParams({
+      type: "flight",
+      carrier: offer.carrier,
+      code: offer.code,
+      depart: offer.depart,
+      arrive: offer.arrive,
+      duration: offer.duration,
+      stops: offer.stops,
+      cabin: offer.cabin,
+      price: offer.price,
+      from: searchContext?.from || "",
+      to: searchContext?.to || "",
+      departDate: searchContext?.depart || "",
+      returnDate: searchContext?.ret || "",
+      passengers: searchContext?.passengers || "",
+    });
+    router.push(`/payment?${params.toString()}`);
+  }
+
+  function toggle(offer: OfferCard) {
+    setSelected((s) => (s.includes(offer.id) ? s.filter((x) => x !== offer.id) : [...s, offer.id]));
+    if (!roundTrip) {
+      goToPayment(offer);
+    }
   }
 
   const canProceed = !roundTrip ? selected.length === 1 : selected.length >= 2;
@@ -45,22 +87,30 @@ export default function FlightOffers({ offers = [], roundTrip = false }: { offer
             <span className="text-lg font-black text-slate-900">{r.price}</span>
             <div className="flex items-center gap-2">
               {r.badge && <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">{r.badge}</span>}
-              <button onClick={() => toggle(r.id)} className={`rounded-full px-4 py-2 text-sm font-semibold ${selected.includes(r.id) ? 'bg-slate-800 text-white' : 'bg-black text-white'}`}>
+              <button onClick={() => toggle(r)} className={`rounded-full px-4 py-2 text-sm font-semibold ${selected.includes(r.id) ? 'bg-slate-800 text-white' : 'bg-black text-white'}`}>
                 {selected.includes(r.id) ? 'Selected' : 'Select'}
               </button>
             </div>
           </div>
         </div>
       ))}
-
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-slate-600">Selected: {selected.length}</div>
-        <div>
-          <button disabled={!canProceed} onClick={() => alert(`Proceeding with ${selected.join(', ')}`)} className={`rounded-full px-4 py-2 font-semibold ${canProceed ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-400'}`}>
-            Proceed
-          </button>
+      {roundTrip && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-slate-600">Selected: {selected.length}</div>
+          <div>
+            <button
+              disabled={!canProceed}
+              onClick={() => {
+                const first = offers.find((o) => o.id === selected[0]);
+                if (first) goToPayment(first);
+              }}
+              className={`rounded-full px-4 py-2 font-semibold ${canProceed ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-400'}`}
+            >
+              Proceed
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

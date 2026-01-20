@@ -8,10 +8,29 @@ import { useSearchParams } from "next/navigation";
 
 function PaymentContent() {
   const searchParams = useSearchParams();
+  const mode = searchParams.get("type");
+  const isFlight = mode === "flight";
   const yachtParam = searchParams.get("yacht") || "Yacht charter";
   const hoursParam = searchParams.get("hours");
   const priceParam = searchParams.get("price");
   const noteParam = searchParams.get("note");
+
+  const flightCarrier = searchParams.get("carrier") || "Airline";
+  const flightCode = searchParams.get("code") || "Flight";
+  const flightDepart = searchParams.get("depart") || "";
+  const flightArrive = searchParams.get("arrive") || "";
+  const flightDuration = searchParams.get("duration") || "";
+  const flightStops = searchParams.get("stops") || "";
+  const flightCabin = searchParams.get("cabin") || "";
+  const flightPrice = searchParams.get("price") || "Price on request";
+  const flightFrom = searchParams.get("from") || "";
+  const flightTo = searchParams.get("to") || "";
+  const flightDepartDate = searchParams.get("departDate") || "";
+  const flightReturnDate = searchParams.get("returnDate") || "";
+  const flightPassengers = searchParams.get("passengers") || "";
+
+  const flightRoute = [flightFrom || "Origin", flightTo || "Destination"].join(" → ");
+  const flightDates = flightReturnDate ? `${flightDepartDate || "Date"} → ${flightReturnDate}` : flightDepartDate || "Date";
 
   const hours = hoursParam ? Number.parseInt(hoursParam, 10) : NaN;
   const price = priceParam ? Number.parseInt(priceParam, 10) : NaN;
@@ -31,7 +50,7 @@ function PaymentContent() {
     <div className="rounded-[20px] border border-slate-100 bg-white p-6 shadow-sm">
       <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold" style={{ color: TITLE_TEXT }}>Checkout</h1>
+          <h1 className="text-2xl font-extrabold" style={{ color: TITLE_TEXT }}>{isFlight ? "Flight checkout" : "Checkout"}</h1>
           <p className="mt-2 text-sm font-semibold" style={{ color: MUTED_TEXT }}>Secure payment with 3D Secure. Your card is encrypted.</p>
         </div>
       </div>
@@ -83,25 +102,59 @@ function PaymentContent() {
 
         <aside className="rounded-xl border border-slate-200 p-4 space-y-3 bg-slate-50">
           <h2 className="text-sm font-semibold text-slate-700">Booking summary</h2>
-          <div className="text-base font-bold" style={{ color: TITLE_TEXT }}>{yachtParam}</div>
-          <div className="text-sm text-slate-600">
-            {Number.isFinite(hours) ? `${hours}h` : "Duration"}
-            {noteParam ? ` · ${noteParam}` : ""}
-          </div>
-          <div className="border-t border-slate-200 pt-3 space-y-2 text-sm text-slate-700">
-            <div className="flex justify-between"><span>Base rate</span><span>{formatMoney(baseRate)}</span></div>
-            <div className="flex justify-between"><span>Gratuity</span><span>{formatMoney(gratuity)}</span></div>
-            <div className="flex justify-between"><span>Taxes & fees</span><span>{formatMoney(taxes)}</span></div>
-            <div className="flex justify-between font-bold text-slate-900"><span>Total due</span><span>{formatMoney(totalDue)}</span></div>
-          </div>
-          <div className="rounded-lg bg-white border border-slate-200 p-3 text-xs text-slate-600">
-            Need changes? Contact concierge before paying. Funds are held until charter confirmation.
-          </div>
+          {isFlight ? (
+            <>
+              <div className="text-base font-bold" style={{ color: TITLE_TEXT }}>{flightRoute}</div>
+              <div className="text-sm text-slate-600">{flightDates}{flightPassengers ? ` · ${flightPassengers} pax` : ""}{flightCabin ? ` · ${flightCabin}` : ""}</div>
+              <div className="rounded-lg bg-white border border-slate-200 p-3 text-sm text-slate-700 space-y-1">
+                <div className="font-semibold">{flightCarrier} · {flightCode}</div>
+                <div>{flightDepart} → {flightArrive}</div>
+                <div>{flightDuration}{flightStops ? ` · ${flightStops}` : ""}</div>
+              </div>
+              <div className="border-t border-slate-200 pt-3 space-y-2 text-sm text-slate-700">
+                <div className="flex justify-between"><span>Fare</span><span>{flightPrice}</span></div>
+                <div className="flex justify-between font-bold text-slate-900"><span>Total due</span><span>{flightPrice}</span></div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-base font-bold" style={{ color: TITLE_TEXT }}>{yachtParam}</div>
+              <div className="text-sm text-slate-600">
+                {Number.isFinite(hours) ? `${hours}h` : "Duration"}
+                {noteParam ? ` · ${noteParam}` : ""}
+              </div>
+              <div className="border-t border-slate-200 pt-3 space-y-2 text-sm text-slate-700">
+                <div className="flex justify-between"><span>Base rate</span><span>{formatMoney(baseRate)}</span></div>
+                <div className="flex justify-between"><span>Gratuity</span><span>{formatMoney(gratuity)}</span></div>
+                <div className="flex justify-between"><span>Taxes & fees</span><span>{formatMoney(taxes)}</span></div>
+                <div className="flex justify-between font-bold text-slate-900"><span>Total due</span><span>{formatMoney(totalDue)}</span></div>
+              </div>
+              <div className="rounded-lg bg-white border border-slate-200 p-3 text-xs text-slate-600">
+                Need changes? Contact concierge before paying. Funds are held until charter confirmation.
+              </div>
+            </>
+          )}
         </aside>
       </div>
 
       <div className="mt-6 flex items-center justify-between text-sm text-slate-600">
-        <Link href="/yachts" className="underline">Back to yachts</Link>
+        {isFlight ? (
+          <Link
+            href={`/search/flights?${new URLSearchParams({
+              from: flightFrom,
+              to: flightTo,
+              depart: flightDepartDate,
+              ret: flightReturnDate,
+              passengers: flightPassengers,
+              cabin: flightCabin,
+            }).toString()}`}
+            className="underline"
+          >
+            Back to flights
+          </Link>
+        ) : (
+          <Link href="/yachts" className="underline">Back to yachts</Link>
+        )}
         <span>Payments secured by your provider (Stripe recommended).</span>
       </div>
     </div>

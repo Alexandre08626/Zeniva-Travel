@@ -155,7 +155,18 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
           <div className="space-y-3">
             {/* Use client component for interactive selection */}
             {/* @ts-ignore */}
-            <FlightOffers offers={offers} roundTrip={!!ret} />
+            <FlightOffers
+              offers={offers}
+              roundTrip={!!ret}
+              searchContext={{
+                from,
+                to,
+                depart,
+                ret,
+                passengers,
+                cabin,
+              }}
+            />
           </div>
         </section>
 
