@@ -35,6 +35,7 @@ export default function PartnerResortsPage() {
     departureCity: string;
     checkIn: string;
     checkOut: string;
+    travelers: number;
   }>({
     status: "all",
     type: "",
@@ -43,6 +44,7 @@ export default function PartnerResortsPage() {
     departureCity: "",
     checkIn: "",
     checkOut: "",
+    travelers: 2,
   });
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
@@ -92,7 +94,7 @@ export default function PartnerResortsPage() {
 
     updateSnapshot(tripId, {
       destination: resort.destination,
-      travelers: "2 adults",
+      travelers: `${filters.travelers} travelers`,
       style: resort.positioning,
       accommodationType: "Hotel",
       budget: resort.pricing.publicRateFrom,
@@ -109,6 +111,7 @@ export default function PartnerResortsPage() {
       checkOut: filters.checkOut,
       departureCity: filters.departureCity,
       dates,
+      travelers: filters.travelers,
     });
 
     const hotelSelection = {
@@ -303,6 +306,16 @@ export default function PartnerResortsPage() {
                     className="w-full rounded-lg border px-3 py-2 text-sm"
                     value={filters.checkOut}
                     onChange={(e) => setFilters((f) => ({ ...f, checkOut: e.target.value }))}
+                  />
+                </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <input
+                    type="number"
+                    min={1}
+                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                    value={filters.travelers}
+                    onChange={(e) => setFilters((f) => ({ ...f, travelers: Math.max(1, Number(e.target.value || 1)) }))}
+                    placeholder="Travelers"
                   />
                 </div>
                 <select
