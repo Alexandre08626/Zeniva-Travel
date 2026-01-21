@@ -307,7 +307,7 @@ export default function HomePage() {
               </div>
               <div>
                 <h3 className="text-2xl font-black">Lina AI, Your Travel Genius</h3>
-                <p className="text-sm text-slate-200 mt-1">Powered by Zeniva Intelligence</p>
+                <p className="text-sm text-white/80 mt-1">Powered by Zeniva Intelligence</p>
               </div>
             </div>
 
@@ -321,21 +321,21 @@ export default function HomePage() {
                   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 14h-2v-2h2v2zm0-4h-2V6h2v6z" fill="#FFF"/></svg>
                 </div>
                 <h4 className="font-bold mb-2">She Asks</h4>
-                <p className="text-sm text-slate-200">Departure city, dates, budget & vibe</p>
+                <p className="text-sm text-white/80">Departure city, dates, budget & vibe</p>
               </div>
               <div>
                 <div className="mb-2">
                   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3l2 5 5 .5-4 3 1.2 5L12 15l-4.2 2.5L9 11 5 8l5-.5L12 3z" fill="#FFF"/></svg>
                 </div>
                 <h4 className="font-bold mb-2">She Curates</h4>
-                <p className="text-sm text-slate-200">Optimized flight + hotel combos</p>
+                <p className="text-sm text-white/80">Optimized flight + hotel combos</p>
               </div>
               <div>
                 <div className="mb-2">
                   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4" stroke="#FFF" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </div>
                 <h4 className="font-bold mb-2">You Book</h4>
-                <p className="text-sm text-slate-200">Ready-to-checkout itineraries</p>
+                <p className="text-sm text-white/80">Ready-to-checkout itineraries</p>
               </div>
             </div>
 

@@ -23,11 +23,20 @@ export default function LinaWidget({ size = 280 }: { size?: number }) {
         .lina-animated { animation: lina-breathe 4.8s ease-in-out infinite; }
         .lina-blink { animation: lina-blink 7s infinite; }
 
-        .lina-bubble { position: absolute; right: -160px; bottom: -28px; background: linear-gradient(90deg,#0B57FF 0%, #4DA1FF 100%); color: white; padding: 14px 18px; border-radius: 999px; box-shadow: 0 18px 40px rgba(2,6,23,0.18); font-weight:700; font-size:15px; display:flex; align-items:center; gap:10px; border: none; animation: lina-bubble-pulse 3.2s ease-in-out infinite; }
+        .lina-bubble { position: absolute; right: clamp(-120px, -10vw, -160px); bottom: -28px; background: linear-gradient(90deg,#0B57FF 0%, #4DA1FF 100%); color: white; padding: 14px 18px; border-radius: 999px; box-shadow: 0 18px 40px rgba(2,6,23,0.18); font-weight:700; font-size:15px; display:flex; align-items:center; gap:10px; border: none; animation: lina-bubble-pulse 3.2s ease-in-out infinite; max-width: min(380px, 70vw); }
         .lina-bubble:active { transform: translateY(1px); }
         .lina-bubble::after { content: ""; position: absolute; right: 28px; bottom: -8px; width: 12px; height: 12px; background: linear-gradient(90deg,#0B57FF 0%, #4DA1FF 100%); transform: rotate(45deg); border-radius: 2px; box-shadow: 0 6px 12px rgba(2,6,23,0.12); }
         .lina-bubble .msg-icon { width:16px; height:16px; display:inline-block; }
         @keyframes lina-bubble-pulse { 0% { transform: translateY(0) scale(1); box-shadow: 0 18px 40px rgba(2,6,23,0.18); } 50% { transform: translateY(-2px) scale(1.02); box-shadow: 0 22px 48px rgba(2,6,23,0.22); } 100% { transform: translateY(0) scale(1); box-shadow: 0 18px 40px rgba(2,6,23,0.18); } }
+
+        @media (max-width: 1200px) {
+          .lina-bubble { font-size: 13px; padding: 12px 14px; right: clamp(-80px, -6vw, -120px); }
+        }
+
+        @media (max-width: 1024px) {
+          .lina-bubble { max-width: min(320px, 72vw); }
+          .lina-bubble::after { right: 20px; }
+        }
 
       `}</style>
 
@@ -36,7 +45,7 @@ export default function LinaWidget({ size = 280 }: { size?: number }) {
           <img src="/branding/lina-avatar.png" alt="Lina" className="lina-avatar lina-blink" style={{ width: '100%', height: '100%', objectFit: 'cover', boxShadow: '0 8px 30px rgba(2,6,23,0.12)' }} />
         </div>
 
-        <div className="lina-bubble" style={{ right: -160, bottom: -28 }}>
+        <div className="lina-bubble" style={{ bottom: -28 }}>
           <svg className="msg-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
             <path d="M4 5h16a1 1 0 0 1 1 1v9.5a1 1 0 0 1-1 1H8.8L4 21V6a1 1 0 0 1 1-1Z" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
             <path d="M8 10h8M8 13h5" stroke="white" strokeWidth="1.6" strokeLinecap="round"/>
