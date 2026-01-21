@@ -24,10 +24,14 @@ export const metadata: Metadata = {
     template: "%s | Zeniva Travel AI",
   },
   description:
-    "Zeniva Travel AI is a premium travel agency and concierge. We design custom trips, private villa stays, luxury resorts, yacht charters, and curated experiences—powered by Lina AI for faster, smarter planning.",
+    "Zeniva Travel AI is a premium travel agency powered by Lina AI. Plan a luxury trip in minutes with AI‑curated flights, villas, resorts, yachts, and experiences—tailor‑made for you.",
   keywords: [
     "Zeniva Travel",
     "Zeniva Travel AI",
+    "Lina AI",
+    "AI travel planner",
+    "AI trip planning",
+    "plan a trip in minutes",
     "luxury travel agency",
     "custom travel planning",
     "travel concierge",
@@ -45,7 +49,7 @@ export const metadata: Metadata = {
     url: "https://zenivatravel.com",
     title: "Zeniva Travel AI | Luxury Travel Concierge",
     description:
-      "Custom-made journeys with private villas, luxury resorts, yacht charters, and curated experiences—planned by Lina AI and our expert travel team.",
+      "Plan a luxury trip in minutes with Lina AI—custom flights, villas, resorts, yachts, and curated experiences built around you.",
     siteName: "Zeniva Travel AI",
     images: [
       {
@@ -60,7 +64,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Zeniva Travel AI | Luxury Travel Concierge",
     description:
-      "Custom-made journeys with private villas, luxury resorts, yacht charters, and curated experiences—planned by Lina AI and our expert travel team.",
+      "Plan a luxury trip in minutes with Lina AI—custom flights, villas, resorts, yachts, and curated experiences built around you.",
     images: ["/branding/logo.png"],
   },
   icons: {

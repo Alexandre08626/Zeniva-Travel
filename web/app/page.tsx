@@ -154,7 +154,7 @@ export default function HomePage() {
 
                   <p className="mt-3 text-md text-white/90 max-w-xl md:max-w-2xl">
                     <AutoTranslate
-                      text="Tailor-made journeys, expert recommendations, and ready-to-book itineraries."
+                      text="Plan a luxury trip in minutes with Lina AI—tailor-made itineraries, curated resorts, private villas, yachts, and experiences."
                       className="inline"
                     />
                   </p>
