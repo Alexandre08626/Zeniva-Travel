@@ -49,12 +49,21 @@ html {
 .text-gray-400,
 .text-gray-500,
 .text-gray-600 {
-  color: #1f2937 !important;
+  color: #111111 !important;
 }
 
 .text-slate-700,
-.text-gray-700 {
-  color: #111111 !important;
+.text-slate-800,
+.text-slate-900,
+.text-gray-700,
+.text-gray-800,
+.text-gray-900 {
+  color: #000000 !important;
+}
+
+::placeholder {
+  color: #4b5563;
+  opacity: 1;
 }
 
 html {
