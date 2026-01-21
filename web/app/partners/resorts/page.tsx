@@ -27,11 +27,22 @@ const statusColor: Record<ResortStatus, string> = {
 export default function PartnerResortsPage() {
   const router = useRouter();
   const [selectedId, setSelectedId] = useState(resortPartners[0]?.id ?? "");
-  const [filters, setFilters] = useState<{ status: ResortStatus | "all"; type: string; query: string; sort: "featured" | "price" | "name" }>({
+  const [filters, setFilters] = useState<{
+    status: ResortStatus | "all";
+    type: string;
+    query: string;
+    sort: "featured" | "price" | "name";
+    departureCity: string;
+    checkIn: string;
+    checkOut: string;
+  }>({
     status: "all",
     type: "",
     query: "",
     sort: "featured",
+    departureCity: "",
+    checkIn: "",
+    checkOut: "",
   });
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
@@ -77,12 +88,16 @@ export default function PartnerResortsPage() {
       style: resort.positioning,
     });
 
+    const dates = filters.checkIn && filters.checkOut ? `${filters.checkIn} - ${filters.checkOut}` : "";
+
     updateSnapshot(tripId, {
       destination: resort.destination,
       travelers: "2 adults",
       style: resort.positioning,
       accommodationType: "Resort",
       budget: resort.pricing.publicRateFrom,
+      dates,
+      departure: filters.departureCity,
     });
 
     applyTripPatch(tripId, {
@@ -90,6 +105,10 @@ export default function PartnerResortsPage() {
       accommodationType: "Resort",
       style: resort.positioning,
       budget: resort.pricing.publicRateFrom,
+      checkIn: filters.checkIn,
+      checkOut: filters.checkOut,
+      departureCity: filters.departureCity,
+      dates,
     });
 
     const hotelSelection = {
@@ -266,6 +285,26 @@ export default function PartnerResortsPage() {
                   value={filters.query}
                   onChange={(e) => setFilters((f) => ({ ...f, query: e.target.value }))}
                 />
+                <input
+                  placeholder="Departure city or address"
+                  className="w-full rounded-lg border px-3 py-2 text-sm"
+                  value={filters.departureCity}
+                  onChange={(e) => setFilters((f) => ({ ...f, departureCity: e.target.value }))}
+                />
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <input
+                    type="date"
+                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                    value={filters.checkIn}
+                    onChange={(e) => setFilters((f) => ({ ...f, checkIn: e.target.value }))}
+                  />
+                  <input
+                    type="date"
+                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                    value={filters.checkOut}
+                    onChange={(e) => setFilters((f) => ({ ...f, checkOut: e.target.value }))}
+                  />
+                </div>
                 <select
                   value={filters.status}
                   onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value as ResortStatus | "all" }))}
