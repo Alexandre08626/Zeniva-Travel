@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 
 type Props = {
@@ -8,6 +8,7 @@ type Props = {
   storageKey: string;
   propertyName: string;
   sourcePath: string;
+  beforeBook?: ReactNode;
 };
 
 type DatesState = {
@@ -35,7 +36,7 @@ function formatMoney(value: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
 }
 
-export default function AirbnbBookingSummary({ pricePerNight, storageKey, propertyName, sourcePath }: Props) {
+export default function AirbnbBookingSummary({ pricePerNight, storageKey, propertyName, sourcePath, beforeBook }: Props) {
   const [dates, setDates] = useState<DatesState>(() => {
     if (typeof window === "undefined") return { start: null, end: null };
     const stored = window.localStorage.getItem(storageKey);
@@ -116,7 +117,8 @@ export default function AirbnbBookingSummary({ pricePerNight, storageKey, proper
           </div>
         </div>
 
-        <Link href={`/payment?airbnb=${encodeURIComponent(propertyName)}`} className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-blue-700 text-white py-3.5 text-sm font-semibold shadow-lg shadow-blue-200/60 hover:bg-blue-800 transition">
+        {beforeBook && <div className="mt-4">{beforeBook}</div>}
+        <Link href={`/payment?airbnb=${encodeURIComponent(propertyName)}`} className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-blue-700 text-white py-3.5 text-sm font-semibold shadow-lg shadow-blue-200/60 hover:bg-blue-800 transition">
           Book
         </Link>
         <a

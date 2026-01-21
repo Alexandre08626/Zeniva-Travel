@@ -173,23 +173,25 @@ export default async function AirbnbDetailPage({ params }: { params: Promise<{ s
           </div>
 
           <div className="space-y-3">
-            <AddToProposalButton
-              title={item.title}
-              destination={propertyLocation || item.location || ""}
-              accommodationType="Airbnb"
-              style="Private residence"
-              price={`$${pricePerNight}/night`}
-              image={hero}
-              images={gallery}
-              description={descriptionText}
-              roomLabel={propertyType ? `${propertyType} stay` : "Residence"}
-              className="w-full rounded-full bg-black px-4 py-2 text-sm font-semibold text-white shadow hover:bg-slate-900"
-            />
             <AirbnbBookingSummary
               pricePerNight={pricePerNight}
               storageKey={storageKey}
               propertyName={item.title}
               sourcePath={`/airbnbs/${slug}`}
+              beforeBook={
+                <AddToProposalButton
+                  title={item.title}
+                  destination={propertyLocation || item.location || ""}
+                  accommodationType="Airbnb"
+                  style="Private residence"
+                  price={`$${pricePerNight}/night`}
+                  image={hero}
+                  images={gallery}
+                  description={descriptionText}
+                  roomLabel={propertyType ? `${propertyType} stay` : "Residence"}
+                  className="w-full rounded-full bg-black px-4 py-2 text-sm font-semibold text-white shadow hover:bg-slate-900"
+                />
+              }
             />
           </div>
         </div>
