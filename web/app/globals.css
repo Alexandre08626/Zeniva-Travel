@@ -58,20 +58,19 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+main {
+  padding-left: 7.5vw;
+  padding-right: 7.5vw;
+}
+
 main > div[class*="max-w-"],
 main > section > div[class*="max-w-"],
 main > div > div[class*="max-w-"],
 main > section > div > div[class*="max-w-"] {
-  max-width: 100% !important;
-  width: 100%;
-}
-
-main > div[class*="px-"],
-main > section[class*="px-"],
-main > section > div[class*="px-"],
-main > div > div[class*="px-"] {
-  padding-left: 0 !important;
-  padding-right: 0 !important;
+  max-width: 1400px !important;
+  width: 85% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
 
 @media (max-width: 768px) {
