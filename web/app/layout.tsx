@@ -53,10 +53,10 @@ export const metadata: Metadata = {
     siteName: "Zeniva Travel AI",
     images: [
       {
-        url: "/branding/logo.png",
+        url: "/branding/lina-avatar.png",
         width: 1200,
         height: 630,
-        alt: "Zeniva Travel AI",
+        alt: "Lina AI",
       },
     ],
   },
@@ -65,7 +65,7 @@ export const metadata: Metadata = {
     title: "Zeniva Travel AI | Luxury Travel Concierge",
     description:
       "Plan a luxury trip in minutes with Lina AI—custom flights, villas, resorts, yachts, and curated experiences built around you.",
-    images: ["/branding/logo.png"],
+    images: ["/branding/lina-avatar.png"],
   },
   icons: {
     icon: "/branding/logo.png",
