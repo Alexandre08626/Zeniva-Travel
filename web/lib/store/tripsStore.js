@@ -372,7 +372,7 @@ export function getProposal(tripId) {
   return state.proposals[tripId];
 }
 
-export function setProposalSelection(tripId, { flight, hotel, activity, transfer }) {
+export function setProposalSelection(tripId, { flight, hotel, activity, transfer } = {}) {
   const ensuredId = ensureTrip(tripId);
   setState((s) => ({
     ...s,
