@@ -1,10 +1,11 @@
 "use client";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Header from "../../src/components/Header";
 import Footer from "../../src/components/Footer";
 import { LIGHT_BG, TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE, ACCENT_GOLD } from "../../src/design/tokens";
-import { useTripsStore, deleteTrip } from "../../lib/store/tripsStore";
+import { useTripsStore, deleteTrip, createTrip, updateSnapshot, applyTripPatch, generateProposal, setProposalSelection } from "../../lib/store/tripsStore";
 
 function formatDate(value?: string) {
   if (!value) return "Saved now";
@@ -28,11 +29,14 @@ function statusPill(status: string) {
 }
 
 export default function ProposalsPage() {
-  const { proposals, trips, snapshots, selections } = useTripsStore((s) => ({
+  const router = useRouter();
+  const [selectedTripIds, setSelectedTripIds] = useState<string[]>([]);
+  const { proposals, trips, snapshots, selections, tripDrafts } = useTripsStore((s) => ({
     proposals: s.proposals,
     trips: s.trips,
     snapshots: s.snapshots,
     selections: s.selections,
+    tripDrafts: s.tripDrafts,
   }));
 
   const list = useMemo(() => {
@@ -46,6 +50,7 @@ export default function ProposalsPage() {
         const createdAt = trip?.createdAt || trip?.updatedAt;
         const hasSelection = !!(sel.flight || sel.hotel);
         const destination = snap.destination || proposal?.title || "Destination";
+        const coverImage = proposal?.images?.[0] || snap?.image || "/branding/icon-proposals.svg";
         return {
           tripId,
           title: proposal?.title || trip?.title || "Trip",
@@ -54,12 +59,86 @@ export default function ProposalsPage() {
           createdAt,
           updatedAt,
           hasSelection,
+          coverImage,
+          travelers: snap.travelers,
+          dates: snap.dates,
+          budget: snap.budget,
+          style: snap.style,
+          accommodationType: snap.accommodationType,
+          transportationType: snap.transportationType,
+          departureCity: snap.departure || snap.departureCity,
         };
       })
       .sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
   }, [proposals, trips, snapshots, selections]);
 
   const empty = list.length === 0;
+
+  useEffect(() => {
+    if (list.length === 0) return;
+    setSelectedTripIds((prev) => (prev.length === 0 ? list.map((p) => p.tripId) : prev));
+  }, [list]);
+
+  const toggleSelected = (tripId: string) => {
+    setSelectedTripIds((prev) => (prev.includes(tripId) ? prev.filter((id) => id !== tripId) : [...prev, tripId]));
+  };
+
+  const buildCombinedProposal = async () => {
+    const ids = selectedTripIds.length ? selectedTripIds : list.map((p) => p.tripId);
+    if (ids.length === 0) return;
+
+    const candidates = ids.map((id) => ({
+      tripId: id,
+      selection: selections[id] || {},
+      snapshot: snapshots[id] || {},
+      draft: tripDrafts[id] || {},
+    }));
+
+    const primaryFlight = candidates.find((c) => c.selection?.flight)?.selection?.flight || null;
+    const primaryHotel = candidates.find((c) => c.selection?.hotel)?.selection?.hotel || null;
+
+    const extraHotels = candidates
+      .map((c) => (c.selection?.hotel ? { ...c.selection.hotel, accommodationType: c.draft?.accommodationType || c.selection?.hotel?.accommodationType } : null))
+      .filter(Boolean)
+      .filter((h) => h && h.id !== primaryHotel?.id);
+
+    const extraActivities = candidates
+      .map((c) => c.selection?.activity)
+      .filter(Boolean);
+
+    const extraTransfers = candidates
+      .map((c) => c.selection?.transfer)
+      .filter(Boolean);
+
+    const destination = primaryHotel?.location || candidates[0]?.snapshot?.destination || candidates[0]?.draft?.destination || "Multi-destination";
+    const tripId = createTrip({ title: "Custom itinerary", destination, style: "Multi-selection" });
+
+    updateSnapshot(tripId, {
+      destination,
+      travelers: candidates[0]?.snapshot?.travelers || "2 adults",
+      style: "Multi-selection",
+      accommodationType: primaryHotel?.accommodationType || candidates[0]?.draft?.accommodationType || "Hotel",
+    });
+
+    applyTripPatch(tripId, {
+      destination,
+      accommodationType: primaryHotel?.accommodationType || candidates[0]?.draft?.accommodationType || "Hotel",
+      style: "Multi-selection",
+      extraHotels,
+      extraActivities,
+      extraTransfers,
+    });
+
+    setProposalSelection(tripId, {
+      flight: primaryFlight,
+      hotel: primaryHotel,
+      activity: extraActivities[0] || null,
+      transfer: extraTransfers[0] || null,
+    });
+
+    await generateProposal(tripId);
+    router.push(`/proposals/${tripId}/review`);
+  };
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
@@ -122,14 +201,43 @@ export default function ProposalsPage() {
             </div>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {list.map((p) => {
+          <div className="space-y-6">
+            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-lg font-bold" style={{ color: TITLE_TEXT }}>Build a complete trip</h2>
+              <p className="mt-1 text-sm" style={{ color: MUTED_TEXT }}>
+                Combine multiple proposals (flights + transfers + stays + yacht + car) to generate one final proposal.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  onClick={buildCombinedProposal}
+                  className="rounded-full bg-black px-4 py-2 text-sm font-semibold text-white shadow hover:bg-slate-900"
+                >
+                  Generate final proposal
+                </button>
+                <button
+                  onClick={() => setSelectedTripIds([])}
+                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+                >
+                  Deselect all
+                </button>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                  Selected: {selectedTripIds.length}
+                </span>
+              </div>
+            </section>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {list.map((p) => {
               const resumeHref = p.hasSelection ? `/proposals/${p.tripId}/review` : `/proposals/${p.tripId}/select`;
               return (
                 <div
                   key={p.tripId}
-                  className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm flex flex-col gap-3"
+                  className="rounded-2xl border border-slate-100 bg-white shadow-sm overflow-hidden flex flex-col"
                 >
+                  <div className="h-44 w-full bg-slate-100">
+                    <img src={p.coverImage} alt={p.title} className="h-full w-full object-cover" />
+                  </div>
+                  <div className="p-5 flex flex-col gap-3">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>{p.title}</span>
                     <span className={statusPill(p.status)} style={{ color: TITLE_TEXT }}>{p.status}</span>
@@ -138,9 +246,24 @@ export default function ProposalsPage() {
                         Ready to book
                       </span>
                     )}
+                    <label className="ml-auto inline-flex items-center gap-2 text-xs font-semibold text-slate-600">
+                      <input
+                        type="checkbox"
+                        checked={selectedTripIds.includes(p.tripId)}
+                        onChange={() => toggleSelected(p.tripId)}
+                        className="h-4 w-4 rounded border-slate-300"
+                      />
+                      Include in final
+                    </label>
                   </div>
                   <div className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>
                     {p.destination}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs" style={{ color: MUTED_TEXT }}>
+                    <div><strong>Dates:</strong> {p.dates || "TBD"}</div>
+                    <div><strong>Travelers:</strong> {p.travelers || "n/a"}</div>
+                    <div><strong>Budget:</strong> {p.budget || "n/a"}</div>
+                    <div><strong>Style:</strong> {p.style || "Tailor-made"}</div>
                   </div>
                   <div className="text-xs" style={{ color: MUTED_TEXT }}>
                     Created: {formatDate(p.createdAt)} · Last update: {formatDate(p.updatedAt)}
@@ -164,13 +287,15 @@ export default function ProposalsPage() {
                     </button>
                       <button
                         className="rounded-full px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-emerald-600 to-blue-600 border-2 border-emerald-500 hover:border-blue-500 hover:from-emerald-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl"
-                        style={{ minWidth: 140 }}
+                        style={{ minWidth: 160 }}
                         onClick={async () => {
                           try {
                             // Get the full proposal data
                             const proposal = proposals[p.tripId];
                             const trip = trips.find((t: any) => t.id === p.tripId);
                             const snap = snapshots[p.tripId] || {};
+                            const selection = selections[p.tripId] || {};
+                            const draft = tripDrafts[p.tripId] || {};
                             
                             // Construct the proposal data for PDF
                             const pdfData = {
@@ -185,7 +310,19 @@ export default function ProposalsPage() {
                               totalPrice: proposal?.priceEstimate || "Price on request",
                               createdAt: proposal?.updatedAt || trip?.createdAt || new Date().toISOString(),
                               status: "ready" as const,
-                              shortlist: [] // You can populate this if you have shortlist data
+                              shortlist: [],
+                              format: "html",
+                              departureCity: snap.departure || snap.departureCity,
+                              accommodationType: snap.accommodationType,
+                              transportationType: snap.transportationType,
+                              style: snap.style,
+                              notes: proposal?.notes
+                              ,
+                              selection,
+                              tripDraft: draft,
+                              extraHotels: draft.extraHotels || [],
+                              extraActivities: draft.extraActivities || [],
+                              extraTransfers: draft.extraTransfers || []
                             };
 
                             const response = await fetch('/api/proposals/generate-pdf', {
@@ -198,26 +335,28 @@ export default function ProposalsPage() {
                               const url = window.URL.createObjectURL(blob);
                               const a = document.createElement('a');
                               a.href = url;
-                              a.download = `Proposition-${p.title}-${p.destination}.pdf`;
+                              a.download = `Proposition-${p.title}-${p.destination}.html`;
                               document.body.appendChild(a);
                               a.click();
                               document.body.removeChild(a);
                               window.URL.revokeObjectURL(url);
-                              alert('✅ PDF téléchargé avec succès ! 📄');
+                              alert('✅ HTML téléchargé avec succès ! 📄');
                             } else {
-                              alert('❌ Erreur lors de la génération du PDF');
+                              alert('❌ Erreur lors de la génération du HTML');
                             }
                           } catch (error) {
                             alert('❌ Erreur lors du téléchargement: ' + (error instanceof Error ? error.message : String(error)));
                           }
                         }}
                       >
-                        📥 Télécharger PDF
+                        📥 Télécharger HTML
                       </button>
+                  </div>
                   </div>
                 </div>
               );
             })}
+            </div>
           </div>
         )}
 

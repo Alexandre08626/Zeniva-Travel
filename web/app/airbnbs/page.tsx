@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { GRADIENT_END, GRADIENT_START, LIGHT_BG } from "../../src/design/tokens";
 import Header from "../../src/components/Header";
 import TravelSearchWidget from "../../src/components/TravelSearchWidget";
 import LinaWidget from "../../src/components/LinaWidget";
 import AutoTranslate from "../../src/components/AutoTranslate";
+import { createTrip, updateSnapshot, applyTripPatch, generateProposal, setProposalSelection } from "../../lib/store/tripsStore";
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -23,6 +25,7 @@ interface AirbnbItem {
 }
 
 export default function AirbnbsPage() {
+  const router = useRouter();
   const [items, setItems] = useState<AirbnbItem[]>([]);
   const [visible, setVisible] = useState(12);
   const [loading, setLoading] = useState(true);
@@ -72,7 +75,47 @@ export default function AirbnbsPage() {
     location: p.location || "",
     description: p.description || "",
     image: p.thumbnail || (p.images && p.images[0]) || "/branding/icon-proposals.svg",
+    images: p.images || (p.thumbnail ? [p.thumbnail] : []),
   }));
+
+  const handleAddToProposal = async (stay: { slug: string; title: string; location: string; description: string; image: string; images: string[] }) => {
+    const tripId = createTrip({
+      title: stay.title,
+      destination: stay.location,
+      style: "Private residence",
+    });
+
+    updateSnapshot(tripId, {
+      destination: stay.location,
+      travelers: "2 adults",
+      style: "Private residence",
+      accommodationType: "Airbnb",
+    });
+
+    applyTripPatch(tripId, {
+      destination: stay.location,
+      accommodationType: "Airbnb",
+      style: "Private residence",
+    });
+
+    setProposalSelection(tripId, {
+      flight: null,
+      activity: null,
+      transfer: null,
+      hotel: {
+        id: stay.slug,
+        name: stay.title,
+        location: stay.location,
+        room: "Residence",
+        image: stay.image,
+        images: stay.images,
+        description: stay.description,
+      },
+    });
+
+    await generateProposal(tripId);
+    router.push("/proposals");
+  };
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
@@ -225,6 +268,13 @@ export default function AirbnbsPage() {
                       Chat
                     </Link>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => handleAddToProposal(p)}
+                    className="mt-3 rounded-full bg-black px-4 py-2 text-sm font-semibold text-white shadow hover:bg-slate-900"
+                  >
+                    Add to proposal
+                  </button>
                 </div>
               ))}
             </div>

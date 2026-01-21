@@ -76,6 +76,8 @@ export default function BookingConfirmation({ booking, businessInfo }: { booking
 
   const charges = booking?.charges || booking?.price || {};
   const cancellation = booking?.cancellation_policy || booking?.rate_conditions || booking?.conditions || booking?.policy || {};
+  const cancellationTimeline = booking?.cancellation_timeline || cancellation?.cancellation_timeline || booking?.rate?.cancellation_timeline || null;
+  const propertyPolicies = booking?.policies || booking?.accommodation?.policies || booking?.rate?.policies || null;
   const checkinInfo = booking?.check_in_instructions || booking?.key_collection || booking?.arrival_instructions || booking?.checkin_info || "Please contact the property for check-in details.";
 
 
@@ -169,6 +171,20 @@ export default function BookingConfirmation({ booking, businessInfo }: { booking
         <div className="text-sm mt-2">
           <strong>Refundable:</strong> {String(cancellation?.refundable ?? cancellation?.is_refundable ?? false)}
         </div>
+        {Array.isArray(cancellationTimeline) && cancellationTimeline.length > 0 && (
+          <ul className="mt-2 text-sm list-disc pl-5">
+            {cancellationTimeline.map((item: any, idx: number) => (
+              <li key={`${item?.deadline || idx}`}>
+                {item?.deadline || item?.at || "Deadline"}: {item?.refund_amount || item?.refund?.amount || item?.penalty_amount || item?.charge?.amount || "See details"}
+              </li>
+            ))}
+          </ul>
+        )}
+        {propertyPolicies && (
+          <div className="mt-3 text-sm text-slate-600">
+            <strong>Accommodation policies:</strong> {typeof propertyPolicies === 'string' ? propertyPolicies : JSON.stringify(propertyPolicies)}
+          </div>
+        )}
         <pre className="mt-2 text-sm bg-slate-50 p-3 rounded" style={{whiteSpace: 'pre-wrap'}}>{JSON.stringify(cancellation, null, 2)}</pre>
       </div>
 
@@ -180,6 +196,7 @@ export default function BookingConfirmation({ booking, businessInfo }: { booking
           <div className="text-sm">Contact: {businessInfo?.support_email || process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'contact@zeniva.ca'}</div>
           <div className="text-sm">Phone: {businessInfo?.support_phone || process.env.NEXT_PUBLIC_SUPPORT_PHONE || ''}</div>
           <div className="text-sm mt-2">Terms: <a href={businessInfo?.terms_url || process.env.NEXT_PUBLIC_TERMS_URL || '#'} className="underline">View terms</a></div>
+          <div className="text-sm mt-1">Booking.com terms: <a href="https://www.booking.com/content/terms.html" className="underline" target="_blank" rel="noreferrer">View terms</a></div>
         </div>
 
         <div>

@@ -188,7 +188,12 @@ export default function AgentsDirectoryPage() {
                     <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">{a.roleLabel}</span>
                     {a.linkedToYacht && <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-slate-900">Zeniva Yacht</span>}
                     {a.linkedToTravel && <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-900">Zeniva Travel</span>}
-                    <span className="rounded-full px-3 py-1 text-xs font-semibold border" style={{ borderColor: "#cbd5e1", color: TITLE_TEXT }}>{statusLabels[a.status]}</span>
+                    <span className="rounded-full px-3 py-1 text-xs font-semibold border flex items-center gap-2" style={{ borderColor: "#cbd5e1", color: TITLE_TEXT }}>
+                      <span
+                        className={`h-2 w-2 rounded-full ${a.status === "active" ? "bg-emerald-500" : "bg-red-500"}`}
+                      />
+                      {statusLabels[a.status]}
+                    </span>
                   </div>
                   <p className="text-xs" style={{ color: MUTED_TEXT }}>{a.email} · Code {a.code}</p>
                 </div>

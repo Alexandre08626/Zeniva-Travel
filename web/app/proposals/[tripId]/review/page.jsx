@@ -34,36 +34,47 @@ export default function ProposalReviewPage() {
     return getImagesForDestination(dest)[0];
   }, [tripDraft, proposal, selection]);
 
-  const accommodationImages = useMemo(() => {
-    if (!selection?.hotel?.id) return [];
-    
-    // For yachts
-    if (tripDraft?.accommodationType === 'Yacht') {
-      const yacht = yachtsData.find(y => y.id === selection.hotel.id);
-      return yacht?.images || [selection.hotel.image].filter(Boolean);
+  const extraHotels = tripDraft?.extraHotels || [];
+  const extraActivities = tripDraft?.extraActivities || [];
+  const extraTransfers = tripDraft?.extraTransfers || [];
+
+  const allHotels = [selection?.hotel, ...extraHotels].filter(Boolean);
+  const uniqueHotels = allHotels.filter((item, idx, arr) => {
+    const key = `${item?.id || item?.name || idx}`;
+    return arr.findIndex((h) => `${h?.id || h?.name || idx}` === key) === idx;
+  });
+
+  const getAccommodationType = (item) => {
+    return item?.accommodationType || tripDraft?.accommodationType || (item?.room?.toLowerCase?.().includes("yacht") ? "Yacht" : item?.room?.toLowerCase?.().includes("residence") ? "Airbnb" : "Hotel");
+  };
+
+  const getAccommodationImages = (item, type) => {
+    if (item?.images && item.images.length) return item.images;
+    if (type === 'Yacht') {
+      const yacht = yachtsData.find((y) => y.id === item?.id || y.title === item?.name);
+      return yacht?.images || [item?.image].filter(Boolean);
     }
-    
-    // For Airbnbs
-    if (tripDraft?.accommodationType === 'Airbnb') {
-      const airbnb = airbnbsData.find(a => a.id === selection.hotel.id);
-      return airbnb?.images || [selection.hotel.image].filter(Boolean);
+    if (type === 'Airbnb') {
+      const airbnb = airbnbsData.find((a) => a.id === item?.id || a.title === item?.name);
+      return airbnb?.images || [item?.image].filter(Boolean);
     }
-    
-    // For hotels, use partner images
-    return getPartnerHotelImages(tripDraft?.destination || selection.hotel.location || selection.hotel.name).slice(0, 6);
-  }, [selection, tripDraft]);
+    const fallback = getPartnerHotelImages(tripDraft?.destination || item?.location || item?.name).slice(0, 6);
+    return fallback.length ? fallback : [item?.image].filter(Boolean);
+  };
 
   const flight = selection?.flight || { airline: "Airline", route: "YUL → CUN", times: "19:20 – 08:45", fare: "Business", bags: "2 checked", price: "$1,850", flightNumber: "AC 456", duration: "4h 30m", date: "Dec 15, 2025", layovers: 0 };
   const hotel = selection?.hotel || { name: "Hotel Playa", room: "Junior Suite", location: "Beachfront", price: "$420/night", rating: 4.6 };
   const activity = selection?.activity;
   const transfer = selection?.transfer;
+  const activityList = [activity, ...extraActivities].filter(Boolean);
+  const transferList = [transfer, ...extraTransfers].filter(Boolean);
 
   const pricing = computePrice({ flight, hotel, activity, transfer }, tripDraft);
   const breakdown = [
     { label: "Flights", value: formatCurrency(pricing.flightTotal) },
-    { label: tripDraft?.accommodationType === 'Hotel' ? 'Hotel' : tripDraft?.accommodationType === 'Yacht' ? 'Yacht' : 'Villa', value: formatCurrency(pricing.hotelTotal) },
-    ...(activity ? [{ label: "Activity", value: formatCurrency(pricing.activityTotal) }] : []),
-    ...(transfer ? [{ label: "Transfer", value: formatCurrency(pricing.transferTotal) }] : []),
+    { label: 'Accommodation', value: formatCurrency(pricing.hotelTotal) },
+    ...(activityList.length ? [{ label: "Activities", value: formatCurrency(pricing.activityTotal) }] : []),
+    ...(transferList.length ? [{ label: "Transfers", value: formatCurrency(pricing.transferTotal) }] : []),
     { label: "Fees & services", value: formatCurrency(pricing.fees) },
   ];
 
@@ -107,7 +118,10 @@ export default function ProposalReviewPage() {
           <div className="lg:col-span-2 lg:row-span-2 h-80 lg:h-full">
             <img src={heroImage} alt="Destination" className="h-full w-full object-cover" />
           </div>
-          {(accommodationImages.length > 0 ? accommodationImages : [heroImage, heroImage, heroImage, heroImage]).slice(0, 4).map((img, i) => (
+          {((uniqueHotels[0]
+            ? getAccommodationImages(uniqueHotels[0], getAccommodationType(uniqueHotels[0]))
+            : [heroImage, heroImage, heroImage, heroImage]
+          ).slice(0, 4)).map((img, i) => (
             <div key={i} className="h-40 lg:h-full">
               <img src={img} alt={`Trip ${i + 1}`} className="h-full w-full object-cover" />
             </div>
@@ -160,48 +174,61 @@ export default function ProposalReviewPage() {
               </div>
             </section>
 
-            <section className="rounded-2xl border border-blue-100 bg-white shadow-sm p-6 space-y-2">
-              <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>{tripDraft?.accommodationType === 'Hotel' ? 'Hotel' : tripDraft?.accommodationType === 'Yacht' ? 'Yacht' : 'Villa'}</div>
-              <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>
-                {hotel.name} • {hotel.location || "Central"}
-              </div>
-              <div className="text-sm" style={{ color: MUTED_TEXT }}>
-                {tripDraft?.accommodationType === 'Yacht' ? `Specs: ${hotel.specs || "Yacht specs"}` : `Room: ${hotel.room || "Deluxe"} • Board: Breakfast • Rating: ${hotel.rating || "4.5"}`}
-              </div>
-              <div className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>
-                {tripDraft?.accommodationType === 'Yacht' ? `Amenities: ${hotel.amenities?.join(" • ") || "Yacht amenities"}` : "Policies: Free cancellation until 7 days before arrival; pay at property or prepaid per partner terms."}
-              </div>
-              {accommodationImages.length > 0 && (
-                <div className="pt-4">
-                  <div className="text-xs font-semibold mb-2" style={{ color: MUTED_TEXT }}>Photo gallery</div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {accommodationImages.slice(0, 6).map((src, i) => (
-                      <div key={i} className="aspect-square overflow-hidden rounded-lg">
-                        <img src={src} alt={`Accommodation ${i + 1}`} className="h-full w-full object-cover hover:scale-105 transition-transform" />
-                      </div>
-                    ))}
+            {uniqueHotels.map((stay, idx) => {
+              const type = getAccommodationType(stay);
+              const label = type === 'Yacht' ? 'Yacht' : type === 'Airbnb' ? 'Private residence' : 'Hotel';
+              const stayImages = getAccommodationImages(stay, type);
+              return (
+                <section key={`${stay?.id || stay?.name || idx}`} className="rounded-2xl border border-blue-100 bg-white shadow-sm p-6 space-y-2">
+                  <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>{label}</div>
+                  <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>
+                    {stay.name} • {stay.location || "Central"}
                   </div>
-                </div>
-              )}
-            </section>
+                  <div className="text-sm" style={{ color: MUTED_TEXT }}>
+                    {type === 'Yacht'
+                      ? `Specs: ${stay.specs || "Yacht specs"}`
+                      : type === 'Airbnb'
+                        ? `Residence: ${stay.room || "Private stay"} • Rating: ${stay.rating || "4.9"}`
+                        : `Room: ${stay.room || "Deluxe"} • Board: Breakfast • Rating: ${stay.rating || "4.5"}`}
+                  </div>
+                  <div className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>
+                    {type === 'Yacht'
+                      ? `Amenities: ${stay.amenities?.join(" • ") || "Yacht amenities"}`
+                      : "Policies: Free cancellation until 7 days before arrival; pay at property or prepaid per partner terms."}
+                  </div>
+                  {stayImages.length > 0 && (
+                    <div className="pt-4">
+                      <div className="text-xs font-semibold mb-2" style={{ color: MUTED_TEXT }}>Photo gallery</div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {stayImages.slice(0, 6).map((src, i) => (
+                          <div key={i} className="aspect-square overflow-hidden rounded-lg">
+                            <img src={src} alt={`${label} ${i + 1}`} className="h-full w-full object-cover hover:scale-105 transition-transform" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </section>
+              );
+            })}
 
-            {activity && (
-              <section className="rounded-2xl border border-blue-100 bg-white shadow-sm p-6 space-y-2">
+            {activityList.map((act, idx) => (
+              <section key={`activity-${idx}-${act?.id || act?.name || "item"}`} className="rounded-2xl border border-blue-100 bg-white shadow-sm p-6 space-y-2">
                 <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Activity</div>
                 <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>
-                  {activity.name}
+                  {act.name}
                 </div>
                 <div className="text-sm" style={{ color: MUTED_TEXT }}>
-                  {activity.date} at {activity.time} • {activity.supplier}
+                  {act.date} at {act.time} • {act.supplier}
                 </div>
                 <div className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>
                   Includes: Guided tour, entrance fees, transportation.
                 </div>
-                {activity.images && activity.images.length > 0 && (
+                {act.images && act.images.length > 0 && (
                   <div className="pt-4">
                     <div className="text-xs font-semibold mb-2" style={{ color: MUTED_TEXT }}>Photo gallery</div>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {activity.images.slice(0, 6).map((src, i) => (
+                      {act.images.slice(0, 6).map((src, i) => (
                         <div key={i} className="aspect-square overflow-hidden rounded-lg">
                           <img src={src} alt={`Activity ${i + 1}`} className="h-full w-full object-cover hover:scale-105 transition-transform" />
                         </div>
@@ -210,25 +237,25 @@ export default function ProposalReviewPage() {
                   </div>
                 )}
               </section>
-            )}
+            ))}
 
-            {transfer && (
-              <section className="rounded-2xl border border-blue-100 bg-white shadow-sm p-6 space-y-2">
+            {transferList.map((item, idx) => (
+              <section key={`transfer-${idx}-${item?.id || item?.name || "item"}`} className="rounded-2xl border border-blue-100 bg-white shadow-sm p-6 space-y-2">
                 <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Transfer</div>
                 <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>
-                  {transfer.name}
+                  {item.name}
                 </div>
                 <div className="text-sm" style={{ color: MUTED_TEXT }}>
-                  {transfer.route} • {transfer.date} • {transfer.supplier}
+                  {item.route} • {item.date} • {item.supplier}
                 </div>
                 <div className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>
-                  Vehicle: {transfer.vehicle} • {transfer.shared ? "Shared transfer" : "Private transfer"}.
+                  Vehicle: {item.vehicle} • {item.shared ? "Shared transfer" : "Private transfer"}.
                 </div>
-                {transfer.images && transfer.images.length > 0 && (
+                {item.images && item.images.length > 0 && (
                   <div className="pt-4">
                     <div className="text-xs font-semibold mb-2" style={{ color: MUTED_TEXT }}>Photo gallery</div>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {transfer.images.slice(0, 6).map((src, i) => (
+                      {item.images.slice(0, 6).map((src, i) => (
                         <div key={i} className="aspect-square overflow-hidden rounded-lg">
                           <img src={src} alt={`Transfer ${i + 1}`} className="h-full w-full object-cover hover:scale-105 transition-transform" />
                         </div>
@@ -237,7 +264,7 @@ export default function ProposalReviewPage() {
                   </div>
                 )}
               </section>
-            )}
+            ))}
 
             <section className="rounded-2xl border border-blue-100 bg-white shadow-sm p-6 space-y-2">
               <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Price breakdown</div>

@@ -230,19 +230,16 @@ function ensureSeedHQ() {
 }
 
 function ensureSeedDefaultAgents() {
+  const blocked = new Set(["agent@zeniva.ca", "yacht@zeniva.ca"]);
+  if (state.accounts.some((a) => blocked.has(normalizeEmail(a.email)))) {
+    setState((s) => ({
+      ...s,
+      accounts: s.accounts.filter((a) => !blocked.has(normalizeEmail(a.email))),
+    }));
+  }
   const seeds: Account[] = [
     {
-      email: "agent@zeniva.ca",
-      name: "Justine Caron",
-      password: HQ_PASSWORD,
-      roles: ["travel-agent"],
-      agentLevel: "Agent",
-      inviteCode: "ZENIVA-AGENT",
-      divisions: ["TRAVEL"],
-      status: "active",
-    },
-    {
-      email: "yacht@zeniva.ca",
+      email: "lanthierj6@gmail.com",
       name: "Jason Lanthier",
       password: HQ_PASSWORD,
       roles: ["yacht-partner", "travel-agent"],

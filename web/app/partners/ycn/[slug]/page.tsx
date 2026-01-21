@@ -5,6 +5,7 @@ import Image from 'next/image';
 import YcnGallery from '@/src/components/YcnGallery.client';
 import YachtRatePicker from '@/src/components/yachts/YachtRatePicker.client';
 import AirbnbAvailability from '@/src/components/airbnbs/AirbnbAvailability.client';
+import AddToProposalButton from '@/src/components/proposals/AddToProposalButton.client';
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -274,9 +275,23 @@ export default async function YcnPartnerPage({
                 </div>
               </div>
 
-              <Link href={bookNowHref} className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-blue-700 text-white py-3.5 text-sm font-semibold shadow-lg shadow-blue-200/60 hover:bg-blue-800 transition">
-                Book
-              </Link>
+              <div className="mt-4 space-y-2">
+                <AddToProposalButton
+                  title={item.title}
+                  destination={item.destination || ""}
+                  accommodationType="Yacht"
+                  style="Yacht charter"
+                  price={baseRateLabel || undefined}
+                  image={hero}
+                  images={gallery}
+                  description={item.specs || undefined}
+                  roomLabel="Yacht charter"
+                  className="w-full rounded-xl bg-black px-4 py-3 text-sm font-semibold text-white shadow hover:bg-slate-900"
+                />
+                <Link href={bookNowHref} className="inline-flex w-full items-center justify-center rounded-xl bg-blue-700 text-white py-3.5 text-sm font-semibold shadow-lg shadow-blue-200/60 hover:bg-blue-800 transition">
+                  Book
+                </Link>
+              </div>
               <a
                 href={`/chat/agent?channel=agent-jason&listing=${encodeURIComponent(item.title)}&source=${encodeURIComponent(`/partners/ycn/${slug}`)}`}
                 className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-blue-200 text-blue-700 py-3 text-sm font-semibold hover:bg-blue-50 transition"

@@ -254,9 +254,9 @@ export default function DocumentsPage() {
               <div className="text-xs" style={{ color: MUTED_TEXT }}>Encrypted files, fast access</div>
             </div>
             <div className="rounded-2xl border border-blue-100 bg-white p-4">
-              <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Need help?</div>
-              <div className="mt-1 text-sm font-bold" style={{ color: TITLE_TEXT }}>Instant chat support</div>
-              <Link href="/chat/agent?channel=agent-alexandre&source=/documents" className="text-xs font-semibold text-blue-700">Open human agent chat</Link>
+              <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Message host</div>
+              <div className="mt-1 text-sm font-bold" style={{ color: TITLE_TEXT }}>Start a conversation</div>
+              <Link href="/chat/agent?channel=agent-alexandre&source=/documents" className="text-xs font-semibold text-blue-700">Open messages</Link>
             </div>
           </div>
 

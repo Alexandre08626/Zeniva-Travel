@@ -18,8 +18,56 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Zeniva Travel AI",
-  description: "Plan your perfect trip with Lina AI, your personal travel concierge.",
+  metadataBase: new URL("https://zenivatravel.com"),
+  title: {
+    default: "Zeniva Travel AI | Luxury Travel Concierge",
+    template: "%s | Zeniva Travel AI",
+  },
+  description:
+    "Zeniva Travel AI is a premium travel agency and concierge. We design custom trips, private villa stays, luxury resorts, yacht charters, and curated experiences—powered by Lina AI for faster, smarter planning.",
+  keywords: [
+    "Zeniva Travel",
+    "Zeniva Travel AI",
+    "luxury travel agency",
+    "custom travel planning",
+    "travel concierge",
+    "private villas",
+    "luxury resorts",
+    "yacht charter",
+    "AI travel planner",
+    "Lina AI",
+  ],
+  alternates: {
+    canonical: "https://zenivatravel.com",
+  },
+  openGraph: {
+    type: "website",
+    url: "https://zenivatravel.com",
+    title: "Zeniva Travel AI | Luxury Travel Concierge",
+    description:
+      "Custom-made journeys with private villas, luxury resorts, yacht charters, and curated experiences—planned by Lina AI and our expert travel team.",
+    siteName: "Zeniva Travel AI",
+    images: [
+      {
+        url: "/branding/logo.png",
+        width: 1200,
+        height: 630,
+        alt: "Zeniva Travel AI",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Zeniva Travel AI | Luxury Travel Concierge",
+    description:
+      "Custom-made journeys with private villas, luxury resorts, yacht charters, and curated experiences—planned by Lina AI and our expert travel team.",
+    images: ["/branding/logo.png"],
+  },
+  icons: {
+    icon: "/branding/logo.png",
+    apple: "/branding/logo.png",
+    shortcut: "/branding/logo.png",
+  },
 };
 
 export default function RootLayout({

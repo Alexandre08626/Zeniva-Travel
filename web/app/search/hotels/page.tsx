@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useAuthStore } from "../../../src/lib/authStore";
 import { useTripsStore, createTrip } from "../../../lib/store/tripsStore";
 import { upsertDocuments, getDocumentsForUser, DocumentRecord } from "../../../src/lib/documentsStore";
+import BookingConfirmation from "../../../src/components/stays/BookingConfirmation";
 
 type Params = {
   destination?: string;
@@ -61,6 +62,7 @@ function HotelsSearchContent() {
   const [rates, setRates] = useState<any[]>([]);
   const [selectedRateId, setSelectedRateId] = useState<string>("");
   const [quote, setQuote] = useState<any>(null);
+  const [booking, setBooking] = useState<any>(null);
   const [bookingStep, setBookingStep] = useState<'search' | 'rates' | 'quote' | 'booking'>('search');
 
   const user = useAuthStore((s) => s.user);
@@ -72,6 +74,40 @@ function HotelsSearchContent() {
     const guestLabel = `${guests} guest${guests === "1" ? "" : "s"}${rooms ? ` · ${rooms} room${rooms === "1" ? "" : "s"}` : ""}`;
     return { stay, guestLabel };
   }, [checkIn, checkOut, guests, rooms]);
+
+  const selectedRate = useMemo(() => rates.find((rate) => rate.id === selectedRateId), [rates, selectedRateId]);
+
+  const nights = useMemo(() => {
+    if (!checkIn || !checkOut) return null;
+    const start = new Date(checkIn).getTime();
+    const end = new Date(checkOut).getTime();
+    if (Number.isNaN(start) || Number.isNaN(end)) return null;
+    const diff = Math.max(0, Math.round((end - start) / (1000 * 60 * 60 * 24)));
+    return diff || null;
+  }, [checkIn, checkOut]);
+
+  const businessInfo = useMemo(() => ({
+    name: process.env.NEXT_PUBLIC_BUSINESS_NAME || "Zeniva Travel",
+    address: process.env.NEXT_PUBLIC_BUSINESS_ADDRESS || "",
+    support_email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "info@zeniva.ca",
+    support_phone: process.env.NEXT_PUBLIC_SUPPORT_PHONE || "",
+    terms_url: process.env.NEXT_PUBLIC_TERMS_URL || "https://zenivatravel.com/terms",
+  }), []);
+
+  const formatAmount = (value: any, currency?: string) => {
+    if (value === null || value === undefined || value === "") return "N/A";
+    if (typeof value === "string" || typeof value === "number") {
+      return currency ? `${value} ${currency}` : String(value);
+    }
+    if (typeof value === "object") {
+      const amount = value.amount ?? value.value ?? value.total ?? value.total_amount;
+      const cur = value.currency ?? value.currency_code ?? currency;
+      if (amount !== undefined && amount !== null) {
+        return cur ? `${amount} ${cur}` : String(amount);
+      }
+    }
+    return String(value);
+  };
 
   const askPrompt = `Shortlist hotels in ${destination || "this city"} for ${summary.guestLabel}${budget ? ` under ${budget}` : ""}. Dates ${summary.stay}. Highlight VIP perks and flexible cancel. Keep ${selectedId || "top pick"} selected.`;
 
@@ -144,6 +180,7 @@ function HotelsSearchContent() {
       }
 
       setBookingStep('booking');
+      setBooking(json.booking || json);
 
       // Persist a document record so the confirmation appears in My Travel Documents
       try {
@@ -183,6 +220,7 @@ function HotelsSearchContent() {
     setRates([]);
     setSelectedRateId("");
     setQuote(null);
+    setBooking(null);
     setBookingStep('search');
   };
 
@@ -406,6 +444,19 @@ function HotelsSearchContent() {
             {loading && <div className="rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-sm text-slate-700">Loading rates…</div>}
             {error && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">{error}</div>}
 
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">{selectedSearchResult.name}</p>
+                  <p className="text-xs text-slate-600">{selectedSearchResult.location}</p>
+                </div>
+                <div className="text-xs text-slate-600">
+                  {summary.stay} · {summary.guestLabel}{nights ? ` · ${nights} night${nights === 1 ? "" : "s"}` : ""}
+                </div>
+              </div>
+              {selectedSearchResult.room && <p className="text-xs text-slate-600 mt-2">{selectedSearchResult.room}</p>}
+            </div>
+
             <div className="space-y-3">
               {rates.map((rate: any) => (
                 <button
@@ -418,6 +469,11 @@ function HotelsSearchContent() {
                       <p className="font-semibold text-slate-800">{rate.room_type?.name || 'Room'}</p>
                       <p className="text-sm text-slate-600">{rate.total_amount} {rate.total_currency}</p>
                       {rate.conditions && <p className="text-xs text-slate-500">{rate.conditions}</p>}
+                      {rate.cancellation_timeline && (
+                        <p className="text-xs text-slate-500 mt-1">
+                          Cancellation: {Array.isArray(rate.cancellation_timeline) ? `${rate.cancellation_timeline.length} policy steps` : 'See policy details'}
+                        </p>
+                      )}
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-bold text-slate-900">{rate.total_amount} {rate.total_currency}</p>
@@ -436,12 +492,49 @@ function HotelsSearchContent() {
             {error && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">{error}</div>}
 
             <div className="space-y-4">
+              <div className="border rounded-lg p-4 space-y-2">
+                <h3 className="font-semibold text-lg">Booking Summary</h3>
+                <p><strong>Accommodation:</strong> {selectedSearchResult?.name}</p>
+                <p><strong>Location:</strong> {selectedSearchResult?.location || destination}</p>
+                <p><strong>Dates:</strong> {summary.stay}{nights ? ` · ${nights} night${nights === 1 ? "" : "s"}` : ""}</p>
+                <p><strong>Guests:</strong> {summary.guestLabel}</p>
+                <p><strong>Room:</strong> {selectedRate?.room_type?.name || selectedSearchResult?.room || "Room"}</p>
+                <p><strong>Refundable:</strong> {String(Boolean(selectedRate?.refundable ?? quote?.refundable))}</p>
+              </div>
+
               <div className="border rounded-lg p-4">
-                <h3 className="font-semibold text-lg mb-2">Booking Summary</h3>
-                <p><strong>Hotel:</strong> {selectedSearchResult?.name}</p>
-                <p><strong>Total:</strong> {quote.total_amount} {quote.total_currency}</p>
-                <p><strong>Check-in:</strong> {checkIn}</p>
-                <p><strong>Check-out:</strong> {checkOut}</p>
+                <h3 className="font-semibold text-lg mb-2">Price breakdown</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-slate-700">
+                  <div>Total: {formatAmount(quote?.total_amount, quote?.total_currency)}</div>
+                  <div>Taxes: {formatAmount(quote?.tax_amount || quote?.taxes_total || quote?.tax, quote?.total_currency)}</div>
+                  <div>Fees: {formatAmount(quote?.fee_amount || quote?.fees_total || quote?.fees, quote?.total_currency)}</div>
+                  <div>Due at accommodation: {formatAmount(quote?.due_at_property_amount || quote?.due_at_accommodation_amount || quote?.due_at_property, quote?.total_currency)}</div>
+                </div>
+              </div>
+
+              <div className="border rounded-lg p-4 space-y-2">
+                <h3 className="font-semibold text-lg">Policies & terms</h3>
+                <div className="text-sm text-slate-700">
+                  <div><strong>Cancellation:</strong> {selectedRate?.cancellation_timeline ? "See timeline below" : "See rate conditions"}</div>
+                  {selectedRate?.cancellation_timeline && Array.isArray(selectedRate.cancellation_timeline) && (
+                    <ul className="mt-2 list-disc pl-5 text-xs text-slate-600">
+                      {selectedRate.cancellation_timeline.map((item: any, idx: number) => (
+                        <li key={`${item?.deadline || idx}`}>{item?.deadline || item?.at} · {item?.refund_amount || item?.refund?.amount || item?.penalty_amount || item?.charge?.amount || "See details"}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                {selectedRate?.conditions && <p className="text-xs text-slate-600">Rate conditions: {selectedRate.conditions}</p>}
+                <div className="text-xs text-slate-600">Accommodation policies will appear on your confirmation.</div>
+                <div className="text-xs text-slate-600">Booking.com terms: <a className="underline" href="https://www.booking.com/content/terms.html" target="_blank" rel="noreferrer">View terms</a></div>
+              </div>
+
+              <div className="border rounded-lg p-4 space-y-1 text-sm text-slate-700">
+                <h3 className="font-semibold text-lg">Merchant info</h3>
+                <div>{businessInfo.name}</div>
+                {businessInfo.address && <div>{businessInfo.address}</div>}
+                <div>Support: {businessInfo.support_email}{businessInfo.support_phone ? ` · ${businessInfo.support_phone}` : ""}</div>
+                <div>Terms: <a className="underline" href={businessInfo.terms_url} target="_blank" rel="noreferrer">View terms</a></div>
               </div>
 
               <form
@@ -502,10 +595,14 @@ function HotelsSearchContent() {
 
         {bookingStep === 'booking' && (
           <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
-            <div className="text-center py-8">
-              <h2 className="text-2xl font-bold text-green-600 mb-4">Booking Confirmed!</h2>
-              <p className="text-slate-600">Your accommodation booking has been successfully created.</p>
-            </div>
+            {booking ? (
+              <BookingConfirmation booking={booking} businessInfo={businessInfo} />
+            ) : (
+              <div className="text-center py-8">
+                <h2 className="text-2xl font-bold text-green-600 mb-4">Booking Confirmed!</h2>
+                <p className="text-slate-600">Your accommodation booking has been successfully created.</p>
+              </div>
+            )}
           </section>
         )}
       </div>

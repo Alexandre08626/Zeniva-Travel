@@ -12,411 +12,198 @@ interface ShortlistItem {
 }
 
 interface ProposalData {
-    id: string;
-    dossierId: string;
-    clientName: string;
-    destination: string;
-    travelDates: string;
-    pax: number;
-    budget: string;
-    itinerary: string[];
-    totalPrice: string;
-    createdAt: string;
-    status: "draft" | "ready" | "sent";
-    shortlist?: ShortlistItem[];
-
-    // Optional fields used by PDF renderer
-    images?: string[];
-    imagesHTML?: string;
-    logo?: string;
-    logoDataUri?: string | null;
-    linaAvatar?: string | null;
-    linaNote?: string;
-    linaIntroText?: string;
-    heroImage?: string | null;
-    galleryHTML?: string;
+  id: string;
+  dossierId: string;
+  clientName: string;
+  destination: string;
+  travelDates: string;
+  pax: number;
+  budget: string;
+  itinerary: string[];
+  totalPrice: string;
+  createdAt: string;
+  status: "draft" | "ready" | "sent";
+  shortlist?: ShortlistItem[];
+  format?: "pdf" | "html";
+  departureCity?: string;
+  accommodationType?: string;
+  transportationType?: string;
+  style?: string;
+  notes?: string;
+  images?: string[];
+  imagesHTML?: string;
+  logo?: string;
+  logoDataUri?: string | null;
+  linaAvatar?: string | null;
+  linaNote?: string;
+  linaIntroText?: string;
+  heroImage?: string | null;
+  galleryHTML?: string;
+  imageGridHTML?: string;
+  selection?: any;
+  tripDraft?: any;
+  extraHotels?: any[];
+  extraActivities?: any[];
+  extraTransfers?: any[];
 }
 
 function generateProposalHTML(proposal: ProposalData): string {
-    const itineraryItems = (proposal.itinerary && Array.isArray(proposal.itinerary)) 
-        ? proposal.itinerary.map(item =>
-            `<div style="background: #f8fafc; border-left: 4px solid #35f2c1; padding: 16px; margin: 12px 0; border-radius: 8px;">
-                <p style="margin: 0; color: #1e293b; font-size: 14px; line-height: 1.5;">${item}</p>
-            </div>`
-        ).join('')
-        : `<div style="background: #f8fafc; border-left: 4px solid #35f2c1; padding: 16px; margin: 12px 0; border-radius: 8px;">
-            <p style="margin: 0; color: #1e293b; font-size: 14px; line-height: 1.5;">Itinerary details will be provided upon confirmation.</p>
-        </div>`;
+  const selection = proposal.selection || {};
+  const tripDraft = proposal.tripDraft || {};
+  const extraHotels = proposal.extraHotels || tripDraft.extraHotels || [];
+  const extraActivities = proposal.extraActivities || tripDraft.extraActivities || [];
+  const extraTransfers = proposal.extraTransfers || tripDraft.extraTransfers || [];
 
-    // Génère la section shortlist si elle existe
-    let shortlistSection = '';
-    if (proposal.shortlist && proposal.shortlist.length > 0) {
-        shortlistSection = `
-            <div style="margin: 40px 0;">
-                <div style="font-size: 20px; color: #f8fafc; font-weight: 700; margin-bottom: 12px;">Selected Picks</div>
-                <ul style="list-style: none; padding: 0;">
-                    ${proposal.shortlist.filter(s => s.selected !== false).map(item => `
-                        <li style="background: #1e293b; border-radius: 10px; margin-bottom: 10px; padding: 16px 20px; color: #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
-                            <span><strong>${item.type}:</strong> ${item.title}</span>
-                            <span style="color: #35f2c1; font-weight: 700;">${item.price}</span>
-                        </li>
-                    `).join('')}
-                </ul>
-            </div>
-        `;
-    }
+  const hotels = [selection.hotel, ...extraHotels].filter(Boolean);
+  const activities = [selection.activity, ...extraActivities].filter(Boolean);
+  const transfers = [selection.transfer, ...extraTransfers].filter(Boolean);
 
+  const flight = selection.flight;
+  const title = proposal.destination || tripDraft.destination || proposal.clientName || "Your trip";
+  const dateLine = tripDraft?.checkIn && tripDraft?.checkOut
+    ? `${tripDraft.checkIn} to ${tripDraft.checkOut}`
+    : proposal.travelDates || "Flexible dates";
+
+  const tripOverview = `${tripDraft?.departureCity || proposal.departureCity || "Departure"} → ${tripDraft?.destination || proposal.destination || "Destination"} · ${dateLine}`;
+
+  const renderGallery = (images?: string[]) => {
+    if (!images || images.length === 0) return "";
+    const slots = images.slice(0, 6);
+    return `<div class="photo-grid">${slots.map((src) => `
+      <div class="photo"><img src="${src}" /></div>
+    `).join("")}</div>`;
+  };
+
+  const renderHotel = (item: any) => {
+    const type = item?.accommodationType || tripDraft?.accommodationType || (item?.room || "").toLowerCase().includes("yacht") ? "Yacht" : (item?.room || "").toLowerCase().includes("residence") ? "Airbnb" : "Hotel";
+    const label = type === "Yacht" ? "Yacht" : type === "Airbnb" ? "Private residence" : "Hotel";
+    const images = item?.images || (item?.image ? [item.image] : []);
     return `
+      <section class="card">
+        <div class="card-label">${label}</div>
+        <div class="card-title">${item?.name || "Accommodation"} • ${item?.location || "Central"}</div>
+        <div class="card-sub">${type === "Yacht"
+          ? `Specs: ${item?.specs || "Yacht specs"}`
+          : type === "Airbnb"
+            ? `Residence: ${item?.room || "Private stay"} • Rating: ${item?.rating || "4.9"}`
+            : `Room: ${item?.room || "Deluxe"} • Board: Breakfast • Rating: ${item?.rating || "4.5"}`}</div>
+        <div class="card-note">${type === "Yacht"
+          ? `Amenities: ${(item?.amenities || []).join(" • ") || "Yacht amenities"}`
+          : "Policies: Free cancellation until 7 days before arrival; pay at property or prepaid per partner terms."}</div>
+        ${renderGallery(images)}
+      </section>
+    `;
+  };
+
+  const renderActivity = (item: any) => `
+    <section class="card">
+      <div class="card-label">Activity</div>
+      <div class="card-title">${item?.name || "Activity"}</div>
+      <div class="card-sub">${item?.date || ""} ${item?.time ? `at ${item.time}` : ""} ${item?.supplier ? `• ${item.supplier}` : ""}</div>
+      <div class="card-note">Includes: Guided tour, entrance fees, transportation.</div>
+      ${renderGallery(item?.images || [])}
+    </section>
+  `;
+
+  const renderTransfer = (item: any) => `
+    <section class="card">
+      <div class="card-label">Transfer</div>
+      <div class="card-title">${item?.name || "Transfer"}</div>
+      <div class="card-sub">${item?.route || ""} ${item?.date ? `• ${item.date}` : ""} ${item?.supplier ? `• ${item.supplier}` : ""}</div>
+      <div class="card-note">Vehicle: ${item?.vehicle || "Vehicle"} • ${item?.shared ? "Shared transfer" : "Private transfer"}.</div>
+      ${renderGallery(item?.images || [])}
+    </section>
+  `;
+
+  return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Travel Proposal - ${proposal.clientName}</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #ffffff;
-            color: #0b1220;
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 40px 24px;
-        }
-
-        .header {
-            text-align: left;
-            margin-bottom: 24px;
-        }
-
-        .logo-section {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 18px 20px;
-            margin-bottom: 12px;
-            border: 1px solid #e6eef6;
-            box-shadow: 0 6px 18px rgba(16,24,40,0.06);
-            display:flex;align-items:center;gap:14px;
-        }
-
-        .logo {
-            font-size: 20px;
-            font-weight: 800;
-            color: #0b1220;
-            letter-spacing: 0.02em;
-        }
-
-        .tagline {
-            color: #61708a;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .lina-section {
-            background: #fbfdff;
-            border-radius: 12px;
-            padding: 18px;
-            margin: 18px 0;
-            border: 1px solid #eef5fb;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            box-shadow: 0 6px 18px rgba(16,24,40,0.04);
-        }
-
-        .lina-avatar {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            font-weight: 700;
-            color: #0b1220;
-            flex-shrink: 0;
-            background: transparent;
-        }
-
-        .lina-content h3 {
-            color: #0b1220;
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-
-        .lina-content p {
-            color: #495669;
-            font-size: 13px;
-            line-height: 1.5;
-        }
-
-        .proposal-card {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 24px;
-            margin: 18px 0;
-            border: 1px solid #eef5fb;
-            box-shadow: 0 10px 30px rgba(16,24,40,0.05);
-        }
-
-        .proposal-header {
-            text-align: left;
-            margin-bottom: 16px;
-        }
-
-        .proposal-title {
-            font-size: 26px;
-            font-weight: 800;
-            color: #0b1220;
-            margin-bottom: 6px;
-        }
-
-        .proposal-subtitle {
-            color: #495669;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-            margin: 18px 0;
-        }
-
-        .info-item {
-            background: #fbfdff;
-            border-radius: 10px;
-            padding: 14px;
-            border: 1px solid #eef5fb;
-        }
-
-        .info-label {
-            color: #8290a8;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
-        }
-
-        .info-value {
-            color: #0b1220;
-            font-size: 16px;
-            font-weight: 700;
-        }
-
-        .itinerary-section {
-            margin: 28px 0;
-        }
-
-        .section-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #0b1220;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .section-title::before {
-            content: '🏨';
-            font-size: 18px;
-        }
-
-        .price-highlight {
-            color: #0b1220;
-            font-size: 28px;
-            font-weight: 800;
-            text-align: center;
-            margin: 30px 0;
-        }
-
-        .cta-section {
-            text-align: center;
-            margin: 40px 0;
-        }
-
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(90deg, #0b7df2 0%, #0058e6 100%);
-            color: #ffffff;
-            padding: 12px 26px;
-            border-radius: 40px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 15px;
-            box-shadow: 0 8px 22px rgba(11,125,242,0.18);
-            transition: transform 0.15s ease;
-        }
-
-        .cta-button:hover {
-            transform: translateY(-2px);
-        }
-
-        .page-break { page-break-after: always; break-after: page; }
-
-        .footer {
-            text-align: center;
-            margin-top: 36px;
-            padding-top: 18px;
-            border-top: 1px solid #eef5fb;
-        }
-
-        .footer-text {
-            color: #8290a8;
-            font-size: 12px;
-            margin-bottom: 8px;
-        }
-
-        .footer-logo {
-            color: #0b1220;
-            font-weight: 700;
-            font-size: 14px;
-        }
-
-        .badge {
-            display: inline-block;
-            background: #f3fbff;
-            color: #0b1220;
-            padding: 6px 14px;
-            border-radius: 16px;
-            font-size: 12px;
-            font-weight: 700;
-            margin: 12px 0;
-        }
-
-        @media (max-width: 600px) {
-            .container {
-                padding: 16px 12px;
-            }
-
-            .lina-section {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Travel Proposal - ${proposal.clientName}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #0f172a; }
+    .container { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
+    .eyebrow { color: #2563eb; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 700; }
+    .page-title { font-size: 28px; font-weight: 800; color: #0f172a; margin-top: 6px; }
+    .subtle { color: #2563eb; font-size: 13px; font-weight: 600; }
+    .hero-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 140px); gap: 6px; border-radius: 18px; overflow: hidden; margin: 18px 0; }
+    .hero-grid .hero-main { grid-column: span 2; grid-row: span 2; }
+    .hero-grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .overview { background: #fff; border: 1px solid #dbeafe; border-radius: 14px; padding: 18px; }
+    .grid { display: grid; grid-template-columns: 1fr 340px; gap: 22px; align-items: start; margin-top: 18px; }
+    .card { background: #fff; border: 1px solid #dbeafe; border-radius: 14px; padding: 18px; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04); margin-bottom: 14px; }
+    .card-label { color: #64748b; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .card-title { font-size: 18px; font-weight: 800; color: #0f172a; margin-top: 6px; }
+    .card-sub { color: #64748b; font-size: 13px; margin-top: 4px; }
+    .card-note { color: #0f172a; font-size: 13px; font-weight: 600; margin-top: 6px; }
+    .photo-grid { margin-top: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .photo-grid .photo { border-radius: 10px; overflow: hidden; height: 110px; }
+    .photo-grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .price-card { background: #fff; border: 1px solid #dbeafe; border-radius: 14px; padding: 18px; }
+    .price-row { display: flex; justify-content: space-between; font-size: 13px; color: #0f172a; margin-top: 6px; }
+    .price-total { margin-top: 10px; border-top: 1px solid #e2e8f0; padding-top: 10px; display: flex; justify-content: space-between; font-weight: 800; color: #2563eb; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
+  <div class="container">
+    <div class="eyebrow">Zeniva travel</div>
+    <div class="page-title">Your tailored trip</div>
+    <div class="subtle">${title} · Review before payment</div>
 
-        <div class="header">
-            <div class="logo-section">
-                <img src="${proposal.logoDataUri || 'data:image/png;base64,tCBtorchs578+A1E5rnVR5KKPEIsc6kYTaFn8wg+MHmM2GWyDXfZlIMpdkr7tsP/7xMLMR3zazEjkk8z/yDfmzkiOfVz5mJ0W9j0W+BoP8/88PukUxb6zMAAAAASUVORK5CYII='}" width="60" height="60" style="vertical-align:middle;border-radius:12px;box-shadow:0 2px 8px #35f2c1;margin-bottom:10px;" alt="Zeniva Logo" />
-                <div class="logo" style="margin-top:8px;">ZENIVA TRAVEL</div>
-                <div class="tagline">Exceptional journeys crafted by AI</div>
-            </div>
-        </div>
+    ${proposal.imageGridHTML || ''}
 
-        <!-- Lina Introduction removed; Lina will be rendered inside the proposal card -->
-
-        <!-- Proposal Card -->
-        <div class="proposal-card">
-            <div class="proposal-header">
-                <h1 class="proposal-title">Personalized Proposal</h1>
-                <p class="proposal-subtitle">Tailored for ${proposal.clientName}</p>
-                <div class="badge">Premium Proposal</div>
-            </div>
-
-            <!-- Lina (assistant) -->
-            <div style="margin: 18px 0;">
-                <div class="lina-section" style="margin:0;">
-                    <div class="lina-avatar" style="background:none;padding:0;">
-                        ${proposal.linaAvatar ? `<img src="${proposal.linaAvatar}" width="72" height="72" style="border-radius:50%;box-shadow:0 2px 8px #7df2ff;" alt="Lina Avatar"/>` : `<div style="width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#eef5fb;color:#0b1220;font-weight:800;font-size:28px;">L</div>`}
-                    </div>
-                    <div class="lina-content" style="margin-left:12px;">
-                        <h3>Meet Lina, your travel assistant</h3>
-                        <p>${proposal.linaIntroText || 'I\'m Lina — I handcraft your trip and keep an eye on availability, pricing and upgrades to make sure this proposal becomes reality.'}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Info Grid -->
-            <div class="info-grid">
-                <div class="info-item">
-                    <div class="info-label">Destination</div>
-                    <div class="info-value">${proposal.destination}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Travel Dates</div>
-                    <div class="info-value">${proposal.travelDates}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Travelers</div>
-                    <div class="info-value">${proposal.pax} traveler${proposal.pax > 1 ? 's' : ''}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Estimated Budget</div>
-                    <div class="info-value">${proposal.budget}</div>
-                </div>
-            </div>
-
-            <!-- Accommodations & Photos (si disponibles) -->
-            ${proposal.imagesHTML || ''}
-
-
-            <!-- Selected items (SHORTLIST) -->
-            ${shortlistSection}
-
-            <!-- Itinéraire -->
-            <div class="itinerary-section">
-                <h2 class="section-title">Your Tailored Itinerary</h2>
-                ${itineraryItems}
-            </div>
-
-            <!-- Price -->
-            <div style="text-align: center; margin: 40px 0;">
-                <div style="color: #94a3b8; font-size: 16px; margin-bottom: 10px;">Estimated Total Price</div>
-                <div class="price-highlight">${proposal.totalPrice}</div>
-                <div style="color: #64748b; font-size: 14px; margin-top: 10px;">
-                    *Final price confirmed upon booking
-                </div>
-            </div>
-        </div>
-
-        <!-- CTA Section -->
-        <div class="cta-section">
-            <a href="https://zeniva.travel" class="cta-button">
-                Book This Proposal
-            </a>
-            <div style="color: #94a3b8; font-size: 14px; margin-top: 20px;">
-                Proposal valid for 7 days • 24/7 support included
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="footer">
-            <div class="footer-text">
-                This proposal was generated by Lina, our advanced travel AI
-            </div>
-            <div class="footer-text">
-                For any questions, contact your Zeniva Travel agent
-            </div>
-            <div class="footer-logo">ZENIVA TRAVEL</div>
-            <div style="color: #475569; font-size: 12px; margin-top: 10px;">
-                Generated on ${new Date(proposal.createdAt).toLocaleDateString('en-US')}
-            </div>
-        </div>
+    <div class="overview">
+      <div style="font-weight:800;color:#0f172a;">Trip overview</div>
+      <div style="margin-top:4px;color:#64748b;font-size:13px;">${tripOverview}</div>
+      <div style="margin-top:10px;color:#2563eb;font-size:13px;font-weight:600;">4.92 · 52 reviews</div>
     </div>
+
+    <div class="grid">
+      <div>
+        ${flight ? `
+          <section class="card">
+            <div class="card-label">Flight</div>
+            <div class="card-title">${flight.airline || "Airline"} • ${flight.route || ""}</div>
+            <div class="card-sub">${flight.times || ""} • ${flight.fare || ""} • ${flight.bags || ""}</div>
+            ${flight.flightNumber ? `<div class="card-sub">Flight: ${flight.flightNumber}</div>` : ""}
+            ${flight.date ? `<div class="card-sub">Date: ${flight.date}</div>` : ""}
+            ${flight.duration ? `<div class="card-sub">Duration: ${flight.duration}</div>` : ""}
+            ${flight.layovers ? `<div class="card-sub">Layovers: ${flight.layovers}</div>` : ""}
+            <div class="card-note">Fare rules: flexible changes with fee, cancellation subject to airline policy.</div>
+          </section>
+        ` : ""}
+
+        ${hotels.map(renderHotel).join("")}
+        ${activities.map(renderActivity).join("")}
+        ${transfers.map(renderTransfer).join("")}
+
+        <section class="card">
+          <div class="card-label">Price breakdown</div>
+          <div class="price-row"><span>Flights</span><span>${proposal.totalPrice || proposal.budget || "On request"}</span></div>
+          <div class="price-row"><span>Accommodation</span><span>${proposal.budget || "On request"}</span></div>
+          ${activities.length ? `<div class="price-row"><span>Activities</span><span>Included</span></div>` : ""}
+          ${transfers.length ? `<div class="price-row"><span>Transfers</span><span>Included</span></div>` : ""}
+          <div class="price-row"><span>Fees & services</span><span>Included</span></div>
+          <div class="price-total"><span>Total</span><span>${proposal.totalPrice || proposal.budget || "On request"}</span></div>
+          <div class="card-sub">Based on ${proposal.pax || 2} traveler(s). Final pricing is confirmed at payment with live availability.</div>
+        </section>
+      </div>
+
+      <div>
+        <div class="price-card">
+          <div style="font-weight:800;font-size:18px;color:#0f172a;">Summary</div>
+          <div class="price-row"><span>Destination</span><span>${proposal.destination || "TBD"}</span></div>
+          <div class="price-row"><span>Dates</span><span>${dateLine}</span></div>
+          <div class="price-row"><span>Travelers</span><span>${proposal.pax || 2}</span></div>
+          <div class="price-row"><span>Budget</span><span>${proposal.budget || "On request"}</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>`;
 }
@@ -473,6 +260,24 @@ export async function POST(request: NextRequest) {
     if (Array.isArray(proposal.images) && proposal.images.length > 0) {
       imageSources.push(...proposal.images);
     }
+    if (proposal.selection?.hotel?.image) imageSources.push(proposal.selection.hotel.image);
+    if (Array.isArray(proposal.selection?.hotel?.images)) imageSources.push(...proposal.selection.hotel.images);
+    if (Array.isArray(proposal.extraHotels)) {
+      for (const h of proposal.extraHotels) {
+        if (h?.image) imageSources.push(h.image);
+        if (Array.isArray(h?.images)) imageSources.push(...h.images);
+      }
+    }
+    if (Array.isArray(proposal.extraActivities)) {
+      for (const a of proposal.extraActivities) {
+        if (Array.isArray(a?.images)) imageSources.push(...a.images);
+      }
+    }
+    if (Array.isArray(proposal.extraTransfers)) {
+      for (const t of proposal.extraTransfers) {
+        if (Array.isArray(t?.images)) imageSources.push(...t.images);
+      }
+    }
     if (proposal.shortlist && Array.isArray(proposal.shortlist)) {
       for (const s of proposal.shortlist) {
         if (s.image) imageSources.push(s.image);
@@ -489,33 +294,28 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Prepare hero and gallery HTML and attach separately for clear layout control
-    let imagesHTML = '';
+    // Prepare hero grid layout (review-style)
     let heroImage: string | null = null;
-    let galleryHTML = '';
+    let imageGridHTML = '';
 
     if (inlined.length > 0) {
       const hero = inlined[0];
       heroImage = hero.src;
       const rest = inlined.slice(1);
 
-      // Gallery (rest images)
-      if (rest.length > 0) {
-        galleryHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px;">${rest.map(it => `
-          <div style="border-radius:10px;overflow:hidden;border:1px solid #eef5fb;background:#fff;">
-            <img src="${it.src}" style="width:100%;height:150px;object-fit:cover;display:block;" />
-            <div style="padding:8px 10px;color:#0b1220;font-weight:700;font-size:13px;">${it.caption || ''}</div>
-          </div>`).join('')}</div>`;
-      }
+      const gridImages = [hero, ...rest];
+      while (gridImages.length < 5) gridImages.push(hero);
+      const grid = gridImages.slice(0, 5);
 
-      // imagesHTML will be a combined hero + gallery block when used
-      imagesHTML = `<div style="margin: 24px 0;">
-        <div style="border-radius:12px;overflow:hidden;border:1px solid #eef5fb;background:#fff;">
-          <img src="${hero.src}" style="width:100%;height:320px;object-fit:cover;display:block;" />
-          ${hero.caption ? `<div style="padding:12px 16px;color:#0b1220;font-weight:700;font-size:14px;">${hero.caption}</div>` : ''}
+      imageGridHTML = `
+        <div class="hero-grid" style="margin: 18px 0;">
+          <div class="hero-main"><img src="${grid[0].src}" alt="Hero" /></div>
+          <div><img src="${grid[1].src}" alt="Gallery" /></div>
+          <div><img src="${grid[2].src}" alt="Gallery" /></div>
+          <div><img src="${grid[3].src}" alt="Gallery" /></div>
+          <div><img src="${grid[4].src}" alt="Gallery" /></div>
         </div>
-        ${galleryHTML}
-      </div>`;
+      `;
     }
 
     // Build Lina's summary text based on selections (shortlist, itinerary, and key fields)
@@ -535,19 +335,27 @@ export async function POST(request: NextRequest) {
     // Attach computed values to the proposal so template can use them
     proposal.logoDataUri = logoDataUri;
     proposal.linaAvatar = linaAvatar;
-    proposal.imagesHTML = imagesHTML;
     proposal.heroImage = heroImage || null;
-    proposal.galleryHTML = galleryHTML || '';
+    proposal.imageGridHTML = imageGridHTML || '';
     proposal.linaIntroText = linaIntroText;
 
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-
-    const page = await browser.newPage();
-
     const html = generateProposalHTML(proposal);
+
+        if (proposal.format === "html") {
+            return new NextResponse(html, {
+                headers: {
+                    'Content-Type': 'text/html; charset=utf-8',
+                    'Content-Disposition': `attachment; filename="Proposal-${proposal.clientName}-${proposal.destination}.html"`
+                }
+            });
+        }
+
+        const browser = await puppeteer.launch({
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
+
+        const page = await browser.newPage();
 
     await page.setContent(html, { waitUntil: 'networkidle0' });
 

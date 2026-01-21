@@ -3,12 +3,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { GRADIENT_END, GRADIENT_START, LIGHT_BG } from "../../src/design/tokens";
 import Header from "../../src/components/Header";
 import TravelSearchWidget from "../../src/components/TravelSearchWidget";
 import LinaWidget from "../../src/components/LinaWidget";
 import AutoTranslate from "../../src/components/AutoTranslate";
 import { getImagesForDestination } from "../../src/lib/images";
+import { createTrip, updateSnapshot, applyTripPatch, generateProposal, setProposalSelection } from "../../lib/store/tripsStore";
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -24,6 +26,7 @@ interface YcnItem {
 }
 
 export default function YachtsPage() {
+  const router = useRouter();
   const [visible, setVisible] = useState(12);
   const [items, setItems] = useState<YcnItem[]>([]);
 
@@ -68,8 +71,50 @@ export default function YachtsPage() {
       destination,
       image: (p.images && p.images[0]) || p.thumbnail || fallback || '/branding/icon-proposals.svg',
       calendar: p.calendar,
+      images: p.images || (p.thumbnail ? [p.thumbnail] : []),
     };
   });
+
+  const handleAddToProposal = async (yacht: { slug: string; title: string; destination: string; price: string; image: string; images: string[] }) => {
+    const tripId = createTrip({
+      title: yacht.title,
+      destination: yacht.destination,
+      style: "Yacht charter",
+    });
+
+    updateSnapshot(tripId, {
+      destination: yacht.destination,
+      travelers: "2 adults",
+      style: "Yacht charter",
+      accommodationType: "Yacht",
+      budget: yacht.price,
+    });
+
+    applyTripPatch(tripId, {
+      destination: yacht.destination,
+      accommodationType: "Yacht",
+      style: "Yacht charter",
+      budget: yacht.price,
+    });
+
+    setProposalSelection(tripId, {
+      flight: null,
+      activity: null,
+      transfer: null,
+      hotel: {
+        id: yacht.slug,
+        name: yacht.title,
+        location: yacht.destination,
+        price: yacht.price,
+        room: "Yacht",
+        image: yacht.image,
+        images: yacht.images,
+      },
+    });
+
+    await generateProposal(tripId);
+    router.push("/proposals");
+  };
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
@@ -228,6 +273,13 @@ export default function YachtsPage() {
                       </Link>
                     </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => handleAddToProposal(p)}
+                    className="mt-3 rounded-full bg-black px-4 py-2 text-sm font-semibold text-white shadow hover:bg-slate-900"
+                  >
+                    Add to proposal
+                  </button>
                 </div>
               ))}
             </div>

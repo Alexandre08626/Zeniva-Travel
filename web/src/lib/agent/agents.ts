@@ -27,6 +27,7 @@ export type AgentDirectoryEntry = {
 };
 
 const STORAGE_KEY = "zeniva_agents_dir_v1";
+const ALLOWED_AGENT_EMAILS = new Set(["info@zeniva.ca", "lanthierj6@gmail.com"]);
 
 let agents: AgentDirectoryEntry[] = [
   {
@@ -75,8 +76,8 @@ let agents: AgentDirectoryEntry[] = [
   },
   {
     id: "agent-jason",
-    name: "Jason Yacht",
-    email: "jason@yacht.zeniva",
+    name: "Jason Lanthier",
+    email: "lanthierj6@gmail.com",
     roleLabel: "Yacht Partner",
     roleKey: "yacht-partner",
     status: "active",
@@ -93,28 +94,6 @@ let agents: AgentDirectoryEntry[] = [
       revenue: 480000,
       commission: 0,
       lastActivity: "2024-12-16T09:10:00Z",
-    },
-  },
-  {
-    id: "agent-amine",
-    name: "Amine Haddad",
-    email: "amine@zeniva.travel",
-    roleLabel: "Admin",
-    roleKey: "admin",
-    status: "active",
-    code: "ZA-210",
-    avatar: "/branding/lina-avatar.png",
-    divisions: ["TRAVEL", "GROUPS"],
-    createdAt: "2024-04-15T00:00:00Z",
-    linkedToTravel: true,
-    linkedToYacht: false,
-    metrics: {
-      activeClients: 12,
-      openFiles: 5,
-      inProgressSales: 3,
-      revenue: 94000,
-      commission: 4200,
-      lastActivity: "2024-12-17T13:45:00Z",
     },
   },
 ];
@@ -135,7 +114,7 @@ function hydrateAgents() {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        agents = parsed;
+        agents = parsed.filter((entry) => ALLOWED_AGENT_EMAILS.has(String(entry?.email || "").toLowerCase()));
       }
     }
   } catch {
@@ -146,7 +125,7 @@ function hydrateAgents() {
 hydrateAgents();
 
 export function listAgents(): AgentDirectoryEntry[] {
-  return [...agents];
+  return agents.filter((entry) => ALLOWED_AGENT_EMAILS.has(entry.email.toLowerCase()));
 }
 
 export function getAgentById(id: string) {
@@ -177,6 +156,9 @@ function roleToKey(role: Role): AgentDirectoryEntry["roleKey"] {
 
 export function addAgentFromAccount(account: { name: string; email: string; role: Role; divisions?: Division[]; status?: AgentStatus }) {
   const normalizedEmail = account.email.trim().toLowerCase();
+  if (!ALLOWED_AGENT_EMAILS.has(normalizedEmail)) {
+    return undefined;
+  }
   const existing = agents.find((a) => a.email.toLowerCase() === normalizedEmail);
   if (existing) return existing;
 

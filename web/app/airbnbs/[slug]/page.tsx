@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import AirbnbAvailability from '@/src/components/airbnbs/AirbnbAvailability.client';
 import AirbnbBookingSummary from '@/src/components/airbnbs/AirbnbBookingSummary.client';
+import AddToProposalButton from '@/src/components/proposals/AddToProposalButton.client';
 
 function slugify(s: string) {
   return (s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -171,12 +172,26 @@ export default async function AirbnbDetailPage({ params }: { params: Promise<{ s
             <AirbnbAvailability storageKey={storageKey} />
           </div>
 
-          <AirbnbBookingSummary
-            pricePerNight={pricePerNight}
-            storageKey={storageKey}
-            propertyName={item.title}
-            sourcePath={`/airbnbs/${slug}`}
-          />
+          <div className="space-y-3">
+            <AddToProposalButton
+              title={item.title}
+              destination={propertyLocation || item.location || ""}
+              accommodationType="Airbnb"
+              style="Private residence"
+              price={`$${pricePerNight}/night`}
+              image={hero}
+              images={gallery}
+              description={descriptionText}
+              roomLabel={propertyType ? `${propertyType} stay` : "Residence"}
+              className="w-full rounded-full bg-black px-4 py-2 text-sm font-semibold text-white shadow hover:bg-slate-900"
+            />
+            <AirbnbBookingSummary
+              pricePerNight={pricePerNight}
+              storageKey={storageKey}
+              propertyName={item.title}
+              sourcePath={`/airbnbs/${slug}`}
+            />
+          </div>
         </div>
       </div>
     </main>
