@@ -7,7 +7,7 @@
     "dates": "March 15-20, 2026",
     "price": 1985,
     "currency": "USD",
-    "image": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80",
+    "image": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1200&q=80",
     "partner": "Duffel",
     "details": {
       "flight": true,
@@ -23,7 +23,7 @@
     "dates": "April 10-15, 2026",
     "price": 2150,
     "currency": "USD",
-    "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
+    "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
     "partner": "Duffel",
     "details": {
       "flight": true,
@@ -39,7 +39,7 @@
     "dates": "Jun 1-10, 2026",
     "price": 5100,
     "currency": "USD",
-    "image": "https://images.unsplash.com/photo-1549692520-acc6669e2f0c?auto=format&fit=crop&w=900&q=80",
+    "image": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80",
     "partner": "Duffel",
     "details": {
       "flight": true,
@@ -55,7 +55,7 @@
     "dates": "Mar 15-22, 2026",
     "price": 4850,
     "currency": "USD",
-    "image": "https://images.unsplash.com/photo-1505765052191-2b9d2c4b9a46?auto=format&fit=crop&w=900&q=80",
+    "image": "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1200&q=80",
     "partner": "Duffel",
     "details": {
       "flight": true,
@@ -71,7 +71,7 @@
     "dates": "Aug 1-8, 2026",
     "price": 4200,
     "currency": "USD",
-    "image": "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=900&q=80",
+    "image": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=80",
     "partner": "Duffel",
     "details": {
       "flight": true,
@@ -87,7 +87,7 @@
     "dates": "May 20-26, 2026",
     "price": 2890,
     "currency": "USD",
-    "image": "https://images.unsplash.com/photo-1508873696983-2dfd5898f3ea?auto=format&fit=crop&w=900&q=80",
+    "image": "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=80",
     "partner": "YCN",
     "details": {
       "flight": true,
