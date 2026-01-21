@@ -361,7 +361,7 @@ export const resortPartners: ResortPartner[] = [
       },
     ],
     pricing: {
-      publicRateFrom: "From $420 BAR",
+      publicRateFrom: "From $195/night",
       seasonality: "High: Jun-Sep; Shoulder: Apr-May, Oct; Low: Nov-Mar",
       availabilityNotes: "Small inventory; align with festival dates and flight schedules",
     },

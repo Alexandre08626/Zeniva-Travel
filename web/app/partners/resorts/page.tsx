@@ -94,7 +94,7 @@ export default function PartnerResortsPage() {
       destination: resort.destination,
       travelers: "2 adults",
       style: resort.positioning,
-      accommodationType: "Resort",
+      accommodationType: "Hotel",
       budget: resort.pricing.publicRateFrom,
       dates,
       departure: filters.departureCity,
@@ -102,7 +102,7 @@ export default function PartnerResortsPage() {
 
     applyTripPatch(tripId, {
       destination: resort.destination,
-      accommodationType: "Resort",
+      accommodationType: "Hotel",
       style: resort.positioning,
       budget: resort.pricing.publicRateFrom,
       checkIn: filters.checkIn,
@@ -117,7 +117,7 @@ export default function PartnerResortsPage() {
       location: resort.destination,
       price: resort.pricing.publicRateFrom,
       room: resort.roomTypes?.[0] || "Resort stay",
-      accommodationType: "Resort",
+      accommodationType: "Hotel",
       image: getCover(resort),
       images: resort.media?.flatMap((m) => m.images) || [],
       amenities: resort.amenities,
