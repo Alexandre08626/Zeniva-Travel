@@ -44,6 +44,17 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://zenivatravel.com",
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-video-preview": -1,
+      "max-snippet": -1,
+    },
+  },
   openGraph: {
     type: "website",
     url: "https://zenivatravel.com",

@@ -97,8 +97,38 @@ const userEmail = "user@email.com";
 // Components moved to `src/components/*` for reuse (Pill, Label)
 
 export default function HomePage() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "TravelAgency",
+        name: "Zeniva Travel AI",
+        url: "https://zenivatravel.com",
+        logo: "https://zenivatravel.com/branding/logo.png",
+        image: "https://zenivatravel.com/branding/lina-avatar.png",
+        description:
+          "Zeniva Travel AI is a premium travel agency powered by Lina AI. Plan luxury trips in minutes with AI‑curated flights, villas, resorts, yachts, and experiences.",
+        brand: {
+          "@type": "Brand",
+          name: "Lina AI",
+        },
+      },
+      {
+        "@type": "WebSite",
+        name: "Zeniva Travel AI",
+        url: "https://zenivatravel.com",
+        potentialAction: {
+          "@type": "SearchAction",
+          target: "https://zenivatravel.com/search?q={search_term_string}",
+          "query-input": "required name=search_term_string",
+        },
+      },
+    ],
+  };
+
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       {/* Header aligned with hero left edge (full-bleed alignment) */}
       <div style={{ position: 'relative', left: '50%', right: '50%', marginLeft: '-50vw', marginRight: '-50vw', width: '100vw' }}>
         <div className="w-full px-6">
