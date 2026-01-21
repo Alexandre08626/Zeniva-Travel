@@ -1,9 +1,7 @@
-import dynamicImport from "next/dynamic";
+import AgentChatClientLoader from "./AgentChatClientLoader";
 
 export const dynamic = "force-dynamic";
 
-const AgentChatClient = dynamicImport(() => import("./AgentChat.client"), { ssr: false });
-
 export default function AgentChatPage() {
-  return <AgentChatClient />;
+  return <AgentChatClientLoader />;
 }
