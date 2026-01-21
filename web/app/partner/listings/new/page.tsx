@@ -34,7 +34,7 @@ export default function NewListingPage() {
     bedrooms: 1,
     bathrooms: 1,
     price: 100,
-    currency: 'EUR'
+    currency: 'USD'
   });
 
   const handleNext = () => {
@@ -261,9 +261,7 @@ export default function NewListingPage() {
                     onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none"
                   >
-                    <option value="EUR">EUR (€)</option>
                     <option value="USD">USD ($)</option>
-                    <option value="GBP">GBP (£)</option>
                   </select>
                 </div>
               </div>

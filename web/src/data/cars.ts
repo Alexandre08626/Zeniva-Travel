@@ -13,7 +13,7 @@ export const cars: CarComponent[] = [
     category: "SUV Premium",
     supplier: "Sixt",
     pricing: {
-      currency: "EUR",
+      currency: "USD",
       net: 780,
       sell: 980,
       marginAmount: 200,
@@ -34,7 +34,7 @@ export const cars: CarComponent[] = [
     category: "Convertible",
     supplier: "Hertz",
     pricing: {
-      currency: "EUR",
+      currency: "USD",
       net: 320,
       sell: 430,
       marginAmount: 110,

@@ -4,7 +4,11 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { resortPartners, type ResortPartner, type ResortStatus } from "@/src/data/partners/resorts";
-import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "@/src/design/tokens";
+import { GRADIENT_END, GRADIENT_START, LIGHT_BG, TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "@/src/design/tokens";
+import Header from "@/src/components/Header";
+import TravelSearchWidget from "@/src/components/TravelSearchWidget";
+import LinaWidget from "@/src/components/LinaWidget";
+import AutoTranslate from "@/src/components/AutoTranslate";
 
 const statusLabel: Record<ResortStatus, string> = {
   active: "Active",
@@ -24,6 +28,8 @@ export default function PartnerResortsPage() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const isLoggedIn = false;
+  const userEmail = "user@email.com";
 
   const filtered = useMemo(() => {
     return resortPartners.filter((r) => {
@@ -53,8 +59,118 @@ export default function PartnerResortsPage() {
 
   return (
     <>
-    <main className="min-h-screen bg-slate-50">
-      <div className="mx-auto max-w-7xl px-6 py-8 space-y-6">
+    <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
+      {/* Header aligned with hero left edge (full-bleed alignment) */}
+      <div style={{ position: "relative", left: "50%", right: "50%", marginLeft: "-50vw", marginRight: "-50vw", width: "100vw" }}>
+        <div className="w-full px-6">
+          <Header isLoggedIn={isLoggedIn} userEmail={userEmail} />
+        </div>
+      </div>
+
+      <div className="mx-auto w-full max-w-none px-6 pb-16 pt-5 space-y-6">
+        {/* HERO SECTION (Lina Search) */}
+        <section
+          className="mt-4 mb-4"
+          style={{
+            position: "relative",
+            left: "50%",
+            right: "50%",
+            marginLeft: "-50vw",
+            marginRight: "-50vw",
+            width: "100vw",
+          }}
+        >
+          <div className="relative rounded-3xl overflow-hidden mx-auto" style={{ width: "100%", maxWidth: "none" }}>
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `linear-gradient(110deg, ${GRADIENT_START} 0%, ${GRADIENT_END} 60%)`,
+                opacity: 0.98,
+              }}
+            />
+
+            <div className="relative z-10 w-full mx-auto px-5 py-12">
+              <div className="flex flex-col md:flex-row items-center gap-8">
+                <div className="flex-1 text-center md:text-left">
+                  <div className="mb-3 flex items-center justify-center md:justify-start gap-4">
+                    <img
+                      src="/branding/logo.png"
+                      alt="Zeniva logo"
+                      className="w-auto rounded-lg shadow-sm"
+                      style={{ height: "clamp(2.5rem, 6.5vw, 4.25rem)" }}
+                    />
+                    <div>
+                      <div
+                        className="font-extrabold tracking-tight text-white"
+                        style={{
+                          fontSize: "clamp(2.5rem, 6.5vw, 4.25rem)",
+                          lineHeight: 0.95,
+                          background: "linear-gradient(90deg,#ffffff 60%, #E6B85A 100%)",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
+                          textShadow: "0 8px 24px rgba(11,27,77,0.28)",
+                          letterSpacing: "-0.02em",
+                        }}
+                      >
+                        Zeniva Travel AI
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="mt-3 text-md text-white/90 max-w-xl md:max-w-2xl">
+                    <AutoTranslate
+                      text="Tailor-made journeys, expert recommendations, and ready-to-book itineraries."
+                      className="inline"
+                    />
+                  </p>
+
+                  <div className="mt-6 mx-auto md:mx-0" style={{ width: "min(820px, 100%)" }}>
+                    <div className="bg-white rounded-2xl shadow-lg p-4">
+                      <TravelSearchWidget />
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {[
+                          { id: "q1", label: "Family trip", prompt: "Family beach trip, 7 nights" },
+                          { id: "q2", label: "Romantic", prompt: "Honeymoon Santorini, 5 nights" },
+                          { id: "q3", label: "Budget", prompt: "Sunny destinations under $1500" },
+                        ].map((q) => (
+                          <Link
+                            key={q.id}
+                            href={`/chat?prompt=${encodeURIComponent(q.prompt)}`}
+                            className="inline-block rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 transition"
+                          >
+                            {q.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex-1 hidden md:flex items-center justify-center pr-12">
+                  <div className="flex flex-col items-center gap-3">
+                    <span
+                      className="font-extrabold tracking-tight"
+                      style={{
+                        fontSize: "clamp(1.25rem, 2.6vw, 1.75rem)",
+                        lineHeight: 1,
+                        background: "linear-gradient(90deg,#ffffff 60%, #E6B85A 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        textShadow: "0 6px 18px rgba(11,27,77,0.22)",
+                        letterSpacing: "-0.02em",
+                      }}
+                    >
+                      Lina AI
+                    </span>
+                    <LinaWidget size={Math.min(336, Math.max(192, 21 * 16))} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      <div className="mx-auto max-w-7xl px-1 py-4 space-y-6">
         <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Partner Resorts</p>
@@ -360,6 +476,7 @@ export default function PartnerResortsPage() {
             </aside>
           </section>
         )}
+      </div>
       </div>
     </main>
 

@@ -25,7 +25,7 @@ export default function PayoutsPage() {
             <span className="text-sm font-medium text-emerald-700">Available Balance</span>
             <Wallet className="w-5 h-5 text-emerald-600" />
           </div>
-          <div className="text-3xl font-bold text-gray-900 mb-2">EUR 8,400</div>
+          <div className="text-3xl font-bold text-gray-900 mb-2">USD 8,400</div>
           <p className="text-sm text-gray-600">Ready for payout on Feb 1, 2026</p>
         </div>
 
@@ -34,7 +34,7 @@ export default function PayoutsPage() {
             <span className="text-sm font-medium text-gray-700">This Month</span>
             <TrendingUp className="w-5 h-5 text-gray-600" />
           </div>
-          <div className="text-3xl font-bold text-gray-900 mb-2">EUR 15,750</div>
+          <div className="text-3xl font-bold text-gray-900 mb-2">USD 15,750</div>
           <p className="text-sm text-emerald-600">↑ 23% vs last month</p>
         </div>
 
@@ -43,7 +43,7 @@ export default function PayoutsPage() {
             <span className="text-sm font-medium text-gray-700">Total Earned</span>
             <CheckCircle className="w-5 h-5 text-gray-600" />
           </div>
-          <div className="text-3xl font-bold text-gray-900 mb-2">EUR 46,250</div>
+          <div className="text-3xl font-bold text-gray-900 mb-2">USD 46,250</div>
           <p className="text-sm text-gray-600">All-time earnings</p>
         </div>
       </div>

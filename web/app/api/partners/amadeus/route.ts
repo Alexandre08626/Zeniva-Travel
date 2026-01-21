@@ -83,7 +83,7 @@ export async function GET(req: Request) {
 
     // Get detailed hotel offers with photos
     const hotelIdsParam = hotelIds.join(',');
-    const offersUrl = `${AMADEUS_BASE_URL}/v2/shopping/hotel-offers?hotelIds=${hotelIdsParam}&adults=${adults}&checkInDate=${checkIn}&checkOutDate=${checkOut}&roomQuantity=1&currencyCode=EUR`;
+    const offersUrl = `${AMADEUS_BASE_URL}/v2/shopping/hotel-offers?hotelIds=${hotelIdsParam}&adults=${adults}&checkInDate=${checkIn}&checkOutDate=${checkOut}&roomQuantity=1&currencyCode=USD`;
     console.log('Hotel offers URL:', offersUrl);
 
     const offersResponse = await fetch(offersUrl, {
@@ -125,7 +125,7 @@ export async function GET(req: Request) {
       if (offerData?.offers && offerData.offers.length > 0) {
         const firstOffer = offerData.offers[0];
         if (firstOffer.price) {
-          price = `${firstOffer.price.currency} ${firstOffer.price.total}`;
+          price = `USD ${firstOffer.price.total}`;
         }
         if (firstOffer.room) {
           room = firstOffer.room.typeEstimated?.category || firstOffer.room.description?.text || "Standard Room";
@@ -162,7 +162,7 @@ export async function GET(req: Request) {
         id: "mock-amadeus-1",
         name: "Hotel " + cityCode,
         location: cityCode,
-        price: "EUR 150/night",
+        price: "USD 150/night",
         room: "Standard Room",
         rating: 4,
         image: "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80"
@@ -171,7 +171,7 @@ export async function GET(req: Request) {
         id: "mock-amadeus-2",
         name: "Boutique Hotel " + cityCode,
         location: cityCode,
-        price: "EUR 200/night",
+        price: "USD 200/night",
         room: "Deluxe Room",
         rating: 4.5,
         image: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=900&q=80"

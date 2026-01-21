@@ -43,7 +43,7 @@ import LinaAvatar from "./LinaAvatar";
   }
 `}</style>
 
-type Tab = "flights" | "hotels" | "cruises" | "experiences" | "transfers" | "cars";
+type Tab = "flights" | "hotels" | "cruises" | "experiences" | "transfers" | "cars" | "yachts" | "airbnbs";
 
 export default function TravelSearchWidget() {
   const router = useRouter();
@@ -163,13 +163,16 @@ export default function TravelSearchWidget() {
             { key: 'flights', label: 'Flights' },
             { key: 'hotels', label: 'Hotels' },
             { key: 'transfers', label: 'Transfers' },
-            { key: 'cars', label: 'Rental car' },
+            { key: 'cars', label: 'Rental Car' },
             { key: 'experiences', label: 'Experience' },
+            { key: 'cruises', label: 'Cruise' },
+            { key: 'yachts', label: 'Yacht' },
+            { key: 'airbnbs', label: 'Airbnb' },
           ].map((t: any) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`tab-button ${tab === t.key ? 'active' : ''} rounded-full px-4 py-2 font-semibold text-sm`}>
+              className={`tab-button ${tab === t.key ? 'active' : ''} rounded-full px-4 py-2 font-semibold text-sm whitespace-nowrap`}>
               {t.label}
             </button>
           ))}
@@ -316,6 +319,48 @@ export default function TravelSearchWidget() {
               <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>Search cars</button>
             </div>
           </form>
+        )}
+
+        {tab === "yachts" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="rounded-2xl bg-slate-50 px-4 py-4">
+              <div className="text-sm font-semibold text-slate-800">Explore yacht charters</div>
+              <p className="mt-1 text-sm text-slate-600">Browse curated YCN fleet and partner yachts.</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Link href="/yachts" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>
+                  View yachts
+                </Link>
+                <button type="button" onClick={() => askLina("Plan a yacht charter itinerary") } className="rounded-2xl border px-4 py-2 text-sm font-semibold text-slate-700">
+                  Ask Lina
+                </button>
+              </div>
+            </div>
+            <div className="rounded-2xl bg-slate-50 px-4 py-4">
+              <div className="text-sm font-semibold text-slate-800">Ideal for</div>
+              <p className="mt-1 text-sm text-slate-600">Mediterranean, Caribbean, island hopping.</p>
+            </div>
+          </div>
+        )}
+
+        {tab === "airbnbs" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="rounded-2xl bg-slate-50 px-4 py-4">
+              <div className="text-sm font-semibold text-slate-800">Explore partner Airbnbs</div>
+              <p className="mt-1 text-sm text-slate-600">Curated villas and residences by Zeniva.</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Link href="/airbnbs" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>
+                  View Airbnbs
+                </Link>
+                <button type="button" onClick={() => askLina("Plan an Airbnb stay") } className="rounded-2xl border px-4 py-2 text-sm font-semibold text-slate-700">
+                  Ask Lina
+                </button>
+              </div>
+            </div>
+            <div className="rounded-2xl bg-slate-50 px-4 py-4">
+              <div className="text-sm font-semibold text-slate-800">Ideal for</div>
+              <p className="mt-1 text-sm text-slate-600">Families, groups, remote retreats.</p>
+            </div>
+          </div>
         )}
       </div>
     </div>

@@ -73,46 +73,61 @@ export default function ProposalReviewPage() {
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
-      <div className="mx-auto max-w-6xl px-4 py-6 space-y-6">
-        <header className="flex items-center justify-between">
-          <div>
-            <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
-              Review & finalize
-            </div>
-            <h1 className="text-2xl font-black" style={{ color: TITLE_TEXT }}>
-              Your tailored trip
-            </h1>
-          </div>
+      <div className="mx-auto max-w-6xl px-6 py-8 space-y-6">
+        <header className="flex items-center justify-between text-sm">
+          <button
+            onClick={() => router.push(`/proposals`)}
+            className="text-blue-700 font-semibold"
+          >
+            Back to proposals
+          </button>
           <div className="flex gap-2">
             <button
               onClick={() => router.push(`/proposals/${tripId}/select`)}
-              className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold"
-              style={{ color: PREMIUM_BLUE }}
+              className="rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-semibold text-blue-700"
             >
               Edit selections
             </button>
             <button
               onClick={() => router.push(`/chat/${tripId}`)}
-              className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold"
-              style={{ color: PREMIUM_BLUE }}
+              className="rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-semibold text-blue-700"
             >
               Back to chat
             </button>
           </div>
         </header>
 
-        <div className="relative h-56 w-full overflow-hidden rounded-2xl">
-          <img src={heroImage} alt="Destination" className="h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/35 to-black/5" />
-          <div className="absolute left-6 bottom-6 text-white">
-            <div className="text-sm font-semibold">{tripDraft?.destination || "Your trip"}</div>
-            <div className="text-2xl font-extrabold">Review before payment</div>
-          </div>
+        <div className="space-y-2">
+          <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Zeniva travel</p>
+          <h1 className="text-3xl font-black text-slate-900">Your tailored trip</h1>
+          <div className="text-sm text-blue-800">{tripDraft?.destination || "Your trip"} · Review before payment</div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-4 lg:grid-rows-2 gap-2 rounded-3xl overflow-hidden">
+          <div className="lg:col-span-2 lg:row-span-2 h-80 lg:h-full">
+            <img src={heroImage} alt="Destination" className="h-full w-full object-cover" />
+          </div>
+          {(accommodationImages.length > 0 ? accommodationImages : [heroImage, heroImage, heroImage, heroImage]).slice(0, 4).map((img, i) => (
+            <div key={i} className="h-40 lg:h-full">
+              <img src={img} alt={`Trip ${i + 1}`} className="h-full w-full object-cover" />
+            </div>
+          ))}
+        </div>
+
+        <section className="rounded-2xl border border-blue-100 bg-white p-6">
+          <p className="text-lg font-bold text-slate-900">Trip overview</p>
+          <p className="mt-1 text-sm text-slate-600">
+            {tripDraft?.departureCity || "Departure"} → {tripDraft?.destination || "Destination"} · {tripDraft?.checkIn && tripDraft?.checkOut ? `${tripDraft.checkIn} to ${tripDraft.checkOut}` : "Flexible dates"}
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-blue-800">
+            <span className="font-semibold">4.92</span>
+            <span>· 52 reviews</span>
+          </div>
+        </section>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr,360px] gap-8 items-start">
           <div className="lg:col-span-2 space-y-4">
-            <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">
+            <section className="rounded-2xl border border-blue-100 bg-white shadow-sm p-6 space-y-2">
               <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Flight</div>
               <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>
                 {flight.airline} • {flight.route}
@@ -145,7 +160,7 @@ export default function ProposalReviewPage() {
               </div>
             </section>
 
-            <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">
+            <section className="rounded-2xl border border-blue-100 bg-white shadow-sm p-6 space-y-2">
               <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>{tripDraft?.accommodationType === 'Hotel' ? 'Hotel' : tripDraft?.accommodationType === 'Yacht' ? 'Yacht' : 'Villa'}</div>
               <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>
                 {hotel.name} • {hotel.location || "Central"}
@@ -171,7 +186,7 @@ export default function ProposalReviewPage() {
             </section>
 
             {activity && (
-              <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">
+              <section className="rounded-2xl border border-blue-100 bg-white shadow-sm p-6 space-y-2">
                 <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Activity</div>
                 <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>
                   {activity.name}
@@ -198,7 +213,7 @@ export default function ProposalReviewPage() {
             )}
 
             {transfer && (
-              <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">
+              <section className="rounded-2xl border border-blue-100 bg-white shadow-sm p-6 space-y-2">
                 <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Transfer</div>
                 <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>
                   {transfer.name}
@@ -224,7 +239,7 @@ export default function ProposalReviewPage() {
               </section>
             )}
 
-            <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">
+            <section className="rounded-2xl border border-blue-100 bg-white shadow-sm p-6 space-y-2">
               <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Price breakdown</div>
               <div className="space-y-1">
                 {breakdown.map((row) => (
@@ -244,8 +259,8 @@ export default function ProposalReviewPage() {
             </section>
           </div>
 
-          <aside className="space-y-3 sticky top-4">
-            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">
+          <aside className="space-y-4 sticky top-4">
+            <div className="rounded-2xl border border-blue-200 bg-white shadow-sm p-5 space-y-2">
               <div className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>Travel summary</div>
               <div className="text-sm" style={{ color: TITLE_TEXT }}>
                 {tripDraft?.departureCity || "Departure TBC"} → {tripDraft?.destination || "Destination"}
@@ -260,12 +275,12 @@ export default function ProposalReviewPage() {
 
             <button
               onClick={onPay}
-              className="w-full rounded-full px-4 py-3 text-sm font-extrabold text-white"
+              className="w-full rounded-xl px-4 py-3 text-sm font-extrabold text-white"
               style={{ backgroundColor: BRAND_BLUE }}
             >
               Proceed to payment
             </button>
-            <div className="rounded-xl border border-slate-200 bg-white p-3 text-xs" style={{ color: MUTED_TEXT }}>
+            <div className="rounded-xl border border-blue-200 bg-white p-3 text-xs" style={{ color: MUTED_TEXT }}>
               You can adjust selections before paying. Policies and fare rules summarized above.
             </div>
           </aside>

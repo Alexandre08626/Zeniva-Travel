@@ -33,7 +33,7 @@ Before the app can generate live hotel proposals, you MUST collect these concret
    - Ask: "Are there any children travelling? If yes, how many and what are their ages?"
 
 6) Budget range
-   - Ask: "What is your total budget range for the whole trip, and in which currency (USD, CAD, EUR, etc.)?"
+  - Ask: "What is your total budget range for the whole trip, in USD?"
 
 7) Preferred accommodation style
    - Ask: "What type of accommodation do you prefer (all-inclusive resort, hotel, condo, villa, Airbnb, yacht)?"
@@ -60,7 +60,7 @@ Before the app can generate live hotel proposals, you MUST collect these concret
    - Ask: "Are there any children travelling? If yes, how many and what are their ages?"
 
 6) Budget range
-   - Ask: "What is your total budget range for the whole trip, and in which currency (USD, CAD, EUR, etc.)?"
+  - Ask: "What is your total budget range for the whole trip, in USD?"
 
 7) Accommodation type
    - Ask: "What type of accommodation do you prefer (Hotel, Airbnb, Yacht, Resort, Villa, Other)?"

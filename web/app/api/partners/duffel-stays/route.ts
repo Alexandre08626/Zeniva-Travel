@@ -126,7 +126,7 @@ export async function GET(req: Request) {
           id: `mock-stay-1-${destination}`,
           name: `Sample Hotel near ${destination}`,
           location: destination,
-          price: "EUR 120/night",
+          price: "USD 120/night",
           room: "Standard Room",
           perks: ["Free cancellation", "Breakfast included"],
           rating: 4,

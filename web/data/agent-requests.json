@@ -28,5 +28,27 @@
     "phone": "5817487436",
     "email": "info@zeniva.ca",
     "sourcePath": "/partners/ycn/43ft-leopard-power-cat-2017"
+  },
+  {
+    "id": "1a5e93e2-bc70-4feb-b15a-6e9319c66be0",
+    "createdAt": "2026-01-20T22:47:25.420Z",
+    "channelIds": [
+      "agent-jason",
+      "hq"
+    ],
+    "message": "New traveler chat message\nListing: 70ft Azimut 68 Fly (2023)\nSource page: /partners/ycn/70ft-azimut-68-fly-2023\nMessage: hello",
+    "sourcePath": "/partners/ycn/70ft-azimut-68-fly-2023",
+    "propertyName": "70ft Azimut 68 Fly (2023)"
+  },
+  {
+    "id": "5781f70a-fdaa-422b-9af5-c75233385368",
+    "createdAt": "2026-01-20T22:48:06.784Z",
+    "channelIds": [
+      "agent-alexandre",
+      "hq"
+    ],
+    "message": "New traveler chat message\nListing: AIKA\nSource page: /airbnbs/aika\nMessage: hello",
+    "sourcePath": "/airbnbs/aika",
+    "propertyName": "AIKA"
   }
 ]

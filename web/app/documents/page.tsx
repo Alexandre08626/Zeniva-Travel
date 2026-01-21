@@ -220,18 +220,18 @@ export default function DocumentsPage() {
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
-      <div className="mx-auto max-w-[1100px] px-5 pb-14 pt-6 space-y-6">
+      <div className="mx-auto w-full max-w-none px-6 pb-14 pt-6 space-y-6">
         <Header isLoggedIn={!!userId} userEmail={userId} />
 
-        <div className="rounded-[20px] border border-slate-100 bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div className="rounded-[24px] border border-slate-100 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-3xl font-black" style={{ color: TITLE_TEXT }}>My Travel Documents</h1>
               <p className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>
                 Flights, hotels, transfers, activities, and vouchers — everything in one place.
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Link
                 href="/proposals"
                 className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold"
@@ -239,6 +239,24 @@ export default function DocumentsPage() {
               >
                 Go to proposals
               </Link>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-3 md:grid-cols-3">
+            <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
+              <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Documents</div>
+              <div className="mt-1 text-2xl font-extrabold" style={{ color: TITLE_TEXT }}>{list.length}</div>
+              <div className="text-xs" style={{ color: MUTED_TEXT }}>Trips with files available</div>
+            </div>
+            <div className="rounded-2xl border border-blue-100 bg-white p-4">
+              <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Status</div>
+              <div className="mt-1 text-sm font-bold" style={{ color: TITLE_TEXT }}>Verified storage</div>
+              <div className="text-xs" style={{ color: MUTED_TEXT }}>Encrypted files, fast access</div>
+            </div>
+            <div className="rounded-2xl border border-blue-100 bg-white p-4">
+              <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Need help?</div>
+              <div className="mt-1 text-sm font-bold" style={{ color: TITLE_TEXT }}>Instant chat support</div>
+              <Link href="/chat/agent?channel=agent-alexandre&source=/documents" className="text-xs font-semibold text-blue-700">Open human agent chat</Link>
             </div>
           </div>
 

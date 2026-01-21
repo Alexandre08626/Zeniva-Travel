@@ -9,7 +9,7 @@ export const groups: PackageComponent[] = [
     title: "Corporate Offsite - Lisbon",
     supplier: "BCD",
     pricing: {
-      currency: "EUR",
+      currency: "USD",
       net: 42000,
       sell: 50000,
       marginAmount: 8000,

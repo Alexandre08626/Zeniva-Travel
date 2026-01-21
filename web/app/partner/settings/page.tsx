@@ -170,7 +170,7 @@ export default function SettingsPage() {
                     <p className="text-gray-600 mt-1">Unlimited listings & bookings</p>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-gray-900">EUR 99</div>
+                    <div className="text-2xl font-bold text-gray-900">USD 99</div>
                     <div className="text-sm text-gray-600">per month</div>
                   </div>
                 </div>

@@ -9,7 +9,7 @@ export const villas: PackageComponent[] = [
     title: "Ibiza Cala Serena Villa",
     supplier: "OneFineStay",
     pricing: {
-      currency: "EUR",
+      currency: "USD",
       net: 18500,
       sell: 21000,
       marginAmount: 2500,

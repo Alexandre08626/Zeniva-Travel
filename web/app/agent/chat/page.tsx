@@ -1,11 +1,12 @@
 "use client";
 import { useMemo, useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE, ACCENT_GOLD } from "../../../src/design/tokens";
+import { useSearchParams } from "next/navigation";
 import { sendMessageToLina } from "../../../src/lib/linaClient";
 import { useAuthStore, isHQ } from "../../../src/lib/authStore";
 
 export default function AgentChatPage() {
+  const searchParams = useSearchParams();
   const user = useAuthStore((s) => s.user);
   const [channelId, setChannelId] = useState("global");
   const [input, setInput] = useState("");
@@ -29,6 +30,7 @@ export default function AgentChatPage() {
     { id: "hq", label: "HQ", scope: "HQ only", unread: 1 },
     { id: "ops", label: "Ops", scope: "Production", unread: 0 },
     { id: "agent-alice", label: "Alice", scope: "Direct", unread: 0 },
+    { id: "agent-alexandre", label: "Alexandre Blais", scope: "Direct", unread: 0 },
     { id: "agent-jason", label: "Jason Lanthier", scope: "Direct", unread: 0 },
     { id: "agent-marco", label: "Marco", scope: "Direct", unread: 0 },
     { id: "dossier-trip-104", label: "Dossier TRIP-104", scope: "Client file", unread: 0 },
@@ -57,6 +59,18 @@ export default function AgentChatPage() {
     if (!listRef.current) return;
     listRef.current.scrollTop = listRef.current.scrollHeight;
   }, [history, channelId]);
+
+  useEffect(() => {
+    const targetChannel = searchParams?.get("channel");
+    const label = searchParams?.get("label") || targetChannel || "Direct";
+    if (!targetChannel) return;
+
+    setChannels((prev) => {
+      if (prev.find((c) => c.id === targetChannel)) return prev;
+      return [...prev, { id: targetChannel, label, scope: "Direct", unread: 0 }];
+    });
+    setChannelId(targetChannel);
+  }, [searchParams]);
 
   // Load help tickets
   useEffect(() => {
@@ -120,6 +134,7 @@ export default function AgentChatPage() {
       };
 
       ensureChannel("agent-jason", "Jason Lanthier", "Direct");
+      ensureChannel("agent-alexandre", "Alexandre Blais", "Direct");
       ensureChannel("hq", "HQ", "HQ only");
 
       stored.forEach((req: any) => {
@@ -143,6 +158,7 @@ export default function AgentChatPage() {
       };
 
       ensureMessages("agent-jason");
+      ensureMessages("agent-alexandre");
       ensureMessages("hq");
 
       stored.forEach((req: any) => {
@@ -162,7 +178,14 @@ export default function AgentChatPage() {
   useEffect(() => {
     let active = true;
     fetch("/api/agent/requests")
-      .then((r) => r.json())
+      .then(async (r) => {
+        const text = await r.text();
+        try {
+          return JSON.parse(text || "{}") as any;
+        } catch {
+          return { data: [] } as any;
+        }
+      })
       .then((res) => {
         if (!active) return;
         const stored = (res && res.data) || [];
@@ -177,6 +200,7 @@ export default function AgentChatPage() {
           };
 
           ensureChannel("agent-jason", "Jason Lanthier", "Direct");
+          ensureChannel("agent-alexandre", "Alexandre Blais", "Direct");
           ensureChannel("hq", "HQ", "HQ only");
 
           stored.forEach((req: any) => {
@@ -200,6 +224,7 @@ export default function AgentChatPage() {
           };
 
           ensureMessages("agent-jason");
+          ensureMessages("agent-alexandre");
           ensureMessages("hq");
 
           stored.forEach((req: any) => {
@@ -230,6 +255,15 @@ export default function AgentChatPage() {
     setMessages((prev) => ({
       ...prev,
       [channelId]: [...(prev[channelId] || []), { ...msg, ts: new Date().toLocaleTimeString().slice(0, 5) }],
+    }));
+  };
+
+  const handleClearMyMessages = () => {
+    const author = user?.name || "Agent";
+    const role = canHQ ? "hq" : "agent";
+    setMessages((prev) => ({
+      ...prev,
+      [channelId]: (prev[channelId] || []).filter((m) => !(m.author === author && m.role === role)),
     }));
   };
 
@@ -264,61 +298,48 @@ export default function AgentChatPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <div className="mx-auto max-w-7xl px-5 py-8 space-y-6">
-        <header className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between">
+    <main className="min-h-screen bg-slate-50 p-6">
+      <div className="mx-auto flex h-[calc(100vh-3rem)] max-w-[1500px] flex-col gap-6">
+        <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Agent workspace</p>
-            <h1 className="text-2xl font-black" style={{ color: TITLE_TEXT }}>Chat interne</h1>
-            <p className="text-sm" style={{ color: MUTED_TEXT }}>Coordinate dossiers, handoffs, urgent cases, and HQ requests.</p>
+            <p className="text-sm uppercase tracking-wide text-slate-500">Agent workspace</p>
+            <h1 className="text-2xl font-black text-slate-900">Chat interne</h1>
+            <p className="text-sm text-slate-500">Coordinate dossiers, handoffs, urgent cases, and HQ requests.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">HQ sees all</span>
             <Link href="/agent" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm">Dashboard</Link>
             <Link href="/agent/finance" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm">Finance (HQ)</Link>
           </div>
-        </header>
+        </div>
 
-        <div className="grid gap-5 lg:grid-cols-[280px,1fr,300px]">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Channels</p>
-                <p className="text-sm font-bold text-slate-900">All threads</p>
+        <div className="flex flex-1 gap-4 overflow-hidden">
+          <aside className="w-80 xl:w-96 flex flex-col gap-3 overflow-y-auto">
+            <div className="rounded-2xl border border-blue-100 bg-white p-4 space-y-3">
+              <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Workspace</p>
+              <div className="text-sm font-semibold text-slate-900">Agent: {user?.name || "Agent"}</div>
+              <div className="text-xs text-blue-700">Active channel: {title}</div>
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">Live</span>
+                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">{history.length} messages</span>
               </div>
-              <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-600">{filteredChannels.length}</span>
             </div>
-            <label className="text-xs font-semibold text-slate-600">
-              Search
-              <input
-                value={channelSearch}
-                onChange={(e) => setChannelSearch(e.target.value)}
-                placeholder="Agent, dossier, HQ"
-                className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700"
-              />
-            </label>
-            <div className="space-y-2">
-              {filteredChannels.map((c) => {
-                const active = c.id === channelId;
-                const hiddenHQ = c.id === "hq" && !canHQ;
-                if (hiddenHQ) return null;
-                return (
-                  <button
-                    key={c.id}
-                    onClick={() => setChannelId(c.id)}
-                    className={`w-full rounded-xl border px-3 py-2 text-left transition ${active ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white hover:border-slate-300"}`}
-                  >
-                    <div className="flex items-center justify-between text-xs font-semibold text-slate-800">
-                      <span>{c.label}</span>
-                      {c.unread ? <span className="rounded-full bg-blue-600 px-2 py-[2px] text-[10px] text-white">{c.unread}</span> : null}
-                    </div>
-                    <p className="text-[11px] text-slate-500">{c.scope}</p>
-                  </button>
-                );
-              })}
+
+            <div className="rounded-xl border border-blue-100 bg-white p-3 space-y-2">
+              <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Quick actions</p>
+              {quickActions.map((qa) => (
+                <button
+                  key={qa}
+                  onClick={() => onQuick(qa)}
+                  className="w-full text-left text-xs font-semibold text-blue-700 border border-blue-200 rounded-lg px-2 py-2 hover:bg-blue-50"
+                >
+                  {qa}
+                </button>
+              ))}
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
-              <p className="font-semibold uppercase tracking-[0.12em] text-slate-500">Usage</p>
+
+            <div className="rounded-xl border border-blue-100 bg-white p-3 text-xs text-blue-700">
+              <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Usage</p>
               <ul className="mt-2 space-y-1">
                 <li>• Global: announcements, SLAs</li>
                 <li>• HQ ↔ agents</li>
@@ -326,111 +347,163 @@ export default function AgentChatPage() {
                 <li>• @Lina for summaries / actions</li>
               </ul>
             </div>
-          </div>
+          </aside>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm flex flex-col" style={{ minHeight: "72vh" }}>
-            <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Channel</p>
-                <h2 className="text-xl font-black" style={{ color: TITLE_TEXT }}>{title}</h2>
-                <p className="text-xs" style={{ color: MUTED_TEXT }}>
-                  History retained. HQ sees everything. Dossiers and actions are tracked.
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <span className="rounded-full bg-blue-100 px-3 py-1 text-[11px] font-semibold text-blue-700">Live</span>
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-600">{history.length} messages</span>
-              </div>
-            </div>
-
-            <div ref={listRef} className="flex-1 overflow-y-auto space-y-3 py-4 pr-1">
-              {history.length === 0 && (
-                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm" style={{ color: MUTED_TEXT }}>
-                  No messages yet. Share a dossier, request help, or mention @Lina.
-                </div>
-              )}
-              {history.map((m, idx) => {
-                const isOwn = m.author === (user?.name || "Agent") && m.role === (canHQ ? "hq" : "agent");
-                const bubbleStyle = isOwn
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : m.role === "lina"
-                    ? "bg-amber-50 text-amber-900 border-amber-200"
-                    : "bg-slate-50 text-slate-900 border-slate-200";
-                return (
-                  <div key={idx} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[80%] rounded-2xl border px-4 py-3 shadow-sm ${bubbleStyle}`}>
-                      <div className="flex items-center justify-between gap-4 text-[11px] font-semibold opacity-70">
-                        <span>{m.author}</span>
-                        <span>{m.ts}</span>
-                      </div>
-                      <div className="mt-1 whitespace-pre-line text-sm font-semibold">{m.text}</div>
-                    </div>
+          <div className="flex-1 min-w-0 rounded-2xl border border-blue-100 bg-white overflow-hidden flex">
+            {/* Threads List */}
+            <div className="w-80 border-r border-blue-100 bg-blue-50/60 flex flex-col h-full">
+              <div className="p-4 border-b border-blue-100">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Channels</p>
+                    <h2 className="text-lg font-bold text-slate-900">All threads</h2>
                   </div>
-                );
-              })}
-            </div>
-
-            <div className="border-t border-slate-200 pt-4 space-y-3">
-              <div className="flex flex-wrap gap-2 text-[11px] font-semibold">
-                {quickActions.map((qa) => (
-                  <button
-                    key={qa}
-                    onClick={() => onQuick(qa)}
-                    className="rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-700 hover:border-slate-300"
-                  >
-                    {qa}
-                  </button>
-                ))}
+                  <span className="rounded-full bg-blue-600 text-white text-xs font-semibold px-2 py-1">{filteredChannels.length}</span>
+                </div>
+                <div className="relative">
+                  <input
+                    value={channelSearch}
+                    onChange={(e) => setChannelSearch(e.target.value)}
+                    placeholder="Agent, dossier, HQ"
+                    className="w-full pl-4 pr-4 py-2.5 border border-blue-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none bg-white"
+                  />
+                </div>
               </div>
-              <form onSubmit={onSubmit} className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="@Lina summarize, transfer a dossier, share a client, request HQ help"
-                  className="flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-900 outline-none focus:border-slate-400"
-                />
-                <button
-                  type="submit"
-                  disabled={sending}
-                  className="rounded-2xl px-5 py-3 text-sm font-extrabold text-white"
-                  style={{ backgroundColor: PREMIUM_BLUE, opacity: sending ? 0.8 : 1 }}
-                >
-                  {sending ? "Sending…" : "Send"}
-                </button>
-              </form>
-              {linaBusy && <p className="text-xs text-slate-500">Lina is processing…</p>}
-            </div>
-          </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Dossier / Files</p>
-              <p className="text-sm" style={{ color: MUTED_TEXT }}>
-                Link a dossier or proposal. Files and links appear here (audited, HQ-visible).
-              </p>
+              <div className="flex-1 overflow-y-auto">
+                {filteredChannels.map((c) => {
+                  const active = c.id === channelId;
+                  const hiddenHQ = c.id === "hq" && !canHQ;
+                  if (hiddenHQ) return null;
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => setChannelId(c.id)}
+                      className={`w-full p-4 border-b border-blue-100 text-left transition ${active ? "bg-white" : "hover:bg-blue-50"}`}
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">
+                          {c.label.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-semibold text-slate-900 truncate">{c.label}</span>
+                            {c.unread ? (
+                              <span className="px-2 py-0.5 bg-blue-600 text-white text-xs rounded-full">{c.unread}</span>
+                            ) : null}
+                          </div>
+                          <p className="text-sm text-blue-800/80 truncate">{c.scope}</p>
+                        </div>
+                      </div>
+                      <p className="text-sm text-slate-700 truncate">{(messages[c.id] || []).slice(-1)[0]?.text || "No messages yet"}</p>
+                      <div className="mt-2 flex items-center gap-2 text-xs text-blue-600 font-semibold">
+                        <span className="rounded-full bg-blue-100 px-2 py-0.5">Internal</span>
+                        <span className="rounded-full bg-blue-50 px-2 py-0.5">Live</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700 space-y-2">
-              <p className="font-semibold">Quick links</p>
-              <ul className="space-y-1 text-xs">
-                <li>• Open dossier TRIP-104</li>
-                <li>• Open dossier YCHT-55</li>
-                <li>• Active proposals (3)</li>
-                <li>• Recent payments</li>
-              </ul>
+
+            {/* Chat Area */}
+            <div className="flex-1 flex flex-col h-full min-w-0">
+              <div className="p-4 border-b border-gray-200">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{title}</h3>
+                    <p className="text-sm text-gray-600">History retained. HQ sees everything.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleClearMyMessages}
+                    className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-700 hover:border-slate-300"
+                  >
+                    Clear my messages
+                  </button>
+                </div>
+              </div>
+
+              <div ref={listRef} className="flex-1 overflow-y-auto p-6 space-y-4">
+                {history.length === 0 && (
+                  <div className="rounded-xl border border-dashed border-blue-200 bg-blue-50 p-4 text-sm text-blue-700">
+                    No messages yet. Share a dossier, request help, or mention @Lina.
+                  </div>
+                )}
+                {history.map((m, idx) => {
+                  const isOwn = m.author === (user?.name || "Agent") && m.role === (canHQ ? "hq" : "agent");
+                  const bubbleStyle = isOwn
+                    ? "bg-blue-600 text-white"
+                    : m.role === "lina"
+                      ? "bg-amber-50 text-amber-900"
+                      : "bg-gray-100 text-gray-900";
+                  return (
+                    <div key={idx} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
+                      <div className={`max-w-md px-4 py-3 rounded-lg ${bubbleStyle}`}>
+                        <p className="text-xs font-semibold opacity-70 mb-1">{m.author}</p>
+                        <p className="text-sm whitespace-pre-line">{m.text}</p>
+                        <p className={`text-xs mt-1 ${isOwn ? "text-blue-100" : "text-gray-500"}`}>
+                          {m.ts}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="p-4 border-t border-gray-200">
+                <form onSubmit={onSubmit} className="flex items-center gap-3">
+                  <input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="@Lina summarize, transfer a dossier, share a client, request HQ help"
+                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={sending || !input.trim()}
+                    className="px-4 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-60"
+                  >
+                    {sending ? "Sending..." : "Send"}
+                  </button>
+                </form>
+                {linaBusy && <p className="text-xs text-slate-500 mt-2">Lina is processing…</p>}
+              </div>
             </div>
-            <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-sm text-slate-700">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-500">Lina help</p>
-              <ul className="mt-2 space-y-1 text-xs">
-                <li>• Summarize this conversation</li>
-                <li>• Extract actions and owners</li>
-                <li>• Draft a client reply</li>
-                <li>• Identify risks (payment, docs)</li>
-              </ul>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500">
-              <p className="font-semibold uppercase tracking-[0.12em] text-slate-400">Audit</p>
-              <p>History retained. HQ sees all. Shared by dossier/agent.</p>
-            </div>
+
+            {/* Agent tools */}
+            <aside className="w-80 border-l border-blue-100 bg-blue-50/60 hidden xl:flex flex-col overflow-y-auto">
+              <div className="p-4 border-b border-blue-100">
+                <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Agent tools</p>
+                <h3 className="text-lg font-bold text-slate-900">Power actions</h3>
+              </div>
+              <div className="p-4 space-y-4">
+                <div className="rounded-xl border border-blue-100 bg-white p-3 space-y-2">
+                  <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Dossier / Files</p>
+                  <ul className="space-y-1 text-xs text-blue-700">
+                    <li>• Open dossier TRIP-104</li>
+                    <li>• Open dossier YCHT-55</li>
+                    <li>• Active proposals (3)</li>
+                    <li>• Recent payments</li>
+                  </ul>
+                </div>
+
+                <div className="rounded-xl border border-blue-100 bg-white p-3 space-y-2">
+                  <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Lina help</p>
+                  <ul className="space-y-1 text-xs text-blue-700">
+                    <li>• Summarize this conversation</li>
+                    <li>• Extract actions and owners</li>
+                    <li>• Draft a client reply</li>
+                    <li>• Identify risks (payment, docs)</li>
+                  </ul>
+                </div>
+
+                <div className="rounded-xl border border-blue-100 bg-white p-3 space-y-2">
+                  <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Audit</p>
+                  <p className="text-xs text-blue-700">History retained. HQ sees all. Shared by dossier/agent.</p>
+                </div>
+              </div>
+            </aside>
           </div>
         </div>
       </div>

@@ -157,8 +157,8 @@ export async function POST(req: Request) {
       location: `${pickupLocation} → ${dropoffLocation}`,
       startDateTime: `${pickupDate}T${pickupTime}`,
       endDateTime: returnDate && returnTime ? `${returnDate}T${returnTime}` : null,
-      price: transfer.price?.totalAmount ? `${transfer.price.totalAmount} ${transfer.price.currency}` : "Price on request",
-      currency: transfer.price?.currency || 'EUR',
+      price: transfer.price?.totalAmount ? `USD ${transfer.price.totalAmount}` : "Price on request",
+      currency: 'USD',
       cancellationPolicy: transfer.cancellationPolicies?.[0]?.description || "Free cancellation up to 24 hours before",
       importantNotes: transfer.importantNotes || ["Flight tracking included", "Meet & greet service"],
       images: transfer.images?.map((img: any) => img.url) || [
@@ -209,8 +209,8 @@ function getMockTransfers(pickup: string, dropoff: string) {
       location: `${pickup} → ${dropoff}`,
       startDateTime: "2026-03-12T10:00:00",
       endDateTime: null,
-      price: "EUR 95",
-      currency: "EUR",
+      price: "USD 95",
+      currency: "USD",
       cancellationPolicy: "Free cancellation up to 24 hours before",
       importantNotes: ["Professional chauffeur", "Flight tracking", "Bottled water included"],
       images: [
@@ -237,8 +237,8 @@ function getMockTransfers(pickup: string, dropoff: string) {
       location: `${pickup} → ${dropoff}`,
       startDateTime: "2026-03-12T14:30:00",
       endDateTime: null,
-      price: "EUR 25",
-      currency: "EUR",
+      price: "USD 25",
+      currency: "USD",
       cancellationPolicy: "Free cancellation up to 12 hours before",
       importantNotes: ["Multiple stops", "Air-conditioned vehicle", "Luggage assistance"],
       images: [

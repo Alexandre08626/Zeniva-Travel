@@ -63,7 +63,7 @@ export default function ProposalsPage() {
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
-      <div className="mx-auto max-w-[1100px] px-5 pb-14 pt-6 space-y-8">
+      <div className="mx-auto max-w-[1400px] px-5 pb-14 pt-6 space-y-8">
         <Header isLoggedIn={false} />
 
         <section className="relative overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-lg">

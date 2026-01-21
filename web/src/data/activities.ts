@@ -12,7 +12,7 @@ export const activities: ActivityComponent[] = [
     location: "Paris",
     supplier: "Louvre",
     pricing: {
-      currency: "EUR",
+      currency: "USD",
       net: 2500,
       sell: 3200,
       marginAmount: 700,
@@ -32,7 +32,7 @@ export const activities: ActivityComponent[] = [
     location: "Rome",
     supplier: "Roma Tours",
     pricing: {
-      currency: "EUR",
+      currency: "USD",
       net: 850,
       sell: 1200,
       marginAmount: 350,

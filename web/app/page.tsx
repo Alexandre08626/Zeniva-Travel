@@ -101,12 +101,12 @@ export default function HomePage() {
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
       {/* Header aligned with hero left edge (full-bleed alignment) */}
       <div style={{ position: 'relative', left: '50%', right: '50%', marginLeft: '-50vw', marginRight: '-50vw', width: '100vw' }}>
-        <div style={{ width: '90%', marginLeft: '5vw' }}>
+        <div className="w-full px-6">
           <Header isLoggedIn={isLoggedIn} userEmail={userEmail} />
         </div>
       </div>
 
-      <div className="mx-auto max-w-[1200px] px-5 pb-16 pt-5">
+      <div className="mx-auto w-full max-w-none px-6 pb-16 pt-5">
 
         {/* HERO SECTION (Compact Premium) - full-bleed banner */}
         <section
@@ -120,7 +120,7 @@ export default function HomePage() {
             width: '100vw',
           }}
         >
-          <div className="relative rounded-3xl overflow-hidden mx-auto" style={{ width: '90%', maxWidth: 'none' }}>
+          <div className="relative rounded-3xl overflow-hidden mx-auto" style={{ width: '100%', maxWidth: 'none' }}>
             <div
               className="absolute inset-0"
               style={{
@@ -160,7 +160,7 @@ export default function HomePage() {
                   </p>
 
                   {/* Prominent Search Card */}
-                  <div className="mt-6 mx-auto md:mx-0" style={{ width: 'min(760px, 100%)' }}>
+                  <div className="mt-6 mx-auto md:mx-0" style={{ width: 'min(820px, 100%)' }}>
                     <div className="bg-white rounded-2xl shadow-lg p-4">
                       <TravelSearchWidget />
                       <div className="mt-3 flex flex-wrap gap-2">
@@ -210,7 +210,7 @@ export default function HomePage() {
 
         {/* 3 large tiles BELOW the hero (aligned with page content) */}
         <section className="mt-6 mb-12">
-          <div className="max-w-[1200px] mx-auto px-5">
+          <div className="w-full">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Link href="/chat" className="block rounded-2xl overflow-hidden shadow-xl group">
                 <div className="relative h-44 md:h-56 lg:h-64 bg-slate-50 flex flex-col items-center justify-center gap-3 p-4">
@@ -254,15 +254,13 @@ export default function HomePage() {
 
         {/* COLLECTIONS CAROUSEL */}
         <section className="mt-20 mb-20">
-          <div className="mb-8 flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-4xl font-black mb-2" style={{ color: TITLE_TEXT }}>
-                Collection & Themes
-              </h2>
-              <p className="text-slate-600">Browse curated travel collections tailored by Lina.</p>
-            </div>
+          <div className="mb-8 flex flex-col items-center text-center gap-2">
+            <h2 className="text-4xl font-black" style={{ color: TITLE_TEXT }}>
+              Collection & Themes
+            </h2>
+            <p className="text-slate-600">Browse curated travel collections tailored by Lina.</p>
           </div>
-          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory justify-center">
             {COLLECTIONS.map((c) => (
               <Link
                 key={c.id}
@@ -281,14 +279,18 @@ export default function HomePage() {
 
         {/* FEATURED TRIPS */}
         <section className="mt-20 mb-20">
-            <div className="flex items-center justify-between mb-8">
-            <div>
+          <div className="relative mb-8">
+            <div className="flex flex-col items-center text-center gap-2">
               <h2 className="text-4xl font-black" style={{ color: TITLE_TEXT }}>
                 Featured Trips by Lina
               </h2>
-              <p className="text-slate-600 mt-2">Hand-picked proposals ready to book.</p>
+              <p className="text-slate-600">Hand-picked proposals ready to book.</p>
             </div>
-              <Link href="/packages" className="text-sm font-bold underline hidden md:block" style={{ color: PREMIUM_BLUE }}>
+            <Link
+              href="/packages"
+              className="text-sm font-bold underline hidden md:block absolute right-0 top-1/2 -translate-y-1/2"
+              style={{ color: PREMIUM_BLUE }}
+            >
               View all →
             </Link>
           </div>

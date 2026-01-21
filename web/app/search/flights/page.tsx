@@ -46,7 +46,7 @@ function mapDuffelOffers(result: any): OfferCard[] {
 
     const duration = formatDuration(firstSlice?.duration_in_minutes) || formatDuration(offer?.total_duration?.minutes);
     const stops = (firstSlice?.segments?.length || 1) === 1 ? "Nonstop" : `${(firstSlice?.segments?.length || 2) - 1} stop`;
-    const price = offer?.total_amount && offer?.total_currency ? `${offer.total_currency} ${offer.total_amount}` : "Price on request";
+    const price = offer?.total_amount ? `USD ${offer.total_amount}` : "Price on request";
 
     return {
       id: offer?.id || `offer-${idx}`,

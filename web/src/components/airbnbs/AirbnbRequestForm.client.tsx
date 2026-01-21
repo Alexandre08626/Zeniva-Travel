@@ -2,17 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "yachtRequests";
-const JASON_CHANNEL_ID = "agent-jason";
+const STORAGE_KEY = "airbnbRequests";
+const ALEXANDRE_CHANNEL_ID = "agent-alexandre";
 const ADMIN_CHANNEL_ID = "hq";
 
-type YachtRequestPayload = {
+type AirbnbRequestPayload = {
   id: string;
   createdAt: string;
   message: string;
   channelIds: string[];
   sourcePath: string;
-  yachtName: string;
+  propertyName: string;
   desiredDate: string;
   fullName: string;
   phone: string;
@@ -20,47 +20,46 @@ type YachtRequestPayload = {
 };
 
 type Props = {
-  yachtName: string;
+  propertyName: string;
   sourcePath: string;
 };
 
-function buildMessage(payload: Omit<YachtRequestPayload, "id" | "createdAt" | "message">) {
+function buildMessage(payload: Omit<AirbnbRequestPayload, "id" | "createdAt" | "message">) {
   return [
-    "New yacht request (Yacht detail page)",
-    `Boat name: ${payload.yachtName}`,
+    "New Airbnb request (Airbnb detail page)",
+    `Property name: ${payload.propertyName}`,
     `Desired date: ${payload.desiredDate}`,
     `Client full name: ${payload.fullName}`,
     `Client phone: ${payload.phone}`,
     `Client email: ${payload.email}`,
     `Source page: ${payload.sourcePath}`,
-    "Notify: info@zeniva.ca",
   ].join("\n");
 }
 
-function persistRequest(request: YachtRequestPayload) {
+function persistRequest(request: AirbnbRequestPayload) {
   if (typeof window === "undefined") return;
   const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
   existing.push(request);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
 }
 
-export default function YachtRequestForm({ yachtName, sourcePath }: Props) {
+export default function AirbnbRequestForm({ propertyName, sourcePath }: Props) {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [boatName, setBoatName] = useState(yachtName || "");
+  const [property, setProperty] = useState(propertyName || "");
   const [desiredDate, setDesiredDate] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    setBoatName(yachtName || "");
-  }, [yachtName]);
+    setProperty(propertyName || "");
+  }, [propertyName]);
 
   const canSubmit = useMemo(() => {
-    return Boolean(fullName && phone && email && boatName && desiredDate);
-  }, [fullName, phone, email, boatName, desiredDate]);
+    return Boolean(fullName && phone && email && property && desiredDate);
+  }, [fullName, phone, email, property, desiredDate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,9 +74,9 @@ export default function YachtRequestForm({ yachtName, sourcePath }: Props) {
     setSubmitting(true);
 
     const payloadBase = {
-      channelIds: [JASON_CHANNEL_ID, ADMIN_CHANNEL_ID],
+      channelIds: [ALEXANDRE_CHANNEL_ID, ADMIN_CHANNEL_ID],
       sourcePath,
-      yachtName: boatName,
+      propertyName: property,
       desiredDate,
       fullName,
       phone,
@@ -85,7 +84,7 @@ export default function YachtRequestForm({ yachtName, sourcePath }: Props) {
     };
 
     const message = buildMessage(payloadBase);
-    const request: YachtRequestPayload = {
+    const request: AirbnbRequestPayload = {
       id: (typeof crypto !== "undefined" && "randomUUID" in crypto) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
       createdAt: new Date().toISOString(),
       message,
@@ -117,8 +116,7 @@ export default function YachtRequestForm({ yachtName, sourcePath }: Props) {
   return (
     <section className="bg-white rounded-2xl shadow p-6">
       <div className="flex flex-col gap-2 mb-6">
-        <p className="text-sm uppercase tracking-wide text-blue-600 font-semibold">Emergency contact</p>
-        <h2 className="text-2xl font-black text-slate-900">Request this yacht</h2>
+        <h2 className="text-2xl font-black text-slate-900">Request this Airbnb</h2>
         <p className="text-sm text-slate-600">Fast booking help. We will contact you immediately after you submit the request.</p>
       </div>
 
@@ -157,13 +155,13 @@ export default function YachtRequestForm({ yachtName, sourcePath }: Props) {
             />
           </label>
           <label className="text-sm font-semibold text-slate-700">
-            Boat name
+            Property name
             <input
               required
-              value={boatName}
-              onChange={(e) => setBoatName(e.target.value)}
+              value={property}
+              onChange={(e) => setProperty(e.target.value)}
               className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-              placeholder="Boat name"
+              placeholder="Property name"
             />
           </label>
           <label className="text-sm font-semibold text-slate-700 md:col-span-2">
@@ -192,16 +190,15 @@ export default function YachtRequestForm({ yachtName, sourcePath }: Props) {
         <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 h-fit lg:sticky lg:top-24">
           {success && <p className="text-sm text-blue-600">Request sent. An agent has received your details.</p>}
           <p className="text-lg font-bold text-slate-900 mt-2">Chat with an agent</p>
-          <p className="text-sm text-slate-600">We respond fast to help finalize your charter.</p>
+          <p className="text-sm text-slate-600">We respond fast to help finalize your stay.</p>
           <a
-            href={`/chat/agent?channel=${encodeURIComponent(JASON_CHANNEL_ID)}&listing=${encodeURIComponent(boatName)}&source=${encodeURIComponent(sourcePath)}`}
+            href={`/chat/agent?channel=${encodeURIComponent(ALEXANDRE_CHANNEL_ID)}&listing=${encodeURIComponent(property || propertyName)}&source=${encodeURIComponent(sourcePath)}`}
             className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-blue-600 text-white py-2 text-sm font-semibold shadow hover:bg-blue-700 transition"
           >
             Chat with agent
           </a>
         </div>
       </div>
-
     </section>
   );
 }

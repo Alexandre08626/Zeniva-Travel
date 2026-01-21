@@ -32,9 +32,10 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const hasChatPayload = Boolean(body?.message && body?.sourcePath);
     const required = ["yachtName", "desiredDate", "fullName", "phone", "email", "sourcePath"];
     const missing = required.filter((k) => !body?.[k]);
-    if (missing.length) {
+    if (!hasChatPayload && missing.length) {
       return NextResponse.json({ error: `Missing fields: ${missing.join(", ")}` }, { status: 400 });
     }
 
@@ -53,6 +54,7 @@ export async function POST(request: Request) {
       phone: body.phone,
       email: body.email,
       sourcePath: body.sourcePath,
+      propertyName: body.propertyName,
     };
 
     const requests = await readRequests();

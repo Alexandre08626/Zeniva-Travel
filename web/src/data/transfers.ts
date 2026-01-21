@@ -13,7 +13,7 @@ export const transfers: TransferComponent[] = [
     shared: false,
     supplier: "Blacklane",
     pricing: {
-      currency: "EUR",
+      currency: "USD",
       net: 220,
       sell: 320,
       marginAmount: 100,
@@ -34,7 +34,7 @@ export const transfers: TransferComponent[] = [
     shared: false,
     supplier: "NCC Roma",
     pricing: {
-      currency: "EUR",
+      currency: "USD",
       net: 180,
       sell: 260,
       marginAmount: 80,
