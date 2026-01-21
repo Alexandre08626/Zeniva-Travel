@@ -142,21 +142,21 @@ export default function TravelSearchWidget() {
 
     <div className="mt-6 rounded-2xl bg-white p-4 sm:p-6 shadow-lg hero-mobile">
       {/* Mobile: Lina géante centrée, titre Lina AI centré */}
-      <div className="sm:hidden flex flex-col items-center justify-center py-8">
+      <div className="sm:hidden flex w-full flex-col items-center justify-center py-8">
         <div className="text-2xl font-extrabold mb-2 text-center" style={{ color: '#FFD700' }}>Lina AI</div>
-        <p className="text-sm text-white/90 text-center mb-4">Tap Lina’s face to start your trip with Lina AI</p>
+        <p className="text-sm text-white/90 text-center mb-5 max-w-[280px]">Tap Lina’s face to start your trip with Lina AI</p>
         <button
           type="button"
           onClick={() => askLina()}
           aria-label="Start planning with Lina"
-          className="rounded-full p-1"
+          className="rounded-full p-2 bg-white/10 ring-2 ring-white/30"
         >
           <LinaAvatar size="lg" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }} />
         </button>
         <button
           type="button"
           onClick={() => askLina()}
-          className="mt-6 px-6 py-3 rounded-full font-bold text-white text-base"
+          className="mt-6 w-full max-w-[320px] px-6 py-3 rounded-full font-bold text-white text-base shadow-lg"
           style={{ background: 'linear-gradient(90deg,#0B57FF 0%, #4DA1FF 100%)' }}
         >
           Tap Lina to build my trip now

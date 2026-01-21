@@ -108,6 +108,22 @@ main > section > div > div[class*="max-w-"] {
 [data-brand="blue"] .to-emerald-700 { --tw-gradient-to: #1d4ed8; }
 
 @media (max-width: 640px) {
+  main {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  main > div[class*="max-w-"],
+  main > section > div[class*="max-w-"],
+  main > div > div[class*="max-w-"],
+  main > section > div > div[class*="max-w-"] {
+    width: 100% !important;
+  }
+  input,
+  select,
+  textarea,
+  button {
+    font-size: 16px;
+  }
   .header-main {
     flex-direction: row;
     justify-content: space-between;
