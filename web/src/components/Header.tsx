@@ -55,7 +55,7 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
           </nav>
         </div>
 
-        <button onClick={() => setMenuOpen(true)} className="hidden mobile-menu-btn p-1 sm:p-2">
+        <button onClick={() => setMenuOpen(true)} className="mobile-menu-btn sm:hidden p-1 sm:p-2">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>

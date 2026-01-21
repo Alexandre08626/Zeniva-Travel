@@ -140,7 +140,7 @@ export default function TravelSearchWidget() {
 
   return (
 
-    <div className="mt-6 rounded-2xl bg-white p-4 sm:p-6 shadow-lg hero-mobile">
+    <div className="mt-4 sm:mt-6 rounded-2xl bg-white p-4 sm:p-6 shadow-lg hero-mobile">
       {/* Mobile: Lina géante centrée, titre Lina AI centré */}
       <div className="sm:hidden flex w-full flex-col items-center justify-center py-8">
         <div className="text-2xl font-extrabold mb-2 text-center" style={{ color: '#FFD700' }}>Lina AI</div>

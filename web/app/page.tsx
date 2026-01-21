@@ -110,7 +110,7 @@ export default function HomePage() {
 
         {/* HERO SECTION (Compact Premium) - full-bleed banner */}
         <section
-          className="mt-8 mb-12"
+          className="mt-4 mb-8 sm:mt-8 sm:mb-12"
           style={{
             position: 'relative',
             left: '50%',
@@ -129,8 +129,8 @@ export default function HomePage() {
               }}
             />
 
-            <div className="relative z-10 w-full mx-auto px-5 py-12">
-              <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="relative z-10 w-full mx-auto px-5 py-8 sm:py-12">
+              <div className="flex flex-col md:flex-row items-center gap-6 sm:gap-8">
                 <div className="flex-1 text-center md:text-left">
                   <div className="mb-3 flex items-center justify-center md:justify-start gap-4">
                     <img src="/branding/logo.png" alt="Zeniva logo" className="w-auto rounded-lg shadow-sm" style={{ height: "clamp(2.5rem, 6.5vw, 4.25rem)" }} />
