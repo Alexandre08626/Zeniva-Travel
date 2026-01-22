@@ -26,7 +26,7 @@ function CreateTravelerProfileContent() {
   }
 
   return (
-    <div className="p-8 max-w-md mx-auto">
+    <div className="p-8 max-w-md mx-auto" data-space="traveler">
       <h1 className="text-2xl font-semibold">Create traveler profile</h1>
       <p className="mt-2 text-sm text-muted-foreground">This takes 30 seconds. Name and phone are optional.</p>
       <form onSubmit={onSubmit} className="mt-4 space-y-3">

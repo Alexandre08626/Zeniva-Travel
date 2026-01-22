@@ -108,6 +108,50 @@ main > section > div > div[class*="max-w-"] {
     width: 100% !important;
     max-width: 1280px !important;
   }
+
+  /* Traveler mode text fixes (Windows laptops only) */
+  body[data-space="traveler"] h1,
+  body[data-space="traveler"] h2,
+  body[data-space="traveler"] h3,
+  [data-mode="traveler"] h1,
+  [data-mode="traveler"] h2,
+  [data-mode="traveler"] h3 {
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    hyphens: auto;
+  }
+
+  body[data-space="traveler"] p,
+  body[data-space="traveler"] label,
+  body[data-space="traveler"] input,
+  body[data-space="traveler"] select,
+  body[data-space="traveler"] textarea,
+  body[data-space="traveler"] button,
+  [data-mode="traveler"] p,
+  [data-mode="traveler"] label,
+  [data-mode="traveler"] input,
+  [data-mode="traveler"] select,
+  [data-mode="traveler"] textarea,
+  [data-mode="traveler"] button {
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    hyphens: auto;
+  }
+
+  body[data-space="traveler"] .flex > *,
+  body[data-space="traveler"] .grid > *,
+  [data-mode="traveler"] .flex > *,
+  [data-mode="traveler"] .grid > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  body[data-space="traveler"] button,
+  [data-mode="traveler"] button {
+    white-space: normal;
+  }
 }
 
 @media (max-width: 768px) {

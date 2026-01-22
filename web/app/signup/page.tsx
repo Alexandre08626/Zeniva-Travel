@@ -182,7 +182,7 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <form onSubmit={handleSubmit} className="max-w-md w-full bg-white p-6 shadow rounded space-y-4">
+      <form onSubmit={handleSubmit} className="max-w-md w-full bg-white p-6 shadow rounded space-y-4" data-mode={mode}>
         <div>
           <h1 className="text-2xl font-semibold">Create an account</h1>
           <p className="text-sm text-gray-600">Choose your space: Traveler or Zeniva Agent.</p>

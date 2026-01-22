@@ -13,10 +13,21 @@ function TripsScopeBridge() {
   return null;
 }
 
+function ActiveSpaceBridge() {
+  const user = useAuthStore((s) => s.user);
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const space = user?.activeSpace || "public";
+    document.body.dataset.space = space;
+  }, [user?.activeSpace]);
+  return null;
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <I18nProvider>
       <TripsScopeBridge />
+      <ActiveSpaceBridge />
       {children}
     </I18nProvider>
   );
