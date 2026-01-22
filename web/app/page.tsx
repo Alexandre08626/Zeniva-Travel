@@ -178,7 +178,7 @@ export default function HomePage() {
                   </p>
 
                   {/* Prominent Search Card */}
-                  <div className="mt-6 mx-auto md:mx-0" style={{ width: 'min(820px, 100%)' }}>
+                  <div className="mt-6 mx-auto md:mx-0 w-full max-w-[820px] lg:max-w-[940px] xl:max-w-[820px]">
                     <div className="bg-white rounded-2xl shadow-lg p-4">
                       <TravelSearchWidget />
                       <div className="mt-3 flex flex-wrap gap-2">
