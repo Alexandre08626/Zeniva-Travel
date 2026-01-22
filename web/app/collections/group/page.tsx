@@ -19,12 +19,16 @@ const GROUP_IDEAS = [
 export default function GroupTripsPage() {
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
-      <div className="mx-auto w-full max-w-none px-6 pb-12 pt-6">
-        <Header />
+      <div className="w-screen left-1/2 right-1/2 -translate-x-1/2 relative">
+        <div className="mx-auto w-full px-6 pt-5">
+          <Header />
+        </div>
+      </div>
 
-        {/* HERO SECTION (Lina Search) */}
-        <section className="mt-4 mb-8 full-bleed-container">
-          <div className="relative rounded-3xl overflow-hidden mx-auto" style={{ width: "100%", maxWidth: "none" }}>
+      {/* HERO SECTION (Lina Search) */}
+      <section className="mt-4 mb-8 sm:mt-8 sm:mb-12">
+        <div className="relative w-screen left-1/2 right-1/2 -translate-x-1/2">
+          <div className="relative rounded-3xl overflow-hidden">
             <div
               className="absolute inset-0"
               style={{
@@ -33,8 +37,8 @@ export default function GroupTripsPage() {
               }}
             />
 
-            <div className="relative z-10 w-full mx-auto px-5 py-12">
-              <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="relative z-10 w-full mx-auto px-6 py-8 sm:py-12">
+              <div className="flex flex-col md:flex-row items-center gap-6 sm:gap-8">
                 <div className="flex-1 text-center md:text-left">
                   <div className="mb-3 flex items-center justify-center md:justify-start gap-4">
                     <img
@@ -112,8 +116,10 @@ export default function GroupTripsPage() {
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
+      <div className="mx-auto w-full max-w-none px-6 pb-12">
         <section className="mt-4">
           <div className="grid gap-6 md:grid-cols-[1.2fr_0.8fr] md:items-center">
             <div className="space-y-4">

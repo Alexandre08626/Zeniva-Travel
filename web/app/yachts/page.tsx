@@ -118,17 +118,16 @@ export default function YachtsPage() {
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
-      {/* Header aligned with hero left edge (full-bleed alignment) */}
-      <div className="full-bleed-container">
-        <div className="w-full px-6">
+      <div className="w-screen left-1/2 right-1/2 -translate-x-1/2 relative">
+        <div className="mx-auto w-full px-6 pt-5">
           <Header isLoggedIn={isLoggedIn} userEmail={userEmail} />
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-none px-6 pb-16 pt-5">
-        {/* HERO SECTION (Lina Search) */}
-        <section className="mt-4 mb-10 full-bleed-container">
-          <div className="relative rounded-3xl overflow-hidden mx-auto" style={{ width: "100%", maxWidth: "none" }}>
+      {/* HERO SECTION (Lina Search) */}
+      <section className="mt-4 mb-8 sm:mt-8 sm:mb-12">
+        <div className="relative w-screen left-1/2 right-1/2 -translate-x-1/2">
+          <div className="relative rounded-3xl overflow-hidden">
             <div
               className="absolute inset-0"
               style={{
@@ -137,8 +136,8 @@ export default function YachtsPage() {
               }}
             />
 
-            <div className="relative z-10 w-full mx-auto px-5 py-12">
-              <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="relative z-10 w-full mx-auto px-6 py-8 sm:py-12">
+              <div className="flex flex-col md:flex-row items-center gap-6 sm:gap-8">
                 <div className="flex-1 text-center md:text-left">
                   <div className="mb-3 flex items-center justify-center md:justify-start gap-4">
                     <img
@@ -216,7 +215,10 @@ export default function YachtsPage() {
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
+
+      <div className="mx-auto w-full max-w-none px-6 pb-16">
 
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">

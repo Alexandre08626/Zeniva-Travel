@@ -72,6 +72,7 @@ export default function PartnerDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
+  const [chartsReady, setChartsReady] = useState(false);
 
   const headerActions = (
     <>
@@ -116,6 +117,10 @@ export default function PartnerDashboardPage() {
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 600);
     return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    setChartsReady(true);
   }, []);
 
   return (
@@ -175,40 +180,42 @@ export default function PartnerDashboardPage() {
               
               <div className="p-6">
                 <div className="h-64 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={revenueChart}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                      <XAxis 
-                        dataKey="day" 
-                        stroke="#9CA3AF" 
-                        fontSize={12}
-                        tickLine={false}
-                      />
-                      <YAxis 
-                        stroke="#9CA3AF" 
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                      />
-                      <Tooltip 
-                        contentStyle={{
-                          backgroundColor: '#fff',
-                          border: '1px solid #E5E7EB',
-                          borderRadius: '8px',
-                          fontSize: '14px'
-                        }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="revenue"
-                        stroke="#10B981"
-                        strokeWidth={3}
-                        dot={false}
-                        strokeLinecap="round"
-                        name="Revenue ($)"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  {chartsReady && (
+                    <ResponsiveContainer width="100%" height="100%" minWidth={240} minHeight={256}>
+                      <LineChart data={revenueChart}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                        <XAxis 
+                          dataKey="day" 
+                          stroke="#9CA3AF" 
+                          fontSize={12}
+                          tickLine={false}
+                        />
+                        <YAxis 
+                          stroke="#9CA3AF" 
+                          fontSize={12}
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <Tooltip 
+                          contentStyle={{
+                            backgroundColor: '#fff',
+                            border: '1px solid #E5E7EB',
+                            borderRadius: '8px',
+                            fontSize: '14px'
+                          }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="revenue"
+                          stroke="#10B981"
+                          strokeWidth={3}
+                          dot={false}
+                          strokeLinecap="round"
+                          name="Revenue ($)"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
                 </div>
                 
                 <div className="mt-6 flex items-center gap-2 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">

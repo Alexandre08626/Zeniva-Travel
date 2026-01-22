@@ -12,6 +12,11 @@ export default function KpiCard({ label, value, hint, trend, series, onClick }: 
   onClick?: () => void;
 }) {
   const data = (series || []).map((v, i) => ({ x: i, y: v }));
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <button
@@ -32,9 +37,9 @@ export default function KpiCard({ label, value, hint, trend, series, onClick }: 
       
       {hint && <div className="text-xs text-gray-500 mb-4">{hint}</div>}
       
-      {data.length > 0 && (
+      {mounted && data.length > 0 && (
         <div className="h-12 w-full -mb-2">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={120} minHeight={48}>
             <LineChart data={data}>
               <Line
                 type="monotone"

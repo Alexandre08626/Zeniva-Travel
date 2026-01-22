@@ -130,6 +130,18 @@ main > section > div > div[class*="max-w-"] {
   margin-right: auto !important;
 }
 
+/* Force full-bleed sections back to 85% width */
+section[style*="100vw"],
+div[style*="100vw"] {
+  width: 85% !important;
+  max-width: 1400px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  position: static !important;
+  left: auto !important;
+  right: auto !important;
+}
+
 @media (min-width: 1024px) and (max-width: 1600px) {
   /* Windows laptop viewport and container fixes */
   :root {
@@ -151,8 +163,8 @@ main > section > div > div[class*="max-w-"] {
   main > section > div[class*="max-w-"],
   main > div > div[class*="max-w-"],
   main > section > div > div[class*="max-w-"] {
-    width: 100% !important;
-    max-width: 1280px !important;
+    width: 85% !important;
+    max-width: 1400px !important;
   }
 
   /* Fix full-bleed sections that use 100vw (causes horizontal scroll on Windows) */
@@ -190,27 +202,7 @@ main > section > div > div[class*="max-w-"] {
     max-width: 100%;
   }
 
-  /* Card grid fixes for Windows laptop resolutions */
-  .grid.grid-cols-1.sm\\:grid-cols-3,
-  .grid.grid-cols-1.md\\:grid-cols-2,
-  .grid.grid-cols-1.md\\:grid-cols-3 {
-    gap: 1rem;
-  }
 
-  .grid.grid-cols-1.sm\\:grid-cols-3 > * {
-    min-height: 180px;
-  }
-
-  /* Featured trips cards */
-  .grid.grid-cols-1.md\\:grid-cols-2 > .rounded-2xl {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .grid.grid-cols-1.md\\:grid-cols-2 > .rounded-2xl img {
-    height: 200px;
-    object-fit: cover;
-  }
 
   /* Collection cards horizontal scroll fix */
   .flex.gap-4.overflow-x-auto {
@@ -266,15 +258,6 @@ main > section > div > div[class*="max-w-"] {
 /* Specific fixes for common Windows laptop resolutions with scaling */
 /* 1366x768 at 100% - Very common Windows laptop resolution */
 @media (min-width: 1300px) and (max-width: 1400px) {
-  .grid.grid-cols-1.sm\\:grid-cols-3 {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-  }
-
-  .grid.grid-cols-1.sm\\:grid-cols-3 > * {
-    min-height: 160px;
-  }
-
   section h2 {
     font-size: 1.875rem;
   }
@@ -286,26 +269,14 @@ main > section > div > div[class*="max-w-"] {
     padding-left: 40px;
     padding-right: 40px;
   }
-
-  .grid.grid-cols-1.md\\:grid-cols-2 {
-    gap: 1.25rem;
-  }
 }
+
 
 /* 1280x720/800 - Windows 150% scaling from 1920x1080 */
 @media (min-width: 1200px) and (max-width: 1300px) {
   main {
     padding-left: 24px;
     padding-right: 24px;
-  }
-
-  .grid.grid-cols-1.sm\\:grid-cols-3 {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-  }
-
-  .grid.grid-cols-1.sm\\:grid-cols-3 > * {
-    min-height: 150px;
   }
 
   section h2 {
@@ -322,15 +293,6 @@ main > section > div > div[class*="max-w-"] {
   main {
     padding-left: 16px;
     padding-right: 16px;
-  }
-
-  .grid.grid-cols-1.sm\\:grid-cols-3 {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-  }
-
-  .grid.grid-cols-1.md\\:grid-cols-2 {
-    gap: 1rem;
   }
 
   section h2 {
