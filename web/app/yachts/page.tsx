@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { GRADIENT_END, GRADIENT_START, LIGHT_BG } from "../../src/design/tokens";
 import Header from "../../src/components/Header";
 import TravelSearchWidget from "../../src/components/TravelSearchWidget";
@@ -25,10 +25,37 @@ interface YcnItem {
   calendar?: string;
 }
 
+function normalizeCountry(value: string) {
+  const raw = (value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const cleaned = raw.toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+  if (!cleaned) return "unknown";
+  if (cleaned.includes("polynesie francaise") || cleaned.includes("french polynesia")) return "french polynesia";
+  if (cleaned.includes("emirats arabes unis") || cleaned.includes("united arab emirates") || cleaned === "uae") return "united arab emirates";
+  if (cleaned.includes("etats unis") || cleaned.includes("united states") || cleaned === "usa") return "united states";
+  if (cleaned.includes("republique dominicaine") || cleaned.includes("dominican republic")) return "dominican republic";
+  if (cleaned.includes("mexique") || cleaned.includes("mexico")) return "mexico";
+  if (cleaned.includes("canada")) return "canada";
+  if (cleaned.includes("france")) return "france";
+  if (cleaned.includes("grece") || cleaned.includes("greece")) return "greece";
+  if (cleaned.includes("italie") || cleaned.includes("italy")) return "italy";
+  if (cleaned.includes("espagne") || cleaned.includes("spain")) return "spain";
+  return cleaned;
+}
+
+function formatCountry(value: string) {
+  if (!value || value === "unknown") return "Unknown";
+  return value
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 export default function YachtsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [visible, setVisible] = useState(12);
   const [items, setItems] = useState<YcnItem[]>([]);
+  const [countryFilter, setCountryFilter] = useState("all");
 
   const isLoggedIn = false;
   const userEmail = "user@email.com";
@@ -61,9 +88,17 @@ export default function YachtsPage() {
     };
   }, []);
 
+  const getCountry = (location: string) => {
+    if (!location) return "unknown";
+    const parts = location.split(",").map((s) => s.trim()).filter(Boolean);
+    const last = parts[parts.length - 1] || "unknown";
+    return normalizeCountry(last);
+  };
+
   const mapped = items.map((p, idx) => {
     const destination = p.destination || 'Worldwide';
     const fallback = getImagesForDestination(destination)[0];
+    const countryKey = getCountry(destination);
     return {
       slug: p.title ? slugify(p.title) : `ycn-${idx}`,
       title: p.title || 'Yacht Charter',
@@ -72,8 +107,24 @@ export default function YachtsPage() {
       image: (p.images && p.images[0]) || p.thumbnail || fallback || '/branding/icon-proposals.svg',
       calendar: p.calendar,
       images: p.images || (p.thumbnail ? [p.thumbnail] : []),
+      countryKey,
+      countryLabel: formatCountry(countryKey),
     };
   });
+
+  const countries = Array.from(new Set(mapped.map((p) => p.countryLabel))).sort();
+  const normalizedFilter = countryFilter === "all" ? "all" : normalizeCountry(countryFilter);
+  const filtered = normalizedFilter === "all"
+    ? mapped
+    : mapped.filter((p) => p.countryKey === normalizedFilter);
+
+  useEffect(() => {
+    const param = searchParams.get("country");
+    if (param) {
+      setCountryFilter(param);
+      setVisible(12);
+    }
+  }, [searchParams]);
 
   const handleAddToProposal = async (yacht: { slug: string; title: string; destination: string; price: string; image: string; images: string[] }) => {
     const tripId = createTrip({
@@ -221,7 +272,7 @@ export default function YachtsPage() {
       <div className="mx-auto w-full max-w-none px-6 pb-16">
 
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6">
             <div>
               <p className="text-sm uppercase tracking-wide text-slate-500">Yacht Charters</p>
               <h1 className="text-3xl font-black mt-1">Exclusive YCN Fleet</h1>
@@ -232,14 +283,28 @@ export default function YachtsPage() {
             </Link>
           </div>
 
-        {mapped.length === 0 ? (
+          <div className="flex flex-wrap items-center gap-3 mb-6">
+            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Filter by country</label>
+            <select
+              value={countryFilter}
+              onChange={(e) => setCountryFilter(e.target.value)}
+              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+            >
+              <option value="all">All countries</option>
+              {countries.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+
+        {filtered.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-600 shadow">
             No yachts available right now. Please check back soon.
           </div>
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {mapped.slice(0, visible).map((p) => (
+              {filtered.slice(0, visible).map((p) => (
                 <div key={p.slug} className="bg-white rounded-2xl shadow p-4 flex flex-col">
                   <div className="h-44 w-full overflow-hidden rounded-lg mb-4">
                     <Image
@@ -276,7 +341,7 @@ export default function YachtsPage() {
               ))}
             </div>
 
-            {visible < mapped.length && (
+            {visible < filtered.length && (
               <div className="flex justify-center mt-8">
                 <button onClick={() => setVisible((v) => v + 12)} className="px-6 py-3 rounded-full bg-white border shadow">
                   Load more

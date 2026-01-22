@@ -62,20 +62,25 @@ export default function ProposalReviewPage() {
     return fallback.length ? fallback : [item?.image].filter(Boolean);
   };
 
-  const flight = selection?.flight || { airline: "Airline", route: "YUL → CUN", times: "19:20 – 08:45", fare: "Business", bags: "2 checked", price: "$1,850", flightNumber: "AC 456", duration: "4h 30m", date: "Dec 15, 2025", layovers: 0 };
-  const hotel = selection?.hotel || { name: "Hotel Playa", room: "Junior Suite", location: "Beachfront", price: "$420/night", rating: 4.6 };
+  const flight = selection?.flight || { airline: "Airline", route: "YUL → CUN", times: "19:20 – 08:45", fare: "Business", bags: "2 checked", flightNumber: "AC 456", duration: "4h 30m", date: "Dec 15, 2025", layovers: 0 };
+  const hotel = selection?.hotel || { name: "Hotel Playa", room: "Junior Suite", location: "Beachfront", rating: 4.6 };
   const activity = selection?.activity;
   const transfer = selection?.transfer;
   const activityList = [activity, ...extraActivities].filter(Boolean);
   const transferList = [transfer, ...extraTransfers].filter(Boolean);
 
-  const pricing = computePrice({ flight, hotel, activity, transfer }, tripDraft);
+  const pricing = computePrice({ flight: selection?.flight, hotel: selection?.hotel, activity, transfer }, {
+    ...tripDraft,
+    extraHotels,
+    extraActivities,
+    extraTransfers,
+  });
   const breakdown = [
-    { label: "Flights", value: formatCurrency(pricing.flightTotal) },
-    { label: 'Accommodation', value: formatCurrency(pricing.hotelTotal) },
-    ...(activityList.length ? [{ label: "Activities", value: formatCurrency(pricing.activityTotal) }] : []),
-    ...(transferList.length ? [{ label: "Transfers", value: formatCurrency(pricing.transferTotal) }] : []),
-    { label: "Fees & services", value: formatCurrency(pricing.fees) },
+    { label: "Flights", value: pricing.hasFlightPrice ? formatCurrency(pricing.flightTotal) : "On request" },
+    { label: "Accommodation", value: pricing.hasHotelPrice ? formatCurrency(pricing.hotelTotal) : "On request" },
+    ...(activityList.length ? [{ label: "Activities", value: pricing.hasActivityPrice ? formatCurrency(pricing.activityTotal) : "Included" }] : []),
+    ...(transferList.length ? [{ label: "Transfers", value: pricing.hasTransferPrice ? formatCurrency(pricing.transferTotal) : "Included" }] : []),
+    { label: "Fees & services", value: pricing.hasAnyPrice ? formatCurrency(pricing.fees) : "Included" },
   ];
 
   const onPay = () => router.push(`/checkout/${tripId}`);
@@ -278,7 +283,9 @@ export default function ProposalReviewPage() {
               </div>
               <div className="border-t border-slate-200 pt-2 flex items-center justify-between">
                 <span className="text-sm font-bold" style={{ color: TITLE_TEXT }}>Total</span>
-                <span className="text-xl font-extrabold" style={{ color: PREMIUM_BLUE }}>{formatCurrency(pricing.total)}</span>
+                <span className="text-xl font-extrabold" style={{ color: PREMIUM_BLUE }}>
+                  {pricing.hasAnyPrice ? formatCurrency(pricing.total) : "On request"}
+                </span>
               </div>
               <div className="text-xs" style={{ color: MUTED_TEXT }}>
                 Based on {pricing.travelers} traveler(s) and {pricing.nights} nights. Final pricing is confirmed at payment with live availability.

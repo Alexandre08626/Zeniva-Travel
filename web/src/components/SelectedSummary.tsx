@@ -17,14 +17,18 @@ export default function SelectedSummary({ flight, hotel, activity, transfer, tri
           <div className="text-sm text-slate-500">Flight</div>
           <div className="font-bold">{flight?.route || "YUL → CUN"}</div>
           <div className="text-xs text-slate-500">{flight?.fare || "Premium"} • {flight?.bags || "1 checked"}</div>
-          <div className="text-xs text-slate-500">{pricing.travelers} traveler(s) • {formatCurrency(pricing.flightTotal)}</div>
+          <div className="text-xs text-slate-500">
+            {pricing.travelers} traveler(s) • {pricing.hasFlightPrice ? formatCurrency(pricing.flightTotal) : "On request"}
+          </div>
         </div>
 
         <div>
           <div className="text-sm text-slate-500">{accommodationLabel}</div>
           <div className="font-bold">{hotel?.name || "Hotel Playa"}</div>
-          <div className="text-xs text-slate-500">{pricing.nights} nights • {hotel?.price || "$420/night"}</div>
-          <div className="text-xs text-slate-500">{formatCurrency(pricing.hotelTotal)}</div>
+          <div className="text-xs text-slate-500">{pricing.nights} nights • {hotel?.price || "Price on request"}</div>
+          <div className="text-xs text-slate-500">
+            {pricing.hasHotelPrice ? formatCurrency(pricing.hotelTotal) : "On request"}
+          </div>
         </div>
 
         {activity && (
@@ -32,7 +36,9 @@ export default function SelectedSummary({ flight, hotel, activity, transfer, tri
             <div className="text-sm text-slate-500">Activity</div>
             <div className="font-bold">{activity.name}</div>
             <div className="text-xs text-slate-500">{activity.date} at {activity.time}</div>
-            <div className="text-xs text-slate-500">{formatCurrency(pricing.activityTotal || 0)}</div>
+            <div className="text-xs text-slate-500">
+              {pricing.hasActivityPrice ? formatCurrency(pricing.activityTotal || 0) : "Included"}
+            </div>
           </div>
         )}
 
@@ -41,19 +47,23 @@ export default function SelectedSummary({ flight, hotel, activity, transfer, tri
             <div className="text-sm text-slate-500">Transfer</div>
             <div className="font-bold">{transfer.name}</div>
             <div className="text-xs text-slate-500">{transfer.route} • {transfer.date}</div>
-            <div className="text-xs text-slate-500">{formatCurrency(pricing.transferTotal || 0)}</div>
+            <div className="text-xs text-slate-500">
+              {pricing.hasTransferPrice ? formatCurrency(pricing.transferTotal || 0) : "Included"}
+            </div>
           </div>
         )}
       </div>
 
       <div className="mt-4 flex items-center justify-between text-sm">
         <div className="text-slate-500">Fees & services</div>
-        <div className="font-semibold">{formatCurrency(pricing.fees)}</div>
+        <div className="font-semibold">{pricing.hasAnyPrice ? formatCurrency(pricing.fees) : "Included"}</div>
       </div>
 
       <div className="mt-2 flex items-center justify-between">
         <div className="text-sm font-semibold">Total (est.)</div>
-        <div className="text-lg font-extrabold">{formatCurrency(pricing.total)}</div>
+        <div className="text-lg font-extrabold">
+          {pricing.hasAnyPrice ? formatCurrency(pricing.total) : "On request"}
+        </div>
       </div>
 
       <div className="mt-4 flex items-center justify-end">

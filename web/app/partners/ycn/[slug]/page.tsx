@@ -115,6 +115,8 @@ export default async function YcnPartnerPage({
   const total = selectedPrice + fees + taxes;
 
   const storageKey = `yachtDates:${slug}`;
+  const selectedPriceLabel = selectedPrice ? `$${selectedPrice}` : baseRateLabel || undefined;
+  const charterLabel = `${selectedHours} hours charter`;
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -281,11 +283,14 @@ export default async function YcnPartnerPage({
                   destination={item.destination || ""}
                   accommodationType="Yacht"
                   style="Yacht charter"
-                  price={baseRateLabel || undefined}
+                  price={selectedPriceLabel}
                   image={hero}
                   images={gallery}
                   description={item.specs || undefined}
-                  roomLabel="Yacht charter"
+                  specs={item.specs || undefined}
+                  amenities={item.amenities || []}
+                  roomLabel={charterLabel}
+                  datesStorageKey={storageKey}
                   className="w-full rounded-xl bg-black px-4 py-3 text-sm font-semibold text-white shadow hover:bg-slate-900"
                 />
                 <Link href={bookNowHref} className="inline-flex w-full items-center justify-center rounded-xl bg-blue-700 text-white py-3.5 text-sm font-semibold shadow-lg shadow-blue-200/60 hover:bg-blue-800 transition">

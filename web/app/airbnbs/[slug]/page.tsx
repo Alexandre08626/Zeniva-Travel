@@ -189,6 +189,7 @@ export default async function AirbnbDetailPage({ params }: { params: Promise<{ s
                   images={gallery}
                   description={descriptionText}
                   roomLabel={propertyType ? `${propertyType} stay` : "Residence"}
+                  datesStorageKey={storageKey}
                   className="w-full rounded-full bg-black px-4 py-2 text-sm font-semibold text-white shadow hover:bg-slate-900"
                 />
               }

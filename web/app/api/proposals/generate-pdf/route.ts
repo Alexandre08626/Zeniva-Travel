@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import puppeteer from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
+import { computePrice, formatCurrency } from '../../../../src/lib/pricing';
 
 interface ShortlistItem {
     type: string;
@@ -54,11 +55,23 @@ function generateProposalHTML(proposal: ProposalData): string {
   const extraActivities = proposal.extraActivities || tripDraft.extraActivities || [];
   const extraTransfers = proposal.extraTransfers || tripDraft.extraTransfers || [];
 
-  const hotels = [selection.hotel, ...extraHotels].filter(Boolean);
-  const activities = [selection.activity, ...extraActivities].filter(Boolean);
-  const transfers = [selection.transfer, ...extraTransfers].filter(Boolean);
+  const selectionHotels = Array.isArray(selection.hotels) ? selection.hotels : [];
+  const selectionActivities = Array.isArray(selection.activities) ? selection.activities : [];
+  const selectionTransfers = Array.isArray(selection.transfers) ? selection.transfers : [];
+
+  const hotels = [selection.hotel, ...selectionHotels, ...extraHotels].filter(Boolean);
+  const activities = [selection.activity, ...selectionActivities, ...extraActivities].filter(Boolean);
+  const transfers = [selection.transfer, ...selectionTransfers, ...extraTransfers].filter(Boolean);
 
   const flight = selection.flight;
+  const pricingDraft = { ...tripDraft, extraHotels: hotels.filter((h: any) => h && h !== selection.hotel), extraActivities: activities.filter((a: any) => a && a !== selection.activity), extraTransfers: transfers.filter((t: any) => t && t !== selection.transfer) };
+  const pricing = computePrice({ flight, hotel: selection.hotel, activity: selection.activity, transfer: selection.transfer }, pricingDraft);
+  const hasFlightPrice = Boolean(flight?.price);
+  const hasHotelPrice = hotels.some((item: any) => item?.price !== undefined && item?.price !== null);
+  const hasActivityPrice = activities.some((item: any) => item?.price !== undefined && item?.price !== null);
+  const hasTransferPrice = transfers.some((item: any) => item?.price !== undefined && item?.price !== null);
+  const hasAnyPrice = hasFlightPrice || hasHotelPrice || hasActivityPrice || hasTransferPrice;
+  const priceFallback = proposal.totalPrice || proposal.budget || "On request";
   const title = proposal.destination || tripDraft.destination || proposal.clientName || "Your trip";
   const dateLine = tripDraft?.checkIn && tripDraft?.checkOut
     ? `${tripDraft.checkIn} to ${tripDraft.checkOut}`
@@ -75,7 +88,12 @@ function generateProposalHTML(proposal: ProposalData): string {
   };
 
   const renderHotel = (item: any) => {
-    const type = item?.accommodationType || tripDraft?.accommodationType || (item?.room || "").toLowerCase().includes("yacht") ? "Yacht" : (item?.room || "").toLowerCase().includes("residence") ? "Airbnb" : "Hotel";
+    const inferredType = (item?.room || "").toLowerCase().includes("yacht")
+      ? "Yacht"
+      : (item?.room || "").toLowerCase().includes("residence")
+        ? "Airbnb"
+        : "Hotel";
+    const type = item?.accommodationType || tripDraft?.accommodationType || inferredType;
     const label = type === "Yacht" ? "Yacht" : type === "Airbnb" ? "Private residence" : "Hotel";
     const images = item?.images || (item?.image ? [item.image] : []);
     return `
@@ -183,13 +201,13 @@ function generateProposalHTML(proposal: ProposalData): string {
 
         <section class="card">
           <div class="card-label">Price breakdown</div>
-          <div class="price-row"><span>Flights</span><span>${proposal.totalPrice || proposal.budget || "On request"}</span></div>
-          <div class="price-row"><span>Accommodation</span><span>${proposal.budget || "On request"}</span></div>
-          ${activities.length ? `<div class="price-row"><span>Activities</span><span>Included</span></div>` : ""}
-          ${transfers.length ? `<div class="price-row"><span>Transfers</span><span>Included</span></div>` : ""}
+          <div class="price-row"><span>Flights</span><span>${hasFlightPrice ? formatCurrency(pricing.flightTotal) : "On request"}</span></div>
+          <div class="price-row"><span>Accommodation</span><span>${hasHotelPrice ? formatCurrency(pricing.hotelTotal) : "On request"}</span></div>
+          ${activities.length ? `<div class="price-row"><span>Activities</span><span>${hasActivityPrice ? formatCurrency(pricing.activityTotal) : "Included"}</span></div>` : ""}
+          ${transfers.length ? `<div class="price-row"><span>Transfers</span><span>${hasTransferPrice ? formatCurrency(pricing.transferTotal) : "Included"}</span></div>` : ""}
           <div class="price-row"><span>Fees & services</span><span>Included</span></div>
-          <div class="price-total"><span>Total</span><span>${proposal.totalPrice || proposal.budget || "On request"}</span></div>
-          <div class="card-sub">Based on ${proposal.pax || 2} traveler(s). Final pricing is confirmed at payment with live availability.</div>
+          <div class="price-total"><span>Total</span><span>${hasAnyPrice ? formatCurrency(pricing.total) : priceFallback}</span></div>
+          <div class="card-sub">Based on ${pricing.travelers} traveler(s). Final pricing is confirmed at payment with live availability.</div>
         </section>
       </div>
 
@@ -198,7 +216,7 @@ function generateProposalHTML(proposal: ProposalData): string {
           <div style="font-weight:800;font-size:18px;color:#0f172a;">Summary</div>
           <div class="price-row"><span>Destination</span><span>${proposal.destination || "TBD"}</span></div>
           <div class="price-row"><span>Dates</span><span>${dateLine}</span></div>
-          <div class="price-row"><span>Travelers</span><span>${proposal.pax || 2}</span></div>
+          <div class="price-row"><span>Travelers</span><span>${pricing.travelers}</span></div>
           <div class="price-row"><span>Budget</span><span>${proposal.budget || "On request"}</span></div>
         </div>
       </div>

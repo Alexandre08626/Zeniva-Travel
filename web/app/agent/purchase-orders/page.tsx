@@ -29,7 +29,7 @@ type PO = {
   department: Department;
   status: Status;
   sellingTotal: number;
-  currency: "USD" | "CAD";
+  currency: "USD";
   submittedAt?: string;
   updatedAt: string;
 };
@@ -44,7 +44,7 @@ const SAMPLE: PO[] = [
     department: "Travel",
     status: "SUBMITTED_TO_HQ",
     sellingTotal: 7800,
-    currency: "CAD",
+    currency: "USD",
     submittedAt: "2026-01-09T14:20:00Z",
     updatedAt: "2026-01-09T14:20:00Z",
   },
@@ -70,7 +70,7 @@ const SAMPLE: PO[] = [
     department: "Travel",
     status: "INVOICED",
     sellingTotal: 11250,
-    currency: "CAD",
+    currency: "USD",
     submittedAt: "2026-01-07T10:30:00Z",
     updatedAt: "2026-01-08T08:00:00Z",
   },
@@ -115,7 +115,7 @@ export default function PurchaseOrdersPage() {
   const [supplierTotal, setSupplierTotal] = useState("");
   const [markup, setMarkup] = useState("");
   const [sellingTotal, setSellingTotal] = useState("");
-  const [currency, setCurrency] = useState<"USD" | "CAD">("CAD");
+  const currency = "USD" as const;
   const [travelDates, setTravelDates] = useState("");
   const [pax, setPax] = useState("");
   const [notes, setNotes] = useState("");
@@ -327,13 +327,10 @@ export default function PurchaseOrdersPage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            <label className="space-y-1 text-sm font-semibold" style={{ color: TITLE_TEXT }}>
+            <div className="space-y-1 text-sm font-semibold" style={{ color: TITLE_TEXT }}>
               Currency
-              <select value={currency} onChange={(e) => setCurrency(e.target.value as "USD" | "CAD")} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
-                <option value="CAD">CAD</option>
-                <option value="USD">USD</option>
-              </select>
-            </label>
+              <div className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">USD</div>
+            </div>
             <label className="space-y-1 text-sm font-semibold" style={{ color: TITLE_TEXT }}>
               Priority
               <select value={priority} onChange={(e) => setPriority(e.target.value)} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">

@@ -41,6 +41,23 @@ import LinaAvatar from "./LinaAvatar";
       color: #0B57FF;
     }
   }
+
+  @media (min-width: 1024px) and (max-width: 1535px) {
+    .search-tabs {
+      gap: 6px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      justify-content: flex-start;
+      -webkit-overflow-scrolling: touch;
+    }
+    .search-tab-item {
+      white-space: nowrap;
+      font-size: 10px;
+      padding: 4px 6px;
+      word-break: keep-all;
+      hyphens: none;
+    }
+  }
 `}</style>
 
 type Tab = "flights" | "hotels" | "cruises" | "experiences" | "transfers" | "cars" | "yachts" | "airbnbs";
@@ -91,6 +108,10 @@ export default function TravelSearchWidget() {
   const [carDropoffDate, setCarDropoffDate] = useState("");
   const [carDrivers, setCarDrivers] = useState(1);
 
+  // Yachts & Airbnbs
+  const [yachtCountry, setYachtCountry] = useState("");
+  const [airbnbCountry, setAirbnbCountry] = useState("");
+
   const searchFlights = (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!from || !to || !depart) return;
@@ -128,6 +149,20 @@ export default function TravelSearchWidget() {
     router.push(`/search/cars?${params.toString()}`);
   };
 
+  const searchYachts = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const params = new URLSearchParams();
+    if (yachtCountry) params.set("country", yachtCountry);
+    router.push(`/yachts${params.toString() ? `?${params.toString()}` : ""}`);
+  };
+
+  const searchAirbnbs = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const params = new URLSearchParams();
+    if (airbnbCountry) params.set("country", airbnbCountry);
+    router.push(`/airbnbs${params.toString() ? `?${params.toString()}` : ""}`);
+  };
+
   const askLina = (prompt?: string) => {
     const derived = prompt || (from && to
       ? `Find flights ${from} to ${to} for ${passengers} pax${depart ? ` around ${depart}` : ""}${cabin ? ` in ${cabin}` : ""}${oneWay ? ", one-way" : ret ? `, return ${ret}` : ""}`
@@ -137,6 +172,18 @@ export default function TravelSearchWidget() {
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const returnMin = depart || today;
+  const countryOptions = [
+    "Canada",
+    "United States",
+    "Mexico",
+    "Dominican Republic",
+    "France",
+    "French Polynesia",
+    "Greece",
+    "Italy",
+    "Spain",
+    "UAE",
+  ];
 
   return (
 
@@ -171,7 +218,7 @@ export default function TravelSearchWidget() {
         </div>
 
         {/* Tabs (desktop) */}
-        <div className="mb-4 flex items-center justify-center gap-3">
+        <div className="search-tabs mb-4 flex items-center justify-center gap-3">
           {[
             { key: 'flights', label: 'Flights' },
             { key: 'hotels', label: 'Hotels' },
@@ -185,7 +232,7 @@ export default function TravelSearchWidget() {
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`tab-button ${tab === t.key ? 'active' : ''} rounded-full px-4 py-2 font-semibold text-sm whitespace-nowrap`}>
+              className={`search-tab-item tab-button ${tab === t.key ? 'active' : ''} rounded-full px-4 py-2 font-semibold text-sm whitespace-nowrap`}>
               {t.label}
             </button>
           ))}
@@ -335,45 +382,43 @@ export default function TravelSearchWidget() {
         )}
 
         {tab === "yachts" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-slate-50 px-4 py-4">
-              <div className="text-sm font-semibold text-slate-800">Explore yacht charters</div>
-              <p className="mt-1 text-sm text-slate-600">Browse curated YCN fleet and partner yachts.</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Link href="/yachts" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>
-                  View yachts
-                </Link>
-                <button type="button" onClick={() => askLina("Plan a yacht charter itinerary") } className="rounded-2xl border px-4 py-2 text-sm font-semibold text-slate-700">
-                  Ask Lina
-                </button>
-              </div>
+          <form onSubmit={searchYachts} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <select
+              value={yachtCountry}
+              onChange={(e) => setYachtCountry(e.target.value)}
+              className="w-full rounded-2xl bg-slate-50 px-4 py-3"
+            >
+              <option value="">Country</option>
+              {countryOptions.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            <div className="md:col-span-2 flex justify-end">
+              <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>
+                Search yachts
+              </button>
             </div>
-            <div className="rounded-2xl bg-slate-50 px-4 py-4">
-              <div className="text-sm font-semibold text-slate-800">Ideal for</div>
-              <p className="mt-1 text-sm text-slate-600">Mediterranean, Caribbean, island hopping.</p>
-            </div>
-          </div>
+          </form>
         )}
 
         {tab === "airbnbs" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-slate-50 px-4 py-4">
-              <div className="text-sm font-semibold text-slate-800">Explore partner Airbnbs</div>
-              <p className="mt-1 text-sm text-slate-600">Curated villas and residences by Zeniva.</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Link href="/airbnbs" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>
-                  View Airbnbs
-                </Link>
-                <button type="button" onClick={() => askLina("Plan an Airbnb stay") } className="rounded-2xl border px-4 py-2 text-sm font-semibold text-slate-700">
-                  Ask Lina
-                </button>
-              </div>
+          <form onSubmit={searchAirbnbs} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <select
+              value={airbnbCountry}
+              onChange={(e) => setAirbnbCountry(e.target.value)}
+              className="w-full rounded-2xl bg-slate-50 px-4 py-3"
+            >
+              <option value="">Country</option>
+              {countryOptions.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            <div className="md:col-span-2 flex justify-end">
+              <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>
+                Search Airbnbs
+              </button>
             </div>
-            <div className="rounded-2xl bg-slate-50 px-4 py-4">
-              <div className="text-sm font-semibold text-slate-800">Ideal for</div>
-              <p className="mt-1 text-sm text-slate-600">Families, groups, remote retreats.</p>
-            </div>
-          </div>
+          </form>
         )}
       </div>
     </div>

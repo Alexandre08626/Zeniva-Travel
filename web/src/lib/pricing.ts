@@ -32,7 +32,18 @@ function parseNights(raw: unknown): number {
     if (!Number.isNaN(n) && n > 0) return n;
   }
 
-  const parts = raw.split(/→|–|-/);
+  const isoMatch = raw.match(/(\d{4}-\d{2}-\d{2})\s*(?:→|–|—|-)\s*(\d{4}-\d{2}-\d{2})/);
+  if (isoMatch) {
+    const start = parseDate(isoMatch[1]);
+    const end = parseDate(isoMatch[2]);
+    if (start && end) {
+      const diffMs = end.getTime() - start.getTime();
+      const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+      if (diffDays > 0) return diffDays;
+    }
+  }
+
+  const parts = raw.split(/\s+(?:→|–|—|-|to)\s+/i);
   if (parts.length >= 2) {
     const start = parseDate(parts[0]);
     const end = parseDate(parts[1]);
@@ -56,17 +67,20 @@ export function formatCurrency(amount: number): string {
   return `$${rounded.toLocaleString()}`;
 }
 
-export function computePrice(selection: any, tripDraft: any) {
+export function computePrice(selection: any, tripDraft: any, options?: { strict?: boolean }) {
+  const strict = options?.strict ?? true;
   const travelers = parseTravelers(tripDraft?.adults ?? tripDraft?.travelers ?? tripDraft?.guests);
   const nights = parseNights(
     tripDraft?.dates || (tripDraft?.checkIn && tripDraft?.checkOut ? `${tripDraft.checkIn} - ${tripDraft.checkOut}` : undefined)
   );
 
-  const flightBase = parseMoney(selection?.flight?.price) ?? 1850;
+  const flightBaseParsed = parseMoney(selection?.flight?.price);
+  const flightBase = flightBaseParsed ?? (strict ? 0 : 1850);
 
   const hotelItems = [selection?.hotel, ...(tripDraft?.extraHotels || [])].filter(Boolean);
   const hotelTotal = hotelItems.reduce((sum: number, item: any) => {
-    const amount = parseMoney(item?.price) ?? 0;
+    const amountParsed = parseMoney(item?.price);
+    const amount = amountParsed ?? 0;
     if (isNightly(item?.price)) {
       return sum + amount * nights;
     }
@@ -79,20 +93,31 @@ export function computePrice(selection: any, tripDraft: any) {
   const activityTotal = activityItems.reduce((sum: number, item: any) => sum + (parseMoney(item?.price) ?? 0), 0);
   const transferTotal = transferItems.reduce((sum: number, item: any) => sum + (parseMoney(item?.price) ?? 0), 0);
 
+  const hasFlightPrice = flightBaseParsed !== null;
+  const hasHotelPrice = hotelItems.some((item: any) => parseMoney(item?.price) !== null);
+  const hasActivityPrice = activityItems.some((item: any) => parseMoney(item?.price) !== null);
+  const hasTransferPrice = transferItems.some((item: any) => parseMoney(item?.price) !== null);
+  const hasAnyPrice = hasFlightPrice || hasHotelPrice || hasActivityPrice || hasTransferPrice;
+
   const flightTotal = flightBase * travelers;
-  const fees = 180;
+  const fees = hasAnyPrice || !strict ? 180 : 0;
   const total = flightTotal + hotelTotal + activityTotal + transferTotal + fees;
 
   return {
     travelers,
     nights,
     flightBase,
-    hotelNightly: parseMoney(selection?.hotel?.price) ?? 420,
+    hotelNightly: parseMoney(selection?.hotel?.price) ?? (strict ? 0 : 420),
     flightTotal,
     hotelTotal,
     activityTotal,
     transferTotal,
     fees,
     total,
+    hasFlightPrice,
+    hasHotelPrice,
+    hasActivityPrice,
+    hasTransferPrice,
+    hasAnyPrice,
   };
 }

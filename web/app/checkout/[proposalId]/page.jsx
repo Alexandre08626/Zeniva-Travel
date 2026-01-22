@@ -28,12 +28,17 @@ export default function CheckoutPage() {
   const extraActivities = tripDraft?.extraActivities || [];
   const extraTransfers = tripDraft?.extraTransfers || [];
 
-  const flight = selection?.flight || { airline: "Airline", route: "YUL → CUN", times: "19:20 – 08:45", fare: "Business", bags: "2 checked", price: "$1,850" };
-  const hotel = selection?.hotel || extraHotels[0] || { name: "Hotel Playa", room: "Junior Suite", location: "Beachfront", price: "$420/night", rating: 4.6 };
+  const flight = selection?.flight || { airline: "Airline", route: "YUL → CUN", times: "19:20 – 08:45", fare: "Business", bags: "2 checked" };
+  const hotel = selection?.hotel || extraHotels[0] || { name: "Hotel Playa", room: "Junior Suite", location: "Beachfront", rating: 4.6 };
   const activity = selection?.activity || null;
   const transfer = selection?.transfer || null;
 
-  const pricing = computePrice({ flight, hotel, activity, transfer }, tripDraft);
+  const pricing = computePrice({ flight: selection?.flight, hotel: selection?.hotel, activity, transfer }, {
+    ...tripDraft,
+    extraHotels,
+    extraActivities,
+    extraTransfers,
+  });
 
   if (!proposalId) return null;
 
@@ -148,27 +153,29 @@ export default function CheckoutPage() {
               <div className="border-t border-slate-200 pt-2 space-y-1 text-sm" style={{ color: TITLE_TEXT }}>
                 <div className="flex items-center justify-between">
                   <span>Flights</span>
-                  <span className="font-semibold">{formatCurrency(pricing.flightTotal)}</span>
+                  <span className="font-semibold">{pricing.hasFlightPrice ? formatCurrency(pricing.flightTotal) : "On request"}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Accommodation</span>
-                  <span className="font-semibold">{formatCurrency(pricing.hotelTotal)}</span>
+                  <span className="font-semibold">{pricing.hasHotelPrice ? formatCurrency(pricing.hotelTotal) : "On request"}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Activities</span>
-                  <span className="font-semibold">{formatCurrency(pricing.activityTotal)}</span>
+                  <span className="font-semibold">{pricing.hasActivityPrice ? formatCurrency(pricing.activityTotal) : "Included"}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Transfers</span>
-                  <span className="font-semibold">{formatCurrency(pricing.transferTotal)}</span>
+                  <span className="font-semibold">{pricing.hasTransferPrice ? formatCurrency(pricing.transferTotal) : "Included"}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs" style={{ color: MUTED_TEXT }}>
                   <span>Fees & services</span>
-                  <span>{formatCurrency(pricing.fees)}</span>
+                  <span>{pricing.hasAnyPrice ? formatCurrency(pricing.fees) : "Included"}</span>
                 </div>
                 <div className="border-t border-slate-200 pt-2 flex items-center justify-between">
                   <span className="font-bold">Total (est.)</span>
-                  <span className="text-lg font-extrabold" style={{ color: BRAND_BLUE }}>{formatCurrency(pricing.total)}</span>
+                  <span className="text-lg font-extrabold" style={{ color: BRAND_BLUE }}>
+                    {pricing.hasAnyPrice ? formatCurrency(pricing.total) : "On request"}
+                  </span>
                 </div>
               </div>
             </div>

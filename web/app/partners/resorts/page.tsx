@@ -27,6 +27,7 @@ const statusColor: Record<ResortStatus, string> = {
 export default function PartnerResortsPage() {
   const router = useRouter();
   const [selectedId, setSelectedId] = useState(resortPartners[0]?.id ?? "");
+  const [selectedRooms, setSelectedRooms] = useState<Record<string, string>>({});
   const [filters, setFilters] = useState<{
     status: ResortStatus | "all";
     type: string;
@@ -49,6 +50,8 @@ export default function PartnerResortsPage() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [reviewsOpen, setReviewsOpen] = useState(false);
+  const [reviewsResort, setReviewsResort] = useState<ResortPartner | null>(null);
   const isLoggedIn = false;
   const userEmail = "user@email.com";
 
@@ -82,8 +85,30 @@ export default function PartnerResortsPage() {
   const getRating = (idx: number) => (4.6 + (idx % 4) * 0.1).toFixed(1);
   const getReviews = (idx: number) => 180 + idx * 37;
   const getCover = (r: ResortPartner) => r.media?.[0]?.images?.[0] || "/branding/icon-proposals.svg";
+  const getRoomSelection = (r: ResortPartner) => selectedRooms[r.id] || r.roomTypes?.[0] || "Resort stay";
+  const getBaseNightlyRate = (r: ResortPartner) => (r.id === "tribe-resorts" ? 195 : 295);
+  const getRoomNightlyRate = (r: ResortPartner, room: string) => {
+    const rooms = r.roomTypes?.length ? r.roomTypes : ["Resort stay"];
+    const idx = Math.max(0, rooms.findIndex((item) => item === room));
+    const base = getBaseNightlyRate(r);
+    const increments = [0, 40, 80, 120];
+    const bump = increments[Math.min(idx, increments.length - 1)] ?? 0;
+    return base + bump;
+  };
+  const formatNightlyRate = (amount: number) => `$${amount}/night`;
+  const formatRate = (value?: string) => {
+    if (!value) return "";
+    return value
+      .replace(/\bcommissionable\b\s*/gi, "")
+      .replace(/\bbar\b/gi, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  };
 
   const handleAddToProposal = async (resort: ResortPartner) => {
+    const selectedRoom = getRoomSelection(resort);
+    const nightlyRate = getRoomNightlyRate(resort, selectedRoom);
+    const publicRate = `From $${nightlyRate}/night`;
     const tripId = createTrip({
       title: resort.name,
       destination: resort.destination,
@@ -97,7 +122,7 @@ export default function PartnerResortsPage() {
       travelers: `${filters.travelers} travelers`,
       style: resort.positioning,
       accommodationType: "Hotel",
-      budget: resort.pricing.publicRateFrom,
+      budget: publicRate,
       dates,
       departure: filters.departureCity,
     });
@@ -106,7 +131,7 @@ export default function PartnerResortsPage() {
       destination: resort.destination,
       accommodationType: "Hotel",
       style: resort.positioning,
-      budget: resort.pricing.publicRateFrom,
+      budget: publicRate,
       checkIn: filters.checkIn,
       checkOut: filters.checkOut,
       departureCity: filters.departureCity,
@@ -118,8 +143,8 @@ export default function PartnerResortsPage() {
       id: resort.id,
       name: resort.name,
       location: resort.destination,
-      price: resort.pricing.publicRateFrom,
-      room: resort.roomTypes?.[0] || "Resort stay",
+      price: publicRate,
+      room: selectedRoom,
       accommodationType: "Hotel",
       image: getCover(resort),
       images: resort.media?.flatMap((m) => m.images) || [],
@@ -138,7 +163,13 @@ export default function PartnerResortsPage() {
     setLightboxOpen(true);
   };
 
+  const openReviews = (resort: ResortPartner) => {
+    setReviewsResort(resort);
+    setReviewsOpen(true);
+  };
+
   const closeLightbox = () => setLightboxOpen(false);
+  const closeReviews = () => setReviewsOpen(false);
 
   const goPrev = () => {
     setLightboxIndex((i) => (lightboxImages.length ? (i - 1 + lightboxImages.length) % lightboxImages.length : 0));
@@ -147,6 +178,30 @@ export default function PartnerResortsPage() {
   const goNext = () => {
     setLightboxIndex((i) => (lightboxImages.length ? (i + 1) % lightboxImages.length : 0));
   };
+
+  const fakeReviews = (resort: ResortPartner) => [
+    {
+      name: "Camille R.",
+      rating: "5.0",
+      title: "Zeniva nailed the details",
+      text: `Every detail felt curated. ${resort.name} was flawless for a reset trip.`,
+      date: "Jan 2026",
+    },
+    {
+      name: "Lucas M.",
+      rating: "4.8",
+      title: "Perfect for retreats",
+      text: "Great service, calm spaces, and the room selection made booking easy.",
+      date: "Dec 2025",
+    },
+    {
+      name: "Nadia K.",
+      rating: "4.6",
+      title: "Would book again",
+      text: "Beautiful amenities and the team handled everything fast.",
+      date: "Nov 2025",
+    },
+  ];
 
   return (
     <>
@@ -251,9 +306,9 @@ export default function PartnerResortsPage() {
         </div>
       </section>
 
-      <div className="mx-auto w-full max-w-none px-6 pb-16 space-y-8">
+      <div className="w-screen left-1/2 right-1/2 -translate-x-1/2 relative px-6 pb-16 space-y-8">
 
-      <div className="mx-auto max-w-7xl px-1 py-4 space-y-6">
+      <div className="w-full max-w-none px-1 py-4 space-y-6">
         <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Zeniva Partner Resorts</p>
@@ -392,19 +447,41 @@ export default function PartnerResortsPage() {
                       <div className="grid grid-cols-2 gap-3 text-sm">
                         <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                           <div className="font-semibold">Pricing</div>
-                          <div className="mt-1 text-slate-700">{r.pricing.publicRateFrom}</div>
-                          {r.pricing.netRateFrom && <div className="text-xs text-slate-500">Net: {r.pricing.netRateFrom}</div>}
+                          <div className="mt-1 text-slate-700">
+                            {formatNightlyRate(getRoomNightlyRate(r, getRoomSelection(r)))}
+                          </div>
+                          {r.pricing.netRateFrom && (
+                            <div className="text-xs text-slate-500">Net: {formatRate(r.pricing.netRateFrom) || r.pricing.netRateFrom}</div>
+                          )}
                         </div>
                         <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                          <div className="font-semibold">Commission</div>
-                          <div className="mt-1 text-slate-700">{r.commercials.commission}</div>
-                          <div className="text-xs text-slate-500">{r.commercials.model}</div>
+                          <div className="font-semibold">Room</div>
+                          <select
+                            value={getRoomSelection(r)}
+                            onChange={(e) =>
+                              setSelectedRooms((prev) => ({
+                                ...prev,
+                                [r.id]: e.target.value,
+                              }))
+                            }
+                            className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                          >
+                            {(r.roomTypes?.length ? r.roomTypes : ["Resort stay"]).map((room) => (
+                              <option key={room} value={room}>
+                                {room}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                       </div>
                     </div>
 
                     <div className="space-y-4">
-                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <button
+                        type="button"
+                        onClick={() => openReviews(r)}
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left hover:bg-slate-100 transition"
+                      >
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="text-xs text-slate-500">Zeniva score</div>
@@ -413,7 +490,7 @@ export default function PartnerResortsPage() {
                           <div className="text-right text-sm text-slate-600">{getReviews(idx)} reviews</div>
                         </div>
                         <div className="mt-3 text-xs text-slate-600">Best for: {r.marketing.clientTypes.join(", ")}</div>
-                      </div>
+                      </button>
 
                       <div className="rounded-2xl border border-slate-200 bg-white p-4">
                         <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Amenities</div>
@@ -503,6 +580,39 @@ export default function PartnerResortsPage() {
         >
           Next
         </button>
+      </div>
+    )}
+
+    {reviewsOpen && reviewsResort && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" role="dialog" aria-modal="true">
+        <div className="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-xl">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Reviews</div>
+              <div className="text-2xl font-black" style={{ color: TITLE_TEXT }}>{reviewsResort.name}</div>
+            </div>
+            <button
+              type="button"
+              onClick={closeReviews}
+              className="rounded-full border border-slate-200 px-3 py-1 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="mt-4 grid gap-4">
+            {fakeReviews(reviewsResort).map((review) => (
+              <div key={`${review.name}-${review.title}`} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="font-semibold" style={{ color: TITLE_TEXT }}>{review.name}</div>
+                  <div className="text-sm text-slate-600">{review.rating} · {review.date}</div>
+                </div>
+                <div className="mt-2 text-sm font-semibold" style={{ color: TITLE_TEXT }}>{review.title}</div>
+                <div className="mt-1 text-sm text-slate-600">{review.text}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     )}
     </>

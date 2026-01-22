@@ -24,6 +24,13 @@ interface AirbnbItem {
   url?: string;
 }
 
+function extractField(description: string | undefined, label: string) {
+  if (!description) return null;
+  const re = new RegExp(`${label}\s*\n+\s*([^\n]+)`, "i");
+  const match = description.match(re);
+  return match?.[1]?.trim() || null;
+}
+
 export default function AirbnbsPage() {
   const router = useRouter();
   const [items, setItems] = useState<AirbnbItem[]>([]);
@@ -69,14 +76,25 @@ export default function AirbnbsPage() {
     };
   }, []);
 
-  const mapped = items.map((p, idx) => ({
+  const resolveLocation = (item: AirbnbItem) => {
+    const fallback = item.location || "";
+    if (!fallback || fallback.toLowerCase().includes("property description")) {
+      return extractField(item.description, "Property Location") || fallback;
+    }
+    return fallback;
+  };
+
+  const mapped = items.map((p, idx) => {
+    const resolvedLocation = resolveLocation(p);
+    return {
     slug: p.id || slugify(p.title || `airbnb-${idx}`),
     title: p.title || "Residence",
-    location: p.location || "",
+    location: resolvedLocation || "",
     description: p.description || "",
     image: p.thumbnail || (p.images && p.images[0]) || "/branding/icon-proposals.svg",
     images: p.images || (p.thumbnail ? [p.thumbnail] : []),
-  }));
+  };
+  });
 
   const handleAddToProposal = async (stay: { slug: string; title: string; location: string; description: string; image: string; images: string[] }) => {
     const tripId = createTrip({
@@ -222,7 +240,7 @@ export default function AirbnbsPage() {
       <div className="mx-auto w-full max-w-none px-6 pb-16">
 
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6">
             <div>
               <p className="text-sm uppercase tracking-wide text-slate-500">Airbnbs</p>
               <h1 className="text-3xl font-black mt-1">Residences curated by Zeniva</h1>

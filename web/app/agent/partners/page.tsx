@@ -7,6 +7,7 @@ import { TITLE_TEXT, MUTED_TEXT } from "../../../src/design/tokens";
 import { partnerOrganizations, propertyOwners, listingAssignments } from "../../../src/lib/partnerRelations";
 import { mockListings } from "../../../src/lib/mockData";
 import { resortPartners } from "../../../src/data/partners/resorts";
+import AirbnbAvailability from "../../../src/components/airbnbs/AirbnbAvailability.client";
 
 const allowedEmails = new Set(["info@zeniva.ca"]);
 
@@ -58,6 +59,13 @@ export default function PartnerAccountsPage() {
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
   const [remoteListings, setRemoteListings] = useState<PartnerListing[]>([]);
+  const [bookingDetails, setBookingDetails] = useState({
+    checkIn: "",
+    checkOut: "",
+    travelers: 2,
+    rooms: 1,
+    roomType: "Standard",
+  });
 
   const canView = !!user && allowedEmails.has(user.email?.toLowerCase() || "");
 
@@ -325,6 +333,57 @@ export default function PartnerAccountsPage() {
     return selectedPartner.listings.find((listing) => listing.id === selectedListingId) || null;
   }, [selectedPartner, selectedListingId]);
 
+  useEffect(() => {
+    if (!selectedPartner?.listings?.length) {
+      setSelectedListingId(null);
+      return;
+    }
+    setSelectedListingId((prev) => prev || selectedPartner.listings[0].id);
+  }, [selectedPartner]);
+
+  const bookingStorageKey = selectedListing ? `agent:partner:dates:${selectedListing.id}` : "";
+
+  useEffect(() => {
+    if (!selectedListingId) return;
+    setBookingDetails({
+      checkIn: "",
+      checkOut: "",
+      travelers: 2,
+      rooms: 1,
+      roomType: "Standard",
+    });
+  }, [selectedListingId]);
+
+  useEffect(() => {
+    if (!bookingStorageKey || typeof window === "undefined") return;
+    const stored = window.localStorage.getItem(bookingStorageKey);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored) as { start?: string; end?: string };
+        setBookingDetails((prev) => ({
+          ...prev,
+          checkIn: parsed.start || "",
+          checkOut: parsed.end || "",
+        }));
+      } catch {
+        // ignore
+      }
+    }
+
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ key: string; start: string | null; end: string | null }>).detail;
+      if (!detail || detail.key !== bookingStorageKey) return;
+      setBookingDetails((prev) => ({
+        ...prev,
+        checkIn: detail.start || "",
+        checkOut: detail.end || "",
+      }));
+    };
+
+    window.addEventListener("airbnb:dates", handler as EventListener);
+    return () => window.removeEventListener("airbnb:dates", handler as EventListener);
+  }, [bookingStorageKey]);
+
   const handleDownloadPresentation = (listing: PartnerListing) => {
     const title = listing.title || "Partner Listing";
     const heroImage = listing.images?.[0] || listing.thumbnail || "";
@@ -523,6 +582,129 @@ export default function PartnerAccountsPage() {
                   </div>
                 </div>
 
+                {selectedListing && (
+                  <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Listing</p>
+                        <h3 className="text-lg font-bold" style={{ color: TITLE_TEXT }}>{selectedListing.title}</h3>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadPresentation(selectedListing)}
+                        className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white"
+                      >
+                        Télécharger
+                      </button>
+                    </div>
+
+                    {selectedListing.images && selectedListing.images.length > 0 ? (
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {selectedListing.images.slice(0, 4).map((img, idx) => (
+                          <img key={`${img}-${idx}`} src={img} alt={selectedListing.title} className="h-40 w-full rounded-xl object-cover" />
+                        ))}
+                      </div>
+                    ) : selectedListing.thumbnail ? (
+                      <img src={selectedListing.thumbnail} alt={selectedListing.title} className="h-52 w-full rounded-xl object-cover" />
+                    ) : null}
+
+                    <div className="grid gap-3 md:grid-cols-2 text-sm">
+                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                        <p className="text-xs font-semibold text-slate-500">Location</p>
+                        <p className="font-semibold" style={{ color: TITLE_TEXT }}>{selectedListing.location || "—"}</p>
+                        <p className="text-xs text-slate-500">{TYPE_LABELS[selectedListing.type]} · {selectedListing.status || "published"}</p>
+                      </div>
+                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                        <p className="text-xs font-semibold text-slate-500">Price</p>
+                        <p className="font-semibold" style={{ color: TITLE_TEXT }}>
+                          {selectedListing.price ? `${selectedListing.currency ? `${selectedListing.currency} ` : ""}${selectedListing.price}` : "Price on request"}
+                        </p>
+                        {selectedListing.rating ? (
+                          <p className="text-xs text-slate-500">Rating {selectedListing.rating} · {selectedListing.reviews || 0} reviews</p>
+                        ) : (
+                          <p className="text-xs text-slate-500">Premium partner listing</p>
+                        )}
+                      </div>
+                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                        <p className="text-xs font-semibold text-slate-500">Capacity</p>
+                        <p className="font-semibold" style={{ color: TITLE_TEXT }}>
+                          {selectedListing.capacity ? `${selectedListing.capacity} guests` : "—"}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {selectedListing.bedrooms ? `${selectedListing.bedrooms} beds` : ""}{selectedListing.bathrooms ? ` · ${selectedListing.bathrooms} baths` : ""}
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                        <p className="text-xs font-semibold text-slate-500">Description</p>
+                        <p className="text-sm text-slate-700">{selectedListing.description || "No description available."}</p>
+                      </div>
+                    </div>
+
+                    {selectedListing.amenities && selectedListing.amenities.length > 0 && (
+                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                        <p className="text-xs font-semibold text-slate-500">Amenities</p>
+                        <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                          {selectedListing.amenities.map((amenity) => (
+                            <span key={amenity} className="rounded-full border border-slate-200 px-2 py-1">
+                              {amenity}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="rounded-xl border border-slate-100 bg-white p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Reservation details</p>
+                      <div className="mt-3 space-y-4">
+                        {bookingStorageKey && (
+                          <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                            <AirbnbAvailability storageKey={bookingStorageKey} />
+                          </div>
+                        )}
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <label className="text-xs font-semibold text-slate-600">
+                            Travelers
+                            <input
+                              type="number"
+                              min={1}
+                              value={bookingDetails.travelers}
+                              onChange={(e) => setBookingDetails((prev) => ({ ...prev, travelers: Number(e.target.value || 1) }))}
+                              className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                            />
+                          </label>
+                          {selectedListing.type === "hotel" && (
+                            <label className="text-xs font-semibold text-slate-600">
+                              Rooms
+                              <input
+                                type="number"
+                                min={1}
+                                value={bookingDetails.rooms}
+                                onChange={(e) => setBookingDetails((prev) => ({ ...prev, rooms: Number(e.target.value || 1) }))}
+                                className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                              />
+                            </label>
+                          )}
+                          {selectedListing.type === "hotel" && (
+                            <label className="text-xs font-semibold text-slate-600 sm:col-span-2">
+                              Room type
+                              <select
+                                value={bookingDetails.roomType}
+                                onChange={(e) => setBookingDetails((prev) => ({ ...prev, roomType: e.target.value }))}
+                                className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                              >
+                                <option value="Standard">Standard</option>
+                                <option value="Deluxe">Deluxe</option>
+                                <option value="Suite">Suite</option>
+                                <option value="Family">Family</option>
+                              </select>
+                            </label>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                )}
+
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-semibold text-slate-800">Listings</p>
@@ -563,90 +745,6 @@ export default function PartnerAccountsPage() {
           </div>
         </section>
 
-        {selectedListing && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-            <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl">
-              <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Listing</p>
-                  <h3 className="text-lg font-bold" style={{ color: TITLE_TEXT }}>{selectedListing.title}</h3>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleDownloadPresentation(selectedListing)}
-                    className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white"
-                  >
-                    Télécharger
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedListingId(null)}
-                    className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-              <div className="p-5 space-y-4">
-                {selectedListing.images && selectedListing.images.length > 0 ? (
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {selectedListing.images.slice(0, 4).map((img, idx) => (
-                      <img key={`${img}-${idx}`} src={img} alt={selectedListing.title} className="h-40 w-full rounded-xl object-cover" />
-                    ))}
-                  </div>
-                ) : selectedListing.thumbnail ? (
-                  <img src={selectedListing.thumbnail} alt={selectedListing.title} className="h-52 w-full rounded-xl object-cover" />
-                ) : null}
-
-                <div className="grid gap-3 md:grid-cols-2 text-sm">
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                    <p className="text-xs font-semibold text-slate-500">Location</p>
-                    <p className="font-semibold" style={{ color: TITLE_TEXT }}>{selectedListing.location || "—"}</p>
-                    <p className="text-xs text-slate-500">{TYPE_LABELS[selectedListing.type]} · {selectedListing.status || "published"}</p>
-                  </div>
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                    <p className="text-xs font-semibold text-slate-500">Price</p>
-                    <p className="font-semibold" style={{ color: TITLE_TEXT }}>
-                      {selectedListing.price ? `${selectedListing.currency ? `${selectedListing.currency} ` : ""}${selectedListing.price}` : "Price on request"}
-                    </p>
-                    {selectedListing.rating ? (
-                      <p className="text-xs text-slate-500">Rating {selectedListing.rating} · {selectedListing.reviews || 0} reviews</p>
-                    ) : (
-                      <p className="text-xs text-slate-500">Premium partner listing</p>
-                    )}
-                  </div>
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                    <p className="text-xs font-semibold text-slate-500">Capacity</p>
-                    <p className="font-semibold" style={{ color: TITLE_TEXT }}>
-                      {selectedListing.capacity ? `${selectedListing.capacity} guests` : "—"}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {selectedListing.bedrooms ? `${selectedListing.bedrooms} beds` : ""}{selectedListing.bathrooms ? ` · ${selectedListing.bathrooms} baths` : ""}
-                    </p>
-                  </div>
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                    <p className="text-xs font-semibold text-slate-500">Description</p>
-                    <p className="text-sm text-slate-700">{selectedListing.description || "No description available."}</p>
-                  </div>
-                </div>
-
-                {selectedListing.amenities && selectedListing.amenities.length > 0 && (
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                    <p className="text-xs font-semibold text-slate-500">Amenities</p>
-                    <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                      {selectedListing.amenities.map((amenity) => (
-                        <span key={amenity} className="rounded-full border border-slate-200 px-2 py-1">
-                          {amenity}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 text-xs text-slate-500">
           Manage partner accounts and onboarding from this directory. Future actions (suspend, view listings) can be added here.
