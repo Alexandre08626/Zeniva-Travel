@@ -399,12 +399,30 @@ export function login(email: string, password: string, opts?: { role?: Role | "a
     },
     auditLog: [...s.auditLog, makeAudit("login", account.email, "account", account.email)],
   }));
+
+  if (typeof window !== "undefined") {
+    setTimeout(() => {
+      import("../../lib/store/tripsStore")
+        .then((mod) => {
+          if (mod.setTripUserScope) mod.setTripUserScope(account.email);
+          if (mod.syncTripsFromServer) mod.syncTripsFromServer(account.email);
+        })
+        .catch(() => undefined);
+    }, 0);
+  }
   return { name: account.name, email: account.email, roles: accountRoles, agentLevel: account.agentLevel, activeSpace: defaultActiveSpace };
 }
 
 export function logout(redirectTo = "/") {
   setState((s) => ({ ...s, user: null }));
   if (typeof window !== "undefined") {
+    setTimeout(() => {
+      import("../../lib/store/tripsStore")
+        .then((mod) => {
+          if (mod.setTripUserScope) mod.setTripUserScope("guest");
+        })
+        .catch(() => undefined);
+    }, 0);
     deleteCookie("zeniva_active_space");
     deleteCookie("zeniva_roles");
     deleteCookie("zeniva_email");

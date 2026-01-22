@@ -31,6 +31,7 @@ export default function AgentDashboardPage() {
     () => [
       { label: "Dashboard", href: "/agent" },
       { label: "Clients", href: "/agent/clients" },
+      { label: "Forms", href: "/agent/forms" },
       { label: "Proposals", href: "/agent/proposals" },
       { label: "Purchase Orders", href: "/agent/purchase-orders" },
       { label: "Bookings", href: "/agent/bookings" },

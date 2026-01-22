@@ -25,6 +25,8 @@ const defaultState = {
 };
 
 let state = { ...defaultState };
+let activeUserEmail = "";
+let syncTimer = null;
 
 function storageKeyFor(userId) {
   const trimmed = (userId || "guest").trim().toLowerCase();
@@ -53,6 +55,38 @@ function persist(nextState) {
   }
 }
 
+function getTripsStateSnapshot() {
+  return {
+    trips: state.trips,
+    messages: state.messages,
+    snapshots: state.snapshots,
+    tripDrafts: state.tripDrafts,
+    proposals: state.proposals,
+    selections: state.selections,
+  };
+}
+
+async function pushTripsToServer(email) {
+  if (typeof window === "undefined" || !email) return;
+  try {
+    await fetch("/api/user-data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, tripsState: getTripsStateSnapshot() }),
+    });
+  } catch (_) {
+    // ignore
+  }
+}
+
+function scheduleServerSync() {
+  if (!activeUserEmail || typeof window === "undefined") return;
+  if (syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => {
+    pushTripsToServer(activeUserEmail);
+  }, 800);
+}
+
 function hydrate(key = activeStorageKey) {
   if (typeof window === "undefined" || hydratedKeys.has(key)) return;
   hydratedKeys.add(key);
@@ -72,17 +106,43 @@ function setState(updater) {
   const next = typeof updater === "function" ? updater(state) : updater;
   state = next;
   persist(state);
+  scheduleServerSync();
   listeners.forEach((l) => l());
 }
 
 export function setTripUserScope(userId) {
   const nextKey = storageKeyFor(userId);
   if (nextKey === activeStorageKey) return;
+  activeUserEmail = userId ? String(userId).trim().toLowerCase() : "";
   activeStorageKey = nextKey;
   const parsed = loadFromStorage(activeStorageKey);
   state = { ...defaultState, ...(parsed || {}) };
   // notify subscribers of scope change
   listeners.forEach((l) => l());
+}
+
+export async function syncTripsFromServer(email) {
+  if (typeof window === "undefined" || !email) return;
+  activeUserEmail = String(email).trim().toLowerCase();
+  try {
+    const res = await fetch("/api/user-data");
+    if (!res.ok) return;
+    const payload = await res.json();
+    const tripsState = payload?.tripsState;
+    if (tripsState && typeof tripsState === "object") {
+      setState((s) => ({
+        ...s,
+        trips: tripsState.trips || s.trips,
+        messages: tripsState.messages || s.messages,
+        snapshots: tripsState.snapshots || s.snapshots,
+        tripDrafts: tripsState.tripDrafts || s.tripDrafts,
+        proposals: tripsState.proposals || s.proposals,
+        selections: tripsState.selections || s.selections,
+      }));
+    }
+  } catch (_) {
+    // ignore
+  }
 }
 
 export function subscribe(listener) {
