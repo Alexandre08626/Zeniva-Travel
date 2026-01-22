@@ -119,7 +119,7 @@ export default function YachtsPage() {
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
       {/* Header aligned with hero left edge (full-bleed alignment) */}
-      <div style={{ position: "relative", left: "50%", right: "50%", marginLeft: "-50vw", marginRight: "-50vw", width: "100vw" }}>
+      <div className="full-bleed-container">
         <div className="w-full px-6">
           <Header isLoggedIn={isLoggedIn} userEmail={userEmail} />
         </div>
@@ -127,17 +127,7 @@ export default function YachtsPage() {
 
       <div className="mx-auto w-full max-w-none px-6 pb-16 pt-5">
         {/* HERO SECTION (Lina Search) */}
-        <section
-          className="mt-4 mb-10"
-          style={{
-            position: "relative",
-            left: "50%",
-            right: "50%",
-            marginLeft: "-50vw",
-            marginRight: "-50vw",
-            width: "100vw",
-          }}
-        >
+        <section className="mt-4 mb-10 full-bleed-container">
           <div className="relative rounded-3xl overflow-hidden mx-auto" style={{ width: "100%", maxWidth: "none" }}>
             <div
               className="absolute inset-0"

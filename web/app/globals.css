@@ -3,6 +3,8 @@
 :root {
   --background: #ffffff;
   --foreground: #000000;
+  /* Scrollbar width compensation for Windows */
+  --scrollbar-width: 0px;
 }
 
 @theme inline {
@@ -16,6 +18,13 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+  }
+}
+
+/* Detect Windows scrollbar and set compensation variable */
+@supports (scrollbar-width: thin) or (-webkit-overflow-scrolling: touch) {
+  :root {
+    --scrollbar-width: 0px;
   }
 }
 
@@ -80,9 +89,35 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* Full-bleed container - Windows-safe alternative to 100vw trick */
+.full-bleed-container {
+  position: relative;
+  width: 100%;
+  left: 0;
+  right: 0;
+  margin-left: calc(-1 * (100vw - 100%) / 2);
+  margin-right: calc(-1 * (100vw - 100%) / 2);
+  padding-left: calc((100vw - 100%) / 2);
+  padding-right: calc((100vw - 100%) / 2);
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+/* Fallback for Windows with visible scrollbars */
+@supports (-ms-overflow-style: none) or (scrollbar-width: thin) {
+  .full-bleed-container {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
 main {
   padding-left: 7.5vw;
   padding-right: 7.5vw;
+  overflow-x: hidden;
 }
 
 main > div[class*="max-w-"],
@@ -96,9 +131,20 @@ main > section > div > div[class*="max-w-"] {
 }
 
 @media (min-width: 1024px) and (max-width: 1600px) {
+  /* Windows laptop viewport and container fixes */
+  :root {
+    --scrollbar-width: 17px; /* Standard Windows scrollbar width */
+  }
+
+  html {
+    overflow-x: hidden;
+  }
+
   main {
     padding-left: 32px;
     padding-right: 32px;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   main > div[class*="max-w-"],
@@ -107,6 +153,69 @@ main > section > div > div[class*="max-w-"] {
   main > section > div > div[class*="max-w-"] {
     width: 100% !important;
     max-width: 1280px !important;
+  }
+
+  /* Fix full-bleed sections that use 100vw (causes horizontal scroll on Windows) */
+  section[style*="100vw"],
+  div[style*="100vw"] {
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  /* Ensure grid/flex containers don't overflow */
+  .grid {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .flex {
+    max-width: 100%;
+  }
+
+  /* Fix card heights and aspect ratios */
+  .rounded-2xl,
+  .rounded-3xl {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Ensure images don't cause overflow */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Fix hero section height on Windows laptops */
+  section .relative.z-10 {
+    max-width: 100%;
+  }
+
+  /* Card grid fixes for Windows laptop resolutions */
+  .grid.grid-cols-1.sm\\:grid-cols-3,
+  .grid.grid-cols-1.md\\:grid-cols-2,
+  .grid.grid-cols-1.md\\:grid-cols-3 {
+    gap: 1rem;
+  }
+
+  .grid.grid-cols-1.sm\\:grid-cols-3 > * {
+    min-height: 180px;
+  }
+
+  /* Featured trips cards */
+  .grid.grid-cols-1.md\\:grid-cols-2 > .rounded-2xl {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .grid.grid-cols-1.md\\:grid-cols-2 > .rounded-2xl img {
+    height: 200px;
+    object-fit: cover;
+  }
+
+  /* Collection cards horizontal scroll fix */
+  .flex.gap-4.overflow-x-auto {
+    padding-bottom: 1rem;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Traveler mode text fixes (Windows laptops only) */
@@ -151,6 +260,89 @@ main > section > div > div[class*="max-w-"] {
   body[data-space="traveler"] button,
   [data-mode="traveler"] button {
     white-space: normal;
+  }
+}
+
+/* Specific fixes for common Windows laptop resolutions with scaling */
+/* 1366x768 at 100% - Very common Windows laptop resolution */
+@media (min-width: 1300px) and (max-width: 1400px) {
+  .grid.grid-cols-1.sm\\:grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+
+  .grid.grid-cols-1.sm\\:grid-cols-3 > * {
+    min-height: 160px;
+  }
+
+  section h2 {
+    font-size: 1.875rem;
+  }
+}
+
+/* 1536x864 - Windows 125% scaling from 1920x1080 */
+@media (min-width: 1500px) and (max-width: 1560px) {
+  main {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+
+  .grid.grid-cols-1.md\\:grid-cols-2 {
+    gap: 1.25rem;
+  }
+}
+
+/* 1280x720/800 - Windows 150% scaling from 1920x1080 */
+@media (min-width: 1200px) and (max-width: 1300px) {
+  main {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .grid.grid-cols-1.sm\\:grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+
+  .grid.grid-cols-1.sm\\:grid-cols-3 > * {
+    min-height: 150px;
+  }
+
+  section h2 {
+    font-size: 1.75rem;
+  }
+
+  .text-4xl {
+    font-size: 1.875rem !important;
+  }
+}
+
+/* 1024-1100px - Smaller laptops or heavily scaled */
+@media (min-width: 1024px) and (max-width: 1100px) {
+  main {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .grid.grid-cols-1.sm\\:grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .grid.grid-cols-1.md\\:grid-cols-2 {
+    gap: 1rem;
+  }
+
+  section h2 {
+    font-size: 1.5rem;
+  }
+
+  .text-4xl {
+    font-size: 1.5rem !important;
+  }
+
+  .text-3xl {
+    font-size: 1.25rem !important;
   }
 }
 

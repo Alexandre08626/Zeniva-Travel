@@ -241,8 +241,8 @@ export default function TravelSearchWidget() {
               />
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={oneWay} onChange={(e) => { setOneWay(e.target.checked); if (e.target.checked) setRet(""); }} /> One-way</label>
             </div>
-            <select value={passengers} onChange={(e) => setPassengers(Number(e.target.value))} className="w-full rounded-2xl bg-slate-50 px-4 py-3">
-              {[1,2,3,4,5,6].map(n=>(<option key={n} value={n}>{n} passengers</option>))}
+            <select value={passengers} onChange={(e) => setPassengers(Number(e.target.value))} className="w-full rounded-2xl bg-slate-50 px-4 py-3" aria-label="Passengers" data-nosnippet>
+              {[1,2,3,4,5,6].map(n=>(<option key={n} value={n}>{n}</option>))}
             </select>
             <select value={cabin} onChange={(e)=>setCabin(e.target.value)} className="w-full rounded-2xl bg-slate-50 px-4 py-3">
               {['Economy','Premium Economy','Business','First'].map(c=>(<option key={c} value={c}>{c}</option>))}
@@ -260,8 +260,8 @@ export default function TravelSearchWidget() {
             <input value={checkIn} onChange={(e)=>setCheckIn(e.target.value)} placeholder="Check-in" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
             <input value={checkOut} onChange={(e)=>setCheckOut(e.target.value)} placeholder="Check-out" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
             <div className="flex gap-2">
-              <input value={guests} onChange={(e)=>setGuests(Number(e.target.value))} placeholder="Guests" className="w-24 rounded-2xl bg-slate-50 px-4 py-3" type="number" />
-              <input value={rooms} onChange={(e)=>setRooms(Number(e.target.value))} placeholder="Rooms" className="w-24 rounded-2xl bg-slate-50 px-4 py-3" type="number" />
+              <input value={guests} onChange={(e)=>setGuests(Number(e.target.value))} placeholder="Guests" className="w-24 rounded-2xl bg-slate-50 px-4 py-3" type="number" data-nosnippet />
+              <input value={rooms} onChange={(e)=>setRooms(Number(e.target.value))} placeholder="Rooms" className="w-24 rounded-2xl bg-slate-50 px-4 py-3" type="number" data-nosnippet />
             </div>
             <input value={budget} onChange={(e)=>setBudget(e.target.value)} placeholder="Budget (optional)" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
 
@@ -281,7 +281,7 @@ export default function TravelSearchWidget() {
             </select>
             <input value={departureMonth} onChange={(e)=>setDepartureMonth(e.target.value)} placeholder="Departure month" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
             <input value={duration} onChange={(e)=>setDuration(e.target.value)} placeholder="Duration (nights)" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
-            <input value={cruiseGuests} onChange={(e)=>setCruiseGuests(Number(e.target.value))} placeholder="Guests" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="number" />
+            <input value={cruiseGuests} onChange={(e)=>setCruiseGuests(Number(e.target.value))} placeholder="Guests" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="number" data-nosnippet />
 
             <div className="md:col-span-2 flex justify-end">
               <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>Search cruises</button>
@@ -293,7 +293,7 @@ export default function TravelSearchWidget() {
           <form onSubmit={searchExperiences} className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <input value={expDestination} onChange={(e)=>setExpDestination(e.target.value)} placeholder="City / Destination" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
             <input value={expDate} onChange={(e)=>setExpDate(e.target.value)} placeholder="Date" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
-            <input value={expTravelers} onChange={(e)=>setExpTravelers(Number(e.target.value))} placeholder="Travelers" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="number" />
+            <input value={expTravelers} onChange={(e)=>setExpTravelers(Number(e.target.value))} placeholder="Travelers" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="number" data-nosnippet />
             <select value={category} onChange={(e)=>setCategory(e.target.value)} className="w-full rounded-2xl bg-slate-50 px-4 py-3">
               <option value="">Category</option>
               <option>Adventure</option>
@@ -313,7 +313,7 @@ export default function TravelSearchWidget() {
             <input value={transferPickup} onChange={(e)=>setTransferPickup(e.target.value)} placeholder="Pickup location" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
             <input value={transferDropoff} onChange={(e)=>setTransferDropoff(e.target.value)} placeholder="Drop-off location" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
             <input value={transferDate} onChange={(e)=>setTransferDate(e.target.value)} placeholder="Date" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="date" />
-            <input value={transferPassengers} onChange={(e)=>setTransferPassengers(Number(e.target.value))} placeholder="Passengers" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="number" />
+            <input value={transferPassengers} onChange={(e)=>setTransferPassengers(Number(e.target.value))} placeholder="Passengers" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="number" data-nosnippet />
 
             <div className="md:col-span-2 flex justify-end">
               <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>Search transfers</button>
@@ -326,7 +326,7 @@ export default function TravelSearchWidget() {
             <input value={carPickup} onChange={(e)=>setCarPickup(e.target.value)} placeholder="Pickup location" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
             <input value={carPickupDate} onChange={(e)=>setCarPickupDate(e.target.value)} placeholder="Pickup date" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="date" />
             <input value={carDropoffDate} onChange={(e)=>setCarDropoffDate(e.target.value)} placeholder="Dropoff date" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="date" />
-            <input value={carDrivers} onChange={(e)=>setCarDrivers(Number(e.target.value))} placeholder="Drivers" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="number" />
+            <input value={carDrivers} onChange={(e)=>setCarDrivers(Number(e.target.value))} placeholder="Drivers" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="number" data-nosnippet />
 
             <div className="md:col-span-2 flex justify-end">
               <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>Search cars</button>

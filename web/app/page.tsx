@@ -130,7 +130,7 @@ export default function HomePage() {
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       {/* Header aligned with hero left edge (full-bleed alignment) */}
-      <div style={{ position: 'relative', left: '50%', right: '50%', marginLeft: '-50vw', marginRight: '-50vw', width: '100vw' }}>
+      <div className="full-bleed-container">
         <div className="w-full px-6">
           <Header isLoggedIn={isLoggedIn} userEmail={userEmail} />
         </div>
@@ -140,15 +140,7 @@ export default function HomePage() {
 
         {/* HERO SECTION (Compact Premium) - full-bleed banner */}
         <section
-          className="mt-4 mb-8 sm:mt-8 sm:mb-12"
-          style={{
-            position: 'relative',
-            left: '50%',
-            right: '50%',
-            marginLeft: '-50vw',
-            marginRight: '-50vw',
-            width: '100vw',
-          }}
+          className="mt-4 mb-8 sm:mt-8 sm:mb-12 full-bleed-container"
         >
           <div className="relative rounded-3xl overflow-hidden mx-auto" style={{ width: '100%', maxWidth: 'none' }}>
             <div

@@ -23,17 +23,7 @@ export default function GroupTripsPage() {
         <Header />
 
         {/* HERO SECTION (Lina Search) */}
-        <section
-          className="mt-4 mb-8"
-          style={{
-            position: "relative",
-            left: "50%",
-            right: "50%",
-            marginLeft: "-50vw",
-            marginRight: "-50vw",
-            width: "100vw",
-          }}
-        >
+        <section className="mt-4 mb-8 full-bleed-container">
           <div className="relative rounded-3xl overflow-hidden mx-auto" style={{ width: "100%", maxWidth: "none" }}>
             <div
               className="absolute inset-0"
