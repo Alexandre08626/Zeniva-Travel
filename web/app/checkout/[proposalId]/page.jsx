@@ -11,7 +11,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const proposalId = Array.isArray(params.proposalId) ? params.proposalId[0] : params.proposalId;
   const { selection, tripDraft } = useTripsStore((s) => ({
-    selection: s.selections[proposalId] || { flight: null, hotel: null },
+    selection: s.selections[proposalId] || { flight: null, hotel: null, activity: null, transfer: null },
     tripDraft: s.tripDrafts[proposalId] || {},
   }));
 
@@ -24,10 +24,16 @@ export default function CheckoutPage() {
     return getImagesForDestination(dest)[0];
   }, [tripDraft, selection]);
 
-  const flight = selection?.flight || { airline: "Airline", route: "YUL → CUN", times: "19:20 – 08:45", fare: "Business", bags: "2 checked", price: "$1,850" };
-  const hotel = selection?.hotel || { name: "Hotel Playa", room: "Junior Suite", location: "Beachfront", price: "$420/night", rating: 4.6 };
+  const extraHotels = tripDraft?.extraHotels || [];
+  const extraActivities = tripDraft?.extraActivities || [];
+  const extraTransfers = tripDraft?.extraTransfers || [];
 
-  const pricing = computePrice({ flight, hotel }, tripDraft);
+  const flight = selection?.flight || { airline: "Airline", route: "YUL → CUN", times: "19:20 – 08:45", fare: "Business", bags: "2 checked", price: "$1,850" };
+  const hotel = selection?.hotel || extraHotels[0] || { name: "Hotel Playa", room: "Junior Suite", location: "Beachfront", price: "$420/night", rating: 4.6 };
+  const activity = selection?.activity || null;
+  const transfer = selection?.transfer || null;
+
+  const pricing = computePrice({ flight, hotel, activity, transfer }, tripDraft);
 
   if (!proposalId) return null;
 
@@ -145,8 +151,16 @@ export default function CheckoutPage() {
                   <span className="font-semibold">{formatCurrency(pricing.flightTotal)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>Hotel</span>
+                  <span>Accommodation</span>
                   <span className="font-semibold">{formatCurrency(pricing.hotelTotal)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Activities</span>
+                  <span className="font-semibold">{formatCurrency(pricing.activityTotal)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Transfers</span>
+                  <span className="font-semibold">{formatCurrency(pricing.transferTotal)}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs" style={{ color: MUTED_TEXT }}>
                   <span>Fees & services</span>
@@ -166,7 +180,7 @@ export default function CheckoutPage() {
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">
-              <div className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>{tripDraft?.accommodationType === 'Hotel' ? 'Hotel' : tripDraft?.accommodationType === 'Yacht' ? 'Yacht' : 'Villa'}</div>
+              <div className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>{tripDraft?.accommodationType === 'Hotel' ? 'Hotel' : tripDraft?.accommodationType === 'Yacht' ? 'Yacht' : tripDraft?.accommodationType === 'Airbnb' ? 'Private residence' : 'Accommodation'}</div>
               <div className="text-sm" style={{ color: TITLE_TEXT }}>{hotel.name} • {hotel.location || "Central"}</div>
               <div className="text-xs" style={{ color: MUTED_TEXT }}>
                 {tripDraft?.accommodationType === 'Yacht' ? `Specs: ${hotel.specs || "Yacht specs"}` : `Room: ${hotel.room || "Deluxe"} • Rating: ${hotel.rating || "4.5"}`}
@@ -179,6 +193,22 @@ export default function CheckoutPage() {
                 ))}
               </div>
             </div>
+
+            {(activity || extraActivities.length > 0) && (
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">
+                <div className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>Activities</div>
+                <div className="text-sm" style={{ color: TITLE_TEXT }}>{activity?.name || extraActivities[0]?.name || "Selected activities"}</div>
+                <div className="text-xs" style={{ color: MUTED_TEXT }}>Total: {formatCurrency(pricing.activityTotal)}</div>
+              </div>
+            )}
+
+            {(transfer || extraTransfers.length > 0) && (
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">
+                <div className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>Transfers</div>
+                <div className="text-sm" style={{ color: TITLE_TEXT }}>{transfer?.name || extraTransfers[0]?.name || "Selected transfers"}</div>
+                <div className="text-xs" style={{ color: MUTED_TEXT }}>Total: {formatCurrency(pricing.transferTotal)}</div>
+              </div>
+            )}
 
             <button
               className="w-full rounded-full px-4 py-3 text-sm font-extrabold text-white shadow-sm"
