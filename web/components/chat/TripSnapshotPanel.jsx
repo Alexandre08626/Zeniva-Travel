@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { BRAND_BLUE, PREMIUM_BLUE, MUTED_TEXT, TITLE_TEXT } from "../../src/design/tokens";
 import Label from "../../src/components/Label";
@@ -30,8 +31,95 @@ export default function TripSnapshotPanel({ tripId }) {
     transportationType: tripDraft?.transportationType || '',
   };
 
+  const parseDateRange = (value) => {
+    if (!value) return {};
+    const matches = value.match(/\d{4}-\d{2}-\d{2}/g);
+    if (!matches || matches.length === 0) return {};
+    if (matches.length === 1) return { checkIn: matches[0] };
+    return { checkIn: matches[0], checkOut: matches[1] };
+  };
+
+  const parseAdults = (value) => {
+    const n = parseInt(String(value).replace(/[^0-9]/g, ""), 10);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const parseBudget = (value) => {
+    const cleaned = String(value).replace(/[^0-9.]/g, "");
+    const n = parseFloat(cleaned);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  useEffect(() => {
+    if (!tripId || !tripDraft) return;
+    const patch = {};
+
+    if (!tripDraft.departureCity && tripDraft.departure) {
+      patch.departureCity = tripDraft.departure;
+    }
+
+    if ((!tripDraft.checkIn || !tripDraft.checkOut) && tripDraft.dates) {
+      Object.assign(patch, parseDateRange(tripDraft.dates));
+    }
+
+    if (!tripDraft.adults && tripDraft.travelers) {
+      const adults = parseAdults(tripDraft.travelers);
+      if (adults !== null) patch.adults = adults;
+    }
+
+    if (tripDraft.budget && typeof tripDraft.budget === "string") {
+      const budget = parseBudget(tripDraft.budget);
+      if (budget !== null) patch.budget = budget;
+    }
+
+    if (Object.keys(patch).length) {
+      applyTripPatch(tripId, patch);
+    }
+  }, [tripId, tripDraft]);
+
   const onChange = (field, value) => {
-    applyTripPatch(tripId, { [field]: value });
+    switch (field) {
+      case "departure":
+        applyTripPatch(tripId, { departureCity: value });
+        return;
+      case "destination":
+        applyTripPatch(tripId, { destination: value });
+        return;
+      case "dates": {
+        const parsed = parseDateRange(value);
+        applyTripPatch(tripId, { ...parsed });
+        return;
+      }
+      case "travelers": {
+        const adults = parseAdults(value);
+        if (adults !== null) {
+          applyTripPatch(tripId, { adults });
+        }
+        return;
+      }
+      case "budget": {
+        const budget = parseBudget(value);
+        applyTripPatch(tripId, { budget: budget ?? value });
+        return;
+      }
+      case "style":
+        applyTripPatch(tripId, { style: value });
+        return;
+      case "accommodationType":
+        applyTripPatch(tripId, { accommodationType: value });
+        return;
+      case "transportationType":
+        applyTripPatch(tripId, { transportationType: value });
+        return;
+      case "includeActivities":
+        applyTripPatch(tripId, { includeActivities: Boolean(value) });
+        return;
+      case "includeTransfers":
+        applyTripPatch(tripId, { includeTransfers: Boolean(value) });
+        return;
+      default:
+        applyTripPatch(tripId, { [field]: value });
+    }
   };
 
   const onGenerate = () => {
