@@ -18,7 +18,7 @@ export default function LuxuryResortsPage() {
       <div className="mx-auto max-w-[1100px] px-5 pb-12 pt-6">
         <Header />
 
-        <section className="rounded-[24px] overflow-hidden border border-slate-100 shadow-sm" style={{ background: "radial-gradient(circle at 20% 20%, #1e293b, #0b1324)" }}>
+        <section className="hidden sm:block rounded-[24px] overflow-hidden border border-slate-100 shadow-sm" style={{ background: "radial-gradient(circle at 20% 20%, #1e293b, #0b1324)" }}>
           <div className="grid md:grid-cols-2">
             <div className="p-8 md:p-10 text-white space-y-4">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">Partner Resorts</p>
