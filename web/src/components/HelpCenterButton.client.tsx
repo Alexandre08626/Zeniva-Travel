@@ -138,7 +138,11 @@ export default function HelpCenterButton() {
   return (
     <>
       <button
-        onClick={() => setShowModal(true)}
+        onClick={() => {
+          if (typeof window !== "undefined") {
+            window.location.href = "/chat/agent?channel=agent-alexandre&source=/documents";
+          }
+        }}
         className="help-float"
         style={{
           position: "fixed",
@@ -174,9 +178,9 @@ export default function HelpCenterButton() {
         onMouseUp={(e) => {
           e.currentTarget.style.transform = "scale(1.05)";
         }}
-        aria-label={`Open ${COMPANY_INFO.name} Customer Support`}
+        aria-label={`Talk to an agent at ${COMPANY_INFO.name}`}
       >
-        Help Center
+        Talk to an agent
       </button>
 
       {showModal && (
