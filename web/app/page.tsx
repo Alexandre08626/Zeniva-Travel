@@ -415,7 +415,7 @@ export default function HomePage() {
         </section>
 
         {/* WHY LINA SECTION */}
-        <section className="mt-20 mb-20 rounded-3xl p-10 md:p-16 text-white relative overflow-hidden" style={{ backgroundColor: PREMIUM_BLUE }}>
+        <section className="mt-20 mb-20 rounded-3xl p-10 md:p-16 text-white relative overflow-hidden hidden sm:block" style={{ backgroundColor: PREMIUM_BLUE }}>
           <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none rounded-3xl"></div>
           <div className="relative z-10 max-w-3xl">
             <div className="flex items-center gap-4 mb-6">

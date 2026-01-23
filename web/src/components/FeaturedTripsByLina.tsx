@@ -75,12 +75,12 @@ export default function FeaturedTripsByLina() {
   };
 
   return (
-    <section className="max-w-6xl mx-auto py-10 px-4">
+    <section className="max-w-7xl mx-auto py-10 px-6">
       <h2 className="text-3xl font-black mb-6">Featured Trips by Lina</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {featuredTrips.map(trip => (
           <div key={trip.id} className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
-            <img src={trip.image} alt={trip.title} className="h-56 w-full object-cover" />
+            <img src={trip.image} alt={trip.title} className="h-64 w-full object-cover" />
             <div className="p-5 flex-1 flex flex-col">
               <h3 className="text-xl font-bold mb-1">{trip.title}</h3>
               <div className="text-sm text-slate-600 mb-2">{trip.destination} • {formatTripDateRange(trip.dates, locale)}</div>
