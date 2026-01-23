@@ -289,7 +289,7 @@ export function signup(params: {
   const normalizedEmail = email.trim();
   const baseRoles = roles && roles.length ? roles : [role];
   const isAgentRole = baseRoles.some((r) => AGENT_ROLES.includes(r) && r !== "agent");
-  const finalRoles = isAgentRole && !baseRoles.includes("agent") ? [...baseRoles, "agent"] : baseRoles;
+  const finalRoles = (isAgentRole && !baseRoles.includes("agent") ? [...baseRoles, "agent"] : baseRoles) as Role[];
   if (isAgentRole) {
     requireInviteCode(inviteCode);
   }
