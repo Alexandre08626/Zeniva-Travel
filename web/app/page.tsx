@@ -136,19 +136,25 @@ export default function HomePage() {
       </div>
 
       {/* MOBILE HERO (matches phone mock) */}
-      <section className="sm:hidden mt-2">
+      <section className="sm:hidden mt-0">
         <div className="relative w-screen left-1/2 right-1/2 -translate-x-1/2">
           <div
-            className="relative min-h-[92vh] overflow-hidden"
+            className="relative min-h-[110vh] overflow-hidden"
             style={{
               backgroundImage: "linear-gradient(180deg, rgba(6,14,35,0.75) 0%, rgba(6,14,35,0.85) 55%, rgba(6,14,35,0.95) 100%), url('/branding/ChatGPT%20Image%20Jan%2023,%202026,%2012_50_38%20PM.png')",
               backgroundSize: "cover",
               backgroundPosition: "center",
             }}
           >
-            <div className="relative z-10 px-5 pt-6 pb-10 flex flex-col min-h-[92vh]">
-              <div className="flex items-center justify-between">
-                <img src="/branding/logo.png" alt="Zeniva" className="h-10 w-auto" />
+            <div className="relative z-10 px-5 pt-10 pb-14 flex flex-col min-h-[110vh]">
+              <div className="flex items-center justify-center">
+                <div className="rounded-[28px] border border-white/20 bg-white/10 p-2 shadow-[0_18px_60px_rgba(15,23,42,0.5)]" style={{ backdropFilter: "blur(18px)" }}>
+                  <img
+                    src="/branding/lina-avatar.png"
+                    alt="Lina"
+                    className="h-28 w-28 rounded-[22px] object-cover"
+                  />
+                </div>
               </div>
 
               <div
@@ -158,14 +164,14 @@ export default function HomePage() {
                 <div className="flex items-center justify-between">
                   <div className="text-white font-semibold text-lg">Zeniva Travel</div>
                   <div className="flex gap-2">
-                    <button className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold text-white/90">Sign in</button>
-                    <button className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-900">Log in</button>
+                    <Link href="/signup" className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold text-white/90">Sign in</Link>
+                    <Link href="/login" className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-900">Log in</Link>
                   </div>
                 </div>
                 <p className="mt-1 text-xs text-white/70">Ultra‑personalised travel, assisted by Lina AI.</p>
 
                 <div className="mt-4 space-y-3">
-                  <div className="rounded-2xl border border-white/15 bg-white/10 p-3" style={{ backdropFilter: "blur(14px)" }}>
+                  <Link href="/call" className="rounded-2xl border border-white/15 bg-white/10 p-3 block" style={{ backdropFilter: "blur(14px)" }}>
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
                         <img src="/branding/lina-avatar.png" alt="Lina" className="h-9 w-9 rounded-full" />
@@ -178,9 +184,9 @@ export default function HomePage() {
                     <p className="mt-2 text-[12px] text-white/75">
                       Live AI video concierge to design your next trip and answer questions in real time.
                     </p>
-                  </div>
+                  </Link>
 
-                  <div className="rounded-2xl border border-white/15 bg-white/10 p-3" style={{ backdropFilter: "blur(14px)" }}>
+                  <Link href="/chat" className="rounded-2xl border border-white/15 bg-white/10 p-3 block" style={{ backdropFilter: "blur(14px)" }}>
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -195,7 +201,7 @@ export default function HomePage() {
                     <p className="mt-2 text-[12px] text-white/75">
                       Text conversation to define dates, budget, destinations, and preferred travel style.
                     </p>
-                  </div>
+                  </Link>
                 </div>
 
                 <div className="mt-4 rounded-2xl overflow-hidden border border-white/20">

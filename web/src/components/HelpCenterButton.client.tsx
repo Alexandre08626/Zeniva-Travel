@@ -143,7 +143,7 @@ export default function HelpCenterButton() {
             window.location.href = "/chat/agent?channel=agent-alexandre&source=/documents";
           }
         }}
-        className="help-float"
+        className="help-float hidden sm:flex"
         style={{
           position: "fixed",
           bottom: 96,
