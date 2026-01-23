@@ -17,7 +17,9 @@ export default function proxy(req: NextRequest) {
   }
   const agentRoles = new Set(["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "agent"]);
   const agentEnabled = req.cookies.get("zeniva_agent_enabled")?.value === "1";
-  const isAgent = agentEnabled || roles.some((role) => agentRoles.has(role));
+  const email = (req.cookies.get("zeniva_email")?.value || "").toLowerCase();
+  const allowlisted = email === "info@zeniva.ca" || email === "lantierj6@gmail.com";
+  const isAgent = allowlisted && (agentEnabled || roles.some((role) => agentRoles.has(role)));
 
   // Protect agent routes and agent API
   if (pathname.startsWith("/agent") || pathname.startsWith("/api/agent")) {

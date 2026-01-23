@@ -9,7 +9,7 @@ export default function SignupPage() {
   const router = useRouter();
   const search = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const user = useAuthStore((s) => s.user);
-  const [mode, setMode] = useState<"traveler" | "agent" | "partner">(search.get("space") === "partner" ? "partner" : "traveler");
+  const [mode] = useState<"traveler" | "agent" | "partner">("traveler");
   const deriveInvite = (role: string) => {
     if (role === "hq") return "ZENIVA-HQ";
     if (role === "admin") return "ZENIVA-ADMIN";
@@ -35,66 +35,6 @@ export default function SignupPage() {
     e.preventDefault();
     setError(null);
     try {
-      if (mode === "partner") {
-        // Create partner owner account and pre-fill partner company info (KYC pending)
-        signup({
-          name: name.trim() || "Partner Owner",
-          email: email.trim(),
-          password,
-          role: "partner_owner",
-          agentLevel: undefined,
-          inviteCode: inviteCode ? inviteCode.trim() : undefined,
-          divisions: [],
-        });
-        addAgentFromAccount({
-          name: name.trim() || "Partner Owner",
-          email: email.trim(),
-          role: "partner_owner",
-          divisions: [],
-          status: "active",
-        });
-        try {
-          await fetch("/api/accounts", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              name: name.trim() || "Partner Owner",
-              email: email.trim(),
-              role: "partner_owner",
-              roles: ["partner_owner"],
-              divisions: [],
-              status: "active",
-            }),
-          });
-        } catch (err) {
-          console.error("Failed to sync partner account", err);
-        }
-        // Immediately attach partner company profile to the signed-in account
-        try {
-          setTimeout(() => {
-            // lazy call to avoid race with signup persistence
-            try {
-              updatePartnerProfile({
-                legalName: companyLegalName,
-                displayName: companyDisplayName,
-                phone: companyPhone,
-                country: companyCountry,
-                currency: companyCurrency,
-                language: companyLanguage,
-                kycStatus: "pending",
-              });
-            } catch (ex) {
-              console.error("updatePartnerProfile error:", ex);
-            }
-            router.push("/partner/onboarding");
-          }, 200);
-        } catch (err) {
-          console.error("partner signup flow error:", err);
-          router.push("/partner/onboarding");
-        }
-        return;
-      }
-
       signup({
         name: name.trim() || (mode === "agent" ? "Agent" : "Traveler"),
         email: email.trim(),
@@ -131,32 +71,7 @@ export default function SignupPage() {
           console.error("Failed to sync client", err);
         }
       }
-      if (mode === "agent") {
-        addAgentFromAccount({
-          name: name.trim() || "Agent",
-          email: email.trim(),
-          role: agentRole,
-          divisions: ["TRAVEL", "YACHT", "VILLAS", "GROUPS", "RESORTS"],
-          status: "active",
-        });
-        try {
-          await fetch("/api/accounts", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              name: name.trim() || "Agent",
-              email: email.trim(),
-              role: agentRole,
-              roles: [agentRole],
-              divisions: ["TRAVEL", "YACHT", "VILLAS", "GROUPS", "RESORTS"],
-              status: "active",
-            }),
-          });
-        } catch (err) {
-          console.error("Failed to sync account", err);
-        }
-      }
-      router.push(mode === "agent" ? "/agent" : "/proposals");
+      router.push("/proposals");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unable to create account";
       setError(message);
@@ -174,61 +89,22 @@ export default function SignupPage() {
             className="w-full py-2 px-3 bg-black text-white rounded hover:bg-gray-800"
           >
             Back to home
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
+            <button
+              type="button"
+              disabled
+              className="w-full py-2 px-3 border rounded bg-gray-50 text-gray-400 cursor-not-allowed"
+            >
+              Partner sign-up (temporarily disabled)
+            </button>
     <div className="min-h-screen flex items-center justify-center">
       <form onSubmit={handleSubmit} className="max-w-md w-full bg-white p-6 shadow rounded space-y-4" data-mode={mode}>
         <div>
           <h1 className="text-2xl font-semibold">Create an account</h1>
           <p className="text-sm text-gray-600">Choose your space: Traveler or Zeniva Agent.</p>
         </div>
-        <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Account type">
-          <button
-            type="button"
-            onClick={() => setMode("traveler")}
-            className={`rounded border px-3 py-2 text-sm font-semibold ${mode === "traveler" ? "border-black bg-black text-white" : "border-gray-300 text-gray-800"}`}
-          >
-            Traveler
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("agent")}
-            className={`rounded border px-3 py-2 text-sm font-semibold ${mode === "agent" ? "border-black bg-black text-white" : "border-gray-300 text-gray-800"}`}
-          >
-            Agent
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("partner")}
-            className={`rounded border px-3 py-2 text-sm font-semibold ${mode === "partner" ? "border-black bg-black text-white" : "border-gray-300 text-gray-800"}`}
-          >
-            Partner
-          </button>
+        <div className="rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-semibold text-gray-800">
+          Traveler (temporary mode)
         </div>
-        {mode === "agent" && (
-          <label className="block text-sm font-medium">
-            Agent role
-            <select
-              className="mt-1 w-full border rounded px-3 py-2"
-              value={agentRole}
-              onChange={(e) => {
-                const nextRole = e.target.value as Role;
-                setAgentRole(nextRole);
-                setInviteCode(deriveInvite(nextRole));
-              }}
-            >
-              <option value="hq">Owner (HQ)</option>
-              <option value="travel-agent">Travel Agent</option>
-              <option value="yacht-partner">Yacht Partner</option>
-              <option value="admin">Admin</option>
-            </select>
-          </label>
-        )}
         <label className="block text-sm font-medium">
           Full name
           <input

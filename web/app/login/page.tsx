@@ -10,21 +10,13 @@ function LoginContent() {
   const space = search?.get("space");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [mode, setMode] = useState<"traveler" | "agent" | "partner">(
-    space === "agent" ? "agent" : space === "partner" ? "partner" : "traveler"
-  );
+  const [mode] = useState<"traveler" | "agent" | "partner">("traveler");
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     setError(null);
     try {
-      if (mode === "partner") {
-        // Allow partner owners/staff and Zeniva HQ/Admin to access partner workspace for dev/admin purposes
-        login(email.trim(), password, { allowedRoles: ["partner_owner", "partner_staff", "hq", "admin"] });
-        router.push("/partner/dashboard");
-        return;
-      }
       const result = login(email.trim(), password);
       if (result.activeSpace === "agent") {
         router.push("/agent");
@@ -65,28 +57,8 @@ function LoginContent() {
           <h1 className="text-2xl font-semibold">Sign in</h1>
           <p className="text-sm text-gray-600">Choose your space: Traveler, Zeniva Agent or Partner.</p>
         </div>
-        <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Sign-in type">
-          <button
-            type="button"
-            onClick={() => setMode("traveler")}
-            className={`rounded border px-3 py-2 text-sm font-semibold ${mode === "traveler" ? "border-black bg-black text-white" : "border-gray-300 text-gray-800"}`}
-          >
-            Traveler
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("agent")}
-            className={`rounded border px-3 py-2 text-sm font-semibold ${mode === "agent" ? "border-black bg-black text-white" : "border-gray-300 text-gray-800"}`}
-          >
-            Agent
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("partner")}
-            className={`rounded border px-3 py-2 text-sm font-semibold ${mode === "partner" ? "border-black bg-black text-white" : "border-gray-300 text-gray-800"}`}
-          >
-            Partner
-          </button>
+        <div className="rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-semibold text-gray-800">
+          Traveler (temporary mode)
         </div>
         <label className="block text-sm font-medium">
           Email
@@ -123,10 +95,10 @@ function LoginContent() {
             </button>
             <button
               type="button"
-              onClick={() => router.push('/signup?space=partner')}
-              className="w-full py-2 px-3 border rounded hover:bg-gray-50"
+              disabled
+              className="w-full py-2 px-3 border rounded bg-gray-50 text-gray-400 cursor-not-allowed"
             >
-              Partner sign-up
+              Partner sign-up (temporarily disabled)
             </button>
           </div>
 

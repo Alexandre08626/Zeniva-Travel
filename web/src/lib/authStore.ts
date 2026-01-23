@@ -4,6 +4,8 @@ import { useEffect, useSyncExternalStore } from "react";
 const STORAGE_KEY = "zeniva_auth_store_v1";
 const HQ_EMAIL = "info@zeniva.ca";
 const HQ_PASSWORD = "Baton08!!";
+const TEMP_ADMIN_EMAIL = "info@zeniva.ca";
+const TEMP_JASON_EMAIL = "lantierj6@gmail.com";
 
 export type Division = "TRAVEL" | "YACHT" | "VILLAS" | "GROUPS" | "RESORTS";
 export type Role = "traveler" | "hq" | "admin" | "travel-agent" | "yacht-partner" | "finance" | "support" | "partner_owner" | "partner_staff" | "agent";
@@ -178,6 +180,32 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
+function getTempAccessProfile(email: string) {
+  const normalized = normalizeEmail(email || "");
+  if (normalized === TEMP_ADMIN_EMAIL) {
+    return {
+      roles: ["hq", "admin", "agent"] as Role[],
+      divisions: [...DIVISIONS],
+      agentLevel: "Manager" as AgentLevel,
+      agentEnabled: true,
+    };
+  }
+  if (normalized === TEMP_JASON_EMAIL) {
+    return {
+      roles: ["yacht-partner", "agent"] as Role[],
+      divisions: ["YACHT"] as Division[],
+      agentLevel: "Agent" as AgentLevel,
+      agentEnabled: true,
+    };
+  }
+  return {
+    roles: ["traveler"] as Role[],
+    divisions: [] as Division[],
+    agentLevel: null as AgentLevel,
+    agentEnabled: false,
+  };
+}
+
 function findAccount(email: string, password?: string) {
   const normalized = normalizeEmail(email);
   return state.accounts.find((a) => a.email.toLowerCase() === normalized && (!password || a.password === password));
@@ -287,9 +315,14 @@ export function signup(params: {
   if (!email || !password) throw new Error("Email and password are required");
 
   const normalizedEmail = email.trim();
-  const baseRoles = roles && roles.length ? roles : [role];
-  const isAgentRole = baseRoles.some((r) => AGENT_ROLES.includes(r) && r !== "agent");
-  const finalRoles = (isAgentRole && !baseRoles.includes("agent") ? [...baseRoles, "agent"] : baseRoles) as Role[];
+  const tempProfile = getTempAccessProfile(normalizedEmail);
+  const lockedRoles = tempProfile.roles;
+  const lockedDivisions = tempProfile.divisions;
+  const lockedAgentLevel = tempProfile.agentLevel;
+  const lockedAgentEnabled = tempProfile.agentEnabled;
+  const baseRoles = lockedRoles.length ? lockedRoles : (roles && roles.length ? roles : [role]);
+  const isAgentRole = lockedAgentEnabled;
+  const finalRoles = baseRoles as Role[];
   if (isAgentRole) {
     requireInviteCode(inviteCode);
   }
@@ -300,9 +333,9 @@ export function signup(params: {
     password,
     roles: finalRoles,
     role: finalRoles[0],
-    agentLevel: isAgentRole ? agentLevel || "Agent" : null,
+    agentLevel: isAgentRole ? lockedAgentLevel || agentLevel || "Agent" : null,
     inviteCode: isAgentRole ? inviteCode?.trim() : undefined,
-    divisions: isAgentRole ? (divisions && divisions.length ? divisions : [...DIVISIONS]) : [],
+    divisions: isAgentRole ? (lockedDivisions.length ? lockedDivisions : (divisions && divisions.length ? divisions : [...DIVISIONS])) : [],
     status: "active",
   });
 
@@ -374,7 +407,7 @@ export function signup(params: {
       setCookie("zeniva_active_space", defaultActiveSpace, 7);
       setCookie("zeniva_roles", JSON.stringify(finalRoles), 7);
       setCookie("zeniva_email", baseAccount.email, 7);
-      if (finalRoles.some((r) => AGENT_ROLES.includes(r))) {
+      if (lockedAgentEnabled) {
         setCookie("zeniva_agent_enabled", "1", 7);
         setCookie("zeniva_agent_divisions", JSON.stringify(baseAccount.divisions || []), 7);
       } else {
@@ -399,7 +432,7 @@ export function signup(params: {
       inviteCode: baseAccount.inviteCode,
       divisions: baseAccount.divisions,
       status: baseAccount.status,
-      agentEnabled: isAgentRole,
+      agentEnabled: lockedAgentEnabled,
       agentDivisions: baseAccount.divisions || [],
     },
     auditLog: [...s.auditLog, makeAudit("signup", baseAccount.email, "account", baseAccount.email, { role: baseAccount.role })],
@@ -410,7 +443,7 @@ export function signup(params: {
     setCookie("zeniva_active_space", defaultActiveSpace, 7);
     setCookie("zeniva_roles", JSON.stringify(finalRoles), 7);
     setCookie("zeniva_email", baseAccount.email, 7);
-    if (finalRoles.some((r) => AGENT_ROLES.includes(r))) {
+    if (lockedAgentEnabled) {
       setCookie("zeniva_agent_enabled", "1", 7);
       setCookie("zeniva_agent_divisions", JSON.stringify(baseAccount.divisions || []), 7);
     } else {
@@ -443,17 +476,20 @@ export function login(email: string, password: string, opts?: { role?: Role | "a
 
   const account = findAccount(email, password);
   if (!account) throw new Error("Invalid credentials");
+  const tempProfile = getTempAccessProfile(account.email);
   const allowedRoles = opts?.allowedRoles || (opts?.role === "agent" ? AGENT_ROLES : undefined);
-  const accountRoles = (account.roles && account.roles.length ? account.roles : (account.role ? [account.role] : ["traveler"])) as Role[];
+  const accountRoles = (tempProfile.roles && tempProfile.roles.length ? tempProfile.roles : (account.roles && account.roles.length ? account.roles : (account.role ? [account.role] : ["traveler"]))) as Role[];
   if (allowedRoles && !accountRoles.some((r) => allowedRoles.includes(r))) {
     throw new Error(opts?.role === "agent" ? "This account is not an agent account" : "This account is not allowed here");
   }
 
-  const normalizedRoles = (accountRoles.some((r) => r === "agent")
-    ? accountRoles
-    : accountRoles.some((r) => AGENT_ROLES.includes(r))
-      ? [...accountRoles, "agent"]
-      : accountRoles) as Role[];
+  const normalizedRoles = (tempProfile.roles && tempProfile.roles.length
+    ? tempProfile.roles
+    : (accountRoles.some((r) => r === "agent")
+      ? accountRoles
+      : accountRoles.some((r) => AGENT_ROLES.includes(r))
+        ? [...accountRoles, "agent"]
+        : accountRoles)) as Role[];
 
   // determine default activeSpace
   const hasPartnerRole = normalizedRoles.some((r) => r === "partner_owner" || r === "partner_staff");
@@ -464,9 +500,9 @@ export function login(email: string, password: string, opts?: { role?: Role | "a
     setCookie("zeniva_active_space", defaultActiveSpace, 7);
     setCookie("zeniva_roles", JSON.stringify(normalizedRoles), 7);
     setCookie("zeniva_email", account.email, 7);
-    if (normalizedRoles.some((r) => AGENT_ROLES.includes(r))) {
+    if (tempProfile.agentEnabled) {
       setCookie("zeniva_agent_enabled", "1", 7);
-      setCookie("zeniva_agent_divisions", JSON.stringify(account.divisions || []), 7);
+      setCookie("zeniva_agent_divisions", JSON.stringify(tempProfile.divisions || account.divisions || []), 7);
     } else {
       deleteCookie("zeniva_agent_enabled");
       deleteCookie("zeniva_agent_divisions");
@@ -481,13 +517,13 @@ export function login(email: string, password: string, opts?: { role?: Role | "a
       email: account.email,
       roles: normalizedRoles,
       role: normalizedRoles[0] as Role,
-      agentLevel: account.agentLevel,
+      agentLevel: tempProfile.agentLevel ?? account.agentLevel,
       inviteCode: account.inviteCode,
-      divisions: account.divisions,
+      divisions: tempProfile.divisions || account.divisions,
       status: account.status,
       activeSpace: defaultActiveSpace,
-      agentEnabled: normalizedRoles.some((r) => AGENT_ROLES.includes(r)),
-      agentDivisions: account.divisions || [],
+      agentEnabled: tempProfile.agentEnabled,
+      agentDivisions: tempProfile.divisions || account.divisions || [],
       travelerProfile: account.travelerProfile,
       partnerCompany: account.partnerCompany,
       partnerId: account.partnerId,
@@ -579,8 +615,9 @@ export function getUser() {
 }
 
 export function isAgent(user = state.user) {
-  const roles = user ? (user.roles || (user.role ? [user.role] : [])) : [];
-  return Boolean(user?.agentEnabled) || roles.some((r) => AGENT_ROLES.includes(r));
+  const email = user?.email || "";
+  const tempProfile = getTempAccessProfile(email);
+  return tempProfile.agentEnabled;
 }
 
 export function isPartner(user = state.user) {
