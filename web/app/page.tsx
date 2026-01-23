@@ -144,11 +144,16 @@ export default function HomePage() {
               backgroundColor: "#0b1226",
             }}
           >
-            <div className="relative z-10 px-5 pt-8 pb-12 flex flex-col min-h-[100dvh]">
-              <div className="text-center">
-                <h1 className="text-[28px] font-semibold tracking-tight text-white">Zeniva Travel</h1>
-                <p className="mt-2 text-sm text-white/80">Ultra‑personalised travel, assisted by Lina AI.</p>
+            <div className="relative z-10 px-5 pt-5 pb-12 flex flex-col min-h-[100dvh]">
+              <div className="flex items-center justify-center gap-3">
+                <img
+                  src="/branding/logo.png"
+                  alt="Zeniva"
+                  className="h-9 w-auto rounded-lg shadow-sm"
+                />
+                <h1 className="text-[26px] font-semibold tracking-tight text-white">Zeniva Travel AI</h1>
               </div>
+              <p className="mt-2 text-center text-sm text-white/80">Ultra‑personalised travel, assisted by Lina AI.</p>
 
               <div
                 className="mt-6 rounded-3xl border border-[#1e2a4d] bg-[#0c1733] p-4 shadow-[0_24px_80px_rgba(8,18,42,0.6)]"

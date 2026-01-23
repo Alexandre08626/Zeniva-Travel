@@ -322,7 +322,7 @@ function ChatThread({ tripId }) {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm flex flex-col" style={{ minHeight: "72vh" }}>
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm flex flex-col min-h-[60vh] md:min-h-[72vh]">
       <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
         <div>
           <Label>Assistant</Label>

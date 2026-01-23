@@ -15,8 +15,8 @@ function CallLayout({ sidebar, chat, snapshot, videoCall }) {
   const router = useRouter();
   return (
     <main className="min-h-screen" style={{ backgroundColor: "#f9fbff" }}>
-      <div className="mx-auto max-w-7xl px-4 py-6">
-        <header className="mb-5 flex items-center justify-between">
+      <div className="mx-auto max-w-7xl px-4 py-4 sm:py-6">
+        <header className="mb-4 flex flex-col gap-3 sm:mb-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <a href="/" className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>
               ← Back
@@ -25,10 +25,10 @@ function CallLayout({ sidebar, chat, snapshot, videoCall }) {
               Lina Traveler · Video call
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <a
               href="/chat"
-              className="rounded-full px-4 py-2 text-sm font-semibold border border-slate-200 bg-white"
+              className="rounded-full px-4 py-2 text-sm font-semibold border border-slate-200 bg-white w-full sm:w-auto text-center"
               style={{ color: TITLE_TEXT }}
             >
               Switch to Chat
@@ -52,12 +52,12 @@ function CallLayout({ sidebar, chat, snapshot, videoCall }) {
         </header>
 
         <div className="grid grid-cols-12 gap-4">
-          <section className="col-span-12 lg:col-span-3">{sidebar}</section>
+          <section className="col-span-12 lg:col-span-3 hidden lg:block">{sidebar}</section>
           <section className="col-span-12 lg:col-span-6 space-y-4">
             {videoCall}
             {chat}
           </section>
-          <section className="col-span-12 lg:col-span-3">{snapshot}</section>
+          <section className="col-span-12 lg:col-span-3 hidden lg:block">{snapshot}</section>
         </div>
       </div>
     </main>
