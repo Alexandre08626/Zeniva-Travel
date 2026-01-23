@@ -346,23 +346,21 @@ export function signup(params: {
     const isPartnerAccount = rolesToSync.includes("partner_owner") || rolesToSync.includes("partner_staff");
     const isTravelerAccount = rolesToSync.includes("traveler") || !rolesToSync.length;
 
-    if (isAgentAccount || isPartnerAccount) {
-      try {
-        fetch("/api/accounts", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: baseAccount.name || "Account",
-            email: baseAccount.email,
-            role: baseAccount.role || rolesToSync[0] || "traveler",
-            roles: rolesToSync,
-            divisions: baseAccount.divisions || [],
-            status: baseAccount.status || "active",
-          }),
-        });
-      } catch (_) {
-        // ignore sync errors
-      }
+    try {
+      fetch("/api/accounts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: baseAccount.name || "Account",
+          email: baseAccount.email,
+          role: baseAccount.role || rolesToSync[0] || "traveler",
+          roles: rolesToSync,
+          divisions: baseAccount.divisions || [],
+          status: baseAccount.status || "active",
+        }),
+      });
+    } catch (_) {
+      // ignore sync errors
     }
 
     if (isTravelerAccount) {

@@ -1,14 +1,14 @@
 import { Division, type Role } from "../authStore";
 
 export type AgentStatus = "active" | "inactive" | "suspended";
-export type AgentRoleLabel = "Travel Agent" | "Yacht Partner" | "HQ" | "Admin" | "Partner";
+export type AgentRoleLabel = "Travel Agent" | "Yacht Partner" | "HQ" | "Admin" | "Partner" | "Traveler";
 
 export type AgentDirectoryEntry = {
   id: string;
   name: string;
   email: string;
   roleLabel: AgentRoleLabel;
-  roleKey: "hq" | "admin" | "travel-agent" | "yacht-partner" | "partner";
+  roleKey: "hq" | "admin" | "travel-agent" | "yacht-partner" | "partner" | "traveler";
   status: AgentStatus;
   code: string;
   avatar: string;
@@ -120,6 +120,7 @@ function roleToLabel(role: Role): AgentDirectoryEntry["roleLabel"] {
   if (role === "admin") return "Admin";
   if (role === "yacht-partner") return "Yacht Partner";
   if (role === "partner_owner" || role === "partner_staff") return "Partner";
+  if (role === "traveler") return "Traveler";
   return "Travel Agent";
 }
 
@@ -128,6 +129,7 @@ function roleToKey(role: Role): AgentDirectoryEntry["roleKey"] {
   if (role === "admin") return "admin";
   if (role === "yacht-partner") return "yacht-partner";
   if (role === "partner_owner" || role === "partner_staff") return "partner";
+  if (role === "traveler") return "traveler";
   return "travel-agent";
 }
 

@@ -20,7 +20,7 @@ export default function AgentsDirectoryPage() {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "suspended">("all");
   const [data, setData] = useState(listAgents());
 
-  const isHQorAdmin = !!user && user.role === "hq" && user.email?.toLowerCase() === "info@zeniva.ca";
+  const isHQorAdmin = !!user && ((user.roles || (user.role ? [user.role] : [])).some((r) => r === "hq" || r === "admin"));
   const isAgentSelf = !!user && user.role !== "traveler";
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export default function AgentsDirectoryPage() {
 
   useEffect(() => {
     if (!accounts || accounts.length === 0) return;
-    const agentRoles: Role[] = ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "partner_owner", "partner_staff", "agent"];
+    const agentRoles: Role[] = ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "partner_owner", "partner_staff", "agent", "traveler"];
     const agentRoleSet = new Set(agentRoles);
 
     accounts.forEach((account) => {
@@ -67,7 +67,7 @@ export default function AgentsDirectoryPage() {
         const records = Array.isArray(payload?.data) ? payload.data : [];
         if (!records.length) return;
 
-        const agentRoles: Role[] = ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "partner_owner", "partner_staff", "agent"];
+        const agentRoles: Role[] = ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "partner_owner", "partner_staff", "agent", "traveler"];
         const agentRoleSet = new Set(agentRoles);
 
         records.forEach((account: any) => {
@@ -102,7 +102,7 @@ export default function AgentsDirectoryPage() {
     return source.filter((a) => {
       const roleOk =
         roleFilter === "all" ||
-        (roleFilter === "travel" && a.roleLabel === "Travel Agent") ||
+        (roleFilter === "travel" && (a.roleLabel === "Travel Agent" || a.roleLabel === "Traveler")) ||
         (roleFilter === "yacht" && a.roleLabel === "Yacht Partner") ||
         (roleFilter === "admin" && (a.roleKey === "admin" || a.roleKey === "hq"));
       const statusOk = statusFilter === "all" || a.status === statusFilter;
