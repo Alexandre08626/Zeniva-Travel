@@ -169,21 +169,6 @@ export default function SignupPage() {
             required
           />
         </label>
-        {mode === "agent" && (
-          <label className="block text-sm font-medium">
-            Invite code / admin validation
-            <input
-              className="mt-1 w-full border rounded px-3 py-2"
-              type="text"
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value)}
-              placeholder="Ex: ZENIVA-AGENT"
-              required={mode === "agent"}
-              readOnly
-            />
-            <p className="text-xs text-gray-500 mt-1">Auto-selected from agent role. Reserved for Zeniva agents and partners.</p>
-          </label>
-        )}
         {error && <p className="text-sm text-red-600">{error}</p>}
         <div className="space-y-2">
           <button type="submit" className="w-full py-2 px-3 bg-black text-white rounded hover:bg-gray-800">
