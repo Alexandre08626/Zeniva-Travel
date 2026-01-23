@@ -20,6 +20,7 @@ function normalizeSearchResults(result: any) {
   return results.map((r: any, idx: number) => {
     const accommodation = r?.accommodation || {};
     const cheapestRate = r?.cheapest_rate || {};
+    const searchResultId = r?.search_result_id || r?.search_result?.id || r?.id;
     return {
       id: r?.id || `result-${idx}`,
       name: accommodation?.name || "Hotel",
@@ -30,7 +31,7 @@ function normalizeSearchResults(result: any) {
       rating: accommodation?.rating || 0,
       badge: cheapestRate?.refundable ? "Free cancel" : undefined,
       image: accommodation?.images?.[0]?.url || "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80",
-      searchResultId: r?.id, // Keep the actual search result ID for next steps
+      searchResultId, // Keep the actual search result ID for next steps
     };
   });
 }

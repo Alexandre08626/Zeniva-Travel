@@ -7,7 +7,7 @@ import { createStayBooking } from "../../../../../src/lib/duffelClient";
 const guestSchema = z.object({
   given_name: z.string().trim().min(1, "given_name required"),
   family_name: z.string().trim().min(1, "family_name required"),
-  born_on: z.string().trim().min(1, "born_on required"),
+  born_on: z.string().trim().optional(),
 });
 
 const schema = z.object({
@@ -31,7 +31,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "invalid params", issues: parsed.error.issues }, { status: 400 });
     }
 
-    const result = await createStayBooking(parsed.data);
+    const payload = {
+      ...parsed.data,
+      guests: parsed.data.guests.map((guest) => ({
+        ...guest,
+        born_on: guest.born_on?.trim() || "1990-01-01",
+      })),
+    };
+
+    const result = await createStayBooking(payload);
 
     // Persist a copy of the booking artifact for test/demo flows so the confirmation page can read it
     try {

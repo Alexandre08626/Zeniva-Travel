@@ -27,6 +27,9 @@
 # local user data
 /data/user-data/
 
+# generated booking artifacts
+/scripts/artifacts/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

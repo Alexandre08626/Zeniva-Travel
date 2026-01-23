@@ -1,19 +1,27 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { BRAND_BLUE, LIGHT_BG, MUTED_TEXT, TITLE_TEXT } from "../../../src/design/tokens";
-import { useTripsStore } from "../../../lib/store/tripsStore";
+import { useTripsStore, createTrip } from "../../../lib/store/tripsStore";
 import { getImagesForDestination, getPartnerHotelImages } from "../../../src/lib/images";
 import { computePrice, formatCurrency } from "../../../src/lib/pricing";
+import { useAuthStore } from "../../../src/lib/authStore";
+import { getDocumentsForUser, upsertDocuments } from "../../../src/lib/documentsStore";
 
 export default function CheckoutPage() {
   const params = useParams();
   const router = useRouter();
   const proposalId = Array.isArray(params.proposalId) ? params.proposalId[0] : params.proposalId;
-  const { selection, tripDraft } = useTripsStore((s) => ({
+  const { selection, tripDraft, trips } = useTripsStore((s) => ({
     selection: s.selections[proposalId] || { flight: null, hotel: null, activity: null, transfer: null },
     tripDraft: s.tripDrafts[proposalId] || {},
+    trips: s.trips || [],
   }));
+  const user = useAuthStore((s) => s.user);
+  const userId = user?.email || "";
+  const [paymentStatus, setPaymentStatus] = useState("idle");
+  const [confirmationId, setConfirmationId] = useState("");
 
   const hero = useMemo(() => {
     // Use selected accommodation image if available, otherwise fallback to destination images
@@ -41,6 +49,44 @@ export default function CheckoutPage() {
   });
 
   if (!proposalId) return null;
+
+  const handlePayNow = () => {
+    if (paymentStatus === "confirmed") return;
+    setPaymentStatus("processing");
+
+    const now = new Date().toISOString();
+    const bookingId = `checkout-${Date.now()}`;
+    const confirmationNumber = `ZNV-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+    const existingTrip = trips.find((t) => t.id === proposalId);
+    const tripId = existingTrip
+      ? proposalId
+      : createTrip({
+          title: tripDraft?.destination ? `${tripDraft.destination} Checkout` : "Hotel booking",
+          destination: tripDraft?.destination || "",
+          dates: tripDraft?.checkIn && tripDraft?.checkOut ? `${tripDraft.checkIn} to ${tripDraft.checkOut}` : "",
+          travelers: tripDraft?.adults ? String(tripDraft.adults) : "",
+        });
+
+    if (userId) {
+      const existing = (getDocumentsForUser(userId) || {})[tripId] || [];
+      const doc = {
+        id: bookingId,
+        tripId,
+        userId,
+        type: "confirmation",
+        title: `Checkout confirmation (${tripDraft?.destination || "Trip"})`,
+        provider: "Zeniva",
+        confirmationNumber,
+        url: `/test/duffel-stays/confirmation?docId=${encodeURIComponent(bookingId)}`,
+        updatedAt: now,
+        details: JSON.stringify({ booking_reference: confirmationNumber, status: "confirmed" }),
+      };
+      upsertDocuments(userId, tripId, [doc, ...existing]);
+    }
+
+    setConfirmationId(bookingId);
+    setPaymentStatus("confirmed");
+  };
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
@@ -80,6 +126,23 @@ export default function CheckoutPage() {
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr,1fr] items-start">
           <div className="space-y-4">
+            {paymentStatus === "confirmed" && (
+              <section className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 text-sm">
+                <div className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>Payment received</div>
+                <div className="mt-1" style={{ color: MUTED_TEXT }}>
+                  Your booking is confirmed. You can find the confirmation in My Travel Documents.
+                </div>
+                <div className="mt-3">
+                  <Link
+                    href="/documents"
+                    className="inline-flex rounded-full px-4 py-2 text-xs font-bold text-white"
+                    style={{ backgroundColor: BRAND_BLUE }}
+                  >
+                    Open My Travel Documents
+                  </Link>
+                </div>
+              </section>
+            )}
             <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>Traveler details</div>
@@ -220,12 +283,13 @@ export default function CheckoutPage() {
             <button
               className="w-full rounded-full px-4 py-3 text-sm font-extrabold text-white shadow-sm"
               style={{ backgroundColor: BRAND_BLUE }}
-              onClick={() => alert("Payment submitted (mock)")}
+              onClick={handlePayNow}
             >
-              Pay now (mock)
+              {paymentStatus === "confirmed" ? "Payment confirmed" : paymentStatus === "processing" ? "Processing…" : "Pay now (mock)"}
             </button>
             <div className="rounded-xl border border-slate-200 bg-white p-3 text-xs" style={{ color: MUTED_TEXT }}>
               After payment, your concierge will confirm ticketing and send e-tickets via email.
+              {confirmationId ? ` Ref: ${confirmationId}` : ""}
             </div>
           </aside>
         </div>

@@ -36,34 +36,39 @@ export default function FlightOffers({
   const [selected, setSelected] = useState<string[]>([]);
   const router = useRouter();
 
-  function goToPayment(offer: OfferCard) {
+  function goToReview(selectedOffers: OfferCard[]) {
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem(
+        "flight_selection",
+        JSON.stringify({ offers: selectedOffers, searchContext })
+      );
+    }
+    const first = selectedOffers[0];
     const params = new URLSearchParams({
-      type: "flight",
-      carrier: offer.carrier,
-      code: offer.code,
-      depart: offer.depart,
-      arrive: offer.arrive,
-      duration: offer.duration,
-      stops: offer.stops,
-      cabin: offer.cabin,
-      price: offer.price,
+      id: first?.id || "",
+      carrier: first?.carrier || "",
+      code: first?.code || "",
+      depart: first?.depart || "",
+      arrive: first?.arrive || "",
+      duration: first?.duration || "",
+      stops: first?.stops || "",
+      cabin: first?.cabin || "",
+      price: first?.price || "",
       from: searchContext?.from || "",
       to: searchContext?.to || "",
       departDate: searchContext?.depart || "",
       returnDate: searchContext?.ret || "",
       passengers: searchContext?.passengers || "",
     });
-    router.push(`/payment?${params.toString()}`);
+    router.push(`/booking/flights/review?${params.toString()}`);
   }
 
   function toggle(offer: OfferCard) {
-    setSelected((s) => (s.includes(offer.id) ? s.filter((x) => x !== offer.id) : [...s, offer.id]));
-    if (!roundTrip) {
-      goToPayment(offer);
-    }
+    setSelected([offer.id]);
+    goToReview([offer]);
   }
 
-  const canProceed = !roundTrip ? selected.length === 1 : selected.length >= 2;
+  const canProceed = selected.length >= 1;
 
   return (
     <div className="space-y-3">
@@ -101,12 +106,12 @@ export default function FlightOffers({
             <button
               disabled={!canProceed}
               onClick={() => {
-                const first = offers.find((o) => o.id === selected[0]);
-                if (first) goToPayment(first);
+                const chosen = offers.filter((o) => selected.includes(o.id));
+                if (chosen.length) goToReview(chosen);
               }}
               className={`rounded-full px-4 py-2 font-semibold ${canProceed ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-400'}`}
             >
-              Proceed
+              Review selection
             </button>
           </div>
         </div>

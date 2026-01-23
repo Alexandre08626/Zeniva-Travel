@@ -4,9 +4,13 @@ import Header from "../../src/components/Header";
 import Footer from "../../src/components/Footer";
 import { LIGHT_BG, TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../src/design/tokens";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useAuthStore } from "../../src/lib/authStore";
+import { getDocumentsForUser, upsertDocuments } from "../../src/lib/documentsStore";
+import { useTripsStore, createTrip } from "../../lib/store/tripsStore";
 
 function PaymentContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const mode = searchParams.get("type");
   const isFlight = mode === "flight";
@@ -45,6 +49,40 @@ function PaymentContent() {
     style: "currency",
     currency: "USD",
   }).format(value);
+
+  const user = useAuthStore((s) => s.user);
+  const userId = user?.email || "";
+  const { trips } = useTripsStore((s) => ({ trips: s.trips }));
+
+  const handlePayment = () => {
+    const now = new Date().toISOString();
+    const docId = `payment-${Date.now()}`;
+    const confirmationNumber = `ZNV-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+    const tripId = trips[0]?.id || createTrip({
+      title: isFlight ? "Flight booking" : "Booking",
+      destination: flightTo || "",
+      dates: flightDates || "",
+      travelers: flightPassengers || "",
+    });
+
+    if (userId) {
+      const existing = (getDocumentsForUser(userId) || {})[tripId] || [];
+      upsertDocuments(userId, tripId, [{
+        id: docId,
+        tripId,
+        userId,
+        type: "confirmation",
+        title: isFlight ? `Flight confirmation (${flightCarrier} ${flightCode})` : "Payment confirmation",
+        provider: "Duffel",
+        confirmationNumber,
+        url: `/test/duffel-stays/confirmation?docId=${encodeURIComponent(docId)}`,
+        updatedAt: now,
+        details: JSON.stringify({ booking_reference: confirmationNumber, status: "confirmed" }),
+      }, ...existing]);
+    }
+
+    router.push(`/test/duffel-stays/confirmation?docId=${encodeURIComponent(docId)}`);
+  };
 
   return (
     <div className="rounded-[20px] border border-slate-100 bg-white p-6 shadow-sm">
@@ -93,7 +131,11 @@ function PaymentContent() {
               <input id="agree" type="checkbox" className="h-4 w-4 rounded border-slate-300" />
               <label htmlFor="agree" className="text-sm text-slate-700">I agree to terms, cancellation policy, and credit card authorization.</label>
             </div>
-            <button className="w-full rounded-full px-6 py-3 font-extrabold text-white" style={{ backgroundColor: PREMIUM_BLUE }}>
+            <button
+              className="w-full rounded-full px-6 py-3 font-extrabold text-white"
+              style={{ backgroundColor: PREMIUM_BLUE }}
+              onClick={handlePayment}
+            >
               Pay securely
             </button>
             <p className="text-xs text-slate-500">You will receive an email confirmation with invoice and charter details.</p>
