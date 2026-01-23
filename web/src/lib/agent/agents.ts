@@ -27,7 +27,6 @@ export type AgentDirectoryEntry = {
 };
 
 const STORAGE_KEY = "zeniva_agents_dir_v1";
-const ALLOWED_AGENT_EMAILS = new Set(["info@zeniva.ca", "lanthierj6@gmail.com"]);
 
 let agents: AgentDirectoryEntry[] = [
   {
@@ -74,28 +73,6 @@ let agents: AgentDirectoryEntry[] = [
       lastActivity: "2024-12-18T10:30:00Z",
     },
   },
-  {
-    id: "agent-jason",
-    name: "Jason Lanthier",
-    email: "lanthierj6@gmail.com",
-    roleLabel: "Yacht Partner",
-    roleKey: "yacht-partner",
-    status: "active",
-    code: "ZY-501",
-    avatar: "/branding/lina-avatar.png",
-    divisions: ["YACHT"],
-    createdAt: "2024-02-10T00:00:00Z",
-    linkedToTravel: true,
-    linkedToYacht: true,
-    metrics: {
-      activeClients: 9,
-      openFiles: 6,
-      inProgressSales: 4,
-      revenue: 480000,
-      commission: 0,
-      lastActivity: "2024-12-16T09:10:00Z",
-    },
-  },
 ];
 
 function persistAgents() {
@@ -114,7 +91,7 @@ function hydrateAgents() {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        agents = parsed.filter((entry) => ALLOWED_AGENT_EMAILS.has(String(entry?.email || "").toLowerCase()));
+        agents = parsed;
       }
     }
   } catch {
@@ -125,7 +102,7 @@ function hydrateAgents() {
 hydrateAgents();
 
 export function listAgents(): AgentDirectoryEntry[] {
-  return agents.filter((entry) => ALLOWED_AGENT_EMAILS.has(entry.email.toLowerCase()));
+  return agents;
 }
 
 export function getAgentById(id: string) {
@@ -156,9 +133,6 @@ function roleToKey(role: Role): AgentDirectoryEntry["roleKey"] {
 
 export function addAgentFromAccount(account: { name: string; email: string; role: Role; divisions?: Division[]; status?: AgentStatus }) {
   const normalizedEmail = account.email.trim().toLowerCase();
-  if (!ALLOWED_AGENT_EMAILS.has(normalizedEmail)) {
-    return undefined;
-  }
   const existing = agents.find((a) => a.email.toLowerCase() === normalizedEmail);
   if (existing) return existing;
 
@@ -190,6 +164,13 @@ export function addAgentFromAccount(account: { name: string; email: string; role
   agents = [entry, ...agents];
   persistAgents();
   return entry;
+}
+
+export function removeAgentByEmail(email: string) {
+  const normalized = String(email || "").trim().toLowerCase();
+  if (!normalized) return;
+  agents = agents.filter((a) => a.email.toLowerCase() !== normalized);
+  persistAgents();
 }
 
 export function setAgentStatus(id: string, status: AgentStatus) {

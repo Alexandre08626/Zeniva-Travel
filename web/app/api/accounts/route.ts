@@ -81,3 +81,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: err?.message || "Failed to save account" }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const url = new URL(request.url);
+    const emailParam = url.searchParams.get("email") || "";
+    const email = String(emailParam).trim().toLowerCase();
+    if (!email) {
+      return NextResponse.json({ error: "Missing email" }, { status: 400 });
+    }
+
+    const accounts = await readAccounts();
+    const remaining = accounts.filter((a) => a.email.toLowerCase() !== email);
+    await writeAccounts(remaining);
+
+    return NextResponse.json({ ok: true, deleted: email });
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message || "Failed to delete account" }, { status: 500 });
+  }
+}

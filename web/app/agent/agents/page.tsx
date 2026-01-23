@@ -2,8 +2,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuthStore, type Role } from "../../../src/lib/authStore";
-import { listAgents, addAgentFromAccount } from "../../../src/lib/agent/agents";
+import { useAuthStore, type Role, deleteAccountByEmail } from "../../../src/lib/authStore";
+import { listAgents, addAgentFromAccount, removeAgentByEmail } from "../../../src/lib/agent/agents";
 import { PREMIUM_BLUE, TITLE_TEXT, MUTED_TEXT, ACCENT_GOLD } from "../../../src/design/tokens";
 
 const statusLabels: Record<string, string> = {
@@ -110,6 +110,20 @@ export default function AgentsDirectoryPage() {
     });
   }, [data, roleFilter, statusFilter, user, isHQorAdmin]);
 
+  const handleDelete = async (email: string) => {
+    if (!isHQorAdmin) return;
+    const ok = window.confirm(`Delete account for ${email}? This cannot be undone.`);
+    if (!ok) return;
+    removeAgentByEmail(email);
+    deleteAccountByEmail(email);
+    setData(listAgents());
+    try {
+      await fetch(`/api/accounts?email=${encodeURIComponent(email)}`, { method: "DELETE" });
+    } catch (_) {
+      // ignore
+    }
+  };
+
   if (!user || (!isHQorAdmin && !isAgentSelf)) {
     return (
       <main className="min-h-screen bg-slate-50">
@@ -197,7 +211,18 @@ export default function AgentsDirectoryPage() {
                   </div>
                   <p className="text-xs" style={{ color: MUTED_TEXT }}>{a.email} · Code {a.code}</p>
                 </div>
-                <Link href={`/agent/agents/${a.id}`} className="text-xs font-bold" style={{ color: PREMIUM_BLUE }}>View profile →</Link>
+                <div className="flex flex-col items-end gap-2">
+                  <Link href={`/agent/agents/${a.id}`} className="text-xs font-bold" style={{ color: PREMIUM_BLUE }}>View profile →</Link>
+                  {isHQorAdmin && a.email.toLowerCase() !== "info@zeniva.ca" && (
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(a.email)}
+                      className="text-[11px] font-semibold text-red-600 hover:underline"
+                    >
+                      Delete account
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <Metric label="Active clients" value={a.metrics.activeClients} />

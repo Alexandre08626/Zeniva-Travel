@@ -237,18 +237,7 @@ function ensureSeedDefaultAgents() {
       accounts: s.accounts.filter((a) => !blocked.has(normalizeEmail(a.email))),
     }));
   }
-  const seeds: Account[] = [
-    {
-      email: "lanthierj6@gmail.com",
-      name: "Jason Lanthier",
-      password: HQ_PASSWORD,
-      roles: ["yacht-partner", "travel-agent"],
-      agentLevel: "Agent",
-      inviteCode: "ZENIVA-AGENT",
-      divisions: ["YACHT"],
-      status: "active",
-    },
-  ];
+  const seeds: Account[] = [];
 
   seeds.forEach((seed) => {
     const exists = state.accounts.find((a) => normalizeEmail(a.email) === normalizeEmail(seed.email));
@@ -564,6 +553,21 @@ export function updateAccountStatus(email: string, status: "active" | "disabled"
       accounts: nextAccounts,
       auditLog: [...s.auditLog, makeAudit("agent:status", email, "account", email, { status })],
       user: s.user && normalizeEmail(s.user.email) === normalizeEmail(email) ? { ...s.user, status } : s.user,
+    };
+  });
+}
+
+export function deleteAccountByEmail(email: string) {
+  const target = normalizeEmail(email || "");
+  if (!target) return;
+  setState((s) => {
+    const nextAccounts = s.accounts.filter((a) => normalizeEmail(a.email) !== target);
+    const nextUser = s.user && normalizeEmail(s.user.email) === target ? null : s.user;
+    return {
+      ...s,
+      accounts: nextAccounts,
+      user: nextUser,
+      auditLog: [...s.auditLog, makeAudit("account:delete", target, "account", target)],
     };
   });
 }

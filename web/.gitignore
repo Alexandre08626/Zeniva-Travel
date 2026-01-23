@@ -26,6 +26,7 @@
 
 # local user data
 /data/user-data/
+/data/accounts.json
 
 # generated booking artifacts
 /scripts/artifacts/
