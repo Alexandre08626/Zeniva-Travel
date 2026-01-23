@@ -136,48 +136,42 @@ export default function HomePage() {
       </div>
 
       {/* MOBILE HERO (matches phone mock) */}
-      <section className="sm:hidden mt-0">
+      <section className="sm:hidden mt-0 bg-[#0b1226]">
         <div className="relative w-screen left-1/2 right-1/2 -translate-x-1/2">
           <div
-            className="relative min-h-[110vh] overflow-hidden"
+            className="relative min-h-[100dvh] overflow-hidden"
             style={{
-              backgroundImage: "linear-gradient(180deg, rgba(6,14,35,0.75) 0%, rgba(6,14,35,0.85) 55%, rgba(6,14,35,0.95) 100%), url('/branding/ChatGPT%20Image%20Jan%2023,%202026,%2012_50_38%20PM.png')",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
+              backgroundColor: "#0b1226",
             }}
           >
-            <div className="relative z-10 px-5 pt-10 pb-14 flex flex-col min-h-[110vh]">
-              <div className="flex items-center justify-center">
-                <div className="rounded-[28px] border border-white/20 bg-white/10 p-2 shadow-[0_18px_60px_rgba(15,23,42,0.5)]" style={{ backdropFilter: "blur(18px)" }}>
-                  <img
-                    src="/branding/lina-avatar.png"
-                    alt="Lina"
-                    className="h-28 w-28 rounded-[22px] object-cover"
-                  />
-                </div>
+            <img
+              src="/branding/ChatGPT%20Image%20Jan%2023,%202026,%2012_50_38%20PM.png"
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="relative z-10 px-5 pt-8 pb-12 flex flex-col min-h-[100dvh]">
+              <div className="text-center">
+                <h1 className="text-[28px] font-semibold tracking-tight text-white">Zeniva Travel</h1>
+                <p className="mt-2 text-sm text-white/80">Ultra‑personalised travel, assisted by Lina AI.</p>
               </div>
 
               <div
-                className="mt-6 rounded-3xl border border-white/20 bg-white/10 p-4 shadow-[0_18px_60px_rgba(15,23,42,0.45)]"
-                style={{ backdropFilter: "blur(18px)" }}
+                className="mt-6 rounded-3xl border border-white/20 bg-[#0c1733]/95 p-4 shadow-[0_24px_80px_rgba(8,18,42,0.6)]"
               >
-                <div className="flex items-center justify-between">
-                  <div className="text-white font-semibold text-lg">Zeniva Travel</div>
-                  <div className="flex gap-2">
-                    <Link href="/signup" className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold text-white/90">Sign in</Link>
-                    <Link href="/login" className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-900">Log in</Link>
-                  </div>
+                <div className="flex items-center justify-end gap-2">
+                  <Link href="/signup" className="rounded-full border border-white/30 px-3 py-1 text-xs font-semibold text-white">Sign in</Link>
+                  <Link href="/login" className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-900">Log in</Link>
                 </div>
-                <p className="mt-1 text-xs text-white/70">Ultra‑personalised travel, assisted by Lina AI.</p>
 
-                <div className="mt-4 space-y-3">
-                  <Link href="/call" className="rounded-2xl border border-white/15 bg-white/10 p-3 block" style={{ backdropFilter: "blur(14px)" }}>
+                <div className="mt-4 space-y-4">
+                  <Link href="/call" className="rounded-2xl border border-white/10 bg-[#13244a] p-3 block">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center">
                         <img src="/branding/lina-avatar.png" alt="Lina" className="h-9 w-9 rounded-full" />
                       </div>
                       <div>
-                        <div className="text-[10px] uppercase tracking-[0.2em] text-white/60">Video AI</div>
+                        <div className="text-[10px] uppercase tracking-[0.2em] text-white/70">Video AI</div>
                         <div className="text-white font-semibold">Call Lina</div>
                       </div>
                     </div>
@@ -186,25 +180,35 @@ export default function HomePage() {
                     </p>
                   </Link>
 
-                  <Link href="/chat" className="rounded-2xl border border-white/15 bg-white/10 p-3 block" style={{ backdropFilter: "blur(14px)" }}>
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M5 5h14v9H8l-3 3V5z" stroke="rgba(255,255,255,0.9)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                  <div className="flex items-start gap-3">
+                    <Link href="/chat" className="flex-1 rounded-2xl border border-white/10 bg-[#13244a] p-3 block">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5 5h14v9H8l-3 3V5z" stroke="rgba(255,255,255,0.9)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </div>
+                        <div>
+                          <div className="text-[10px] uppercase tracking-[0.2em] text-white/70">Chat AI</div>
+                          <div className="text-white font-semibold">Chat with Lina</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="text-[10px] uppercase tracking-[0.2em] text-white/60">Chat AI</div>
-                        <div className="text-white font-semibold">Chat with Lina</div>
-                      </div>
+                      <p className="mt-2 text-[12px] text-white/75">
+                        Text conversation to define dates, budget, destinations, and preferred travel style.
+                      </p>
+                    </Link>
+
+                    <div className="rounded-[24px] border border-white/15 bg-[#0f1f3f] p-2 shadow-[0_18px_50px_rgba(8,18,42,0.6)]">
+                      <img
+                        src="/branding/lina-avatar.png"
+                        alt="Lina portrait"
+                        className="h-20 w-16 rounded-[18px] object-cover"
+                      />
                     </div>
-                    <p className="mt-2 text-[12px] text-white/75">
-                      Text conversation to define dates, budget, destinations, and preferred travel style.
-                    </p>
-                  </Link>
+                  </div>
                 </div>
 
-                <div className="mt-4 rounded-2xl overflow-hidden border border-white/20">
+                <div className="mt-5 rounded-2xl overflow-hidden border border-white/15">
                   <img
                     src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=60"
                     alt="Beach escape"
@@ -213,7 +217,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="mt-auto pt-10">
+              <div className="mt-auto pt-8">
                 <h1
                   className="text-4xl font-semibold leading-[1.05]"
                   style={{
@@ -331,7 +335,7 @@ export default function HomePage() {
         <section className="mt-6 mb-12">
           <div className="w-full">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Link href="/chat" className="block rounded-2xl overflow-hidden shadow-xl group">
+              <Link href="/chat" className="hidden sm:block rounded-2xl overflow-hidden shadow-xl group">
                 <div className="relative h-44 md:h-56 lg:h-64 bg-slate-50 flex flex-col items-center justify-center gap-3 p-4">
                   <div className="w-16 h-16 rounded-full bg-slate-900/5 flex items-center justify-center">
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -343,7 +347,7 @@ export default function HomePage() {
                 </div>
               </Link>
 
-              <Link href="/call" className="block rounded-2xl overflow-hidden shadow-xl group">
+              <Link href="/call" className="hidden sm:block rounded-2xl overflow-hidden shadow-xl group">
                 <div className="relative h-44 md:h-56 lg:h-64 bg-slate-50 flex flex-col items-center justify-center gap-3 p-4">
                   <div className="w-16 h-16 rounded-full bg-slate-900/5 flex items-center justify-center">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#0F172A" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
