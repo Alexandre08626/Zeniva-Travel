@@ -18,7 +18,7 @@ export default function AccountMenu() {
   // HQ has access to all spaces including partner for admin purposes
   const isHQ = user?.email?.toLowerCase() === 'info@zeniva.ca' || roles.includes('hq');
   const canPartner = isHQ || roles.includes('partner_owner') || roles.includes('partner_staff');
-  const canAgent = roles.some((r) => ['hq','admin','finance','support','travel-agent'].includes(r));
+  const canAgent = roles.some((r) => ['hq','admin','finance','support','travel-agent','yacht-partner'].includes(r));
   const canTraveler = roles.includes('traveler') || !!user?.travelerProfile;
 
   function goTo(space: 'traveler'|'partner'|'agent') {
