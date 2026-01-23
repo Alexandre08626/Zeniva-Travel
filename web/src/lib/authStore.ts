@@ -6,7 +6,7 @@ const HQ_EMAIL = "info@zeniva.ca";
 const HQ_PASSWORD = "Baton08!!";
 
 export type Division = "TRAVEL" | "YACHT" | "VILLAS" | "GROUPS" | "RESORTS";
-export type Role = "traveler" | "hq" | "admin" | "travel-agent" | "yacht-partner" | "finance" | "support" | "partner_owner" | "partner_staff";
+export type Role = "traveler" | "hq" | "admin" | "travel-agent" | "yacht-partner" | "finance" | "support" | "partner_owner" | "partner_staff" | "agent";
 export type AgentLevel = "Agent" | "Senior Agent" | "Manager" | null;
 export type Account = {
   email: string;
@@ -41,6 +41,8 @@ export type Account = {
 type AuditEntry = {
   id: string;
   actor: string;
+  agentEnabled?: boolean;
+  agentDivisions?: Division[];
   action: string;
   targetType: string;
   targetId?: string;
@@ -48,15 +50,21 @@ type AuditEntry = {
   meta?: Record<string, unknown>;
 };
 
-export type PublicUser = Omit<Account, "password"> & { activeSpace?: "traveler" | "partner" | "agent"; roles?: Role[] };
+export type PublicUser = Omit<Account, "password"> & {
+  activeSpace?: "traveler" | "partner" | "agent";
+  roles?: Role[];
+  agentEnabled?: boolean;
+  agentDivisions?: Division[];
+};
 type AuthState = { user: PublicUser | null; accounts: Account[]; auditLog: AuditEntry[] };
 
 const defaultState: AuthState = { user: null, accounts: [], auditLog: [] };
 
 export const DIVISIONS: Division[] = ["TRAVEL", "YACHT", "VILLAS", "GROUPS", "RESORTS"];
-const AGENT_ROLES: Role[] = ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support"];
+const AGENT_ROLES: Role[] = ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "agent"];
 const PERMISSIONS: Record<Role, string[]> = {
   traveler: ["view:own"],
+  agent: ["dossiers:own", "proposals:own", "orders:submit", "documents:own"],
   hq: ["*"],
   admin: ["agents:read", "agents:write", "dossiers:all", "proposals:all", "orders:all", "documents:all", "finance:read"],
   "travel-agent": ["dossiers:own", "proposals:own", "orders:submit", "documents:own"],
@@ -279,8 +287,9 @@ export function signup(params: {
   if (!email || !password) throw new Error("Email and password are required");
 
   const normalizedEmail = email.trim();
-  const finalRoles = roles && roles.length ? roles : [role];
-  const isAgentRole = finalRoles.some((r) => AGENT_ROLES.includes(r));
+  const baseRoles = roles && roles.length ? roles : [role];
+  const isAgentRole = baseRoles.some((r) => AGENT_ROLES.includes(r) && r !== "agent");
+  const finalRoles = isAgentRole && !baseRoles.includes("agent") ? [...baseRoles, "agent"] : baseRoles;
   if (isAgentRole) {
     requireInviteCode(inviteCode);
   }
@@ -359,6 +368,21 @@ export function signup(params: {
         auditLog: [...s.auditLog, makeAudit("signup:update", normalizedEmail, "account", normalizedEmail, { role: baseAccount.role })],
       };
     });
+    if (typeof window !== "undefined") {
+      const hasPartnerRole = finalRoles.some((r) => r === "partner_owner" || r === "partner_staff");
+      const defaultActiveSpace = hasPartnerRole ? "partner" : finalRoles.some((r) => AGENT_ROLES.includes(r)) ? "agent" : "traveler";
+      setCookie("zeniva_active_space", defaultActiveSpace, 7);
+      setCookie("zeniva_roles", JSON.stringify(finalRoles), 7);
+      setCookie("zeniva_email", baseAccount.email, 7);
+      if (finalRoles.some((r) => AGENT_ROLES.includes(r))) {
+        setCookie("zeniva_agent_enabled", "1", 7);
+        setCookie("zeniva_agent_divisions", JSON.stringify(baseAccount.divisions || []), 7);
+      } else {
+        deleteCookie("zeniva_agent_enabled");
+        deleteCookie("zeniva_agent_divisions");
+      }
+      if (baseAccount.travelerProfile) setCookie("zeniva_has_traveler_profile", "1", 7);
+    }
     setTimeout(syncAccountToServer, 0);
     return { name: baseAccount.name, email: baseAccount.email, role: baseAccount.role, agentLevel: baseAccount.agentLevel };
   }
@@ -370,13 +394,31 @@ export function signup(params: {
       name: baseAccount.name,
       email: baseAccount.email,
       role: baseAccount.role,
+      roles: finalRoles,
       agentLevel: baseAccount.agentLevel,
       inviteCode: baseAccount.inviteCode,
       divisions: baseAccount.divisions,
       status: baseAccount.status,
+      agentEnabled: isAgentRole,
+      agentDivisions: baseAccount.divisions || [],
     },
     auditLog: [...s.auditLog, makeAudit("signup", baseAccount.email, "account", baseAccount.email, { role: baseAccount.role })],
   }));
+  if (typeof window !== "undefined") {
+    const hasPartnerRole = finalRoles.some((r) => r === "partner_owner" || r === "partner_staff");
+    const defaultActiveSpace = hasPartnerRole ? "partner" : finalRoles.some((r) => AGENT_ROLES.includes(r)) ? "agent" : "traveler";
+    setCookie("zeniva_active_space", defaultActiveSpace, 7);
+    setCookie("zeniva_roles", JSON.stringify(finalRoles), 7);
+    setCookie("zeniva_email", baseAccount.email, 7);
+    if (finalRoles.some((r) => AGENT_ROLES.includes(r))) {
+      setCookie("zeniva_agent_enabled", "1", 7);
+      setCookie("zeniva_agent_divisions", JSON.stringify(baseAccount.divisions || []), 7);
+    } else {
+      deleteCookie("zeniva_agent_enabled");
+      deleteCookie("zeniva_agent_divisions");
+    }
+    if (baseAccount.travelerProfile) setCookie("zeniva_has_traveler_profile", "1", 7);
+  }
   setTimeout(syncAccountToServer, 0);
   return { name: baseAccount.name, email: baseAccount.email, role: baseAccount.role, agentLevel: baseAccount.agentLevel };
 }
@@ -407,15 +449,28 @@ export function login(email: string, password: string, opts?: { role?: Role | "a
     throw new Error(opts?.role === "agent" ? "This account is not an agent account" : "This account is not allowed here");
   }
 
+  const normalizedRoles = accountRoles.some((r) => r === "agent")
+    ? accountRoles
+    : accountRoles.some((r) => AGENT_ROLES.includes(r))
+      ? [...accountRoles, "agent"]
+      : accountRoles;
+
   // determine default activeSpace
-  const hasPartnerRole = accountRoles.some((r) => r === "partner_owner" || r === "partner_staff");
-  const defaultActiveSpace = hasPartnerRole ? "partner" : accountRoles.includes("hq") || accountRoles.some((r) => AGENT_ROLES.includes(r)) ? "agent" : "traveler";
+  const hasPartnerRole = normalizedRoles.some((r) => r === "partner_owner" || r === "partner_staff");
+  const defaultActiveSpace = hasPartnerRole ? "partner" : normalizedRoles.some((r) => AGENT_ROLES.includes(r)) ? "agent" : "traveler";
 
   // set cookies for middleware and server-aware routing
   if (typeof window !== "undefined") {
     setCookie("zeniva_active_space", defaultActiveSpace, 7);
-    setCookie("zeniva_roles", JSON.stringify(accountRoles), 7);
+    setCookie("zeniva_roles", JSON.stringify(normalizedRoles), 7);
     setCookie("zeniva_email", account.email, 7);
+    if (normalizedRoles.some((r) => AGENT_ROLES.includes(r))) {
+      setCookie("zeniva_agent_enabled", "1", 7);
+      setCookie("zeniva_agent_divisions", JSON.stringify(account.divisions || []), 7);
+    } else {
+      deleteCookie("zeniva_agent_enabled");
+      deleteCookie("zeniva_agent_divisions");
+    }
     if (account.travelerProfile) setCookie("zeniva_has_traveler_profile", "1", 7);
   }
 
@@ -424,13 +479,15 @@ export function login(email: string, password: string, opts?: { role?: Role | "a
     user: {
       name: account.name,
       email: account.email,
-      roles: accountRoles,
-      role: accountRoles[0] as Role,
+      roles: normalizedRoles,
+      role: normalizedRoles[0] as Role,
       agentLevel: account.agentLevel,
       inviteCode: account.inviteCode,
       divisions: account.divisions,
       status: account.status,
       activeSpace: defaultActiveSpace,
+      agentEnabled: normalizedRoles.some((r) => AGENT_ROLES.includes(r)),
+      agentDivisions: account.divisions || [],
       travelerProfile: account.travelerProfile,
       partnerCompany: account.partnerCompany,
       partnerId: account.partnerId,
@@ -448,7 +505,7 @@ export function login(email: string, password: string, opts?: { role?: Role | "a
         .catch(() => undefined);
     }, 0);
   }
-  return { name: account.name, email: account.email, roles: accountRoles, agentLevel: account.agentLevel, activeSpace: defaultActiveSpace };
+  return { name: account.name, email: account.email, roles: normalizedRoles, agentLevel: account.agentLevel, activeSpace: defaultActiveSpace };
 }
 
 export function logout(redirectTo = "/") {
@@ -464,6 +521,8 @@ export function logout(redirectTo = "/") {
     deleteCookie("zeniva_active_space");
     deleteCookie("zeniva_roles");
     deleteCookie("zeniva_email");
+    deleteCookie("zeniva_agent_enabled");
+    deleteCookie("zeniva_agent_divisions");
     deleteCookie("zeniva_has_traveler_profile");
     window.location.href = redirectTo;
   }
@@ -521,7 +580,7 @@ export function getUser() {
 
 export function isAgent(user = state.user) {
   const roles = user ? (user.roles || (user.role ? [user.role] : [])) : [];
-  return roles.some((r) => AGENT_ROLES.includes(r));
+  return Boolean(user?.agentEnabled) || roles.some((r) => AGENT_ROLES.includes(r));
 }
 
 export function isPartner(user = state.user) {

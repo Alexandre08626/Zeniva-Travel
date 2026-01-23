@@ -25,8 +25,16 @@ function LoginContent() {
         router.push("/partner/dashboard");
         return;
       }
-      login(email.trim(), password, { role: mode });
-      router.push(mode === "agent" ? "/agent" : "/proposals");
+      const result = login(email.trim(), password);
+      if (result.activeSpace === "agent") {
+        router.push("/agent");
+        return;
+      }
+      if (result.activeSpace === "partner") {
+        router.push("/partner/dashboard");
+        return;
+      }
+      router.push("/proposals");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unable to sign in";
       setError(message);

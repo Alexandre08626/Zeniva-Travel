@@ -15,8 +15,9 @@ export default function proxy(req: NextRequest) {
       roles = [];
     }
   }
-  const agentRoles = new Set(["hq", "admin", "travel-agent", "yacht-partner", "finance", "support"]);
-  const isAgent = roles.some((role) => agentRoles.has(role));
+  const agentRoles = new Set(["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "agent"]);
+  const agentEnabled = req.cookies.get("zeniva_agent_enabled")?.value === "1";
+  const isAgent = agentEnabled || roles.some((role) => agentRoles.has(role));
 
   // Protect agent routes and agent API
   if (pathname.startsWith("/agent") || pathname.startsWith("/api/agent")) {
