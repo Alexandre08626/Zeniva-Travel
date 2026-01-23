@@ -4,6 +4,44 @@ import type { NextRequest } from "next/server";
 export default function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  const rolesCookie = req.cookies.get("zeniva_roles")?.value;
+  let roles: string[] = [];
+  if (rolesCookie) {
+    try {
+      const decoded = decodeURIComponent(rolesCookie);
+      const parsed = JSON.parse(decoded);
+      roles = Array.isArray(parsed) ? parsed.map(String) : [];
+    } catch {
+      roles = [];
+    }
+  }
+  const agentRoles = new Set(["hq", "admin", "travel-agent", "yacht-partner", "finance", "support"]);
+  const isAgent = roles.some((role) => agentRoles.has(role));
+
+  // Protect agent routes and agent API
+  if (pathname.startsWith("/agent") || pathname.startsWith("/api/agent")) {
+    if (!isAgent) {
+      if (pathname.startsWith("/api/agent")) {
+        return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+      }
+      const redirectUrl = new URL("/", req.url);
+      const res = NextResponse.redirect(redirectUrl);
+      res.cookies.set("zeniva_active_space", "traveler", { path: "/", maxAge: 60 * 60 * 24 * 7, sameSite: "lax" });
+      return res;
+    }
+  }
+
+  // Prevent switching into agent space if not agent
+  if (pathname === "/switch-space") {
+    const target = req.nextUrl.searchParams.get("target") || "";
+    if (target === "agent" && !isAgent) {
+      const redirectUrl = new URL("/", req.url);
+      const res = NextResponse.redirect(redirectUrl);
+      res.cookies.set("zeniva_active_space", "traveler", { path: "/", maxAge: 60 * 60 * 24 * 7, sameSite: "lax" });
+      return res;
+    }
+  }
+
   // Skip middleware for switch-space page to avoid redirect loops
   if (pathname === "/switch-space") {
     return NextResponse.next();
@@ -12,8 +50,6 @@ export default function proxy(req: NextRequest) {
   // Protect traveler routes (/traveler or /app which is traveler main)
   if (pathname.startsWith("/traveler") || pathname === "/app" || pathname.startsWith("/app")) {
     const activeSpace = req.cookies.get("zeniva_active_space")?.value;
-    const rolesCookie = req.cookies.get("zeniva_roles")?.value;
-    const roles = rolesCookie ? JSON.parse(decodeURIComponent(rolesCookie)) : [];
     const hasTravelerProfile = req.cookies.get("zeniva_has_traveler_profile")?.value === "1";
 
     // If user doesn't have traveler profile yet, redirect to quick create
@@ -36,5 +72,5 @@ export default function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/traveler/:path*", "/app/:path*"],
+  matcher: ["/traveler/:path*", "/app/:path*", "/agent/:path*", "/api/agent/:path*", "/switch-space"],
 };
