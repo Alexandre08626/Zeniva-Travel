@@ -89,13 +89,13 @@ export default function SignupPage() {
             className="w-full py-2 px-3 bg-black text-white rounded hover:bg-gray-800"
           >
             Back to home
-            <button
-              type="button"
-              disabled
-              className="w-full py-2 px-3 border rounded bg-gray-50 text-gray-400 cursor-not-allowed"
-            >
-              Partner sign-up (temporarily disabled)
-            </button>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
     <div className="min-h-screen flex items-center justify-center">
       <form onSubmit={handleSubmit} className="max-w-md w-full bg-white p-6 shadow rounded space-y-4" data-mode={mode}>
         <div>
