@@ -449,11 +449,11 @@ export function login(email: string, password: string, opts?: { role?: Role | "a
     throw new Error(opts?.role === "agent" ? "This account is not an agent account" : "This account is not allowed here");
   }
 
-  const normalizedRoles = accountRoles.some((r) => r === "agent")
+  const normalizedRoles = (accountRoles.some((r) => r === "agent")
     ? accountRoles
     : accountRoles.some((r) => AGENT_ROLES.includes(r))
       ? [...accountRoles, "agent"]
-      : accountRoles;
+      : accountRoles) as Role[];
 
   // determine default activeSpace
   const hasPartnerRole = normalizedRoles.some((r) => r === "partner_owner" || r === "partner_staff");
