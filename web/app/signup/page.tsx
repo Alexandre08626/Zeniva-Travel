@@ -1,7 +1,7 @@
 "use client";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { signup, useAuthStore, type Role, updatePartnerProfile } from "../../src/lib/authStore";
+import { signup, useAuthStore, type Role, updatePartnerProfile, logout } from "../../src/lib/authStore";
 import { addAgentFromAccount } from "../../src/lib/agent/agents";
 import { addClient } from "../../src/lib/agent/store";
 
@@ -113,12 +113,21 @@ export default function SignupPage() {
         <div className="max-w-md w-full bg-white p-6 shadow rounded">
           <h1 className="text-2xl font-semibold mb-2">Account already exists</h1>
           <p className="text-sm text-gray-600 mb-4">{user.email}</p>
-          <button
-            onClick={() => router.push("/")}
-            className="w-full py-2 px-3 bg-black text-white rounded hover:bg-gray-800"
-          >
-            Back to home
-          </button>
+          <div className="space-y-2">
+            <button
+              onClick={() => router.push("/")}
+              className="w-full py-2 px-3 bg-black text-white rounded hover:bg-gray-800"
+            >
+              Back to home
+            </button>
+            <button
+              onClick={() => logout(`/signup?space=${mode}`)}
+              className="w-full py-2 px-3 border rounded hover:bg-gray-50"
+              type="button"
+            >
+              Sign out and create another account
+            </button>
+          </div>
         </div>
       </div>
     );

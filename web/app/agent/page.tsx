@@ -27,6 +27,9 @@ export default function AgentDashboardPage() {
   const user = useAuthStore((s) => s.user);
   const hq = isHQ(user);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [inviteRole, setInviteRole] = useState<"agent" | "admin" | "hq">("agent");
+  const [inviteCode, setInviteCode] = useState("ZENIVA-AGENT");
+  const [inviteStatus, setInviteStatus] = useState<string | null>(null);
   const navLinks = useMemo(
     () => [
       { label: "Dashboard", href: "/agent" },
@@ -90,6 +93,21 @@ export default function AgentDashboardPage() {
     const interval = setInterval(checkUnread, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const code = inviteRole === "hq" ? "ZENIVA-HQ" : inviteRole === "admin" ? "ZENIVA-ADMIN" : "ZENIVA-AGENT";
+    setInviteCode(code);
+    setInviteStatus(null);
+  }, [inviteRole]);
+
+  const copyInvite = async () => {
+    try {
+      await navigator.clipboard.writeText(inviteCode);
+      setInviteStatus("Copied to clipboard");
+    } catch {
+      setInviteStatus("Copy failed — please copy manually");
+    }
+  };
 
   const handlePrimarySubmit = () => {
     let q = '';
@@ -162,6 +180,43 @@ export default function AgentDashboardPage() {
             </Link>
           ))}
         </nav>
+
+        {hq && (
+          <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">HQ Tools</p>
+                <h2 className="text-xl font-black" style={{ color: TITLE_TEXT }}>Invite code generator</h2>
+                <p className="text-sm" style={{ color: MUTED_TEXT }}>Generate the official invitation code for new agents.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold"
+                  value={inviteRole}
+                  onChange={(e) => setInviteRole(e.target.value as "agent" | "admin" | "hq")}
+                >
+                  <option value="agent">Agent</option>
+                  <option value="admin">Admin</option>
+                  <option value="hq">HQ</option>
+                </select>
+                <button
+                  type="button"
+                  onClick={copyInvite}
+                  className="rounded-full px-4 py-2 text-sm font-semibold text-white"
+                  style={{ backgroundColor: PREMIUM_BLUE }}
+                >
+                  Copy code
+                </button>
+              </div>
+            </div>
+            <div className="mt-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-800">
+                {inviteCode}
+              </div>
+              {inviteStatus && <span className="text-xs font-semibold text-slate-500">{inviteStatus}</span>}
+            </div>
+          </section>
+        )}
 
         <div className="space-y-6">
           <div
