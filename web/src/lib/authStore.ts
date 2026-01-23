@@ -308,6 +308,53 @@ export function signup(params: {
     status: "active",
   });
 
+  const syncAccountToServer = () => {
+    if (typeof window === "undefined") return;
+    const rolesToSync = baseAccount.roles || (baseAccount.role ? [baseAccount.role] : []);
+    const isAgentAccount = rolesToSync.some((r) => AGENT_ROLES.includes(r));
+    const isPartnerAccount = rolesToSync.includes("partner_owner") || rolesToSync.includes("partner_staff");
+    const isTravelerAccount = rolesToSync.includes("traveler") || !rolesToSync.length;
+
+    if (isAgentAccount || isPartnerAccount) {
+      try {
+        fetch("/api/accounts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: baseAccount.name || "Account",
+            email: baseAccount.email,
+            role: baseAccount.role || rolesToSync[0] || "traveler",
+            roles: rolesToSync,
+            divisions: baseAccount.divisions || [],
+            status: baseAccount.status || "active",
+          }),
+        });
+      } catch (_) {
+        // ignore sync errors
+      }
+    }
+
+    if (isTravelerAccount) {
+      try {
+        fetch("/api/clients", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: baseAccount.name || "Traveler",
+            email: baseAccount.email,
+            ownerEmail: HQ_EMAIL.toLowerCase(),
+            phone: "",
+            origin: "house",
+            assignedAgents: [],
+            primaryDivision: "TRAVEL",
+          }),
+        });
+      } catch (_) {
+        // ignore sync errors
+      }
+    }
+  };
+
   const existingIdx = state.accounts.findIndex((a) => normalizeEmail(a.email) === normalizeEmail(normalizedEmail));
 
   if (existingIdx >= 0) {
@@ -323,6 +370,7 @@ export function signup(params: {
         auditLog: [...s.auditLog, makeAudit("signup:update", normalizedEmail, "account", normalizedEmail, { role: baseAccount.role })],
       };
     });
+    setTimeout(syncAccountToServer, 0);
     return { name: baseAccount.name, email: baseAccount.email, role: baseAccount.role, agentLevel: baseAccount.agentLevel };
   }
 
@@ -340,6 +388,7 @@ export function signup(params: {
     },
     auditLog: [...s.auditLog, makeAudit("signup", baseAccount.email, "account", baseAccount.email, { role: baseAccount.role })],
   }));
+  setTimeout(syncAccountToServer, 0);
   return { name: baseAccount.name, email: baseAccount.email, role: baseAccount.role, agentLevel: baseAccount.agentLevel };
 }
 
