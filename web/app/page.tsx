@@ -144,12 +144,6 @@ export default function HomePage() {
               backgroundColor: "#0b1226",
             }}
           >
-            <img
-              src="/branding/ChatGPT%20Image%20Jan%2023,%202026,%2012_50_38%20PM.png"
-              alt=""
-              aria-hidden="true"
-              className="absolute inset-0 h-full w-full object-cover"
-            />
             <div className="relative z-10 px-5 pt-8 pb-12 flex flex-col min-h-[100dvh]">
               <div className="text-center">
                 <h1 className="text-[28px] font-semibold tracking-tight text-white">Zeniva Travel</h1>
@@ -157,7 +151,7 @@ export default function HomePage() {
               </div>
 
               <div
-                className="mt-6 rounded-3xl border border-white/20 bg-[#0c1733]/95 p-4 shadow-[0_24px_80px_rgba(8,18,42,0.6)]"
+                className="mt-6 rounded-3xl border border-[#1e2a4d] bg-[#0c1733] p-4 shadow-[0_24px_80px_rgba(8,18,42,0.6)]"
               >
                 <div className="flex items-center justify-end gap-2">
                   <Link href="/signup" className="rounded-full border border-white/30 px-3 py-1 text-xs font-semibold text-white">Sign in</Link>
@@ -165,9 +159,9 @@ export default function HomePage() {
                 </div>
 
                 <div className="mt-4 space-y-4">
-                  <Link href="/call" className="rounded-2xl border border-white/10 bg-[#13244a] p-3 block">
+                  <Link href="/call" className="rounded-2xl border border-[#1e2a4d] bg-[#13244a] p-3 block">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-full bg-[#1b2b52] flex items-center justify-center">
                         <img src="/branding/lina-avatar.png" alt="Lina" className="h-9 w-9 rounded-full" />
                       </div>
                       <div>
@@ -181,9 +175,9 @@ export default function HomePage() {
                   </Link>
 
                   <div className="flex items-start gap-3">
-                    <Link href="/chat" className="flex-1 rounded-2xl border border-white/10 bg-[#13244a] p-3 block">
+                    <Link href="/chat" className="flex-1 rounded-2xl border border-[#1e2a4d] bg-[#13244a] p-3 block">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center">
+                        <div className="h-10 w-10 rounded-full bg-[#1b2b52] flex items-center justify-center">
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M5 5h14v9H8l-3 3V5z" stroke="rgba(255,255,255,0.9)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
@@ -198,7 +192,7 @@ export default function HomePage() {
                       </p>
                     </Link>
 
-                    <div className="rounded-[24px] border border-white/15 bg-[#0f1f3f] p-2 shadow-[0_18px_50px_rgba(8,18,42,0.6)]">
+                    <div className="rounded-[24px] border border-[#1e2a4d] bg-[#0f1f3f] p-2 shadow-[0_18px_50px_rgba(8,18,42,0.6)]">
                       <img
                         src="/branding/lina-avatar.png"
                         alt="Lina portrait"
@@ -208,7 +202,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className="mt-5 rounded-2xl overflow-hidden border border-white/15">
+                <div className="mt-5 rounded-2xl overflow-hidden border border-[#1e2a4d]">
                   <img
                     src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=60"
                     alt="Beach escape"
