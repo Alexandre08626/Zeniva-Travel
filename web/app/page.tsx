@@ -130,13 +130,105 @@ export default function HomePage() {
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <div className="w-screen left-1/2 right-1/2 -translate-x-1/2 relative">
-        <div className="mx-auto w-full px-6 pt-5">
+        <div className="mx-auto w-full px-6 pt-5 hidden sm:block">
           <Header isLoggedIn={isLoggedIn} userEmail={userEmail} />
         </div>
       </div>
 
+      {/* MOBILE HERO (matches phone mock) */}
+      <section className="sm:hidden mt-2">
+        <div className="relative w-screen left-1/2 right-1/2 -translate-x-1/2">
+          <div
+            className="relative min-h-[92vh] overflow-hidden"
+            style={{
+              backgroundImage: "linear-gradient(180deg, rgba(6,14,35,0.75) 0%, rgba(6,14,35,0.85) 55%, rgba(6,14,35,0.95) 100%), url('/branding/ChatGPT%20Image%20Jan%2023,%202026,%2012_50_38%20PM.png')",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          >
+            <div className="relative z-10 px-5 pt-6 pb-10 flex flex-col min-h-[92vh]">
+              <div className="flex items-center justify-between">
+                <img src="/branding/logo.png" alt="Zeniva" className="h-10 w-auto" />
+              </div>
+
+              <div
+                className="mt-6 rounded-3xl border border-white/20 bg-white/10 p-4 shadow-[0_18px_60px_rgba(15,23,42,0.45)]"
+                style={{ backdropFilter: "blur(18px)" }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="text-white font-semibold text-lg">Zeniva Travel</div>
+                  <div className="flex gap-2">
+                    <button className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold text-white/90">Sign in</button>
+                    <button className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-900">Log in</button>
+                  </div>
+                </div>
+                <p className="mt-1 text-xs text-white/70">Ultra‑personalised travel, assisted by Lina AI.</p>
+
+                <div className="mt-4 space-y-3">
+                  <div className="rounded-2xl border border-white/15 bg-white/10 p-3" style={{ backdropFilter: "blur(14px)" }}>
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <img src="/branding/lina-avatar.png" alt="Lina" className="h-9 w-9 rounded-full" />
+                      </div>
+                      <div>
+                        <div className="text-[10px] uppercase tracking-[0.2em] text-white/60">Video AI</div>
+                        <div className="text-white font-semibold">Call Lina</div>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-[12px] text-white/75">
+                      Live AI video concierge to design your next trip and answer questions in real time.
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/15 bg-white/10 p-3" style={{ backdropFilter: "blur(14px)" }}>
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M5 5h14v9H8l-3 3V5z" stroke="rgba(255,255,255,0.9)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </div>
+                      <div>
+                        <div className="text-[10px] uppercase tracking-[0.2em] text-white/60">Chat AI</div>
+                        <div className="text-white font-semibold">Chat with Lina</div>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-[12px] text-white/75">
+                      Text conversation to define dates, budget, destinations, and preferred travel style.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-2xl overflow-hidden border border-white/20">
+                  <img
+                    src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=60"
+                    alt="Beach escape"
+                    className="h-28 w-full object-cover"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-auto pt-10">
+                <h1
+                  className="text-4xl font-semibold leading-[1.05]"
+                  style={{
+                    background: "linear-gradient(90deg,#f8e7b8 0%, #e4c06a 55%, #cfa24a 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    textShadow: "0 10px 30px rgba(0,0,0,0.35)",
+                  }}
+                >
+                  Discover. Connect.
+                  <br />
+                  Experience.
+                </h1>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* HERO SECTION (Compact Premium) - full-bleed banner */}
-      <section className="mt-4 mb-8 sm:mt-8 sm:mb-12">
+      <section className="mt-4 mb-8 sm:mt-8 sm:mb-12 hidden sm:block">
         <div className="relative w-screen left-1/2 right-1/2 -translate-x-1/2">
           <div className="relative rounded-3xl overflow-hidden">
             <div
@@ -240,8 +332,8 @@ export default function HomePage() {
                       <path d="M5 5h14v9H8l-3 3V5z" stroke="#0F172A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
-                  <div className="text-lg font-extrabold text-slate-900">Chat Lina</div>
-                  <div className="text-sm text-slate-500">Start a conversation</div>
+                  <div className="text-lg font-extrabold text-slate-900"><AutoTranslate text="Chat Lina" className="inline" /></div>
+                  <div className="text-sm text-slate-500"><AutoTranslate text="Start a conversation" className="inline" /></div>
                 </div>
               </Link>
 
@@ -252,8 +344,8 @@ export default function HomePage() {
                       <path d="M22 16.92V20a1 1 0 0 1-1 1 19 19 0 0 1-8.63-2.21A19 19 0 0 1 3 8a1 1 0 0 1 1-1h3.09a1 1 0 0 1 1 .75c.14.7.48 1.9 1.2 3.04a1 1 0 0 1-.24 1.26l-1.2 1.2a12 12 0 0 0 6.6 6.6l1.2-1.2a1 1 0 0 1 1.26-.24c1.14.72 2.34 1.06 3.04 1.2a1 1 0 0 1 .75 1V20z" />
                     </svg>
                   </div>
-                  <div className="text-lg font-extrabold text-slate-900">Call Lina</div>
-                  <div className="text-sm text-slate-500">Speak with concierge</div>
+                  <div className="text-lg font-extrabold text-slate-900"><AutoTranslate text="Call Lina" className="inline" /></div>
+                  <div className="text-sm text-slate-500"><AutoTranslate text="Speak with concierge" className="inline" /></div>
                 </div>
               </Link>
 
@@ -265,8 +357,8 @@ export default function HomePage() {
                       <path d="M9 9h6M9 12h6M9 15h4" stroke="#0F172A" strokeWidth="1.5" strokeLinecap="round" />
                     </svg>
                   </div>
-                  <div className="text-lg font-extrabold text-slate-900">Proposals</div>
-                  <div className="text-sm text-slate-500">View curated proposals</div>
+                  <div className="text-lg font-extrabold text-slate-900"><AutoTranslate text="Proposals" className="inline" /></div>
+                  <div className="text-sm text-slate-500"><AutoTranslate text="View curated proposals" className="inline" /></div>
                 </div>
               </Link>
             </div>
@@ -277,22 +369,22 @@ export default function HomePage() {
         <section className="mt-20 mb-20">
           <div className="mb-8 flex flex-col items-center text-center gap-2">
             <h2 className="text-4xl font-black" style={{ color: TITLE_TEXT }}>
-              Collection & Themes
+              <AutoTranslate text="Collection & Themes" className="inline" />
             </h2>
-            <p className="text-slate-600">Browse curated travel collections tailored by Lina.</p>
+            <p className="text-slate-600"><AutoTranslate text="Browse curated travel collections tailored by Lina." className="inline" /></p>
           </div>
-          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory justify-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {COLLECTIONS.map((c) => (
               <Link
                 key={c.id}
                 href={c.href || `/collections/${c.title.toLowerCase().replace(/\s+/g,'-')}`}
-                className="flex-shrink-0 rounded-2xl border border-slate-200 bg-white p-6 hover:shadow-lg transition min-w-[280px] cursor-pointer snap-start"
+                className="rounded-2xl border border-slate-200 bg-white p-6 hover:shadow-lg transition w-full cursor-pointer"
               >
                 <div className="text-4xl mb-3">
                   <Icon name={c.icon} />
                 </div>
-                <h3 className="text-lg font-bold" style={{ color: TITLE_TEXT }}>{c.title}</h3>
-                <p className="text-sm text-slate-500 mt-1">{c.description}</p>
+                <h3 className="text-lg font-bold" style={{ color: TITLE_TEXT }}><AutoTranslate text={c.title} className="inline" /></h3>
+                <p className="text-sm text-slate-500 mt-1"><AutoTranslate text={c.description} className="inline" /></p>
               </Link>
             ))}
           </div>
@@ -303,9 +395,9 @@ export default function HomePage() {
           <div className="relative mb-8">
             <div className="flex flex-col items-center text-center gap-2">
               <h2 className="text-4xl font-black" style={{ color: TITLE_TEXT }}>
-                Featured Trips by Lina
+                <AutoTranslate text="Featured Trips by Lina" className="inline" />
               </h2>
-              <p className="text-slate-600">Hand-picked proposals ready to book.</p>
+              <p className="text-slate-600"><AutoTranslate text="Hand-picked proposals ready to book." className="inline" /></p>
             </div>
             <Link
               href="/packages"
@@ -327,13 +419,13 @@ export default function HomePage() {
                 <LinaAvatar size="md" className="h-full w-full" />
               </div>
               <div>
-                <h3 className="text-2xl font-black">Lina AI, Your Travel Genius</h3>
-                <p className="text-sm text-white/80 mt-1">Powered by Zeniva Intelligence</p>
+                <h3 className="text-2xl font-black"><AutoTranslate text="Lina AI, Your Travel Genius" className="inline" /></h3>
+                <p className="text-sm text-white/80 mt-1"><AutoTranslate text="Powered by Zeniva Intelligence" className="inline" /></p>
               </div>
             </div>
 
             <p className="text-lg font-semibold leading-8 mb-8">
-              Lina asks clarifying questions about your preferences, budget, and dates — then generates hand-picked proposals combining flights, hotels, and experiences. No cookie-cutter packages. Just travel tailored to you.
+              <AutoTranslate text="Lina asks clarifying questions about your preferences, budget, and dates — then generates hand-picked proposals combining flights, hotels, and experiences. No cookie-cutter packages. Just travel tailored to you." className="inline" />
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -341,22 +433,22 @@ export default function HomePage() {
                 <div className="mb-2">
                   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 14h-2v-2h2v2zm0-4h-2V6h2v6z" fill="#FFF"/></svg>
                 </div>
-                <h4 className="font-bold mb-2">She Asks</h4>
-                <p className="text-sm text-white/80">Departure city, dates, budget & vibe</p>
+                <h4 className="font-bold mb-2"><AutoTranslate text="She Asks" className="inline" /></h4>
+                <p className="text-sm text-white/80"><AutoTranslate text="Departure city, dates, budget & vibe" className="inline" /></p>
               </div>
               <div>
                 <div className="mb-2">
                   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3l2 5 5 .5-4 3 1.2 5L12 15l-4.2 2.5L9 11 5 8l5-.5L12 3z" fill="#FFF"/></svg>
                 </div>
-                <h4 className="font-bold mb-2">She Curates</h4>
-                <p className="text-sm text-white/80">Optimized flight + hotel combos</p>
+                <h4 className="font-bold mb-2"><AutoTranslate text="She Curates" className="inline" /></h4>
+                <p className="text-sm text-white/80"><AutoTranslate text="Optimized flight + hotel combos" className="inline" /></p>
               </div>
               <div>
                 <div className="mb-2">
                   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4" stroke="#FFF" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </div>
-                <h4 className="font-bold mb-2">You Book</h4>
-                <p className="text-sm text-white/80">Ready-to-checkout itineraries</p>
+                <h4 className="font-bold mb-2"><AutoTranslate text="You Book" className="inline" /></h4>
+                <p className="text-sm text-white/80"><AutoTranslate text="Ready-to-checkout itineraries" className="inline" /></p>
               </div>
             </div>
 
@@ -366,7 +458,7 @@ export default function HomePage() {
                 className="inline-block rounded-full px-8 py-3 text-sm font-extrabold bg-white"
                 style={{ color: PREMIUM_BLUE }}
               >
-                Start Planning Now →
+                <AutoTranslate text="Start Planning Now →" className="inline" />
               </Link>
             </div>
           </div>

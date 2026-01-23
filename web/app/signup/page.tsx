@@ -51,6 +51,7 @@ export default function SignupPage() {
           ownerEmail: "info@zeniva.ca",
           phone: "",
           primaryDivision: "TRAVEL",
+          origin: "web_signup",
         });
         try {
           await fetch("/api/clients", {
@@ -62,7 +63,7 @@ export default function SignupPage() {
               email: entry.email,
               ownerEmail: entry.ownerEmail,
               phone: entry.phone,
-              origin: "house",
+              origin: "web_signup",
               assignedAgents: [],
               primaryDivision: entry.primaryDivision,
             }),

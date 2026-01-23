@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 type OfferCard = {
@@ -46,16 +46,16 @@ function Stepper({ step }: { step: number }) {
 export default function FlightReviewClient() {
   const router = useRouter();
   const params = useSearchParams();
-  const [selection, setSelection] = useState<SelectionState | null>(null);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const raw = window.sessionStorage.getItem("flight_selection");
-    if (raw) {
-      try {
-        setSelection(JSON.parse(raw));
-        return;
-      } catch (_) {}
+  const selection = useMemo<SelectionState | null>(() => {
+    if (typeof window !== "undefined") {
+      const raw = window.sessionStorage.getItem("flight_selection");
+      if (raw) {
+        try {
+          return JSON.parse(raw) as SelectionState;
+        } catch (_) {
+          // ignore parse errors
+        }
+      }
     }
 
     const offer: OfferCard = {
@@ -79,7 +79,7 @@ export default function FlightReviewClient() {
       cabin: params.get("cabin") || "",
     };
 
-    setSelection({ offers: [offer], searchContext });
+    return { offers: [offer], searchContext };
   }, [params]);
 
   const offers = selection?.offers || [];

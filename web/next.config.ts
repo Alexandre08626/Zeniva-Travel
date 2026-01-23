@@ -4,6 +4,7 @@ import type { NextConfig } from "next";
 const rootDir = path.resolve(__dirname);
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   // Turbopack root forced to the `web` directory to avoid workspace-root resolution
   // when multiple lockfiles exist in the repository root.
   // Use an absolute path so Vercel's build (e.g. /vercel/path0/web) matches outputFileTracingRoot.
@@ -53,6 +54,52 @@ const nextConfig: NextConfig = {
         hostname: "static.wixstatic.com",
       },
     ],
+  },
+  async headers() {
+    const baseCsp = [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'self'",
+      "object-src 'none'",
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' data: https:",
+      "style-src 'self' 'unsafe-inline' https:",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
+      "connect-src 'self' https: wss:",
+      "upgrade-insecure-requests",
+    ].join("; ");
+
+    const securityHeaders = [
+      { key: "Content-Security-Policy", value: baseCsp },
+      { key: "X-Frame-Options", value: "SAMEORIGIN" },
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
+      { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+      { key: "Cross-Origin-Embedder-Policy", value: "credentialless" },
+      { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains; preload" },
+    ];
+
+    const corsOrigin =
+      process.env.CORS_ORIGIN ||
+      (process.env.NODE_ENV !== "production" ? "http://localhost:3000" : "https://zenivatravel.com");
+
+    return [
+      {
+        source: "/(.*)",
+        headers: securityHeaders,
+      },
+      {
+        source: "/api/:path*",
+        headers: [
+          ...securityHeaders,
+          { key: "Access-Control-Allow-Origin", value: corsOrigin },
+          { key: "Access-Control-Allow-Methods", value: "GET,POST,PUT,PATCH,DELETE,OPTIONS" },
+          { key: "Access-Control-Allow-Headers", value: "Content-Type, Authorization, X-Requested-With, X-API-Key" },
+        ],
+      },
+    ];
   },
 };
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useAuthStore, logout, switchActiveSpace } from '@/src/lib/authStore';
@@ -12,7 +12,6 @@ export default function AccountMenu() {
   const [open, setOpen] = useState(false);
   const [menuStyle, setMenuStyle] = useState<{ top: number; right: number } | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
-  const [mounted, setMounted] = useState(false);
 
   const roles = user?.roles || (user?.role ? [user.role] : []);
   // HQ has access to all spaces including partner for admin purposes
@@ -34,10 +33,6 @@ export default function AccountMenu() {
       window.location.href = targetUrl;
     }, 150);
   }
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   if (!user) {
     return null;
@@ -63,7 +58,7 @@ export default function AccountMenu() {
           <LinaAvatar size="sm" />
           <span className="hidden sm:inline text-sm font-medium truncate max-w-[120px]">{user.name}</span>
         </button>
-        {open && mounted && createPortal(
+        {open && typeof document !== 'undefined' && createPortal(
           <div
             className="fixed w-64 rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-900 shadow-xl ring-1 ring-black/5 z-[99999]"
             style={{ top: menuStyle?.top ?? 64, right: menuStyle?.right ?? 16 }}

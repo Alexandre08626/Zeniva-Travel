@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuthStore } from "../../../src/lib/authStore";
 import { TITLE_TEXT, MUTED_TEXT } from "../../../src/design/tokens";
-import { partnerOrganizations, propertyOwners, listingAssignments } from "../../../src/lib/partnerRelations";
+import { partnerOrganizations, propertyOwners, listingAssignments, type PartnerOrganization, type PropertyOwner } from "../../../src/lib/partnerRelations";
 import { mockListings } from "../../../src/lib/mockData";
 import { resortPartners } from "../../../src/data/partners/resorts";
 import AirbnbAvailability from "../../../src/components/airbnbs/AirbnbAvailability.client";
@@ -68,6 +68,57 @@ export default function PartnerAccountsPage() {
   });
 
   const canView = !!user && allowedEmails.has(user.email?.toLowerCase() || "");
+
+  const dynamicPartners = useMemo<PartnerOrganization[]>(() => {
+    if (!data.length) return [];
+    const partnerAccounts = data.filter((account) => {
+      const roles = Array.isArray(account.roles) && account.roles.length ? account.roles : account.role ? [account.role] : [];
+      return roles.includes("partner_owner") || roles.includes("partner_staff");
+    });
+
+    return partnerAccounts.map((account, index) => {
+      const baseId = account.id || account.email || account.name || `partner-${index + 1}`;
+      const normalized = String(baseId).toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const partnerId = normalized || `partner-${index + 1}`;
+      return {
+        id: partnerId,
+        displayName: account.name || "Partner",
+        legalName: account.name || "Partner",
+        primaryContactEmail: account.email,
+        phone: "—",
+        ownerId: `owner-${partnerId}`,
+      } as PartnerOrganization;
+    });
+  }, [data]);
+
+  const dynamicOwners = useMemo<PropertyOwner[]>(() => {
+    return dynamicPartners.map((partner) => ({
+      id: partner.ownerId,
+      name: partner.displayName,
+      email: partner.primaryContactEmail,
+      phone: partner.phone || "—",
+    }));
+  }, [dynamicPartners]);
+
+  const mergedPartners = useMemo<PartnerOrganization[]>(() => {
+    const dedupe = new Map<string, PartnerOrganization>();
+    [...partnerOrganizations, ...dynamicPartners].forEach((partner) => {
+      const key = partner.id || partner.primaryContactEmail;
+      if (!key) return;
+      if (!dedupe.has(key)) dedupe.set(key, partner);
+    });
+    return Array.from(dedupe.values());
+  }, [dynamicPartners]);
+
+  const mergedOwners = useMemo<PropertyOwner[]>(() => {
+    const dedupe = new Map<string, PropertyOwner>();
+    [...propertyOwners, ...dynamicOwners].forEach((owner) => {
+      const key = owner.id || owner.email;
+      if (!key) return;
+      if (!dedupe.has(key)) dedupe.set(key, owner);
+    });
+    return Array.from(dedupe.values());
+  }, [dynamicOwners]);
 
   useEffect(() => {
     if (!canView) return;
@@ -282,9 +333,9 @@ export default function PartnerAccountsPage() {
   }, [remoteListings]);
 
   const partnersWithListings = useMemo(() => {
-    return partnerOrganizations.map((partner) => {
+    return mergedPartners.map((partner) => {
       const account = data.find((row) => row.id === partner.id || row.email === partner.primaryContactEmail);
-      const owner = propertyOwners.find((o) => o.id === partner.ownerId);
+      const owner = mergedOwners.find((o) => o.id === partner.ownerId);
       const listings = partnerListings.filter((listing) => listing.partnerId === partner.id);
       const assignments = listingAssignments.filter((assignment) => assignment.partnerId === partner.id);
       const locations = Array.from(new Set(listings.map((listing) => listing.location)));

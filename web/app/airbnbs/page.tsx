@@ -9,6 +9,7 @@ import TravelSearchWidget from "../../src/components/TravelSearchWidget";
 import LinaWidget from "../../src/components/LinaWidget";
 import AutoTranslate from "../../src/components/AutoTranslate";
 import { createTrip, updateSnapshot, applyTripPatch, generateProposal, setProposalSelection } from "../../lib/store/tripsStore";
+import { normalizeListingTitle, normalizePetFriendly } from "../../src/lib/format";
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -29,6 +30,15 @@ function extractField(description: string | undefined, label: string) {
   const re = new RegExp(`${label}\s*\n+\s*([^\n]+)`, "i");
   const match = description.match(re);
   return match?.[1]?.trim() || null;
+}
+
+function cleanDescription(description: string) {
+  if (!description) return "";
+  const withoutHeader = description.replace(/Property Description\s*/i, "");
+  const beforeContact = withoutHeader.split("Contact Agent")[0];
+  const beforeDetails = beforeContact.split("Property Details")[0];
+  const cleaned = normalizePetFriendly(beforeDetails.replace(/\n{3,}/g, "\n\n").trim());
+  return cleaned.length < 40 ? "Curated boutique stay with Zeniva concierge support." : cleaned;
 }
 
 export default function AirbnbsPage() {
@@ -88,9 +98,9 @@ export default function AirbnbsPage() {
     const resolvedLocation = resolveLocation(p);
     return {
     slug: p.id || slugify(p.title || `airbnb-${idx}`),
-    title: p.title || "Residence",
+    title: normalizeListingTitle(p.title || "Residence"),
     location: resolvedLocation || "",
-    description: p.description || "",
+    description: cleanDescription(p.description || ""),
     image: p.thumbnail || (p.images && p.images[0]) || "/branding/icon-proposals.svg",
     images: p.images || (p.thumbnail ? [p.thumbnail] : []),
   };
@@ -242,22 +252,22 @@ export default function AirbnbsPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <p className="text-sm uppercase tracking-wide text-slate-500">Airbnbs</p>
-              <h1 className="text-3xl font-black mt-1">Residences curated by Zeniva</h1>
-              <p className="text-slate-600 mt-2">Browse stays and message us to book.</p>
+              <p className="text-sm uppercase tracking-wide text-slate-500"><AutoTranslate text="Airbnbs" className="inline" /></p>
+              <h1 className="text-3xl font-black mt-1"><AutoTranslate text="Residences curated by Zeniva" className="inline" /></h1>
+              <p className="text-slate-600 mt-2"><AutoTranslate text="Browse stays and message us to book." className="inline" /></p>
             </div>
             <Link href="/chat?prompt=Plan%20an%20Airbnb%20stay" className="hidden md:inline-flex px-4 py-2 rounded-full bg-black text-white text-sm font-semibold shadow">
-              Chat to book
+              <AutoTranslate text="Chat to book" className="inline" />
             </Link>
           </div>
 
         {loading ? (
           <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-600 shadow">
-            Loading residences...
+            <AutoTranslate text="Loading residences..." className="inline" />
           </div>
         ) : mapped.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-600 shadow">
-            No residences available right now. Please check back soon.
+            <AutoTranslate text="No residences available right now. Please check back soon." className="inline" />
           </div>
         ) : (
           <>

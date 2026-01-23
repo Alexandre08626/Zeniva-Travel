@@ -4,6 +4,7 @@ import Image from 'next/image';
 import AirbnbAvailability from '@/src/components/airbnbs/AirbnbAvailability.client';
 import AirbnbBookingSummary from '@/src/components/airbnbs/AirbnbBookingSummary.client';
 import AddToProposalButton from '@/src/components/proposals/AddToProposalButton.client';
+import { formatCurrencyAmount, normalizeListingTitle, normalizePetFriendly } from '@/src/lib/format';
 
 function slugify(s: string) {
   return (s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -21,7 +22,8 @@ function cleanDescription(description: string) {
   const withoutHeader = description.replace(/Property Description\s*/i, '');
   const beforeContact = withoutHeader.split('Contact Agent')[0];
   const beforeDetails = beforeContact.split('Property Details')[0];
-  return beforeDetails.replace(/\n{3,}/g, '\n\n').trim();
+  const cleaned = normalizePetFriendly(beforeDetails.replace(/\n{3,}/g, '\n\n').trim());
+  return cleaned.length < 40 ? 'Curated boutique stay with Zeniva concierge support.' : cleaned;
 }
 
 
@@ -43,10 +45,12 @@ export default async function AirbnbDetailPage({ params }: { params: Promise<{ s
   const gridImages = [...gallery];
   while (gridImages.length < 5) gridImages.push(hero);
 
+  const displayTitle = normalizeListingTitle(item.title || 'Residence');
+
   const propertyType = extractField(item.description || '', 'Property Type');
   const bedrooms = extractField(item.description || '', 'Bedrooms');
   const bathrooms = extractField(item.description || '', 'Bathrooms');
-  const propertyLocation = extractField(item.description || '', 'Property Location') || item.location;
+  const propertyLocation = extractField(item.description || '', 'Property Location') || item.location || '';
   const metaLine = [
     propertyType || 'Private stay',
     bedrooms ? `${bedrooms} bedroom${bedrooms === '1' ? '' : 's'}` : null,
@@ -76,7 +80,7 @@ export default async function AirbnbDetailPage({ params }: { params: Promise<{ s
 
         <div className="space-y-2">
           <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Zeniva travel</p>
-          <h1 className="text-3xl font-black text-slate-900">{item.title}</h1>
+          <h1 className="text-3xl font-black text-slate-900">{displayTitle}</h1>
           <div className="flex flex-wrap items-center gap-2 text-sm text-blue-800">
             <span className="font-semibold">4.94 · 87 reviews</span>
             <span>· Superhost</span>
@@ -89,7 +93,7 @@ export default async function AirbnbDetailPage({ params }: { params: Promise<{ s
           <div className="lg:col-span-2 lg:row-span-2 h-80 lg:h-full">
             <Image
               src={gridImages[0]}
-              alt={item.title}
+              alt={displayTitle}
               width={1200}
               height={900}
               className="h-full w-full object-cover"
@@ -101,7 +105,7 @@ export default async function AirbnbDetailPage({ params }: { params: Promise<{ s
             <div key={i} className="h-40 lg:h-full">
               <Image
                 src={img}
-                alt={`${item.title} photo ${i + 2}`}
+                alt={`${displayTitle} photo ${i + 2}`}
                 width={800}
                 height={600}
                 className="h-full w-full object-cover"
@@ -176,15 +180,15 @@ export default async function AirbnbDetailPage({ params }: { params: Promise<{ s
             <AirbnbBookingSummary
               pricePerNight={pricePerNight}
               storageKey={storageKey}
-              propertyName={item.title}
+              propertyName={displayTitle}
               sourcePath={`/airbnbs/${slug}`}
               beforeBook={
                 <AddToProposalButton
-                  title={item.title}
+                  title={displayTitle}
                   destination={propertyLocation || item.location || ""}
                   accommodationType="Airbnb"
                   style="Private residence"
-                  price={`$${pricePerNight}/night`}
+                  price={`${formatCurrencyAmount(pricePerNight, "USD")}/night`}
                   image={hero}
                   images={gallery}
                   description={descriptionText}

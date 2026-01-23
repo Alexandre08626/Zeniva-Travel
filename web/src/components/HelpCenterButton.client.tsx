@@ -146,8 +146,8 @@ export default function HelpCenterButton() {
         className="help-float"
         style={{
           position: "fixed",
-          bottom: 32,
-          right: 32,
+          bottom: 96,
+          right: 24,
           zIndex: 1000,
           background: `linear-gradient(110deg, ${GRADIENT_START} 0%, ${GRADIENT_END} 60%)`,
           color: "#fff",
@@ -345,8 +345,8 @@ export default function HelpCenterButton() {
       <style>{`
         @media (max-width: 640px) {
           .help-float {
-            bottom: 20px !important;
-            right: 20px !important;
+            bottom: 72px !important;
+            right: 16px !important;
             padding: 12px 20px 12px 16px !important;
             font-size: 16px !important;
           }

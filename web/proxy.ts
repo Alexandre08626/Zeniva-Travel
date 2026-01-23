@@ -1,8 +1,33 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+
+function normalizeOrigin(origin: string) {
+  return origin.replace(/\/$/, "").toLowerCase();
+}
+
+function getAllowedOrigins(req: NextRequest) {
+  const candidates = [process.env.CORS_ORIGIN, process.env.NEXT_PUBLIC_SITE_URL, req.nextUrl.origin].filter(Boolean) as string[];
+  return candidates.map(normalizeOrigin);
+}
+
 export default function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  if (!SAFE_METHODS.has(req.method)) {
+    const origin = req.headers.get("origin");
+    if (origin) {
+      const normalizedOrigin = normalizeOrigin(origin);
+      const allowedOrigins = getAllowedOrigins(req);
+      if (allowedOrigins.length > 0 && !allowedOrigins.includes(normalizedOrigin)) {
+        if (pathname.startsWith("/api/")) {
+          return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+        }
+        return new NextResponse("Forbidden", { status: 403 });
+      }
+    }
+  }
 
   const rolesCookie = req.cookies.get("zeniva_roles")?.value;
   let roles: string[] = [];
@@ -75,5 +100,5 @@ export default function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/traveler/:path*", "/app/:path*", "/agent/:path*", "/api/agent/:path*", "/switch-space"],
+  matcher: ["/traveler/:path*", "/app/:path*", "/agent/:path*", "/api/:path*", "/switch-space"],
 };

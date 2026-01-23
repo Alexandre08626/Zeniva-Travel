@@ -10,6 +10,7 @@ import Pill from "./Pill";
 import LinaAvatar from "./LinaAvatar";
 import AccountMenu from "./AccountMenu.client";
 import { Bell, Search } from 'lucide-react';
+import AutoTranslate from "./AutoTranslate";
 
 export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean; userEmail?: string }) {
   const authUser = useAuthStore((s) => s.user);
@@ -33,22 +34,22 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
             <div>
               <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>{process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva Travel'}</div>
               <div className="text-xs flex items-center gap-1" style={{ color: MUTED_TEXT }}>
-                Powered by Lina AI
+                <AutoTranslate text="Powered by Lina AI" className="inline" />
                 <LinaAvatar size="sm" />
               </div>
             </div>
           </Link>
           
           <nav className="hidden md:flex items-center gap-3 ml-4">
-            <Link href="/yachts" className="text-sm text-slate-700 hover:underline">Yacht Charters</Link>
-            <Link href="/partners/resorts" className="text-sm text-slate-700 hover:underline">Partner Resorts</Link>
-            <Link href="/collections/group" className="text-sm text-slate-700 hover:underline">Group Trips</Link>
-            <Link href="/airbnbs" className="text-sm text-slate-700 hover:underline">Partner Airbnbs</Link>
+            <Link href="/yachts" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="Yacht Charters" className="inline" /></Link>
+            <Link href="/partners/resorts" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="Partner Resorts" className="inline" /></Link>
+            <Link href="/collections/group" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="Group Trips" className="inline" /></Link>
+            <Link href="/airbnbs" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="Partner Airbnbs" className="inline" /></Link>
             {loggedIn && (
               <>
-                <Link href="/documents" className="text-sm text-slate-900 font-semibold hover:underline">My Travel Documents</Link>
+                <Link href="/documents" className="text-sm text-slate-900 font-semibold hover:underline"><AutoTranslate text="My Travel Documents" className="inline" /></Link>
                 {isPartner(authUser) && (
-                  <Link href="/partner/dashboard" className="text-sm text-slate-900 font-semibold hover:underline">Partner</Link>
+                  <Link href="/partner/dashboard" className="text-sm text-slate-900 font-semibold hover:underline"><AutoTranslate text="Partner" className="inline" /></Link>
                 )}
               </>
             )}
@@ -70,17 +71,17 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
                 className="rounded-full border px-4 py-2 text-sm font-semibold"
                 style={{ borderColor: PREMIUM_BLUE, color: PREMIUM_BLUE, opacity: 0.92 }}
               >
-                Switch to agent workspace
+                <AutoTranslate text="Switch to agent workspace" className="inline" />
               </Link>
             )}
           </>
         ) : (
           <>
             <Link href="/signup" className="rounded-full px-2 py-1 text-xs font-semibold text-white sm:px-4 sm:py-2 sm:text-sm" style={{ backgroundColor: PREMIUM_BLUE, opacity: 0.96 }}>
-              Sign up
+              <AutoTranslate text="Sign up" className="inline" />
             </Link>
             <Link href="/login" className="rounded-full border px-2 py-1 text-xs font-semibold sm:px-4 sm:py-2 sm:text-sm" style={{ borderColor: PREMIUM_BLUE, color: PREMIUM_BLUE, opacity: 0.92 }}>
-              Log in
+              <AutoTranslate text="Log in" className="inline" />
             </Link>
           </>
         )}
@@ -106,10 +107,10 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
           <div className="fixed bottom-0 left-0 right-0 bg-white p-6 rounded-t-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex flex-col gap-4">
               <Link href="/signup" className="text-center py-3 bg-blue-500 text-white rounded-lg font-semibold" onClick={() => setMenuOpen(false)}>
-                Sign up
+                <AutoTranslate text="Sign up" className="inline" />
               </Link>
               <Link href="/login" className="text-center py-3 border border-slate-300 rounded-lg font-semibold" onClick={() => setMenuOpen(false)}>
-                Log in
+                <AutoTranslate text="Log in" className="inline" />
               </Link>
             </div>
           </div>

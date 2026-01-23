@@ -77,9 +77,9 @@ export function listClients() {
   return clients;
 }
 
-export function addClient(params: { name: string; email: string; ownerEmail: string; phone: string; primaryDivision: Division; assignedAgent?: string }) {
+export function addClient(params: { name: string; email: string; ownerEmail: string; phone: string; primaryDivision: Division; assignedAgent?: string; origin?: Client["origin"] }) {
   const id = `C-${clients.length + 100}`;
-  const origin = params.assignedAgent ? "agent" : "house";
+  const origin = params.origin ?? (params.assignedAgent ? "agent" : "house");
   const entry: Client = {
     id,
     name: params.name,

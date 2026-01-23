@@ -196,8 +196,16 @@ export default function ClientsPage() {
                     <td className="py-2 pr-3 text-xs font-semibold"><span className="rounded-full bg-slate-100 px-2 py-1">{c.primaryDivision || "TRAVEL"}</span></td>
                     <td className="py-2 pr-3" style={{ color: TITLE_TEXT }}>{c.ownerEmail}</td>
                     <td className="py-2 pr-3 text-xs font-semibold">
-                      <span className={`rounded-full px-2 py-1 ${c.origin === "agent" ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"}`}>
-                        {c.origin === "agent" ? "Agent-added" : "Direct"}
+                      <span
+                        className={`rounded-full px-2 py-1 ${
+                          c.origin === "agent"
+                            ? "bg-amber-100 text-amber-800"
+                            : c.origin === "web_signup"
+                              ? "bg-indigo-100 text-indigo-800"
+                              : "bg-emerald-100 text-emerald-800"
+                        }`}
+                      >
+                        {c.origin === "agent" ? "Agent-added" : c.origin === "web_signup" ? "Web signup" : "Direct"}
                       </span>
                     </td>
                     <td className="py-2 pr-3 text-xs" style={{ color: MUTED_TEXT }}>{c.assignedAgents?.join(", ") || "-"}</td>
@@ -231,7 +239,7 @@ function toClient(record: any): Client | null {
     email: record.email ? String(record.email) : undefined,
     ownerEmail: String(record.ownerEmail),
     phone: record.phone ? String(record.phone) : undefined,
-    origin: record.origin === "agent" ? "agent" : "house",
+    origin: record.origin === "agent" ? "agent" : record.origin === "web_signup" ? "web_signup" : "house",
     assignedAgents: Array.isArray(record.assignedAgents) ? record.assignedAgents.map((agent: string) => String(agent)) : [],
     primaryDivision: toDivision(record.primaryDivision),
   };
@@ -254,7 +262,9 @@ function mergeClients(local: Client[], remote: Client[]) {
     }
 
     const assignedAgents = Array.from(new Set([...(existing.assignedAgents || []), ...(client.assignedAgents || [])]));
-    const origin = assignedAgents.length > 0 ? "agent" : (existing.origin || client.origin);
+    const origin = assignedAgents.length > 0
+      ? "agent"
+      : (existing.origin === "web_signup" || client.origin === "web_signup" ? "web_signup" : (existing.origin || client.origin));
 
     byKey.set(key, {
       ...existing,

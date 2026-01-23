@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useI18n } from "../../../src/lib/i18n/I18nProvider";
+import { expandMonthAbbrev, normalizePriceLabel } from "../../../src/lib/format";
 
 type Params = {
   region?: string;
@@ -44,6 +46,7 @@ const sampleCruises: CruiseOption[] = [
 
 export default function CruisesSearchPage({ searchParams }: { searchParams: Params }) {
   const { region = "", departureMonth = "", duration = "", guests = "2" } = searchParams || {};
+  const { locale } = useI18n();
   const [selectedId, setSelectedId] = useState(sampleCruises[0]?.id ?? "");
 
   const summary = useMemo(() => {
@@ -107,7 +110,7 @@ export default function CruisesSearchPage({ searchParams }: { searchParams: Para
                     <p className="text-sm font-semibold text-slate-800">{c.name}</p>
                     <p className="text-xs text-slate-600">{c.line}</p>
                     <p className="text-xs text-slate-600">{c.route}</p>
-                    <p className="text-xs text-slate-600">{c.dates} · {c.duration} · {c.cabin}</p>
+                    <p className="text-xs text-slate-600">{expandMonthAbbrev(c.dates, locale)} · {c.duration} · {c.cabin}</p>
                     <div className="flex flex-wrap gap-1 text-[11px] text-slate-700">
                       {c.perks.map((p) => (
                         <span key={p} className="rounded-full bg-white border px-2 py-[3px]">{p}</span>
@@ -116,7 +119,7 @@ export default function CruisesSearchPage({ searchParams }: { searchParams: Para
                   </div>
                 </div>
                 <div className="flex items-center gap-3 md:flex-col md:items-end">
-                  <span className="text-lg font-black text-slate-900">{c.price}</span>
+                  <span className="text-lg font-black text-slate-900">{normalizePriceLabel(c.price, locale)}</span>
                   <div className="flex items-center gap-2">
                     {c.badge && <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">{c.badge}</span>}
                   </div>

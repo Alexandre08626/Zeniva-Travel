@@ -38,7 +38,7 @@ export default function AgentsDirectoryPage() {
 
   useEffect(() => {
     if (!accounts || accounts.length === 0) return;
-    const agentRoles: Role[] = ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "partner_owner", "partner_staff"];
+    const agentRoles: Role[] = ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "partner_owner", "partner_staff", "agent"];
     const agentRoleSet = new Set(agentRoles);
 
     accounts.forEach((account) => {
@@ -67,7 +67,7 @@ export default function AgentsDirectoryPage() {
         const records = Array.isArray(payload?.data) ? payload.data : [];
         if (!records.length) return;
 
-        const agentRoles: Role[] = ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "partner_owner", "partner_staff"];
+        const agentRoles: Role[] = ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "partner_owner", "partner_staff", "agent"];
         const agentRoleSet = new Set(agentRoles);
 
         records.forEach((account: any) => {

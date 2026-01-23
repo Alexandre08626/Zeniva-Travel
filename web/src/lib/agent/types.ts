@@ -7,7 +7,7 @@ export type Client = {
   email?: string;
   ownerEmail: string;
   phone?: string;
-  origin: "house" | "agent";
+  origin: "house" | "agent" | "web_signup";
   assignedAgents?: string[];
   primaryDivision?: Division;
   budget?: string;

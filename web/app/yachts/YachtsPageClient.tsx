@@ -11,6 +11,8 @@ import LinaWidget from "../../src/components/LinaWidget";
 import AutoTranslate from "../../src/components/AutoTranslate";
 import { getImagesForDestination } from "../../src/lib/images";
 import { createTrip, updateSnapshot, applyTripPatch, generateProposal, setProposalSelection } from "../../lib/store/tripsStore";
+import { useI18n } from "../../src/lib/i18n/I18nProvider";
+import { normalizePriceLabel } from "../../src/lib/format";
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -53,9 +55,10 @@ function formatCountry(value: string) {
 export default function YachtsPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { locale } = useI18n();
   const [visible, setVisible] = useState(12);
   const [items, setItems] = useState<YcnItem[]>([]);
-  const [countryFilter, setCountryFilter] = useState("all");
+  const [countryFilter, setCountryFilter] = useState(() => searchParams.get("country") || "all");
 
   const isLoggedIn = false;
   const userEmail = "user@email.com";
@@ -95,6 +98,7 @@ export default function YachtsPageClient() {
     return normalizeCountry(last);
   };
 
+  const fallbackQuote = locale === "fr" ? "Devis sur demande" : "Request a quote";
   const mapped = items.map((p, idx) => {
     const destination = p.destination || "Worldwide";
     const fallback = getImagesForDestination(destination)[0];
@@ -102,7 +106,7 @@ export default function YachtsPageClient() {
     return {
       slug: p.title ? slugify(p.title) : `ycn-${idx}`,
       title: p.title || "Yacht Charter",
-      price: (p.prices && p.prices[0]) || "Request a quote",
+      price: normalizePriceLabel((p.prices && p.prices[0]) || fallbackQuote, locale),
       destination,
       image: (p.images && p.images[0]) || p.thumbnail || fallback || "/branding/icon-proposals.svg",
       calendar: p.calendar,
@@ -118,13 +122,6 @@ export default function YachtsPageClient() {
     ? mapped
     : mapped.filter((p) => p.countryKey === normalizedFilter);
 
-  useEffect(() => {
-    const param = searchParams.get("country");
-    if (param) {
-      setCountryFilter(param);
-      setVisible(12);
-    }
-  }, [searchParams]);
 
   const handleAddToProposal = async (yacht: { slug: string; title: string; destination: string; price: string; image: string; images: string[] }) => {
     const tripId = createTrip({
@@ -274,20 +271,23 @@ export default function YachtsPageClient() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <p className="text-sm uppercase tracking-wide text-slate-500">Yacht Charters</p>
-              <h1 className="text-3xl font-black mt-1">Exclusive YCN Fleet</h1>
-              <p className="text-slate-600 mt-2">Browse curated yachts and contact us for tailored itineraries.</p>
+              <p className="text-sm uppercase tracking-wide text-slate-500"><AutoTranslate text="Yacht Charters" className="inline" /></p>
+              <h1 className="text-3xl font-black mt-1"><AutoTranslate text="Exclusive YCN Fleet" className="inline" /></h1>
+              <p className="text-slate-600 mt-2"><AutoTranslate text="Browse curated yachts and contact us for tailored itineraries." className="inline" /></p>
             </div>
             <Link href="/chat?prompt=Plan%20a%20yacht%20charter" className="hidden md:inline-flex px-4 py-2 rounded-full bg-black text-white text-sm font-semibold shadow">
-              Chat to plan
+              <AutoTranslate text="Chat to plan" className="inline" />
             </Link>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 mb-6">
-            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Filter by country</label>
+            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500"><AutoTranslate text="Filter by country" className="inline" /></label>
             <select
               value={countryFilter}
-              onChange={(e) => setCountryFilter(e.target.value)}
+              onChange={(e) => {
+                setCountryFilter(e.target.value);
+                setVisible(12);
+              }}
               className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
             >
               <option value="all">All countries</option>
@@ -299,7 +299,7 @@ export default function YachtsPageClient() {
 
         {filtered.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-600 shadow">
-            No yachts available right now. Please check back soon.
+            <AutoTranslate text="No yachts available right now. Please check back soon." className="inline" />
           </div>
         ) : (
           <>

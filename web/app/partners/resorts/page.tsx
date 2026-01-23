@@ -11,6 +11,8 @@ import TravelSearchWidget from "@/src/components/TravelSearchWidget";
 import LinaWidget from "@/src/components/LinaWidget";
 import AutoTranslate from "@/src/components/AutoTranslate";
 import { createTrip, updateSnapshot, applyTripPatch, generateProposal, setProposalSelection } from "@/lib/store/tripsStore";
+import { useI18n } from "@/src/lib/i18n/I18nProvider";
+import { formatCurrencyAmount, normalizePriceLabel } from "@/src/lib/format";
 
 const statusLabel: Record<ResortStatus, string> = {
   active: "Active",
@@ -26,6 +28,7 @@ const statusColor: Record<ResortStatus, string> = {
 
 export default function PartnerResortsPage() {
   const router = useRouter();
+  const { locale } = useI18n();
   const [selectedId, setSelectedId] = useState(resortPartners[0]?.id ?? "");
   const [selectedRooms, setSelectedRooms] = useState<Record<string, string>>({});
   const [filters, setFilters] = useState<{
@@ -95,20 +98,21 @@ export default function PartnerResortsPage() {
     const bump = increments[Math.min(idx, increments.length - 1)] ?? 0;
     return base + bump;
   };
-  const formatNightlyRate = (amount: number) => `$${amount}/night`;
+  const formatNightlyRate = (amount: number) => `${formatCurrencyAmount(amount, "USD", locale)}/night`;
   const formatRate = (value?: string) => {
     if (!value) return "";
-    return value
+    const cleaned = value
       .replace(/\bcommissionable\b\s*/gi, "")
       .replace(/\bbar\b/gi, "")
       .replace(/\s+/g, " ")
       .trim();
+    return normalizePriceLabel(cleaned, locale);
   };
 
   const handleAddToProposal = async (resort: ResortPartner) => {
     const selectedRoom = getRoomSelection(resort);
     const nightlyRate = getRoomNightlyRate(resort, selectedRoom);
-    const publicRate = `From $${nightlyRate}/night`;
+    const publicRate = `From ${formatCurrencyAmount(nightlyRate, "USD", locale)}/night`;
     const tripId = createTrip({
       title: resort.name,
       destination: resort.destination,
@@ -311,10 +315,10 @@ export default function PartnerResortsPage() {
       <div className="w-full max-w-none px-1 py-4 space-y-6">
         <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Zeniva Partner Resorts</p>
-            <h1 className="text-3xl font-black" style={{ color: TITLE_TEXT }}>Luxury partner hotels, curated like Booking</h1>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500"><AutoTranslate text="Zeniva Partner Resorts" className="inline" /></p>
+            <h1 className="text-3xl font-black" style={{ color: TITLE_TEXT }}><AutoTranslate text="Luxury partner hotels, curated like Booking" className="inline" /></h1>
             <p className="text-sm" style={{ color: MUTED_TEXT }}>
-              Verified inventory only. Premium contracts, priority perks, and trusted media for proposals.
+              <AutoTranslate text="Verified inventory only. Premium contracts, priority perks, and trusted media for proposals." className="inline" />
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -330,7 +334,7 @@ export default function PartnerResortsPage() {
               <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Filters</div>
               <div className="mt-3 space-y-3">
                 <input
-                  placeholder="Search resort, destination, amenity"
+                  placeholder="Search resort or destination"
                   className="w-full rounded-lg border px-3 py-2 text-sm"
                   value={filters.query}
                   onChange={(e) => setFilters((f) => ({ ...f, query: e.target.value }))}

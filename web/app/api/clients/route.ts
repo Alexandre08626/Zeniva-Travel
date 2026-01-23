@@ -11,7 +11,7 @@ type ClientRecord = {
   email?: string;
   ownerEmail: string;
   phone?: string;
-  origin: "house" | "agent";
+  origin: "house" | "agent" | "web_signup";
   assignedAgents?: string[];
   primaryDivision?: string;
   createdAt: string;
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     const email = body.email ? String(body.email).trim().toLowerCase() : undefined;
     const ownerEmail = String(body.ownerEmail).trim().toLowerCase();
     const phone = body.phone ? String(body.phone).trim() : undefined;
-    const origin = body.origin === "agent" ? "agent" : "house";
+    const origin = body.origin === "agent" ? "agent" : body.origin === "web_signup" ? "web_signup" : "house";
     const assignedAgents = Array.isArray(body.assignedAgents) ? body.assignedAgents : [];
     const primaryDivision = body.primaryDivision ? String(body.primaryDivision) : undefined;
 
