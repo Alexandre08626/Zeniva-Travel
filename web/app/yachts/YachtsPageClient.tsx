@@ -173,7 +173,7 @@ export default function YachtsPageClient() {
       </div>
 
       {/* HERO SECTION (Lina Search) */}
-      <section className="mt-4 mb-8 sm:mt-8 sm:mb-12">
+      <section className="hidden sm:block mt-4 mb-8 sm:mt-8 sm:mb-12">
         <div className="relative w-screen left-1/2 right-1/2 -translate-x-1/2">
           <div className="relative rounded-3xl overflow-hidden">
             <div
