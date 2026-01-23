@@ -199,7 +199,7 @@ function getTempAccessProfile(email: string) {
     };
   }
   return {
-    roles: ["traveler"] as Role[],
+    roles: [] as Role[],
     divisions: [] as Division[],
     agentLevel: null as AgentLevel,
     agentEnabled: false,
@@ -321,8 +321,8 @@ export function signup(params: {
   const lockedAgentLevel = tempProfile.agentLevel;
   const lockedAgentEnabled = tempProfile.agentEnabled;
   const baseRoles = lockedRoles.length ? lockedRoles : (roles && roles.length ? roles : [role]);
-  const isAgentRole = lockedAgentEnabled;
   const finalRoles = baseRoles as Role[];
+  const isAgentRole = finalRoles.some((r) => AGENT_ROLES.includes(r));
   if (isAgentRole) {
     requireInviteCode(inviteCode);
   }
@@ -619,6 +619,8 @@ export function getUser() {
 }
 
 export function isAgent(user = state.user) {
+  const roles = user ? (user.roles || (user.role ? [user.role] : [])) : [];
+  if (roles.some((r) => AGENT_ROLES.includes(r) || r === "agent")) return true;
   const email = user?.email || "";
   const tempProfile = getTempAccessProfile(email);
   return tempProfile.agentEnabled;

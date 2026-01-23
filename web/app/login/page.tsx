@@ -1,5 +1,5 @@
 "use client";
-import { FormEvent, Suspense, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { login, useAuthStore } from "../../src/lib/authStore";
 
@@ -10,20 +10,37 @@ function LoginContent() {
   const space = search?.get("space");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [mode] = useState<"traveler" | "agent" | "partner">("traveler");
+  const initialMode = space === "agent" || space === "partner" ? space : "traveler";
+  const [mode, setMode] = useState<"traveler" | "agent" | "partner">(initialMode);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMode(initialMode);
+  }, [initialMode]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     setError(null);
     try {
-      const result = login(email.trim(), password);
-      if (result.activeSpace === "agent") {
+      const result = mode === "agent"
+        ? login(email.trim(), password, { role: "agent" })
+        : mode === "partner"
+          ? login(email.trim(), password, { allowedRoles: ["partner_owner", "partner_staff", "hq"] })
+          : login(email.trim(), password);
+      if (mode === "agent") {
         router.push("/agent");
+        return;
+      }
+      if (mode === "partner") {
+        router.push("/partner/dashboard");
         return;
       }
       if (result.activeSpace === "partner") {
         router.push("/partner/dashboard");
+        return;
+      }
+      if (result.activeSpace === "agent") {
+        router.push("/agent");
         return;
       }
       router.push("/proposals");
@@ -57,8 +74,17 @@ function LoginContent() {
           <h1 className="text-2xl font-semibold">Sign in</h1>
           <p className="text-sm text-gray-600">Choose your space: Traveler, Zeniva Agent or Partner.</p>
         </div>
-        <div className="rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-semibold text-gray-800">
-          Traveler (temporary mode)
+        <div className="grid grid-cols-3 gap-2">
+          {["traveler", "agent", "partner"].map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setMode(value as "traveler" | "agent" | "partner")}
+              className={`rounded border px-3 py-2 text-xs font-semibold uppercase tracking-wide ${mode === value ? "border-black bg-black text-white" : "border-gray-200 bg-gray-50 text-gray-700"}`}
+            >
+              {value === "traveler" ? "Traveler" : value === "agent" ? "Agent" : "Partner"}
+            </button>
+          ))}
         </div>
         <label className="block text-sm font-medium">
           Email
@@ -88,17 +114,17 @@ function LoginContent() {
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={() => router.push("/signup")}
+              onClick={() => router.push(`/signup?space=${mode}`)}
               className="w-full py-2 px-3 border rounded hover:bg-gray-50"
             >
               Create an account
             </button>
             <button
               type="button"
-              disabled
-              className="w-full py-2 px-3 border rounded bg-gray-50 text-gray-400 cursor-not-allowed"
+              onClick={() => router.push(`/signup?space=partner`)}
+              className="w-full py-2 px-3 border rounded hover:bg-gray-50"
             >
-              Partner sign-up (temporarily disabled)
+              Partner sign-up
             </button>
           </div>
 

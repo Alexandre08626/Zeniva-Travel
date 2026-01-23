@@ -9,7 +9,11 @@ export default function SignupPage() {
   const router = useRouter();
   const search = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const user = useAuthStore((s) => s.user);
-  const [mode] = useState<"traveler" | "agent" | "partner">("traveler");
+  const initialMode = (() => {
+    const space = search.get("space");
+    return space === "agent" || space === "partner" ? space : "traveler";
+  })();
+  const [mode, setMode] = useState<"traveler" | "agent" | "partner">(initialMode);
   const deriveInvite = (role: string) => {
     if (role === "hq") return "ZENIVA-HQ";
     if (role === "admin") return "ZENIVA-ADMIN";
@@ -35,15 +39,31 @@ export default function SignupPage() {
     e.preventDefault();
     setError(null);
     try {
+      const isAgent = mode === "agent";
+      const isPartner = mode === "partner";
+      const role = isPartner ? ("partner_owner" as Role) : isAgent ? agentRole : ("traveler" as Role);
+
       signup({
-        name: name.trim() || (mode === "agent" ? "Agent" : "Traveler"),
+        name: name.trim() || (isAgent ? "Agent" : isPartner ? "Partner" : "Traveler"),
         email: email.trim(),
         password,
-        role: mode === "agent" ? agentRole : ("traveler" as Role),
-        agentLevel: mode === "agent" ? "Agent" : undefined,
-        inviteCode: mode === "agent" ? inviteCode.trim() : undefined,
-        divisions: mode === "agent" ? ["TRAVEL", "YACHT", "VILLAS", "GROUPS", "RESORTS"] : [],
+        role,
+        roles: isPartner ? ["partner_owner"] : undefined,
+        agentLevel: isAgent ? "Agent" : undefined,
+        inviteCode: isAgent ? inviteCode.trim() : undefined,
+        divisions: isAgent ? ["TRAVEL", "YACHT", "VILLAS", "GROUPS", "RESORTS"] : [],
       });
+      if (isPartner) {
+        updatePartnerProfile({
+          legalName: companyLegalName.trim() || undefined,
+          displayName: companyDisplayName.trim() || undefined,
+          phone: companyPhone.trim() || undefined,
+          country: companyCountry.trim() || undefined,
+          currency: companyCurrency.trim() || undefined,
+          language: companyLanguage || undefined,
+          kycStatus: "pending",
+        });
+      }
       if (mode === "traveler") {
         const entry = addClient({
           name: name.trim() || "Traveler",
@@ -71,6 +91,14 @@ export default function SignupPage() {
         } catch (err) {
           console.error("Failed to sync client", err);
         }
+      }
+      if (isAgent) {
+        router.push("/agent");
+        return;
+      }
+      if (isPartner) {
+        router.push("/partner/dashboard");
+        return;
       }
       router.push("/proposals");
     } catch (err) {
@@ -101,10 +129,19 @@ export default function SignupPage() {
       <form onSubmit={handleSubmit} className="max-w-md w-full bg-white p-6 shadow rounded space-y-4" data-mode={mode}>
         <div>
           <h1 className="text-2xl font-semibold">Create an account</h1>
-          <p className="text-sm text-gray-600">Choose your space: Traveler or Zeniva Agent.</p>
+          <p className="text-sm text-gray-600">Choose your space: Traveler, Zeniva Agent or Partner.</p>
         </div>
-        <div className="rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-semibold text-gray-800">
-          Traveler (temporary mode)
+        <div className="grid grid-cols-3 gap-2">
+          {["traveler", "agent", "partner"].map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setMode(value as "traveler" | "agent" | "partner")}
+              className={`rounded border px-3 py-2 text-xs font-semibold uppercase tracking-wide ${mode === value ? "border-black bg-black text-white" : "border-gray-200 bg-gray-50 text-gray-700"}`}
+            >
+              {value === "traveler" ? "Traveler" : value === "agent" ? "Agent" : "Partner"}
+            </button>
+          ))}
         </div>
         <label className="block text-sm font-medium">
           Full name
@@ -116,6 +153,40 @@ export default function SignupPage() {
             placeholder="Ex: Lina Voyageur"
           />
         </label>
+
+        {mode === "agent" && (
+          <div className="space-y-3 mt-2">
+            <label className="block text-sm font-medium">
+              Agent role
+              <select
+                className="mt-1 w-full border rounded px-3 py-2"
+                value={agentRole}
+                onChange={(e) => {
+                  const next = e.target.value as Role;
+                  setAgentRole(next);
+                  setInviteCode(deriveInvite(next));
+                }}
+              >
+                <option value="travel-agent">Travel agent</option>
+                <option value="yacht-partner">Yacht partner</option>
+                <option value="support">Support</option>
+                <option value="finance">Finance</option>
+                <option value="admin">Admin</option>
+                <option value="hq">HQ</option>
+              </select>
+            </label>
+            <label className="block text-sm font-medium">
+              Invite code
+              <input
+                className="mt-1 w-full border rounded px-3 py-2"
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value)}
+                placeholder="ZENIVA-AGENT"
+                required
+              />
+            </label>
+          </div>
+        )}
 
         {mode === "partner" && (
           <div className="space-y-3 mt-2">

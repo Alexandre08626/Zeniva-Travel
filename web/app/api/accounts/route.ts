@@ -16,6 +16,29 @@ type AccountRecord = {
   createdAt: string;
 };
 
+function getRolesFromRequest(request: Request): string[] {
+  const cookieHeader = request.headers.get("cookie") || "";
+  const parts = cookieHeader.split(";").map((part) => part.trim());
+  const roleEntry = parts.find((part) => part.startsWith("zeniva_roles="));
+  if (!roleEntry) return [];
+  const raw = roleEntry.slice("zeniva_roles=".length);
+  try {
+    const decoded = decodeURIComponent(raw);
+    const parsed = JSON.parse(decoded);
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
+function requireHQ(request: Request) {
+  const roles = getRolesFromRequest(request);
+  if (!roles.includes("hq") && !roles.includes("admin")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  return null;
+}
+
 async function readAccounts(): Promise<AccountRecord[]> {
   try {
     const raw = await fs.readFile(DATA_FILE, "utf-8");
@@ -31,8 +54,10 @@ async function writeAccounts(accounts: AccountRecord[]) {
   await fs.writeFile(DATA_FILE, JSON.stringify(accounts, null, 2), "utf-8");
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const gate = requireHQ(request);
+    if (gate) return gate;
     const accounts = await readAccounts();
     return NextResponse.json({ data: accounts });
   } catch (err: any) {
@@ -84,6 +109,8 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    const gate = requireHQ(request);
+    if (gate) return gate;
     const url = new URL(request.url);
     const emailParam = url.searchParams.get("email") || "";
     const email = String(emailParam).trim().toLowerCase();

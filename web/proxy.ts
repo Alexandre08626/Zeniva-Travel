@@ -42,9 +42,8 @@ export default function proxy(req: NextRequest) {
   }
   const agentRoles = new Set(["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "agent"]);
   const agentEnabled = req.cookies.get("zeniva_agent_enabled")?.value === "1";
-  const email = (req.cookies.get("zeniva_email")?.value || "").toLowerCase();
-  const allowlisted = email === "info@zeniva.ca" || email === "lantierj6@gmail.com";
-  const isAgent = allowlisted && (agentEnabled || roles.some((role) => agentRoles.has(role)));
+  const isAgent = agentEnabled || roles.some((role) => agentRoles.has(role));
+  const isPartner = roles.includes("partner_owner") || roles.includes("partner_staff") || roles.includes("hq");
 
   // Protect agent routes and agent API
   if (pathname.startsWith("/agent") || pathname.startsWith("/api/agent")) {
@@ -59,10 +58,29 @@ export default function proxy(req: NextRequest) {
     }
   }
 
+  // Protect partner routes and partner API
+  if (pathname.startsWith("/partner") || pathname.startsWith("/api/partner")) {
+    if (!isPartner) {
+      if (pathname.startsWith("/api/partner")) {
+        return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+      }
+      const redirectUrl = new URL("/", req.url);
+      const res = NextResponse.redirect(redirectUrl);
+      res.cookies.set("zeniva_active_space", "traveler", { path: "/", maxAge: 60 * 60 * 24 * 7, sameSite: "lax" });
+      return res;
+    }
+  }
+
   // Prevent switching into agent space if not agent
   if (pathname === "/switch-space") {
     const target = req.nextUrl.searchParams.get("target") || "";
     if (target === "agent" && !isAgent) {
+      const redirectUrl = new URL("/", req.url);
+      const res = NextResponse.redirect(redirectUrl);
+      res.cookies.set("zeniva_active_space", "traveler", { path: "/", maxAge: 60 * 60 * 24 * 7, sameSite: "lax" });
+      return res;
+    }
+    if (target === "partner" && !isPartner) {
       const redirectUrl = new URL("/", req.url);
       const res = NextResponse.redirect(redirectUrl);
       res.cookies.set("zeniva_active_space", "traveler", { path: "/", maxAge: 60 * 60 * 24 * 7, sameSite: "lax" });
@@ -100,5 +118,5 @@ export default function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/traveler/:path*", "/app/:path*", "/agent/:path*", "/api/:path*", "/switch-space"],
+  matcher: ["/traveler/:path*", "/app/:path*", "/agent/:path*", "/partner/:path*", "/api/:path*", "/switch-space"],
 };

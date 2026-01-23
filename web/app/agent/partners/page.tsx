@@ -9,7 +9,6 @@ import { mockListings } from "../../../src/lib/mockData";
 import { resortPartners } from "../../../src/data/partners/resorts";
 import AirbnbAvailability from "../../../src/components/airbnbs/AirbnbAvailability.client";
 
-const allowedEmails = new Set(["info@zeniva.ca"]);
 
 type PartnerAccount = {
   id: string;
@@ -67,7 +66,10 @@ export default function PartnerAccountsPage() {
     roomType: "Standard",
   });
 
-  const canView = !!user && allowedEmails.has(user.email?.toLowerCase() || "");
+  const canView = !!user && (() => {
+    const roles = user.roles || (user.role ? [user.role] : []);
+    return roles.includes("hq") || roles.includes("admin");
+  })();
 
   const dynamicPartners = useMemo<PartnerOrganization[]>(() => {
     if (!data.length) return [];
