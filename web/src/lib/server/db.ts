@@ -1,4 +1,4 @@
-import { Pool } from "pg";
+import { Pool, type QueryResultRow } from "pg";
 
 let pool: Pool | null = null;
 let schemaReady = false;
@@ -87,7 +87,7 @@ async function ensureSchema() {
   schemaReady = true;
 }
 
-export async function dbQuery<T = any>(text: string, params: any[] = []) {
+export async function dbQuery<T extends QueryResultRow = QueryResultRow>(text: string, params: any[] = []) {
   const pool = await getPool();
   await ensureSchema();
   return pool.query<T>(text, params);
