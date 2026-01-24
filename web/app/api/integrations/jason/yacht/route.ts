@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../../src/lib/server/db";
+import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../../../src/lib/server/db";
 
 const JASON_EMAIL = "lantierj6@gmail.com";
 const ALLOWED_DIVISION = "YACHT";
