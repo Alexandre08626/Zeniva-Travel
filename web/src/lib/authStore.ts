@@ -112,7 +112,7 @@ function uid() {
 }
 
 function persist(next: AuthState) {
-  if (typeof window === "undefined") return;
+  if (IS_PROD || typeof window === "undefined") return;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   } catch {
@@ -121,7 +121,7 @@ function persist(next: AuthState) {
 }
 
 function hydrate() {
-  if (typeof window === "undefined" || hasHydrated) return;
+  if (IS_PROD || typeof window === "undefined" || hasHydrated) return;
   hasHydrated = true;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);

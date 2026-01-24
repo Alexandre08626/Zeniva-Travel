@@ -27,8 +27,25 @@ function getRolesFromRequest(request: Request): string[] {
   }
 }
 
+function getEmailFromRequest(request: Request) {
+  const cookieHeader = request.headers.get("cookie") || "";
+  const parts = cookieHeader.split(";").map((part) => part.trim());
+  const emailEntry = parts.find((part) => part.startsWith("zeniva_email="));
+  if (!emailEntry) return "";
+  const raw = emailEntry.slice("zeniva_email=".length);
+  try {
+    return decodeURIComponent(raw).trim().toLowerCase();
+  } catch {
+    return raw.trim().toLowerCase();
+  }
+}
+
+const ALLOWLIST = ["info@zeniva.ca", "lanthierj6@gmail.com"].map((v) => v.toLowerCase());
+
 function requireHQ(request: Request) {
   const roles = getRolesFromRequest(request);
+  const email = getEmailFromRequest(request);
+  if (email && ALLOWLIST.includes(email)) return null;
   if (!roles.includes("hq") && !roles.includes("admin")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -124,3 +141,4 @@ export async function DELETE(request: Request) {
 }
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
