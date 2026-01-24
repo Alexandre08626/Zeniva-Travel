@@ -56,6 +56,7 @@ async function ensureSchema() {
       status text,
       agent_level text,
       invite_code text,
+      password_hash text,
       partner_id text,
       partner_company jsonb,
       traveler_profile jsonb,
@@ -63,6 +64,8 @@ async function ensureSchema() {
       updated_at timestamptz
     );
   `);
+
+  await pool.query("ALTER TABLE accounts ADD COLUMN IF NOT EXISTS password_hash text;");
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS clients (

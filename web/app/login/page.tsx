@@ -18,15 +18,15 @@ function LoginContent() {
     setMode(initialMode);
   }, [initialMode]);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
     try {
       const result = mode === "agent"
-        ? login(email.trim(), password, { role: "agent" })
+        ? await login(email.trim(), password, { role: "agent" })
         : mode === "partner"
-          ? login(email.trim(), password, { allowedRoles: ["partner_owner", "partner_staff", "hq"] })
-          : login(email.trim(), password);
+          ? await login(email.trim(), password, { allowedRoles: ["partner_owner", "partner_staff", "hq"] })
+          : await login(email.trim(), password);
       if (mode === "agent") {
         router.push("/agent");
         return;

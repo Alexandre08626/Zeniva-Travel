@@ -43,7 +43,7 @@ export default function SignupPage() {
       const isPartner = mode === "partner";
       const role = isPartner ? ("partner_owner" as Role) : isAgent ? agentRole : ("traveler" as Role);
 
-      signup({
+      await signup({
         name: name.trim() || (isAgent ? "Agent" : isPartner ? "Partner" : "Traveler"),
         email: email.trim(),
         password,

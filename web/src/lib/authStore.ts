@@ -146,6 +146,28 @@ function hydrate() {
   }
 }
 
+async function hydrateFromServer() {
+  if (typeof window === "undefined") return;
+  try {
+    const res = await fetch("/api/auth/me", { method: "GET" });
+    const payload = await res.json();
+    if (payload?.user) {
+      const user = payload.user as PublicUser;
+      setState((s) => ({ ...s, user }));
+      const roles = user.roles || (user.role ? [user.role] : []);
+      const hasPartnerRole = roles.some((r) => r === "partner_owner" || r === "partner_staff");
+      const defaultActiveSpace = hasPartnerRole ? "partner" : roles.some((r) => AGENT_ROLES.includes(r)) ? "agent" : "traveler";
+      if (typeof window !== "undefined") {
+        setCookie("zeniva_active_space", defaultActiveSpace, 7);
+        setCookie("zeniva_roles", JSON.stringify(roles), 7);
+        setCookie("zeniva_email", user.email, 7);
+      }
+    }
+  } catch {
+    // ignore
+  }
+}
+
 const listeners = new Set<() => void>();
 
 function setState(updater: AuthState | ((s: AuthState) => AuthState)) {
@@ -171,6 +193,9 @@ export function subscribe(listener: () => void) {
 export function useAuthStore<T = AuthState>(selector: (s: AuthState) => T = (s) => s as unknown as T) {
   useEffect(() => {
     hydrate();
+    if (IS_PROD) {
+      void hydrateFromServer();
+    }
   }, []);
 
   const snapshot = useSyncExternalStore(subscribe, () => state, () => state);
@@ -302,7 +327,7 @@ function ensureSeedDefaultAgents() {
   });
 }
 
-export function signup(params: {
+export async function signup(params: {
   name: string;
   email: string;
   password: string;
@@ -389,6 +414,40 @@ export function signup(params: {
     }
   };
 
+  if (IS_PROD) {
+    const res = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: baseAccount.name,
+        email: baseAccount.email,
+        password: baseAccount.password,
+        role: baseAccount.role,
+        roles: finalRoles,
+        divisions: baseAccount.divisions || [],
+        inviteCode: baseAccount.inviteCode,
+        agentLevel: baseAccount.agentLevel,
+      }),
+    });
+    const payload = await res.json();
+    if (!res.ok) throw new Error(payload?.error || "Signup failed");
+    const account = payload.user as PublicUser;
+    const roles = account.roles || (account.role ? [account.role] : []);
+    const hasPartnerRole = roles.some((r) => r === "partner_owner" || r === "partner_staff");
+    const defaultActiveSpace = hasPartnerRole ? "partner" : roles.some((r) => AGENT_ROLES.includes(r)) ? "agent" : "traveler";
+    if (typeof window !== "undefined") {
+      setCookie("zeniva_active_space", defaultActiveSpace, 7);
+      setCookie("zeniva_roles", JSON.stringify(roles), 7);
+      setCookie("zeniva_email", account.email, 7);
+    }
+    setState((s) => ({
+      ...s,
+      user: { ...account, activeSpace: defaultActiveSpace },
+      auditLog: [...s.auditLog, makeAudit("signup", account.email, "account", account.email, { role: account.role })],
+    }));
+    return { name: account.name, email: account.email, role: account.role as Role, agentLevel: account.agentLevel };
+  }
+
   const existingIdx = state.accounts.findIndex((a) => normalizeEmail(a.email) === normalizeEmail(normalizedEmail));
 
   if (existingIdx >= 0) {
@@ -474,11 +533,36 @@ function deleteCookie(name: string) {
   document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; samesite=lax${secureFlag}`;
 }
 
-export function login(email: string, password: string, opts?: { role?: Role | "agent"; allowedRoles?: Role[] }) {
+export async function login(email: string, password: string, opts?: { role?: Role | "agent"; allowedRoles?: Role[] }) {
   if (!email || !password) throw new Error("Credentials are required");
 
   if (normalizeEmail(email) === normalizeEmail(HQ_EMAIL) && password === HQ_PASSWORD) {
     ensureSeedHQ();
+  }
+
+  if (IS_PROD) {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const payload = await res.json();
+    if (!res.ok) throw new Error(payload?.error || "Invalid credentials");
+    const account = payload.user as PublicUser;
+    const accountRoles = account.roles || (account.role ? [account.role] : ["traveler"]);
+    const allowedRoles = opts?.allowedRoles || (opts?.role === "agent" ? AGENT_ROLES : undefined);
+    if (allowedRoles && !accountRoles.some((r) => allowedRoles.includes(r as Role))) {
+      throw new Error(opts?.role === "agent" ? "This account is not an agent account" : "This account is not allowed here");
+    }
+    const hasPartnerRole = accountRoles.some((r) => r === "partner_owner" || r === "partner_staff");
+    const defaultActiveSpace = hasPartnerRole ? "partner" : accountRoles.some((r) => AGENT_ROLES.includes(r as Role)) ? "agent" : "traveler";
+    if (typeof window !== "undefined") {
+      setCookie("zeniva_active_space", defaultActiveSpace, 7);
+      setCookie("zeniva_roles", JSON.stringify(accountRoles), 7);
+      setCookie("zeniva_email", account.email, 7);
+    }
+    setState((s) => ({ ...s, user: { ...account, activeSpace: defaultActiveSpace } }));
+    return { name: account.name, email: account.email, roles: accountRoles, agentLevel: account.agentLevel, activeSpace: defaultActiveSpace };
   }
 
   const account = findAccount(email, password);
@@ -551,9 +635,16 @@ export function login(email: string, password: string, opts?: { role?: Role | "a
   return { name: account.name, email: account.email, roles: normalizedRoles, agentLevel: account.agentLevel, activeSpace: defaultActiveSpace };
 }
 
-export function logout(redirectTo = "/") {
+export async function logout(redirectTo = "/") {
   setState((s) => ({ ...s, user: null }));
   if (typeof window !== "undefined") {
+    if (IS_PROD) {
+      try {
+        await fetch("/api/auth/logout", { method: "POST" });
+      } catch {
+        // ignore
+      }
+    }
     setTimeout(() => {
       import("../../lib/store/tripsStore")
         .then((mod) => {
