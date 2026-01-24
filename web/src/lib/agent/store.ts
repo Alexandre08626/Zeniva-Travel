@@ -87,6 +87,7 @@ export function addClient(params: { name: string; email: string; ownerEmail: str
     email: params.email,
     ownerEmail: params.ownerEmail,
     phone: params.phone,
+    origin,
     primaryDivision: params.primaryDivision,
     assignedAgents: params.assignedAgent ? [params.assignedAgent] : [],
   };
