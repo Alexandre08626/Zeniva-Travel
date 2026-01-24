@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
 import crypto from "crypto";
-
-const DATA_DIR = path.join(process.cwd(), "data");
-const DATA_FILE = path.join(DATA_DIR, "clients.json");
+import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../../src/lib/server/db";
 
 const JASON_EMAIL = "lantierj6@gmail.com";
 const ALLOWED_DIVISION = "YACHT";
@@ -25,19 +21,20 @@ type ClientRecord = {
   updatedAt?: string;
 };
 
-async function readClients(): Promise<ClientRecord[]> {
-  try {
-    const raw = await fs.readFile(DATA_FILE, "utf-8");
-    return JSON.parse(raw || "[]");
-  } catch (err: any) {
-    if (err?.code === "ENOENT") return [];
-    throw err;
-  }
-}
-
-async function writeClients(clients: ClientRecord[]) {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  await fs.writeFile(DATA_FILE, JSON.stringify(clients, null, 2), "utf-8");
+function mapClientRow(row: any): ClientRecord {
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email || undefined,
+    ownerEmail: row.owner_email,
+    phone: row.phone || undefined,
+    origin: row.origin || "house",
+    assignedAgents: row.assigned_agents || [],
+    primaryDivision: row.primary_division || undefined,
+    leadSource: row.lead_source || undefined,
+    createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
+    updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : undefined,
+  };
 }
 
 function hashKey(value: string) {
@@ -59,6 +56,7 @@ function logUnauthorized(reason: string, received: string, expectedPresent: bool
 
 export async function POST(request: Request) {
   try {
+    assertBackendEnv();
     const apiKey = getBearerToken(request);
     const expected = process.env.JASON_YACHT_API_KEY || "";
 
@@ -76,7 +74,7 @@ export async function POST(request: Request) {
     const lastName = body?.last_name ? String(body.last_name).trim() : "";
     const fullNameFromParts = `${firstName} ${lastName}`.trim();
     const name = String(body?.name || fullNameFromParts || "").trim();
-    const email = body?.email ? String(body.email).trim().toLowerCase() : "";
+    const email = body?.email ? normalizeEmail(String(body.email)) : "";
     const phone = body?.phone ? String(body.phone).trim() : "";
     const notes = body?.notes ? String(body.notes).trim() : "";
 
@@ -84,11 +82,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Either email or phone is required." }, { status: 400 });
     }
 
-    const clients = await readClients();
-    const existing = clients.find((c) => (
-      (email && (c.email || "").toLowerCase() === email) ||
-      (phone && (c.phone || "") === phone)
-    ));
+    const filters: string[] = [];
+    const params: any[] = [];
+    if (email) {
+      params.push(email);
+      filters.push(`lower(email) = lower($${params.length})`);
+    }
+    if (phone) {
+      params.push(phone);
+      filters.push(`phone = $${params.length}`);
+    }
+    const existingResult = filters.length
+      ? await dbQuery(
+          `SELECT id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, created_at, updated_at FROM clients WHERE ${filters.join(
+            " OR "
+          )} LIMIT 1`,
+          params
+        )
+      : { rows: [] };
+    const existing = existingResult.rows[0] ? mapClientRow(existingResult.rows[0]) : null;
 
     if (existing) {
       const owner = (existing.ownerEmail || "").toLowerCase();
@@ -122,14 +134,27 @@ export async function POST(request: Request) {
         (updated as any).notes = notes;
       }
 
-      const next = clients.map((c) => (c.id === existing.id ? updated : c));
-      await writeClients(next);
-
-      return NextResponse.json({ data: updated, updated: true });
+      const { rows } = await dbQuery(
+        "UPDATE clients SET name = $2, email = $3, phone = $4, owner_email = $5, assigned_agents = $6, primary_division = $7, origin = $8, lead_source = $9, notes = $10, updated_at = now() WHERE id = $1 RETURNING id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, created_at, updated_at",
+        [
+          existing.id,
+          updated.name,
+          updated.email || null,
+          updated.phone || null,
+          updated.ownerEmail,
+          updated.assignedAgents || [],
+          updated.primaryDivision || null,
+          updated.origin,
+          updated.leadSource || null,
+          notes || null,
+        ]
+      );
+      const saved = mapClientRow(rows[0]);
+      return NextResponse.json({ data: saved, updated: true });
     }
 
     const record: ClientRecord = {
-      id: body?.id || `C-${clients.length + 100}`,
+      id: body?.id || `C-${crypto.randomUUID()}`,
       name: name || email || phone || "Client",
       email: email || undefined,
       phone: phone || undefined,
@@ -145,10 +170,24 @@ export async function POST(request: Request) {
       (record as any).notes = notes;
     }
 
-    clients.push(record);
-    await writeClients(clients);
-
-    return NextResponse.json({ data: record, created: true }, { status: 201 });
+    const { rows } = await dbQuery(
+      "INSERT INTO clients (id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, notes, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, now()) RETURNING id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, created_at",
+      [
+        record.id,
+        record.name,
+        record.email || null,
+        record.ownerEmail,
+        record.phone || null,
+        record.origin,
+        record.assignedAgents || [],
+        record.primaryDivision || null,
+        record.leadSource || null,
+        notes || null,
+      ]
+    );
+    const saved = mapClientRow(rows[0]);
+    console.log(`CLIENT CREATED: id=${saved.id} email=${saved.email || ""}`);
+    return NextResponse.json({ data: saved, created: true }, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to save client" }, { status: 500 });
   }
@@ -157,3 +196,5 @@ export async function POST(request: Request) {
 export async function GET() {
   return NextResponse.json({ error: "Method Not Allowed" }, { status: 405 });
 }
+
+export const runtime = "nodejs";

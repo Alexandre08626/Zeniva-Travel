@@ -6,6 +6,8 @@ const HQ_EMAIL = "info@zeniva.ca";
 const HQ_PASSWORD = "Baton08!!";
 const TEMP_ADMIN_EMAIL = "info@zeniva.ca";
 const TEMP_JASON_EMAIL = "lantierj6@gmail.com";
+const ACCESS_ALLOWLIST = [TEMP_ADMIN_EMAIL, TEMP_JASON_EMAIL].map((v) => v.toLowerCase());
+const IS_PROD = process.env.NODE_ENV === "production";
 
 export type Division = "TRAVEL" | "YACHT" | "VILLAS" | "GROUPS" | "RESORTS";
 export type Role = "traveler" | "hq" | "admin" | "travel-agent" | "yacht-partner" | "finance" | "support" | "partner_owner" | "partner_staff" | "agent";
@@ -206,6 +208,10 @@ function getTempAccessProfile(email: string) {
   };
 }
 
+function isAllowlistedEmail(email: string) {
+  return ACCESS_ALLOWLIST.includes(normalizeEmail(email || ""));
+}
+
 function findAccount(email: string, password?: string) {
   const normalized = normalizeEmail(email);
   return state.accounts.find((a) => a.email.toLowerCase() === normalized && (!password || a.password === password));
@@ -315,12 +321,18 @@ export function signup(params: {
   if (!email || !password) throw new Error("Email and password are required");
 
   const normalizedEmail = email.trim();
+  const allowlisted = isAllowlistedEmail(normalizedEmail);
+  const enforceTravelerOnly = IS_PROD && !allowlisted;
+  const requestedRole = enforceTravelerOnly ? "traveler" : role;
+  const requestedRoles = enforceTravelerOnly ? ["traveler"] : roles;
+  const requestedAgentLevel = enforceTravelerOnly ? null : agentLevel;
+  const requestedDivisions = enforceTravelerOnly ? [] : divisions;
   const tempProfile = getTempAccessProfile(normalizedEmail);
   const lockedRoles = tempProfile.roles;
   const lockedDivisions = tempProfile.divisions;
   const lockedAgentLevel = tempProfile.agentLevel;
   const lockedAgentEnabled = tempProfile.agentEnabled;
-  const baseRoles = lockedRoles.length ? lockedRoles : (roles && roles.length ? roles : [role]);
+  const baseRoles = lockedRoles.length ? lockedRoles : (requestedRoles && requestedRoles.length ? requestedRoles : [requestedRole]);
   const finalRoles = baseRoles as Role[];
   const isAgentRole = finalRoles.some((r) => AGENT_ROLES.includes(r));
   if (isAgentRole) {
@@ -333,9 +345,9 @@ export function signup(params: {
     password,
     roles: finalRoles,
     role: finalRoles[0],
-    agentLevel: isAgentRole ? lockedAgentLevel || agentLevel || "Agent" : null,
+    agentLevel: isAgentRole ? lockedAgentLevel || requestedAgentLevel || "Agent" : null,
     inviteCode: isAgentRole ? inviteCode?.trim() : undefined,
-    divisions: isAgentRole ? (lockedDivisions.length ? lockedDivisions : (divisions && divisions.length ? divisions : [...DIVISIONS])) : [],
+    divisions: isAgentRole ? (lockedDivisions.length ? lockedDivisions : (requestedDivisions && requestedDivisions.length ? requestedDivisions : [...DIVISIONS])) : [],
     status: "active",
   });
 
@@ -618,6 +630,7 @@ export function getUser() {
 
 export function isAgent(user = state.user) {
   const roles = user ? (user.roles || (user.role ? [user.role] : [])) : [];
+  if (IS_PROD && user?.email && !isAllowlistedEmail(user.email)) return false;
   if (roles.some((r) => AGENT_ROLES.includes(r) || r === "agent")) return true;
   const email = user?.email || "";
   const tempProfile = getTempAccessProfile(email);
@@ -626,6 +639,7 @@ export function isAgent(user = state.user) {
 
 export function isPartner(user = state.user) {
   const roles = user ? (user.roles || (user.role ? [user.role] : [])) : [];
+  if (IS_PROD && user?.email && !isAllowlistedEmail(user.email)) return false;
   return roles.includes("partner_owner") || roles.includes("partner_staff");
 }
 

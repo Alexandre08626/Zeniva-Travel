@@ -1,5 +1,7 @@
 import { getAgentById } from "./agent/agents";
 
+const IS_PROD = process.env.NODE_ENV === "production";
+
 export type PartnerOrganization = {
   id: string;
   displayName: string;
@@ -27,7 +29,7 @@ export type ListingAssignment = {
   serviceLevel: "standard" | "premium" | "priority";
 };
 
-export const partnerOrganizations: PartnerOrganization[] = [
+export const partnerOrganizations: PartnerOrganization[] = IS_PROD ? [] : [
   {
     id: "partner-yacht-01",
     displayName: "YCN Yacht Collective",
@@ -118,7 +120,7 @@ export const partnerOrganizations: PartnerOrganization[] = [
   },
 ];
 
-export const propertyOwners: PropertyOwner[] = [
+export const propertyOwners: PropertyOwner[] = IS_PROD ? [] : [
   {
     id: "owner-001",
     name: "Julien Marchand",
@@ -209,7 +211,7 @@ export const propertyOwners: PropertyOwner[] = [
   },
 ];
 
-export const listingAssignments: ListingAssignment[] = [
+export const listingAssignments: ListingAssignment[] = IS_PROD ? [] : [
   {
     listingId: "listing-1",
     partnerId: "partner-yacht-01",

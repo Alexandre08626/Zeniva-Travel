@@ -2,13 +2,14 @@ import { addAudit } from "../authStore";
 import { Client, TripFile, TripComponent, Payment, DocumentEntry, TripStatus, LedgerEntry, Division } from "./types";
 import { computeTripSplit } from "./billing";
 
+const IS_PROD = process.env.NODE_ENV === "production";
 const STORAGE_KEY = "zeniva_agent_store_v1";
 
 function uid() {
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 }
 
-let clients: Client[] = [
+let clients: Client[] = IS_PROD ? [] : [
   {
     id: "C-100",
     name: "Morales Family",
@@ -40,15 +41,15 @@ let clients: Client[] = [
   },
 ];
 
-let trips: TripFile[] = [
+let trips: TripFile[] = IS_PROD ? [] : [
   { id: "T-501", clientId: "C-100", title: "Paris + Rome", ownerEmail: "agent@zeniva.ca", status: "Draft", division: "TRAVEL", components: [], payments: [], documents: [] },
   { id: "T-502", clientId: "C-101", title: "Med Yacht Week", ownerEmail: "agent@zeniva.ca", status: "Draft", division: "YACHT", components: [], payments: [], documents: [] },
 ];
 
-let ledger: LedgerEntry[] = [];
+let ledger: LedgerEntry[] = IS_PROD ? [] : [];
 
 function persist() {
-  if (typeof window === "undefined") return;
+  if (IS_PROD || typeof window === "undefined") return;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ clients, trips, ledger }));
   } catch (_) {
@@ -57,7 +58,7 @@ function persist() {
 }
 
 function hydrate() {
-  if (typeof window === "undefined") return;
+  if (IS_PROD || typeof window === "undefined") return;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw) {
@@ -86,7 +87,7 @@ export function addClient(params: { name: string; email: string; ownerEmail: str
     email: params.email,
     ownerEmail: params.ownerEmail,
     phone: params.phone,
-    origin,
+let clients: Client[] = IS_PROD ? [] : [
     primaryDivision: params.primaryDivision,
     assignedAgents: params.assignedAgent ? [params.assignedAgent] : [],
   };
@@ -123,18 +124,18 @@ export function addPayment(tripId: string, payment: Payment) {
 export function setPaymentStatus(tripId: string, paymentId: string, status: Payment["status"]) {
   const trip = trips.find((t) => t.id === tripId);
   if (!trip) return;
-  const payment = trip.payments.find((p) => p.id === paymentId);
+let trips: TripFile[] = IS_PROD ? [] : [
   if (!payment) return;
   const prev = payment.status;
   payment.status = status;
   addAudit("payment:status", "trip", tripId, { paymentId, status });
   if (status === "Paid" && prev !== "Paid") {
     addLedgerForPayment(trip, payment);
-  }
+let ledger: LedgerEntry[] = IS_PROD ? [] : [
   persist();
 }
 
-export function addDocument(tripId: string, doc: DocumentEntry) {
+  if (IS_PROD || typeof window === "undefined") return;
   const trip = trips.find((t) => t.id === tripId);
   if (!trip) return;
   trip.documents.unshift(doc);
@@ -143,7 +144,7 @@ export function addDocument(tripId: string, doc: DocumentEntry) {
 }
 
 export function getClientById(id: string) {
-  return clients.find((c) => c.id === id);
+  if (IS_PROD || typeof window === "undefined") return;
 }
 
 export function getTripById(id: string) {

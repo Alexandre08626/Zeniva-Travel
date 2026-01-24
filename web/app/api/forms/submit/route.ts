@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
+import crypto from "crypto";
 import { FORM_DEFINITIONS } from "../../../../src/lib/forms/catalog";
-
-const DATA_DIR = path.join(process.cwd(), "data");
-const DATA_FILE = path.join(DATA_DIR, "clients.json");
-const ACCOUNTS_FILE = path.join(DATA_DIR, "accounts.json");
+import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../../src/lib/server/db";
 
 const DEFAULT_OWNER_EMAIL = "info@zeniva.ca";
 const TRAVEL_ALLOWED = (process.env.FORM_TRAVEL_ALLOWED_AGENTS || "")
@@ -39,61 +35,38 @@ type AccountRecord = {
   createdAt: string;
 };
 
-async function readClients(): Promise<ClientRecord[]> {
-  try {
-    const raw = await fs.readFile(DATA_FILE, "utf-8");
-    return JSON.parse(raw || "[]");
-  } catch (err: any) {
-    if (err?.code === "ENOENT") return [];
-    throw err;
-  }
-}
-
-async function writeClients(clients: ClientRecord[]) {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  await fs.writeFile(DATA_FILE, JSON.stringify(clients, null, 2), "utf-8");
-}
-
-async function readAccounts(): Promise<AccountRecord[]> {
-  try {
-    const raw = await fs.readFile(ACCOUNTS_FILE, "utf-8");
-    return JSON.parse(raw || "[]");
-  } catch (err: any) {
-    if (err?.code === "ENOENT") return [];
-    throw err;
-  }
-}
-
-async function writeAccounts(accounts: AccountRecord[]) {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  await fs.writeFile(ACCOUNTS_FILE, JSON.stringify(accounts, null, 2), "utf-8");
+function mapClientRow(row: any): ClientRecord {
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email || undefined,
+    ownerEmail: row.owner_email,
+    phone: row.phone || undefined,
+    origin: row.origin || "house",
+    assignedAgents: row.assigned_agents || [],
+    primaryDivision: row.primary_division || undefined,
+    leadSource: row.lead_source || undefined,
+    notes: row.notes || undefined,
+    createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
+    updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : undefined,
+  };
 }
 
 function getFormConfig(formId: string) {
   return FORM_DEFINITIONS.find((f) => f.id === formId) || null;
 }
 
-function normalizeEmail(email: string) {
-  return email.trim().toLowerCase();
-}
-
 async function ensureTravelerAccount(email: string, name: string, division: string) {
   if (!email) return;
-  const accounts = await readAccounts();
-  const existing = accounts.find((a) => a.email.toLowerCase() === email.toLowerCase());
-  if (existing) return;
-  const record: AccountRecord = {
-    id: `acct-${email.replace(/[^a-z0-9]/gi, "-")}`,
-    name: name || "Traveler",
-    email,
-    role: "traveler",
-    roles: ["traveler"],
-    divisions: [division],
-    status: "active",
-    createdAt: new Date().toISOString(),
-  };
-  accounts.push(record);
-  await writeAccounts(accounts);
+  const normalized = normalizeEmail(email);
+  const existing = await dbQuery("SELECT id FROM accounts WHERE email = $1", [normalized]);
+  if (existing.rows.length) return;
+  const id = `acct-${normalized.replace(/[^a-z0-9]/gi, "-")}`;
+  await dbQuery(
+    "INSERT INTO accounts (id, name, email, role, roles, divisions, status, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7, now())",
+    [id, name || "Traveler", normalized, "traveler", ["traveler"], [division], "active"]
+  );
+  console.log(`ACCOUNT CREATED: id=${id} email=${normalized}`);
 }
 
 function buildNotesFromPayload(formId: string, payload: Record<string, any>) {
@@ -107,6 +80,7 @@ function buildNotesFromPayload(formId: string, payload: Record<string, any>) {
 
 export async function POST(request: Request) {
   try {
+    assertBackendEnv();
     const body = await request.json();
     const formId = String(body?.formId || "").trim();
     const form = getFormConfig(formId);
@@ -137,11 +111,27 @@ export async function POST(request: Request) {
       }
     }
 
-    const clients = await readClients();
-    const existing = clients.find((c) => (
-      (email && (c.email || "").toLowerCase() === email) ||
-      (phone && (c.phone || "") === phone)
-    ));
+    const filters: string[] = [];
+    const params: any[] = [];
+    if (email) {
+      params.push(email);
+      filters.push(`lower(email) = lower($${params.length})`);
+    }
+    if (phone) {
+      params.push(phone);
+      filters.push(`phone = $${params.length}`);
+    }
+
+    const existingResult = filters.length
+      ? await dbQuery(
+          `SELECT id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, notes, created_at, updated_at FROM clients WHERE ${filters.join(
+            " OR "
+          )} LIMIT 1`,
+          params
+        )
+      : { rows: [] };
+
+    const existing = existingResult.rows[0] ? mapClientRow(existingResult.rows[0]) : null;
 
     if (existing) {
       const existingOwner = normalizeEmail(existing.ownerEmail || "");
@@ -176,16 +166,30 @@ export async function POST(request: Request) {
         updatedAt: new Date().toISOString(),
       };
 
-      const next = clients.map((c) => (c.id === existing.id ? updated : c));
-      await writeClients(next);
+      const { rows } = await dbQuery(
+        "UPDATE clients SET name = $2, email = $3, phone = $4, owner_email = $5, assigned_agents = $6, primary_division = $7, origin = $8, lead_source = $9, notes = $10, updated_at = now() WHERE id = $1 RETURNING id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, notes, created_at, updated_at",
+        [
+          existing.id,
+          updated.name,
+          updated.email || null,
+          updated.phone || null,
+          updated.ownerEmail,
+          updated.assignedAgents || [],
+          updated.primaryDivision || null,
+          updated.origin,
+          updated.leadSource || null,
+          updated.notes || null,
+        ]
+      );
+      const saved = mapClientRow(rows[0]);
       if (email) {
-        await ensureTravelerAccount(email, name || existing.name || "Traveler", form.division);
+        await ensureTravelerAccount(email, name || saved.name || "Traveler", form.division);
       }
-      return NextResponse.json({ data: updated, updated: true });
+      return NextResponse.json({ data: saved, updated: true });
     }
 
     const record: ClientRecord = {
-      id: body?.id || `C-${clients.length + 100}`,
+      id: body?.id || `C-${crypto.randomUUID()}`,
       name: name || email || phone || "Client",
       email: email || undefined,
       phone: phone || undefined,
@@ -198,13 +202,28 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString(),
     };
 
-    clients.push(record);
-    await writeClients(clients);
+    const { rows } = await dbQuery(
+      "INSERT INTO clients (id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, notes, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, now()) RETURNING id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, notes, created_at",
+      [
+        record.id,
+        record.name,
+        record.email || null,
+        record.ownerEmail,
+        record.phone || null,
+        record.origin,
+        record.assignedAgents || [],
+        record.primaryDivision || null,
+        record.leadSource || null,
+        record.notes || null,
+      ]
+    );
+    const saved = mapClientRow(rows[0]);
+    console.log(`CLIENT CREATED: id=${saved.id} email=${saved.email || ""}`);
     if (email) {
-      await ensureTravelerAccount(email, record.name, form.division);
+      await ensureTravelerAccount(email, saved.name, form.division);
     }
 
-    return NextResponse.json({ data: record, created: true }, { status: 201 });
+    return NextResponse.json({ data: saved, created: true }, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to submit form" }, { status: 500 });
   }
@@ -213,3 +232,5 @@ export async function POST(request: Request) {
 export async function GET() {
   return NextResponse.json({ error: "Method Not Allowed" }, { status: 405 });
 }
+
+export const runtime = "nodejs";

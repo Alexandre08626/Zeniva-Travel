@@ -27,8 +27,9 @@ export type AgentDirectoryEntry = {
 };
 
 const STORAGE_KEY = "zeniva_agents_dir_v1";
+const IS_PROD = process.env.NODE_ENV === "production";
 
-let agents: AgentDirectoryEntry[] = [
+let agents: AgentDirectoryEntry[] = IS_PROD ? [] : [
   {
     id: "agent-hq",
     name: "Zeniva HQ",
@@ -98,7 +99,7 @@ let agents: AgentDirectoryEntry[] = [
 ];
 
 function persistAgents() {
-  if (typeof window === "undefined") return;
+  if (IS_PROD || typeof window === "undefined") return;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(agents));
   } catch {
@@ -107,7 +108,7 @@ function persistAgents() {
 }
 
 function hydrateAgents() {
-  if (typeof window === "undefined") return;
+  if (IS_PROD || typeof window === "undefined") return;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw) {
