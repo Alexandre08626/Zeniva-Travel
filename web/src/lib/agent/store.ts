@@ -123,18 +123,18 @@ export function addPayment(tripId: string, payment: Payment) {
 export function setPaymentStatus(tripId: string, paymentId: string, status: Payment["status"]) {
   const trip = trips.find((t) => t.id === tripId);
   if (!trip) return;
-let trips: TripFile[] = IS_PROD ? [] : [
+  const payment = trip.payments.find((p) => p.id === paymentId);
   if (!payment) return;
   const prev = payment.status;
   payment.status = status;
   addAudit("payment:status", "trip", tripId, { paymentId, status });
   if (status === "Paid" && prev !== "Paid") {
     addLedgerForPayment(trip, payment);
-let ledger: LedgerEntry[] = IS_PROD ? [] : [
+  }
   persist();
 }
 
-  if (IS_PROD || typeof window === "undefined") return;
+export function addDocument(tripId: string, doc: DocumentEntry) {
   const trip = trips.find((t) => t.id === tripId);
   if (!trip) return;
   trip.documents.unshift(doc);
@@ -143,7 +143,7 @@ let ledger: LedgerEntry[] = IS_PROD ? [] : [
 }
 
 export function getClientById(id: string) {
-  if (IS_PROD || typeof window === "undefined") return;
+  return clients.find((c) => c.id === id);
 }
 
 export function getTripById(id: string) {
