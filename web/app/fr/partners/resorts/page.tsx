@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import PartnerResortsPage from "../../../../partners/resorts/page";
+import PartnerResortsPage from "../../../partners/resorts/page";
 
 export const metadata: Metadata = {
   title: "Partenaires resorts",
