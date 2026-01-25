@@ -524,13 +524,30 @@ function setCookie(name: string, value: string, days = 7) {
   const expires = new Date(Date.now() + days * 864e5).toUTCString();
   const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
   const secureFlag = isSecure ? "; secure" : "";
-  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; expires=${expires}; samesite=lax${secureFlag}`;
+  const domain = getCookieDomainFromPublicUrl();
+  const domainFlag = domain ? `; domain=${domain}` : "";
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; expires=${expires}; samesite=lax${secureFlag}${domainFlag}`;
 }
 function deleteCookie(name: string) {
   if (typeof document === "undefined") return;
   const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
   const secureFlag = isSecure ? "; secure" : "";
-  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; samesite=lax${secureFlag}`;
+  const domain = getCookieDomainFromPublicUrl();
+  const domainFlag = domain ? `; domain=${domain}` : "";
+  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; samesite=lax${secureFlag}${domainFlag}`;
+}
+
+function getCookieDomainFromPublicUrl() {
+  const raw = process.env.NEXT_PUBLIC_SITE_URL || "";
+  if (!raw) return undefined;
+  try {
+    const url = new URL(raw);
+    const host = url.hostname;
+    if (!host || host.includes("localhost") || host.includes("127.0.0.1")) return undefined;
+    return host;
+  } catch {
+    return undefined;
+  }
 }
 
 export async function login(email: string, password: string, opts?: { role?: Role | "agent"; allowedRoles?: Role[] }) {
