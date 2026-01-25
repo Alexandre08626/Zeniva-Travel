@@ -38,7 +38,7 @@ function cleanDescription(description: string) {
   const beforeContact = withoutHeader.split("Contact Agent")[0];
   const beforeDetails = beforeContact.split("Property Details")[0];
   const cleaned = normalizePetFriendly(beforeDetails.replace(/\n{3,}/g, "\n\n").trim());
-  return cleaned.length < 40 ? "Curated boutique stay with Zeniva concierge support." : cleaned;
+  return cleaned.length < 40 ? "Curated stay with Zeniva concierge support." : cleaned;
 }
 
 export default function AirbnbsPage() {

@@ -63,7 +63,7 @@ export default function SettingsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
                   <input
                     type="text"
-                    defaultValue="Luxury Yacht Rentals LLC"
+                    defaultValue="Yacht Rentals LLC"
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none"
                   />
                 </div>
@@ -71,7 +71,7 @@ export default function SettingsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Business Email</label>
                   <input
                     type="email"
-                    defaultValue="contact@luxuryyachts.com"
+                    defaultValue="contact@yachtrentals.com"
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none"
                   />
                 </div>
@@ -166,7 +166,7 @@ export default function SettingsPage() {
               <div className="p-6 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg border border-emerald-200 mb-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">Premium Plan</h3>
+                    <h3 className="text-xl font-bold text-gray-900">Partner Plan</h3>
                     <p className="text-gray-600 mt-1">Unlimited listings & bookings</p>
                   </div>
                   <div className="text-right">

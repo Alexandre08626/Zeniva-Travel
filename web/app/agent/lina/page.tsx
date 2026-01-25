@@ -64,7 +64,7 @@ const DOSSIERS: Dossier[] = [
     pax: 2,
     budget: "$6,500",
     nextStep: "Awaiting client approval",
-    preferences: "Boutique resort, nonstop flights, balcony room",
+    preferences: "Resort, nonstop flights, balcony room",
   },
   {
     id: "YCHT-55",
@@ -130,7 +130,7 @@ const SHORTLIST: Record<string, { type: string; title: string; price: string; se
 
 const CONVERSATIONS: Record<string, Message[]> = {
   "TRIP-104": [
-    { id: "m1", role: "agent", text: "Resuming Cancun build. Need best nonstop + boutique resort.", ts: "09:10" },
+    { id: "m1", role: "agent", text: "Resuming Cancun build. Need best nonstop + resort.", ts: "09:10" },
     { id: "m2", role: "lina", text: "Loaded dossier TRIP-104. Next step: client approval on proposal v2. Want me to draft the follow-up?", ts: "09:10" },
   ],
   "YCHT-55": [
@@ -314,7 +314,7 @@ export default function LinaCommandCenter() {
       budget: "$6,500",
       itinerary: [
         "✈️ Vol direct Montréal-Cancun avec Air Canada",
-        "🏨 Hôtel boutique 5* avec balcon vue mer",
+        "🏨 Hôtel 5* avec balcon vue mer",
         "🚗 Transfert privé aéroport-hôtel",
         "🍽️ Dîner romantique au coucher du soleil"
       ],
@@ -498,7 +498,7 @@ export default function LinaCommandCenter() {
               <input
                 autoFocus
                 type="text"
-                placeholder="/ Build a 7-day Cancun luxury trip for 2 adults, budget 5k"
+                placeholder="/ Build a 7-day Cancun trip for 2 adults, budget 5k"
                 style={{ flex: 1, fontSize: 20, padding: '16px 22px', borderRadius: 12, border: '1.5px solid #e3e8f0', background: '#fff', fontWeight: 600, color: '#1a2340' }}
                 value={search}
                 onChange={e => setSearch(e.target.value)}

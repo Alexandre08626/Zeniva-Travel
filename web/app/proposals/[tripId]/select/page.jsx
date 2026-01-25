@@ -26,7 +26,7 @@ const getMockHotels = (destination) => {
   } else {
     return [
       { id: "mock-stay-1", name: "Hotel Playa", location: "Resort Area", price: "USD 420/night", room: "King Room", image: "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80" },
-      { id: "mock-stay-2", name: "Boutique Central", location: "City Center", price: "USD 380/night", room: "Suite", image: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=900&q=80" },
+      { id: "mock-stay-2", name: "Central Hotel", location: "City Center", price: "USD 380/night", room: "Suite", image: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=900&q=80" },
     ];
   }
 };

@@ -105,7 +105,7 @@ export async function GET(req: Request) {
       },
       {
         id: "mock-hotel-2",
-        name: "Boutique Hotel " + destination,
+        name: "Hotel " + destination,
         location: destination,
         price: "USD 200/night",
         room: "Deluxe Room",

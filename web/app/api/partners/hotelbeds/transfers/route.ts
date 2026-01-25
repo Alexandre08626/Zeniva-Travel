@@ -205,7 +205,7 @@ function getMockTransfers(pickup: string, dropoff: string) {
     {
       type: 'transfer',
       id: `mock-transfer-1-${Date.now()}`,
-      title: "Private Luxury Sedan Transfer",
+      title: "Private Sedan Transfer",
       location: `${pickup} → ${dropoff}`,
       startDateTime: "2026-03-12T10:00:00",
       endDateTime: null,
@@ -222,7 +222,7 @@ function getMockTransfers(pickup: string, dropoff: string) {
       bookingToken: null,
       vehicle: {
         name: "Mercedes-Benz E-Class",
-        category: "LUXURY",
+        category: "STANDARD",
         seats: 3
       },
       transferType: "PRIVATE",

@@ -14,7 +14,7 @@ import { SkeletonKpi, SkeletonCard } from '../../../src/components/partner/Skele
 import { TrendingUp, Calendar, Plus, Users, Shield, CheckCircle2 } from 'lucide-react';
 import Modal from '../../../src/components/partner/Modal';
 
-// Mock data for premium UI showcase
+// Mock data for partner UI showcase
 const mockKpis = [
   { 
     label: 'Upcoming bookings', 
@@ -62,7 +62,7 @@ const mockTasks = [
 const mockBookings = [] as any[];
 const mockListings = [
   { id: 'l_1', title: 'Cozy Beach House', status: 'Draft' },
-  { id: 'l_2', title: 'Luxury Yacht Charter', status: 'Published' },
+  { id: 'l_2', title: 'Yacht Charter', status: 'Published' },
   { id: 'l_3', title: 'Mountain Villa Retreat', status: 'Paused' },
 ];
 const mockThreads = [] as any[];

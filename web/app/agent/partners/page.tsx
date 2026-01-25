@@ -484,7 +484,7 @@ export default function PartnerAccountsPage() {
             <div class="panel"><strong>Capacity</strong>${listing.capacity ? `${listing.capacity} guests` : "Custom"}</div>
             <div class="panel"><strong>Bedrooms</strong>${listing.bedrooms ?? "Custom"}</div>
             <div class="panel"><strong>Bathrooms</strong>${listing.bathrooms ?? "Custom"}</div>
-            <div class="panel"><strong>Rating</strong>${listing.rating ? `${listing.rating} (${listing.reviews || 0} reviews)` : "Premium partner"}</div>
+            <div class="panel"><strong>Rating</strong>${listing.rating ? `${listing.rating} (${listing.reviews || 0} reviews)` : "Preferred partner"}</div>
           </div>
           <p class="muted">${listing.description || "A curated Zeniva Travel partner listing prepared for your client."}</p>
           ${amenities.length ? `<div class="amenities">${amenities.map((a) => `<span>${a}</span>`).join("")}</div>` : ""}
@@ -676,7 +676,7 @@ export default function PartnerAccountsPage() {
                         {selectedListing.rating ? (
                           <p className="text-xs text-slate-500">Rating {selectedListing.rating} · {selectedListing.reviews || 0} reviews</p>
                         ) : (
-                          <p className="text-xs text-slate-500">Premium partner listing</p>
+                          <p className="text-xs text-slate-500">Preferred partner listing</p>
                         )}
                       </div>
                       <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">

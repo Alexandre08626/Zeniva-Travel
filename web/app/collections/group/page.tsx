@@ -12,7 +12,7 @@ const GROUP_IDEAS = [
   { id: "g1", title: "Mexico — All-Inclusive Group Escape", blurb: "Private villas, group transfers, event planning.", img: "https://images.unsplash.com/photo-1501117170019-8782a8e5f9b8?auto=format&fit=crop&w=1200&q=60" },
   { id: "g2", title: "Europe Friends Trip (Italy / France / Spain)", blurb: "City-hopping with curated activities and dining.", img: "https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?auto=format&fit=crop&w=1200&q=60" },
   { id: "g3", title: "Corporate Retreats", blurb: "Offsite planning, meeting facilities, team experiences.", img: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1200&q=60" },
-  { id: "g4", title: "Bachelor / Bachelorette Trips", blurb: "Tailored party itineraries with VIP experiences.", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=1200&q=60" },
+  { id: "g4", title: "Bachelor / Bachelorette Trips", blurb: "Tailored party itineraries with popular experiences.", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=1200&q=60" },
   { id: "g5", title: "Family & Multi-generation Trips", blurb: "Accessible, comfortable plans for all ages.", img: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=60" },
 ];
 
@@ -142,7 +142,7 @@ export default function GroupTripsPage() {
                 </Link>
               </div>
               <div className="flex flex-wrap gap-2 text-xs" style={{ color: MUTED_TEXT }}>
-                <span className="px-3 py-1 rounded-full bg-slate-100 border border-slate-200">VIP transfers & hosted check-ins</span>
+                <span className="px-3 py-1 rounded-full bg-slate-100 border border-slate-200">Coordinated transfers & hosted check-ins</span>
                 <span className="px-3 py-1 rounded-full bg-slate-100 border border-slate-200">Rooming lists handled</span>
                 <span className="px-3 py-1 rounded-full bg-slate-100 border border-slate-200">Dining & activities pre-booked</span>
               </div>

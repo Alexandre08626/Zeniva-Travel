@@ -143,7 +143,7 @@ export default function NewListingPage() {
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="e.g., Luxury Yacht Mediterranean Explorer"
+                  placeholder="e.g., Yacht Mediterranean Explorer"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none"
                 />
               </div>

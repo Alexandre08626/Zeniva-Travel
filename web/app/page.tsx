@@ -1,4 +1,5 @@
 // src/app/page.tsx
+import type { Metadata } from "next";
 import Link from "next/link";
 import { PREMIUM_BLUE, LIGHT_BG, TITLE_TEXT, GRADIENT_START, GRADIENT_END } from "../src/design/tokens";
 import Header from "../src/components/Header";
@@ -12,10 +13,46 @@ import FeaturedTripsSection from "../src/components/FeaturedTripsSection";
 
 const COLLECTIONS = [
   { id: "c7", title: "Yacht Charters", description: "YCN partner fleet", icon: "yacht", href: "/yachts" },
-  { id: "c4", title: "Partner Resorts", description: "5-star all-inclusive", icon: "resort", href: "/partners/resorts" },
+  { id: "c4", title: "Partner Resorts", description: "All-inclusive resorts", icon: "resort", href: "/partners/resorts" },
   { id: "c6", title: "Group Trips", description: "Friends & family", icon: "group", href: "/collections/group" },
   { id: "c8", title: "Partner Airbnbs", description: "Curated villa stays", icon: "home", href: "/airbnbs" },
 ];
+
+export const metadata: Metadata = {
+  title: "AI Travel Concierge",
+  description:
+    "Zeniva Travel is an AI travel company. Lina AI discovers intent, builds intelligent proposals, and concierge experts finalize the trip.",
+  alternates: {
+    canonical: "https://www.zenivatravel.com",
+    languages: {
+      "en-CA": "https://www.zenivatravel.com",
+      "fr-CA": "https://www.zenivatravel.com/fr",
+    },
+  },
+  openGraph: {
+    title: "Zeniva Travel AI | AI Travel Concierge",
+    description:
+      "AI trip planning with Lina AI: intent discovery, intelligent proposals, and concierge validation.",
+    url: "https://www.zenivatravel.com",
+    siteName: "Zeniva Travel",
+    type: "website",
+    images: [
+      {
+        url: "/branding/lina-avatar.png",
+        width: 1200,
+        height: 630,
+        alt: "Lina AI",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Zeniva Travel AI | AI Travel Concierge",
+    description:
+      "AI trip planning with Lina AI: intent discovery, intelligent proposals, and concierge validation.",
+    images: ["/branding/lina-avatar.png"],
+  },
+};
 
 function Icon({ name }: { name: string }) {
   switch (name) {
@@ -101,25 +138,44 @@ export default function HomePage() {
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "Organization",
+        name: "Zeniva Travel",
+        url: "https://www.zenivatravel.com",
+        logo: "https://www.zenivatravel.com/branding/logo.png",
+        sameAs: ["https://zenivatravel.com"],
+      },
+      {
         "@type": "TravelAgency",
         name: "Zeniva Travel AI",
-        url: "https://zenivatravel.com",
-        logo: "https://zenivatravel.com/branding/logo.png",
-        image: "https://zenivatravel.com/branding/lina-avatar.png",
+        url: "https://www.zenivatravel.com",
+        logo: "https://www.zenivatravel.com/branding/logo.png",
+        image: "https://www.zenivatravel.com/branding/lina-avatar.png",
         description:
-          "Zeniva Travel AI is a premium travel agency powered by Lina AI. Plan luxury trips in minutes with AI‑curated flights, villas, resorts, yachts, and experiences.",
+          "Zeniva Travel AI is powered by Lina AI. Discover intent, build intelligent proposals, and finalize with concierge experts.",
         brand: {
           "@type": "Brand",
           name: "Lina AI",
         },
       },
       {
+        "@type": "Product",
+        name: "Lina AI Travel Concierge",
+        description:
+          "AI travel concierge—intent discovery, intelligent proposals, and human finalization.",
+        brand: {
+          "@type": "Brand",
+          name: "Zeniva Travel",
+        },
+        url: "https://www.zenivatravel.com/ai-travel-concierge",
+        image: "https://www.zenivatravel.com/branding/lina-avatar.png",
+      },
+      {
         "@type": "WebSite",
         name: "Zeniva Travel AI",
-        url: "https://zenivatravel.com",
+        url: "https://www.zenivatravel.com",
         potentialAction: {
           "@type": "SearchAction",
-          target: "https://zenivatravel.com/search?q={search_term_string}",
+          target: "https://www.zenivatravel.com/search?q={search_term_string}",
           "query-input": "required name=search_term_string",
         },
       },
@@ -236,7 +292,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* HERO SECTION (Compact Premium) - full-bleed banner */}
+      {/* HERO SECTION (Compact) - full-bleed banner */}
       <section className="mt-4 mb-8 sm:mt-8 sm:mb-12 hidden sm:block">
         <div className="relative w-screen left-1/2 right-1/2 -translate-x-1/2">
           <div className="relative rounded-3xl overflow-hidden">
@@ -273,7 +329,7 @@ export default function HomePage() {
 
                   <p className="mt-3 text-md text-white/90 max-w-xl md:max-w-2xl">
                     <AutoTranslate
-                      text="Plan a luxury trip in minutes with Lina AI—tailor-made itineraries, curated resorts, private villas, yachts, and experiences."
+                      text="Plan a trip in minutes with Lina AI—intent discovery, intelligent proposals, and concierge validation."
                       className="inline"
                     />
                   </p>

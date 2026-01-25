@@ -18,13 +18,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://zenivatravel.com"),
+  metadataBase: new URL("https://www.zenivatravel.com"),
   title: {
-    default: "Zeniva Travel AI | Luxury Travel Concierge",
+    default: "Zeniva Travel AI | AI Travel Concierge",
     template: "%s | Zeniva Travel AI",
   },
   description:
-    "Zeniva Travel AI is a premium travel agency powered by Lina AI. Plan a luxury trip in minutes with AI‑curated flights, villas, resorts, yachts, and experiences—tailor‑made for you.",
+    "Zeniva Travel AI is powered by Lina AI. Discover intent, build intelligent trip proposals, and finalize with human concierge support.",
   keywords: [
     "Zeniva Travel",
     "Zeniva Travel AI",
@@ -32,17 +32,18 @@ export const metadata: Metadata = {
     "AI travel planner",
     "AI trip planning",
     "plan a trip in minutes",
-    "luxury travel agency",
     "custom travel planning",
     "travel concierge",
-    "private villas",
-    "luxury resorts",
     "yacht charter",
     "AI travel planner",
     "Lina AI",
   ],
   alternates: {
-    canonical: "https://zenivatravel.com",
+    canonical: "https://www.zenivatravel.com",
+    languages: {
+      "en-CA": "https://www.zenivatravel.com",
+      "fr-CA": "https://www.zenivatravel.com/fr",
+    },
   },
   robots: {
     index: true,
@@ -57,10 +58,10 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    url: "https://zenivatravel.com",
-    title: "Zeniva Travel AI | Luxury Travel Concierge",
+    url: "https://www.zenivatravel.com",
+    title: "Zeniva Travel AI | AI Travel Concierge",
     description:
-      "Plan a luxury trip in minutes with Lina AI—custom flights, villas, resorts, yachts, and curated experiences built around you.",
+      "Plan trips with Lina AI—intent discovery, intelligent proposals, and human concierge validation.",
     siteName: "Zeniva Travel AI",
     images: [
       {
@@ -73,9 +74,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zeniva Travel AI | Luxury Travel Concierge",
+    title: "Zeniva Travel AI | AI Travel Concierge",
     description:
-      "Plan a luxury trip in minutes with Lina AI—custom flights, villas, resorts, yachts, and curated experiences built around you.",
+      "Plan trips with Lina AI—intent discovery, intelligent proposals, and human concierge validation.",
     images: ["/branding/lina-avatar.png"],
   },
   icons: {

@@ -461,7 +461,7 @@ export default function AgentDashboardPage() {
                           <input
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            placeholder="Build a 7-day Cancun luxury trip for 2 adults, budget 5k"
+                            placeholder="Build a 7-day Cancun trip for 2 adults, budget 5k"
                             className="w-full text-sm outline-none"
                             aria-label="Hybrid search command"
                           />

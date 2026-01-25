@@ -23,7 +23,7 @@ function cleanDescription(description: string) {
   const beforeContact = withoutHeader.split('Contact Agent')[0];
   const beforeDetails = beforeContact.split('Property Details')[0];
   const cleaned = normalizePetFriendly(beforeDetails.replace(/\n{3,}/g, '\n\n').trim());
-  return cleaned.length < 40 ? 'Curated boutique stay with Zeniva concierge support.' : cleaned;
+  return cleaned.length < 40 ? 'Curated stay with Zeniva concierge support.' : cleaned;
 }
 
 
@@ -70,7 +70,7 @@ export default async function AirbnbDetailPage({ params }: { params: Promise<{ s
               <Image src="/branding/lina-avatar.png" alt="Lina" width={64} height={64} sizes="64px" quality={100} className="rounded-full ring-2 ring-blue-200" />
               <div className="text-left">
                 <p className="text-sm font-bold text-slate-900">Lina AI</p>
-                <p className="text-[11px] font-semibold text-blue-700">VIP concierge option</p>
+                <p className="text-[11px] font-semibold text-blue-700">Concierge option</p>
               </div>
             </Link>
             <button className="rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-semibold text-blue-700">Share</button>
@@ -139,7 +139,7 @@ export default async function AirbnbDetailPage({ params }: { params: Promise<{ s
                 <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">Verified</span>
               </div>
               <p className="mt-4 text-sm leading-relaxed text-slate-700 whitespace-pre-line">
-                {descriptionText || "Curated boutique stay with Zeniva concierge support."}
+                {descriptionText || "Curated stay with Zeniva concierge support."}
               </p>
             </section>
 
@@ -157,7 +157,7 @@ export default async function AirbnbDetailPage({ params }: { params: Promise<{ s
 
             <section className="rounded-2xl border border-blue-100 bg-white p-6">
               <h3 className="text-lg font-semibold text-slate-900">Where you’ll sleep</h3>
-              <p className="mt-2 text-sm text-slate-700">{bedrooms ? `${bedrooms} bedroom` : "Private suite"} with premium linens and resort amenities.</p>
+              <p className="mt-2 text-sm text-slate-700">{bedrooms ? `${bedrooms} bedroom` : "Private suite"} with fresh linens and on-site amenities.</p>
             </section>
 
             <section className="rounded-2xl border border-blue-100 bg-white p-6">

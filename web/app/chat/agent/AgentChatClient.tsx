@@ -160,7 +160,7 @@ export default function TravelerAgentChatClient() {
               />
               <div className="text-left">
                 <p className="text-sm font-bold text-slate-900">Lina AI</p>
-                <p className="text-[11px] font-semibold text-blue-700">VIP concierge option</p>
+                <p className="text-[11px] font-semibold text-blue-700">Concierge option</p>
               </div>
             </Link>
             <Link

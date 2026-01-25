@@ -128,7 +128,7 @@ export default async function YcnPartnerPage({
               <Image src="/branding/lina-avatar.png" alt="Lina" width={64} height={64} sizes="64px" quality={100} className="rounded-full ring-2 ring-blue-200" />
               <div className="text-left">
                 <p className="text-sm font-bold text-slate-900">Lina AI</p>
-                <p className="text-[11px] font-semibold text-blue-700">VIP concierge option</p>
+                <p className="text-[11px] font-semibold text-blue-700">Concierge option</p>
               </div>
             </Link>
             <button className="rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-semibold text-blue-700">Share</button>
@@ -197,7 +197,7 @@ export default async function YcnPartnerPage({
                 <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">Verified</span>
               </div>
               <p className="mt-4 text-sm leading-relaxed text-slate-700">
-                {item.specs || "Premium yacht charter with full crew, tailored route, and concierge service."}
+                {item.specs || "Yacht charter with full crew, tailored route, and concierge service."}
               </p>
             </section>
 

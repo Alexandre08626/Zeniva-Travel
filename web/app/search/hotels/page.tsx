@@ -169,7 +169,7 @@ function HotelsSearchContent() {
     return { primary: `${currency} ${amount.toFixed(2)}` };
   };
 
-  const askPrompt = `Shortlist hotels in ${destination || "this city"} for ${summary.guestLabel}${budget ? ` under ${budget}` : ""}. Dates ${summary.stay}. Highlight VIP perks and flexible cancel. Keep ${selectedId || "top pick"} selected.`;
+  const askPrompt = `Shortlist hotels in ${destination || "this city"} for ${summary.guestLabel}${budget ? ` under ${budget}` : ""}. Dates ${summary.stay}. Highlight top perks and flexible cancel. Keep ${selectedId || "top pick"} selected.`;
 
   // Booking flow functions
   const handleSelectAccommodation = async (option: StayOption) => {

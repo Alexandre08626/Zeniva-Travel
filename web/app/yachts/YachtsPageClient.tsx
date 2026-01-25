@@ -272,7 +272,7 @@ export default function YachtsPageClient() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <p className="text-sm uppercase tracking-wide text-slate-500"><AutoTranslate text="Yacht Charters" className="inline" /></p>
-              <h1 className="text-3xl font-black mt-1"><AutoTranslate text="Exclusive YCN Fleet" className="inline" /></h1>
+              <h1 className="text-3xl font-black mt-1"><AutoTranslate text="YCN Fleet" className="inline" /></h1>
               <p className="text-slate-600 mt-2"><AutoTranslate text="Browse curated yachts and contact us for tailored itineraries." className="inline" /></p>
             </div>
             <Link href="/chat?prompt=Plan%20a%20yacht%20charter" className="hidden md:inline-flex px-4 py-2 rounded-full bg-black text-white text-sm font-semibold shadow">

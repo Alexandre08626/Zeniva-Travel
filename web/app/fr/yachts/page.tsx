@@ -1,23 +1,23 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import YachtsPageClient from "./YachtsPageClient";
+import YachtsPageClient from "../../yachts/YachtsPageClient";
 
 export const metadata: Metadata = {
-  title: "Yacht Travel Concierge",
+  title: "Conciergerie yacht",
   description:
-    "Zeniva Travel offers yacht travel concierge services powered by Lina AI. Discover curated yacht charters with intelligent itineraries and human validation.",
+    "Zeniva Travel propose une conciergerie yacht propulsée par Lina AI. Charters sur mesure, itinéraires intelligents et validation humaine.",
   alternates: {
-    canonical: "https://www.zenivatravel.com/yachts",
+    canonical: "https://www.zenivatravel.com/fr/yachts",
     languages: {
       "en-CA": "https://www.zenivatravel.com/yachts",
       "fr-CA": "https://www.zenivatravel.com/fr/yachts",
     },
   },
   openGraph: {
-    title: "Zeniva Travel AI | Yacht Travel Concierge",
+    title: "Zeniva Travel AI | Conciergerie yacht",
     description:
-      "Curated yacht charters with Lina AI—intelligent trip design and concierge finalization.",
-    url: "https://www.zenivatravel.com/yachts",
+      "Charters de yachts avec Lina AI : conception intelligente et finalisation par un concierge.",
+    url: "https://www.zenivatravel.com/fr/yachts",
     siteName: "Zeniva Travel",
     type: "website",
     images: [
@@ -31,14 +31,14 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zeniva Travel AI | Yacht Travel Concierge",
+    title: "Zeniva Travel AI | Conciergerie yacht",
     description:
-      "Curated yacht charters with Lina AI—intelligent trip design and concierge finalization.",
+      "Charters de yachts avec Lina AI : conception intelligente et finalisation par un concierge.",
     images: ["/branding/lina-avatar.png"],
   },
 };
 
-export default function YachtsPage() {
+export default function YachtsPageFr() {
   return (
     <Suspense fallback={<div className="min-h-screen" />}>
       <YachtsPageClient />

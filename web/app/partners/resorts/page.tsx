@@ -316,9 +316,9 @@ export default function PartnerResortsPage() {
         <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500"><AutoTranslate text="Zeniva Partner Resorts" className="inline" /></p>
-            <h1 className="text-3xl font-black" style={{ color: TITLE_TEXT }}><AutoTranslate text="Luxury partner hotels, curated like Booking" className="inline" /></h1>
+            <h1 className="text-3xl font-black" style={{ color: TITLE_TEXT }}><AutoTranslate text="Partner hotels, curated by Lina AI" className="inline" /></h1>
             <p className="text-sm" style={{ color: MUTED_TEXT }}>
-              <AutoTranslate text="Verified inventory only. Premium contracts, priority perks, and trusted media for proposals." className="inline" />
+              <AutoTranslate text="Verified inventory only. AI‑assisted contracts, priority perks, and trusted media for proposals." className="inline" />
             </p>
           </div>
           <div className="flex flex-wrap gap-3">

@@ -19,7 +19,7 @@ type Order = {
 };
 
 const mockOrders: Order[] = [
-  { id: "ORD-001", client: "Dupuis Family", product: "Trip Package", details: "Cancun 7 nights, flights, hotel", salePrice: "$6200", cost: "$4800", margin: "$1400", status: "Paid", notes: "VIP client", createdAt: "2026-01-05", agent: "Alice" },
+  { id: "ORD-001", client: "Dupuis Family", product: "Trip Package", details: "Cancun 7 nights, flights, hotel", salePrice: "$6200", cost: "$4800", margin: "$1400", status: "Paid", notes: "Priority client", createdAt: "2026-01-05", agent: "Alice" },
   { id: "ORD-002", client: "HQ Yacht", product: "Yacht Charter", details: "43ft Leopard, 1 week Miami", salePrice: "$18000", cost: "$15000", margin: "$3000", status: "Invoiced", notes: "Corporate event", createdAt: "2026-01-03", agent: "Marco" },
 ];
 

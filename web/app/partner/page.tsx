@@ -18,7 +18,7 @@ export default function PartnerPage() {
                 B2B partner program
               </div>
               <h1 className="mt-4 text-4xl font-extrabold leading-tight" style={{ color: TITLE_TEXT }}>
-                Grow premium bookings with Zeniva’s concierge network
+                Grow bookings with Zeniva’s concierge network
               </h1>
               <p className="mt-4 text-base font-semibold" style={{ color: MUTED_TEXT }}>
                 Connect your inventory and offers to a vetted audience of high-intent travelers. Unified onboarding, fast payouts, and concierge-led conversion.
@@ -51,7 +51,7 @@ export default function PartnerPage() {
                 <div className="rounded-lg bg-white p-4 shadow-sm">
                   <div className="text-xs uppercase tracking-wide" style={{ color: MUTED_TEXT }}>ADR focus</div>
                   <div className="mt-1 text-2xl font-extrabold">$1.8k</div>
-                  <div className="text-xs" style={{ color: MUTED_TEXT }}>avg premium booking value</div>
+                  <div className="text-xs" style={{ color: MUTED_TEXT }}>avg booking value</div>
                 </div>
                 <div className="rounded-lg bg-white p-4 shadow-sm">
                   <div className="text-xs uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Service</div>
@@ -68,13 +68,13 @@ export default function PartnerPage() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <h2 className="text-xl font-extrabold" style={{ color: TITLE_TEXT }}>Who we partner with</h2>
-              <p className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>Premium suppliers ready for concierge-driven demand.</p>
+              <p className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>Trusted suppliers ready for concierge-driven demand.</p>
             </div>
             <a href="#apply" className="text-sm font-semibold underline" style={{ color: PREMIUM_BLUE }}>Apply</a>
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {["Luxury & boutique hotels", "Villas and private residences", "Yachts & charters", "Experiences & excursions", "Aviation & premium air", "Group & MICE"].map((label) => (
-              <div key={label} className="rounded-lg border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold" style={{ color: TITLE_TEXT }}>
+            {["Hotels", "Villas and private residences", "Yachts & charters", "Experiences & excursions", "Aviation & air", "Group & MICE"].map((label) => (
+                <div key={label} className="rounded-lg border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold" style={{ color: TITLE_TEXT }}>
                 {label}
               </div>
             ))}
@@ -169,7 +169,7 @@ export default function PartnerPage() {
                 <option>Experience / Excursion</option>
                 <option>Aviation / Air</option>
                 <option>Group / MICE</option>
-                <option>Other premium supplier</option>
+                <option>Other supplier</option>
               </select>
             </div>
             <div className="flex flex-col gap-2">

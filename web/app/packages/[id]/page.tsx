@@ -65,7 +65,7 @@ export default async function PackageDetail({ params }: { params: Promise<{ id: 
             <div>
               <h3 className="text-lg font-semibold mb-2">Includes</h3>
               <ul className="list-disc pl-5 text-slate-700 space-y-1">
-                <li>Premium hotel options</li>
+                <li>Hotel options</li>
                 <li>Breakfast daily</li>
                 <li>Highlighted experiences</li>
                 <li>Concierge support</li>
@@ -99,7 +99,7 @@ export default async function PackageDetail({ params }: { params: Promise<{ id: 
           <input placeholder="2 adults" className="w-full mb-3 rounded-md border px-3 py-2" />
 
           <label className="block text-sm text-slate-600 mb-1">Cabin / hotel style</label>
-          <input placeholder="Business + Boutique" className="w-full mb-4 rounded-md border px-3 py-2" />
+          <input placeholder="Business + Comfort" className="w-full mb-4 rounded-md border px-3 py-2" />
 
           <button className="w-full mb-2 inline-block rounded-md px-4 py-2 bg-slate-200 text-slate-800">See flight + hotel options</button>
           <Link href={`/proposals/${pkg.slug}/select`} className="w-full inline-block text-center rounded-md px-4 py-2 bg-blue-600 text-white font-bold">Continue to booking</Link>

@@ -336,7 +336,7 @@ export default function PurchaseOrdersPage() {
               <select value={priority} onChange={(e) => setPriority(e.target.value)} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
                 <option>Normal</option>
                 <option>Urgent</option>
-                <option>VIP</option>
+                <option>Priority</option>
               </select>
             </label>
             <div className="space-y-1 text-sm font-semibold" style={{ color: TITLE_TEXT }}>

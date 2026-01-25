@@ -169,7 +169,7 @@ export async function GET(req: Request) {
       },
       {
         id: "mock-amadeus-2",
-        name: "Boutique Hotel " + cityCode,
+        name: "Hotel " + cityCode,
         location: cityCode,
         price: "USD 200/night",
         room: "Deluxe Room",
