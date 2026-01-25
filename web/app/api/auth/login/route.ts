@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../../src/lib/server/db";
-import { getSessionCookieName, signSession, verifyPassword } from "../../../../src/lib/server/auth";
+import { getCookieDomain, getSessionCookieName, signSession, verifyPassword } from "../../../../src/lib/server/auth";
 
 const HQ_EMAIL = "info@zeniva.ca";
 const HQ_PASSWORD = "Baton08!!";
@@ -59,11 +59,13 @@ export async function POST(request: Request) {
       },
     });
 
+    const cookieDomain = getCookieDomain();
     response.cookies.set(getSessionCookieName(), token, {
       httpOnly: true,
       sameSite: "lax",
       secure: true,
       path: "/",
+      ...(cookieDomain ? { domain: cookieDomain } : {}),
       maxAge: 60 * 60 * 24 * 7,
     });
     return response;

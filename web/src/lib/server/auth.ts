@@ -48,6 +48,17 @@ export function getSessionCookieName() {
   return SESSION_COOKIE;
 }
 
+export function getCookieDomain() {
+  const raw = process.env.NEXTAUTH_URL;
+  if (!raw) return undefined;
+  try {
+    const url = new URL(raw);
+    return url.hostname || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function hashPassword(password: string, salt?: string) {
   const usedSalt = salt || crypto.randomBytes(16).toString("hex");
   const hash = crypto.scryptSync(password, usedSalt, 64).toString("hex");

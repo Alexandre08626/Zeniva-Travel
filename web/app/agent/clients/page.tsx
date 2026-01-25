@@ -7,6 +7,8 @@ import type { Client, Division } from "../../../src/lib/agent/types";
 import { useAuthStore } from "../../../src/lib/authStore";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../src/design/tokens";
 
+const IS_PROD = process.env.NODE_ENV === "production";
+
 export default function ClientsPage() {
   const user = useAuthStore((s) => s.user);
   const [name, setName] = useState("");
@@ -14,7 +16,7 @@ export default function ClientsPage() {
   const [phone, setPhone] = useState("");
   const [division, setDivision] = useState<Division>("TRAVEL");
   const [agentEmail, setAgentEmail] = useState("");
-  const [clientsState, setClientsState] = useState<Client[]>(listClients());
+  const [clientsState, setClientsState] = useState<Client[]>(IS_PROD ? [] : listClients());
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,7 +31,10 @@ export default function ClientsPage() {
         const records: any[] = Array.isArray(payload?.data) ? payload.data : [];
         const remote = records.map((record: any) => toClient(record)).filter(Boolean) as Client[];
         if (!remote.length) return;
-
+        if (IS_PROD) {
+          setClientsState(remote);
+          return;
+        }
         const local = listClients();
         const merged = mergeClients(local, remote);
         setClientsState(merged);
@@ -41,7 +46,7 @@ export default function ClientsPage() {
     };
   }, []);
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     setError(null);
     setMessage(null);
     if (!name.trim()) {
@@ -56,40 +61,72 @@ export default function ClientsPage() {
       setError("Phone number is required.");
       return;
     }
-    const entry = addClient({
+    const payload = {
       name: name.trim(),
       email: email.trim(),
       ownerEmail: user?.email || "agent@zeniva.ca",
       phone: phone.trim(),
+      origin: agentEmail.trim() ? "agent" : "house",
+      assignedAgents: agentEmail.trim() ? [agentEmail.trim()] : [],
       primaryDivision: division,
-      assignedAgent: agentEmail.trim() || undefined,
-    });
-    try {
-      fetch("/api/clients", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: entry.id,
-          name: entry.name,
-          email: entry.email,
-          ownerEmail: entry.ownerEmail,
-          phone: entry.phone,
-          origin: entry.origin,
-          assignedAgents: entry.assignedAgents || [],
-          primaryDivision: entry.primaryDivision,
-        }),
+    };
+
+    if (IS_PROD) {
+      try {
+        const res = await fetch("/api/clients", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json?.error || "Failed to create client");
+        const created = toClient(json?.data);
+        if (created) {
+          setClientsState((prev) => mergeClients(prev, [created]));
+        }
+        setMessage(
+          `Client created (${created?.id || ""}). Commission rule: ${payload.assignedAgents.length > 0 ? "agent commission applies" : "100% Zeniva Travel"}.`
+        );
+      } catch (err: any) {
+        setError(err?.message || "Failed to create client.");
+        return;
+      }
+    } else {
+      const entry = addClient({
+        name: payload.name,
+        email: payload.email,
+        ownerEmail: payload.ownerEmail,
+        phone: payload.phone,
+        primaryDivision: division,
+        assignedAgent: agentEmail.trim() || undefined,
       });
-    } catch (_) {
-      // ignore
+      try {
+        fetch("/api/clients", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: entry.id,
+            name: entry.name,
+            email: entry.email,
+            ownerEmail: entry.ownerEmail,
+            phone: entry.phone,
+            origin: entry.origin,
+            assignedAgents: entry.assignedAgents || [],
+            primaryDivision: entry.primaryDivision,
+          }),
+        });
+      } catch (_) {
+        // ignore
+      }
+      setClientsState(listClients());
+      setMessage(
+        `Client created (${entry.id}). Commission rule: ${entry.assignedAgents && entry.assignedAgents.length > 0 ? "agent commission applies" : "100% Zeniva Travel"}.`
+      );
     }
-    setClientsState(listClients());
     setName("");
     setEmail("");
     setPhone("");
     setAgentEmail("");
-    setMessage(
-      `Client created (${entry.id}). Commission rule: ${entry.assignedAgents && entry.assignedAgents.length > 0 ? "agent commission applies" : "100% Zeniva Travel"}.`
-    );
   };
 
   return (

@@ -4,8 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore, type Role, deleteAccountByEmail } from "../../../src/lib/authStore";
-import { listAgents, addAgentFromAccount, removeAgentByEmail } from "../../../src/lib/agent/agents";
+import { listAgents, addAgentFromAccount, removeAgentByEmail, type AgentDirectoryEntry } from "../../../src/lib/agent/agents";
 import { PREMIUM_BLUE, TITLE_TEXT, MUTED_TEXT, ACCENT_GOLD } from "../../../src/design/tokens";
+
+const IS_PROD = process.env.NODE_ENV === "production";
 
 const statusLabels: Record<string, string> = {
   active: "Active",
@@ -19,12 +21,13 @@ export default function AgentsDirectoryPage() {
   const router = useRouter();
   const [roleFilter, setRoleFilter] = useState<"all" | "travel" | "yacht" | "admin">("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "suspended">("all");
-  const [data, setData] = useState(listAgents());
+  const [data, setData] = useState<AgentDirectoryEntry[]>(IS_PROD ? [] : listAgents());
 
   const isHQorAdmin = !!user && ((user.roles || (user.role ? [user.role] : [])).some((r) => r === "hq" || r === "admin"));
   const isAgentSelf = !!user && user.role !== "traveler";
 
   useEffect(() => {
+    if (IS_PROD) return;
     if (!user || user.role === "traveler") return;
     const role = user.role as Role;
     addAgentFromAccount({
@@ -38,6 +41,7 @@ export default function AgentsDirectoryPage() {
   }, [user]);
 
   useEffect(() => {
+    if (IS_PROD) return;
     if (!accounts || accounts.length === 0) return;
     const agentRoles: Role[] = ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "partner_owner", "partner_staff", "agent", "traveler"];
     const agentRoleSet = new Set(agentRoles);
@@ -67,6 +71,14 @@ export default function AgentsDirectoryPage() {
         if (!active) return;
         const records = Array.isArray(payload?.data) ? payload.data : [];
         if (!records.length) return;
+
+        if (IS_PROD) {
+          const next = records
+            .map((account: any) => accountToAgentEntry(account))
+            .filter(Boolean) as AgentDirectoryEntry[];
+          setData(next);
+          return;
+        }
 
         const agentRoles: Role[] = ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "partner_owner", "partner_staff", "agent", "traveler"];
         const agentRoleSet = new Set(agentRoles);
@@ -115,9 +127,13 @@ export default function AgentsDirectoryPage() {
     if (!isHQorAdmin) return;
     const ok = window.confirm(`Delete account for ${email}? This cannot be undone.`);
     if (!ok) return;
-    removeAgentByEmail(email);
-    deleteAccountByEmail(email);
-    setData(listAgents());
+    if (!IS_PROD) {
+      removeAgentByEmail(email);
+      deleteAccountByEmail(email);
+      setData(listAgents());
+    } else {
+      setData((prev) => prev.filter((a) => a.email.toLowerCase() !== email.toLowerCase()));
+    }
     try {
       await fetch(`/api/accounts?email=${encodeURIComponent(email)}`, { method: "DELETE" });
     } catch (_) {
@@ -258,6 +274,62 @@ export default function AgentsDirectoryPage() {
       </div>
     </main>
   );
+}
+
+function roleToLabel(role: Role): AgentDirectoryEntry["roleLabel"] {
+  if (role === "hq") return "HQ";
+  if (role === "admin") return "Admin";
+  if (role === "yacht-partner") return "Yacht Partner";
+  if (role === "partner_owner" || role === "partner_staff") return "Partner";
+  if (role === "traveler") return "Traveler";
+  return "Travel Agent";
+}
+
+function roleToKey(role: Role): AgentDirectoryEntry["roleKey"] {
+  if (role === "hq") return "hq";
+  if (role === "admin") return "admin";
+  if (role === "yacht-partner") return "yacht-partner";
+  if (role === "partner_owner" || role === "partner_staff") return "partner";
+  if (role === "traveler") return "traveler";
+  return "travel-agent";
+}
+
+function makeAgentCodeFromEmail(roleKey: AgentDirectoryEntry["roleKey"], email: string) {
+  const prefix = roleKey === "hq" ? "Z-HQ" : roleKey === "admin" ? "ZA" : roleKey === "yacht-partner" ? "ZY" : roleKey === "partner" ? "ZP" : "ZT";
+  const hash = Array.from(email).reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) % 900, 0) + 100;
+  return `${prefix}-${hash}`;
+}
+
+function accountToAgentEntry(account: any): AgentDirectoryEntry | null {
+  if (!account?.email) return null;
+  const roles = Array.isArray(account.roles) && account.roles.length ? account.roles : account.role ? [account.role] : [];
+  const agentRole = (roles.find((r: Role) => ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "partner_owner", "partner_staff", "agent", "traveler"].includes(r)) || "traveler") as Role;
+  const roleKey = roleToKey(agentRole);
+  const roleLabel = roleToLabel(agentRole);
+  const divisions = Array.isArray(account.divisions) && account.divisions.length ? account.divisions : roleKey === "partner" ? [] : ["TRAVEL"];
+
+  return {
+    id: account.id || `agent-${String(account.email).toLowerCase().replace(/[^a-z0-9]/gi, "-")}`,
+    name: account.name || "Agent",
+    email: String(account.email).toLowerCase(),
+    roleLabel,
+    roleKey,
+    status: account.status === "suspended" ? "suspended" : account.status === "disabled" ? "inactive" : "active",
+    code: makeAgentCodeFromEmail(roleKey, String(account.email).toLowerCase()),
+    avatar: "/branding/lina-avatar.png",
+    divisions,
+    createdAt: account.createdAt || new Date().toISOString(),
+    linkedToTravel: divisions.includes("TRAVEL"),
+    linkedToYacht: divisions.includes("YACHT"),
+    metrics: {
+      activeClients: 0,
+      openFiles: 0,
+      inProgressSales: 0,
+      revenue: 0,
+      commission: 0,
+      lastActivity: new Date().toISOString(),
+    },
+  };
 }
 
 function Metric({ label, value }: { label: string; value: string | number }) {
