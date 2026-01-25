@@ -6,17 +6,17 @@ export const metadata: Metadata = {
   description:
     "Zeniva Travel est une Travel Tech propulsée par l’IA. Lina AI crée des itinéraires sur mesure, validés par des experts concierge.",
   alternates: {
-    canonical: "https://www.zenivatravel.com/fr",
+    canonical: "https://zenivatravel.com/fr",
     languages: {
-      "en-CA": "https://www.zenivatravel.com/",
-      "fr-CA": "https://www.zenivatravel.com/fr",
+      "en-CA": "https://zenivatravel.com/",
+      "fr-CA": "https://zenivatravel.com/fr",
     },
   },
   openGraph: {
     title: "Zeniva Travel AI | Agence de voyage IA",
     description:
       "Voyages personnalisés avec Lina AI : itinéraires intelligents validés par un concierge humain.",
-    url: "https://www.zenivatravel.com/fr",
+    url: "https://zenivatravel.com/fr",
     siteName: "Zeniva Travel",
     type: "website",
     images: [

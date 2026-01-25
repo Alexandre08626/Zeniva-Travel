@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.zenivatravel.com"),
+  metadataBase: new URL("https://zenivatravel.com"),
   title: {
     default: "Zeniva Travel AI | AI Travel Concierge",
     template: "%s | Zeniva Travel AI",
@@ -39,10 +39,10 @@ export const metadata: Metadata = {
     "Lina AI",
   ],
   alternates: {
-    canonical: "https://www.zenivatravel.com",
+    canonical: "https://zenivatravel.com",
     languages: {
-      "en-CA": "https://www.zenivatravel.com",
-      "fr-CA": "https://www.zenivatravel.com/fr",
+      "en-CA": "https://zenivatravel.com",
+      "fr-CA": "https://zenivatravel.com/fr",
     },
   },
   robots: {
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    url: "https://www.zenivatravel.com",
+    url: "https://zenivatravel.com",
     title: "Zeniva Travel AI | AI Travel Concierge",
     description:
       "Plan trips with Lina AI—intent discovery, intelligent proposals, and human concierge validation.",

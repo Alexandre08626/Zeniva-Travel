@@ -6,17 +6,17 @@ export const metadata: Metadata = {
   description:
     "Chat with Lina AI, the travel concierge for intelligent itineraries. Discover destinations, budgets, and personalized experiences.",
   alternates: {
-    canonical: "https://www.zenivatravel.com/chat",
+    canonical: "https://zenivatravel.com/chat",
     languages: {
-      "en-CA": "https://www.zenivatravel.com/chat",
-      "fr-CA": "https://www.zenivatravel.com/fr/chat",
+      "en-CA": "https://zenivatravel.com/chat",
+      "fr-CA": "https://zenivatravel.com/fr/chat",
     },
   },
   openGraph: {
     title: "Zeniva Travel AI | AI Travel Agent Chat",
     description:
       "Chat with Lina AI to design a trip, then finalize with Zeniva Travel’s concierge team.",
-    url: "https://www.zenivatravel.com/chat",
+    url: "https://zenivatravel.com/chat",
     siteName: "Zeniva Travel",
     type: "website",
     images: [

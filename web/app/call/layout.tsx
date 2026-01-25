@@ -6,17 +6,17 @@ export const metadata: Metadata = {
   description:
     "Book a video concierge session with Lina AI and Zeniva Travel’s travel experts.",
   alternates: {
-    canonical: "https://www.zenivatravel.com/call",
+    canonical: "https://zenivatravel.com/call",
     languages: {
-      "en-CA": "https://www.zenivatravel.com/call",
-      "fr-CA": "https://www.zenivatravel.com/fr/call",
+      "en-CA": "https://zenivatravel.com/call",
+      "fr-CA": "https://zenivatravel.com/fr/call",
     },
   },
   openGraph: {
     title: "Zeniva Travel AI | Concierge Video Call",
     description:
       "Video concierge with Lina AI: intent discovery, smart itineraries, and human validation.",
-    url: "https://www.zenivatravel.com/call",
+    url: "https://zenivatravel.com/call",
     siteName: "Zeniva Travel",
     type: "website",
     images: [

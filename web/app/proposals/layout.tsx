@@ -6,17 +6,17 @@ export const metadata: Metadata = {
   description:
     "Review and finalize your AI travel proposals from Lina AI and Zeniva Travel’s concierge team.",
   alternates: {
-    canonical: "https://www.zenivatravel.com/proposals",
+    canonical: "https://zenivatravel.com/proposals",
     languages: {
-      "en-CA": "https://www.zenivatravel.com/proposals",
-      "fr-CA": "https://www.zenivatravel.com/fr/proposals",
+      "en-CA": "https://zenivatravel.com/proposals",
+      "fr-CA": "https://zenivatravel.com/fr/proposals",
     },
   },
   openGraph: {
     title: "Zeniva Travel AI | Trip Proposals",
     description:
       "AI travel proposals created by Lina AI and validated by human concierge experts.",
-    url: "https://www.zenivatravel.com/proposals",
+    url: "https://zenivatravel.com/proposals",
     siteName: "Zeniva Travel",
     type: "website",
     images: [

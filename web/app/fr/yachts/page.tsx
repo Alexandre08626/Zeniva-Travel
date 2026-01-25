@@ -7,17 +7,17 @@ export const metadata: Metadata = {
   description:
     "Zeniva Travel propose une conciergerie yacht propulsée par Lina AI. Charters sur mesure, itinéraires intelligents et validation humaine.",
   alternates: {
-    canonical: "https://www.zenivatravel.com/fr/yachts",
+    canonical: "https://zenivatravel.com/fr/yachts",
     languages: {
-      "en-CA": "https://www.zenivatravel.com/yachts",
-      "fr-CA": "https://www.zenivatravel.com/fr/yachts",
+      "en-CA": "https://zenivatravel.com/yachts",
+      "fr-CA": "https://zenivatravel.com/fr/yachts",
     },
   },
   openGraph: {
     title: "Zeniva Travel AI | Conciergerie yacht",
     description:
       "Charters de yachts avec Lina AI : conception intelligente et finalisation par un concierge.",
-    url: "https://www.zenivatravel.com/fr/yachts",
+    url: "https://zenivatravel.com/fr/yachts",
     siteName: "Zeniva Travel",
     type: "website",
     images: [

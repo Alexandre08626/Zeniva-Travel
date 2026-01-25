@@ -6,17 +6,17 @@ export const metadata: Metadata = {
   description:
     "Zeniva Travel is an AI travel company. Lina AI discovers intent, builds intelligent proposals, and our concierge team finalizes every detail.",
   alternates: {
-    canonical: "https://www.zenivatravel.com/ai-travel-concierge",
+    canonical: "https://zenivatravel.com/ai-travel-concierge",
     languages: {
-      "en-CA": "https://www.zenivatravel.com/ai-travel-concierge",
-      "fr-CA": "https://www.zenivatravel.com/fr/ai-travel-concierge",
+      "en-CA": "https://zenivatravel.com/ai-travel-concierge",
+      "fr-CA": "https://zenivatravel.com/fr/ai-travel-concierge",
     },
   },
   openGraph: {
     title: "Zeniva Travel AI | AI Travel Concierge",
     description:
       "AI travel concierge powered by Lina AI: intent discovery, smart itineraries, and human validation.",
-    url: "https://www.zenivatravel.com/ai-travel-concierge",
+    url: "https://zenivatravel.com/ai-travel-concierge",
     siteName: "Zeniva Travel",
     type: "website",
     images: [
@@ -44,14 +44,14 @@ export default function AiTravelConciergePage() {
       {
         "@type": "Organization",
         name: "Zeniva Travel",
-        url: "https://www.zenivatravel.com",
-        logo: "https://www.zenivatravel.com/branding/logo.png",
+        url: "https://zenivatravel.com",
+        logo: "https://zenivatravel.com/branding/logo.png",
       },
       {
         "@type": "TravelAgency",
         name: "Zeniva Travel AI",
-        url: "https://www.zenivatravel.com",
-        image: "https://www.zenivatravel.com/branding/lina-avatar.png",
+        url: "https://zenivatravel.com",
+        image: "https://zenivatravel.com/branding/lina-avatar.png",
         description:
           "Zeniva Travel is a travel tech company using artificial intelligence to design personalized trips and concierge services.",
         brand: {
@@ -68,8 +68,8 @@ export default function AiTravelConciergePage() {
           "@type": "Brand",
           name: "Zeniva Travel",
         },
-        url: "https://www.zenivatravel.com/ai-travel-concierge",
-        image: "https://www.zenivatravel.com/branding/lina-avatar.png",
+        url: "https://zenivatravel.com/ai-travel-concierge",
+        image: "https://zenivatravel.com/branding/lina-avatar.png",
       },
     ],
   };
