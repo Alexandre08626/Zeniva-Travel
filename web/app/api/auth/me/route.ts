@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { assertBackendEnv, dbQuery } from "../../../../src/lib/server/db";
+import { assertBackendEnv } from "../../../../src/lib/server/db";
 import { getSessionCookieName, verifySession } from "../../../../src/lib/server/auth";
+import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
 
 export async function GET(request: Request) {
   try {
@@ -17,11 +18,16 @@ export async function GET(request: Request) {
       return NextResponse.json({ user: null }, { status: 200 });
     }
 
-    const { rows } = await dbQuery(
-      "SELECT id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile FROM accounts WHERE email = $1",
-      [payload.email]
-    );
-    const account = rows[0];
+    const { client: admin } = getSupabaseAdminClient();
+    const { data: account, error } = await admin
+      .from("accounts")
+      .select("id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile")
+      .eq("email", payload.email)
+      .maybeSingle();
+    if (error) {
+      console.error("Supabase account fetch error", { message: error.message });
+      return NextResponse.json({ error: "Failed to load session" }, { status: 500 });
+    }
     if (!account) return NextResponse.json({ user: null }, { status: 200 });
 
     return NextResponse.json({

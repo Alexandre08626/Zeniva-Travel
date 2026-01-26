@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../../src/lib/server/db";
+import { assertBackendEnv, normalizeEmail } from "../../../../src/lib/server/db";
 import { getCookieDomain, getSessionCookieName, signSession } from "../../../../src/lib/server/auth";
-import { getSupabaseServerClient } from "../../../../src/lib/server/supabase";
+import { getSupabaseAdminClient, getSupabaseServerClient } from "../../../../src/lib/supabase/server";
 
 const AGENT_INVITE_CODES = ["ZENIVA-AGENT", "ZENIVA-ADMIN", "ZENIVA-HQ"];
 
@@ -38,14 +38,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invite code required or invalid for agents" }, { status: 400 });
     }
 
-    const { client: supabase, usingServiceKey } = getSupabaseServerClient();
-    console.info(`Auth provider: supabase${usingServiceKey ? ":service" : ":anon"}`);
+    const { client: supabase } = getSupabaseServerClient();
+    const { client: admin } = getSupabaseAdminClient();
+    console.info("Auth provider: supabase:anon");
     console.info(`Auth signup email: ${email}`);
-
-    const existing = await dbQuery("SELECT id FROM accounts WHERE email = $1", [email]);
-    if (existing.rows.length) {
-      return NextResponse.json({ error: "Account already exists" }, { status: 409 });
-    }
 
     const metadata = cleanJsonObject({
       name,
@@ -54,6 +50,8 @@ export async function POST(request: Request) {
       divisions,
       agentLevel,
       inviteCode: inviteCode || undefined,
+      agent_role: agentLevel || undefined,
+      invite_code: inviteCode || undefined,
     });
 
     const { data, error } = await supabase.auth.signUp({
@@ -68,14 +66,42 @@ export async function POST(request: Request) {
       console.error("Supabase signup error", { code: error?.code, message: error?.message });
       return NextResponse.json({ error: error?.message || "Signup failed" }, { status: 400 });
     }
+    const { data: existingAccount, error: fetchError } = await admin
+      .from("accounts")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
 
-    const id = `acct-${email.replace(/[^a-z0-9]/gi, "-")}`;
-    const { rows } = await dbQuery(
-      "INSERT INTO accounts (id, name, email, role, roles, divisions, status, agent_level, invite_code, password_hash, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, now()) RETURNING id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile",
-      [id, name, email, role, roles, divisions, "active", agentLevel, inviteCode || null, null]
-    );
+    if (fetchError) {
+      console.error("Supabase account fetch error", { message: fetchError.message });
+      return NextResponse.json({ error: "Signup failed" }, { status: 500 });
+    }
 
-    const account = rows[0];
+    const accountPayload = {
+      id: data.user.id,
+      name,
+      email,
+      role,
+      roles,
+      divisions,
+      status: "active",
+      agent_level: agentLevel,
+      invite_code: inviteCode || null,
+      created_at: new Date().toISOString(),
+    };
+
+    const { data: account, error: insertError } = existingAccount
+      ? await admin.from("accounts").select("id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile").eq("email", email).single()
+      : await admin
+          .from("accounts")
+          .insert(accountPayload)
+          .select("id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile")
+          .single();
+
+    if (insertError) {
+      console.error("Supabase account insert error", { message: insertError.message });
+      return NextResponse.json({ error: "Signup failed" }, { status: 500 });
+    }
     const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7;
     const token = signSession({ email: account.email, roles, exp });
 
