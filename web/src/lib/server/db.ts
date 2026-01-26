@@ -6,13 +6,14 @@ let schemaReady = false;
 const REQUIRED_BACKEND_ENV = ["NEXTAUTH_URL", "NEXTAUTH_SECRET"];
 
 function getDatabaseUrl() {
-  const url = process.env.DATABASE_URL || process.env.POSTGRES_URL || "";
-  if (!url) {
+  const raw = (process.env.DATABASE_URL || process.env.POSTGRES_URL || "").trim();
+  if (!raw) {
     const message = "Missing DATABASE_URL or POSTGRES_URL";
     console.error(message);
     throw new Error(message);
   }
-  return url;
+  const hasScheme = /^postgres(ql)?:\/\//i.test(raw);
+  return hasScheme ? raw : `postgresql://${raw}`;
 }
 
 function shouldUseSsl(url: string) {
