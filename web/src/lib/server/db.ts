@@ -5,23 +5,35 @@ let schemaReady = false;
 
 const REQUIRED_BACKEND_ENV = ["NEXTAUTH_URL", "NEXTAUTH_SECRET"];
 
+function looksLikePlaceholder(value: string) {
+  const lowered = value.toLowerCase();
+  return (
+    value.includes("<") ||
+    value.includes(">") ||
+    lowered.includes("user:password") ||
+    lowered.includes("host") ||
+    lowered.includes("project-ref")
+  );
+}
+
 function getDatabaseUrl() {
   const candidates = [
-    process.env.DATABASE_URL,
-    process.env.POSTGRES_URL,
-    process.env.POSTGRES_URL_NON_POOLING,
-    process.env.POSTGRES_PRISMA_URL,
-    process.env.POSTGRES_URL_NO_SSL,
+    { name: "DATABASE_URL", value: process.env.DATABASE_URL },
+    { name: "POSTGRES_URL", value: process.env.POSTGRES_URL },
+    { name: "POSTGRES_URL_NON_POOLING", value: process.env.POSTGRES_URL_NON_POOLING },
+    { name: "POSTGRES_PRISMA_URL", value: process.env.POSTGRES_PRISMA_URL },
+    { name: "POSTGRES_URL_NO_SSL", value: process.env.POSTGRES_URL_NO_SSL },
   ];
 
   for (const candidate of candidates) {
-    const raw = (candidate || "").trim();
-    if (!raw) continue;
+    const raw = (candidate.value || "").trim();
+    if (!raw || looksLikePlaceholder(raw)) continue;
     const hasScheme = /^postgres(ql)?:\/\//i.test(raw);
     const normalized = hasScheme ? raw : `postgresql://${raw}`;
     try {
       // Validate early to avoid runtime "Invalid URL" in pg
-      new URL(normalized);
+      const parsed = new URL(normalized);
+      console.info(`DB URL source: ${candidate.name}, host: ${parsed.host}`);
       return normalized;
     } catch {
       continue;
