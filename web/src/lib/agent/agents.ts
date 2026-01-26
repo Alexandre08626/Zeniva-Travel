@@ -33,7 +33,7 @@ let agents: AgentDirectoryEntry[] = IS_PROD ? [] : [
   {
     id: "agent-hq",
     name: "Zeniva HQ",
-    email: "info@zeniva.ca",
+    email: "info@zenivatravel.com",
     roleLabel: "HQ",
     roleKey: "hq",
     status: "active",
@@ -77,7 +77,7 @@ let agents: AgentDirectoryEntry[] = IS_PROD ? [] : [
   {
     id: "agent-justine",
     name: "Justine Caron",
-    email: "agent@zeniva.ca",
+    email: "agent@zenivatravel.com",
     roleLabel: "Travel Agent",
     roleKey: "travel-agent",
     status: "active",

@@ -3,7 +3,7 @@ import crypto from "crypto";
 import { FORM_DEFINITIONS } from "../../../../src/lib/forms/catalog";
 import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../../src/lib/server/db";
 
-const DEFAULT_OWNER_EMAIL = "info@zeniva.ca";
+const DEFAULT_OWNER_EMAIL = "info@zenivatravel.com";
 const TRAVEL_ALLOWED = (process.env.FORM_TRAVEL_ALLOWED_AGENTS || "")
   .split(",")
   .map((v) => v.trim().toLowerCase())

@@ -68,7 +68,7 @@ export default function SignupPage() {
         const entry = addClient({
           name: name.trim() || "Traveler",
           email: email.trim(),
-          ownerEmail: "info@zeniva.ca",
+          ownerEmail: "info@zenivatravel.com",
           phone: "",
           primaryDivision: "TRAVEL",
           origin: "web_signup",

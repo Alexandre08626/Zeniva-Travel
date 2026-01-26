@@ -8,7 +8,7 @@
    ```
 
 2. **Login with HQ Account**
-   - Email: `info@zeniva.ca`
+   - Email: `info@zenivatravel.com`
    - This account has full partner access
 
 ## 📦 What's New
@@ -157,7 +157,7 @@ Before deploying:
 - [x] Responsive layout tested
 - [x] No console errors
 - [x] Server runs on port 3000
-- [x] Partner access works for info@zeniva.ca
+- [x] Partner access works for info@zenivatravel.com
 
 ## 🚀 Next Steps
 

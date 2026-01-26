@@ -64,7 +64,7 @@ export default function ClientsPage() {
     const payload = {
       name: name.trim(),
       email: email.trim(),
-      ownerEmail: user?.email || "agent@zeniva.ca",
+      ownerEmail: user?.email || "agent@zenivatravel.com",
       phone: phone.trim(),
       origin: agentEmail.trim() ? "agent" : "house",
       assignedAgents: agentEmail.trim() ? [agentEmail.trim()] : [],
@@ -189,7 +189,7 @@ export default function ClientsPage() {
                 value={agentEmail}
                 onChange={(e) => setAgentEmail(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                placeholder="agent@zeniva.ca"
+                placeholder="agent@zenivatravel.com"
               />
             </label>
             <div className="md:col-span-2 flex items-end">

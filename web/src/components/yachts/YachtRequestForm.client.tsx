@@ -33,7 +33,7 @@ function buildMessage(payload: Omit<YachtRequestPayload, "id" | "createdAt" | "m
     `Client phone: ${payload.phone}`,
     `Client email: ${payload.email}`,
     `Source page: ${payload.sourcePath}`,
-    "Notify: info@zeniva.ca",
+    "Notify: info@zenivatravel.com",
   ].join("\n");
 }
 

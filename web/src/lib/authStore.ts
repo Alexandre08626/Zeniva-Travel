@@ -2,9 +2,9 @@
 import { useEffect, useSyncExternalStore } from "react";
 
 const STORAGE_KEY = "zeniva_auth_store_v1";
-const HQ_EMAIL = "info@zeniva.ca";
+const HQ_EMAIL = "info@zenivatravel.com";
 const HQ_PASSWORD = "Baton08!!";
-const TEMP_ADMIN_EMAIL = "info@zeniva.ca";
+const TEMP_ADMIN_EMAIL = "info@zenivatravel.com";
 const TEMP_JASON_EMAIL = "lantierj6@gmail.com";
 const IS_PROD = process.env.NODE_ENV === "production";
 
@@ -292,7 +292,7 @@ function ensureSeedHQ() {
 }
 
 function ensureSeedDefaultAgents() {
-  const blocked = new Set(["agent@zeniva.ca", "yacht@zeniva.ca"]);
+  const blocked = new Set(["agent@zenivatravel.com", "yacht@zenivatravel.com"]);
   if (state.accounts.some((a) => blocked.has(normalizeEmail(a.email)))) {
     setState((s) => ({
       ...s,

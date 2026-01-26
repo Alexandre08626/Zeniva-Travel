@@ -61,7 +61,7 @@ export default function FinancePage() {
   const user = useAuthStore((s) => s.user);
   const [filter, setFilter] = useState("all");
 
-  const denied = !isHQ(user) || (user?.email || "").toLowerCase() !== "info@zeniva.ca";
+  const denied = !isHQ(user) || (user?.email || "").toLowerCase() !== "info@zenivatravel.com";
 
   useEffect(() => {
     if (denied) {

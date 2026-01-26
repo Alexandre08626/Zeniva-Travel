@@ -193,7 +193,7 @@ export default function BookingConfirmation({ booking, businessInfo }: { booking
           <h4 className="font-bold">Business info</h4>
           <div>{businessInfo?.name || process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva Travel'}</div>
           <div>{businessInfo?.address || process.env.NEXT_PUBLIC_BUSINESS_ADDRESS || 'Montreal, QC'}</div>
-          <div className="text-sm">Contact: {businessInfo?.support_email || process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'contact@zeniva.ca'}</div>
+          <div className="text-sm">Contact: {businessInfo?.support_email || process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'contact@zenivatravel.com'}</div>
           <div className="text-sm">Phone: {businessInfo?.support_phone || process.env.NEXT_PUBLIC_SUPPORT_PHONE || ''}</div>
           <div className="text-sm mt-2">Terms: <a href={businessInfo?.terms_url || process.env.NEXT_PUBLIC_TERMS_URL || '#'} className="underline">View terms</a></div>
           <div className="text-sm mt-1">Booking.com terms: <a href="https://www.booking.com/content/terms.html" className="underline" target="_blank" rel="noreferrer">View terms</a></div>

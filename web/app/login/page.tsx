@@ -133,7 +133,7 @@ function LoginContent() {
             <div className="mt-2 text-center">
               <button
                 type="button"
-                onClick={() => { setEmail('info@zeniva.ca'); setPassword('Baton08!!'); }}
+                onClick={() => { setEmail('info@zenivatravel.com'); setPassword('Baton08!!'); }}
                 className="text-xs text-slate-500 hover:underline"
               >
                 Dev: Sign in as HQ

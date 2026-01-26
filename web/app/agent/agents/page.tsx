@@ -230,7 +230,7 @@ export default function AgentsDirectoryPage() {
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <Link href={`/agent/agents/${a.id}`} className="text-xs font-bold" style={{ color: PREMIUM_BLUE }}>View profile →</Link>
-                  {isHQorAdmin && a.email.toLowerCase() !== "info@zeniva.ca" && (
+                  {isHQorAdmin && a.email.toLowerCase() !== "info@zenivatravel.com" && (
                     <button
                       type="button"
                       onClick={() => handleDelete(a.email)}

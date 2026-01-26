@@ -46,7 +46,7 @@ export const FORM_DEFINITIONS: FormDefinition[] = [
     origin: "marketing-facebook",
     leadSource: "marketing travel",
     ownerPolicy: "fixed",
-    fixedOwnerEmail: "info@zeniva.ca",
+    fixedOwnerEmail: "info@zenivatravel.com",
     fields: [
       { id: "name", label: "Full name", type: "text", required: true },
       { id: "email", label: "Email", type: "email", required: true },

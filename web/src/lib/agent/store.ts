@@ -14,20 +14,20 @@ let clients: Client[] = IS_PROD ? [] : [
     id: "C-100",
     name: "Morales Family",
     email: "morales@example.com",
-    ownerEmail: "agent@zeniva.ca",
+    ownerEmail: "agent@zenivatravel.com",
     phone: "+1 (312) 555-0123",
     origin: "agent",
-    assignedAgents: ["agent@zeniva.ca"],
+    assignedAgents: ["agent@zenivatravel.com"],
     primaryDivision: "TRAVEL",
   },
   {
     id: "C-101",
     name: "Jason Yacht",
     email: "jason.yacht@example.com",
-    ownerEmail: "agent@zeniva.ca",
+    ownerEmail: "agent@zenivatravel.com",
     phone: "+1 (212) 555-4455",
     origin: "agent",
-    assignedAgents: ["agent@zeniva.ca"],
+    assignedAgents: ["agent@zenivatravel.com"],
     primaryDivision: "YACHT",
   },
   {
@@ -42,8 +42,8 @@ let clients: Client[] = IS_PROD ? [] : [
 ];
 
 let trips: TripFile[] = IS_PROD ? [] : [
-  { id: "T-501", clientId: "C-100", title: "Paris + Rome", ownerEmail: "agent@zeniva.ca", status: "Draft", division: "TRAVEL", components: [], payments: [], documents: [] },
-  { id: "T-502", clientId: "C-101", title: "Med Yacht Week", ownerEmail: "agent@zeniva.ca", status: "Draft", division: "YACHT", components: [], payments: [], documents: [] },
+  { id: "T-501", clientId: "C-100", title: "Paris + Rome", ownerEmail: "agent@zenivatravel.com", status: "Draft", division: "TRAVEL", components: [], payments: [], documents: [] },
+  { id: "T-502", clientId: "C-101", title: "Med Yacht Week", ownerEmail: "agent@zenivatravel.com", status: "Draft", division: "YACHT", components: [], payments: [], documents: [] },
 ];
 
 let ledger: LedgerEntry[] = IS_PROD ? [] : [];

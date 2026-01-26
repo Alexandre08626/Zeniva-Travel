@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../../src/lib/server/db";
 import { getCookieDomain, getSessionCookieName, hashPassword, signSession, verifyPassword } from "../../../../src/lib/server/auth";
 
-const HQ_EMAIL = "info@zeniva.ca";
+const HQ_EMAIL = "info@zenivatravel.com";
 const HQ_PASSWORD = "Baton08!!";
 
 export async function POST(request: Request) {

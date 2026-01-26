@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "check:no-zeniva-ca": "node scripts/check-zeniva-domain.mjs",
     "test:lina": "node scripts/test-lina.mjs",
     "test:duffel:e2e": "node scripts/duffel-stays-e2e.mjs",
     "pack:duffel:artifacts": "node scripts/pack-duffel-artifacts.mjs"

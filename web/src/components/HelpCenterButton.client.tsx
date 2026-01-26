@@ -13,7 +13,7 @@ const COMPANY_INFO = {
   address: process.env.NEXT_PUBLIC_BUSINESS_ADDRESS || '780 Lynnhaven Parkway, Virginia Beach, 23452',
   headquarters: process.env.NEXT_PUBLIC_BUSINESS_HEADQUARTERS || '8 The Green, Dover, Delaware',
   phone: process.env.NEXT_PUBLIC_SUPPORT_PHONE || '757-940-7276',
-  email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'info@zeniva.ca'
+  email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'info@zenivatravel.com'
 };
 
 export default function HelpCenterButton() {
@@ -102,7 +102,7 @@ export default function HelpCenterButton() {
       title: "Human Agent Request - " + formData.name,
       messages: [
         { role: 'user', text: `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nReason: ${formData.reason}`, ts: new Date().toLocaleTimeString() },
-        { role: 'system', text: 'Human agent request submitted. This will be routed to info@zeniva.ca for immediate attention.', ts: new Date().toLocaleTimeString() }
+        { role: 'system', text: 'Human agent request submitted. This will be routed to info@zenivatravel.com for immediate attention.', ts: new Date().toLocaleTimeString() }
       ],
       status: 'open',
       priority: 'high',

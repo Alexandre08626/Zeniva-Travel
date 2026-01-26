@@ -20,10 +20,10 @@ type Proposal = {
 };
 
 const MOCK: Proposal[] = [
-  { id: "PR-2310", client: "Lefebvre", destination: "Lisbon", value: 8400, currency: "USD", status: "Sent", segments: ["Flights", "Hotel", "Transfers"], updatedAt: "2026-01-08T14:20:00Z", owner: "alice@zeniva.ca" },
-  { id: "PR-2311", client: "NovaTech", destination: "Tokyo", value: 12600, currency: "USD", status: "Approved", segments: ["Flights", "Hotel", "Rail"], updatedAt: "2026-01-07T09:10:00Z", owner: "sara@zeniva.ca" },
-  { id: "PR-2312", client: "HQ Yacht", destination: "Amalfi", value: 52000, currency: "USD", status: "Draft", segments: ["Yacht", "Chef", "Tender"], updatedAt: "2026-01-06T18:05:00Z", owner: "marco@zeniva.ca" },
-  { id: "PR-2313", client: "Lavoie", destination: "New York", value: 4100, currency: "USD", status: "Booked", segments: ["Hotel", "Activities"], updatedAt: "2026-01-05T11:42:00Z", owner: "lea@zeniva.ca" },
+  { id: "PR-2310", client: "Lefebvre", destination: "Lisbon", value: 8400, currency: "USD", status: "Sent", segments: ["Flights", "Hotel", "Transfers"], updatedAt: "2026-01-08T14:20:00Z", owner: "alice@zenivatravel.com" },
+  { id: "PR-2311", client: "NovaTech", destination: "Tokyo", value: 12600, currency: "USD", status: "Approved", segments: ["Flights", "Hotel", "Rail"], updatedAt: "2026-01-07T09:10:00Z", owner: "sara@zenivatravel.com" },
+  { id: "PR-2312", client: "HQ Yacht", destination: "Amalfi", value: 52000, currency: "USD", status: "Draft", segments: ["Yacht", "Chef", "Tender"], updatedAt: "2026-01-06T18:05:00Z", owner: "marco@zenivatravel.com" },
+  { id: "PR-2313", client: "Lavoie", destination: "New York", value: 4100, currency: "USD", status: "Booked", segments: ["Hotel", "Activities"], updatedAt: "2026-01-05T11:42:00Z", owner: "lea@zenivatravel.com" },
 ];
 
 const statusTheme: Record<ProposalStatus, { bg: string; text: string }> = {

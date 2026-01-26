@@ -1,5 +1,5 @@
 /**
- * Playwright-powered scraper for zeniva.ca residences (Airbnbs).
+ * Playwright-powered scraper for zenivatravel.com residences (Airbnbs).
  * Grabs the listing page, visits each property, and captures title, location, description, and images.
  */
 
@@ -7,7 +7,7 @@ const fs = require("fs");
 const path = require("path");
 const { chromium } = require("playwright-chromium");
 
-const LIST_URL = "https://www.zeniva.ca/properties-1-1";
+const LIST_URL = "https://www.zenivatravel.com/properties-1-1";
 
 function slugify(s) {
   return (s || "")

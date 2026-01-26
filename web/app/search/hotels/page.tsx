@@ -116,7 +116,7 @@ function HotelsSearchContent() {
   const businessInfo = useMemo(() => ({
     name: process.env.NEXT_PUBLIC_BUSINESS_NAME || "Zeniva Travel",
     address: process.env.NEXT_PUBLIC_BUSINESS_ADDRESS || "",
-    support_email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "info@zeniva.ca",
+    support_email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "info@zenivatravel.com",
     support_phone: process.env.NEXT_PUBLIC_SUPPORT_PHONE || "",
     terms_url: process.env.NEXT_PUBLIC_TERMS_URL || "https://zenivatravel.com/terms",
   }), []);

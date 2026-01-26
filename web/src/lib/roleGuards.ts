@@ -13,7 +13,7 @@ export function useRequireRole(roles: Role[], redirectTo = "/login") {
     }
     // HQ has access to everything including partner spaces
     const userRoles = user.roles || (user.role ? [user.role] : []);
-    const hasHQAccess = user.email?.toLowerCase() === 'info@zeniva.ca' || userRoles.includes('hq');
+    const hasHQAccess = user.email?.toLowerCase() === 'info@zenivatravel.com' || userRoles.includes('hq');
     const hasRequiredRole = userRoles.some((r) => roles.includes(r));
     
     if (!hasHQAccess && !hasRequiredRole) {
