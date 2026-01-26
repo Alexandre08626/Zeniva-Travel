@@ -49,10 +49,11 @@ export function getSessionCookieName() {
 }
 
 export function getCookieDomain() {
-  const raw = process.env.NEXTAUTH_URL;
+  const raw = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || "";
   if (!raw) return undefined;
   try {
-    const url = new URL(raw);
+    const normalized = raw.startsWith("http://") || raw.startsWith("https://") ? raw : `https://${raw}`;
+    const url = new URL(normalized);
     return url.hostname || undefined;
   } catch {
     return undefined;

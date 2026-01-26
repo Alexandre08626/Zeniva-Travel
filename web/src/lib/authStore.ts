@@ -541,7 +541,8 @@ function getCookieDomainFromPublicUrl() {
   const raw = process.env.NEXT_PUBLIC_SITE_URL || "";
   if (!raw) return undefined;
   try {
-    const url = new URL(raw);
+    const normalized = raw.startsWith("http://") || raw.startsWith("https://") ? raw : `https://${raw}`;
+    const url = new URL(normalized);
     const host = url.hostname;
     if (!host || host.includes("localhost") || host.includes("127.0.0.1")) return undefined;
     return host;
