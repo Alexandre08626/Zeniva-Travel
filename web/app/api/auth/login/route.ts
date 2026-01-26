@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../../src/lib/server/db";
-import { getCookieDomain, getSessionCookieName, hashPassword, signSession, verifyPassword } from "../../../../src/lib/server/auth";
+import { getCookieDomain, getSessionCookieName, signSession } from "../../../../src/lib/server/auth";
+import { getSupabaseServerClient } from "../../../../src/lib/server/supabase";
 
-const HQ_EMAIL = "info@zenivatravel.com";
-const HQ_PASSWORD = "Baton08!!";
+function normalizeStringArray(value: unknown, fallback: string[] = []) {
+  if (Array.isArray(value)) return value.filter((item) => typeof item === "string" && item.trim());
+  if (typeof value === "string" && value.trim()) return [value.trim()];
+  return fallback;
+}
 
 export async function POST(request: Request) {
   try {
@@ -15,40 +19,46 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Credentials required" }, { status: 400 });
     }
 
+    const { client: supabase, usingServiceKey } = getSupabaseServerClient();
+    console.info(`Auth provider: supabase${usingServiceKey ? ":service" : ":anon"}`);
+    console.info(`Auth login email: ${email}`);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error || !data?.user) {
+      console.error("Supabase login error", { code: error?.code, message: error?.message });
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    }
+
+    const metadata = (data.user.user_metadata || {}) as Record<string, unknown>;
+    const metaRoles = normalizeStringArray(metadata.roles, []);
+    const metaRole = typeof metadata.role === "string" && metadata.role ? metadata.role : metaRoles[0] || "traveler";
+    const metaDivisions = normalizeStringArray(metadata.divisions, []);
+    const metaAgentLevel = typeof metadata.agentLevel === "string" ? metadata.agentLevel : null;
+    const metaInviteCode = typeof metadata.inviteCode === "string" ? metadata.inviteCode : null;
+
     const { rows } = await dbQuery(
-      "SELECT id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile, password_hash FROM accounts WHERE email = $1",
+      "SELECT id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile FROM accounts WHERE email = $1",
       [email]
     );
 
     let account = rows[0];
-    if (!account && email === normalizeEmail(HQ_EMAIL) && password === HQ_PASSWORD) {
+    if (!account) {
       const id = `acct-${email.replace(/[^a-z0-9]/gi, "-")}`;
       const insert = await dbQuery(
-        "INSERT INTO accounts (id, name, email, role, roles, divisions, status, password_hash, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8, now()) RETURNING id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile, password_hash",
-        [id, "Zeniva HQ", email, "hq", ["hq", "admin", "agent"], ["TRAVEL", "YACHT", "VILLAS", "GROUPS", "RESORTS"], "active", hashPassword(HQ_PASSWORD)]
+        "INSERT INTO accounts (id, name, email, role, roles, divisions, status, agent_level, invite_code, password_hash, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, now()) RETURNING id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile",
+        [
+          id,
+          (typeof metadata.name === "string" && metadata.name.trim()) || data.user.email || "Account",
+          email,
+          metaRole,
+          metaRoles.length ? metaRoles : [metaRole],
+          metaDivisions,
+          "active",
+          metaAgentLevel,
+          metaInviteCode,
+          null,
+        ]
       );
       account = insert.rows[0];
-    }
-
-    if (account && !account.password_hash && email === normalizeEmail(HQ_EMAIL) && password === HQ_PASSWORD) {
-      const hashed = hashPassword(HQ_PASSWORD);
-      await dbQuery(
-        "UPDATE accounts SET password_hash = $2, role = $3, roles = $4, divisions = $5, status = $6, updated_at = now() WHERE email = $1",
-        [email, hashed, "hq", ["hq", "admin", "agent"], ["TRAVEL", "YACHT", "VILLAS", "GROUPS", "RESORTS"], "active"]
-      );
-      const refreshed = await dbQuery(
-        "SELECT id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile, password_hash FROM accounts WHERE email = $1",
-        [email]
-      );
-      account = refreshed.rows[0];
-    }
-
-    if (!account || !account.password_hash) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-    }
-
-    if (!verifyPassword(password, account.password_hash)) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
     const roles = Array.isArray(account.roles) && account.roles.length ? account.roles : account.role ? [account.role] : ["traveler"];

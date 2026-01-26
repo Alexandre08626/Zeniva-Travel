@@ -13,6 +13,7 @@
     "pack:duffel:artifacts": "node scripts/pack-duffel-artifacts.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.93.1",
     "@tanstack/react-table": "^8.21.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -30,8 +31,8 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/pg": "^8.11.10",
     "@types/node": "^20",
+    "@types/pg": "^8.11.10",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.23",
