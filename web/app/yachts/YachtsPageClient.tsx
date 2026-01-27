@@ -66,9 +66,14 @@ export default function YachtsPageClient() {
   useEffect(() => {
     let active = true;
     // fetch curated YCN fleet
-    const ycnReq = fetch("/api/partners/ycn").then((r) => r.json()).catch(() => []);
+    const ycnReq = fetch("/api/partners/ycn", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : []))
+      .catch(() => []);
     // fetch partner-published yachts
-    const partnerReq = fetch("/api/public/listings?type=yacht").then((r) => r.json()).then((res) => (res && res.data) || []).catch(() => []);
+    const partnerReq = fetch("/api/public/listings?type=yacht", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((res) => (res && res.data) || [])
+      .catch(() => []);
 
     Promise.all([ycnReq, partnerReq]).then(([ycnData, partnerData]) => {
       if (!active) return;

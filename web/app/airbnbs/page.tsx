@@ -52,12 +52,12 @@ export default function AirbnbsPage() {
 
   useEffect(() => {
     let active = true;
-    const partnerReq = fetch("/api/partners/airbnbs")
-      .then((r) => r.json())
+    const partnerReq = fetch("/api/partners/airbnbs", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : []))
       .then((res) => (Array.isArray(res) ? res : []))
       .catch(() => []);
-    const publicReq = fetch("/api/public/listings?type=home")
-      .then((r) => r.json())
+    const publicReq = fetch("/api/public/listings?type=home", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
       .then((res) => (res && res.data) || [])
       .catch(() => []);
 
