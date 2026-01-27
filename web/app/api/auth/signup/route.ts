@@ -29,9 +29,14 @@ function getSupabaseHost(rawUrl: string) {
 export async function POST(request: Request) {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
+    const contentType = request.headers.get("content-type") || "";
+    const origin = request.headers.get("origin") || "";
+    const referer = request.headers.get("referer") || "";
     console.info("Signup request received", {
       url: request.url,
-      contentType: request.headers.get("content-type") || "",
+      contentType,
+      origin,
+      referer,
       supabaseHost: getSupabaseHost(supabaseUrl),
       hasSupabaseUrl: Boolean(supabaseUrl),
       hasSupabaseAnon: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY),
@@ -45,17 +50,38 @@ export async function POST(request: Request) {
       console.error("Signup request JSON parse error", { message: (parseError as Error)?.message });
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
-    const name = String(body?.name || "").trim() || "Traveler";
+    const bodyKeys = Object.keys(body || {});
+    const bodyTypes = bodyKeys.reduce<Record<string, string>>((acc, key) => {
+      const value = (body as Record<string, unknown>)[key];
+      acc[key] = Array.isArray(value) ? "array" : value === null ? "null" : typeof value;
+      return acc;
+    }, {});
+    console.info("Signup body received", { keys: bodyKeys, types: bodyTypes });
+
+    const space = String(body?.space || body?.role || "traveler").toLowerCase();
+    const resolvedRole = space === "agent" || space === "zeniva agent" ? "agent" : space === "partner" ? "partner_owner" : "traveler";
+    const name = String(body?.full_name || body?.name || body?.fullName || "").trim() || "Traveler";
     const email = normalizeEmail(String(body?.email || ""));
     const password = String(body?.password || "");
-    const role = String(body?.role || "traveler");
+    const role = String(body?.role || resolvedRole);
     const roles = normalizeStringArray(body?.roles, [role]);
     const divisions = normalizeStringArray(body?.divisions, []);
-    const inviteCode = body?.inviteCode ? String(body.inviteCode).trim() : "";
-    const agentLevel = body?.agentLevel ? String(body.agentLevel) : null;
+    const inviteCode = body?.invite_code
+      ? String(body.invite_code).trim()
+      : body?.inviteCode
+        ? String(body.inviteCode).trim()
+        : "";
+    const agentLevel = body?.agent_role
+      ? String(body.agent_role)
+      : body?.agentLevel
+        ? String(body.agentLevel)
+        : null;
 
-    if (!email || !password) {
-      return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
+    if (!email) {
+      return NextResponse.json({ error: "Missing field: email" }, { status: 400 });
+    }
+    if (!password) {
+      return NextResponse.json({ error: "Missing field: password" }, { status: 400 });
     }
 
     const isAgentRole = roles.some((r: string) => ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "agent"].includes(r));
@@ -95,7 +121,7 @@ export async function POST(request: Request) {
 
     if (error || !data?.user) {
       console.error("Supabase signup error", { code: error?.code, message: error?.message });
-      return NextResponse.json({ error: error?.message || "Signup failed" }, { status: 400 });
+      return NextResponse.json({ error: error?.message || "Signup failed", code: error?.code || null }, { status: 400 });
     }
 
     const { data: existingAccount, error: fetchError } = await admin
@@ -111,7 +137,7 @@ export async function POST(request: Request) {
 
     if (fetchError) {
       console.error("Supabase account fetch error", { message: fetchError.message });
-      return NextResponse.json({ error: "Signup failed" }, { status: 500 });
+      return NextResponse.json({ error: "Signup failed", code: "accounts_fetch_error" }, { status: 500 });
     }
 
     const accountPayload = {
@@ -141,8 +167,8 @@ export async function POST(request: Request) {
     });
 
     if (insertError) {
-      console.error("Supabase account insert error", { message: insertError.message });
-      return NextResponse.json({ error: "Signup failed" }, { status: 500 });
+      console.error("Supabase account insert error", { message: insertError.message, code: (insertError as any)?.code || null });
+      return NextResponse.json({ error: "Signup failed", code: "accounts_insert_error" }, { status: 500 });
     }
     console.info("Account profile created", { accountId: account.id });
     const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7;
@@ -174,8 +200,10 @@ export async function POST(request: Request) {
       ...(cookieDomain ? { domain: cookieDomain } : {}),
       maxAge: 60 * 60 * 24 * 7,
     });
+    console.info("Signup response", { status: 201, email });
     return response;
   } catch (err: any) {
+    console.error("Signup handler error", { message: err?.message || String(err) });
     return NextResponse.json({ error: err?.message || "Signup failed" }, { status: 500 });
   }
 }
