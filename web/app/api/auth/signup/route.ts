@@ -16,12 +16,24 @@ function cleanJsonObject(value: Record<string, unknown>) {
   return Object.fromEntries(entries);
 }
 
+function getSupabaseHost(rawUrl: string) {
+  if (!rawUrl) return "";
+  try {
+    const normalized = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
+    return new URL(normalized).host;
+  } catch {
+    return "";
+  }
+}
+
 export async function POST(request: Request) {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
     console.info("Signup request received", {
       url: request.url,
       contentType: request.headers.get("content-type") || "",
-      hasSupabaseUrl: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL),
+      supabaseHost: getSupabaseHost(supabaseUrl),
+      hasSupabaseUrl: Boolean(supabaseUrl),
       hasSupabaseAnon: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY),
       hasSupabaseService: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
     });
@@ -75,6 +87,12 @@ export async function POST(request: Request) {
       },
     });
 
+    console.info("Supabase signUp response", {
+      hasUser: Boolean(data?.user?.id),
+      errorCode: error?.code || null,
+      errorMessage: error?.message || null,
+    });
+
     if (error || !data?.user) {
       console.error("Supabase signup error", { code: error?.code, message: error?.message });
       return NextResponse.json({ error: error?.message || "Signup failed" }, { status: 400 });
@@ -85,6 +103,11 @@ export async function POST(request: Request) {
       .select("id")
       .eq("email", email)
       .maybeSingle();
+
+    console.info("Accounts lookup", {
+      found: Boolean(existingAccount?.id),
+      error: fetchError?.message || null,
+    });
 
     if (fetchError) {
       console.error("Supabase account fetch error", { message: fetchError.message });
@@ -111,6 +134,11 @@ export async function POST(request: Request) {
           .insert(accountPayload)
           .select("id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile")
           .single();
+
+    console.info("Accounts insert", {
+      inserted: Boolean(account?.id),
+      error: insertError?.message || null,
+    });
 
     if (insertError) {
       console.error("Supabase account insert error", { message: insertError.message });
