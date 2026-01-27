@@ -26,6 +26,17 @@ function getSupabaseHost(rawUrl: string) {
   }
 }
 
+function normalizeSupabaseUrl(rawUrl: string) {
+  if (!rawUrl) return "";
+  const trimmed = rawUrl.trim();
+  try {
+    const normalized = trimmed.startsWith("http") ? trimmed : `https://${trimmed}`;
+    return new URL(normalized).toString().replace(/\/$/, "");
+  } catch {
+    return trimmed;
+  }
+}
+
 async function checkSupabaseAuthHealth(url: string, anonKey: string, requestId: string) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 5000);
@@ -67,19 +78,21 @@ function errorResponse(stage: string, message: string, status = 500, details?: R
 export async function POST(request: Request) {
   const requestId = (globalThis.crypto?.randomUUID?.() || `req_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`) as string;
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
+    const rawSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
+    const supabaseUrl = normalizeSupabaseUrl(rawSupabaseUrl);
     const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || "";
     const supabaseService = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
     const contentType = request.headers.get("content-type") || "";
     const origin = request.headers.get("origin") || "";
     const referer = request.headers.get("referer") || "";
+    const supabaseHost = getSupabaseHost(supabaseUrl);
     console.info("Signup request received", {
       requestId,
       url: request.url,
       contentType,
       origin,
       referer,
-      supabaseHost: getSupabaseHost(supabaseUrl),
+      supabaseHost,
     });
     console.info("Env check", {
       requestId,
@@ -96,6 +109,13 @@ export async function POST(request: Request) {
     }
     if (!supabaseService) {
       return errorResponse("env", "Missing env var", 500, { name: "SUPABASE_SERVICE_ROLE_KEY", requestId });
+    }
+    if (!supabaseHost || !supabaseHost.includes(".")) {
+      return errorResponse("env", "Invalid SUPABASE URL", 500, {
+        name: "NEXT_PUBLIC_SUPABASE_URL",
+        requestId,
+        host: supabaseHost || null,
+      });
     }
     if (!contentType.toLowerCase().includes("application/json")) {
       return errorResponse("validate", "Content-Type must be application/json", 415, { requestId });
@@ -173,6 +193,8 @@ export async function POST(request: Request) {
       return errorResponse("supabase_health_error", "Supabase health check failed", 502, {
         requestId,
         status: health.status || 0,
+        host: supabaseHost,
+        healthUrl: supabaseUrl.replace(/\/$/, "") + "/auth/v1/health",
       });
     }
 
