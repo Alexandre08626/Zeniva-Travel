@@ -29,6 +29,8 @@ function getSupabaseHost(rawUrl: string) {
 export async function POST(request: Request) {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
+    const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || "";
+    const supabaseService = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
     const contentType = request.headers.get("content-type") || "";
     const origin = request.headers.get("origin") || "";
     const referer = request.headers.get("referer") || "";
@@ -39,16 +41,29 @@ export async function POST(request: Request) {
       referer,
       supabaseHost: getSupabaseHost(supabaseUrl),
       hasSupabaseUrl: Boolean(supabaseUrl),
-      hasSupabaseAnon: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY),
-      hasSupabaseService: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
+      hasSupabaseAnon: Boolean(supabaseAnon),
+      hasSupabaseService: Boolean(supabaseService),
     });
     assertBackendEnv();
+    if (!supabaseUrl) {
+      return NextResponse.json({ error: "missing_env_var", name: "NEXT_PUBLIC_SUPABASE_URL" }, { status: 500 });
+    }
+    if (!supabaseAnon) {
+      return NextResponse.json({ error: "missing_env_var", name: "NEXT_PUBLIC_SUPABASE_ANON_KEY" }, { status: 500 });
+    }
+    if (!supabaseService) {
+      return NextResponse.json({ error: "missing_env_var", name: "SUPABASE_SERVICE_ROLE_KEY" }, { status: 500 });
+    }
     let body: any = {};
     try {
       body = await request.json();
     } catch (parseError) {
       console.error("Signup request JSON parse error", { message: (parseError as Error)?.message });
-      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+      return NextResponse.json({
+        error: "invalid_json",
+        message: (parseError as Error)?.message || "Invalid JSON body",
+        stack: (parseError as Error)?.stack || null,
+      }, { status: 400 });
     }
     const bodyKeys = Object.keys(body || {});
     const bodyTypes = bodyKeys.reduce<Record<string, string>>((acc, key) => {
@@ -97,14 +112,15 @@ export async function POST(request: Request) {
     const metadata = cleanJsonObject({
       name,
       role,
-      roles,
-      divisions,
+      roles: Array.isArray(roles) ? roles : [role],
+      divisions: Array.isArray(divisions) ? divisions : [],
       agentLevel,
       inviteCode: inviteCode || undefined,
       agent_role: agentLevel || undefined,
       invite_code: inviteCode || undefined,
     });
 
+    console.info("before supabase.auth.signUp");
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -112,6 +128,7 @@ export async function POST(request: Request) {
         data: metadata,
       },
     });
+    console.info("after supabase.auth.signUp");
 
     console.info("Supabase signUp response", {
       hasUser: Boolean(data?.user?.id),
@@ -124,11 +141,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error?.message || "Signup failed", code: error?.code || null }, { status: 400 });
     }
 
+    console.info("before accounts lookup");
     const { data: existingAccount, error: fetchError } = await admin
       .from("accounts")
       .select("id")
       .eq("email", email)
       .maybeSingle();
+    console.info("after accounts lookup");
 
     console.info("Accounts lookup", {
       found: Boolean(existingAccount?.id),
@@ -153,6 +172,7 @@ export async function POST(request: Request) {
       created_at: new Date().toISOString(),
     };
 
+    console.info("before accounts insert");
     const { data: account, error: insertError } = existingAccount
       ? await admin.from("accounts").select("id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile").eq("email", email).single()
       : await admin
@@ -160,6 +180,7 @@ export async function POST(request: Request) {
           .insert(accountPayload)
           .select("id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile")
           .single();
+    console.info("after accounts insert");
 
     console.info("Accounts insert", {
       inserted: Boolean(account?.id),
@@ -203,8 +224,12 @@ export async function POST(request: Request) {
     console.info("Signup response", { status: 201, email });
     return response;
   } catch (err: any) {
-    console.error("Signup handler error", { message: err?.message || String(err) });
-    return NextResponse.json({ error: err?.message || "Signup failed" }, { status: 500 });
+    console.error("Signup handler crash", err);
+    return NextResponse.json({
+      error: "signup_handler_crash",
+      message: err?.message || "Signup failed",
+      stack: err?.stack || null,
+    }, { status: 500 });
   }
 }
 
