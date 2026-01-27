@@ -77,9 +77,14 @@ export async function POST(request: Request) {
 
     if (error || !data?.user) {
       console.error("Supabase signup error", { code: error?.code, message: error?.message });
-      return NextResponse.json({ error: error?.message || "Signup failed" }, { status: 400 });
-    }
-    console.info("Supabase signup success", { userId: data.user.id });
+          assertBackendEnv();
+          let body: any = {};
+          try {
+            body = await request.json();
+          } catch (parseError) {
+            console.error("Signup request JSON parse error", { message: (parseError as Error)?.message });
+            return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+          }
     const { data: existingAccount, error: fetchError } = await admin
       .from("accounts")
       .select("id")
