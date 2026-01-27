@@ -78,14 +78,7 @@ export async function POST(request: Request) {
     if (error || !data?.user) {
       console.error("Supabase signup error", { code: error?.code, message: error?.message });
           assertBackendEnv();
-          let body: any = {};
-          try {
-            body = await request.json();
-          } catch (parseError) {
-            console.error("Signup request JSON parse error", { message: (parseError as Error)?.message });
-            return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-          }
-    const { data: existingAccount, error: fetchError } = await admin
+        return NextResponse.json({ error: error?.message || "Signup failed" }, { status: 400 });
       .from("accounts")
       .select("id")
       .eq("email", email)
