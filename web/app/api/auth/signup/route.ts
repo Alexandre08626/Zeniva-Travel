@@ -18,8 +18,21 @@ function cleanJsonObject(value: Record<string, unknown>) {
 
 export async function POST(request: Request) {
   try {
+    console.info("Signup request received", {
+      url: request.url,
+      contentType: request.headers.get("content-type") || "",
+      hasSupabaseUrl: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL),
+      hasSupabaseAnon: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY),
+      hasSupabaseService: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
+    });
     assertBackendEnv();
-    const body = await request.json();
+    let body: any = {};
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      console.error("Signup request JSON parse error", { message: (parseError as Error)?.message });
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
     const name = String(body?.name || "").trim() || "Traveler";
     const email = normalizeEmail(String(body?.email || ""));
     const password = String(body?.password || "");
@@ -66,6 +79,7 @@ export async function POST(request: Request) {
       console.error("Supabase signup error", { code: error?.code, message: error?.message });
       return NextResponse.json({ error: error?.message || "Signup failed" }, { status: 400 });
     }
+    console.info("Supabase signup success", { userId: data.user.id });
     const { data: existingAccount, error: fetchError } = await admin
       .from("accounts")
       .select("id")
@@ -102,6 +116,7 @@ export async function POST(request: Request) {
       console.error("Supabase account insert error", { message: insertError.message });
       return NextResponse.json({ error: "Signup failed" }, { status: 500 });
     }
+    console.info("Account profile created", { accountId: account.id });
     const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7;
     const token = signSession({ email: account.email, roles, exp });
 
