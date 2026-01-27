@@ -122,11 +122,6 @@ export async function POST(request: Request) {
 
     const { client: supabase } = getSupabaseServerClient();
     const { client: admin } = getSupabaseAdminClient();
-    console.info("Auth provider: supabase:anon");
-    console.info(`Auth signup email: ${email}`);
-
-    const { client: supabase } = getSupabaseServerClient();
-    const { client: admin } = getSupabaseAdminClient();
     console.info("Supabase signup start", { requestId, email });
 
     console.info("Accounts lookup", { requestId });
@@ -154,6 +149,10 @@ export async function POST(request: Request) {
         accounts: Boolean(existingAccount?.id),
       });
     }
+    const metadata = cleanJsonObject({
+      name,
+      role,
+      roles: Array.isArray(roles) ? roles : [role],
       divisions: Array.isArray(divisions) ? divisions : [],
       agentLevel,
       inviteCode: inviteCode || undefined,
@@ -161,19 +160,14 @@ export async function POST(request: Request) {
       invite_code: inviteCode || undefined,
     });
 
-    console.info("before supabase.auth.signUp", { requestId });
+    console.info("Supabase signup start", { requestId });
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-    console.info("Supabase signup start", { requestId });
+        data: metadata,
       },
     });
-    console.info("after supabase.auth.signUp", { requestId });
-
-    console.info("Supabase signUp response", {
-      requestId,
-      hasUser: Boolean(data?.user?.id),
     console.info("Supabase signup response", {
       requestId,
       status: error ? "error" : "ok",
@@ -197,7 +191,7 @@ export async function POST(request: Request) {
       created_at: new Date().toISOString(),
     };
 
-    console.info("Accounts insert", { requestId });
+    console.info("Accounts insert", { requestId, stage: "start" });
     const { data: account, error: insertError } = await admin
       .from("accounts")
       .insert(accountPayload)
@@ -205,6 +199,8 @@ export async function POST(request: Request) {
       .single();
 
     console.info("Accounts insert", {
+      requestId,
+      stage: "result",
       inserted: Boolean(account?.id),
       error: insertError?.message || null,
     });
