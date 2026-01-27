@@ -31,8 +31,8 @@ function errorResponse(stage: string, message: string, status = 500, details?: R
 }
 
 export async function POST(request: Request) {
+  const requestId = (globalThis.crypto?.randomUUID?.() || `req_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`) as string;
   try {
-    const requestId = (globalThis.crypto?.randomUUID?.() || `req_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`) as string;
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
     const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || "";
     const supabaseService = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
