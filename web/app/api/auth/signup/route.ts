@@ -26,6 +26,40 @@ function getSupabaseHost(rawUrl: string) {
   }
 }
 
+async function checkSupabaseAuthHealth(url: string, anonKey: string, requestId: string) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+  const healthUrl = url.replace(/\/$/, "") + "/auth/v1/health";
+  try {
+    const response = await fetch(healthUrl, {
+      method: "GET",
+      headers: {
+        apikey: anonKey,
+      },
+      signal: controller.signal,
+    });
+    const text = await response.text();
+    console.info("supabase_health_response", {
+      requestId,
+      status: response.status,
+      ok: response.ok,
+      body: text.slice(0, 200),
+    });
+    return { ok: response.ok, status: response.status };
+  } catch (error: any) {
+    console.error("supabase_health_error", {
+      requestId,
+      message: error?.message || "fetch failed",
+      name: error?.name || null,
+      cause: error?.cause || null,
+      stack: error?.stack || null,
+    });
+    return { ok: false, status: 0, error };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 function errorResponse(stage: string, message: string, status = 500, details?: Record<string, unknown>) {
   return NextResponse.json({ ok: false, stage, message, details }, { status });
 }
@@ -133,6 +167,14 @@ export async function POST(request: Request) {
       agent_role: agentLevel || undefined,
       invite_code: inviteCode || undefined,
     });
+
+    const health = await checkSupabaseAuthHealth(supabaseUrl, supabaseAnon, requestId);
+    if (!health.ok) {
+      return errorResponse("supabase_health_error", "Supabase health check failed", 502, {
+        requestId,
+        status: health.status || 0,
+      });
+    }
 
     console.info("auth_signup_start", { requestId });
     const { data, error } = await supabase.auth.signUp({
