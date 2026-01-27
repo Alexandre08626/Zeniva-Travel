@@ -190,11 +190,14 @@ export async function POST(request: Request) {
 
     const health = await checkSupabaseAuthHealth(supabaseUrl, supabaseAnon, requestId);
     if (!health.ok) {
+      const healthError = health.error as any;
       return errorResponse("supabase_health_error", "Supabase health check failed", 502, {
         requestId,
         status: health.status || 0,
         host: supabaseHost,
         healthUrl: supabaseUrl.replace(/\/$/, "") + "/auth/v1/health",
+        errorName: healthError?.name || null,
+        errorMessage: healthError?.message || null,
       });
     }
 
