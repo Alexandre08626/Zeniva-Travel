@@ -122,33 +122,7 @@ export async function POST(request: Request) {
 
     const { client: supabase } = getSupabaseServerClient();
     const { client: admin } = getSupabaseAdminClient();
-    console.info("Supabase signup start", { requestId, email });
-
-    console.info("Accounts lookup", { requestId });
-    const { data: existingAccount, error: fetchError } = await admin
-      .from("accounts")
-      .select("id")
-      .eq("email", email)
-      .maybeSingle();
-
-    if (fetchError) {
-      console.error("Accounts lookup error", { requestId, message: fetchError.message });
-      return errorResponse("accounts_lookup", "Accounts lookup failed", 500, { requestId, message: fetchError.message });
-    }
-
-    const { data: authList, error: authLookupError } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
-    if (authLookupError) {
-      console.error("Auth lookup error", { requestId, message: authLookupError.message });
-      return errorResponse("auth_lookup", "Auth lookup failed", 500, { requestId, message: authLookupError.message });
-    }
-    const authUserId = authList?.users?.find((u) => u.email?.toLowerCase() === email.toLowerCase())?.id || null;
-    if (existingAccount?.id || authUserId) {
-      return errorResponse("conflict", "Account already exists", 409, {
-        requestId,
-        auth: Boolean(authUserId),
-        accounts: Boolean(existingAccount?.id),
-      });
-    }
+    console.info("signup_start", { requestId, email });
     const metadata = cleanJsonObject({
       name,
       role,
@@ -160,7 +134,7 @@ export async function POST(request: Request) {
       invite_code: inviteCode || undefined,
     });
 
-    console.info("Supabase signup start", { requestId });
+    console.info("auth_signup_start", { requestId });
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -168,15 +142,17 @@ export async function POST(request: Request) {
         data: metadata,
       },
     });
-    console.info("Supabase signup response", {
+    console.info("auth_signup_response", {
       requestId,
       status: error ? "error" : "ok",
       errorMessage: error?.message || null,
       userId: data?.user?.id || null,
     });
     if (error || !data?.user) {
-      return errorResponse("supabase_signup", error?.message || "Signup failed", 400, { requestId, code: error?.code || null });
+      console.error("auth_signup_error", { requestId, message: error?.message || "Signup failed" });
+      return errorResponse("auth_signup_error", error?.message || "Signup failed", 400, { requestId, code: error?.code || null });
     }
+    console.info("auth_signup_success", { requestId, userId: data.user.id });
 
     const accountPayload = {
       id: data.user.id,
@@ -191,25 +167,18 @@ export async function POST(request: Request) {
       created_at: new Date().toISOString(),
     };
 
-    console.info("Accounts insert", { requestId, stage: "start" });
+    console.info("accounts_insert_start", { requestId });
     const { data: account, error: insertError } = await admin
       .from("accounts")
       .insert(accountPayload)
       .select("id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile")
       .single();
 
-    console.info("Accounts insert", {
-      requestId,
-      stage: "result",
-      inserted: Boolean(account?.id),
-      error: insertError?.message || null,
-    });
-
     if (insertError) {
-      console.error("Accounts insert error", { requestId, message: insertError.message, code: (insertError as any)?.code || null });
-      return errorResponse("accounts_insert", "Accounts insert failed", 500, { requestId, message: insertError.message });
+      console.error("accounts_insert_error", { requestId, message: insertError.message, code: (insertError as any)?.code || null });
+      return errorResponse("accounts_insert_error", "Accounts insert failed", 500, { requestId, message: insertError.message });
     }
-    console.info("Accounts insert", { requestId, accountId: account.id });
+    console.info("accounts_insert_success", { requestId, accountId: account.id });
     const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7;
     const token = signSession({ email: account.email, roles, exp });
 
@@ -239,7 +208,7 @@ export async function POST(request: Request) {
       ...(cookieDomain ? { domain: cookieDomain } : {}),
       maxAge: 60 * 60 * 24 * 7,
     });
-    console.info("Signup response", { requestId, status: 201, email });
+    console.info("signup_end", { requestId, status: 201, email });
     return response;
   } catch (err: any) {
     console.error("Signup handler crash", err);
