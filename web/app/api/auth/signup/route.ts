@@ -77,8 +77,10 @@ export async function POST(request: Request) {
 
     if (error || !data?.user) {
       console.error("Supabase signup error", { code: error?.code, message: error?.message });
-          assertBackendEnv();
-        return NextResponse.json({ error: error?.message || "Signup failed" }, { status: 400 });
+      return NextResponse.json({ error: error?.message || "Signup failed" }, { status: 400 });
+    }
+
+    const { data: existingAccount, error: fetchError } = await admin
       .from("accounts")
       .select("id")
       .eq("email", email)
