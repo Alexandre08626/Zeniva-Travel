@@ -145,8 +145,8 @@ export async function POST(request: Request) {
       const isEmailExists = /already registered|already exists/i.test(error?.message || "");
       if (isEmailExists) {
         const { client: admin } = getSupabaseAdminClient();
-        const { data: authList, error: authLookupError } = await admin.auth.admin.listUsers({ email });
-        const authUserId = authList?.users?.[0]?.id || null;
+        const { data: authList, error: authLookupError } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
+        const authUserId = authList?.users?.find((u) => u.email?.toLowerCase() === email.toLowerCase())?.id || null;
 
         const { data: existingAccount, error: fetchError } = await admin
           .from("accounts")
