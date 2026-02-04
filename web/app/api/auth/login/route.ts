@@ -19,13 +19,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Credentials required" }, { status: 400 });
     }
 
+    const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
+    const supabaseUrl = rawUrl ? rawUrl.replace(/\/$/, "") : "";
+    const hasAnon = Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY);
+    const hasService = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+    console.info("supabase_env", { supabaseUrl, hasAnon, hasService });
+
     const { client: supabase } = getSupabaseAnonClient();
     const { client: admin } = getSupabaseAdminClient();
     console.info("Auth provider: supabase:anon");
     console.info(`Auth login email: ${email}`);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error || !data?.user) {
-      console.error("Supabase login error", { code: error?.code, message: error?.message });
+      console.error("Supabase login error", {
+        url: supabaseUrl || null,
+        code: error?.code || null,
+        message: error?.message || null,
+      });
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
