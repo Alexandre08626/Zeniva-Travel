@@ -40,6 +40,15 @@ export function getSupabaseServerClient(): { client: SupabaseClient } {
   };
 }
 
+export function getSupabaseAnonClient(): { client: SupabaseClient } {
+  const { url, anonKey } = getSupabaseEnv();
+  return {
+    client: createClient(url, anonKey, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    }),
+  };
+}
+
 export function getSupabaseAdminClient(): { client: SupabaseClient } {
   const { url, serviceKey } = getSupabaseEnv();
   if (!serviceKey) {

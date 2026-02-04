@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { assertBackendEnv, normalizeEmail } from "../../../../src/lib/server/db";
 import { getCookieDomain, getSessionCookieName, signSession } from "../../../../src/lib/server/auth";
-import { getSupabaseAdminClient, getSupabaseServerClient } from "../../../../src/lib/supabase/server";
+import { getSupabaseAdminClient, getSupabaseAnonClient } from "../../../../src/lib/supabase/server";
 
 function normalizeStringArray(value: unknown, fallback: string[] = []) {
   if (Array.isArray(value)) return value.filter((item) => typeof item === "string" && item.trim());
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Credentials required" }, { status: 400 });
     }
 
-    const { client: supabase } = getSupabaseServerClient();
+    const { client: supabase } = getSupabaseAnonClient();
     const { client: admin } = getSupabaseAdminClient();
     console.info("Auth provider: supabase:anon");
     console.info(`Auth login email: ${email}`);
@@ -55,30 +55,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Login failed" }, { status: 500 });
     }
 
-    let account = existingAccount;
+    const account = existingAccount;
     if (!account) {
-      const { data: inserted, error: insertError } = await admin
-        .from("accounts")
-        .insert({
-          id: data.user.id,
-          name: (typeof metadata.name === "string" && metadata.name.trim()) || data.user.email || "Account",
-          email,
-          role: metaRole,
-          roles: metaRoles.length ? metaRoles : [metaRole],
-          divisions: metaDivisions,
-          status: "active",
-          agent_level: metaAgentLevel,
-          invite_code: metaInviteCode,
-          created_at: new Date().toISOString(),
-        })
-        .select("id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile")
-        .single();
-
-      if (insertError) {
-        console.error("Supabase account insert error", { message: insertError.message });
-        return NextResponse.json({ error: "Login failed" }, { status: 500 });
-      }
-      account = inserted;
+      return NextResponse.json({ error: "account_missing" }, { status: 403 });
     }
 
     const roles = Array.isArray(account.roles) && account.roles.length ? account.roles : account.role ? [account.role] : ["traveler"];
