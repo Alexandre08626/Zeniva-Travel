@@ -28,6 +28,12 @@ function normalizeSupabaseUrl(rawUrl: string) {
   }
 }
 
+function keyPrefix(value: string) {
+  if (!value) return "";
+  const idx = value.indexOf("_");
+  return idx > 0 ? value.slice(0, idx + 1) : value.slice(0, 12);
+}
+
 function errorResponse(stage: string, message: string, status = 500, details?: Record<string, unknown>) {
   return NextResponse.json({ ok: false, stage, message, details }, { status });
 }
@@ -57,9 +63,14 @@ export async function POST(request: Request) {
 
     const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
     const supabaseUrl = normalizeSupabaseUrl(rawUrl);
-    const hasAnon = Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY);
-    const hasService = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
-    console.info("supabase_env", { requestId, supabaseUrl, hasAnon, hasService });
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || "";
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+    console.info("supabase_env", {
+      requestId,
+      supabaseUrl,
+      hasAnon: Boolean(anonKey),
+      hasService: Boolean(serviceKey),
+    });
 
     // ---- Inputs
     const space = String(body?.space || body?.role || "traveler").toLowerCase();
@@ -129,7 +140,13 @@ export async function POST(request: Request) {
       invite_code: inviteCode || undefined,
     });
 
-    console.info("auth_signup_start", { requestId, key: "anon", url: supabaseUrl || null });
+    console.info("auth_signup_start", {
+      requestId,
+      key: "anon",
+      url: supabaseUrl || null,
+      anonPrefix: keyPrefix(anonKey),
+      anonLength: anonKey.length,
+    });
     const { data, error } = await supabaseAnonClient.auth.signUp({
       email,
       password,

@@ -21,13 +21,17 @@ export async function POST(request: Request) {
 
     const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
     const supabaseUrl = rawUrl ? rawUrl.replace(/\/$/, "") : "";
-    const hasAnon = Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY);
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || "";
+    const hasAnon = Boolean(anonKey);
     const hasService = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
     console.info("supabase_env", { supabaseUrl, hasAnon, hasService });
 
     const { client: supabase } = getSupabaseAnonClient();
     const { client: admin } = getSupabaseAdminClient();
-    console.info("Auth provider: supabase:anon");
+    console.info("Auth provider: supabase:anon", {
+      anonPrefix: anonKey ? anonKey.slice(0, anonKey.indexOf("_") + 1) || anonKey.slice(0, 12) : "",
+      anonLength: anonKey.length,
+    });
     console.info(`Auth login email: ${email}`);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error || !data?.user) {
