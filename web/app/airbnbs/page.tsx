@@ -52,6 +52,21 @@ export default function AirbnbsPage() {
 
   useEffect(() => {
     let active = true;
+    const loadFallback = async () => {
+      try {
+        const mod = await import("../../src/data/airbnbs.json");
+        const fallback = (mod as any).default || mod;
+        if (active && Array.isArray(fallback)) {
+          setItems(fallback);
+          setLoading(false);
+        }
+      } catch {
+        if (active) {
+          setItems([]);
+          setLoading(false);
+        }
+      }
+    };
     const partnerReq = fetch("/api/partners/airbnbs", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : []))
       .then((res) => (Array.isArray(res) ? res : []))
@@ -64,22 +79,28 @@ export default function AirbnbsPage() {
     Promise.all([partnerReq, publicReq])
       .then(([partnerData, publicData]) => {
         if (!active) return;
-        const normalizedPublic: AirbnbItem[] = (publicData || []).map((p: any) => ({
-          id: p.id,
-          title: p.title,
-          location: p.data?.location || p.data?.destination || "",
-          description: p.data?.description || "",
-          thumbnail: p.data?.thumbnail || (p.data?.images && p.data.images[0]) || "",
-          images: p.data?.images || [],
-          url: p.url,
-        }));
+        if (!Array.isArray(partnerData) || partnerData.length === 0) {
+          loadFallback();
+          return;
+        }
+        const normalizedPublic: AirbnbItem[] = (publicData || []).map((p: any) => {
+          const data = p?.data || p || {};
+          return {
+            id: p.id || data.id,
+            title: data.title || p.title,
+            location: data.location || data.destination || "",
+            description: data.description || "",
+            thumbnail: data.thumbnail || (data.images && data.images[0]) || "",
+            images: data.images || [],
+            url: p.url || data.url,
+          };
+        });
         setItems([...(partnerData || []), ...normalizedPublic]);
         setLoading(false);
       })
       .catch(() => {
         if (!active) return;
-        setItems([]);
-        setLoading(false);
+        loadFallback();
       });
     return () => {
       active = false;

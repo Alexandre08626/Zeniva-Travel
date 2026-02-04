@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { PREMIUM_BLUE, TITLE_TEXT, MUTED_TEXT } from "../design/tokens";
 import { logout, useAuthStore, isAgent, isPartner } from "../lib/authStore";
 import LocaleSwitcher from "./LocaleSwitcher";
@@ -13,14 +13,19 @@ import { Bell, Search } from 'lucide-react';
 import AutoTranslate from "./AutoTranslate";
 
 export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean; userEmail?: string }) {
+  const [mounted, setMounted] = useState(false);
   const authUser = useAuthStore((s) => s.user);
-  const loggedIn = authUser ? true : isLoggedIn;
-  const email = authUser?.email || userEmail;
-  const agent = authUser ? isAgent(authUser) : false;
+  const loggedIn = mounted ? (authUser ? true : isLoggedIn) : Boolean(isLoggedIn);
+  const email = mounted ? (authUser?.email || userEmail) : userEmail;
+  const agent = mounted && authUser ? isAgent(authUser) : false;
   const [menuOpen, setMenuOpen] = useState(false);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
-    <div>
+    <>
       <div className="mb-6 flex items-center justify-between header-main" style={{ paddingTop: '6px' }}>
         <div className="flex items-center gap-4 header-left">
           {/* Mobile: logo et titre centrés, rien d'autre */}
@@ -48,7 +53,7 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
             {loggedIn && (
               <>
                 <Link href="/documents" className="text-sm text-slate-900 font-semibold hover:underline"><AutoTranslate text="My Travel Documents" className="inline" /></Link>
-                {isPartner(authUser) && (
+                {mounted && authUser && isPartner(authUser) && (
                   <Link href="/partner/dashboard" className="text-sm text-slate-900 font-semibold hover:underline"><AutoTranslate text="Partner" className="inline" /></Link>
                 )}
               </>
@@ -64,27 +69,28 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
 
         <div className="flex items-center gap-2 header-right sm:flex hidden">
           {loggedIn ? (
-          <>
-            {agent && (
-              <Link
-                href="/agent"
-                className="rounded-full border px-4 py-2 text-sm font-semibold"
-                style={{ borderColor: PREMIUM_BLUE, color: PREMIUM_BLUE, opacity: 0.92 }}
-              >
-                <AutoTranslate text="Switch to agent workspace" className="inline" />
+            <>
+              {agent && (
+                <Link
+                  href="/agent"
+                  className="rounded-full border px-4 py-2 text-sm font-semibold"
+                  style={{ borderColor: PREMIUM_BLUE, color: PREMIUM_BLUE, opacity: 0.92 }}
+                >
+                  <AutoTranslate text="Switch to agent workspace" className="inline" />
+                </Link>
+              )}
+            </>
+          ) : (
+            <>
+              <Link href="/signup" className="rounded-full px-2 py-1 text-xs font-semibold text-white sm:px-4 sm:py-2 sm:text-sm" style={{ backgroundColor: PREMIUM_BLUE, opacity: 0.96 }}>
+                <AutoTranslate text="Sign up" className="inline" />
               </Link>
-            )}
-          </>
-        ) : (
-          <>
-            <Link href="/signup" className="rounded-full px-2 py-1 text-xs font-semibold text-white sm:px-4 sm:py-2 sm:text-sm" style={{ backgroundColor: PREMIUM_BLUE, opacity: 0.96 }}>
-              <AutoTranslate text="Sign up" className="inline" />
-            </Link>
-            <Link href="/login" className="rounded-full border px-2 py-1 text-xs font-semibold sm:px-4 sm:py-2 sm:text-sm" style={{ borderColor: PREMIUM_BLUE, color: PREMIUM_BLUE, opacity: 0.92 }}>
-              <AutoTranslate text="Log in" className="inline" />
-            </Link>
-          </>
-        )}
+              <Link href="/login" className="rounded-full border px-2 py-1 text-xs font-semibold sm:px-4 sm:py-2 sm:text-sm" style={{ borderColor: PREMIUM_BLUE, color: PREMIUM_BLUE, opacity: 0.92 }}>
+                <AutoTranslate text="Log in" className="inline" />
+              </Link>
+            </>
+          )}
+        </div>
 
         <div className="hidden sm:flex items-center gap-3 ml-4">
           <div className="hidden md:block">
@@ -116,7 +122,6 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
           </div>
         </div>
       )}
-    </div>
-    </div>
+    </>
   );
 }

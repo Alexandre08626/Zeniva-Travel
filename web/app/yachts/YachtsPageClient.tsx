@@ -65,6 +65,17 @@ export default function YachtsPageClient() {
 
   useEffect(() => {
     let active = true;
+    const loadFallback = async () => {
+      try {
+        const mod = await import("../../src/data/ycn_packages.json");
+        const fallback = (mod as any).default || mod;
+        if (active && Array.isArray(fallback)) {
+          setItems(fallback);
+        }
+      } catch {
+        if (active) setItems([]);
+      }
+    };
     // fetch curated YCN fleet
     const ycnReq = fetch("/api/partners/ycn", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : []))
@@ -77,18 +88,39 @@ export default function YachtsPageClient() {
 
     Promise.all([ycnReq, partnerReq]).then(([ycnData, partnerData]) => {
       if (!active) return;
-      // Normalize partner yacht shape to YcnItem
-      const partnerItems: YcnItem[] = (partnerData || []).map((p: any) => ({
+      if (!Array.isArray(ycnData) || ycnData.length === 0) {
+        loadFallback();
+        return;
+      }
+      const ycnItems: YcnItem[] = (Array.isArray(ycnData) ? ycnData : []).map((p: any) => ({
         title: p.title,
-        destination: p.data?.location || p.data?.destination || "",
-        thumbnail: p.data?.thumbnail || (p.data?.images && p.data.images[0]) || undefined,
-        prices: p.data?.prices || [],
-        images: p.data?.images || [],
+        destination: p.destination || "",
+        prices: p.prices || [],
+        thumbnail: p.thumbnail || (p.images && p.images[0]) || undefined,
+        images: p.images || [],
+        calendar: p.calendar || undefined,
       }));
-      setItems([...(ycnData || []), ...partnerItems]);
+      // Normalize partner yacht shape to YcnItem
+      const partnerItems: YcnItem[] = (partnerData || []).map((p: any) => {
+        const data = p?.data || p || {};
+        const priceLabel =
+          Array.isArray(data.prices) && data.prices.length
+            ? data.prices
+            : typeof data.price === "number"
+              ? [`${data.currency || "USD"} ${data.price}`]
+              : [];
+        return {
+          title: data.title || p.title,
+          destination: data.location || data.destination || "",
+          thumbnail: data.thumbnail || (data.images && data.images[0]) || undefined,
+          prices: priceLabel,
+          images: data.images || [],
+        };
+      });
+      setItems([...(ycnItems || []), ...partnerItems]);
     }).catch(() => {
       if (!active) return;
-      setItems([]);
+      loadFallback();
     });
 
     return () => {

@@ -1,14 +1,9 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import airbnbsData from '@/src/data/airbnbs.json';
 
 export async function GET() {
   try {
-    const p = path.join(process.cwd(), 'src', 'data', 'airbnbs.json');
-    if (!fs.existsSync(p)) return NextResponse.json([], { status: 200 });
-    const raw = fs.readFileSync(p, 'utf8');
-    const data = JSON.parse(raw);
-    return NextResponse.json(data, { status: 200 });
+    return NextResponse.json(airbnbsData, { status: 200 });
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('API /api/partners/airbnbs error', err);
