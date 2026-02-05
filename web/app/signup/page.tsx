@@ -14,14 +14,6 @@ export default function SignupPage() {
     return space === "agent" || space === "partner" ? space : "traveler";
   })();
   const [mode, setMode] = useState<"traveler" | "agent" | "partner">(initialMode);
-  const deriveInvite = (role: string) => {
-    if (role === "hq") return "ZENIVA-HQ";
-    if (role === "admin") return "ZENIVA-ADMIN";
-    if (role === "finance") return "ZENIVA-ADMIN";
-    if (role === "support") return "ZENIVA-ADMIN";
-    if (role === "yacht-partner") return "ZENIVA-AGENT";
-    return "ZENIVA-AGENT";
-  };
   const [agentRole, setAgentRole] = useState<Role>("travel-agent");
   const [name, setName] = useState("");
   const [companyLegalName, setCompanyLegalName] = useState("");
@@ -32,7 +24,7 @@ export default function SignupPage() {
   const [companyLanguage, setCompanyLanguage] = useState("en");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [inviteCode, setInviteCode] = useState(deriveInvite("travel-agent"));
+  const [inviteCode, setInviteCode] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -173,7 +165,6 @@ export default function SignupPage() {
                 onChange={(e) => {
                   const next = e.target.value as Role;
                   setAgentRole(next);
-                  setInviteCode(deriveInvite(next));
                 }}
               >
                 <option value="travel-agent">Travel agent</option>
@@ -185,15 +176,16 @@ export default function SignupPage() {
               </select>
             </label>
             <label className="block text-sm font-medium">
-              Invite code
+              Confirmation code (provided by Zeniva)
               <input
                 className="mt-1 w-full border rounded px-3 py-2"
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value)}
-                placeholder="ZENIVA-AGENT"
+                placeholder="Enter your confirmation code"
                 required
               />
             </label>
+            <p className="text-xs text-gray-500">No email confirmation. Use the code you received.</p>
           </div>
         )}
 

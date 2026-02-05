@@ -125,7 +125,7 @@ export async function POST(request: Request) {
     // ANON client for auth.signUp
     const { client: supabaseAnonClient } = getSupabaseAnonClient();
 
-    // ADMIN client only for DB insert (accounts)
+    // ADMIN client for user creation + DB insert
     const { client: supabaseAdminClient } = getSupabaseAdminClient();
 
     // ---- Auth signup
@@ -140,37 +140,68 @@ export async function POST(request: Request) {
       invite_code: inviteCode || undefined,
     });
 
-    console.info("auth_signup_start", {
-      requestId,
-      key: "anon",
-      url: supabaseUrl || null,
-      anonPrefix: keyPrefix(anonKey),
-      anonLength: anonKey.length,
-    });
-    const { data, error } = await supabaseAnonClient.auth.signUp({
-      email,
-      password,
-      options: {
-        data: metadata,
-      },
-    });
+    let authUser = null as { id: string } | null;
 
-    if (error || !data?.user) {
-      console.error("auth_signup_error", {
+    if (isAgentRole) {
+      console.info("auth_signup_start", {
         requestId,
+        key: "service_role",
         url: supabaseUrl || null,
-        code: (error as any)?.code || null,
-        message: error?.message || null,
       });
-      return errorResponse("auth_signup_error", error?.message || "Signup failed", 400, {
+      const { data, error } = await supabaseAdminClient.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: metadata,
+      });
+
+      if (error || !data?.user) {
+        console.error("auth_signup_error", {
+          requestId,
+          url: supabaseUrl || null,
+          code: (error as any)?.code || null,
+          message: error?.message || null,
+        });
+        return errorResponse("auth_signup_error", error?.message || "Signup failed", 400, {
+          requestId,
+          code: (error as any)?.code || null,
+        });
+      }
+      authUser = data.user;
+    } else {
+      console.info("auth_signup_start", {
         requestId,
-        code: (error as any)?.code || null,
+        key: "anon",
+        url: supabaseUrl || null,
+        anonPrefix: keyPrefix(anonKey),
+        anonLength: anonKey.length,
       });
+      const { data, error } = await supabaseAnonClient.auth.signUp({
+        email,
+        password,
+        options: {
+          data: metadata,
+        },
+      });
+
+      if (error || !data?.user) {
+        console.error("auth_signup_error", {
+          requestId,
+          url: supabaseUrl || null,
+          code: (error as any)?.code || null,
+          message: error?.message || null,
+        });
+        return errorResponse("auth_signup_error", error?.message || "Signup failed", 400, {
+          requestId,
+          code: (error as any)?.code || null,
+        });
+      }
+      authUser = data.user;
     }
 
     // ---- Insert account row (admin)
     const accountPayload = {
-      id: data.user.id,
+      id: authUser.id,
       name,
       email,
       role,
