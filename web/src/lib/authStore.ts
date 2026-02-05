@@ -353,7 +353,7 @@ export async function signup(params: {
   const baseRoles = lockedRoles.length ? lockedRoles : (requestedRoles && requestedRoles.length ? requestedRoles : [requestedRole]);
   const finalRoles = baseRoles as Role[];
   const isAgentRole = finalRoles.some((r) => AGENT_ROLES.includes(r));
-  if (isAgentRole) {
+  if (isAgentRole && !IS_PROD) {
     requireInviteCode(inviteCode);
   }
 
