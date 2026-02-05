@@ -52,6 +52,10 @@ export default function SignupPage() {
         const payload = await res.json();
         if (!res.ok) throw new Error(payload?.error || "Request failed");
         setRequestSent(true);
+        if (payload?.status === "approved" && payload?.code) {
+          setAgentStep("signup");
+          setInviteCode(payload.code);
+        }
         return;
       }
 

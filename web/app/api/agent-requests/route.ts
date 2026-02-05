@@ -42,7 +42,8 @@ export async function POST(request: Request) {
       [email]
     );
     if (existing.rows.length) {
-      return NextResponse.json({ ok: false, error: "Request already exists" }, { status: 409 });
+      const row = existing.rows[0];
+      return NextResponse.json({ ok: true, status: row.status, code: row.code || null, id: row.id });
     }
 
     const id = crypto.randomUUID();
