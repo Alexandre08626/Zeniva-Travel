@@ -101,21 +101,21 @@ export async function POST(request: Request) {
         ? String(body.agentLevel)
         : null;
 
+    const isAgentRole = roles.some((r: string) =>
+      ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "agent"].includes(r)
+    );
+
     // ---- Validate
     const missing: string[] = [];
     if (!email) missing.push("email");
     if (!password) missing.push("password");
     if (!space) missing.push("space");
     if (!name) missing.push("fullName/name");
-    if (!inviteCode) missing.push("inviteCode");
-    if (!agentLevel) missing.push("agentRole");
+    if (isAgentRole && !inviteCode) missing.push("inviteCode");
+    if (isAgentRole && !agentLevel) missing.push("agentRole");
     if (missing.length) {
       return errorResponse("validate", "Missing required fields", 400, { missing, requestId });
     }
-
-    const isAgentRole = roles.some((r: string) =>
-      ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "agent"].includes(r)
-    );
 
     if (isAgentRole && !AGENT_INVITE_CODES.includes(inviteCode)) {
       return NextResponse.json({ ok: false, message: "Invite code required or invalid for agents" }, { status: 400 });
@@ -191,10 +191,35 @@ export async function POST(request: Request) {
       .single();
 
     if (insertError) {
+      const code = (insertError as any)?.code || null;
+      const isDuplicate = code === "23505" || /duplicate|already exists/i.test(insertError.message || "");
+      if (isDuplicate) {
+        const { data: existing, error: fetchError } = await supabaseAdminClient
+          .from("accounts")
+          .select("id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile")
+          .eq("email", email)
+          .maybeSingle();
+        if (!fetchError && existing) {
+          const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7;
+          const token = signSession({ email: existing.email, roles: existing.roles || [existing.role || "traveler"], exp });
+          const response = NextResponse.json({ user: existing }, { status: 200 });
+          const cookieDomain = getCookieDomain();
+          response.cookies.set(getSessionCookieName(), token, {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: true,
+            path: "/",
+            ...(cookieDomain ? { domain: cookieDomain } : {}),
+            maxAge: 60 * 60 * 24 * 7,
+          });
+          return response;
+        }
+      }
+
       return errorResponse("accounts_insert_error", "Accounts insert failed", 500, {
         requestId,
         message: insertError.message,
-        code: (insertError as any)?.code || null,
+        code,
       });
     }
 
