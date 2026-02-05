@@ -9,6 +9,14 @@ function normalizeStringArray(value: unknown, fallback: string[] = []) {
   return fallback;
 }
 
+function getHqEmails() {
+  const raw = process.env.ZENIVA_HQ_EMAILS || "info@zenivatravel.com";
+  return raw
+    .split(",")
+    .map((v) => normalizeEmail(v))
+    .filter(Boolean);
+}
+
 function buildSessionResponse(account: {
   id: string;
   name: string;
@@ -151,18 +159,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Login failed" }, { status: 500 });
     }
 
+    const isHqEmail = getHqEmails().includes(email);
     let account = existingAccount;
     if (!account) {
       const fallbackRoles = metaRoles.length ? metaRoles : [metaRole];
+      const rolesForAccount = isHqEmail
+        ? Array.from(new Set(["hq", "admin", "agent", "partner_owner", ...fallbackRoles]))
+        : fallbackRoles;
       const accountPayload = {
         id: authData.user.id,
         name: typeof metadata.name === "string" && metadata.name.trim() ? metadata.name.trim() : email.split("@")[0],
         email,
-        role: metaRole,
-        roles: fallbackRoles,
+        role: isHqEmail ? "hq" : metaRole,
+        roles: rolesForAccount,
         divisions: metaDivisions,
         status: "active",
-        agent_level: metaAgentLevel,
+        agent_level: isHqEmail ? (metaAgentLevel || "Manager") : metaAgentLevel,
         invite_code: metaInviteCode,
         password_hash: hashPassword(password),
         created_at: new Date().toISOString(),
@@ -179,6 +191,21 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "account_create_failed" }, { status: 500 });
       }
       account = createdAccount;
+    } else if (isHqEmail) {
+      const currentRoles = Array.isArray(account.roles) ? account.roles : account.role ? [account.role] : [];
+      const needsHqRoles = !currentRoles.includes("hq") || !currentRoles.includes("admin") || !currentRoles.includes("partner_owner");
+      if (needsHqRoles) {
+        const updatedRoles = Array.from(new Set(["hq", "admin", "agent", "partner_owner", ...currentRoles]));
+        const { data: updated, error: updateError } = await admin
+          .from("accounts")
+          .update({ role: "hq", roles: updatedRoles, agent_level: account.agent_level || "Manager" })
+          .eq("email", email)
+          .select("id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile, password_hash")
+          .maybeSingle();
+        if (!updateError && updated) {
+          account = updated;
+        }
+      }
     }
 
     return buildSessionResponse({
