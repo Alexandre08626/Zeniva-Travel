@@ -275,6 +275,14 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
             <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Navigation</p>
               <div className="mt-4 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSearchOpen(true)}
+                  className="relative flex items-center justify-between rounded-2xl border border-slate-900 bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                >
+                  <span>Create trip search</span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-200">New</span>
+                </button>
                 {navLinks.map((item) => {
                   const active = pathname === item.href || (item.href !== "/agent" && pathname?.startsWith(item.href));
                   return (
@@ -329,7 +337,34 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
               </div>
             </header>
 
+            <nav className="hidden flex-wrap items-center gap-2 text-sm lg:flex">
+              <button
+                type="button"
+                onClick={() => setSearchOpen(true)}
+                className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-sm"
+              >
+                Create trip search
+              </button>
+              {navLinks.map((item) => (
+                <Link key={item.href} href={item.href} className="relative rounded-full border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-800 hover:border-slate-400">
+                  {item.label}
+                  {item.label === "Chat" && unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Link>
+              ))}
+            </nav>
+
             <nav className="flex flex-wrap gap-2 text-sm lg:hidden">
+              <button
+                type="button"
+                onClick={() => setSearchOpen(true)}
+                className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-sm"
+              >
+                Create trip search
+              </button>
               {navLinks.map((item) => (
                 <Link key={item.href} href={item.href} className="relative rounded-full border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-800 hover:border-slate-400">
                   {item.label}
