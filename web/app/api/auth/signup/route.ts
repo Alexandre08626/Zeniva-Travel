@@ -164,18 +164,32 @@ export async function POST(request: Request) {
       });
 
       if (error || !data?.user) {
-        console.error("auth_signup_error", {
-          requestId,
-          url: supabaseUrl || null,
-          code: (error as any)?.code || null,
-          message: error?.message || null,
-        });
-        return errorResponse("auth_signup_error", error?.message || "Signup failed", 400, {
-          requestId,
-          code: (error as any)?.code || null,
-        });
+        const code = (error as any)?.code || null;
+        if (code === "email_exists") {
+          const retry = await supabaseAdminClient.auth.signInWithPassword({ email, password });
+          if (retry.data?.user && !retry.error) {
+            authUser = retry.data.user;
+          } else {
+            return errorResponse("auth_signup_error", "Account already exists", 400, {
+              requestId,
+              code,
+            });
+          }
+        } else {
+          console.error("auth_signup_error", {
+            requestId,
+            url: supabaseUrl || null,
+            code,
+            message: error?.message || null,
+          });
+          return errorResponse("auth_signup_error", error?.message || "Signup failed", 400, {
+            requestId,
+            code,
+          });
+        }
+      } else {
+        authUser = data.user;
       }
-      authUser = data.user;
     } else {
       console.info("auth_signup_start", {
         requestId,
