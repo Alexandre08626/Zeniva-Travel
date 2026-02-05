@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "airbnbRequests";
+const STORAGE_KEY = "residenceRequests";
 const ALEXANDRE_CHANNEL_ID = "agent-alexandre";
 const ADMIN_CHANNEL_ID = "hq";
 
@@ -26,7 +26,7 @@ type Props = {
 
 function buildMessage(payload: Omit<AirbnbRequestPayload, "id" | "createdAt" | "message">) {
   return [
-    "New Airbnb request (Airbnb detail page)",
+    "New residence request (residence detail page)",
     `Property name: ${payload.propertyName}`,
     `Desired date: ${payload.desiredDate}`,
     `Client full name: ${payload.fullName}`,
@@ -116,7 +116,7 @@ export default function AirbnbRequestForm({ propertyName, sourcePath }: Props) {
   return (
     <section className="bg-white rounded-2xl shadow p-6">
       <div className="flex flex-col gap-2 mb-6">
-        <h2 className="text-2xl font-black text-slate-900">Request this Airbnb</h2>
+        <h2 className="text-2xl font-black text-slate-900">Request this residence</h2>
         <p className="text-sm text-slate-600">Fast booking help. We will contact you immediately after you submit the request.</p>
       </div>
 

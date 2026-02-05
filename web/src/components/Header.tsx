@@ -49,7 +49,7 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
             <Link href="/yachts" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="Yacht Charters" className="inline" /></Link>
             <Link href="/partners/resorts" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="Partner Resorts" className="inline" /></Link>
             <Link href="/collections/group" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="Group Trips" className="inline" /></Link>
-            <Link href="/airbnbs" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="Partner Airbnbs" className="inline" /></Link>
+            <Link href="/residences" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="Short-term rentals" className="inline" /></Link>
             {loggedIn && (
               <>
                 <Link href="/documents" className="text-sm text-slate-900 font-semibold hover:underline"><AutoTranslate text="My Travel Documents" className="inline" /></Link>

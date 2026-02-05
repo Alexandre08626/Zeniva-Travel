@@ -5,7 +5,7 @@ export default function SelectedSummary({ flight, hotel, activity, transfer, tri
   const pricing = computePrice({ flight, hotel, activity, transfer }, tripDraft);
 
   const accommodationLabel = tripDraft?.accommodationType === "Yacht" ? "Yacht" :
-                             tripDraft?.accommodationType === "Airbnb" ? "Private Residence" :
+                             (tripDraft?.accommodationType === "Airbnb" || tripDraft?.accommodationType === "Residence") ? "Short-term rental" :
                              "Hotel";
 
   return (

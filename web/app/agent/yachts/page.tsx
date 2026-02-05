@@ -28,7 +28,7 @@ export default function AgentYachtsPage() {
               <p className="text-sm" style={{ color: MUTED_TEXT }}>{y.location} · {y.guests} guests · Week {y.weekStart}</p>
               <p className="text-sm" style={{ color: MUTED_TEXT }}>Total Sell ${y.pricing.sell} (Travel share 5%)</p>
               <Link href="/agent/trips/T-502" className="text-sm font-bold" style={{ color: PREMIUM_BLUE }}>
-                Ajouter au dossier →
+                Add to proposal →
               </Link>
             </div>
           ))}

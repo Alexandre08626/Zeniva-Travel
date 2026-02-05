@@ -38,7 +38,11 @@ function cleanDescription(description: string) {
   const beforeContact = withoutHeader.split("Contact Agent")[0];
   const beforeDetails = beforeContact.split("Property Details")[0];
   const cleaned = normalizePetFriendly(beforeDetails.replace(/\n{3,}/g, "\n\n").trim());
-  return cleaned.length < 40 ? "Curated stay with Zeniva concierge support." : cleaned;
+  const sanitized = cleaned
+    .replace(/Airbnb host/gi, "property host")
+    .replace(/Airbnb guests/gi, "guests")
+    .replace(/Airbnb/gi, "short-term rental");
+  return sanitized.length < 40 ? "Private stays curated by Zeniva, bookable with concierge support." : sanitized;
 }
 
 export default function AirbnbsPage() {
@@ -118,7 +122,7 @@ export default function AirbnbsPage() {
   const mapped = items.map((p, idx) => {
     const resolvedLocation = resolveLocation(p);
     return {
-    slug: p.id || slugify(p.title || `airbnb-${idx}`),
+    slug: p.id || slugify(p.title || `residence-${idx}`),
     title: normalizeListingTitle(p.title || "Residence"),
     location: resolvedLocation || "",
     description: cleanDescription(p.description || ""),
@@ -131,20 +135,20 @@ export default function AirbnbsPage() {
     const tripId = createTrip({
       title: stay.title,
       destination: stay.location,
-      style: "Private residence",
+      style: "Short-term rental",
     });
 
     updateSnapshot(tripId, {
       destination: stay.location,
       travelers: "2 adults",
-      style: "Private residence",
-      accommodationType: "Airbnb",
+      style: "Short-term rental",
+      accommodationType: "Residence",
     });
 
     applyTripPatch(tripId, {
       destination: stay.location,
-      accommodationType: "Airbnb",
-      style: "Private residence",
+      accommodationType: "Residence",
+      style: "Short-term rental",
     });
 
     setProposalSelection(tripId, {
@@ -155,7 +159,7 @@ export default function AirbnbsPage() {
         id: stay.slug,
         name: stay.title,
         location: stay.location,
-        room: "Residence",
+        room: "Short-term rental",
         image: stay.image,
         images: stay.images,
         description: stay.description,
@@ -273,11 +277,11 @@ export default function AirbnbsPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <p className="text-sm uppercase tracking-wide text-slate-500"><AutoTranslate text="Airbnbs" className="inline" /></p>
-              <h1 className="text-3xl font-black mt-1"><AutoTranslate text="Residences curated by Zeniva" className="inline" /></h1>
-              <p className="text-slate-600 mt-2"><AutoTranslate text="Browse stays and message us to book." className="inline" /></p>
+              <p className="text-sm uppercase tracking-wide text-slate-500"><AutoTranslate text="Short-term rentals" className="inline" /></p>
+              <h1 className="text-3xl font-black mt-1"><AutoTranslate text="Short-term rentals" className="inline" /></h1>
+              <p className="text-slate-600 mt-2"><AutoTranslate text="Private stays curated by Zeniva, bookable with concierge support." className="inline" /></p>
             </div>
-            <Link href="/chat?prompt=Plan%20an%20Airbnb%20stay" className="hidden md:inline-flex px-4 py-2 rounded-full bg-black text-white text-sm font-semibold shadow">
+            <Link href="/chat?prompt=Plan%20a%20short-term%20stay" className="hidden md:inline-flex px-4 py-2 rounded-full bg-black text-white text-sm font-semibold shadow">
               <AutoTranslate text="Chat to book" className="inline" />
             </Link>
           </div>
@@ -302,10 +306,10 @@ export default function AirbnbsPage() {
                   <div className="text-sm text-slate-500 mb-3">{p.location}</div>
                   <p className="text-sm text-slate-600 line-clamp-2 mb-4">{p.description}</p>
                   <div className="mt-auto flex items-center justify-between">
-                    <Link href={`/airbnbs/${p.slug}`} className="text-sm font-semibold underline text-slate-700">
+                    <Link href={`/residences/${p.slug}`} className="text-sm font-semibold underline text-slate-700">
                       View details
                     </Link>
-                    <Link href="/chat?prompt=Plan%20an%20Airbnb%20stay" className="text-sm font-semibold text-primary-700">
+                    <Link href="/chat?prompt=Plan%20a%20short-term%20stay" className="text-sm font-semibold text-primary-700">
                       Chat
                     </Link>
                   </div>

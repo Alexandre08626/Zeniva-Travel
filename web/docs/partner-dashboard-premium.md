@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Partner Dashboard has been completely redesigned to Airbnb/Stripe/Notion marketplace-grade quality with a premium, polished UI that matches top-tier SaaS platforms.
+The Partner Dashboard has been completely redesigned to premium marketplace-grade quality with a polished UI that matches top-tier SaaS platforms.
 
 ## Tech Stack
 

@@ -73,11 +73,14 @@ export default function PartnerPage() {
             <a href="#apply" className="text-sm font-semibold underline" style={{ color: PREMIUM_BLUE }}>Apply</a>
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {["Hotels", "Villas and private residences", "Yachts & charters", "Experiences & excursions", "Aviation & air", "Group & MICE"].map((label) => (
+            {["Hotels", "Villas and private residences", "Yachts & charters", "Experiences & excursions", "Aviation & air", "Group & MICE"].map((label) => {
+              const displayLabel = label === "Villas and private residences" ? "Villas and short-term rentals" : label;
+              return (
                 <div key={label} className="rounded-lg border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold" style={{ color: TITLE_TEXT }}>
-                {label}
-              </div>
-            ))}
+                  {displayLabel}
+                </div>
+              );
+            })}
           </div>
         </section>
 
@@ -142,25 +145,9 @@ export default function PartnerPage() {
             <div className="hidden md:block text-xs font-semibold" style={{ color: MUTED_TEXT }}>Response in 2 business days</div>
           </div>
 
-          <form className="mt-6 grid gap-4 md:grid-cols-2">
+          <form className="mt-5 grid gap-4 md:grid-cols-4">
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold" style={{ color: TITLE_TEXT }}>Company name</label>
-              <input className="rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="e.g., Azure Bay Villas" required />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold" style={{ color: TITLE_TEXT }}>Website</label>
-              <input className="rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="https://" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold" style={{ color: TITLE_TEXT }}>Contact name</label>
-              <input className="rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Your full name" required />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold" style={{ color: TITLE_TEXT }}>Work email</label>
-              <input className="rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="name@company.com" required type="email" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold" style={{ color: TITLE_TEXT }}>Partner type</label>
+              <label className="text-xs font-bold" style={{ color: TITLE_TEXT }}>Primary category</label>
               <select className="rounded-lg border border-slate-200 px-3 py-2 text-sm" required>
                 <option value="">Select</option>
                 <option>Hotel / Resort</option>

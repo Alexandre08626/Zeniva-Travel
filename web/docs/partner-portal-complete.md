@@ -1,7 +1,7 @@
 # Partner Portal - Complete Implementation
 
 ## Overview
-A fully functional, production-grade Partner Portal built with Next.js, TailwindCSS, and lucide-react icons. Features premium marketplace-quality UI similar to Airbnb, Stripe, and Notion.
+A fully functional, production-grade Partner Portal built with Next.js, TailwindCSS, and lucide-react icons. Features premium marketplace-quality UI similar to top-tier SaaS platforms.
 
 ## ✅ Completed Features
 
@@ -61,7 +61,7 @@ A fully functional, production-grade Partner Portal built with Next.js, Tailwind
 - Color-coded status badges
 - Guest avatars and contact info
 - Special requests display
-- Actions: View details, Confirm, Decline
+- Actions: Voir les détails, Confirm, Decline
 - Mock data with 4 bookings across different statuses
 
 **Booking Details:**
@@ -241,7 +241,7 @@ src/lib/
 ## 🎯 Production Readiness
 
 ### ✅ Completed
-- Premium UI/UX matching Airbnb/Stripe quality
+- Premium UI/UX matching top-tier SaaS quality
 - Fully functional navigation
 - Responsive design (desktop, tablet, mobile)
 - Loading states and empty states

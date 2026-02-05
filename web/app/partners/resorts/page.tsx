@@ -418,7 +418,7 @@ export default function PartnerResortsPage() {
                   Book with Zeniva
                 </Link>
                 <Link
-                  href="/chat/agent?channel=agent-alexandre&listing=AIKA&source=/airbnbs/aika"
+                  href="/chat/agent?channel=agent-alexandre&listing=AIKA&source=/residences/aika"
                   className="block rounded-full border border-slate-200 bg-white px-4 py-2 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50"
                 >
                   Chat with agent

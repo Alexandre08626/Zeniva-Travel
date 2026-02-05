@@ -57,7 +57,7 @@ function persistDates(storageKey: string, start: Date | null, end: Date | null) 
   if (typeof window === "undefined") return;
   const payload = { start: formatISO(start), end: formatISO(end) };
   window.localStorage.setItem(storageKey, JSON.stringify(payload));
-  window.dispatchEvent(new CustomEvent("airbnb:dates", { detail: { key: storageKey, ...payload } }));
+  window.dispatchEvent(new CustomEvent("residence:dates", { detail: { key: storageKey, ...payload } }));
 }
 
 export default function AirbnbAvailability({ storageKey }: Props) {

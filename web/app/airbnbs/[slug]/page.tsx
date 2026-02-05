@@ -23,7 +23,11 @@ function cleanDescription(description: string) {
   const beforeContact = withoutHeader.split('Contact Agent')[0];
   const beforeDetails = beforeContact.split('Property Details')[0];
   const cleaned = normalizePetFriendly(beforeDetails.replace(/\n{3,}/g, '\n\n').trim());
-  return cleaned.length < 40 ? 'Curated stay with Zeniva concierge support.' : cleaned;
+  const sanitized = cleaned
+    .replace(/Airbnb host/gi, 'property host')
+    .replace(/Airbnb guests/gi, 'guests')
+    .replace(/Airbnb/gi, 'short-term rental');
+  return sanitized.length < 40 ? 'Private stays curated by Zeniva, bookable with concierge support.' : sanitized;
 }
 
 
@@ -58,16 +62,16 @@ export default async function AirbnbDetailPage({ params }: { params: Promise<{ s
   ].filter(Boolean).join(' · ');
   const descriptionText = cleanDescription(item.description || '');
   const pricePerNight = 980;
-  const storageKey = `airbnbDates:${slug}`;
+  const storageKey = `residenceDates:${slug}`;
 
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="mx-auto max-w-6xl px-6 py-8 space-y-6">
         <div className="flex items-center justify-between text-sm">
-          <Link href="/airbnbs" className="text-blue-700 font-semibold">Back to Airbnbs</Link>
+            <Link href="/residences" className="text-blue-700 font-semibold">Back to residences</Link>
           <div className="flex items-center gap-2">
-            <Link href="/chat?prompt=Plan%20an%20Airbnb%20stay" className="flex items-center gap-3 rounded-full border border-blue-200 bg-white px-3 py-2 shadow-sm hover:bg-blue-50 transition">
-              <Image src="/branding/lina-avatar.png" alt="Lina" width={64} height={64} sizes="64px" quality={100} className="rounded-full ring-2 ring-blue-200" />
+              <Link href="/chat?prompt=Plan%20a%20short-term%20stay" className="flex items-center gap-3 rounded-full border border-blue-200 bg-white px-3 py-2 shadow-sm hover:bg-blue-50 transition">
+                <Image src="/branding/lina-avatar.png" alt="Lina" width={64} height={64} sizes="64px" quality={100} className="rounded-full ring-2 ring-blue-200" />
               <div className="text-left">
                 <p className="text-sm font-bold text-slate-900">Lina AI</p>
                 <p className="text-[11px] font-semibold text-blue-700">Concierge option</p>
@@ -83,7 +87,7 @@ export default async function AirbnbDetailPage({ params }: { params: Promise<{ s
           <h1 className="text-3xl font-black text-slate-900">{displayTitle}</h1>
           <div className="flex flex-wrap items-center gap-2 text-sm text-blue-800">
             <span className="font-semibold">4.94 · 87 reviews</span>
-            <span>· Superhost</span>
+            <span>· Top host</span>
             {propertyLocation && <span>· {propertyLocation}</span>}
           </div>
           <p className="text-sm text-slate-600">{metaLine}</p>
@@ -139,7 +143,7 @@ export default async function AirbnbDetailPage({ params }: { params: Promise<{ s
                 <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">Verified</span>
               </div>
               <p className="mt-4 text-sm leading-relaxed text-slate-700 whitespace-pre-line">
-                {descriptionText || "Curated stay with Zeniva concierge support."}
+                {descriptionText || "Private stays curated by Zeniva, bookable with concierge support."}
               </p>
             </section>
 
@@ -181,18 +185,18 @@ export default async function AirbnbDetailPage({ params }: { params: Promise<{ s
               pricePerNight={pricePerNight}
               storageKey={storageKey}
               propertyName={displayTitle}
-              sourcePath={`/airbnbs/${slug}`}
+              sourcePath={`/residences/${slug}`}
               beforeBook={
                 <AddToProposalButton
                   title={displayTitle}
                   destination={propertyLocation || item.location || ""}
-                  accommodationType="Airbnb"
-                  style="Private residence"
+                  accommodationType="Residence"
+                  style="Short-term rental"
                   price={`${formatCurrencyAmount(pricePerNight, "USD")}/night`}
                   image={hero}
                   images={gallery}
                   description={descriptionText}
-                  roomLabel={propertyType ? `${propertyType} stay` : "Residence"}
+                  roomLabel={propertyType ? `${propertyType} stay` : "Short-term rental"}
                   datesStorageKey={storageKey}
                   className="w-full rounded-full bg-black px-4 py-2 text-sm font-semibold text-white shadow hover:bg-slate-900"
                 />

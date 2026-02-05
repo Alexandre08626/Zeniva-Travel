@@ -250,7 +250,7 @@ export default function CheckoutPage() {
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">
-              <div className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>{tripDraft?.accommodationType === 'Hotel' ? 'Hotel' : tripDraft?.accommodationType === 'Yacht' ? 'Yacht' : tripDraft?.accommodationType === 'Airbnb' ? 'Private residence' : 'Accommodation'}</div>
+              <div className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>{tripDraft?.accommodationType === 'Hotel' ? 'Hotel' : tripDraft?.accommodationType === 'Yacht' ? 'Yacht' : (tripDraft?.accommodationType === 'Airbnb' || tripDraft?.accommodationType === 'Residence') ? 'Short-term rental' : 'Accommodation'}</div>
               <div className="text-sm" style={{ color: TITLE_TEXT }}>{hotel.name} • {hotel.location || "Central"}</div>
               <div className="text-xs" style={{ color: MUTED_TEXT }}>
                 {tripDraft?.accommodationType === 'Yacht' ? `Specs: ${hotel.specs || "Yacht specs"}` : `Room: ${hotel.room || "Deluxe"} • Rating: ${hotel.rating || "4.5"}`}

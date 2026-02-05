@@ -22,6 +22,9 @@ export default function Footer() {
           </Link>
         </div>
       </div>
+      <div className="mt-4 text-[11px] font-semibold" style={{ color: MUTED_TEXT }}>
+        Zeniva Travel is not affiliated with, associated with, or endorsed by Airbnb, Inc. Airbnb is a registered trademark of Airbnb, Inc.
+      </div>
     </footer>
   );
 }

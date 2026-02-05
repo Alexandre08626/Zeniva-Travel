@@ -60,7 +60,7 @@ import LinaAvatar from "./LinaAvatar";
   }
 `}</style>
 
-type Tab = "flights" | "hotels" | "cruises" | "experiences" | "transfers" | "cars" | "yachts" | "airbnbs";
+type Tab = "flights" | "hotels" | "cruises" | "experiences" | "transfers" | "cars" | "yachts" | "residences";
 
 export default function TravelSearchWidget() {
   const router = useRouter();
@@ -108,9 +108,9 @@ export default function TravelSearchWidget() {
   const [carDropoffDate, setCarDropoffDate] = useState("");
   const [carDrivers, setCarDrivers] = useState(1);
 
-  // Yachts & Airbnbs
+  // Yachts & residences
   const [yachtCountry, setYachtCountry] = useState("");
-  const [airbnbCountry, setAirbnbCountry] = useState("");
+  const [residenceCountry, setResidenceCountry] = useState("");
 
   const searchFlights = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -156,11 +156,11 @@ export default function TravelSearchWidget() {
     router.push(`/yachts${params.toString() ? `?${params.toString()}` : ""}`);
   };
 
-  const searchAirbnbs = (e?: React.FormEvent) => {
+  const searchResidences = (e?: React.FormEvent) => {
     e?.preventDefault();
     const params = new URLSearchParams();
-    if (airbnbCountry) params.set("country", airbnbCountry);
-    router.push(`/airbnbs${params.toString() ? `?${params.toString()}` : ""}`);
+    if (residenceCountry) params.set("country", residenceCountry);
+    router.push(`/residences${params.toString() ? `?${params.toString()}` : ""}`);
   };
 
   const askLina = (prompt?: string) => {
@@ -227,7 +227,7 @@ export default function TravelSearchWidget() {
             { key: 'experiences', label: 'Experience' },
             { key: 'cruises', label: 'Cruise' },
             { key: 'yachts', label: 'Yacht' },
-            { key: 'airbnbs', label: 'Airbnb' },
+            { key: 'residences', label: 'Short‑term rentals' },
           ].map((t: any) => (
             <button
               key={t.key}
@@ -401,11 +401,11 @@ export default function TravelSearchWidget() {
           </form>
         )}
 
-        {tab === "airbnbs" && (
-          <form onSubmit={searchAirbnbs} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {tab === "residences" && (
+          <form onSubmit={searchResidences} className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <select
-              value={airbnbCountry}
-              onChange={(e) => setAirbnbCountry(e.target.value)}
+              value={residenceCountry}
+              onChange={(e) => setResidenceCountry(e.target.value)}
               className="w-full rounded-2xl bg-slate-50 px-4 py-3"
             >
               <option value="">Country</option>
@@ -415,7 +415,7 @@ export default function TravelSearchWidget() {
             </select>
             <div className="md:col-span-2 flex justify-end">
               <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>
-                Search Airbnbs
+                Search residences
               </button>
             </div>
           </form>

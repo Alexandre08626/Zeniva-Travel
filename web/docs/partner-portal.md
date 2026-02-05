@@ -8,7 +8,7 @@ This document describes the Partner Portal design, MVP features implemented, tec
 
 ## Product Vision
 
-Self-service partner ecosystem where partners can onboard, publish listings (yachts, homes, hotels, experiences), manage pricing & availability, receive/manage bookings, communicate, track payouts, and view KPIs — built to reach Airbnb/Booking-level depth but AI-native.
+Self-service partner ecosystem where partners can onboard, publish listings (yachts, homes, hotels, experiences), manage pricing & availability, receive/manage bookings, communicate, track payouts, and view KPIs — built to reach enterprise marketplace depth while staying AI-native.
 
 ## High-level Principles
 - Frictionless onboarding (wizard)

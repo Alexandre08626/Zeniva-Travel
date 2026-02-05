@@ -8,7 +8,7 @@ export default function PartnerPreviewPage() {
       <div className="max-w-7xl mx-auto">
         <PageHeader
           title="Visual preview — Publish flow"
-          subtitle="This mockup shows the partner publish flow and how a listing appears on public pages (Airbnb / Yacht / Hotel)."
+          subtitle="This mockup shows the partner publish flow and how a listing appears on public pages (Residences / Yachts / Hotels)."
           backHref="/partner/dashboard"
           breadcrumbs={[
             { label: 'Partner', href: '/partner/dashboard' },
@@ -34,7 +34,7 @@ export default function PartnerPreviewPage() {
               <div className="h-40 w-full bg-slate-200 flex items-center justify-center">Image preview</div>
               <div className="p-4">
                 <div className="text-xl font-bold">Seaside Villa, 4BR</div>
-                <div className="text-sm text-slate-500">Type: <strong>Home (Airbnb)</strong></div>
+                <div className="text-sm text-slate-500">Type: <strong>Residence</strong></div>
                 <p className="mt-2 text-sm text-slate-600">Bright 4-bedroom villa on the coast with pool, chef, and private dock.</p>
 
                 <div className="mt-4 flex gap-2">
@@ -45,7 +45,7 @@ export default function PartnerPreviewPage() {
               </div>
             </div>
 
-            <div className="mt-3 text-xs text-slate-500">Publishing a listing with status <code>published</code> will make it appear on the appropriate public page (Airbnbs, Yachts, or Hotels).</div>
+            <div className="mt-3 text-xs text-slate-500">Publishing a listing with status <code>published</code> will make it appear on the appropriate public page (Residences, Yachts, or Hotels).</div>
           </section>
 
           <section className="bg-white p-4 rounded shadow">
@@ -54,7 +54,7 @@ export default function PartnerPreviewPage() {
             <div className="rounded-lg overflow-hidden border">
               <div className="h-40 w-full bg-cover bg-center" style={{ backgroundImage: 'url(/branding/hotel.jpg)' }} />
               <div className="p-4">
-                <div className="text-sm text-slate-500">Airbnbs</div>
+                <div className="text-sm text-slate-500">Residences</div>
                 <div className="text-xl font-bold">Seaside Villa, 4BR</div>
                 <div className="text-sm text-slate-600 mt-2">4 guests · 2 bedrooms · From $420 / night</div>
                 <div className="mt-3 flex gap-2">

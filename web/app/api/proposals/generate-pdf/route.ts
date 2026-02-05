@@ -91,10 +91,12 @@ function generateProposalHTML(proposal: ProposalData): string {
     const inferredType = (item?.room || "").toLowerCase().includes("yacht")
       ? "Yacht"
       : (item?.room || "").toLowerCase().includes("residence")
-        ? "Airbnb"
+        ? "Residence"
         : "Hotel";
-    const type = item?.accommodationType || tripDraft?.accommodationType || inferredType;
-    const label = type === "Yacht" ? "Yacht" : type === "Airbnb" ? "Private residence" : "Hotel";
+    const rawType = item?.accommodationType || tripDraft?.accommodationType || inferredType;
+    const type = rawType === "Airbnb" ? "Residence" : rawType;
+    const isResidence = type === "Residence";
+    const label = type === "Yacht" ? "Yacht" : isResidence ? "Short-term rental" : "Hotel";
     const images = item?.images || (item?.image ? [item.image] : []);
     return `
       <section class="card">
@@ -102,8 +104,8 @@ function generateProposalHTML(proposal: ProposalData): string {
         <div class="card-title">${item?.name || "Accommodation"} • ${item?.location || "Central"}</div>
         <div class="card-sub">${type === "Yacht"
           ? `Specs: ${item?.specs || "Yacht specs"}`
-          : type === "Airbnb"
-            ? `Residence: ${item?.room || "Private stay"} • Rating: ${item?.rating || "4.9"}`
+          : isResidence
+            ? `Stay: ${item?.room || "Private stay"} • Rating: ${item?.rating || "4.9"}`
             : `Room: ${item?.room || "Deluxe"} • Board: Breakfast • Rating: ${item?.rating || "4.5"}`}</div>
         <div class="card-note">${type === "Yacht"
           ? `Amenities: ${(item?.amenities || []).join(" • ") || "Yacht amenities"}`

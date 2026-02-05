@@ -1,6 +1,6 @@
 /**
  * Premium Partner Dashboard Design Tokens
- * Marketplace-grade design system (Airbnb/Stripe/Notion-quality)
+ * Marketplace-grade design system (premium SaaS-quality)
  */
 
 export const PARTNER_TOKENS = {

@@ -170,7 +170,7 @@ function ChatThread({ tripId }) {
   // Demander le type de séjour si manquant
   useEffect(() => {
     if (!promptedForStayType && snapshot.destination && snapshot.dates && !snapshot.style) {
-      addMessage(tripId, "assistant", "What type of stay do you want? (Hotel, Airbnb, Boat/Yacht)");
+      addMessage(tripId, "assistant", "What type of stay do you want? (Hotel, Short-term rental, Boat/Yacht)");
       setPromptedForStayType(true);
     }
   }, [snapshot.destination, snapshot.dates, snapshot.style, promptedForStayType, tripId]);

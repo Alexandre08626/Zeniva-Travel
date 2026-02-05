@@ -6,7 +6,7 @@ import { applyTripPatch, createTrip, generateProposal, setProposalSelection, upd
 type AddToProposalButtonProps = {
   title: string;
   destination: string;
-  accommodationType: "Airbnb" | "Yacht" | "Resort" | "Hotel";
+  accommodationType: "Airbnb" | "Residence" | "Yacht" | "Resort" | "Hotel";
   style?: string;
   price?: string;
   image: string;
@@ -78,7 +78,7 @@ export default function AddToProposalButton({
     const dates = checkIn && checkOut ? `${checkIn} - ${checkOut}` : "";
 
     let resolvedPrice = price;
-    if (accommodationType === "Airbnb" && price && /night/i.test(price) && checkIn && checkOut) {
+    if ((accommodationType === "Airbnb" || accommodationType === "Residence") && price && /night/i.test(price) && checkIn && checkOut) {
       const nightly = parseMoney(price);
       if (nightly !== null) {
         const nights = nightsBetween(checkIn, checkOut);

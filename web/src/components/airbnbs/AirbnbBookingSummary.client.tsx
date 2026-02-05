@@ -57,8 +57,8 @@ export default function AirbnbBookingSummary({ pricePerNight, storageKey, proper
       setDates({ start: detail.start, end: detail.end });
     };
 
-    window.addEventListener("airbnb:dates", handler as EventListener);
-    return () => window.removeEventListener("airbnb:dates", handler as EventListener);
+    window.addEventListener("residence:dates", handler as EventListener);
+    return () => window.removeEventListener("residence:dates", handler as EventListener);
   }, [storageKey]);
 
   const startDate = useMemo(() => parseDate(dates.start), [dates.start]);
@@ -118,7 +118,7 @@ export default function AirbnbBookingSummary({ pricePerNight, storageKey, proper
         </div>
 
         {beforeBook && <div className="mt-4">{beforeBook}</div>}
-        <Link href={`/payment?airbnb=${encodeURIComponent(propertyName)}`} className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-blue-700 text-white py-3.5 text-sm font-semibold shadow-lg shadow-blue-200/60 hover:bg-blue-800 transition">
+        <Link href={`/payment?residence=${encodeURIComponent(propertyName)}`} className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-blue-700 text-white py-3.5 text-sm font-semibold shadow-lg shadow-blue-200/60 hover:bg-blue-800 transition">
           Book
         </Link>
         <a

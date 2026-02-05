@@ -101,6 +101,20 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: "/airbnbs",
+        destination: "/residences",
+        permanent: true,
+      },
+      {
+        source: "/airbnbs/:slug",
+        destination: "/residences/:slug",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

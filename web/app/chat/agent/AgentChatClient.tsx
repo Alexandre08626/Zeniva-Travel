@@ -27,8 +27,8 @@ type ChatThread = {
 
 export default function TravelerAgentChatClient() {
   const searchParams = useSearchParams();
-  const listing = searchParams?.get("listing") || "Airbnb stay";
-  const sourcePath = searchParams?.get("source") || "/airbnbs";
+  const listing = searchParams?.get("listing") || "short‑term stay";
+  const sourcePath = searchParams?.get("source") || "/residences";
   const channelId = searchParams?.get("channel") || "agent-alexandre";
   const [threads, setThreads] = useState<ChatThread[]>([
     {

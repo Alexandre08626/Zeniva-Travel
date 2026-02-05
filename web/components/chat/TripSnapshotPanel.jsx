@@ -155,7 +155,14 @@ export default function TripSnapshotPanel({ tripId }) {
           { key: "travelers", label: "Travelers" },
           { key: "budget", label: "Budget" },
           { key: "style", label: "Style" },
-          { key: "accommodationType", label: "Accommodation Type", type: "select", options: ["Hotel", "Airbnb", "Yacht", "Resort", "Other"] },
+          { key: "accommodationType", label: "Accommodation Type", type: "select", options: [
+            { value: "Hotel", label: "Hotel" },
+            { value: "Residence", label: "Short-term rental" },
+            { value: "Airbnb", label: "Short-term rental" },
+            { value: "Yacht", label: "Yacht" },
+            { value: "Resort", label: "Resort" },
+            { value: "Other", label: "Other" },
+          ] },
           { key: "transportationType", label: "Transportation Type", type: "select", options: ["Flights", "No Flights"] },
           { key: "includeActivities", label: "Include Activities", type: "checkbox" },
           { key: "includeTransfers", label: "Include Transfers", type: "checkbox" },
@@ -173,7 +180,9 @@ export default function TripSnapshotPanel({ tripId }) {
               >
                 <option value="">Select {f.label.toLowerCase()}</option>
                 {f.options.map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
+                  typeof opt === "string"
+                    ? <option key={opt} value={opt}>{opt}</option>
+                    : <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
               </select>
             ) : f.type === "checkbox" ? (

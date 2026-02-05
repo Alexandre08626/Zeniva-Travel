@@ -305,7 +305,7 @@ export async function generateProposal(tripId) {
   }
 
   const accommodationTitle = tripDraft.accommodationType === "Yacht" ? "Yachts" :
-                             tripDraft.accommodationType === "Airbnb" ? "Airbnbs" :
+                             (tripDraft.accommodationType === "Airbnb" || tripDraft.accommodationType === "Residence") ? "Short-term rentals" :
                              tripDraft.accommodationType === "Resort" ? "Resorts" : "Hotels";
   sections.push({
     title: accommodationTitle,

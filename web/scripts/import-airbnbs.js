@@ -1,5 +1,5 @@
 /**
- * Playwright-powered scraper for zenivatravel.com residences (Airbnbs).
+ * Playwright-powered scraper for zenivatravel.com residences (private stays).
  * Grabs the listing page, visits each property, and captures title, location, description, and images.
  */
 

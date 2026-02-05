@@ -47,8 +47,8 @@
       "agent-alexandre",
       "hq"
     ],
-    "message": "New traveler chat message\nListing: AIKA\nSource page: /airbnbs/aika\nMessage: hello",
-    "sourcePath": "/airbnbs/aika",
+    "message": "New traveler chat message\nListing: AIKA\nSource page: /residences/aika\nMessage: hello",
+    "sourcePath": "/residences/aika",
     "propertyName": "AIKA"
   }
 ]

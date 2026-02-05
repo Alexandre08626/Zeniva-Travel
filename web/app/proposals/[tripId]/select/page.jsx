@@ -6,7 +6,7 @@ import { useTripsStore, generateProposal, setProposalSelection, applyTripPatch }
 import SelectedSummary from "../../../../src/components/SelectedSummary";
 import { getImagesForDestination, getPartnerHotelImages } from "../../../../src/lib/images";
 import yachtsData from "../../../../src/data/ycn_packages.json";
-import airbnbsData from "../../../../src/data/airbnbs.json";
+import residencesData from "../../../../src/data/airbnbs.json";
 import { activities as activitiesData } from "../../../../src/data/activities";
 import { transfers as transfersData } from "../../../../src/data/transfers";
 
@@ -255,10 +255,11 @@ export default function ProposalSelectPage() {
       return;
     }
 
-    if (accommodationType === "Airbnb" || style.toLowerCase().includes('airbnb') || style.toLowerCase().includes('private') || style.toLowerCase().includes('residence')) {
-      // Load all Airbnbs from Zeniva inventory (no destination filtering)
-      const filteredAirbnbs = airbnbsData; // Show all 100+ listings
-      const mappedAirbnbs = filteredAirbnbs.map(a => {
+    const normalizedStyle = (style || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    if (accommodationType === "Residence" || accommodationType === "Airbnb" || normalizedStyle.includes('private') || normalizedStyle.includes('residence')) {
+      // Load all residences from Zeniva inventory (no destination filtering)
+      const filteredResidences = residencesData; // Show all listings
+      const mappedResidences = filteredResidences.map(a => {
         const desc = a.description;
         const bedroomsMatch = desc.match(/Bedrooms\s*\n\s*(\d+)/i);
         const bathroomsMatch = desc.match(/Bathrooms\s*\n\s*(\d+)/i);
@@ -273,11 +274,11 @@ export default function ProposalSelectPage() {
           image: a.images?.[0] || a.thumbnail,
         };
       });
-      setHotels(mappedAirbnbs);
-      setProposalSelection(tripId, { hotel: mappedAirbnbs[0] || null });
-      // Ensure accommodationType is set to "Airbnb" in trip draft
-      if (tripDraft?.accommodationType !== "Airbnb") {
-        applyTripPatch(tripId, { accommodationType: "Airbnb" });
+      setHotels(mappedResidences);
+      setProposalSelection(tripId, { hotel: mappedResidences[0] || null });
+      // Ensure accommodationType is set to "Residence" in trip draft
+      if (tripDraft?.accommodationType !== "Residence") {
+        applyTripPatch(tripId, { accommodationType: "Residence" });
       }
       setLoadingHotels(false);
       return;

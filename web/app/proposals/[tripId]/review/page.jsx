@@ -45,7 +45,9 @@ export default function ProposalReviewPage() {
   });
 
   const getAccommodationType = (item) => {
-    return item?.accommodationType || tripDraft?.accommodationType || (item?.room?.toLowerCase?.().includes("yacht") ? "Yacht" : item?.room?.toLowerCase?.().includes("residence") ? "Airbnb" : "Hotel");
+    const rawType = item?.accommodationType || tripDraft?.accommodationType || "";
+    if (typeof rawType === "string" && rawType.toLowerCase() === "airbnb") return "Residence";
+    return rawType || (item?.room?.toLowerCase?.().includes("yacht") ? "Yacht" : item?.room?.toLowerCase?.().includes("residence") ? "Residence" : "Hotel");
   };
 
   const getAccommodationImages = (item, type) => {
@@ -54,7 +56,7 @@ export default function ProposalReviewPage() {
       const yacht = yachtsData.find((y) => y.id === item?.id || y.title === item?.name);
       return yacht?.images || [item?.image].filter(Boolean);
     }
-    if (type === 'Airbnb') {
+    if (type === 'Residence') {
       const airbnb = airbnbsData.find((a) => a.id === item?.id || a.title === item?.name);
       return airbnb?.images || [item?.image].filter(Boolean);
     }
@@ -181,7 +183,7 @@ export default function ProposalReviewPage() {
 
             {uniqueHotels.map((stay, idx) => {
               const type = getAccommodationType(stay);
-              const label = type === 'Yacht' ? 'Yacht' : type === 'Airbnb' ? 'Private residence' : 'Hotel';
+              const label = type === 'Yacht' ? 'Yacht' : type === 'Residence' ? 'Short-term rental' : 'Hotel';
               const stayImages = getAccommodationImages(stay, type);
               return (
                 <section key={`${stay?.id || stay?.name || idx}`} className="rounded-2xl border border-blue-100 bg-white shadow-sm p-6 space-y-2">
@@ -192,8 +194,8 @@ export default function ProposalReviewPage() {
                   <div className="text-sm" style={{ color: MUTED_TEXT }}>
                     {type === 'Yacht'
                       ? `Specs: ${stay.specs || "Yacht specs"}`
-                      : type === 'Airbnb'
-                        ? `Residence: ${stay.room || "Private stay"} • Rating: ${stay.rating || "4.9"}`
+                      : type === 'Residence'
+                        ? `Stay: ${stay.room || "Private stay"} • Rating: ${stay.rating || "4.9"}`
                         : `Room: ${stay.room || "Deluxe"} • Board: Breakfast • Rating: ${stay.rating || "4.5"}`}
                   </div>
                   <div className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>

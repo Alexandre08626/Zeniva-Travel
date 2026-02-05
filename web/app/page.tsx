@@ -15,7 +15,7 @@ const COLLECTIONS = [
   { id: "c7", title: "Yacht Charters", description: "YCN partner fleet", icon: "yacht", href: "/yachts" },
   { id: "c4", title: "Partner Resorts", description: "All-inclusive resorts", icon: "resort", href: "/partners/resorts" },
   { id: "c6", title: "Group Trips", description: "Friends & family", icon: "group", href: "/collections/group" },
-  { id: "c8", title: "Partner Airbnbs", description: "Curated villa stays", icon: "home", href: "/airbnbs" },
+  { id: "c8", title: "Short-term rentals", description: "Private stays curated by Zeniva, bookable with concierge support.", icon: "home", href: "/residences" },
 ];
 
 export const metadata: Metadata = {

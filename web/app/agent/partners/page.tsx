@@ -46,7 +46,7 @@ type PartnerListing = {
 
 const TYPE_LABELS: Record<ListingType, string> = {
   yacht: "Yacht",
-  home: "Airbnb",
+  home: "Short‑term rental",
   hotel: "Hotel",
 };
 
@@ -434,8 +434,8 @@ export default function PartnerAccountsPage() {
       }));
     };
 
-    window.addEventListener("airbnb:dates", handler as EventListener);
-    return () => window.removeEventListener("airbnb:dates", handler as EventListener);
+    window.addEventListener("residence:dates", handler as EventListener);
+    return () => window.removeEventListener("residence:dates", handler as EventListener);
   }, [bookingStorageKey]);
 
   const handleDownloadPresentation = (listing: PartnerListing) => {
@@ -606,7 +606,7 @@ export default function PartnerAccountsPage() {
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             {!selectedPartner ? (
-              <p className="text-sm text-slate-500">Select a partner to view details.</p>
+              <p className="text-sm text-slate-500">Select a partner to see details.</p>
             ) : (
               <div className="space-y-4">
                 <div>
