@@ -85,11 +85,22 @@ export async function POST(request: Request) {
     });
     console.info(`Auth login email: ${email}`);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error || !data?.user) {
+    let authData = data;
+    let authError = error;
+
+    if (authError?.message?.toLowerCase().includes("invalid api key")) {
+      console.warn("Supabase anon key invalid, retrying with service role key");
+      const { client: serviceAuth } = getSupabaseAdminClient();
+      const retry = await serviceAuth.auth.signInWithPassword({ email, password });
+      authData = retry.data;
+      authError = retry.error;
+    }
+
+    if (authError || !authData?.user) {
       console.error("Supabase login error", {
         url: supabaseUrl || null,
-        code: error?.code || null,
-        message: error?.message || null,
+        code: authError?.code || null,
+        message: authError?.message || null,
       });
 
       const { data: fallbackAccount, error: fallbackError } = await admin
@@ -111,10 +122,10 @@ export async function POST(request: Request) {
         });
       }
 
-      return NextResponse.json({ error: error?.message || "Invalid credentials" }, { status: 401 });
+      return NextResponse.json({ error: authError?.message || "Invalid credentials" }, { status: 401 });
     }
 
-    const metadata = (data.user.user_metadata || {}) as Record<string, unknown>;
+    const metadata = (authData.user.user_metadata || {}) as Record<string, unknown>;
     const metaRoles = normalizeStringArray(metadata.roles, []);
     const metaRole = typeof metadata.role === "string" && metadata.role ? metadata.role : metaRoles[0] || "traveler";
     const metaDivisions = normalizeStringArray(metadata.divisions, []);
