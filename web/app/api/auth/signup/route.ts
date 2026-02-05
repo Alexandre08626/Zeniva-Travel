@@ -170,10 +170,34 @@ export async function POST(request: Request) {
           if (retry.data?.user && !retry.error) {
             authUser = retry.data.user;
           } else {
-            return errorResponse("auth_signup_error", "Account already exists", 400, {
-              requestId,
-              code,
-            });
+            // Try to locate user by email and reset password (HQ-approved agent flow)
+            try {
+              const adminAuth = (supabaseAdminClient.auth as any).admin;
+              if (adminAuth?.listUsers) {
+                const list = await adminAuth.listUsers({ page: 1, perPage: 1000 });
+                const users = list?.data?.users || [];
+                const match = users.find((u: any) => String(u?.email || "").toLowerCase() === email);
+                if (match && adminAuth?.updateUserById) {
+                  const updated = await adminAuth.updateUserById(match.id, {
+                    password,
+                    user_metadata: { ...(match.user_metadata || {}), ...metadata },
+                    email_confirm: true,
+                  });
+                  if (updated?.data?.user) {
+                    authUser = updated.data.user;
+                  }
+                }
+              }
+            } catch {
+              // ignore and fall through
+            }
+
+            if (!authUser) {
+              return errorResponse("auth_signup_error", "Account already exists", 400, {
+                requestId,
+                code,
+              });
+            }
           }
         } else {
           console.error("auth_signup_error", {
