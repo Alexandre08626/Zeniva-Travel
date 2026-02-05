@@ -35,11 +35,11 @@ type AgentRequest = {
 };
 
 const modules = [
-  { id: "clients", title: "Clients", desc: "Traveler profiles, preferences, history", href: "#clients" },
-  { id: "proposals", title: "Proposals Builder", desc: "Create, edit, resume", href: "#proposals" },
-  { id: "bookings", title: "Bookings", desc: "Flights, hotels, excursions", href: "#bookings" },
-  { id: "crm", title: "Light CRM", desc: "Pipeline and statuses", href: "#crm" },
-  { id: "performance", title: "Performance", desc: "Active files, conversions", href: "#performance" },
+  { id: "clients", title: "Clients", desc: "Traveler profiles, preferences, history", href: "/agent/clients" },
+  { id: "proposals", title: "Proposals Builder", desc: "Create, edit, resume", href: "/agent/proposals" },
+  { id: "bookings", title: "Bookings", desc: "Flights, hotels, excursions", href: "/agent/bookings" },
+  { id: "crm", title: "Light CRM", desc: "Pipeline and statuses", href: "/agent/control-tower" },
+  { id: "performance", title: "Performance", desc: "Active files, conversions", href: "/agent/control-tower" },
 ];
 
 export function AgentDashboardPage({ agentId }: { agentId?: string }) {
@@ -956,7 +956,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
               <h2 className="text-2xl font-black" style={{ color: TITLE_TEXT }}>Pipeline</h2>
               <p className="text-sm" style={{ color: MUTED_TEXT }}>Active files, conversions, revenue (placeholder).</p>
             </div>
-            <Link href="#performance" className="rounded-full px-4 py-2 text-sm font-bold text-slate-900" style={{ backgroundColor: ACCENT_GOLD }}>
+            <Link href="/agent/control-tower" className="rounded-full px-4 py-2 text-sm font-bold text-slate-900" style={{ backgroundColor: ACCENT_GOLD }}>
               Update
             </Link>
           </div>
