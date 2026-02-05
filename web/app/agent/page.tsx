@@ -269,9 +269,9 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: "#F3F6FB" }}>
-      <div className="mx-auto max-w-6xl px-5 py-8">
-        <div className="flex flex-col gap-6 lg:flex-row">
-          <aside className="lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)] lg:w-64">
+      <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="flex flex-col gap-8 lg:flex-row">
+          <aside className="lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)] lg:w-72">
             <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Navigation</p>
               <div className="mt-4 flex flex-col gap-2">
