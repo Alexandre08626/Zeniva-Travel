@@ -14,6 +14,25 @@ interface HelpTicket {
   messages: { role: string; text: string; ts: string }[];
 }
 
+type AccountRecord = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  roles?: string[];
+  createdAt?: string;
+};
+
+type AgentRequest = {
+  id: string;
+  name: string;
+  email: string;
+  role: string | null;
+  status: string;
+  code: string | null;
+  requested_at?: string;
+};
+
 const modules = [
   { id: "clients", title: "Clients", desc: "Traveler profiles, preferences, history", href: "#clients" },
   { id: "proposals", title: "Proposals Builder", desc: "Create, edit, resume", href: "#proposals" },
@@ -27,9 +46,11 @@ export default function AgentDashboardPage() {
   const user = useAuthStore((s) => s.user);
   const hq = isHQ(user);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [inviteRole, setInviteRole] = useState<"agent" | "admin" | "hq">("agent");
-  const [inviteCode, setInviteCode] = useState("ZENIVA-AGENT");
-  const [inviteStatus, setInviteStatus] = useState<string | null>(null);
+  const [accountsLoading, setAccountsLoading] = useState(false);
+  const [accountsError, setAccountsError] = useState<string | null>(null);
+  const [recentTravelers, setRecentTravelers] = useState<AccountRecord[]>([]);
+  const [recentPartners, setRecentPartners] = useState<AccountRecord[]>([]);
+  const [recentAgentRequests, setRecentAgentRequests] = useState<AgentRequest[]>([]);
   const navLinks = useMemo(
     () => [
       { label: "Dashboard", href: "/agent" },
@@ -96,19 +117,65 @@ export default function AgentDashboardPage() {
   }, []);
 
   useEffect(() => {
-    const code = inviteRole === "hq" ? "ZENIVA-HQ" : inviteRole === "admin" ? "ZENIVA-ADMIN" : "ZENIVA-AGENT";
-    setInviteCode(code);
-    setInviteStatus(null);
-  }, [inviteRole]);
+    if (!hq) return;
+    let active = true;
+    const load = async () => {
+      setAccountsLoading(true);
+      setAccountsError(null);
+      try {
+        const [accountsRes, requestsRes] = await Promise.all([
+          fetch("/api/accounts"),
+          fetch("/api/agent-requests"),
+        ]);
 
-  const copyInvite = async () => {
-    try {
-      await navigator.clipboard.writeText(inviteCode);
-      setInviteStatus("Copied to clipboard");
-    } catch {
-      setInviteStatus("Copy failed — please copy manually");
-    }
-  };
+        const accountsPayload = await accountsRes.json();
+        const requestsPayload = await requestsRes.json();
+
+        if (!accountsRes.ok) throw new Error(accountsPayload?.error || "Failed to load accounts");
+        if (!requestsRes.ok) throw new Error(requestsPayload?.error || "Failed to load agent requests");
+
+        if (!active) return;
+
+        const accounts = Array.isArray(accountsPayload?.data) ? accountsPayload.data : [];
+        const requests = Array.isArray(requestsPayload?.data) ? requestsPayload.data : [];
+
+        const toRoles = (account: AccountRecord) =>
+          Array.isArray(account.roles) && account.roles.length
+            ? account.roles
+            : account.role
+              ? [account.role]
+              : [];
+
+        const travelers = accounts
+          .filter((a: AccountRecord) => toRoles(a).includes("traveler"))
+          .slice(0, 6);
+        const partners = accounts
+          .filter((a: AccountRecord) => {
+            const roles = toRoles(a);
+            return roles.includes("partner_owner") || roles.includes("partner_staff");
+          })
+          .slice(0, 6);
+
+        const pendingRequests = requests
+          .filter((r: AgentRequest) => r.status === "pending")
+          .slice(0, 6);
+
+        setRecentTravelers(travelers);
+        setRecentPartners(partners);
+        setRecentAgentRequests(pendingRequests);
+      } catch (err) {
+        if (!active) return;
+        setAccountsError(err instanceof Error ? err.message : "Failed to load HQ data");
+      } finally {
+        if (active) setAccountsLoading(false);
+      }
+    };
+
+    void load();
+    return () => {
+      active = false;
+    };
+  }, [hq]);
 
   const handlePrimarySubmit = () => {
     let q = '';
@@ -183,38 +250,102 @@ export default function AgentDashboardPage() {
         </nav>
 
         {hq && (
-          <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 space-y-4">
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">HQ Tools</p>
-                <h2 className="text-xl font-black" style={{ color: TITLE_TEXT }}>Invite code generator</h2>
-                <p className="text-sm" style={{ color: MUTED_TEXT }}>Generate the official invitation code for new agents.</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">HQ Console</p>
+                <h2 className="text-xl font-black" style={{ color: TITLE_TEXT }}>New account activity</h2>
+                <p className="text-sm" style={{ color: MUTED_TEXT }}>Travelers, partners, and agent requests in one place.</p>
               </div>
-              <div className="flex items-center gap-2">
-                <select
-                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold"
-                  value={inviteRole}
-                  onChange={(e) => setInviteRole(e.target.value as "agent" | "admin" | "hq")}
-                >
-                  <option value="agent">Agent</option>
-                  <option value="admin">Admin</option>
-                  <option value="hq">HQ</option>
-                </select>
-                <button
-                  type="button"
-                  onClick={copyInvite}
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  href="/agent/requests"
                   className="rounded-full px-4 py-2 text-sm font-semibold text-white"
                   style={{ backgroundColor: PREMIUM_BLUE }}
                 >
-                  Copy code
-                </button>
+                  Review agent requests
+                </Link>
+                <Link
+                  href="/agent/agents"
+                  className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold"
+                  style={{ color: TITLE_TEXT }}
+                >
+                  Agent Command
+                </Link>
               </div>
             </div>
-            <div className="mt-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-800">
-                {inviteCode}
+
+            {accountsError && <div className="text-sm text-rose-600">{accountsError}</div>}
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold" style={{ color: TITLE_TEXT }}>New travelers</h3>
+                  <Link href="/agent/clients" className="text-xs font-semibold" style={{ color: PREMIUM_BLUE }}>
+                    View clients
+                  </Link>
+                </div>
+                <div className="mt-3 space-y-2 text-xs">
+                  {accountsLoading ? (
+                    <div style={{ color: MUTED_TEXT }}>Loading…</div>
+                  ) : recentTravelers.length ? (
+                    recentTravelers.map((t) => (
+                      <div key={t.id} className="flex items-center justify-between">
+                        <span className="font-semibold text-slate-800">{t.name}</span>
+                        <span className="text-slate-500">{t.email}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ color: MUTED_TEXT }}>No new travelers.</div>
+                  )}
+                </div>
               </div>
-              {inviteStatus && <span className="text-xs font-semibold text-slate-500">{inviteStatus}</span>}
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold" style={{ color: TITLE_TEXT }}>New partners</h3>
+                  <Link href="/agent/partners" className="text-xs font-semibold" style={{ color: PREMIUM_BLUE }}>
+                    View partners
+                  </Link>
+                </div>
+                <div className="mt-3 space-y-2 text-xs">
+                  {accountsLoading ? (
+                    <div style={{ color: MUTED_TEXT }}>Loading…</div>
+                  ) : recentPartners.length ? (
+                    recentPartners.map((p) => (
+                      <div key={p.id} className="flex items-center justify-between">
+                        <span className="font-semibold text-slate-800">{p.name}</span>
+                        <span className="text-slate-500">{p.email}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ color: MUTED_TEXT }}>No new partners.</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold" style={{ color: TITLE_TEXT }}>Agent requests</h3>
+                  <Link href="/agent/requests" className="text-xs font-semibold" style={{ color: PREMIUM_BLUE }}>
+                    Review
+                  </Link>
+                </div>
+                <div className="mt-3 space-y-2 text-xs">
+                  {accountsLoading ? (
+                    <div style={{ color: MUTED_TEXT }}>Loading…</div>
+                  ) : recentAgentRequests.length ? (
+                    recentAgentRequests.map((r) => (
+                      <div key={r.id} className="flex items-center justify-between">
+                        <span className="font-semibold text-slate-800">{r.name}</span>
+                        <span className="text-slate-500">{r.email}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ color: MUTED_TEXT }}>No pending requests.</div>
+                  )}
+                </div>
+              </div>
             </div>
           </section>
         )}
