@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 import type { FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { PREMIUM_BLUE, TITLE_TEXT, MUTED_TEXT, ACCENT_GOLD } from "../../src/design/tokens";
 import { useAuthStore, isHQ, logout } from "../../src/lib/authStore";
 import { toAgentWorkspaceId } from "../../src/lib/agent/agentWorkspace";
@@ -44,6 +44,7 @@ const modules = [
 
 export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   const router = useRouter();
+  const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
   const hq = isHQ(user);
   const resolvedAgentId = agentId || toAgentWorkspaceId(user);
@@ -268,47 +269,78 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: "#F3F6FB" }}>
-      <div className="mx-auto max-w-6xl px-5 py-8 space-y-8">
-        <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Agent Portal</p>
-            <h1 className="text-3xl md:text-4xl font-black" style={{ color: TITLE_TEXT }}>
-              Zeniva production workspace
-            </h1>
-            <p className="text-sm md:text-base" style={{ color: MUTED_TEXT }}>
-              Reserved for Zeniva agents. Lina runs in production mode to create, compare, and finalize files.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link href="/agent/lina" className="rounded-full px-4 py-2 text-sm font-bold text-white" style={{ backgroundColor: PREMIUM_BLUE }}>
-              Open Lina (Agent)
-            </Link>
-            <Link href="/agent/settings" className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold" style={{ color: TITLE_TEXT }}>
-              Settings
-            </Link>
-            <button
-              onClick={() => logout("/")}
-              className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold hover:border-slate-400"
-              style={{ color: TITLE_TEXT }}
-              type="button"
-            >
-              Logout
-            </button>
-          </div>
-        </header>
+      <div className="mx-auto max-w-6xl px-5 py-8">
+        <div className="flex flex-col gap-6 lg:flex-row">
+          <aside className="lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)] lg:w-64">
+            <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Navigation</p>
+              <div className="mt-4 flex flex-col gap-2">
+                {navLinks.map((item) => {
+                  const active = pathname === item.href || (item.href !== "/agent" && pathname?.startsWith(item.href));
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`relative flex items-center justify-between rounded-2xl border px-3 py-2 text-sm font-semibold transition ${
+                        active
+                          ? "border-slate-900 bg-slate-900 text-white"
+                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                      {item.label === "Chat" && unreadCount > 0 && (
+                        <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${active ? "bg-white text-slate-900" : "bg-red-500 text-white"}`}>
+                          {unreadCount}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </aside>
 
-        <nav className="flex flex-wrap gap-2 text-sm">
-          {navLinks.map((item) => (
-            <Link key={item.href} href={item.href} className="relative rounded-full border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-800 hover:border-slate-400">
-              {item.label}
-              {item.label === "Chat" && unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                  {unreadCount}
-                </span>
-              )}
-            </Link>
-          ))}
-        </nav>
+          <div className="flex-1 space-y-8">
+            <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Agent Portal</p>
+                <h1 className="text-3xl md:text-4xl font-black" style={{ color: TITLE_TEXT }}>
+                  Zeniva production workspace
+                </h1>
+                <p className="text-sm md:text-base" style={{ color: MUTED_TEXT }}>
+                  Reserved for Zeniva agents. Lina runs in production mode to create, compare, and finalize files.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Link href="/agent/lina" className="rounded-full px-4 py-2 text-sm font-bold text-white" style={{ backgroundColor: PREMIUM_BLUE }}>
+                  Open Lina (Agent)
+                </Link>
+                <Link href="/agent/settings" className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold" style={{ color: TITLE_TEXT }}>
+                  Settings
+                </Link>
+                <button
+                  onClick={() => logout("/")}
+                  className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold hover:border-slate-400"
+                  style={{ color: TITLE_TEXT }}
+                  type="button"
+                >
+                  Logout
+                </button>
+              </div>
+            </header>
+
+            <nav className="flex flex-wrap gap-2 text-sm lg:hidden">
+              {navLinks.map((item) => (
+                <Link key={item.href} href={item.href} className="relative rounded-full border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-800 hover:border-slate-400">
+                  {item.label}
+                  {item.label === "Chat" && unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Link>
+              ))}
+            </nav>
 
         {hq && (
           <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 space-y-4">
@@ -912,6 +944,8 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
           </div>
         </div>
       </div>
+    </div>
+  </div>
     </main>
   );
 }

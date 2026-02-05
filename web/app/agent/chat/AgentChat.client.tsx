@@ -37,6 +37,8 @@ export default function AgentChatClient() {
     { id: "dossier-yacht-55", label: "Yacht YCHT-55", scope: "Client file", unread: 1 },
   ]);
   const listRef = useRef<HTMLDivElement | null>(null);
+  const totalUnread = useMemo(() => channels.reduce((sum, ch) => sum + (ch.unread || 0), 0), [channels]);
+  const directThreads = useMemo(() => channels.filter((ch) => ch.scope === "Direct").length, [channels]);
 
   const quickActions = [
     "Share dossier TRIP-104 to Sara",
@@ -299,74 +301,81 @@ export default function AgentChatClient() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6">
       <div className="mx-auto flex h-[calc(100vh-3rem)] max-w-[1500px] flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm uppercase tracking-wide text-slate-500">Agent workspace</p>
-            <h1 className="text-2xl font-black text-slate-900">Chat interne</h1>
-            <p className="text-sm text-slate-500">Coordinate dossiers, handoffs, urgent cases, and HQ requests.</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">HQ sees all</span>
-            <Link href="/agent" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm">Dashboard</Link>
-            <Link href="/agent/finance" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm">Finance (HQ)</Link>
+        <div className="rounded-3xl border border-slate-200 bg-white/90 px-6 py-5 shadow-sm backdrop-blur">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Agent workspace</p>
+              <h1 className="text-2xl font-black text-slate-900">Centre de communication</h1>
+              <p className="text-sm text-slate-500">Coordonnez les dossiers, urgences, et escalades HQ en temps réel.</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">HQ voit tout</span>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{channels.length} canaux</span>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{directThreads} directs</span>
+              <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">{totalUnread} non lus</span>
+              <Link href="/agent" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm">Dashboard</Link>
+              <Link href="/agent/finance" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm">Finance (HQ)</Link>
+            </div>
           </div>
         </div>
 
         <div className="flex flex-1 gap-4 overflow-hidden">
           <aside className="w-80 xl:w-96 flex flex-col gap-3 overflow-y-auto">
-            <div className="rounded-2xl border border-blue-100 bg-white p-4 space-y-3">
-              <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Workspace</p>
+            <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-3 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Workspace</p>
               <div className="text-sm font-semibold text-slate-900">Agent: {user?.name || "Agent"}</div>
-              <div className="text-xs text-blue-700">Active channel: {title}</div>
-              <div className="flex items-center gap-2">
-                <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">Live</span>
-                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">{history.length} messages</span>
+              <div className="text-xs text-slate-500">Canal actif: {title}</div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">Live</span>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">{history.length} messages</span>
               </div>
             </div>
 
-            <div className="rounded-xl border border-blue-100 bg-white p-3 space-y-2">
-              <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Quick actions</p>
-              {quickActions.map((qa) => (
-                <button
-                  key={qa}
-                  onClick={() => onQuick(qa)}
-                  className="w-full text-left text-xs font-semibold text-blue-700 border border-blue-200 rounded-lg px-2 py-2 hover:bg-blue-50"
-                >
-                  {qa}
-                </button>
-              ))}
+            <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-2 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Actions rapides</p>
+              <div className="flex flex-col gap-2">
+                {quickActions.map((qa) => (
+                  <button
+                    key={qa}
+                    onClick={() => onQuick(qa)}
+                    className="w-full text-left text-xs font-semibold text-slate-700 border border-slate-200 rounded-xl px-3 py-2 hover:bg-slate-50"
+                  >
+                    {qa}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="rounded-xl border border-blue-100 bg-white p-3 text-xs text-blue-700">
-              <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Usage</p>
+            <div className="rounded-3xl border border-slate-200 bg-white p-4 text-xs text-slate-600 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Usage</p>
               <ul className="mt-2 space-y-1">
-                <li>• Global: announcements, SLAs</li>
+                <li>• Global : annonces, SLAs</li>
                 <li>• HQ ↔ agents</li>
-                <li>• Dossier: client collaboration</li>
-                <li>• @Lina for summaries / actions</li>
+                <li>• Dossier : collaboration client</li>
+                <li>• @Lina : résumés et actions</li>
               </ul>
             </div>
           </aside>
 
-          <div className="flex-1 min-w-0 rounded-2xl border border-blue-100 bg-white overflow-hidden flex">
+          <div className="flex-1 min-w-0 rounded-3xl border border-slate-200 bg-white overflow-hidden flex shadow-sm">
             {/* Threads List */}
-            <div className="w-80 border-r border-blue-100 bg-blue-50/60 flex flex-col h-full">
-              <div className="p-4 border-b border-blue-100">
+            <div className="w-80 border-r border-slate-200 bg-slate-50 flex flex-col h-full">
+              <div className="p-4 border-b border-slate-200">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Channels</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Canaux</p>
                     <h2 className="text-lg font-bold text-slate-900">All threads</h2>
                   </div>
-                  <span className="rounded-full bg-blue-600 text-white text-xs font-semibold px-2 py-1">{filteredChannels.length}</span>
+                  <span className="rounded-full bg-slate-900 text-white text-xs font-semibold px-2 py-1">{filteredChannels.length}</span>
                 </div>
                 <div className="relative">
                   <input
                     value={channelSearch}
                     onChange={(e) => setChannelSearch(e.target.value)}
                     placeholder="Agent, dossier, HQ"
-                    className="w-full pl-4 pr-4 py-2.5 border border-blue-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none bg-white"
+                    className="w-full pl-4 pr-4 py-2.5 border border-slate-200 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-200 outline-none bg-white"
                   />
                 </div>
               </div>
@@ -380,26 +389,26 @@ export default function AgentChatClient() {
                     <button
                       key={c.id}
                       onClick={() => setChannelId(c.id)}
-                      className={`w-full p-4 border-b border-blue-100 text-left transition ${active ? "bg-white" : "hover:bg-blue-50"}`}
+                      className={`w-full p-4 border-b border-slate-100 text-left transition ${active ? "bg-white" : "hover:bg-slate-50"}`}
                     >
                       <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">
+                        <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-xs font-bold">
                           {c.label.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
                             <span className="font-semibold text-slate-900 truncate">{c.label}</span>
                             {c.unread ? (
-                              <span className="px-2 py-0.5 bg-blue-600 text-white text-xs rounded-full">{c.unread}</span>
+                              <span className="px-2 py-0.5 bg-slate-900 text-white text-xs rounded-full">{c.unread}</span>
                             ) : null}
                           </div>
-                          <p className="text-sm text-blue-800/80 truncate">{c.scope}</p>
+                          <p className="text-sm text-slate-500 truncate">{c.scope}</p>
                         </div>
                       </div>
                       <p className="text-sm text-slate-700 truncate">{(messages[c.id] || []).slice(-1)[0]?.text || "No messages yet"}</p>
-                      <div className="mt-2 flex items-center gap-2 text-xs text-blue-600 font-semibold">
-                        <span className="rounded-full bg-blue-100 px-2 py-0.5">Internal</span>
-                        <span className="rounded-full bg-blue-50 px-2 py-0.5">Live</span>
+                      <div className="mt-2 flex items-center gap-2 text-xs text-slate-500 font-semibold">
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5">Interne</span>
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5">Live</span>
                       </div>
                     </button>
                   );
@@ -409,41 +418,41 @@ export default function AgentChatClient() {
 
             {/* Chat Area */}
             <div className="flex-1 flex flex-col h-full min-w-0">
-              <div className="p-4 border-b border-gray-200">
+              <div className="p-4 border-b border-slate-200">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <h3 className="font-semibold text-gray-900">{title}</h3>
-                    <p className="text-sm text-gray-600">History retained. HQ sees everything.</p>
+                    <p className="text-sm text-gray-600">Historique conservé. HQ voit tout.</p>
                   </div>
                   <button
                     type="button"
                     onClick={handleClearMyMessages}
                     className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-700 hover:border-slate-300"
                   >
-                    Clear my messages
+                    Effacer mes messages
                   </button>
                 </div>
               </div>
 
               <div ref={listRef} className="flex-1 overflow-y-auto p-6 space-y-4">
                 {history.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-blue-200 bg-blue-50 p-4 text-sm text-blue-700">
-                    No messages yet. Share a dossier, request help, or mention @Lina.
+                  <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                    Aucun message. Partagez un dossier, demandez du support, ou mentionnez @Lina.
                   </div>
                 )}
                 {history.map((m, idx) => {
                   const isOwn = m.author === (user?.name || "Agent") && m.role === (canHQ ? "hq" : "agent");
                   const bubbleStyle = isOwn
-                    ? "bg-blue-600 text-white"
+                    ? "bg-slate-900 text-white"
                     : m.role === "lina"
                       ? "bg-amber-50 text-amber-900"
-                      : "bg-gray-100 text-gray-900";
+                      : "bg-slate-100 text-slate-900";
                   return (
                     <div key={idx} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
                       <div className={`max-w-md px-4 py-3 rounded-lg ${bubbleStyle}`}>
                         <p className="text-xs font-semibold opacity-70 mb-1">{m.author}</p>
                         <p className="text-sm whitespace-pre-line">{m.text}</p>
-                        <p className={`text-xs mt-1 ${isOwn ? "text-blue-100" : "text-gray-500"}`}>
+                        <p className={`text-xs mt-1 ${isOwn ? "text-slate-200" : "text-slate-500"}`}>
                           {m.ts}
                         </p>
                       </div>
@@ -452,18 +461,18 @@ export default function AgentChatClient() {
                 })}
               </div>
 
-              <div className="p-4 border-t border-gray-200">
+              <div className="p-4 border-t border-slate-200">
                 <form onSubmit={onSubmit} className="flex items-center gap-3">
                   <input
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="@Lina summarize, transfer a dossier, share a client, request HQ help"
-                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                    className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-200 outline-none"
                   />
                   <button
                     type="submit"
                     disabled={sending || !input.trim()}
-                    className="px-4 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-60"
+                    className="px-4 py-2.5 bg-slate-900 text-white rounded-xl font-medium hover:bg-slate-800 transition-colors flex items-center gap-2 disabled:opacity-60"
                   >
                     {sending ? "Sending..." : "Send"}
                   </button>
@@ -473,15 +482,15 @@ export default function AgentChatClient() {
             </div>
 
             {/* Agent tools */}
-            <aside className="w-80 border-l border-blue-100 bg-blue-50/60 hidden xl:flex flex-col overflow-y-auto">
-              <div className="p-4 border-b border-blue-100">
-                <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Agent tools</p>
+            <aside className="w-80 border-l border-slate-200 bg-slate-50 hidden xl:flex flex-col overflow-y-auto">
+              <div className="p-4 border-b border-slate-200">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Outils agent</p>
                 <h3 className="text-lg font-bold text-slate-900">Power actions</h3>
               </div>
               <div className="p-4 space-y-4">
-                <div className="rounded-xl border border-blue-100 bg-white p-3 space-y-2">
-                  <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Dossier / Files</p>
-                  <ul className="space-y-1 text-xs text-blue-700">
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Dossiers</p>
+                  <ul className="space-y-1 text-xs text-slate-600">
                     <li>• Open dossier TRIP-104</li>
                     <li>• Open dossier YCHT-55</li>
                     <li>• Active proposals (3)</li>
@@ -489,9 +498,9 @@ export default function AgentChatClient() {
                   </ul>
                 </div>
 
-                <div className="rounded-xl border border-blue-100 bg-white p-3 space-y-2">
-                  <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Lina help</p>
-                  <ul className="space-y-1 text-xs text-blue-700">
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Lina</p>
+                  <ul className="space-y-1 text-xs text-slate-600">
                     <li>• Summarize this conversation</li>
                     <li>• Extract actions and owners</li>
                     <li>• Draft a client reply</li>
@@ -499,9 +508,9 @@ export default function AgentChatClient() {
                   </ul>
                 </div>
 
-                <div className="rounded-xl border border-blue-100 bg-white p-3 space-y-2">
-                  <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Audit</p>
-                  <p className="text-xs text-blue-700">History retained. HQ sees all. Shared by dossier/agent.</p>
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Audit</p>
+                  <p className="text-xs text-slate-600">Historique conservé. HQ voit tout. Partagé par dossier/agent.</p>
                 </div>
               </div>
             </aside>
