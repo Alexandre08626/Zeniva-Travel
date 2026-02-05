@@ -98,6 +98,25 @@ async function ensureSchema() {
   await pool.query("ALTER TABLE accounts ADD COLUMN IF NOT EXISTS password_hash text;");
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS agent_requests (
+      id text PRIMARY KEY,
+      name text,
+      email text NOT NULL,
+      role text,
+      status text NOT NULL,
+      code text,
+      note text,
+      requested_at timestamptz DEFAULT now(),
+      reviewed_at timestamptz,
+      reviewed_by text,
+      completed_at timestamptz
+    );
+  `);
+
+  await pool.query("CREATE INDEX IF NOT EXISTS agent_requests_email_idx ON agent_requests (lower(email));");
+  await pool.query("CREATE INDEX IF NOT EXISTS agent_requests_status_idx ON agent_requests (status);");
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS clients (
       id text PRIMARY KEY,
       name text NOT NULL,

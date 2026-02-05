@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { assertBackendEnv, normalizeEmail } from "../../../../src/lib/server/db";
+import { assertBackendEnv, normalizeEmail, dbQuery } from "../../../../src/lib/server/db";
 import { getCookieDomain, getSessionCookieName, signSession, hashPassword } from "../../../../src/lib/server/auth";
 import { getSupabaseAdminClient, getSupabaseAnonClient } from "../../../../src/lib/supabase/server";
-
-const AGENT_INVITE_CODES = ["ZENIVA-AGENT", "ZENIVA-ADMIN", "ZENIVA-HQ"];
 
 function normalizeStringArray(value: unknown, fallback: string[] = []) {
   if (Array.isArray(value)) return value.filter((item) => typeof item === "string" && item.trim());
@@ -117,8 +115,18 @@ export async function POST(request: Request) {
       return errorResponse("validate", "Missing required fields", 400, { missing, requestId });
     }
 
-    if (isAgentRole && !AGENT_INVITE_CODES.includes(inviteCode)) {
-      return NextResponse.json({ ok: false, message: "Invite code required or invalid for agents" }, { status: 400 });
+    if (isAgentRole) {
+      const check = await dbQuery(
+        "SELECT id, status, role FROM agent_requests WHERE lower(email) = $1 AND code = $2 AND status = 'approved' ORDER BY requested_at DESC LIMIT 1",
+        [email, inviteCode]
+      );
+      if (!check.rows.length) {
+        return NextResponse.json({ ok: false, message: "Agent approval required" }, { status: 400 });
+      }
+      const requestedRole = check.rows[0].role;
+      if (requestedRole && requestedRole !== role) {
+        return NextResponse.json({ ok: false, message: "Agent role mismatch" }, { status: 400 });
+      }
     }
 
     // ---- Clients (IMPORTANT)
@@ -252,6 +260,17 @@ export async function POST(request: Request) {
         message: insertError.message,
         code,
       });
+    }
+
+    if (isAgentRole) {
+      try {
+        await dbQuery(
+          "UPDATE agent_requests SET status='completed', completed_at=now() WHERE lower(email) = $1 AND code = $2 AND status = 'approved'",
+          [email, inviteCode]
+        );
+      } catch {
+        // ignore
+      }
     }
 
     // ---- Create session cookie (your custom token)
