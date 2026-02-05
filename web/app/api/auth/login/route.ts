@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { assertBackendEnv, normalizeEmail } from "../../../../src/lib/server/db";
-import { getCookieDomain, getSessionCookieName, signSession, verifyPassword } from "../../../../src/lib/server/auth";
+import { getCookieDomain, getSessionCookieName, signSession, verifyPassword, hashPassword } from "../../../../src/lib/server/auth";
 import { getSupabaseAdminClient, getSupabaseAnonClient } from "../../../../src/lib/supabase/server";
 
 function normalizeStringArray(value: unknown, fallback: string[] = []) {
@@ -151,9 +151,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Login failed" }, { status: 500 });
     }
 
-    const account = existingAccount;
+    let account = existingAccount;
     if (!account) {
-      return NextResponse.json({ error: "account_missing" }, { status: 403 });
+      const fallbackRoles = metaRoles.length ? metaRoles : [metaRole];
+      const accountPayload = {
+        id: authData.user.id,
+        name: typeof metadata.name === "string" && metadata.name.trim() ? metadata.name.trim() : email.split("@")[0],
+        email,
+        role: metaRole,
+        roles: fallbackRoles,
+        divisions: metaDivisions,
+        status: "active",
+        agent_level: metaAgentLevel,
+        invite_code: metaInviteCode,
+        password_hash: hashPassword(password),
+        created_at: new Date().toISOString(),
+      };
+
+      const { data: createdAccount, error: createError } = await admin
+        .from("accounts")
+        .insert(accountPayload)
+        .select("id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile, password_hash")
+        .single();
+
+      if (createError || !createdAccount) {
+        console.error("Supabase account create error", { message: createError?.message || "unknown" });
+        return NextResponse.json({ error: "account_create_failed" }, { status: 500 });
+      }
+      account = createdAccount;
     }
 
     return buildSessionResponse({
