@@ -67,7 +67,7 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
           </svg>
         </button>
 
-        <div className="flex items-center gap-2 header-right sm:flex hidden">
+        <div className="hidden sm:flex items-center gap-3 ml-auto">
           {loggedIn ? (
             <>
               {agent && (
@@ -90,21 +90,21 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
               </Link>
             </>
           )}
-        </div>
 
-        <div className="hidden sm:flex items-center gap-3 ml-4">
-          <div className="hidden md:block">
-            <button aria-label="Search" className="p-2 rounded-lg hover:bg-gray-100"><Search size={18} /></button>
+          <div className="flex items-center gap-3">
+            <div className="hidden md:block">
+              <button aria-label="Search" className="p-2 rounded-lg hover:bg-gray-100"><Search size={18} /></button>
+            </div>
+            <button aria-label="Notifications" className="p-2 rounded-lg hover:bg-gray-100"><Bell size={18} /></button>
+            {loggedIn ? (
+              <AccountMenu />
+            ) : (
+              <>
+                <Image src="/branding/lina-avatar.png" alt="Lina avatar" width={40} height={40} className="rounded-full" />
+                <LocaleSwitcher orientation="horizontal" className="h-9" />
+              </>
+            )}
           </div>
-          <button aria-label="Notifications" className="p-2 rounded-lg hover:bg-gray-100"><Bell size={18} /></button>
-          {loggedIn ? (
-            <AccountMenu />
-          ) : (
-            <>
-              <Image src="/branding/lina-avatar.png" alt="Lina avatar" width={40} height={40} className="rounded-full" />
-              <LocaleSwitcher orientation="horizontal" className="h-9" />
-            </>
-          )}
         </div>
       </div>
 

@@ -215,7 +215,7 @@ export default function HomePage() {
                 className="mt-6 rounded-3xl border border-[#1e2a4d] bg-[#0c1733] p-4 shadow-[0_24px_80px_rgba(8,18,42,0.6)]"
               >
                 <div className="flex items-center justify-end gap-2">
-                  <Link href="/signup" className="rounded-full border border-white/30 px-3 py-1 text-xs font-semibold text-white">Sign in</Link>
+                  <Link href="/signup" className="rounded-full border border-white/30 px-3 py-1 text-xs font-semibold text-white">Sign up</Link>
                   <Link href="/login" className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-900">Log in</Link>
                 </div>
 
