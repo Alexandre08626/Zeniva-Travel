@@ -5,6 +5,7 @@ import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { PREMIUM_BLUE, TITLE_TEXT, MUTED_TEXT, ACCENT_GOLD } from "../../src/design/tokens";
 import { useAuthStore, isHQ, logout } from "../../src/lib/authStore";
+import { toAgentWorkspaceId } from "../../src/lib/agent/agentWorkspace";
 import LinaAvatar from "../../src/components/LinaAvatar";
 
 interface HelpTicket {
@@ -41,10 +42,21 @@ const modules = [
   { id: "performance", title: "Performance", desc: "Active files, conversions", href: "#performance" },
 ];
 
-export default function AgentDashboardPage() {
+export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const hq = isHQ(user);
+  const resolvedAgentId = agentId || toAgentWorkspaceId(user);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  useEffect(() => {
+    if (!resolvedAgentId) return;
+    try {
+      window.localStorage.setItem("zeniva_agent_workspace", resolvedAgentId);
+    } catch {
+      // ignore
+    }
+  }, [resolvedAgentId]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [accountsLoading, setAccountsLoading] = useState(false);
   const [accountsError, setAccountsError] = useState<string | null>(null);
@@ -75,6 +87,55 @@ export default function AgentDashboardPage() {
     ],
     [hq]
   );
+
+  const kpiCards = [
+    { label: "Active clients", value: "18", delta: "+4 this week" },
+    { label: "Open dossiers", value: "27", delta: "12 in progress" },
+    { label: "Commission pipeline", value: "$46,280", delta: "$8.2k pending" },
+    { label: "Follow-ups due", value: "9", delta: "Next 48 hours" },
+  ];
+
+  const clientFocus = [
+    { name: "Sofia R.", status: "Proposal sent", next: "Follow-up today", value: "$18,400", last: "Lina chat · 2h" },
+    { name: "Daniel K.", status: "Confirmed", next: "Collect final payment", value: "$9,950", last: "Payment · 1d" },
+    { name: "Maya L.", status: "Prospect", next: "Needs dates", value: "$6,800", last: "Email · 4h" },
+    { name: "Arjun S.", status: "In planning", next: "Send hotel options", value: "$12,300", last: "Call · 6h" },
+  ];
+
+  const dossierPipeline = [
+    { title: "Tulum escape · 7 nights", stage: "Proposal", due: "Today", owner: "Sofia R." },
+    { title: "Miami yacht weekend", stage: "Confirmed", due: "Feb 12", owner: "Daniel K." },
+    { title: "Paris fashion week", stage: "In planning", due: "Feb 14", owner: "Maya L." },
+    { title: "Bora Bora anniversary", stage: "Prospect", due: "Feb 16", owner: "Arjun S." },
+  ];
+
+  const chatQueue = [
+    { name: "Sofia R.", subject: "Airport transfer updates", time: "4m", channel: "Chat" },
+    { name: "Maya L.", subject: "Best dates for villas", time: "18m", channel: "Email" },
+    { name: "Private YCN", subject: "Quote revision", time: "42m", channel: "Chat" },
+  ];
+
+  const accountingSnapshot = [
+    { label: "Commissions earned", value: "$12,480" },
+    { label: "Revenue generated", value: "$248,900" },
+    { label: "Payments pending", value: "$31,200" },
+    { label: "Client balances", value: "$4,680" },
+  ];
+
+  const timeline = [
+    { label: "Final payment due · Daniel K.", when: "Today" },
+    { label: "Flight ticketing · Sofia R.", when: "Tomorrow" },
+    { label: "Proposal review · Maya L.", when: "Feb 10" },
+    { label: "Commission payout · Week 7", when: "Feb 14" },
+  ];
+
+  const toolLinks = [
+    { label: "Create proposal", href: "/agent/proposals" },
+    { label: "Client profiles", href: "/agent/clients" },
+    { label: "Bookings center", href: "/agent/bookings" },
+    { label: "Commissions", href: "/agent/commissions" },
+    { label: "Documents", href: "/agent/documents" },
+  ];
 
   const [query, setQuery] = useState("");
   const [selectedClient] = useState("Unassigned");
@@ -351,11 +412,185 @@ export default function AgentDashboardPage() {
         )}
 
         <div className="space-y-6">
-          <div
-            className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 shadow-xl p-[1px] md:sticky md:top-4"
-          >
-            <div className="rounded-[14px] bg-white/90 backdrop-blur-sm p-6">
-              <div className="absolute inset-0 -z-10 opacity-40 bg-blue-500/20"></div>
+          <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-6 space-y-5">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Agent Command Center</p>
+                <h2 className="text-2xl font-black" style={{ color: TITLE_TEXT }}>Live operations overview</h2>
+                <p className="text-sm" style={{ color: MUTED_TEXT }}>Real-time workload, revenue, and client activity in one cockpit.</p>
+                {resolvedAgentId && (
+                  <p className="mt-2 text-xs font-semibold text-slate-500">Workspace URL: /agent/{resolvedAgentId}</p>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSearchOpen(true)}
+                  className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold"
+                  style={{ color: TITLE_TEXT }}
+                >
+                  Create trip search
+                </button>
+                <Link href="/agent/chat" className="rounded-full px-4 py-2 text-sm font-semibold text-white" style={{ backgroundColor: PREMIUM_BLUE }}>
+                  Open chat hub
+                </Link>
+                <Link href="/agent/proposals" className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold" style={{ color: TITLE_TEXT }}>
+                  Proposals
+                </Link>
+                <Link href="/agent/clients" className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold" style={{ color: TITLE_TEXT }}>
+                  Clients
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-4">
+              {kpiCards.map((card) => (
+                <div key={card.label} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{card.label}</div>
+                  <div className="mt-2 text-2xl font-black" style={{ color: TITLE_TEXT }}>{card.value}</div>
+                  <div className="text-xs font-semibold text-slate-500">{card.delta}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid gap-5 lg:grid-cols-[2fr_1fr]">
+              <div className="space-y-5">
+                <div className="rounded-xl border border-slate-200 bg-white p-5">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold" style={{ color: TITLE_TEXT }}>Client 360° view</h3>
+                    <Link href="/agent/clients" className="text-xs font-semibold" style={{ color: PREMIUM_BLUE }}>Manage clients</Link>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {clientFocus.map((client) => (
+                      <div key={client.name} className="flex flex-col gap-2 rounded-lg border border-slate-100 bg-slate-50 p-3 md:flex-row md:items-center md:justify-between">
+                        <div>
+                          <div className="text-sm font-semibold text-slate-800">{client.name}</div>
+                          <div className="text-xs text-slate-500">{client.status} · {client.last}</div>
+                        </div>
+                        <div className="text-xs font-semibold text-slate-600">{client.next}</div>
+                        <div className="text-sm font-bold" style={{ color: TITLE_TEXT }}>{client.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-white p-5">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold" style={{ color: TITLE_TEXT }}>Dossier pipeline</h3>
+                    <Link href="/agent/proposals" className="text-xs font-semibold" style={{ color: PREMIUM_BLUE }}>Open pipeline</Link>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {dossierPipeline.map((item) => (
+                      <div key={item.title} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
+                        <div>
+                          <div className="text-sm font-semibold text-slate-800">{item.title}</div>
+                          <div className="text-xs text-slate-500">Owner: {item.owner}</div>
+                        </div>
+                        <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700">{item.stage}</span>
+                        <div className="text-xs font-semibold text-slate-500">Due: {item.due}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-white p-5">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold" style={{ color: TITLE_TEXT }}>Agent activity log</h3>
+                    <span className="text-xs font-semibold text-slate-500">Audit trail</span>
+                  </div>
+                  <div className="mt-4 space-y-2 text-xs text-slate-600">
+                    {(auditTrail.length ? auditTrail : ["No actions logged yet."]).map((entry, idx) => (
+                      <div key={`${entry}-${idx}`} className="rounded-md border border-slate-100 bg-slate-50 px-3 py-2">
+                        {entry}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-5">
+                <div className="rounded-xl border border-slate-200 bg-white p-5">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold" style={{ color: TITLE_TEXT }}>Live client chat</h3>
+                    <Link href="/agent/chat" className="text-xs font-semibold" style={{ color: PREMIUM_BLUE }}>Open inbox</Link>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {chatQueue.map((item) => (
+                      <div key={`${item.name}-${item.subject}`} className="rounded-lg border border-slate-100 bg-slate-50 p-3">
+                        <div className="text-sm font-semibold text-slate-800">{item.name}</div>
+                        <div className="text-xs text-slate-500">{item.subject}</div>
+                        <div className="text-xs font-semibold text-slate-500">{item.channel} · {item.time}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-white p-5">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold" style={{ color: TITLE_TEXT }}>Accounting snapshot</h3>
+                    <Link href="/agent/commissions" className="text-xs font-semibold" style={{ color: PREMIUM_BLUE }}>Finance</Link>
+                  </div>
+                  <div className="mt-4 grid gap-3">
+                    {accountingSnapshot.map((item) => (
+                      <div key={item.label} className="flex items-center justify-between rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
+                        <span className="text-xs font-semibold text-slate-500">{item.label}</span>
+                        <span className="text-sm font-bold" style={{ color: TITLE_TEXT }}>{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-white p-5">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold" style={{ color: TITLE_TEXT }}>Timeline & deadlines</h3>
+                    <Link href="/agent/trips" className="text-xs font-semibold" style={{ color: PREMIUM_BLUE }}>Calendar</Link>
+                  </div>
+                  <div className="mt-4 space-y-3 text-xs text-slate-600">
+                    {timeline.map((item) => (
+                      <div key={item.label} className="flex items-center justify-between rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
+                        <span>{item.label}</span>
+                        <span className="font-semibold text-slate-500">{item.when}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-white p-5">
+                  <div className="text-sm font-bold" style={{ color: TITLE_TEXT }}>Operational tools</div>
+                  <div className="mt-3 grid gap-2">
+                    {toolLinks.map((item) => (
+                      <Link key={item.href} href={item.href} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-white">
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {searchOpen && (
+            <div className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/40 px-4 py-10">
+              <div className="w-full max-w-5xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+                <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Trip search</p>
+                    <h3 className="text-lg font-bold" style={{ color: TITLE_TEXT }}>Create a new travel search</h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSearchOpen(false)}
+                    className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600"
+                  >
+                    Close
+                  </button>
+                </div>
+                <div className="px-6 py-6">
+                  <div
+                    className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 shadow-xl p-[1px]"
+                  >
+                    <div className="rounded-[14px] bg-white/90 backdrop-blur-sm p-6">
+                      <div className="absolute inset-0 -z-10 opacity-40 bg-blue-500/20"></div>
 
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center gap-3">
@@ -388,7 +623,7 @@ export default function AgentDashboardPage() {
                 ))}
               </div>
 
-              <form onSubmit={handleHybridSubmit} className="mt-6 space-y-5">
+                      <form onSubmit={handleHybridSubmit} className="mt-6 space-y-5">
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:gap-6">
                   <div className="flex-1 space-y-4">
                     <div>
@@ -627,9 +862,13 @@ export default function AgentDashboardPage() {
                     </div>
                   </div>
                 </div>
-              </form>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
 
           {modules.map((m) => (
             <div key={m.id} className="rounded-xl border border-slate-100 bg-slate-50 p-4 flex flex-col gap-2 shadow-sm">
@@ -675,4 +914,19 @@ export default function AgentDashboardPage() {
       </div>
     </main>
   );
+}
+
+export default function AgentRootPage() {
+  const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+  const agentId = toAgentWorkspaceId(user);
+
+  useEffect(() => {
+    if (agentId) {
+      router.replace(`/agent/${agentId}`);
+    }
+  }, [agentId, router]);
+
+  if (agentId) return null;
+  return <AgentDashboardPage />;
 }
