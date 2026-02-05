@@ -10,7 +10,7 @@ function normalizeStringArray(value: unknown, fallback: string[] = []) {
 }
 
 function getHqEmails() {
-  const raw = process.env.ZENIVA_HQ_EMAILS || "info@zenivatravel.com";
+  const raw = process.env.ZENIVA_HQ_EMAILS || "info@zenivatravel.com,info@zeniva.ca";
   return raw
     .split(",")
     .map((v) => normalizeEmail(v))
