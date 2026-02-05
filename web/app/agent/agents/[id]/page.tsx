@@ -1,12 +1,89 @@
 "use client";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuthStore, updateAccountRole, updateAccountStatus } from "../../../../src/lib/authStore";
-import { getAgentById, setAgentRole, setAgentStatus, type AgentRoleLabel } from "../../../../src/lib/agent/agents";
+import { getAgentById, setAgentRole, setAgentStatus, type AgentRoleLabel, type AgentDirectoryEntry } from "../../../../src/lib/agent/agents";
 import { listClients, listTrips, listLedger } from "../../../../src/lib/agent/store";
 import { computeCommissions } from "../../../../src/lib/agent/commissions";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE, ACCENT_GOLD } from "../../../../src/design/tokens";
+
+type AccountRecord = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  roles?: string[];
+  divisions?: string[];
+  status?: "active" | "disabled" | "suspended";
+  createdAt?: string;
+};
+
+function roleToKey(role: string): AgentDirectoryEntry["roleKey"] {
+  if (role === "hq") return "hq";
+  if (role === "admin") return "admin";
+  if (role === "yacht-partner") return "yacht-partner";
+  if (role === "partner_owner" || role === "partner_staff") return "partner";
+  if (role === "traveler") return "traveler";
+  return "travel-agent";
+}
+
+function roleToLabel(role: string): AgentRoleLabel {
+  if (role === "hq") return "HQ";
+  if (role === "admin") return "Admin";
+  if (role === "yacht-partner") return "Yacht Partner";
+  if (role === "partner_owner" || role === "partner_staff") return "Partner";
+  if (role === "traveler") return "Traveler";
+  return "Travel Agent";
+}
+
+function makeAgentCode(roleKey: AgentDirectoryEntry["roleKey"], email: string) {
+  const prefix = roleKey === "hq" ? "Z-HQ" : roleKey === "admin" ? "ZA" : roleKey === "yacht-partner" ? "ZY" : roleKey === "partner" ? "ZP" : "ZT";
+  const hash = Array.from(email).reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) % 900, 0) + 100;
+  return `${prefix}-${hash}`;
+}
+
+function mapAccountToAgent(account: AccountRecord): AgentDirectoryEntry {
+  const roles = Array.isArray(account.roles) && account.roles.length
+    ? account.roles
+    : account.role
+      ? [account.role]
+      : ["traveler"];
+  const primaryRole = roles[0] || "traveler";
+  const roleKey = roleToKey(primaryRole);
+  const roleLabel = roleToLabel(primaryRole);
+  const divisions = Array.isArray(account.divisions) && account.divisions.length
+    ? account.divisions
+    : roleKey === "yacht-partner"
+      ? ["YACHT"]
+      : roleKey === "partner"
+        ? []
+        : ["TRAVEL"];
+  const createdAt = account.createdAt || new Date().toISOString();
+
+  return {
+    id: account.id,
+    name: account.name || "Agent",
+    email: account.email,
+    roleLabel,
+    roleKey,
+    status: account.status === "suspended" ? "suspended" : account.status === "disabled" ? "inactive" : "active",
+    code: makeAgentCode(roleKey, account.email),
+    avatar: "/branding/lina-avatar.png",
+    divisions,
+    createdAt,
+    linkedToTravel: divisions.includes("TRAVEL"),
+    linkedToYacht: divisions.includes("YACHT"),
+    metrics: {
+      activeClients: 0,
+      openFiles: 0,
+      inProgressSales: 0,
+      revenue: 0,
+      commission: 0,
+      lastActivity: createdAt,
+    },
+  };
+}
 
 export default function AgentProfilePage() {
   const params = useParams<{ id: string }>();
@@ -14,13 +91,44 @@ export default function AgentProfilePage() {
   const auditLog = useAuthStore((s) => s.auditLog || []);
   const router = useRouter();
   const agentId = Array.isArray(params?.id) ? params.id[0] : params?.id;
-  const agent = agentId ? getAgentById(agentId) : undefined;
-  const [status, setStatus] = useState(agent?.status || "active");
-  const [roleLabel, setRoleLabel] = useState(agent?.roleLabel || "Travel Agent");
+  const initialAgent = agentId ? getAgentById(agentId) : undefined;
+  const [agent, setAgent] = useState<AgentDirectoryEntry | undefined>(initialAgent);
+  const [status, setStatus] = useState(initialAgent?.status || "active");
+  const [roleLabel, setRoleLabel] = useState(initialAgent?.roleLabel || "Travel Agent");
+  const [loading, setLoading] = useState(!initialAgent && Boolean(agentId));
   const allowed = !!(
     user &&
     (user.role === "hq" || user.role === "admin" || (agent && user.email?.toLowerCase() === agent.email.toLowerCase()))
   );
+
+  useEffect(() => {
+    if (!agentId || agent) return;
+    let active = true;
+    const load = async () => {
+      try {
+        const res = await fetch("/api/accounts");
+        const payload = await res.json();
+        if (!res.ok) throw new Error(payload?.error || "Failed to load accounts");
+        const records = Array.isArray(payload?.data) ? payload.data : [];
+        const match = records.find((r: AccountRecord) => r.id === agentId);
+        if (!active) return;
+        if (match) {
+          const mapped = mapAccountToAgent(match);
+          setAgent(mapped);
+          setStatus(mapped.status);
+          setRoleLabel(mapped.roleLabel);
+        }
+      } catch {
+        // ignore
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    void load();
+    return () => {
+      active = false;
+    };
+  }, [agentId, agent]);
 
   const clients = listClients();
   const trips = listTrips();
@@ -92,8 +200,10 @@ export default function AgentProfilePage() {
     return (
       <main className="min-h-screen bg-slate-50">
         <div className="mx-auto max-w-3xl px-5 py-16 space-y-3">
-          <h1 className="text-3xl font-black" style={{ color: TITLE_TEXT }}>Agent not found</h1>
-          <p className="text-sm" style={{ color: MUTED_TEXT }}>Check the URL or return to the directory.</p>
+          <h1 className="text-3xl font-black" style={{ color: TITLE_TEXT }}>{loading ? "Loading agent…" : "Agent not found"}</h1>
+          <p className="text-sm" style={{ color: MUTED_TEXT }}>
+            {loading ? "Loading from the database." : "Check the URL or return to the directory."}
+          </p>
           <Link href="/agent/agents" className="text-sm font-bold" style={{ color: PREMIUM_BLUE }}>Back to directory</Link>
         </div>
       </main>
