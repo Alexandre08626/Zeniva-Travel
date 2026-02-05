@@ -1,12 +1,63 @@
 import { NextResponse } from "next/server";
 import { assertBackendEnv, normalizeEmail } from "../../../../src/lib/server/db";
-import { getCookieDomain, getSessionCookieName, signSession } from "../../../../src/lib/server/auth";
+import { getCookieDomain, getSessionCookieName, signSession, verifyPassword } from "../../../../src/lib/server/auth";
 import { getSupabaseAdminClient, getSupabaseAnonClient } from "../../../../src/lib/supabase/server";
 
 function normalizeStringArray(value: unknown, fallback: string[] = []) {
   if (Array.isArray(value)) return value.filter((item) => typeof item === "string" && item.trim());
   if (typeof value === "string" && value.trim()) return [value.trim()];
   return fallback;
+}
+
+function buildSessionResponse(account: {
+  id: string;
+  name: string;
+  email: string;
+  role: string | null;
+  roles: string[] | null;
+  divisions: string[] | null;
+  status: string | null;
+  agent_level: string | null;
+  invite_code: string | null;
+  partner_id: string | null;
+  partner_company: Record<string, unknown> | null;
+  traveler_profile: Record<string, unknown> | null;
+}) {
+  const roles = Array.isArray(account.roles) && account.roles.length
+    ? account.roles
+    : account.role
+      ? [account.role]
+      : ["traveler"];
+  const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7;
+  const token = signSession({ email: account.email, roles, exp });
+
+  const response = NextResponse.json({
+    user: {
+      id: account.id,
+      name: account.name,
+      email: account.email,
+      role: account.role,
+      roles,
+      divisions: account.divisions || [],
+      status: account.status || "active",
+      agentLevel: account.agent_level || null,
+      inviteCode: account.invite_code || null,
+      partnerId: account.partner_id || null,
+      partnerCompany: account.partner_company || null,
+      travelerProfile: account.traveler_profile || null,
+    },
+  });
+
+  const cookieDomain = getCookieDomain();
+  response.cookies.set(getSessionCookieName(), token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: true,
+    path: "/",
+    ...(cookieDomain ? { domain: cookieDomain } : {}),
+    maxAge: 60 * 60 * 24 * 7,
+  });
+  return response;
 }
 
 export async function POST(request: Request) {
@@ -40,7 +91,27 @@ export async function POST(request: Request) {
         code: error?.code || null,
         message: error?.message || null,
       });
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+
+      const { data: fallbackAccount, error: fallbackError } = await admin
+        .from("accounts")
+        .select("id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile, password_hash")
+        .eq("email", email)
+        .maybeSingle();
+
+      if (fallbackError) {
+        console.error("Supabase fallback account fetch error", { message: fallbackError.message });
+      }
+
+      const storedHash = (fallbackAccount as any)?.password_hash as string | null | undefined;
+      if (fallbackAccount && storedHash && verifyPassword(password, storedHash)) {
+        return buildSessionResponse({
+          ...fallbackAccount,
+          roles: Array.isArray(fallbackAccount.roles) ? fallbackAccount.roles : null,
+          divisions: Array.isArray(fallbackAccount.divisions) ? fallbackAccount.divisions : null,
+        });
+      }
+
+      return NextResponse.json({ error: error?.message || "Invalid credentials" }, { status: 401 });
     }
 
     const metadata = (data.user.user_metadata || {}) as Record<string, unknown>;
@@ -60,7 +131,7 @@ export async function POST(request: Request) {
 
     const { data: existingAccount, error: accountError } = await admin
       .from("accounts")
-      .select("id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile")
+      .select("id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile, password_hash")
       .eq("email", email)
       .maybeSingle();
 
@@ -74,37 +145,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "account_missing" }, { status: 403 });
     }
 
-    const roles = Array.isArray(account.roles) && account.roles.length ? account.roles : account.role ? [account.role] : ["traveler"];
-    const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7;
-    const token = signSession({ email: account.email, roles, exp });
-
-    const response = NextResponse.json({
-      user: {
-        id: account.id,
-        name: account.name,
-        email: account.email,
-        role: account.role,
-        roles,
-        divisions: account.divisions || [],
-        status: account.status || "active",
-        agentLevel: account.agent_level || null,
-        inviteCode: account.invite_code || null,
-        partnerId: account.partner_id || null,
-        partnerCompany: account.partner_company || null,
-        travelerProfile: account.traveler_profile || null,
-      },
+    return buildSessionResponse({
+      ...account,
+      roles: Array.isArray(account.roles) ? account.roles : null,
+      divisions: Array.isArray(account.divisions) ? account.divisions : null,
     });
-
-    const cookieDomain = getCookieDomain();
-    response.cookies.set(getSessionCookieName(), token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: true,
-      path: "/",
-      ...(cookieDomain ? { domain: cookieDomain } : {}),
-      maxAge: 60 * 60 * 24 * 7,
-    });
-    return response;
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Login failed" }, { status: 500 });
   }

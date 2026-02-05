@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { assertBackendEnv, normalizeEmail } from "../../../../src/lib/server/db";
-import { getCookieDomain, getSessionCookieName, signSession } from "../../../../src/lib/server/auth";
+import { getCookieDomain, getSessionCookieName, signSession, hashPassword } from "../../../../src/lib/server/auth";
 import { getSupabaseAdminClient, getSupabaseAnonClient } from "../../../../src/lib/supabase/server";
 
 const AGENT_INVITE_CODES = ["ZENIVA-AGENT", "ZENIVA-ADMIN", "ZENIVA-HQ"];
@@ -179,6 +179,7 @@ export async function POST(request: Request) {
       status: "active",
       agent_level: agentLevel,
       invite_code: inviteCode || null,
+      password_hash: hashPassword(password),
       created_at: new Date().toISOString(),
     };
 
