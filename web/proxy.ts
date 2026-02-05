@@ -7,6 +7,21 @@ function normalizeOrigin(origin: string) {
   return origin.replace(/\/$/, "").toLowerCase();
 }
 
+function isSameSiteOrigin(origin: string, requestOrigin: string) {
+  try {
+    const o = new URL(origin);
+    const r = new URL(requestOrigin);
+    const oHost = o.hostname.toLowerCase();
+    const rHost = r.hostname.toLowerCase();
+    if (oHost === rHost) return true;
+    if (oHost === `www.${rHost}`) return true;
+    if (rHost === `www.${oHost}`) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 function expandOriginVariants(origin: string) {
   const normalized = normalizeOrigin(origin);
   try {
@@ -34,6 +49,9 @@ export default function proxy(req: NextRequest) {
   if (!SAFE_METHODS.has(req.method)) {
     const origin = req.headers.get("origin");
     if (origin) {
+      if (isSameSiteOrigin(origin, req.nextUrl.origin)) {
+        return NextResponse.next();
+      }
       const normalizedOrigin = normalizeOrigin(origin);
       const allowedOrigins = getAllowedOrigins(req);
       if (allowedOrigins.length > 0 && !allowedOrigins.includes(normalizedOrigin)) {
