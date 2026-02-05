@@ -7,9 +7,25 @@ function normalizeOrigin(origin: string) {
   return origin.replace(/\/$/, "").toLowerCase();
 }
 
+function expandOriginVariants(origin: string) {
+  const normalized = normalizeOrigin(origin);
+  try {
+    const url = new URL(normalized);
+    const host = url.hostname;
+    if (host.startsWith("www.")) {
+      const bareHost = host.replace(/^www\./, "");
+      return [normalized, `${url.protocol}//${bareHost}`];
+    }
+    return [normalized, `${url.protocol}//www.${host}`];
+  } catch {
+    return [normalized];
+  }
+}
+
 function getAllowedOrigins(req: NextRequest) {
   const candidates = [process.env.CORS_ORIGIN, process.env.NEXT_PUBLIC_SITE_URL, req.nextUrl.origin].filter(Boolean) as string[];
-  return candidates.map(normalizeOrigin);
+  const expanded = candidates.flatMap(expandOriginVariants);
+  return Array.from(new Set(expanded.map(normalizeOrigin)));
 }
 
 export default function proxy(req: NextRequest) {
