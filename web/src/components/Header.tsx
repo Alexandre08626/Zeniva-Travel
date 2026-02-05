@@ -52,7 +52,7 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
             <Link href="/residences" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="Short-term rentals" className="inline" /></Link>
             {loggedIn && (
               <>
-                <Link href="/documents" className="text-sm text-slate-900 font-semibold hover:underline"><AutoTranslate text="My Travel Documents" className="inline" /></Link>
+                <Link href="/documents" className="text-sm text-slate-900 font-semibold hover:underline"><AutoTranslate text="Dashboard" className="inline" /></Link>
                 {mounted && authUser && isPartner(authUser) && (
                   <Link href="/partner/dashboard" className="text-sm text-slate-900 font-semibold hover:underline"><AutoTranslate text="Partner" className="inline" /></Link>
                 )}

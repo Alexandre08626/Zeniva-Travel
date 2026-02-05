@@ -263,9 +263,9 @@ export default function DocumentsPage() {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Traveler Dashboard</p>
-              <h1 className="text-3xl font-black" style={{ color: TITLE_TEXT }}>Votre cockpit voyageur</h1>
+              <h1 className="text-3xl font-black" style={{ color: TITLE_TEXT }}>Your traveler cockpit</h1>
               <p className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>
-                Suivez votre voyage, finalisez vos réservations et communiquez avec Lina et l’équipe Zeniva.
+                Track your trip, finalize bookings, and communicate with Lina and the Zeniva team.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -275,45 +275,45 @@ export default function DocumentsPage() {
                 className="rounded-full px-4 py-2 text-sm font-bold text-white"
                 style={{ backgroundColor: PREMIUM_BLUE }}
               >
-                Finaliser la réservation
+                Finalize booking
               </Link>
               <Link
                 href="/chat?prompt=Continue%20with%20Lina"
                 className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold"
                 style={{ color: TITLE_TEXT }}
               >
-                Continuer avec Lina
+                Continue with Lina
               </Link>
               <Link
                 href="/chat/agent?channel=agent-alexandre&source=/documents"
                 className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold"
                 style={{ color: TITLE_TEXT }}
               >
-                Contacter un expert
+                Contact an expert
               </Link>
             </div>
           </div>
 
           <div className="mt-6 grid gap-3 md:grid-cols-4">
             <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
-              <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Voyage</div>
+              <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Trip</div>
               <div className="mt-1 text-sm font-bold" style={{ color: TITLE_TEXT }}>{primaryTrip?.title || "New itinerary"}</div>
               <div className="text-xs" style={{ color: MUTED_TEXT }}>{primaryTrip?.destination || "Destination à confirmer"}</div>
             </div>
             <div className="rounded-2xl border border-blue-100 bg-white p-4">
               <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Documents</div>
               <div className="mt-1 text-2xl font-extrabold" style={{ color: TITLE_TEXT }}>{list.length}</div>
-              <div className="text-xs" style={{ color: MUTED_TEXT }}>Voyages avec fichiers</div>
+              <div className="text-xs" style={{ color: MUTED_TEXT }}>Trips with files</div>
             </div>
             <div className="rounded-2xl border border-blue-100 bg-white p-4">
               <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Support</div>
-              <div className="mt-1 text-sm font-bold" style={{ color: TITLE_TEXT }}>{hasPartner ? "Lina + Propriétaire" : "Lina + Zeniva"}</div>
-              <div className="text-xs" style={{ color: MUTED_TEXT }}>{hasPartner ? "Assistance partenaire activée" : "Assistance Zeniva dédiée"}</div>
+              <div className="mt-1 text-sm font-bold" style={{ color: TITLE_TEXT }}>{hasPartner ? "Lina + Partner" : "Lina + Zeniva"}</div>
+              <div className="text-xs" style={{ color: MUTED_TEXT }}>{hasPartner ? "Partner assistance enabled" : "Dedicated Zeniva assistance"}</div>
             </div>
             <div className="rounded-2xl border border-blue-100 bg-white p-4">
               <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Réservation</div>
               <div className="mt-1 text-sm font-bold" style={{ color: TITLE_TEXT }}>{tripStatus}</div>
-              <div className="text-xs" style={{ color: MUTED_TEXT }}>Suivi en temps réel</div>
+              <div className="text-xs" style={{ color: MUTED_TEXT }}>Real-time tracking</div>
             </div>
           </div>
 
@@ -363,16 +363,16 @@ export default function DocumentsPage() {
               <section className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Messagerie</p>
-                    <h2 className="text-xl font-black" style={{ color: TITLE_TEXT }}>Centre de communication</h2>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Messaging</p>
+                    <h2 className="text-xl font-black" style={{ color: TITLE_TEXT }}>Communication center</h2>
                     <p className="text-sm" style={{ color: MUTED_TEXT }}>
-                      Lina répond en premier, puis l’expert approprié prend le relais selon votre voyage.
+                      Lina replies first, then the right expert takes over based on your trip.
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">Lina (IA)</span>
+                    <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">Lina (AI)</span>
                     <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Zeniva Agent</span>
-                    {hasPartner && <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">Propriétaire</span>}
+                    {hasPartner && <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">Partner host</span>}
                   </div>
                 </div>
 
@@ -402,7 +402,7 @@ export default function DocumentsPage() {
                   <input
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
-                    placeholder="Écrivez à Lina ou à votre expert Zeniva..."
+                    placeholder="Write to Lina or your Zeniva expert..."
                     className="flex-1 rounded-full border border-slate-200 px-4 py-2 text-sm outline-none focus:border-blue-400"
                   />
                   <button
@@ -410,31 +410,31 @@ export default function DocumentsPage() {
                     className="rounded-full px-4 py-2 text-sm font-semibold text-white"
                     style={{ backgroundColor: PREMIUM_BLUE }}
                   >
-                    Envoyer
+                    Send
                   </button>
                 </form>
               </section>
 
               <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Voyage</p>
-                <h2 className="text-xl font-black" style={{ color: TITLE_TEXT }}>Statut & actions</h2>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Trip</p>
+                <h2 className="text-xl font-black" style={{ color: TITLE_TEXT }}>Status & actions</h2>
                 <div className="mt-4 space-y-3 text-sm" style={{ color: TITLE_TEXT }}>
                   <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                    <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Statut actuel</div>
+                    <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Current status</div>
                     <div className="mt-1 font-semibold">{tripStatus}</div>
                   </div>
                   <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                    <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Prochaines étapes</div>
+                    <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Next steps</div>
                     <ul className="mt-2 space-y-2 text-sm">
-                      <li>• Vérifier les documents et confirmations</li>
-                      <li>• Finaliser les paiements restants</li>
-                      <li>• Valider les transferts et excursions</li>
+                      <li>• Review documents and confirmations</li>
+                      <li>• Finalize remaining payments</li>
+                      <li>• Confirm transfers and excursions</li>
                     </ul>
                   </div>
                   <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
                     <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Contacts</div>
-                    <div className="mt-2 text-sm">Lina (IA) + Expert Zeniva</div>
-                    {hasPartner && <div className="text-sm">{partnerName || "Propriétaire partenaire"}</div>}
+                    <div className="mt-2 text-sm">Lina (AI) + Zeniva Expert</div>
+                    {hasPartner && <div className="text-sm">{partnerName || "Partner host"}</div>}
                   </div>
                 </div>
               </section>
@@ -445,16 +445,16 @@ export default function DocumentsPage() {
             <div className="mt-8" id="documents">
               <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Documents de voyage</p>
-                  <h2 className="text-2xl font-black" style={{ color: TITLE_TEXT }}>Vos billets, vouchers et confirmations</h2>
-                  <p className="text-sm" style={{ color: MUTED_TEXT }}>Tout ce dont vous avez besoin avant, pendant et après le voyage.</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Travel documents</p>
+                  <h2 className="text-2xl font-black" style={{ color: TITLE_TEXT }}>Tickets, vouchers, and confirmations</h2>
+                  <p className="text-sm" style={{ color: MUTED_TEXT }}>Everything you need before, during, and after your trip.</p>
                 </div>
                 <Link
                   href="/documents"
                   className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold"
                   style={{ color: TITLE_TEXT }}
                 >
-                  Voir tous mes documents
+                  View all documents
                 </Link>
               </div>
             </div>
