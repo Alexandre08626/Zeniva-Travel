@@ -7,6 +7,7 @@ import { getAgentById, setAgentRole, setAgentStatus, type AgentRoleLabel, type A
 import { listClients, listTrips, listLedger } from "../../../../src/lib/agent/store";
 import { computeCommissions } from "../../../../src/lib/agent/commissions";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE, ACCENT_GOLD } from "../../../../src/design/tokens";
+import type { Division } from "../../../../src/lib/authStore";
 
 type AccountRecord = {
   id: string;
@@ -14,7 +15,7 @@ type AccountRecord = {
   email: string;
   role: string;
   roles?: string[];
-  divisions?: string[];
+  divisions?: Division[];
   status?: "active" | "disabled" | "suspended";
   createdAt?: string;
 };
@@ -52,13 +53,13 @@ function mapAccountToAgent(account: AccountRecord): AgentDirectoryEntry {
   const primaryRole = roles[0] || "traveler";
   const roleKey = roleToKey(primaryRole);
   const roleLabel = roleToLabel(primaryRole);
-  const divisions = Array.isArray(account.divisions) && account.divisions.length
+  const divisions = (Array.isArray(account.divisions) && account.divisions.length
     ? account.divisions
     : roleKey === "yacht-partner"
       ? ["YACHT"]
       : roleKey === "partner"
         ? []
-        : ["TRAVEL"];
+        : ["TRAVEL"]) as Division[];
   const createdAt = account.createdAt || new Date().toISOString();
 
   return {
