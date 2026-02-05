@@ -271,15 +271,26 @@ export async function POST(request: Request) {
       const code = (insertError as any)?.code || null;
       const isDuplicate = code === "23505" || /duplicate|already exists/i.test(insertError.message || "");
       if (isDuplicate) {
-        const { data: existing, error: fetchError } = await supabaseAdminClient
+        const { data: updated, error: updateError } = await supabaseAdminClient
           .from("accounts")
-          .select("id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile")
+          .update({
+            name,
+            role,
+            roles,
+            divisions,
+            status: "active",
+            agent_level: agentLevel,
+            invite_code: inviteCode || null,
+            updated_at: new Date().toISOString(),
+          })
           .eq("email", email)
+          .select("id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile")
           .maybeSingle();
-        if (!fetchError && existing) {
+
+        if (!updateError && updated) {
           const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7;
-          const token = signSession({ email: existing.email, roles: existing.roles || [existing.role || "traveler"], exp });
-          const response = NextResponse.json({ user: existing }, { status: 200 });
+          const token = signSession({ email: updated.email, roles: updated.roles || [updated.role || "traveler"], exp });
+          const response = NextResponse.json({ user: updated }, { status: 200 });
           const cookieDomain = getCookieDomain();
           response.cookies.set(getSessionCookieName(), token, {
             httpOnly: true,
