@@ -17,13 +17,32 @@ type BookingRequest = {
   id: string;
   title: string;
   clientName: string;
-  dossierId: string;
+  dossierId?: string;
   agentEmail: string;
   department: Department;
   status: Status;
   sellingTotal: number;
-  currency: "USD";
+  currency: "USD" | "CAD" | string;
   updatedAt: string;
+};
+
+type ApiBookingRequest = {
+  id: string;
+  title: string;
+  clientName: string;
+  dossierId?: string;
+  source: "agent" | "lina" | "api";
+  provider: string;
+  status: Status;
+  paymentStatus?: "paid" | "unpaid" | "unknown";
+  confirmationReference?: string;
+  approvedBy?: string;
+  approvedAt?: string;
+  requestedBy?: string;
+  totalAmount: number;
+  currency?: "USD" | "CAD" | string;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 const SAMPLE: BookingRequest[] = [
@@ -106,12 +125,12 @@ export default function PurchaseOrdersPage() {
   useEffect(() => {
     fetch("/api/booking-requests")
       .then((res) => res.json())
-      .then((payload) => {
-        const data = Array.isArray(payload?.data) ? payload.data : [];
+      .then((payload: { data?: ApiBookingRequest[] }) => {
+        const data: ApiBookingRequest[] = Array.isArray(payload?.data) ? payload.data : [];
         const normalized = data
-          .filter((item) => item.source === "agent")
-          .filter((item) => (isHQ(user) ? true : item.requestedBy === user?.email))
-          .map((item) => ({
+          .filter((item: ApiBookingRequest) => item.source === "agent")
+          .filter((item: ApiBookingRequest) => (isHQ(user) ? true : item.requestedBy === user?.email))
+          .map((item: ApiBookingRequest) => ({
             id: item.id,
             title: item.title,
             clientName: item.clientName,
@@ -132,7 +151,10 @@ export default function PurchaseOrdersPage() {
     return orders.filter((request) => {
       const matchesStatus = filterStatus === "ALL" ? true : request.status === filterStatus;
       const matchesDept = filterDept === "ALL" ? true : request.department === filterDept;
-      const matchesSearch = [request.title, request.clientName, request.dossierId, request.agentEmail].some((v) => v.toLowerCase().includes(search.toLowerCase()));
+      const needle = search.toLowerCase();
+      const matchesSearch = [request.title, request.clientName, request.dossierId, request.agentEmail]
+        .map((value) => (value || "").toLowerCase())
+        .some((value) => value.includes(needle));
       return matchesStatus && matchesDept && matchesSearch;
     });
   }, [orders, filterStatus, filterDept, search]);
