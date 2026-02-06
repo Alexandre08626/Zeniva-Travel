@@ -36,9 +36,9 @@ export default function CommissionsPage() {
                   <th className="pb-2 pr-3">Client</th>
                   <th className="pb-2 pr-3">Product</th>
                   <th className="pb-2 pr-3">Sell base</th>
+                  <th className="pb-2 pr-3">Rule</th>
                   <th className="pb-2 pr-3">Pct</th>
                   <th className="pb-2 pr-3">Commission</th>
-                  <th className="pb-2 pr-3">Bonuses</th>
                   <th className="pb-2 pr-3">Total</th>
                   <th className="pb-2 pr-3">Agent</th>
                 </tr>
@@ -56,14 +56,9 @@ export default function CommissionsPage() {
                       <td className="py-2 pr-3" style={{ color: TITLE_TEXT }}>{client?.name || l.clientName}</td>
                       <td className="py-2 pr-3 text-xs font-semibold"><span className="rounded-full bg-slate-100 px-2 py-1">{l.productKind}</span></td>
                       <td className="py-2 pr-3" style={{ color: TITLE_TEXT }}>${l.sellBase}</td>
+                      <td className="py-2 pr-3 text-xs" style={{ color: MUTED_TEXT }}>{l.ruleLabel}</td>
                       <td className="py-2 pr-3" style={{ color: TITLE_TEXT }}>{l.commissionPct}%</td>
                       <td className="py-2 pr-3" style={{ color: TITLE_TEXT }}>${l.commissionAmount}</td>
-                      <td className="py-2 pr-3 text-xs" style={{ color: MUTED_TEXT }}>
-                        {l.bonuses.length === 0 && <span>-</span>}
-                        {l.bonuses.map((b) => (
-                          <span key={b.label} className="mr-2 rounded-full bg-amber-100 px-2 py-1 font-semibold text-slate-900">{b.label} +${b.amount}</span>
-                        ))}
-                      </td>
                       <td className="py-2 pr-3 font-semibold" style={{ color: TITLE_TEXT }}>${l.totalCommission}</td>
                       <td className="py-2 pr-3" style={{ color: TITLE_TEXT }}>{l.agentEmail}</td>
                     </tr>
@@ -79,10 +74,10 @@ export default function CommissionsPage() {
             <h2 className="text-lg font-bold" style={{ color: TITLE_TEXT }}>Rules</h2>
           </div>
           <ul className="list-disc pl-5 text-sm" style={{ color: MUTED_TEXT }}>
-            <li>Yacht: 95% Zeniva Yacht / 5% Zeniva Travel; agent commission applies only on the 5% travel share.</li>
-            <li>Commission lines show only when the client is owned by an agent (origin = agent).</li>
-            <li>Commission overrides (%) apply when set on the trip.</li>
-            <li>Bonus logic (mock): +1% client creation, +1% manual build (3+ items), +1% rebooking keywords.</li>
+            <li>Yacht: 95% Zeniva Yacht / 5% Zeniva Travel; commission base is the 5% travel share only.</li>
+            <li>Zeniva-managed (default): 5% to referring agent or influencer, 95% to Zeniva Travel.</li>
+            <li>Agent-built (manual/TBO): 80% to agent, 20% to Zeniva Travel (must be explicitly marked).</li>
+            <li>Partner bookings: 2.5% partner fee applied before other splits.</li>
           </ul>
         </section>
       </div>

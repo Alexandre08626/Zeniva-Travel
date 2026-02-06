@@ -6,6 +6,9 @@ export type CommissionLine = {
   clientName: string;
   productKind: string;
   componentId: string;
+  ruleLabel: string;
+  bookingType: "zeniva_managed" | "agent_built";
+  partnerFeePct: number;
   sellBase: number;
   commissionPct: number;
   commissionAmount: number;
@@ -19,31 +22,44 @@ export function computeCommissions(agentEmail?: string) {
   const lines: CommissionLine[] = [];
   trips.forEach((trip) => {
     const client = getClientById(trip.clientId);
-    const eligible = client && client.ownerEmail && client.origin === "agent";
-    if (!eligible) return;
-    const agent = client!.ownerEmail;
+    const hasAgent = client && client.ownerEmail && client.origin === "agent";
+    if (!hasAgent) return;
+    const agent = client?.ownerEmail || "";
+    const bookingType = trip.bookingType || "zeniva_managed";
+    const partnerFeePct = trip.partnerBooking ? Number(trip.partnerFeePct ?? 0.025) : 0;
     trip.components.forEach((c: TripComponent) => {
       const isYacht = c.productKind === "yacht";
-      const baseSell = c.pricing.sell * (isYacht ? 0.05 : 1);
-      const pct = trip.commissionOverridePct ?? c.pricing.commissionPct ?? 0;
+      const baseRule = isYacht
+        ? "Yacht travel share"
+        : bookingType === "agent_built"
+          ? "Agent-built (80/20)"
+          : "Zeniva-managed (5% referral)";
+      const ruleLabel = !isYacht && partnerFeePct > 0
+        ? `${baseRule} + partner fee ${Math.round(partnerFeePct * 1000) / 10}%`
+        : baseRule;
+
+      const pct = isYacht
+        ? trip.commissionOverridePct ?? c.pricing.commissionPct ?? 0
+        : bookingType === "agent_built"
+          ? 80
+          : 5;
+
+      let baseSell = c.pricing.sell * (isYacht ? 0.05 : 1);
+      if (!isYacht && partnerFeePct > 0) {
+        baseSell = Math.max(0, Math.round(baseSell - baseSell * partnerFeePct));
+      }
+
       const baseCommission = Math.round((baseSell * pct) / 100);
       const bonuses: { label: string; amount: number }[] = [];
-      if (client.origin === "agent") {
-        bonuses.push({ label: "Client creation", amount: Math.round(baseSell * 0.01) });
-      }
-      if (trip.components.length >= 3) {
-        bonuses.push({ label: "Manual build", amount: Math.round(baseSell * 0.01) });
-      }
-      if (trip.title.toLowerCase().includes("rebook")) {
-        bonuses.push({ label: "Rebooking", amount: Math.round(baseSell * 0.01) });
-      }
-      const totalBonus = bonuses.reduce((acc, b) => acc + b.amount, 0);
-      const amount = baseCommission + totalBonus;
+      const amount = baseCommission;
       lines.push({
         tripId: trip.id,
         clientName: client?.name || "",
         productKind: c.productKind,
         componentId: c.id,
+        ruleLabel,
+        bookingType,
+        partnerFeePct,
         sellBase: baseSell,
         commissionPct: pct,
         commissionAmount: baseCommission,

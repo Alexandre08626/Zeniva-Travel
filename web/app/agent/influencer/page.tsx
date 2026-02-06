@@ -207,7 +207,7 @@ export default function InfluencerDashboardPage() {
 
         <section className="flex flex-wrap gap-2">
           {([
-            { key: "overview", label: "Overview" },
+            { key: "overview", label: "Influencer Overview" },
             { key: "forms", label: "Shareable forms" },
             { key: "assets", label: "Brand kit" },
             { key: "money", label: "Sales & money" },
@@ -224,8 +224,32 @@ export default function InfluencerDashboardPage() {
           ))}
         </section>
 
-        {activeTab === "overview" && (
-          <section className="space-y-4">
+        <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
+          <aside className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm h-fit">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Creator Hub</p>
+            <div className="mt-3 flex flex-col gap-2">
+              {([
+                { key: "overview", label: "Influencer Overview" },
+                { key: "forms", label: "Shareable forms" },
+                { key: "assets", label: "Brand kit" },
+                { key: "money", label: "Sales & money" },
+                { key: "support", label: "Support" },
+              ] as const).map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`w-full rounded-xl px-3 py-2 text-left text-xs font-semibold ${activeTab === tab.key ? "bg-slate-900 text-white" : "bg-slate-50 text-slate-700 hover:bg-slate-100"}`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </aside>
+
+          <div className="space-y-6">
+            {activeTab === "overview" && (
+              <section className="space-y-4">
             <div className="grid gap-3 md:grid-cols-4">
               {metricCards.map((card) => (
                 <div key={card.label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -284,11 +308,11 @@ export default function InfluencerDashboardPage() {
                 </div>
               </div>
             </div>
-          </section>
-        )}
+              </section>
+            )}
 
-        {activeTab === "forms" && (
-          <section className="space-y-4">
+            {activeTab === "forms" && (
+              <section className="space-y-4">
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <h2 className="text-lg font-bold" style={{ color: TITLE_TEXT }}>Create a referral form</h2>
               <p className="text-sm" style={{ color: MUTED_TEXT }}>Generate a unique lead capture page for your socials.</p>
@@ -384,11 +408,11 @@ export default function InfluencerDashboardPage() {
                 </table>
               </div>
             </div>
-          </section>
-        )}
+              </section>
+            )}
 
-        {activeTab === "assets" && (
-          <section className="space-y-4">
+            {activeTab === "assets" && (
+              <section className="space-y-4">
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <h2 className="text-lg font-bold" style={{ color: TITLE_TEXT }}>Brand kit</h2>
               <p className="text-sm" style={{ color: MUTED_TEXT }}>Use these assets to keep Zeniva presentation consistent and premium.</p>
@@ -462,11 +486,11 @@ export default function InfluencerDashboardPage() {
                 <li>Keep the tone calm, elevated, and service-first.</li>
               </ul>
             </div>
-          </section>
-        )}
+              </section>
+            )}
 
-        {activeTab === "money" && (
-          <section className="space-y-4">
+            {activeTab === "money" && (
+              <section className="space-y-4">
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
@@ -565,11 +589,11 @@ export default function InfluencerDashboardPage() {
                 </table>
               </div>
             </div>
-          </section>
-        )}
+              </section>
+            )}
 
-        {activeTab === "support" && (
-          <section className="space-y-4">
+            {activeTab === "support" && (
+              <section className="space-y-4">
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <h2 className="text-lg font-bold" style={{ color: TITLE_TEXT }}>Need help? Talk to an agent</h2>
               <p className="mt-2 text-sm" style={{ color: MUTED_TEXT }}>Our concierge team is ready to assist with your client requests or content questions.</p>
@@ -589,19 +613,21 @@ export default function InfluencerDashboardPage() {
                 <li>You stay in the loop for every update.</li>
               </ul>
             </div>
-          </section>
-        )}
+              </section>
+            )}
 
-        {isHQorAdmin && (
-          <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 space-y-4">
+            {isHQorAdmin && (
+              <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 space-y-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Admin only</p>
               <h2 className="text-lg font-bold" style={{ color: TITLE_TEXT }}>Monthly commission rules</h2>
               <p className="text-sm" style={{ color: MUTED_TEXT }}>Influencers can view their rate, but only HQ/Admin can edit plans.</p>
             </div>
             <CommissionPlansAdmin />
-          </section>
-        )}
+              </section>
+            )}
+          </div>
+        </div>
       </div>
     </main>
   );

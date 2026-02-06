@@ -31,11 +31,7 @@ function buildDateFilter(column: string, start?: string, end?: string, offset = 
 }
 
 async function getCurrentCommissionRate(dateIso: string) {
-  const { rows } = await dbQuery(
-    "SELECT influencer_pct FROM commission_plans WHERE start_date <= $1 AND (end_date IS NULL OR end_date >= $1) ORDER BY start_date DESC LIMIT 1",
-    [dateIso]
-  );
-  if (rows[0]) return Number(rows[0].influencer_pct || 0);
+  void dateIso;
   return 5;
 }
 

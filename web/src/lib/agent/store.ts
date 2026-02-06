@@ -42,8 +42,8 @@ let clients: Client[] = IS_PROD ? [] : [
 ];
 
 let trips: TripFile[] = IS_PROD ? [] : [
-  { id: "T-501", clientId: "C-100", title: "Paris + Rome", ownerEmail: "agent@zenivatravel.com", status: "Draft", division: "TRAVEL", components: [], payments: [], documents: [] },
-  { id: "T-502", clientId: "C-101", title: "Med Yacht Week", ownerEmail: "agent@zenivatravel.com", status: "Draft", division: "YACHT", components: [], payments: [], documents: [] },
+  { id: "T-501", clientId: "C-100", title: "Paris + Rome", ownerEmail: "agent@zenivatravel.com", status: "Draft", division: "TRAVEL", components: [], payments: [], documents: [], bookingType: "zeniva_managed" },
+  { id: "T-502", clientId: "C-101", title: "Med Yacht Week", ownerEmail: "agent@zenivatravel.com", status: "Draft", division: "YACHT", components: [], payments: [], documents: [], bookingType: "zeniva_managed" },
 ];
 
 let ledger: LedgerEntry[] = IS_PROD ? [] : [];
@@ -57,6 +57,15 @@ function persist() {
   }
 }
 
+function normalizeTrip(trip: TripFile): TripFile {
+  return {
+    ...trip,
+    bookingType: trip.bookingType || "zeniva_managed",
+    partnerBooking: Boolean(trip.partnerBooking),
+    partnerFeePct: trip.partnerFeePct,
+  };
+}
+
 function hydrate() {
   if (IS_PROD || typeof window === "undefined") return;
   try {
@@ -64,7 +73,7 @@ function hydrate() {
     if (raw) {
       const parsed = JSON.parse(raw);
       clients = parsed.clients || clients;
-      trips = parsed.trips || trips;
+      trips = (parsed.trips || trips).map((t: TripFile) => normalizeTrip(t));
       ledger = (parsed.ledger || ledger || []).map((l: LedgerEntry) => ({ ...l, entryType: l.entryType || "split" }));
     }
   } catch (_) {
@@ -189,6 +198,30 @@ export function setTripCommissionOverride(tripId: string, pct?: number) {
   persist();
 }
 
+export function setTripBookingType(tripId: string, bookingType: TripFile["bookingType"]) {
+  const trip = trips.find((t) => t.id === tripId);
+  if (!trip) return;
+  trip.bookingType = bookingType || "zeniva_managed";
+  addAudit("trip:booking-type", "trip", tripId, { bookingType: trip.bookingType });
+  persist();
+}
+
+export function setTripPartnerBooking(tripId: string, partnerBooking: boolean) {
+  const trip = trips.find((t) => t.id === tripId);
+  if (!trip) return;
+  trip.partnerBooking = partnerBooking;
+  addAudit("trip:partner-booking", "trip", tripId, { partnerBooking });
+  persist();
+}
+
+export function setTripPartnerFeePct(tripId: string, pct?: number) {
+  const trip = trips.find((t) => t.id === tripId);
+  if (!trip) return;
+  trip.partnerFeePct = pct;
+  addAudit("trip:partner-fee", "trip", tripId, { pct });
+  persist();
+}
+
 export function reassignClientOwner(clientId: string, newOwnerEmail: string) {
   const client = clients.find((c) => c.id === clientId);
   if (!client) return;
@@ -200,15 +233,41 @@ export function reassignClientOwner(clientId: string, newOwnerEmail: string) {
 function addLedgerForPayment(trip: TripFile, payment: Payment) {
   const client = getClientById(trip.clientId);
   const hasAgent = (client?.assignedAgents || []).length > 0 || client?.origin === "agent";
-  const agentPct = hasAgent ? 0.2 : 0;
-  const split = computeTripSplit(trip.components || [], agentPct);
+  const isYachtTrip = trip.division === "YACHT" || (trip.components || []).every((c) => c.productKind === "yacht");
+  const bookingType = trip.bookingType || "zeniva_managed";
+  const partnerFeePct = trip.partnerBooking ? Number(trip.partnerFeePct ?? 0.025) : 0;
+  const agentPct = hasAgent
+    ? isYachtTrip
+      ? 0.2
+      : bookingType === "agent_built"
+        ? 0.8
+        : 0.05
+    : 0;
+  const split = computeTripSplit(trip.components || [], agentPct, partnerFeePct);
   if (split.totalSell <= 0) return;
   const travelRatio = split.travelSell / split.totalSell;
   const yachtRatio = split.yachtSell / split.totalSell;
   const travelAmount = Math.round(payment.amount * travelRatio);
   const yachtAmount = Math.round(payment.amount * yachtRatio);
-  const travelAgentAmount = Math.round(travelAmount * agentPct);
-  const travelNetAmount = travelAmount - travelAgentAmount;
+  const partnerFeeAmount = split.partnerFeeAmount > 0 ? Math.min(split.partnerFeeAmount, travelAmount) : 0;
+  const travelAfterFee = travelAmount - partnerFeeAmount;
+  const travelAgentAmount = Math.round(travelAfterFee * agentPct);
+  const travelNetAmount = travelAfterFee - travelAgentAmount;
+  if (partnerFeeAmount > 0) {
+    const entry: LedgerEntry = {
+      id: uid(),
+      tripId: trip.id,
+      paymentId: payment.id,
+      account: "TRAVEL",
+      entryType: "fee",
+      label: `Partner fee ${Math.round((partnerFeePct || 0) * 1000) / 10}%`,
+      amount: partnerFeeAmount,
+      currency: payment.currency,
+      createdAt: new Date().toISOString(),
+    };
+    ledger.unshift(entry);
+    addAudit("ledger:fee", "trip", trip.id, { account: "TRAVEL", amount: partnerFeeAmount, currency: payment.currency });
+  }
   if (travelNetAmount > 0) {
     const entry: LedgerEntry = {
       id: uid(),
@@ -231,7 +290,7 @@ function addLedgerForPayment(trip: TripFile, payment: Payment) {
       paymentId: payment.id,
       account: "TRAVEL",
       entryType: "commission",
-      label: "Travel agent 20%",
+      label: `Travel agent ${Math.round(agentPct * 100)}%`,
       amount: travelAgentAmount,
       currency: payment.currency,
       createdAt: new Date().toISOString(),

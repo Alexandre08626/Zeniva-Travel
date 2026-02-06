@@ -13,15 +13,6 @@ function getSession(request: Request) {
   return verifySession(token);
 }
 
-async function getCommissionPlan(dateIso: string) {
-  const { rows } = await dbQuery(
-    "SELECT id, start_date, end_date, influencer_pct FROM commission_plans WHERE start_date <= $1 AND (end_date IS NULL OR end_date >= $1) ORDER BY start_date DESC LIMIT 1",
-    [dateIso]
-  );
-  if (rows[0]) return rows[0];
-  return { id: "fallback", influencer_pct: 5 };
-}
-
 export async function POST(request: Request) {
   try {
     assertBackendEnv();
@@ -36,6 +27,8 @@ export async function POST(request: Request) {
     const amount = Number(body?.amount || 0);
     const currency = String(body?.currency || "USD");
     const bookingDate = body?.bookingDate ? new Date(body.bookingDate).toISOString() : new Date().toISOString();
+    const bookingType = body?.bookingType === "agent_built" ? "agent_built" : body?.bookingType === "yacht" ? "yacht" : "zeniva_managed";
+    const partnerFeePct = body?.partnerFeePct ? Number(body.partnerFeePct) : body?.partnerBooking ? 0.025 : 0;
 
     if (!bookingId || !travelerEmail || !Number.isFinite(amount) || amount <= 0) {
       return NextResponse.json({ error: "Missing booking details" }, { status: 400 });
@@ -51,9 +44,19 @@ export async function POST(request: Request) {
 
     const referralCode = referral.rows[0].referral_code;
     const influencerId = referral.rows[0].influencer_id;
-    const plan = await getCommissionPlan(bookingDate.slice(0, 10));
-    const pct = Number(plan.influencer_pct || 5);
-    const commission = Math.round((amount * pct) / 100);
+    if (bookingType === "agent_built") {
+      return NextResponse.json({ ok: true, skipped: true, reason: "Agent-built bookings are not influencer-commissioned." });
+    }
+
+    const pct = 5;
+    let baseAmount = amount;
+    if (bookingType === "yacht") {
+      baseAmount = Math.round(baseAmount * 0.05);
+    }
+    if (Number.isFinite(partnerFeePct) && partnerFeePct > 0) {
+      baseAmount = Math.max(0, Math.round(baseAmount - baseAmount * partnerFeePct));
+    }
+    const commission = Math.round((baseAmount * pct) / 100);
 
     const id = `inf-comm-${crypto.randomUUID()}`;
     await dbQuery(

@@ -45,6 +45,7 @@ function PaymentContent() {
   const gratuity = hasCustomPrice ? 0 : 255;
   const taxes = hasCustomPrice ? 0 : 68;
   const totalDue = hasCustomPrice ? baseRate : baseRate + gratuity + taxes;
+  const bookingType = isFlight ? "zeniva_managed" : "yacht";
 
   const formatMoney = (value: number) => new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -93,6 +94,7 @@ function PaymentContent() {
           amount: totalDue,
           currency: "USD",
           bookingDate: new Date().toISOString(),
+          bookingType,
         }),
       }).catch(() => undefined);
     }

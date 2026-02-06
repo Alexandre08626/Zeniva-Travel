@@ -169,4 +169,7 @@ export type TripFile = {
   quoteTotal?: Pricing;
   marginOverridePct?: number;
   commissionOverridePct?: number;
+  bookingType?: "zeniva_managed" | "agent_built";
+  partnerBooking?: boolean;
+  partnerFeePct?: number;
 };

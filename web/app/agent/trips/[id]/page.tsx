@@ -23,6 +23,9 @@ import {
   listClients,
   listTrips,
   listLedger,
+  setTripBookingType,
+  setTripPartnerBooking,
+  setTripPartnerFeePct,
   setTripCommissionOverride,
   setTripMarginOverride,
   setTripStatus,
@@ -50,6 +53,9 @@ export default function TripWorkspacePage() {
   const [ledger, setLedger] = useState(() => listLedger());
   const [marginOverride, setMarginOverride] = useState<number | undefined>();
   const [commissionOverride, setCommissionOverride] = useState<number | undefined>();
+  const [bookingType, setBookingType] = useState<"zeniva_managed" | "agent_built">("zeniva_managed");
+  const [partnerBooking, setPartnerBooking] = useState(false);
+  const [partnerFeePct, setPartnerFeePct] = useState<number | undefined>(undefined);
   const flights = useMemo(() => searchFlights(), []);
   const hotels = useMemo(() => searchHotels(), []);
   const yachts = useMemo(() => searchYachts(), []);
@@ -70,6 +76,9 @@ export default function TripWorkspacePage() {
     setDocs(trip.documents || []);
     setMarginOverride(trip.marginOverridePct);
     setCommissionOverride(trip.commissionOverridePct);
+    setBookingType(trip.bookingType || "zeniva_managed");
+    setPartnerBooking(Boolean(trip.partnerBooking));
+    setPartnerFeePct(trip.partnerFeePct);
     setLedger(listLedger().filter((l) => l.tripId === trip.id));
   }, [trip]);
 
@@ -83,9 +92,25 @@ export default function TripWorkspacePage() {
     [visibleComponents, commissionOverride, marginOverride]
   );
 
+  const isYachtTrip = useMemo(
+    () => trip?.division === "YACHT" || (visibleComponents.length > 0 && visibleComponents.every((c) => c.productKind === "yacht")),
+    [trip?.division, visibleComponents]
+  );
+
+  const travelAgentPct = useMemo(() => {
+    if (client?.origin !== "agent" || !client?.ownerEmail) return 0;
+    if (isYachtTrip) return 0.2;
+    return bookingType === "agent_built" ? 0.8 : 0.05;
+  }, [bookingType, client?.origin, client?.ownerEmail, isYachtTrip]);
+
+  const appliedPartnerFeePct = useMemo(
+    () => (partnerBooking ? Number(partnerFeePct ?? 0.025) : 0),
+    [partnerBooking, partnerFeePct]
+  );
+
   const split = useMemo(
-    () => computeTripSplit(visibleComponents, client?.origin === "agent" ? 0.2 : 0),
-    [visibleComponents, client?.origin]
+    () => computeTripSplit(visibleComponents, travelAgentPct, appliedPartnerFeePct),
+    [visibleComponents, travelAgentPct, appliedPartnerFeePct]
   );
 
   if (!trip) {
@@ -150,6 +175,23 @@ export default function TripWorkspacePage() {
     const n = Number(val);
     setCommissionOverride(Number.isFinite(n) ? n : undefined);
     setTripCommissionOverride(trip.id, Number.isFinite(n) ? n : undefined);
+  };
+
+  const updateBookingType = (value: "zeniva_managed" | "agent_built") => {
+    setBookingType(value);
+    setTripBookingType(trip.id, value);
+  };
+
+  const updatePartnerBooking = (value: boolean) => {
+    setPartnerBooking(value);
+    setTripPartnerBooking(trip.id, value);
+  };
+
+  const updatePartnerFee = (val: string) => {
+    const n = Number(val);
+    const pct = Number.isFinite(n) ? n : undefined;
+    setPartnerFeePct(pct);
+    setTripPartnerFeePct(trip.id, pct);
   };
 
   const advanceStatus = () => {
@@ -514,6 +556,47 @@ export default function TripWorkspacePage() {
               <p className="text-sm text-slate-500">Add items to see totals.</p>
             )}
             <div className="space-y-2 text-sm">
+              <div className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
+                <p className="text-xs font-semibold text-slate-500">Commission rule</p>
+                <div className="mt-2 space-y-2">
+                  <label className="block text-xs">
+                    Booking type
+                    <select
+                      className="mt-1 w-full rounded border border-slate-200 px-2 py-1 text-xs"
+                      value={bookingType}
+                      onChange={(e) => updateBookingType(e.target.value as "zeniva_managed" | "agent_built")}
+                      disabled={isYachtTrip}
+                    >
+                      <option value="zeniva_managed">Zeniva-managed (5% referral)</option>
+                      <option value="agent_built">Agent-built / TBO (80/20)</option>
+                    </select>
+                    {isYachtTrip && (
+                      <p className="mt-1 text-[11px] text-slate-500">Yacht commission rules are fixed and do not use this toggle.</p>
+                    )}
+                  </label>
+                  <label className="flex items-center gap-2 text-xs">
+                    <input
+                      type="checkbox"
+                      checked={partnerBooking}
+                      onChange={(e) => updatePartnerBooking(e.target.checked)}
+                    />
+                    Partner booking (2.5% fee)
+                  </label>
+                  {partnerBooking && (
+                    <label className="block text-xs">
+                      Partner fee %
+                      <input
+                        className="mt-1 w-full rounded border border-slate-200 px-2 py-1 text-xs"
+                        type="number"
+                        step="0.1"
+                        placeholder="2.5"
+                        value={partnerFeePct ?? ""}
+                        onChange={(e) => updatePartnerFee(e.target.value)}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
               <label className="block">
                 Margin override % (HQ)
                 <input
@@ -586,8 +669,14 @@ export default function TripWorkspacePage() {
               <div className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 space-y-1">
                 <p className="font-semibold" style={{ color: TITLE_TEXT }}>Total sell ${split.totalSell}</p>
                 <p className="text-xs" style={{ color: MUTED_TEXT }}>Zeniva Travel share (incl yacht 5%): ${split.travelSell}</p>
+                {split.partnerFeeAmount > 0 && (
+                  <p className="text-xs" style={{ color: MUTED_TEXT }}>Partner fee: ${split.partnerFeeAmount}</p>
+                )}
+                {split.partnerFeeAmount > 0 && (
+                  <p className="text-xs" style={{ color: MUTED_TEXT }}>Travel after partner fee: ${split.travelAfterPartnerFee}</p>
+                )}
                 {split.travelAgentShare > 0 && (
-                  <p className="text-xs" style={{ color: MUTED_TEXT }}>Travel agent 20%: ${split.travelAgentShare}</p>
+                  <p className="text-xs" style={{ color: MUTED_TEXT }}>Travel agent {Math.round(travelAgentPct * 100)}%: ${split.travelAgentShare}</p>
                 )}
                 <p className="text-xs" style={{ color: MUTED_TEXT }}>Zeniva Travel net after agent: ${split.travelNetAfterAgent}</p>
                 <p className="text-xs" style={{ color: MUTED_TEXT }}>Zeniva Yacht share (95% yachts): ${split.yachtSell}</p>
