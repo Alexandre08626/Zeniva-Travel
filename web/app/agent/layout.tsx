@@ -24,9 +24,9 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
   const unreadCount = useMemo(() => notifications.filter((item) => !item.read).length, [notifications]);
 
   const notificationsKey = useMemo(() => {
-    const identifier = user?.id || user?.email || "anon";
+    const identifier = user?.email || user?.name || "anon";
     return `agent:notifications:read:${identifier}`;
-  }, [user]);
+  }, [user?.email, user?.name]);
 
   const persistReadIds = (ids: string[]) => {
     if (typeof window === "undefined") return;
