@@ -6,6 +6,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import HelpCenterButton from "../src/components/HelpCenterButton.client";
 import BackButton from "../src/components/BackButton.client";
+import LinaAssistantDock from "../src/components/LinaAssistantDock";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -97,6 +98,7 @@ export default function RootLayout({
         <Providers>
           <BackButton />
           <HelpCenterButton />
+          <LinaAssistantDock />
           {children}
         </Providers>
       </body>
