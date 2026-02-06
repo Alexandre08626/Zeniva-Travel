@@ -4,42 +4,60 @@ import { Send, Search } from "lucide-react";
 import PageHeader from '../../../src/components/partner/PageHeader';
 import LinaAvatar from "../../../src/components/LinaAvatar";
 
+type HelpMessage = {
+  id: string;
+  sender: "host" | "lina" | "agent";
+  text: string;
+  timestamp: string;
+};
+
+type HelpThread = {
+  id: string;
+  title: string;
+  subtitle: string;
+  type: "lina" | "agent";
+  avatar: string;
+  messages: HelpMessage[];
+};
+
+const INITIAL_THREADS: HelpThread[] = [
+  {
+    id: "lina-help",
+    title: "Lina AI Partner Advisor",
+    subtitle: "AI-first Help Center",
+    type: "lina",
+    avatar: "/branding/lina-avatar.png",
+    messages: [
+      {
+        id: "welcome-lina",
+        sender: "lina",
+        text: "Hi! I can help with listings, pricing, availability, and guest communication. Switch to Agent for complex escalations.",
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  },
+  {
+    id: "agent-help",
+    title: "Zeniva Partner Agent",
+    subtitle: "Human support for escalations",
+    type: "agent",
+    avatar: "/branding/lina-avatar.png",
+    messages: [
+      {
+        id: "welcome-agent",
+        sender: "agent",
+        text: "Hi! I can help resolve complex issues or finalize booking changes.",
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  },
+];
+
 export default function InboxPage() {
   const [messageText, setMessageText] = useState("");
   const [sending, setSending] = useState(false);
   const [activeTab, setActiveTab] = useState<"lina" | "agent">("lina");
-  const [threads, setThreads] = useState([
-    {
-      id: "lina-help",
-      title: "Lina AI Partner Advisor",
-      subtitle: "AI-first Help Center",
-      type: "lina" as const,
-      avatar: "/branding/lina-avatar.png",
-      messages: [
-        {
-          id: "welcome-lina",
-          sender: "lina" as const,
-          text: "Hi! I can help with listings, pricing, availability, and guest communication. Switch to Agent for complex escalations.",
-          timestamp: new Date().toISOString(),
-        },
-      ],
-    },
-    {
-      id: "agent-help",
-      title: "Zeniva Partner Agent",
-      subtitle: "Human support for escalations",
-      type: "agent" as const,
-      avatar: "/branding/lina-avatar.png",
-      messages: [
-        {
-          id: "welcome-agent",
-          sender: "agent" as const,
-          text: "Hi! I can help resolve complex issues or finalize booking changes.",
-          timestamp: new Date().toISOString(),
-        },
-      ],
-    },
-  ]);
+  const [threads, setThreads] = useState<HelpThread[]>(INITIAL_THREADS);
   const [selectedThreadId, setSelectedThreadId] = useState("lina-help");
 
   const activeThread = useMemo(() => threads.find((t) => t.id === selectedThreadId) || threads[0], [threads, selectedThreadId]);
@@ -47,7 +65,7 @@ export default function InboxPage() {
   const handleSendMessage = async () => {
     if (!messageText.trim() || sending) return;
     
-    const newMessage = {
+    const newMessage: HelpMessage = {
       id: `msg-${Date.now()}`,
       sender: "host" as const,
       text: messageText,
@@ -73,7 +91,7 @@ export default function InboxPage() {
         const resp = await fetch(`/api/chat?prompt=${encodeURIComponent(newMessage.text)}&mode=partner`);
         const data = await resp.json();
         const reply = data?.reply || "Lina is currently unavailable.";
-        const linaMessage = {
+        const linaMessage: HelpMessage = {
           id: `lina-${Date.now()}`,
           sender: "lina" as const,
           text: reply,
