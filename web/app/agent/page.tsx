@@ -94,7 +94,6 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
       { label: "Purchase Orders", href: "/agent/purchase-orders" },
       { label: "Bookings", href: "/agent/bookings" },
       { label: "Commissions", href: "/agent/commissions" },
-      { label: "Yachts", href: "/agent/yachts" },
       { label: "Chat", href: "/agent/chat" },
       ...(isHQorAdmin
         ? [
@@ -734,17 +733,25 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
                   <div className="flex-1 space-y-4">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Primary Search Bar — Classic</p>
-                      <div className="flex gap-1 mb-4">
-                        {['flights', 'hotels', 'transfers'].map(tab => (
-                          <button
-                            key={tab}
-                            type="button"
-                            onClick={() => setActiveTab(tab as 'flights' | 'hotels' | 'transfers')}
-                            className={`rounded-full px-4 py-2 text-sm font-semibold ${activeTab === tab ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-700'}`}
-                          >
-                            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                          </button>
-                        ))}
+                      <div className="mb-4 flex flex-wrap items-center gap-2">
+                        <div className="flex gap-1">
+                          {['flights', 'hotels', 'transfers'].map(tab => (
+                            <button
+                              key={tab}
+                              type="button"
+                              onClick={() => setActiveTab(tab as 'flights' | 'hotels' | 'transfers')}
+                              className={`rounded-full px-4 py-2 text-sm font-semibold ${activeTab === tab ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-700'}`}
+                            >
+                              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                            </button>
+                          ))}
+                        </div>
+                        <Link
+                          href="/agent/agent-info"
+                          className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+                        >
+                          Partner catalog
+                        </Link>
                       </div>
                       {activeTab === 'flights' && (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
