@@ -3,14 +3,13 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { Send, Search } from "lucide-react";
 
 const ADMIN_CHANNEL_ID = "hq";
 
 type ChatMessage = {
   id: string;
-  role: "user" | "agent";
+  role: "user" | "agent" | "lina";
   text: string;
   ts: string;
 };
@@ -21,64 +20,53 @@ type ChatThread = {
   listingTitle: string;
   unread: number;
   avatar: string;
-  type: "agent" | "owner";
+  type: "agent" | "lina";
   messages: ChatMessage[];
 };
 
 export default function TravelerAgentChatClient() {
   const searchParams = useSearchParams();
-  const listing = searchParams?.get("listing") || "short‑term stay";
-  const sourcePath = searchParams?.get("source") || "/residences";
+  const listing = searchParams?.get("listing") || "Help Center";
+  const sourcePath = searchParams?.get("source") || "/";
   const channelId = searchParams?.get("channel") || "agent-alexandre";
   const [threads, setThreads] = useState<ChatThread[]>([
     {
-      id: channelId,
-      title: "Zeniva Agent",
-      listingTitle: listing,
+      id: "lina-help",
+      title: "Lina AI Concierge",
+      listingTitle: "AI-first Help Center",
       unread: 0,
       avatar: "/branding/lina-avatar.png",
-      type: "agent",
+      type: "lina",
       messages: [
         {
-          id: "welcome",
-          role: "agent",
-          text: `Hi! An agent will be with you shortly. How can we help with ${listing}?`,
+          id: "welcome-lina",
+          role: "lina",
+          text: "Hi! I can help with trip planning, changes, and booking questions. If you need a human agent, switch to the Agent tab.",
           ts: new Date().toLocaleTimeString().slice(0, 5),
         },
       ],
     },
     {
-      id: "owner-demo",
-      title: "Property Owner",
-      listingTitle: `${listing} · Owner chat`,
-      unread: 1,
-      avatar: "/branding/logo.png",
-      type: "owner",
+      id: channelId,
+      title: "Zeniva Agent",
+      listingTitle: "Human support for escalations",
+      unread: 0,
+      avatar: "/branding/lina-avatar.png",
+      type: "agent",
       messages: [
         {
-          id: "owner-1",
+          id: "welcome-agent",
           role: "agent",
-          text: "Hello! I’m the property owner. Happy to answer any questions about check-in or amenities.",
-          ts: "09:10",
-        },
-        {
-          id: "owner-2",
-          role: "user",
-          text: "Thanks! Is early check-in possible around noon?",
-          ts: "09:12",
-        },
-        {
-          id: "owner-3",
-          role: "agent",
-          text: "Yes, we can offer early check-in if the unit is ready. I’ll confirm the day before.",
-          ts: "09:13",
+          text: "Hi! I’m here to help with complex issues or to finalize a reservation. How can we assist?",
+          ts: new Date().toLocaleTimeString().slice(0, 5),
         },
       ],
     },
   ]);
-  const [selectedThreadId, setSelectedThreadId] = useState(channelId);
+  const [selectedThreadId, setSelectedThreadId] = useState("lina-help");
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [activeTab, setActiveTab] = useState<"lina" | "agent">("lina");
 
   const activeThread = threads.find((t) => t.id === selectedThreadId) || threads[0];
 
@@ -102,6 +90,28 @@ export default function TravelerAgentChatClient() {
     );
     setInput("");
     setSending(true);
+
+    if (activeTab === "lina") {
+      try {
+        const resp = await fetch(`/api/chat?prompt=${encodeURIComponent(text)}&mode=traveler`);
+        const data = await resp.json();
+        const reply = data?.reply || "Lina is currently unavailable.";
+        const linaMessage: ChatMessage = {
+          id: `${now.getTime()}-lina`,
+          role: "lina",
+          text: reply,
+          ts: new Date().toLocaleTimeString().slice(0, 5),
+        };
+        setThreads((prev) =>
+          prev.map((t) =>
+            t.id === "lina-help" ? { ...t, messages: [...t.messages, linaMessage], unread: 0 } : t
+          )
+        );
+      } finally {
+        setSending(false);
+      }
+      return;
+    }
 
     if (activeThread.type !== "agent") {
       setSending(false);
@@ -141,28 +151,11 @@ export default function TravelerAgentChatClient() {
       <div className="mx-auto flex h-[calc(100vh-3rem)] max-w-[1500px] flex-col gap-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm uppercase tracking-wide text-slate-500">Chat with an agent</p>
-            <h1 className="text-2xl font-black text-slate-900">{listing}</h1>
+            <p className="text-sm uppercase tracking-wide text-slate-500">Help Center</p>
+            <h1 className="text-2xl font-black text-slate-900">Lina AI + Human Support</h1>
+            <p className="text-sm text-slate-600">AI-first assistance. Agents handle complex issues and final booking support.</p>
           </div>
           <div className="flex items-center gap-2">
-            <Link
-              href="/chat?prompt=Plan%20a%20trip"
-              className="flex items-center gap-3 rounded-full border border-blue-200 bg-white px-3 py-2 shadow-sm hover:bg-blue-50 transition"
-            >
-              <Image
-                src="/branding/lina-avatar.png"
-                alt="Lina"
-                width={40}
-                height={40}
-                sizes="40px"
-                quality={100}
-                className="rounded-full ring-2 ring-blue-200"
-              />
-              <div className="text-left">
-                <p className="text-sm font-bold text-slate-900">Lina AI</p>
-                <p className="text-[11px] font-semibold text-blue-700">Concierge option</p>
-              </div>
-            </Link>
             <Link
               href={sourcePath}
               className="inline-flex items-center px-4 py-2 rounded-full bg-white border text-sm font-semibold text-slate-800 shadow-sm"
@@ -207,8 +200,8 @@ export default function TravelerAgentChatClient() {
               <div className="p-4 border-b border-blue-100">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Bookings</p>
-                    <h2 className="text-lg font-bold text-slate-900">Your conversations</h2>
+                    <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Help Center</p>
+                    <h2 className="text-lg font-bold text-slate-900">Lina + Agent</h2>
                   </div>
                   <span className="rounded-full bg-blue-600 text-white text-xs font-semibold px-2 py-1">
                     {threads.length}
@@ -228,7 +221,10 @@ export default function TravelerAgentChatClient() {
                 {threads.map((thread) => (
                   <button
                     key={thread.id}
-                    onClick={() => setSelectedThreadId(thread.id)}
+                    onClick={() => {
+                      setSelectedThreadId(thread.id);
+                      setActiveTab(thread.type === "agent" ? "agent" : "lina");
+                    }}
                     className={`w-full text-left px-4 py-3 border-b border-blue-100 hover:bg-white transition ${
                       selectedThreadId === thread.id ? "bg-white" : "bg-transparent"
                     }`}
@@ -263,6 +259,50 @@ export default function TravelerAgentChatClient() {
                   <h3 className="text-lg font-bold text-slate-900">{activeThread?.title || "Agent"}</h3>
                 </div>
                 <span className="text-xs text-blue-700 font-semibold">{activeThread?.listingTitle || listing}</span>
+              </div>
+
+              <div className="px-6 py-3 border-b border-blue-100 bg-white">
+                <div className="inline-flex rounded-full border border-blue-100 bg-blue-50/70 p-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab("lina");
+                      setSelectedThreadId("lina-help");
+                    }}
+                    className={`rounded-full px-4 py-1 text-sm font-semibold ${activeTab === "lina" ? "bg-white text-blue-700" : "text-blue-600"}`}
+                  >
+                    Lina AI
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab("agent");
+                      setSelectedThreadId(channelId);
+                    }}
+                    className={`rounded-full px-4 py-1 text-sm font-semibold ${activeTab === "agent" ? "bg-white text-blue-700" : "text-blue-600"}`}
+                  >
+                    Human agent
+                  </button>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                  {[
+                    "Change dates",
+                    "Cancel or refund",
+                    "Payment issue",
+                    "Modify passengers",
+                    "Upgrade request",
+                    "Special assistance",
+                  ].map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setInput(option)}
+                      className="rounded-full border border-blue-100 bg-white px-3 py-1 text-blue-700 font-semibold"
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">

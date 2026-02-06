@@ -1,65 +1,111 @@
 "use client";
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { Send, Search } from 'lucide-react';
+import React, { useMemo, useState } from "react";
+import { Send, Search } from "lucide-react";
 import PageHeader from '../../../src/components/partner/PageHeader';
-import { mockThreads } from '../../../src/lib/mockData';
+import LinaAvatar from "../../../src/components/LinaAvatar";
 
 export default function InboxPage() {
-  const [threads, setThreads] = useState(mockThreads);
-  const [selectedThread, setSelectedThread] = useState(threads[0]);
-  const [messageText, setMessageText] = useState('');
+  const [messageText, setMessageText] = useState("");
+  const [sending, setSending] = useState(false);
+  const [activeTab, setActiveTab] = useState<"lina" | "agent">("lina");
+  const [threads, setThreads] = useState([
+    {
+      id: "lina-help",
+      title: "Lina AI Partner Advisor",
+      subtitle: "AI-first Help Center",
+      type: "lina" as const,
+      avatar: "/branding/lina-avatar.png",
+      messages: [
+        {
+          id: "welcome-lina",
+          sender: "lina" as const,
+          text: "Hi! I can help with listings, pricing, availability, and guest communication. Switch to Agent for complex escalations.",
+          timestamp: new Date().toISOString(),
+        },
+      ],
+    },
+    {
+      id: "agent-help",
+      title: "Zeniva Partner Agent",
+      subtitle: "Human support for escalations",
+      type: "agent" as const,
+      avatar: "/branding/lina-avatar.png",
+      messages: [
+        {
+          id: "welcome-agent",
+          sender: "agent" as const,
+          text: "Hi! I can help resolve complex issues or finalize booking changes.",
+          timestamp: new Date().toISOString(),
+        },
+      ],
+    },
+  ]);
+  const [selectedThreadId, setSelectedThreadId] = useState("lina-help");
 
-  const handleSendMessage = () => {
-    if (!messageText.trim()) return;
+  const activeThread = useMemo(() => threads.find((t) => t.id === selectedThreadId) || threads[0], [threads, selectedThreadId]);
+
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || sending) return;
     
     const newMessage = {
       id: `msg-${Date.now()}`,
-      sender: 'host' as const,
+      sender: "host" as const,
       text: messageText,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
-    // Update threads with new message
-    setThreads(prev => prev.map(thread => 
-      thread.id === selectedThread.id
-        ? { 
-            ...thread, 
-            messages: [...thread.messages, newMessage],
-            lastMessage: messageText,
-            lastMessageAt: new Date().toISOString()
-          }
-        : thread
-    ));
-
-    // Update selected thread
-    setSelectedThread(prev => ({
-      ...prev,
-      messages: [...prev.messages, newMessage],
-      lastMessage: messageText,
-      lastMessageAt: new Date().toISOString()
-    }));
+    setThreads((prev) =>
+      prev.map((thread) =>
+        thread.id === activeThread.id
+          ? {
+              ...thread,
+              messages: [...thread.messages, newMessage],
+            }
+          : thread
+      )
+    );
 
     setMessageText('');
-    
-    if (typeof window !== 'undefined') {
-      window.showToast?.('Message sent successfully', 'success');
+
+    if (activeTab === "lina") {
+      setSending(true);
+      try {
+        const resp = await fetch(`/api/chat?prompt=${encodeURIComponent(newMessage.text)}&mode=partner`);
+        const data = await resp.json();
+        const reply = data?.reply || "Lina is currently unavailable.";
+        const linaMessage = {
+          id: `lina-${Date.now()}`,
+          sender: "lina" as const,
+          text: reply,
+          timestamp: new Date().toISOString(),
+        };
+        setThreads((prev) =>
+          prev.map((thread) =>
+            thread.id === "lina-help"
+              ? { ...thread, messages: [...thread.messages, linaMessage] }
+              : thread
+          )
+        );
+      } finally {
+        setSending(false);
+      }
+      return;
     }
   };
 
   return (
     <div>
       <PageHeader
-        title="Inbox"
-        subtitle="Communicate with your guests"
+        title="Partner Help Center"
+        subtitle="AI-first support with agent escalation when needed"
         backHref="/partner/dashboard"
         breadcrumbs={[
-          { label: 'Partner', href: '/partner/dashboard' },
-          { label: 'Inbox' }
+          { label: "Partner", href: "/partner/dashboard" },
+          { label: "Help Center" }
         ]}
       />
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex" style={{ height: 'calc(100vh - 280px)' }}>
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex" style={{ height: "calc(100vh - 280px)" }}>
         {/* Threads List */}
         <div className="w-96 border-r border-gray-200 flex flex-col">
           <div className="p-4 border-b border-gray-200">
@@ -67,7 +113,7 @@ export default function InboxPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search conversations..."
+                placeholder="Search help center..."
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none"
               />
             </div>
@@ -77,25 +123,25 @@ export default function InboxPage() {
             {threads.map((thread) => (
               <button
                 key={thread.id}
-                onClick={() => setSelectedThread(thread)}
+                onClick={() => {
+                  setSelectedThreadId(thread.id);
+                  setActiveTab(thread.type === "agent" ? "agent" : "lina");
+                }}
                 className={`w-full p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors text-left ${
-                  selectedThread?.id === thread.id ? 'bg-emerald-50' : ''
+                  activeThread?.id === thread.id ? "bg-emerald-50" : ""
                 }`}
               >
                 <div className="flex items-center gap-3 mb-2">
-                  <img src={thread.guestAvatar} alt={thread.guestName} className="w-10 h-10 rounded-full" />
+                  <img src={thread.avatar} alt={thread.title} className="w-10 h-10 rounded-full" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-semibold text-gray-900 truncate">{thread.guestName}</span>
-                      {thread.unread > 0 && (
-                        <span className="px-2 py-0.5 bg-emerald-600 text-white text-xs rounded-full">{thread.unread}</span>
-                      )}
+                      <span className="font-semibold text-gray-900 truncate">{thread.title}</span>
                     </div>
-                    <p className="text-sm text-gray-600 truncate">{thread.listingTitle}</p>
+                    <p className="text-sm text-gray-600 truncate">{thread.subtitle}</p>
                   </div>
                 </div>
-                <p className="text-sm text-gray-700 truncate">{thread.lastMessage}</p>
-                <p className="text-xs text-gray-500 mt-1">{new Date(thread.lastMessageAt).toLocaleString()}</p>
+                <p className="text-sm text-gray-700 truncate">{thread.messages[thread.messages.length - 1]?.text}</p>
+                <p className="text-xs text-gray-500 mt-1">{new Date(thread.messages[thread.messages.length - 1]?.timestamp).toLocaleString()}</p>
               </button>
             ))}
           </div>
@@ -106,25 +152,69 @@ export default function InboxPage() {
           {/* Chat Header */}
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center gap-3">
-              <img src={selectedThread.guestAvatar} alt={selectedThread.guestName} className="w-10 h-10 rounded-full" />
+              <LinaAvatar size="sm" />
               <div>
-                <h3 className="font-semibold text-gray-900">{selectedThread.guestName}</h3>
-                <p className="text-sm text-gray-600">{selectedThread.listingTitle}</p>
+                <h3 className="font-semibold text-gray-900">{activeThread.title}</h3>
+                <p className="text-sm text-gray-600">{activeThread.subtitle}</p>
               </div>
+            </div>
+          </div>
+
+          <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+            <div className="inline-flex rounded-full border border-gray-200 bg-white p-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("lina");
+                  setSelectedThreadId("lina-help");
+                }}
+                className={`rounded-full px-4 py-1 text-sm font-semibold ${activeTab === "lina" ? "bg-white text-emerald-700" : "text-gray-600"}`}
+              >
+                Lina AI
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("agent");
+                  setSelectedThreadId("agent-help");
+                }}
+                className={`rounded-full px-4 py-1 text-sm font-semibold ${activeTab === "agent" ? "bg-white text-emerald-700" : "text-gray-600"}`}
+              >
+                Human agent
+              </button>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2 text-xs">
+              {[
+                "Update pricing",
+                "Fix availability",
+                "Guest complaint",
+                "Booking change",
+                "Payout issue",
+                "Listing optimization",
+              ].map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setMessageText(option)}
+                  className="rounded-full border border-emerald-100 bg-white px-3 py-1 text-emerald-700 font-semibold"
+                >
+                  {option}
+                </button>
+              ))}
             </div>
           </div>
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            {selectedThread.messages.map((msg) => (
-              <div key={msg.id} className={`flex ${msg.sender === 'host' ? 'justify-end' : 'justify-start'}`}>
+            {activeThread.messages.map((msg) => (
+              <div key={msg.id} className={`flex ${msg.sender === "host" ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-md px-4 py-3 rounded-lg ${
-                  msg.sender === 'host'
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-gray-100 text-gray-900'
+                  msg.sender === "host"
+                    ? "bg-emerald-600 text-white"
+                    : "bg-gray-100 text-gray-900"
                 }`}>
                   <p className="text-sm">{msg.text}</p>
-                  <p className={`text-xs mt-1 ${msg.sender === 'host' ? 'text-emerald-100' : 'text-gray-500'}`}>
+                  <p className={`text-xs mt-1 ${msg.sender === "host" ? "text-emerald-100" : "text-gray-500"}`}>
                     {new Date(msg.timestamp).toLocaleTimeString()}
                   </p>
                 </div>
@@ -139,12 +229,13 @@ export default function InboxPage() {
                 type="text"
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                 placeholder="Type your message..."
                 className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none"
               />
               <button
                 onClick={handleSendMessage}
+                disabled={sending}
                 className="px-4 py-2.5 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors flex items-center gap-2"
               >
                 <Send className="w-5 h-5" />
