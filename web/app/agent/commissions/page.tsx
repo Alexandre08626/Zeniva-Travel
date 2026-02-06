@@ -2,9 +2,11 @@
 import { computeCommissions } from "../../../src/lib/agent/commissions";
 import { listTrips, getClientById } from "../../../src/lib/agent/store";
 import { useAuthStore } from "../../../src/lib/authStore";
+import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../src/design/tokens";
 
 export default function CommissionsPage() {
+  useRequireAnyPermission(["payments:all", "payments:yacht"], "/agent");
   const user = useAuthStore((s) => s.user);
   const lines = computeCommissions();
   const trips = listTrips();

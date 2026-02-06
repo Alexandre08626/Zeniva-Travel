@@ -2,8 +2,10 @@
 import { searchYachts } from "../../../src/lib/agent/inventory/yachts";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../src/design/tokens";
 import Link from "next/link";
+import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
 
 export default function AgentYachtsPage() {
+  useRequireAnyPermission(["inventory:all", "inventory:yacht"], "/agent");
   const yachts = searchYachts();
   return (
     <main className="min-h-screen" style={{ backgroundColor: "#F3F6FB" }}>

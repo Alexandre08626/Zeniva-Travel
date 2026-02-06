@@ -4,6 +4,7 @@ import { I18nProvider } from "../src/lib/i18n/I18nProvider";
 import { useEffect } from "react";
 import { useAuthStore } from "../src/lib/authStore";
 import { setTripUserScope } from "../lib/store/tripsStore";
+import ReferralTracker from "../src/components/ReferralTracker.client";
 
 function TripsScopeBridge() {
   const user = useAuthStore((s) => s.user);
@@ -28,6 +29,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <I18nProvider>
       <TripsScopeBridge />
       <ActiveSpaceBridge />
+      <ReferralTracker />
       {children}
     </I18nProvider>
   );

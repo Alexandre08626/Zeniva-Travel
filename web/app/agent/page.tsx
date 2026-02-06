@@ -5,6 +5,7 @@ import type { FormEvent } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { PREMIUM_BLUE, TITLE_TEXT, MUTED_TEXT, ACCENT_GOLD } from "../../src/design/tokens";
 import { useAuthStore, isHQ, logout } from "../../src/lib/authStore";
+import { normalizeRbacRole } from "../../src/lib/rbac";
 import { toAgentWorkspaceId } from "../../src/lib/agent/agentWorkspace";
 import LinaAvatar from "../../src/components/LinaAvatar";
 
@@ -47,6 +48,11 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
   const hq = isHQ(user);
+  const roles = user?.roles && user.roles.length ? user.roles : user?.role ? [user.role] : [];
+  const effectiveRole = normalizeRbacRole(user?.effectiveRole) || normalizeRbacRole(roles[0]);
+  const isInfluencer = effectiveRole === "influencer";
+  const isYachtBroker = effectiveRole === "yacht_broker";
+  const isHQorAdmin = effectiveRole === "hq" || effectiveRole === "admin" || hq;
   const resolvedAgentId = agentId || toAgentWorkspaceId(user);
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -64,8 +70,21 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   const [recentTravelers, setRecentTravelers] = useState<AccountRecord[]>([]);
   const [recentPartners, setRecentPartners] = useState<AccountRecord[]>([]);
   const [recentAgentRequests, setRecentAgentRequests] = useState<AgentRequest[]>([]);
-  const navLinks = useMemo(
-    () => [
+  const navLinks = useMemo(() => {
+    if (isInfluencer) {
+      return [
+        { label: "Influencer", href: "/agent/influencer" },
+        { label: "Settings", href: "/agent/settings" },
+      ];
+    }
+    if (isYachtBroker && !isHQorAdmin) {
+      return [
+        { label: "Yacht Desk", href: "/agent/yachts" },
+        { label: "Chat", href: "/agent/chat" },
+        { label: "Settings", href: "/agent/settings" },
+      ];
+    }
+    return [
       { label: "Dashboard", href: "/agent" },
       { label: "Clients", href: "/agent/clients" },
       { label: "Forms", href: "/agent/forms" },
@@ -75,19 +94,19 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
       { label: "Commissions", href: "/agent/commissions" },
       { label: "Yachts", href: "/agent/yachts" },
       { label: "Chat", href: "/agent/chat" },
-      ...(hq
+      ...(isHQorAdmin
         ? [
             { label: "Control Tower", href: "/agent/control-tower" },
             { label: "Finance", href: "/agent/finance" },
             { label: "Agent Command", href: "/agent/agents" },
             { label: "Agent Requests", href: "/agent/requests" },
             { label: "Partners", href: "/agent/partners" },
+            { label: "Influencer", href: "/agent/influencer" },
           ]
         : []),
       { label: "Settings", href: "/agent/settings" },
-    ],
-    [hq]
-  );
+    ];
+  }, [isInfluencer, isYachtBroker, isHQorAdmin]);
 
   const kpiCards = [
     { label: "Active clients", value: "18", delta: "+4 this week" },
@@ -137,6 +156,16 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
     { label: "Commissions", href: "/agent/commissions" },
     { label: "Documents", href: "/agent/documents" },
   ];
+
+  const visibleModules = useMemo(() => {
+    if (isInfluencer) return [] as typeof modules;
+    if (isYachtBroker && !isHQorAdmin) {
+      return [
+        { id: "yachts", title: "Yacht Desk", desc: "Charter files, quotes, and yacht inventory", href: "/agent/yachts" },
+      ];
+    }
+    return modules;
+  }, [isInfluencer, isYachtBroker, isHQorAdmin]);
 
   const [query, setQuery] = useState("");
   const [selectedClient] = useState("Unassigned");
@@ -937,7 +966,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
             </div>
           )}
 
-          {modules.map((m) => (
+          {visibleModules.map((m) => (
             <div key={m.id} className="rounded-xl border border-slate-100 bg-slate-50 p-4 flex flex-col gap-2 shadow-sm">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">{m.id}</p>
               <h3 className="text-lg font-bold" style={{ color: TITLE_TEXT }}>{m.title}</h3>

@@ -9,7 +9,7 @@ import LinaAvatar from "../../../src/components/LinaAvatar";
 
 import { Role } from "../../../src/lib/authStore";
 
-const allowedRoles: Role[] = ["hq", "admin", "travel-agent", "finance", "support"];
+const allowedRoles: Role[] = ["hq", "admin", "travel_agent"];
 
 function uid() {
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);

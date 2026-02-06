@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { normalizeEmail, dbQuery } from "../../../src/lib/server/db";
 import { getSessionCookieName, verifySession } from "../../../src/lib/server/auth";
+import { requireRbacPermission } from "../../../src/lib/server/rbac";
 
 function getSessionFromRequest(request: Request) {
   const cookies = request.headers.get("cookie") || "";
@@ -13,14 +14,8 @@ function getSessionFromRequest(request: Request) {
   return verifySession(sessionToken);
 }
 
-function requireAdmin(session: ReturnType<typeof getSessionFromRequest>) {
-  if (!session) return false;
-  const roles = session.roles || [];
-  return roles.includes("hq") || roles.includes("admin");
-}
-
 function makeCode(role: string) {
-  const prefix = role === "hq" ? "Z-HQ" : role === "admin" ? "ZA" : role === "yacht-partner" ? "ZY" : "ZT";
+  const prefix = role === "hq" ? "Z-HQ" : role === "admin" ? "ZA" : role === "yacht_broker" ? "ZY" : role === "influencer" ? "ZI" : "ZT";
   const seed = crypto.randomBytes(3).toString("hex");
   return `${prefix}-${seed.toUpperCase()}`;
 }
@@ -30,7 +25,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const name = String(body?.name || "").trim();
     const email = normalizeEmail(String(body?.email || ""));
-    const role = String(body?.role || "agent").trim();
+    const role = String(body?.role || "travel_agent").trim();
     const note = String(body?.note || "").trim() || null;
 
     if (!email || !name) {
@@ -59,9 +54,9 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const session = getSessionFromRequest(request);
-  if (!requireAdmin(session)) {
-    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  const gate = await requireRbacPermission(request, "accounts:manage");
+  if (!gate.ok) {
+    return NextResponse.json({ ok: false, error: gate.error }, { status: gate.status });
   }
   try {
     const result = await dbQuery(
@@ -74,9 +69,9 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const session = getSessionFromRequest(request);
-  if (!requireAdmin(session)) {
-    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  const gate = await requireRbacPermission(request, "accounts:manage");
+  if (!gate.ok) {
+    return NextResponse.json({ ok: false, error: gate.error }, { status: gate.status });
   }
   try {
     const body = await request.json();
@@ -94,11 +89,11 @@ export async function PATCH(request: Request) {
     }
 
     if (action === "approve") {
-      const role = current.rows[0].role || "agent";
+      const role = current.rows[0].role || "travel_agent";
       const code = current.rows[0].code || makeCode(role);
       const updated = await dbQuery(
         "UPDATE agent_requests SET status='approved', code=$1, reviewed_at=now(), reviewed_by=$2, note=COALESCE($3,note) WHERE id=$4 RETURNING id, name, email, role, status, code, note, requested_at, reviewed_at, reviewed_by, completed_at",
-        [code, session?.email || null, note, id]
+        [code, gate.session?.email || null, note, id]
       );
       return NextResponse.json({ ok: true, data: updated.rows[0] });
     }
@@ -106,7 +101,7 @@ export async function PATCH(request: Request) {
     if (action === "reject") {
       const updated = await dbQuery(
         "UPDATE agent_requests SET status='rejected', reviewed_at=now(), reviewed_by=$1, note=COALESCE($2,note) WHERE id=$3 RETURNING id, name, email, role, status, code, note, requested_at, reviewed_at, reviewed_by, completed_at",
-        [session?.email || null, note, id]
+        [gate.session?.email || null, note, id]
       );
       return NextResponse.json({ ok: true, data: updated.rows[0] });
     }

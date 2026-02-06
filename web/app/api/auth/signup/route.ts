@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { assertBackendEnv, normalizeEmail, dbQuery } from "../../../../src/lib/server/db";
+import { normalizeRbacRole } from "../../../../src/lib/rbac";
 import { getCookieDomain, getSessionCookieName, signSession, hashPassword } from "../../../../src/lib/server/auth";
 import { getSupabaseAdminClient, getSupabaseAnonClient } from "../../../../src/lib/supabase/server";
 
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
     const space = String(body?.space || body?.role || "traveler").toLowerCase();
     const resolvedRole =
       space === "agent" || space === "zeniva agent"
-        ? "agent"
+        ? "travel_agent"
         : space === "partner"
           ? "partner_owner"
           : "traveler";
@@ -85,7 +86,16 @@ export async function POST(request: Request) {
 
     const role = String(body?.role || resolvedRole);
     const roles = normalizeStringArray(body?.roles, [role]);
+    const normalizedRole = normalizeRbacRole(role) || role;
+    const normalizedRoles = roles.map((entry) => normalizeRbacRole(entry) || entry);
     const divisions = normalizeStringArray(body?.divisions, []);
+    const referralCode = body?.referralCode || body?.referral_code;
+    const influencerId = body?.influencerId || body?.influencer_id;
+    const travelerProfile = body?.travelerProfile && typeof body.travelerProfile === "object"
+      ? { ...body.travelerProfile, referralCode: referralCode || body?.travelerProfile?.referralCode, influencerId: influencerId || body?.travelerProfile?.influencerId }
+      : referralCode || influencerId
+        ? { referralCode: referralCode || undefined, influencerId: influencerId || undefined }
+        : undefined;
 
     const inviteCode = body?.invite_code
       ? String(body.invite_code).trim()
@@ -99,8 +109,8 @@ export async function POST(request: Request) {
         ? String(body.agentLevel)
         : null;
 
-    const isAgentRole = roles.some((r: string) =>
-      ["hq", "admin", "travel-agent", "yacht-broker", "yacht-partner", "influencer", "finance", "support", "agent"].includes(r)
+    const isAgentRole = normalizedRoles.some((r: string) =>
+      ["hq", "admin", "travel_agent", "yacht_broker", "influencer"].includes(r)
     );
 
     // ---- Validate
@@ -123,8 +133,8 @@ export async function POST(request: Request) {
       if (!check.rows.length) {
         return NextResponse.json({ ok: false, message: "Agent approval required" }, { status: 400 });
       }
-      const requestedRole = check.rows[0].role;
-      if (requestedRole && requestedRole !== role) {
+      const requestedRole = normalizeRbacRole(check.rows[0].role) || check.rows[0].role;
+      if (requestedRole && requestedRole !== normalizedRole) {
         return NextResponse.json({ ok: false, message: "Agent role mismatch" }, { status: 400 });
       }
     }
@@ -140,7 +150,7 @@ export async function POST(request: Request) {
     const metadata = cleanJsonObject({
       name,
       role,
-      roles: Array.isArray(roles) ? roles : [role],
+      roles: Array.isArray(normalizedRoles) ? normalizedRoles : [normalizedRole],
       divisions: Array.isArray(divisions) ? divisions : [],
       agentLevel,
       inviteCode: inviteCode || undefined,
@@ -250,12 +260,13 @@ export async function POST(request: Request) {
       id: authUser.id,
       name,
       email,
-      role,
-      roles,
+      role: normalizedRole,
+      roles: normalizedRoles,
       divisions,
       status: "active",
       agent_level: agentLevel,
       invite_code: inviteCode || null,
+      traveler_profile: travelerProfile || null,
       password_hash: hashPassword(password),
       created_at: new Date().toISOString(),
     };
@@ -275,12 +286,13 @@ export async function POST(request: Request) {
           .from("accounts")
           .update({
             name,
-            role,
-            roles,
+            role: normalizedRole,
+            roles: normalizedRoles,
             divisions,
             status: "active",
             agent_level: agentLevel,
             invite_code: inviteCode || null,
+            traveler_profile: travelerProfile || null,
             updated_at: new Date().toISOString(),
           })
           .eq("email", email)
@@ -322,7 +334,7 @@ export async function POST(request: Request) {
       }
     }
 
-    if (role === "traveler" || roles.includes("traveler")) {
+    if (normalizedRole === "traveler" || normalizedRoles.includes("traveler")) {
       try {
         const existing = await dbQuery("SELECT id FROM clients WHERE lower(email) = lower($1) LIMIT 1", [email]);
         if (!existing.rows.length) {
@@ -334,11 +346,23 @@ export async function POST(request: Request) {
       } catch {
         // ignore client sync failures
       }
+
+      if (travelerProfile?.referralCode && travelerProfile?.influencerId) {
+        try {
+          const referralId = globalThis.crypto?.randomUUID?.() || `ref-${Date.now()}`;
+          await dbQuery(
+            "INSERT INTO influencer_referrals (id, traveler_email, referral_code, influencer_id, captured_at, created_at) VALUES ($1,$2,$3,$4, now(), now())",
+            [referralId, email, travelerProfile.referralCode, travelerProfile.influencerId]
+          );
+        } catch {
+          // ignore referral persistence failures
+        }
+      }
     }
 
     // ---- Create session cookie (your custom token)
     const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7;
-    const token = signSession({ email: account.email, roles, exp });
+    const token = signSession({ email: account.email, roles: normalizedRoles, exp });
 
     const response = NextResponse.json(
       {
@@ -347,7 +371,7 @@ export async function POST(request: Request) {
           name: account.name,
           email: account.email,
           role: account.role,
-          roles,
+          roles: normalizedRoles,
           divisions: account.divisions || [],
           status: account.status || "active",
           agentLevel: account.agent_level || null,

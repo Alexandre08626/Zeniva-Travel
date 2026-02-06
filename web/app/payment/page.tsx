@@ -8,6 +8,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useAuthStore } from "../../src/lib/authStore";
 import { getDocumentsForUser, upsertDocuments } from "../../src/lib/documentsStore";
 import { useTripsStore, createTrip } from "../../lib/store/tripsStore";
+import { getStoredReferral } from "../../src/lib/influencer";
 
 function PaymentContent() {
   const router = useRouter();
@@ -79,6 +80,21 @@ function PaymentContent() {
         updatedAt: now,
         details: JSON.stringify({ booking_reference: confirmationNumber, status: "confirmed" }),
       }, ...existing]);
+    }
+
+    const referral = getStoredReferral();
+    if (referral && userId) {
+      fetch("/api/influencer/commissions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bookingId: tripId,
+          travelerEmail: userId,
+          amount: totalDue,
+          currency: "USD",
+          bookingDate: new Date().toISOString(),
+        }),
+      }).catch(() => undefined);
     }
 
     router.push(`/test/duffel-stays/confirmation?docId=${encodeURIComponent(docId)}`);

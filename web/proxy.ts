@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { RBAC_ROLES, normalizeRbacRole } from "./src/lib/rbac";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
@@ -74,9 +75,13 @@ export default function proxy(req: NextRequest) {
       roles = [];
     }
   }
-  const agentRoles = new Set(["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "agent"]);
-  const agentEnabled = req.cookies.get("zeniva_agent_enabled")?.value === "1";
-  const isAgent = agentEnabled || roles.some((role) => agentRoles.has(role));
+  const previewRole = req.cookies.get("zeniva_effective_role")?.value || "";
+  const normalizedPreview = normalizeRbacRole(previewRole);
+  const agentRoles = new Set(RBAC_ROLES);
+  const isAgent = Boolean(normalizedPreview) || roles.some((role) => {
+    const normalized = normalizeRbacRole(role);
+    return normalized ? agentRoles.has(normalized) : false;
+  });
   const isPartner = roles.includes("partner_owner") || roles.includes("partner_staff") || roles.includes("hq");
 
   // Protect agent routes and agent API

@@ -1,14 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRequireRole } from "../../../src/lib/roleGuards";
+import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
 import { AgentLevel, Division, DIVISIONS, updateSelfProfile, useAuthStore } from "../../../src/lib/authStore";
 import { PREMIUM_BLUE, MUTED_TEXT, TITLE_TEXT } from "../../../src/design/tokens";
 
-const allowedRoles = ["hq", "admin", "travel-agent", "finance", "support"] as const;
-
 export default function AgentSettingsPage() {
-  useRequireRole(allowedRoles as any, "/login");
+  useRequireAnyPermission(["changes:all", "documents:yacht", "referrals:read"], "/agent");
   const user = useAuthStore((s) => s.user);
 
   const [name, setName] = useState(user?.name || "");

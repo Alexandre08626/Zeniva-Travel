@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../src/lib/server/db";
+import { requireRbacPermission } from "../../../src/lib/server/rbac";
 
 type AccountRecord = {
   id: string;
@@ -11,29 +12,6 @@ type AccountRecord = {
   status?: "active" | "disabled" | "suspended";
   createdAt: string;
 };
-
-function getRolesFromRequest(request: Request): string[] {
-  const cookieHeader = request.headers.get("cookie") || "";
-  const parts = cookieHeader.split(";").map((part) => part.trim());
-  const roleEntry = parts.find((part) => part.startsWith("zeniva_roles="));
-  if (!roleEntry) return [];
-  const raw = roleEntry.slice("zeniva_roles=".length);
-  try {
-    const decoded = decodeURIComponent(raw);
-    const parsed = JSON.parse(decoded);
-    return Array.isArray(parsed) ? parsed.map(String) : [];
-  } catch {
-    return [];
-  }
-}
-
-function requireHQ(request: Request) {
-  const roles = getRolesFromRequest(request);
-  if (!roles.includes("hq") && !roles.includes("admin")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  return null;
-}
 
 function mapAccountRow(row: any): AccountRecord {
   return {
@@ -50,8 +28,8 @@ function mapAccountRow(row: any): AccountRecord {
 
 export async function GET(request: Request) {
   try {
-    const gate = requireHQ(request);
-    if (gate) return gate;
+    const gate = await requireRbacPermission(request, "accounts:manage");
+    if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
     assertBackendEnv();
     const { rows } = await dbQuery(
       "SELECT id, name, email, role, roles, divisions, status, created_at FROM accounts ORDER BY created_at DESC"
@@ -64,6 +42,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const gate = await requireRbacPermission(request, "accounts:manage");
+    if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
     assertBackendEnv();
     const body = await request.json();
     const required = ["name", "email", "role"];
@@ -105,8 +85,8 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const gate = requireHQ(request);
-    if (gate) return gate;
+    const gate = await requireRbacPermission(request, "accounts:manage");
+    if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
     assertBackendEnv();
     const url = new URL(request.url);
     const emailParam = url.searchParams.get("email") || "";

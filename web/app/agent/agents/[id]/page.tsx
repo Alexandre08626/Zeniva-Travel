@@ -2,7 +2,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useAuthStore, updateAccountRole, updateAccountStatus } from "../../../../src/lib/authStore";
+import { useAuthStore, updateAccountRole, updateAccountStatus, hasPermission } from "../../../../src/lib/authStore";
+import { normalizeRbacRole } from "../../../../src/lib/rbac";
 import { getAgentById, setAgentRole, setAgentStatus, type AgentRoleLabel, type AgentDirectoryEntry } from "../../../../src/lib/agent/agents";
 import { listClients, listTrips, listLedger } from "../../../../src/lib/agent/store";
 import { computeCommissions } from "../../../../src/lib/agent/commissions";
@@ -21,27 +22,29 @@ type AccountRecord = {
 };
 
 function roleToKey(role: string): AgentDirectoryEntry["roleKey"] {
-  if (role === "hq") return "hq";
-  if (role === "admin") return "admin";
-  if (role === "yacht-broker" || role === "yacht-partner") return "yacht-broker";
-  if (role === "influencer") return "influencer";
+  const normalized = normalizeRbacRole(role) || role;
+  if (normalized === "hq") return "hq";
+  if (normalized === "admin") return "admin";
+  if (normalized === "yacht_broker") return "yacht_broker";
+  if (normalized === "influencer") return "influencer";
   if (role === "partner_owner" || role === "partner_staff") return "partner";
   if (role === "traveler") return "traveler";
-  return "travel-agent";
+  return "travel_agent";
 }
 
 function roleToLabel(role: string): AgentRoleLabel {
-  if (role === "hq") return "HQ";
-  if (role === "admin") return "Admin";
-  if (role === "yacht-broker" || role === "yacht-partner") return "Yacht Broker";
-  if (role === "influencer") return "Influencer";
+  const normalized = normalizeRbacRole(role) || role;
+  if (normalized === "hq") return "HQ";
+  if (normalized === "admin") return "Admin";
+  if (normalized === "yacht_broker") return "Yacht Broker";
+  if (normalized === "influencer") return "Influencer";
   if (role === "partner_owner" || role === "partner_staff") return "Partner";
   if (role === "traveler") return "Traveler";
   return "Travel Agent";
 }
 
 function makeAgentCode(roleKey: AgentDirectoryEntry["roleKey"], email: string) {
-  const prefix = roleKey === "hq" ? "Z-HQ" : roleKey === "admin" ? "ZA" : roleKey === "yacht-broker" || roleKey === "yacht-partner" ? "ZY" : roleKey === "influencer" ? "ZI" : roleKey === "partner" ? "ZP" : "ZT";
+  const prefix = roleKey === "hq" ? "Z-HQ" : roleKey === "admin" ? "ZA" : roleKey === "yacht_broker" ? "ZY" : roleKey === "influencer" ? "ZI" : roleKey === "partner" ? "ZP" : "ZT";
   const hash = Array.from(email).reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) % 900, 0) + 100;
   return `${prefix}-${hash}`;
 }
@@ -57,7 +60,7 @@ function mapAccountToAgent(account: AccountRecord): AgentDirectoryEntry {
   const roleLabel = roleToLabel(primaryRole);
   const divisions = (Array.isArray(account.divisions) && account.divisions.length
     ? account.divisions
-    : roleKey === "yacht-broker" || roleKey === "yacht-partner"
+    : roleKey === "yacht_broker"
       ? ["YACHT"]
       : roleKey === "partner"
         ? []
@@ -101,7 +104,7 @@ export default function AgentProfilePage() {
   const [loading, setLoading] = useState(!initialAgent && Boolean(agentId));
   const allowed = !!(
     user &&
-    (user.role === "hq" || user.role === "admin" || (agent && user.email?.toLowerCase() === agent.email.toLowerCase()))
+    (hasPermission(user, "accounts:manage") || (agent && user.email?.toLowerCase() === agent.email.toLowerCase()))
   );
 
   useEffect(() => {
@@ -148,10 +151,10 @@ export default function AgentProfilePage() {
 
   const toggleRole = () => {
     if (!agent) return;
-    const next = roleLabel === "Travel Agent" ? { roleKey: "admin", roleLabel: "Admin" } : { roleKey: "travel-agent", roleLabel: "Travel Agent" };
-    setAgentRole(agent.id, next.roleKey as "hq" | "admin" | "travel-agent" | "yacht-partner", next.roleLabel as AgentRoleLabel);
+    const next = roleLabel === "Travel Agent" ? { roleKey: "admin", roleLabel: "Admin" } : { roleKey: "travel_agent", roleLabel: "Travel Agent" };
+    setAgentRole(agent.id, next.roleKey as "hq" | "admin" | "travel_agent", next.roleLabel as AgentRoleLabel);
     setRoleLabel(next.roleLabel as AgentRoleLabel);
-    const mappedRole = next.roleKey === "admin" ? "admin" : "travel-agent";
+    const mappedRole = next.roleKey === "admin" ? "admin" : "travel_agent";
     updateAccountRole(agent.email, mappedRole as any);
   };
   const agentLedger = useMemo(() => ledger.filter((l) => l.tripId && agentTrips.find((t) => t.id === l.tripId)), [ledger, agentTrips]);
@@ -387,7 +390,7 @@ export default function AgentProfilePage() {
           <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Yacht partner view</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Yacht broker view</p>
                 <h3 className="text-xl font-black" style={{ color: TITLE_TEXT }}>Zeniva Yacht pipeline</h3>
                 <p className="text-sm" style={{ color: MUTED_TEXT }}>
                   Yacht files flow to HQ for billing. 95% stays with Yacht, 5% to Travel; no agent commissions here.

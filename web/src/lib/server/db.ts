@@ -136,6 +136,47 @@ async function ensureSchema() {
   await pool.query("CREATE INDEX IF NOT EXISTS clients_email_idx ON clients (lower(email));");
   await pool.query("CREATE INDEX IF NOT EXISTS clients_phone_idx ON clients (phone);");
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS commission_plans (
+      id text PRIMARY KEY,
+      start_date date NOT NULL,
+      end_date date,
+      influencer_pct numeric NOT NULL,
+      created_at timestamptz DEFAULT now()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS influencer_referrals (
+      id text PRIMARY KEY,
+      traveler_email text NOT NULL,
+      referral_code text NOT NULL,
+      influencer_id text NOT NULL,
+      captured_at timestamptz NOT NULL,
+      created_at timestamptz DEFAULT now()
+    );
+  `);
+
+  await pool.query("CREATE INDEX IF NOT EXISTS influencer_referrals_email_idx ON influencer_referrals (lower(traveler_email));");
+  await pool.query("CREATE INDEX IF NOT EXISTS influencer_referrals_code_idx ON influencer_referrals (referral_code);");
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS influencer_commissions (
+      id text PRIMARY KEY,
+      referral_code text NOT NULL,
+      influencer_id text NOT NULL,
+      booking_id text NOT NULL,
+      traveler_email text,
+      amount numeric NOT NULL,
+      currency text NOT NULL,
+      booking_date timestamptz NOT NULL,
+      created_at timestamptz DEFAULT now()
+    );
+  `);
+
+  await pool.query("CREATE INDEX IF NOT EXISTS influencer_commissions_referral_idx ON influencer_commissions (referral_code);");
+  await pool.query("CREATE INDEX IF NOT EXISTS influencer_commissions_booking_idx ON influencer_commissions (booking_id);");
+
   schemaReady = true;
 }
 

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ACCENT_GOLD, PREMIUM_BLUE, TITLE_TEXT, MUTED_TEXT, LIGHT_BG } from "../../../src/design/tokens";
+import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
 
 type ProposalStatus = "Draft" | "Sent" | "Approved" | "Booked";
 
@@ -232,6 +233,7 @@ function ProposalsContent() {
 }
 
 export default function ProposalsPage() {
+  useRequireAnyPermission(["sales:all", "sales:yacht"], "/agent");
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <ProposalsContent />

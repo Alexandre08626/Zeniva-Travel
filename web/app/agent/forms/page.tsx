@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { FORM_DEFINITIONS, FormDefinition } from "../../../src/lib/forms/catalog";
 import { useAuthStore, hasDivision, isHQ } from "../../../src/lib/authStore";
+import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../src/design/tokens";
 
 function buildFormLink(form: FormDefinition, agentEmail?: string) {
@@ -13,6 +14,7 @@ function buildFormLink(form: FormDefinition, agentEmail?: string) {
 }
 
 export default function AgentFormsPage() {
+  useRequireAnyPermission(["sales:all", "sales:yacht"], "/agent");
   const user = useAuthStore((s) => s.user);
   const hq = isHQ(user);
   const isAdmin = Boolean(user?.roles?.includes("admin") || user?.role === "admin");

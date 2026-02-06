@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { signup, useAuthStore, type Role, updatePartnerProfile, logout } from "../../src/lib/authStore";
 import { addAgentFromAccount } from "../../src/lib/agent/agents";
 import { addClient } from "../../src/lib/agent/store";
+import { clearStoredReferral, getStoredReferral } from "../../src/lib/influencer";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -14,7 +15,7 @@ export default function SignupPage() {
     return space === "agent" || space === "partner" ? space : "traveler";
   })();
   const [mode, setMode] = useState<"traveler" | "agent" | "partner">(initialMode);
-  const [agentRole, setAgentRole] = useState<Role>("travel-agent");
+  const [agentRole, setAgentRole] = useState<Role>("travel_agent");
   const [name, setName] = useState("");
   const [companyLegalName, setCompanyLegalName] = useState("");
   const [companyDisplayName, setCompanyDisplayName] = useState("");
@@ -59,6 +60,7 @@ export default function SignupPage() {
         return;
       }
 
+      const referral = getStoredReferral();
       await signup({
         name: name.trim() || (isAgent ? "Agent" : isPartner ? "Partner" : "Traveler"),
         email: email.trim(),
@@ -68,6 +70,8 @@ export default function SignupPage() {
         agentLevel: isAgent ? "Agent" : undefined,
         inviteCode: isAgent ? inviteCode.trim() : undefined,
         divisions: isAgent ? ["TRAVEL", "YACHT", "VILLAS", "GROUPS", "RESORTS"] : [],
+        referralCode: referral?.referralCode,
+        influencerId: referral?.influencerId,
       });
       if (isPartner) {
         updatePartnerProfile({
@@ -106,6 +110,9 @@ export default function SignupPage() {
           });
         } catch (err) {
           console.error("Failed to sync client", err);
+        }
+        if (referral?.referralCode && referral?.influencerId) {
+          clearStoredReferral();
         }
       }
       if (isAgent) {
@@ -207,8 +214,8 @@ export default function SignupPage() {
                   setAgentRole(next);
                 }}
               >
-                <option value="travel-agent">Travel agent</option>
-                <option value="yacht-broker">Yacht broker</option>
+                <option value="travel_agent">Travel agent</option>
+                <option value="yacht_broker">Yacht broker</option>
                 <option value="influencer">Influencer</option>
                 <option value="hq">HQ</option>
                 <option value="admin">Admin</option>

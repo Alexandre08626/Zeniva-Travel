@@ -18,6 +18,7 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
   const loggedIn = mounted ? (authUser ? true : isLoggedIn) : Boolean(isLoggedIn);
   const email = mounted ? (authUser?.email || userEmail) : userEmail;
   const agent = mounted && authUser ? isAgent(authUser) : false;
+  const previewRole = mounted ? authUser?.effectiveRole : null;
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -70,6 +71,11 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
         <div className="hidden sm:flex items-center gap-3 ml-auto">
           {loggedIn ? (
             <>
+              {previewRole && (
+                <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700">
+                  Preview: {previewRole.replace('_', ' ')}
+                </span>
+              )}
               {agent && (
                 <Link
                   href="/agent"

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../src/design/tokens";
 import { bookings, BookingStatus } from "./data";
 import { useT } from "../../../src/lib/i18n/I18nProvider";
+import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
 
 const statusColor: Record<BookingStatus, { bg: string; text: string }> = {
   Pending: { bg: "bg-amber-50", text: "text-amber-700" },
@@ -14,6 +15,7 @@ const statusColor: Record<BookingStatus, { bg: string; text: string }> = {
 };
 
 export default function BookingsPage() {
+  useRequireAnyPermission(["bookings:all", "bookings:yacht"], "/agent");
   const [statusFilter, setStatusFilter] = useState<BookingStatus | "All">("Confirmed");
   const [query, setQuery] = useState("");
   const t = useT();

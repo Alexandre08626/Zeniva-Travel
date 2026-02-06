@@ -3,7 +3,8 @@ export const dynamic = "force-dynamic";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuthStore, type Role, deleteAccountByEmail } from "../../../src/lib/authStore";
+import { useAuthStore, type Role, deleteAccountByEmail, hasPermission } from "../../../src/lib/authStore";
+import { normalizeRbacRole } from "../../../src/lib/rbac";
 import { listAgents, addAgentFromAccount, removeAgentByEmail, type AgentDirectoryEntry } from "../../../src/lib/agent/agents";
 import { PREMIUM_BLUE, TITLE_TEXT, MUTED_TEXT, ACCENT_GOLD } from "../../../src/design/tokens";
 
@@ -23,7 +24,7 @@ export default function AgentsDirectoryPage() {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "suspended">("all");
   const [data, setData] = useState<AgentDirectoryEntry[]>(IS_PROD ? [] : listAgents());
 
-  const isHQorAdmin = !!user && ((user.roles || (user.role ? [user.role] : [])).some((r) => r === "hq" || r === "admin"));
+  const isHQorAdmin = !!user && hasPermission(user, "accounts:manage");
   const isAgentSelf = !!user && user.role !== "traveler";
 
   useEffect(() => {
@@ -43,7 +44,7 @@ export default function AgentsDirectoryPage() {
   useEffect(() => {
     if (IS_PROD) return;
     if (!accounts || accounts.length === 0) return;
-    const agentRoles: Role[] = ["hq", "admin", "travel-agent", "yacht-broker", "yacht-partner", "influencer", "finance", "support", "partner_owner", "partner_staff", "agent", "traveler"];
+    const agentRoles: Role[] = ["hq", "admin", "travel_agent", "yacht_broker", "influencer", "partner_owner", "partner_staff", "traveler"];
     const agentRoleSet = new Set(agentRoles);
 
     accounts.forEach((account) => {
@@ -80,7 +81,7 @@ export default function AgentsDirectoryPage() {
           return;
         }
 
-        const agentRoles: Role[] = ["hq", "admin", "travel-agent", "yacht-broker", "yacht-partner", "influencer", "finance", "support", "partner_owner", "partner_staff", "agent", "traveler"];
+        const agentRoles: Role[] = ["hq", "admin", "travel_agent", "yacht_broker", "influencer", "partner_owner", "partner_staff", "traveler"];
         const agentRoleSet = new Set(agentRoles);
 
         records.forEach((account: any) => {
@@ -277,27 +278,29 @@ export default function AgentsDirectoryPage() {
 }
 
 function roleToLabel(role: Role): AgentDirectoryEntry["roleLabel"] {
-  if (role === "hq") return "HQ";
-  if (role === "admin") return "Admin";
-  if (role === "yacht-broker" || role === "yacht-partner") return "Yacht Broker";
-  if (role === "influencer") return "Influencer";
+  const normalized = normalizeRbacRole(role) || role;
+  if (normalized === "hq") return "HQ";
+  if (normalized === "admin") return "Admin";
+  if (normalized === "yacht_broker") return "Yacht Broker";
+  if (normalized === "influencer") return "Influencer";
   if (role === "partner_owner" || role === "partner_staff") return "Partner";
   if (role === "traveler") return "Traveler";
   return "Travel Agent";
 }
 
 function roleToKey(role: Role): AgentDirectoryEntry["roleKey"] {
-  if (role === "hq") return "hq";
-  if (role === "admin") return "admin";
-  if (role === "yacht-broker" || role === "yacht-partner") return "yacht-broker";
-  if (role === "influencer") return "influencer";
+  const normalized = normalizeRbacRole(role) || role;
+  if (normalized === "hq") return "hq";
+  if (normalized === "admin") return "admin";
+  if (normalized === "yacht_broker") return "yacht_broker";
+  if (normalized === "influencer") return "influencer";
   if (role === "partner_owner" || role === "partner_staff") return "partner";
   if (role === "traveler") return "traveler";
-  return "travel-agent";
+  return "travel_agent";
 }
 
 function makeAgentCodeFromEmail(roleKey: AgentDirectoryEntry["roleKey"], email: string) {
-  const prefix = roleKey === "hq" ? "Z-HQ" : roleKey === "admin" ? "ZA" : roleKey === "yacht-broker" || roleKey === "yacht-partner" ? "ZY" : roleKey === "influencer" ? "ZI" : roleKey === "partner" ? "ZP" : "ZT";
+  const prefix = roleKey === "hq" ? "Z-HQ" : roleKey === "admin" ? "ZA" : roleKey === "yacht_broker" ? "ZY" : roleKey === "influencer" ? "ZI" : roleKey === "partner" ? "ZP" : "ZT";
   const hash = Array.from(email).reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) % 900, 0) + 100;
   return `${prefix}-${hash}`;
 }
@@ -305,7 +308,7 @@ function makeAgentCodeFromEmail(roleKey: AgentDirectoryEntry["roleKey"], email: 
 function accountToAgentEntry(account: any): AgentDirectoryEntry | null {
   if (!account?.email) return null;
   const roles = Array.isArray(account.roles) && account.roles.length ? account.roles : account.role ? [account.role] : [];
-  const agentRole = (roles.find((r: Role) => ["hq", "admin", "travel-agent", "yacht-broker", "yacht-partner", "influencer", "finance", "support", "partner_owner", "partner_staff", "agent", "traveler"].includes(r)) || "traveler") as Role;
+  const agentRole = (roles.find((r: Role) => ["hq", "admin", "travel_agent", "yacht_broker", "influencer", "partner_owner", "partner_staff", "traveler"].includes(r)) || "traveler") as Role;
   const roleKey = roleToKey(agentRole);
   const roleLabel = roleToLabel(agentRole);
   const divisions = Array.isArray(account.divisions) && account.divisions.length ? account.divisions : roleKey === "partner" ? [] : ["TRAVEL"];

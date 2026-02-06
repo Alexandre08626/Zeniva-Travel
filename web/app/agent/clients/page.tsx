@@ -5,11 +5,13 @@ import { useEffect, useMemo, useState } from "react";
 import { listClients, addClient } from "../../../src/lib/agent/store";
 import type { Client, Division } from "../../../src/lib/agent/types";
 import { useAuthStore } from "../../../src/lib/authStore";
+import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../src/design/tokens";
 
 const IS_PROD = process.env.NODE_ENV === "production";
 
 export default function ClientsPage() {
+  useRequireAnyPermission(["clients:all", "clients:yacht"], "/agent");
   const user = useAuthStore((s) => s.user);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");

@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
 import { useRequireRole } from "../../../src/lib/roleGuards";
 import { useAuthStore, addAudit, isHQ } from "../../../src/lib/authStore";
 import { PREMIUM_BLUE, TITLE_TEXT, MUTED_TEXT, ACCENT_GOLD } from "../../../src/design/tokens";
 
-const allowedRoles = ["hq", "admin", "travel-agent", "finance", "support"] as const;
+const allowedRoles = ["hq", "admin", "travel_agent"] as const;
 
 type Status =
   | "DRAFT"
@@ -100,6 +101,7 @@ function statusBadge(status: Status) {
 
 export default function PurchaseOrdersPage() {
   useRequireRole(allowedRoles as any, "/login");
+  useRequireAnyPermission(["sales:all", "sales:yacht"], "/agent");
   const user = useAuthStore((s) => s.user);
   const [orders, setOrders] = useState<PO[]>(SAMPLE);
   const [filterStatus, setFilterStatus] = useState<Status | "ALL">("ALL");

@@ -1,7 +1,6 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuthStore, isHQ } from "../../../src/lib/authStore";
+import { useMemo, useState } from "react";
+import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE, ACCENT_GOLD } from "../../../src/design/tokens";
 
 type Invoice = {
@@ -57,23 +56,12 @@ const commissions: Commission[] = [
 ];
 
 export default function FinancePage() {
-  const router = useRouter();
-  const user = useAuthStore((s) => s.user);
+  const user = useRequireAnyPermission(["finance:all"], "/agent");
   const [filter, setFilter] = useState("all");
-
-  const denied = !isHQ(user) || (user?.email || "").toLowerCase() !== "info@zenivatravel.com";
-
-  useEffect(() => {
-    if (denied) {
-      router.replace("/agent");
-    }
-  }, [denied, router]);
 
   const paidTotal = useMemo(() => invoices.filter((i) => i.status === "paid").length, []);
   const pendingTotal = useMemo(() => invoices.filter((i) => i.status === "pending").length, []);
   const commissionDue = useMemo(() => commissions.filter((c) => c.status !== "paid").length, []);
-
-  if (denied) return null;
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: "#0f172a" }}>

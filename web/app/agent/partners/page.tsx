@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuthStore } from "../../../src/lib/authStore";
+import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
 import { TITLE_TEXT, MUTED_TEXT } from "../../../src/design/tokens";
 import { partnerOrganizations, propertyOwners, listingAssignments, type PartnerOrganization, type PropertyOwner } from "../../../src/lib/partnerRelations";
 import { mockListings } from "../../../src/lib/mockData";
@@ -51,6 +52,7 @@ const TYPE_LABELS: Record<ListingType, string> = {
 };
 
 export default function PartnerAccountsPage() {
+  useRequireAnyPermission(["accounts:manage"], "/agent");
   const user = useAuthStore((s) => s.user);
   const [data, setData] = useState<PartnerAccount[]>([]);
   const [loading, setLoading] = useState(true);

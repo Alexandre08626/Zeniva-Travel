@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { assertBackendEnv } from "../../../../src/lib/server/db";
 import { getSessionCookieName, verifySession } from "../../../../src/lib/server/auth";
+import { canPreviewRole, normalizeRbacRole } from "../../../../src/lib/rbac";
 import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
 
 export async function GET(request: Request) {
@@ -30,13 +31,26 @@ export async function GET(request: Request) {
     }
     if (!account) return NextResponse.json({ user: null }, { status: 200 });
 
+    const rawRoles = Array.isArray(account.roles) && account.roles.length ? account.roles : account.role ? [account.role] : ["traveler"];
+    const normalizedRoles = rawRoles.map((role) => normalizeRbacRole(role) || role);
+    const previewRole = request.headers.get("cookie")?.includes("zeniva_effective_role")
+      ? (() => {
+          const cookie = request.headers.get("cookie") || "";
+          const match = cookie.split(";").map((c) => c.trim()).find((c) => c.startsWith("zeniva_effective_role="));
+          if (!match) return null;
+          const value = decodeURIComponent(match.split("=")[1] || "");
+          return normalizeRbacRole(value);
+        })()
+      : null;
+    const effectiveRole = canPreviewRole({ id: account.id, email: account.email }) ? previewRole : null;
+
     return NextResponse.json({
       user: {
         id: account.id,
         name: account.name,
         email: account.email,
         role: account.role,
-        roles: Array.isArray(account.roles) && account.roles.length ? account.roles : account.role ? [account.role] : ["traveler"],
+        roles: normalizedRoles,
         divisions: account.divisions || [],
         status: account.status || "active",
         agentLevel: account.agent_level || null,
@@ -44,6 +58,7 @@ export async function GET(request: Request) {
         partnerId: account.partner_id || null,
         partnerCompany: account.partner_company || null,
         travelerProfile: account.traveler_profile || null,
+        effectiveRole,
       },
     });
   } catch (err: any) {

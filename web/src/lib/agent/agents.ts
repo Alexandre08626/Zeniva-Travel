@@ -1,4 +1,5 @@
 import { Division, type Role } from "../authStore";
+import { normalizeRbacRole } from "../rbac";
 
 export type AgentStatus = "active" | "inactive" | "suspended";
 export type AgentRoleLabel = "Travel Agent" | "Yacht Broker" | "HQ" | "Admin" | "Partner" | "Traveler" | "Influencer";
@@ -8,7 +9,7 @@ export type AgentDirectoryEntry = {
   name: string;
   email: string;
   roleLabel: AgentRoleLabel;
-  roleKey: "hq" | "admin" | "travel-agent" | "yacht-broker" | "yacht-partner" | "influencer" | "partner" | "traveler";
+  roleKey: "hq" | "admin" | "travel_agent" | "yacht_broker" | "influencer" | "partner" | "traveler";
   status: AgentStatus;
   code: string;
   avatar: string;
@@ -57,7 +58,7 @@ let agents: AgentDirectoryEntry[] = IS_PROD ? [] : [
     name: "Jason J",
     email: "jasonj6@gmail.com",
     roleLabel: "Yacht Broker",
-    roleKey: "yacht-broker",
+    roleKey: "yacht_broker",
     status: "active",
     code: "ZY-106",
     avatar: "/branding/lina-avatar.png",
@@ -79,7 +80,7 @@ let agents: AgentDirectoryEntry[] = IS_PROD ? [] : [
     name: "Justine Caron",
     email: "agent@zenivatravel.com",
     roleLabel: "Travel Agent",
-    roleKey: "travel-agent",
+    roleKey: "travel_agent",
     status: "active",
     code: "ZT-104",
     avatar: "/branding/lina-avatar.png",
@@ -133,29 +134,31 @@ export function getAgentById(id: string) {
 }
 
 function makeAgentCode(roleKey: AgentDirectoryEntry["roleKey"]) {
-  const prefix = roleKey === "hq" ? "Z-HQ" : roleKey === "admin" ? "ZA" : roleKey === "yacht-broker" || roleKey === "yacht-partner" ? "ZY" : roleKey === "influencer" ? "ZI" : roleKey === "partner" ? "ZP" : "ZT";
+  const prefix = roleKey === "hq" ? "Z-HQ" : roleKey === "admin" ? "ZA" : roleKey === "yacht_broker" ? "ZY" : roleKey === "influencer" ? "ZI" : roleKey === "partner" ? "ZP" : "ZT";
   const rand = Math.floor(100 + Math.random() * 900);
   return `${prefix}-${rand}`;
 }
 
 function roleToLabel(role: Role): AgentDirectoryEntry["roleLabel"] {
-  if (role === "hq") return "HQ";
-  if (role === "admin") return "Admin";
-  if (role === "yacht-broker" || role === "yacht-partner") return "Yacht Broker";
-  if (role === "influencer") return "Influencer";
+  const normalized = normalizeRbacRole(role) || role;
+  if (normalized === "hq") return "HQ";
+  if (normalized === "admin") return "Admin";
+  if (normalized === "yacht_broker") return "Yacht Broker";
+  if (normalized === "influencer") return "Influencer";
   if (role === "partner_owner" || role === "partner_staff") return "Partner";
   if (role === "traveler") return "Traveler";
   return "Travel Agent";
 }
 
 function roleToKey(role: Role): AgentDirectoryEntry["roleKey"] {
-  if (role === "hq") return "hq";
-  if (role === "admin") return "admin";
-  if (role === "yacht-broker" || role === "yacht-partner") return "yacht-broker";
-  if (role === "influencer") return "influencer";
+  const normalized = normalizeRbacRole(role) || role;
+  if (normalized === "hq") return "hq";
+  if (normalized === "admin") return "admin";
+  if (normalized === "yacht_broker") return "yacht_broker";
+  if (normalized === "influencer") return "influencer";
   if (role === "partner_owner" || role === "partner_staff") return "partner";
   if (role === "traveler") return "traveler";
-  return "travel-agent";
+  return "travel_agent";
 }
 
 export function addAgentFromAccount(account: { name: string; email: string; role: Role; divisions?: Division[]; status?: AgentStatus }) {

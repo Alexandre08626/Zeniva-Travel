@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../src/lib/server/db";
+import { requireRbacPermission } from "../../../src/lib/server/rbac";
 
 type ClientRecord = {
   id: string;
@@ -28,9 +29,16 @@ function mapClientRow(row: any): ClientRecord {
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     assertBackendEnv();
+    const accessAll = await requireRbacPermission(request, "clients:all");
+    if (!accessAll.ok) {
+      const accessYacht = await requireRbacPermission(new Request("http://localhost"), "clients:yacht");
+      if (!accessYacht.ok) {
+        return NextResponse.json({ error: accessAll.error }, { status: accessAll.status });
+      }
+    }
     const { rows } = await dbQuery(
       "SELECT id, name, email, owner_email, phone, origin, assigned_agents, primary_division, created_at FROM clients ORDER BY created_at DESC"
     );
@@ -43,6 +51,13 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     assertBackendEnv();
+    const accessAll = await requireRbacPermission(request, "clients:all");
+    if (!accessAll.ok) {
+      const accessYacht = await requireRbacPermission(request, "clients:yacht");
+      if (!accessYacht.ok) {
+        return NextResponse.json({ error: accessAll.error }, { status: accessAll.status });
+      }
+    }
     const body = await request.json();
     const required = ["name", "ownerEmail", "origin"];
     const missing = required.filter((k) => !body?.[k]);

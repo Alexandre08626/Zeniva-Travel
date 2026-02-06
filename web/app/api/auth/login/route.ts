@@ -1,20 +1,13 @@
 import { NextResponse } from "next/server";
 import { assertBackendEnv, normalizeEmail } from "../../../../src/lib/server/db";
 import { getCookieDomain, getSessionCookieName, signSession, verifyPassword, hashPassword } from "../../../../src/lib/server/auth";
+import { normalizeRbacRole } from "../../../../src/lib/rbac";
 import { getSupabaseAdminClient, getSupabaseAnonClient } from "../../../../src/lib/supabase/server";
 
 function normalizeStringArray(value: unknown, fallback: string[] = []) {
   if (Array.isArray(value)) return value.filter((item) => typeof item === "string" && item.trim());
   if (typeof value === "string" && value.trim()) return [value.trim()];
   return fallback;
-}
-
-function getHqEmails() {
-  const raw = process.env.ZENIVA_HQ_EMAILS || "info@zenivatravel.com,info@zeniva.ca";
-  return raw
-    .split(",")
-    .map((v) => normalizeEmail(v))
-    .filter(Boolean);
 }
 
 function buildSessionResponse(account: {
@@ -31,11 +24,11 @@ function buildSessionResponse(account: {
   partner_company: Record<string, unknown> | null;
   traveler_profile: Record<string, unknown> | null;
 }) {
-  const roles = Array.isArray(account.roles) && account.roles.length
+  const roles = (Array.isArray(account.roles) && account.roles.length
     ? account.roles
     : account.role
       ? [account.role]
-      : ["traveler"];
+      : ["traveler"]).map((role) => normalizeRbacRole(role) || role);
   const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7;
   const token = signSession({ email: account.email, roles, exp });
 
@@ -134,8 +127,8 @@ export async function POST(request: Request) {
     }
 
     const metadata = (authData.user.user_metadata || {}) as Record<string, unknown>;
-    const metaRoles = normalizeStringArray(metadata.roles, []);
-    const metaRole = typeof metadata.role === "string" && metadata.role ? metadata.role : metaRoles[0] || "traveler";
+    const metaRoles = normalizeStringArray(metadata.roles, []).map((role) => normalizeRbacRole(role) || role);
+    const metaRole = normalizeRbacRole(typeof metadata.role === "string" && metadata.role ? metadata.role : metaRoles[0]) || metaRoles[0] || "traveler";
     const metaDivisions = normalizeStringArray(metadata.divisions, []);
     const metaAgentLevel = typeof metadata.agentLevel === "string"
       ? metadata.agentLevel
@@ -159,22 +152,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Login failed" }, { status: 500 });
     }
 
-    const isHqEmail = getHqEmails().includes(email);
     let account = existingAccount;
     if (!account) {
       const fallbackRoles = metaRoles.length ? metaRoles : [metaRole];
-      const rolesForAccount = isHqEmail
-        ? Array.from(new Set(["hq", "admin", "agent", "partner_owner", ...fallbackRoles]))
-        : fallbackRoles;
+      const rolesForAccount = fallbackRoles.map((role) => normalizeRbacRole(role) || role);
       const accountPayload = {
         id: authData.user.id,
         name: typeof metadata.name === "string" && metadata.name.trim() ? metadata.name.trim() : email.split("@")[0],
         email,
-        role: isHqEmail ? "hq" : metaRole,
+        role: normalizeRbacRole(metaRole) || metaRole,
         roles: rolesForAccount,
         divisions: metaDivisions,
         status: "active",
-        agent_level: isHqEmail ? (metaAgentLevel || "Manager") : metaAgentLevel,
+        agent_level: metaAgentLevel,
         invite_code: metaInviteCode,
         password_hash: hashPassword(password),
         created_at: new Date().toISOString(),
@@ -191,21 +181,6 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "account_create_failed" }, { status: 500 });
       }
       account = createdAccount;
-    } else if (isHqEmail) {
-      const currentRoles = Array.isArray(account.roles) ? account.roles : account.role ? [account.role] : [];
-      const needsHqRoles = !currentRoles.includes("hq") || !currentRoles.includes("admin") || !currentRoles.includes("partner_owner");
-      if (needsHqRoles) {
-        const updatedRoles = Array.from(new Set(["hq", "admin", "agent", "partner_owner", ...currentRoles]));
-        const { data: updated, error: updateError } = await admin
-          .from("accounts")
-          .update({ role: "hq", roles: updatedRoles, agent_level: account.agent_level || "Manager" })
-          .eq("email", email)
-          .select("id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile, password_hash")
-          .maybeSingle();
-        if (!updateError && updated) {
-          account = updated;
-        }
-      }
     }
 
     return buildSessionResponse({

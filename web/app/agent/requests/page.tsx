@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRequireRole } from "../../../src/lib/roleGuards";
+import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
 import { PREMIUM_BLUE, MUTED_TEXT, TITLE_TEXT } from "../../../src/design/tokens";
 
 type AgentRequest = {
@@ -18,7 +18,7 @@ type AgentRequest = {
 };
 
 export default function AgentRequestsPage() {
-  useRequireRole(["hq", "admin"], "/login?space=agent");
+  useRequireAnyPermission(["accounts:manage"], "/login?space=agent");
   const [data, setData] = useState<AgentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +81,7 @@ export default function AgentRequestsPage() {
               <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                 <div>
                   <div className="text-sm font-bold" style={{ color: TITLE_TEXT }}>{r.name}</div>
-                  <div className="text-xs" style={{ color: MUTED_TEXT }}>{r.email} · {r.role || "agent"}</div>
+                  <div className="text-xs" style={{ color: MUTED_TEXT }}>{r.email} · {r.role || "travel_agent"}</div>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {r.status === "pending" && (
