@@ -1027,14 +1027,15 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
 export default function AgentRootPage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
+  const hq = isHQ(user);
   const agentId = toAgentWorkspaceId(user);
 
   useEffect(() => {
-    if (agentId) {
+    if (agentId && !hq) {
       router.replace(`/agent/${agentId}`);
     }
-  }, [agentId, router]);
+  }, [agentId, hq, router]);
 
-  if (agentId) return null;
+  if (agentId && !hq) return null;
   return <AgentDashboardPage />;
 }
