@@ -386,7 +386,7 @@ export default function PartnerAccountsPage() {
           ownerId: "zeniva-catalog-owner",
         },
         owner: undefined,
-        account: null,
+        account: undefined,
         listings: unassigned,
         assignments: [],
         locations: Array.from(new Set(unassigned.map((listing) => listing.location))),
