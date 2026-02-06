@@ -208,11 +208,10 @@ export default function SignupPage() {
                 }}
               >
                 <option value="travel-agent">Travel agent</option>
-                <option value="yacht-partner">Yacht partner</option>
-                <option value="support">Support</option>
-                <option value="finance">Finance</option>
-                <option value="admin">Admin</option>
+                <option value="yacht-broker">Yacht broker</option>
+                <option value="influencer">Influencer</option>
                 <option value="hq">HQ</option>
+                <option value="admin">Admin</option>
               </select>
             </label>
             {agentStep === "signup" && (

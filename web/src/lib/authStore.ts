@@ -9,7 +9,7 @@ const TEMP_JASON_EMAIL = "lantierj6@gmail.com";
 const IS_PROD = process.env.NODE_ENV === "production";
 
 export type Division = "TRAVEL" | "YACHT" | "VILLAS" | "GROUPS" | "RESORTS";
-export type Role = "traveler" | "hq" | "admin" | "travel-agent" | "yacht-partner" | "finance" | "support" | "partner_owner" | "partner_staff" | "agent";
+export type Role = "traveler" | "hq" | "admin" | "travel-agent" | "yacht-broker" | "yacht-partner" | "influencer" | "finance" | "support" | "partner_owner" | "partner_staff" | "agent";
 export type AgentLevel = "Agent" | "Senior Agent" | "Manager" | null;
 export type Account = {
   email: string;
@@ -64,14 +64,16 @@ type AuthState = { user: PublicUser | null; accounts: Account[]; auditLog: Audit
 const defaultState: AuthState = { user: null, accounts: [], auditLog: [] };
 
 export const DIVISIONS: Division[] = ["TRAVEL", "YACHT", "VILLAS", "GROUPS", "RESORTS"];
-const AGENT_ROLES: Role[] = ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "agent"];
+const AGENT_ROLES: Role[] = ["hq", "admin", "travel-agent", "yacht-broker", "yacht-partner", "influencer", "finance", "support", "agent"];
 const PERMISSIONS: Record<Role, string[]> = {
   traveler: ["view:own"],
   agent: ["dossiers:own", "proposals:own", "orders:submit", "documents:own"],
   hq: ["*"],
   admin: ["agents:read", "agents:write", "dossiers:all", "proposals:all", "orders:all", "documents:all", "finance:read"],
   "travel-agent": ["dossiers:own", "proposals:own", "orders:submit", "documents:own"],
+  "yacht-broker": ["dossiers:own", "proposals:own", "orders:submit", "documents:own"],
   "yacht-partner": ["dossiers:own", "proposals:own", "orders:submit", "documents:own"],
+  influencer: ["dossiers:own", "proposals:own", "orders:submit", "documents:own"],
   finance: ["finance:all", "orders:approve", "invoices:all", "refunds:all", "exports:csv"],
   support: ["documents:division", "dossiers:division"],
   // Partner roles and permissions

@@ -100,7 +100,7 @@ export async function POST(request: Request) {
         : null;
 
     const isAgentRole = roles.some((r: string) =>
-      ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "agent"].includes(r)
+      ["hq", "admin", "travel-agent", "yacht-broker", "yacht-partner", "influencer", "finance", "support", "agent"].includes(r)
     );
 
     // ---- Validate
@@ -319,6 +319,20 @@ export async function POST(request: Request) {
         );
       } catch {
         // ignore
+      }
+    }
+
+    if (role === "traveler" || roles.includes("traveler")) {
+      try {
+        const existing = await dbQuery("SELECT id FROM clients WHERE lower(email) = lower($1) LIMIT 1", [email]);
+        if (!existing.rows.length) {
+          await dbQuery(
+            "INSERT INTO clients (id, name, email, owner_email, phone, origin, assigned_agents, primary_division, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8, now())",
+            [`C-${authUser.id}`, name || "Traveler", email, "info@zenivatravel.com", null, "web_signup", [], "TRAVEL"]
+          );
+        }
+      } catch {
+        // ignore client sync failures
       }
     }
 
