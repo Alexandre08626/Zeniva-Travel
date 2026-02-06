@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ACCENT_GOLD, PREMIUM_BLUE, TITLE_TEXT, MUTED_TEXT, LIGHT_BG } from "../../../src/design/tokens";
 import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
+import { useAuthStore, hasPermission } from "../../../src/lib/authStore";
+import { normalizeRbacRole } from "../../../src/lib/rbac";
 
 type ProposalStatus = "Draft" | "Sent" | "Approved" | "Booked";
 
@@ -35,6 +37,9 @@ const statusTheme: Record<ProposalStatus, { bg: string; text: string }> = {
 };
 
 function ProposalsContent() {
+  const user = useAuthStore((s) => s.user);
+  const effectiveRole = normalizeRbacRole(user?.effectiveRole) || normalizeRbacRole((user?.roles || [])[0]);
+  const canSend = user ? hasPermission(user, "send_proposal_to_client") || hasPermission(user, "sales:all") : false;
   const searchParams = useSearchParams();
   const [statusFilter, setStatusFilter] = useState<ProposalStatus | "All">("All");
   const [query, setQuery] = useState(() => searchParams.get("q") || "");
@@ -47,11 +52,14 @@ function ProposalsContent() {
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
     return MOCK.filter((p) => {
+      if (effectiveRole === "yacht_broker" && !p.segments.some((seg) => seg.toLowerCase().includes("yacht"))) {
+        return false;
+      }
       const matchesStatus = statusFilter === "All" ? true : p.status === statusFilter;
       const matchesQuery = [p.id, p.client, p.destination].some((v) => v.toLowerCase().includes(q));
       return matchesStatus && matchesQuery;
     });
-  }, [statusFilter, query]);
+  }, [statusFilter, query, effectiveRole]);
 
   const totals = useMemo(() => {
     const base: Record<ProposalStatus, number> = { Draft: 0, Sent: 0, Approved: 0, Booked: 0 };
@@ -146,7 +154,10 @@ function ProposalsContent() {
                           const now = new Date().toISOString();
                           store.trips.unshift({ id: tripId, title: p.destination, status: p.status, lastMessage: '', updatedAt: now, createdAt: now });
                           store.snapshots[tripId] = { departure: '', destination: p.destination, dates: '', travelers: '', budget: p.value.toString(), style: '' };
-                          store.proposals[tripId] = { tripId, title: p.destination, sections: [{ title: 'Flights', items: [] }, { title: 'Hotels', items: [] }], priceEstimate: p.value.toString(), images: [], notes: '', updatedAt: now };
+                          const sections = effectiveRole === "yacht_broker"
+                            ? [{ title: 'Yacht', items: [] }]
+                            : [{ title: 'Flights', items: [] }, { title: 'Hotels', items: [] }];
+                          store.proposals[tripId] = { tripId, title: p.destination, sections, priceEstimate: p.value.toString(), images: [], notes: '', updatedAt: now };
                           store.selections[tripId] = { flight: null, hotel: null };
                           window.localStorage.setItem(key, JSON.stringify(store));
                           window.location.href = `/proposals/${tripId}/select`;
@@ -155,13 +166,15 @@ function ProposalsContent() {
                     >
                       Open
                     </button>
-                    <Link
-                      href="#"
-                      className="rounded-full px-3 py-1 text-xs font-bold text-white"
-                      style={{ backgroundColor: ACCENT_GOLD, color: "#0B1228" }}
-                    >
-                      Share link
-                    </Link>
+                    {canSend && (
+                      <Link
+                        href="#"
+                        className="rounded-full px-3 py-1 text-xs font-bold text-white"
+                        style={{ backgroundColor: ACCENT_GOLD, color: "#0B1228" }}
+                      >
+                        Share link
+                      </Link>
+                    )}
                       <button
                         className="rounded-full px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-blue-600 border-2 border-emerald-500 hover:border-blue-500 hover:from-emerald-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl"
                         style={{ minWidth: 140 }}
@@ -233,7 +246,7 @@ function ProposalsContent() {
 }
 
 export default function ProposalsPage() {
-  useRequireAnyPermission(["sales:all", "sales:yacht"], "/agent");
+  useRequireAnyPermission(["sales:all", "create_yacht_proposal"], "/agent");
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <ProposalsContent />

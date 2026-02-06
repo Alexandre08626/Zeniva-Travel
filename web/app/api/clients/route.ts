@@ -33,14 +33,23 @@ export async function GET(request: Request) {
   try {
     assertBackendEnv();
     const accessAll = await requireRbacPermission(request, "clients:all");
-    if (!accessAll.ok) {
-      const accessYacht = await requireRbacPermission(new Request("http://localhost"), "clients:yacht");
-      if (!accessYacht.ok) {
-        return NextResponse.json({ error: accessAll.error }, { status: accessAll.status });
-      }
+    const accessOwn = await requireRbacPermission(request, "clients:own");
+    const accessLegacyOwn = await requireRbacPermission(request, "read_own_clients");
+    if (!accessAll.ok && !accessOwn.ok && !accessLegacyOwn.ok) {
+      return NextResponse.json({ error: accessAll.error }, { status: accessAll.status });
     }
+
+    if (accessAll.ok) {
+      const { rows } = await dbQuery(
+        "SELECT id, name, email, owner_email, phone, origin, assigned_agents, primary_division, created_at FROM clients ORDER BY created_at DESC"
+      );
+      return NextResponse.json({ data: rows.map(mapClientRow) });
+    }
+
+    const ownerEmail = accessOwn.session?.email || accessLegacyOwn.session?.email || "";
     const { rows } = await dbQuery(
-      "SELECT id, name, email, owner_email, phone, origin, assigned_agents, primary_division, created_at FROM clients ORDER BY created_at DESC"
+      "SELECT id, name, email, owner_email, phone, origin, assigned_agents, primary_division, created_at FROM clients WHERE lower(owner_email) = lower($1) OR EXISTS (SELECT 1 FROM jsonb_array_elements_text(assigned_agents) elem WHERE elem = $1) ORDER BY created_at DESC",
+      [ownerEmail]
     );
     return NextResponse.json({ data: rows.map(mapClientRow) });
   } catch (err: any) {
@@ -52,11 +61,10 @@ export async function POST(request: Request) {
   try {
     assertBackendEnv();
     const accessAll = await requireRbacPermission(request, "clients:all");
-    if (!accessAll.ok) {
-      const accessYacht = await requireRbacPermission(request, "clients:yacht");
-      if (!accessYacht.ok) {
-        return NextResponse.json({ error: accessAll.error }, { status: accessAll.status });
-      }
+    const accessOwn = await requireRbacPermission(request, "clients:own");
+    const accessLegacyOwn = await requireRbacPermission(request, "read_own_clients");
+    if (!accessAll.ok && !accessOwn.ok && !accessLegacyOwn.ok) {
+      return NextResponse.json({ error: accessAll.error }, { status: accessAll.status });
     }
     const body = await request.json();
     const required = ["name", "ownerEmail", "origin"];
@@ -68,6 +76,16 @@ export async function POST(request: Request) {
     const name = String(body.name).trim() || "Client";
     const email = body.email ? normalizeEmail(String(body.email)) : undefined;
     const ownerEmail = normalizeEmail(String(body.ownerEmail));
+    if (!accessAll.ok) {
+      const sessionEmail = accessOwn.session?.email
+        ? normalizeEmail(accessOwn.session.email)
+        : accessLegacyOwn.session?.email
+          ? normalizeEmail(accessLegacyOwn.session.email)
+          : "";
+      if (!sessionEmail || sessionEmail !== ownerEmail) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
     const phone = body.phone ? String(body.phone).trim() : undefined;
     const origin = body.origin === "agent" ? "agent" : body.origin === "web_signup" ? "web_signup" : "house";
     const assignedAgents = Array.isArray(body.assignedAgents) ? body.assignedAgents : [];

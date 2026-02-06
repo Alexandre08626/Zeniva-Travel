@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { addAudit, useAuthStore } from "../../../../src/lib/authStore";
+import { useRequireAnyPermission } from "../../../../src/lib/roleGuards";
+import { normalizeRbacRole } from "../../../../src/lib/rbac";
 import { searchFlights } from "../../../../src/lib/agent/inventory/flights";
 import { searchHotels } from "../../../../src/lib/agent/inventory/hotels";
 import { searchYachts } from "../../../../src/lib/agent/inventory/yachts";
@@ -34,11 +36,15 @@ function uid() {
 }
 
 export default function TripWorkspacePage() {
+  useRequireAnyPermission(["sales:all", "create_yacht_proposal"], "/agent");
   const params = useParams<{ id: string | string[] }>();
   const tripId = Array.isArray(params?.id) ? params.id[0] : params?.id;
   const user = useAuthStore((s) => s.user);
+  const effectiveRole = normalizeRbacRole(user?.effectiveRole) || normalizeRbacRole((user?.roles || [])[0]);
+  const isYachtBroker = effectiveRole === "yacht_broker";
   const [, force] = useState(0);
   const [components, setComponents] = useState<TripComponent[]>([]);
+  const [notice, setNotice] = useState<string | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [docs, setDocs] = useState<DocumentEntry[]>([]);
   const [ledger, setLedger] = useState(() => listLedger());
@@ -67,12 +73,20 @@ export default function TripWorkspacePage() {
     setLedger(listLedger().filter((l) => l.tripId === trip.id));
   }, [trip]);
 
-  const pricing: Pricing | null = useMemo(
-    () => aggregatePricing(components, commissionOverride, marginOverride),
-    [components, commissionOverride, marginOverride]
+  const visibleComponents = useMemo(
+    () => (isYachtBroker ? components.filter((c) => c.productKind === "yacht") : components),
+    [components, isYachtBroker]
   );
 
-  const split = useMemo(() => computeTripSplit(components, client?.origin === "agent" ? 0.2 : 0), [components, client?.origin]);
+  const pricing: Pricing | null = useMemo(
+    () => aggregatePricing(visibleComponents, commissionOverride, marginOverride),
+    [visibleComponents, commissionOverride, marginOverride]
+  );
+
+  const split = useMemo(
+    () => computeTripSplit(visibleComponents, client?.origin === "agent" ? 0.2 : 0),
+    [visibleComponents, client?.origin]
+  );
 
   if (!trip) {
     return (
@@ -87,6 +101,11 @@ export default function TripWorkspacePage() {
   }
 
   const addComponent = (c: TripComponent) => {
+    if (isYachtBroker && c.productKind !== "yacht") {
+      setNotice("Yacht brokers can only add yacht inventory.");
+      return;
+    }
+    setNotice(null);
     setComponents((prev) => [c, ...prev]);
     addComponentToTrip(trip.id, c);
   };
@@ -153,7 +172,9 @@ export default function TripWorkspacePage() {
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Trip Workspace</p>
             <h1 className="text-3xl md:text-4xl font-black" style={{ color: TITLE_TEXT }}>Trip file {trip.id}</h1>
             <p className="text-sm" style={{ color: MUTED_TEXT }}>
-              Build flights, hotels, activities, transfers, cars, yachts. Status: Draft → Quoted → Approved → Pending Payment → Booked → Ticketed.
+              {isYachtBroker
+                ? "Yacht-only dossier. Add yachts, send proposal, and confirm payments."
+                : "Build flights, hotels, activities, transfers, cars, yachts. Status: Draft → Quoted → Approved → Pending Payment → Booked → Ticketed."}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -190,6 +211,11 @@ export default function TripWorkspacePage() {
           </aside>
 
           <section className="space-y-4">
+            {notice && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                {notice}
+              </div>
+            )}
             <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
               <div>
                 <p className="text-xs font-semibold text-slate-500">Status</p>
@@ -209,7 +235,8 @@ export default function TripWorkspacePage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+            {!isYachtBroker && (
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="text-xs font-semibold text-slate-500">Search</p>
@@ -236,8 +263,10 @@ export default function TripWorkspacePage() {
                 ))}
               </div>
             </div>
+            )}
 
-            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+            {!isYachtBroker && (
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="text-xs font-semibold text-slate-500">Search</p>
@@ -265,8 +294,10 @@ export default function TripWorkspacePage() {
                 ))}
               </div>
             </div>
+            )}
 
-            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+            {!isYachtBroker && (
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="text-xs font-semibold text-slate-500">Search</p>
@@ -293,8 +324,10 @@ export default function TripWorkspacePage() {
                 ))}
               </div>
             </div>
+            )}
 
-            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+            {!isYachtBroker && (
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="text-xs font-semibold text-slate-500">Search</p>
@@ -321,8 +354,10 @@ export default function TripWorkspacePage() {
                 ))}
               </div>
             </div>
+            )}
 
-            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+            {!isYachtBroker && (
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="text-xs font-semibold text-slate-500">Search</p>
@@ -349,6 +384,7 @@ export default function TripWorkspacePage() {
                 ))}
               </div>
             </div>
+            )}
 
             <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
               <div className="flex items-center justify-between mb-3">
@@ -378,7 +414,8 @@ export default function TripWorkspacePage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+            {!isYachtBroker && (
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="text-xs font-semibold text-slate-500">Catalogue</p>
@@ -404,8 +441,10 @@ export default function TripWorkspacePage() {
                 ))}
               </div>
             </div>
+            )}
 
-            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+            {!isYachtBroker && (
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="text-xs font-semibold text-slate-500">Catalogue</p>
@@ -431,6 +470,7 @@ export default function TripWorkspacePage() {
                 ))}
               </div>
             </div>
+            )}
 
             <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
               <div className="flex items-center justify-between mb-2">
@@ -438,11 +478,13 @@ export default function TripWorkspacePage() {
                   <p className="text-xs font-semibold text-slate-500">Components</p>
                   <h2 className="text-lg font-bold" style={{ color: TITLE_TEXT }}>In trip</h2>
                 </div>
-                <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold" style={{ color: TITLE_TEXT }}>{components.length} items</span>
+                <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold" style={{ color: TITLE_TEXT }}>{visibleComponents.length} items</span>
               </div>
               <div className="space-y-2 text-sm max-h-72 overflow-y-auto">
-                {components.length === 0 && <p className="text-slate-500">No items yet. Add flights/hotels.</p>}
-                {components.map((c, idx) => (
+                {visibleComponents.length === 0 && (
+                  <p className="text-slate-500">No items yet. {isYachtBroker ? "Add yachts." : "Add flights/hotels."}</p>
+                )}
+                {visibleComponents.map((c, idx) => (
                   <div key={`${c.id}-${idx}`} className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
                     <div className="flex justify-between text-xs text-slate-500">
                       <span>{c.type.toUpperCase()}</span>

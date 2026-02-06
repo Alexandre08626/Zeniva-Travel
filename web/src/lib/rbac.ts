@@ -3,11 +3,28 @@ export type RbacRole = "travel_agent" | "yacht_broker" | "influencer" | "hq" | "
 export const RBAC_ROLES: RbacRole[] = ["travel_agent", "yacht_broker", "influencer", "hq", "admin"];
 
 export const RBAC_PERMISSIONS: Record<RbacRole, string[]> = {
-  travel_agent: ["inventory:all", "sales:all", "clients:all", "bookings:all", "payments:all", "documents:all", "changes:all"],
-  yacht_broker: ["inventory:yacht", "sales:yacht", "clients:yacht", "bookings:yacht", "payments:yacht", "documents:yacht"],
+  travel_agent: [
+    "inventory:all",
+    "sales:all",
+    "clients:all",
+    "bookings:all",
+    "payments:all",
+    "documents:all",
+    "changes:all",
+    "read_yachts_inventory",
+    "create_yacht_proposal",
+    "send_proposal_to_client",
+    "clients:own",
+  ],
+  yacht_broker: [
+    "read_yachts_inventory",
+    "create_yacht_proposal",
+    "send_proposal_to_client",
+    "clients:own",
+  ],
   influencer: ["referrals:read"],
-  hq: ["*"],
-  admin: ["*"],
+  hq: ["*", "accounts:manage"],
+  admin: ["*", "accounts:manage"],
 };
 
 const LEGACY_ROLE_MAP: Record<string, RbacRole> = {

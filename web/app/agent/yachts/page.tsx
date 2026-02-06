@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
 
 export default function AgentYachtsPage() {
-  useRequireAnyPermission(["inventory:all", "inventory:yacht"], "/agent");
+  useRequireAnyPermission(["read_yachts_inventory", "inventory:all"], "/agent");
   const yachts = searchYachts();
   return (
     <main className="min-h-screen" style={{ backgroundColor: "#F3F6FB" }}>

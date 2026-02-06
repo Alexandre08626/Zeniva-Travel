@@ -80,6 +80,8 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
     if (isYachtBroker && !isHQorAdmin) {
       return [
         { label: "Yacht Desk", href: "/agent/yachts" },
+        { label: "Clients", href: "/agent/clients" },
+        { label: "Yacht Proposals", href: "/agent/proposals" },
         { label: "Chat", href: "/agent/chat" },
         { label: "Settings", href: "/agent/settings" },
       ];

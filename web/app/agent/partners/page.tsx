@@ -25,6 +25,23 @@ type PartnerAccount = {
 
 type ListingType = "yacht" | "home" | "hotel";
 
+type BookingStatus = "requested" | "confirmed" | "on_hold" | "paid" | "cancelled";
+
+type PartnerBooking = {
+  id: string;
+  partnerName: string;
+  listingTitle: string;
+  type: ListingType;
+  status: BookingStatus;
+  checkIn: string;
+  checkOut: string;
+  value: number;
+  currency: string;
+  travelers: number;
+  source: string;
+  updatedAt: string;
+};
+
 type PartnerListing = {
   id: string;
   partnerId?: string;
@@ -61,6 +78,9 @@ export default function PartnerAccountsPage() {
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
   const [remoteListings, setRemoteListings] = useState<PartnerListing[]>([]);
+  const [bookingStatus, setBookingStatus] = useState<"all" | BookingStatus>("all");
+  const [bookingType, setBookingType] = useState<"all" | ListingType>("all");
+  const [bookingQuery, setBookingQuery] = useState("");
   const [bookingDetails, setBookingDetails] = useState({
     checkIn: "",
     checkOut: "",
@@ -356,6 +376,72 @@ export default function PartnerAccountsPage() {
     });
   }, [data, partnerListings]);
 
+  const partnerNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    mergedPartners.forEach((partner) => {
+      if (partner.id) map.set(partner.id, partner.displayName);
+    });
+    return map;
+  }, [mergedPartners]);
+
+  const bookingFeed = useMemo<PartnerBooking[]>(() => {
+    const statuses: BookingStatus[] = ["requested", "confirmed", "paid", "on_hold", "cancelled"];
+    const base = new Date();
+    const formatDate = (offsetDays: number) => {
+      const date = new Date(base);
+      date.setDate(date.getDate() + offsetDays);
+      return date.toISOString().slice(0, 10);
+    };
+    return partnerListings.slice(0, 12).map((listing, idx) => {
+      const startOffset = 7 + idx * 3;
+      const endOffset = startOffset + 4 + (idx % 3);
+      const value = 2800 + idx * 650 + (listing.type === "yacht" ? 5400 : 0);
+      return {
+        id: `bk-${listing.id}-${idx}`,
+        partnerName: partnerNameMap.get(listing.partnerId || "") || "Partner",
+        listingTitle: listing.title,
+        type: listing.type,
+        status: statuses[idx % statuses.length],
+        checkIn: formatDate(startOffset),
+        checkOut: formatDate(endOffset),
+        value,
+        currency: listing.currency || "USD",
+        travelers: 2 + (idx % 4),
+        source: idx % 2 === 0 ? "Direct" : "Zeniva",
+        updatedAt: formatDate(idx % 10),
+      };
+    });
+  }, [partnerListings, partnerNameMap]);
+
+  const filteredBookings = useMemo(() => {
+    const q = bookingQuery.trim().toLowerCase();
+    return bookingFeed
+      .filter((booking) => (bookingStatus === "all" ? true : booking.status === bookingStatus))
+      .filter((booking) => (bookingType === "all" ? true : booking.type === bookingType))
+      .filter((booking) => {
+        if (!q) return true;
+        const haystack = `${booking.partnerName} ${booking.listingTitle}`.toLowerCase();
+        return haystack.includes(q);
+      });
+  }, [bookingFeed, bookingQuery, bookingStatus, bookingType]);
+
+  const metrics = useMemo(() => {
+    const totalPartners = mergedPartners.length;
+    const totalListings = partnerListings.length;
+    const liveListings = partnerListings.filter((listing) => listing.status === "published").length;
+    const activeBookings = bookingFeed.filter((booking) => booking.status === "confirmed" || booking.status === "paid").length;
+    const requestBookings = bookingFeed.filter((booking) => booking.status === "requested").length;
+    const totalValue = bookingFeed.reduce((sum, booking) => sum + booking.value, 0);
+    return {
+      totalPartners,
+      totalListings,
+      liveListings,
+      activeBookings,
+      requestBookings,
+      totalValue,
+    };
+  }, [bookingFeed, mergedPartners.length, partnerListings]);
+
   const filteredPartners = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return partnersWithListings
@@ -535,6 +621,119 @@ export default function PartnerAccountsPage() {
             Back to Agent
           </Link>
         </header>
+
+        <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-xs font-semibold text-slate-500">Partners</p>
+            <p className="mt-2 text-2xl font-black" style={{ color: TITLE_TEXT }}>{metrics.totalPartners}</p>
+            <p className="text-xs text-slate-500">Total onboarded suppliers</p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-xs font-semibold text-slate-500">Listings</p>
+            <p className="mt-2 text-2xl font-black" style={{ color: TITLE_TEXT }}>{metrics.liveListings} / {metrics.totalListings}</p>
+            <p className="text-xs text-slate-500">Live listings vs total</p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-xs font-semibold text-slate-500">Active bookings</p>
+            <p className="mt-2 text-2xl font-black" style={{ color: TITLE_TEXT }}>{metrics.activeBookings}</p>
+            <p className="text-xs text-slate-500">Confirmed or paid</p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-xs font-semibold text-slate-500">Booking requests</p>
+            <p className="mt-2 text-2xl font-black" style={{ color: TITLE_TEXT }}>{metrics.requestBookings}</p>
+            <p className="text-xs text-slate-500">Waiting on partner reply</p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-xs font-semibold text-slate-500">Pipeline value</p>
+            <p className="mt-2 text-2xl font-black" style={{ color: TITLE_TEXT }}>${metrics.totalValue.toLocaleString()}</p>
+            <p className="text-xs text-slate-500">Next 30 days estimate</p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-xs font-semibold text-slate-500">Coverage</p>
+            <p className="mt-2 text-2xl font-black" style={{ color: TITLE_TEXT }}>{new Set(partnerListings.map((listing) => listing.type)).size}</p>
+            <p className="text-xs text-slate-500">Active inventory categories</p>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 text-sm space-y-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setBookingStatus("all")}
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${bookingStatus === "all" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700"}`}
+              >
+                All bookings
+              </button>
+              {(["requested", "confirmed", "paid", "on_hold", "cancelled"] as BookingStatus[]).map((status) => (
+                <button
+                  key={status}
+                  type="button"
+                  onClick={() => setBookingStatus(status)}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${bookingStatus === status ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700"}`}
+                >
+                  {status.replace("_", " ")}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={bookingType}
+                onChange={(e) => setBookingType(e.target.value as "all" | ListingType)}
+                className="rounded-full border border-slate-200 px-3 py-1 text-xs"
+              >
+                <option value="all">All types</option>
+                <option value="yacht">Yachts</option>
+                <option value="home">Homes</option>
+                <option value="hotel">Hotels</option>
+              </select>
+              <input
+                value={bookingQuery}
+                onChange={(e) => setBookingQuery(e.target.value)}
+                placeholder="Search bookings"
+                className="w-full md:w-56 rounded-full border border-slate-200 px-4 py-2 text-xs"
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-between text-xs text-slate-500">
+            <span>{filteredBookings.length} bookings</span>
+            <span>Updated {filteredBookings[0]?.updatedAt || "today"}</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-xs">
+              <thead>
+                <tr className="text-left text-slate-500">
+                  <th className="pb-2 pr-3">Partner</th>
+                  <th className="pb-2 pr-3">Listing</th>
+                  <th className="pb-2 pr-3">Type</th>
+                  <th className="pb-2 pr-3">Status</th>
+                  <th className="pb-2 pr-3">Dates</th>
+                  <th className="pb-2 pr-3">Travelers</th>
+                  <th className="pb-2 pr-3">Value</th>
+                  <th className="pb-2 pr-3">Source</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredBookings.map((booking) => (
+                  <tr key={booking.id} className="border-t border-slate-100">
+                    <td className="py-2 pr-3 font-semibold text-slate-800">{booking.partnerName}</td>
+                    <td className="py-2 pr-3 text-slate-700">{booking.listingTitle}</td>
+                    <td className="py-2 pr-3">{TYPE_LABELS[booking.type]}</td>
+                    <td className="py-2 pr-3">
+                      <span className={`rounded-full px-2 py-1 text-[11px] font-semibold ${booking.status === "paid" ? "bg-emerald-100 text-emerald-700" : booking.status === "confirmed" ? "bg-blue-100 text-blue-700" : booking.status === "requested" ? "bg-amber-100 text-amber-700" : booking.status === "on_hold" ? "bg-slate-100 text-slate-700" : "bg-rose-100 text-rose-700"}`}>
+                        {booking.status.replace("_", " ")}
+                      </span>
+                    </td>
+                    <td className="py-2 pr-3 text-slate-600">{booking.checkIn} → {booking.checkOut}</td>
+                    <td className="py-2 pr-3 text-slate-600">{booking.travelers}</td>
+                    <td className="py-2 pr-3 text-slate-800">{booking.currency} {booking.value.toLocaleString()}</td>
+                    <td className="py-2 pr-3 text-slate-600">{booking.source}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
         <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 text-sm space-y-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

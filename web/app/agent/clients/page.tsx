@@ -4,14 +4,14 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { listClients, addClient } from "../../../src/lib/agent/store";
 import type { Client, Division } from "../../../src/lib/agent/types";
-import { useAuthStore } from "../../../src/lib/authStore";
+import { useAuthStore, hasPermission } from "../../../src/lib/authStore";
 import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../src/design/tokens";
 
 const IS_PROD = process.env.NODE_ENV === "production";
 
 export default function ClientsPage() {
-  useRequireAnyPermission(["clients:all", "clients:yacht"], "/agent");
+  useRequireAnyPermission(["clients:all", "clients:own"], "/agent");
   const user = useAuthStore((s) => s.user);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -22,7 +22,16 @@ export default function ClientsPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const clients = useMemo(() => clientsState, [clientsState]);
+  const clients = useMemo(() => {
+    if (!user) return clientsState;
+    if (hasPermission(user, "clients:all")) return clientsState;
+    const email = user.email?.toLowerCase() || "";
+    return clientsState.filter((client) => {
+      const owner = (client.ownerEmail || "").toLowerCase();
+      const assigned = (client.assignedAgents || []).map((a) => a.toLowerCase());
+      return owner === email || assigned.includes(email);
+    });
+  }, [clientsState, user]);
 
   useEffect(() => {
     let active = true;

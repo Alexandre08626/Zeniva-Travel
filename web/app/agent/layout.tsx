@@ -26,7 +26,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
       return;
     }
     if (isYachtBroker) {
-      const allowed = ["/agent", "/agent/yachts", "/agent/chat", "/agent/settings"].some((path) => pathname === path || pathname.startsWith(`${path}/`));
+      const allowed = ["/agent", "/agent/yachts", "/agent/clients", "/agent/proposals", "/agent/trips", "/agent/chat", "/agent/settings"].some((path) => pathname === path || pathname.startsWith(`${path}/`));
       if (!allowed) {
         router.replace("/agent/yachts");
       }
