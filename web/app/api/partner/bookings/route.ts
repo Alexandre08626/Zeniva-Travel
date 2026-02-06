@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 // - TODO: Add database persistence, server-side auth, RBAC checks, and audit logging.
 
 import { bookings } from "../../../../src/lib/devPartnerStore";
+import { bookingRequests } from "../../../../src/lib/devBookingRequests";
 // In-memory bookings (dev only) — shared module
 
 export async function GET(req: Request) {
@@ -20,6 +21,15 @@ export async function POST(req: Request) {
   if (!payload) return NextResponse.json({ error: "invalid payload" }, { status: 400 });
   const partnerId = payload.partnerId || req.headers.get("x-zeniva-partner-id");
   if (!partnerId) return NextResponse.json({ error: "partnerId required" }, { status: 400 });
+
+  const bookingRequestId = payload.bookingRequestId || payload.booking_request_id;
+  if (bookingRequestId) {
+    const reqItem = bookingRequests.find((r) => r.id === bookingRequestId);
+    if (!reqItem) return NextResponse.json({ error: "booking request not found" }, { status: 404 });
+    if (!(reqItem.status === "approved" || reqItem.status === "confirmed_paid")) {
+      return NextResponse.json({ error: "booking request not approved" }, { status: 403 });
+    }
+  }
   const id = `bk_${Math.random().toString(36).slice(2, 8)}`;
   const now = new Date().toISOString();
   const booking = {

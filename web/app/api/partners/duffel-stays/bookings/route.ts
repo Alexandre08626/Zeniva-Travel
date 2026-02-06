@@ -3,6 +3,7 @@ import { z } from "zod";
 import fs from "fs";
 import path from "path";
 import { createStayBooking } from "../../../../../src/lib/duffelClient";
+import { bookingRequests } from "../../../../../src/lib/devBookingRequests";
 
 const guestSchema = z.object({
   given_name: z.string().trim().min(1, "given_name required"),
@@ -40,6 +41,28 @@ export async function POST(req: Request) {
     };
 
     const result = await createStayBooking(payload);
+    try {
+      const bookingData = result.data;
+      const totalAmount = Number(bookingData?.total_amount || bookingData?.total_amount?.amount || bookingData?.amount || 0);
+      const currency = String(bookingData?.total_amount?.currency || bookingData?.currency || "USD");
+      const reference = bookingData?.booking_reference || bookingData?.reference || bookingData?.id;
+      bookingRequests.unshift({
+        id: `br-${bookingData?.id || Date.now()}`,
+        title: bookingData?.property?.name || "Duffel stay",
+        clientName: bookingData?.guest?.email || bookingData?.email || "Duffel guest",
+        source: "api",
+        provider: "duffel",
+        status: "confirmed_paid",
+        paymentStatus: "paid",
+        confirmationReference: reference,
+        totalAmount: Number.isFinite(totalAmount) ? totalAmount : 0,
+        currency,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (err: any) {
+      console.error("Failed to enqueue HQ booking confirmation", err?.message || err);
+    }
 
     // Persist a copy of the booking artifact for test/demo flows so the confirmation page can read it
     try {
