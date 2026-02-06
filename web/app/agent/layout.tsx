@@ -1,6 +1,6 @@
 "use client";
 import "../globals.css";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "../../src/lib/authStore";
@@ -16,6 +16,12 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
   const isHQorAdmin = effectiveRole === "hq" || effectiveRole === "admin";
   const isInfluencer = effectiveRole === "influencer";
   const isYachtBroker = effectiveRole === "yacht_broker";
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<
+    { id: string; title: string; subtitle: string; href: string; ts: string }[]
+  >([]);
+
+  const unreadCount = notifications.length;
 
   useEffect(() => {
     if (!user || isHQorAdmin) return;
@@ -33,6 +39,55 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
       }
     }
   }, [user, roles, isHQorAdmin, isInfluencer, isYachtBroker, pathname, router]);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const [bookingRes, agentRes] = await Promise.all([
+          fetch("/api/booking-requests"),
+          fetch("/api/agent/requests"),
+        ]);
+        const bookingPayload = await bookingRes.json();
+        const agentPayload = await agentRes.json();
+
+        const bookingRequests = Array.isArray(bookingPayload?.data) ? bookingPayload.data : [];
+        const agentRequests = Array.isArray(agentPayload?.data) ? agentPayload.data : [];
+
+        const bookingItems = bookingRequests
+          .filter((item: any) => item.status === "pending_hq" || item.status === "needs_changes")
+          .slice(0, 5)
+          .map((item: any) => ({
+            id: `booking-${item.id}`,
+            title: `Booking request: ${item.title || item.clientName || "Client"}`,
+            subtitle: `${item.status === "pending_hq" ? "Pending approval" : "Needs changes"} · ${item.provider || "manual"}`,
+            href: "/agent/purchase-orders",
+            ts: item.updatedAt || item.createdAt || new Date().toISOString(),
+          }));
+
+        const agentItems = agentRequests
+          .slice(0, 5)
+          .map((item: any) => ({
+            id: `request-${item.id}`,
+            title: "Help request",
+            subtitle: item.message?.split("\n")[0] || item.message || "New request",
+            href: "/agent/chat?channel=hq",
+            ts: item.createdAt || new Date().toISOString(),
+          }));
+
+        if (active) {
+          setNotifications([...bookingItems, ...agentItems].slice(0, 8));
+        }
+      } catch {
+        if (active) setNotifications([]);
+      }
+    };
+
+    load();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const showChat = isHQorAdmin || roles.length > 0;
 
@@ -53,6 +108,49 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
                 <span>Agent Chat</span>
               </Link>
             )}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setNotificationsOpen((prev) => !prev)}
+                className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:border-slate-300"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 8a6 6 0 10-12 0c0 7-3 7-3 7h18s-3 0-3-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M13.73 21a2 2 0 01-3.46 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span>Notifications</span>
+                {unreadCount > 0 && (
+                  <span className="ml-1 rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+              {notificationsOpen && (
+                <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl z-40">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Inbox</div>
+                    <button
+                      type="button"
+                      onClick={() => setNotificationsOpen(false)}
+                      className="text-[11px] font-semibold text-slate-500"
+                    >
+                      Close
+                    </button>
+                  </div>
+                  <div className="mt-3 space-y-2 max-h-80 overflow-y-auto">
+                    {notifications.length === 0 && (
+                      <div className="text-xs text-slate-500">No new notifications.</div>
+                    )}
+                    {notifications.map((item) => (
+                      <Link key={item.id} href={item.href} className="block rounded-xl border border-slate-100 bg-slate-50 p-3 hover:border-slate-200">
+                        <div className="text-sm font-semibold text-slate-900">{item.title}</div>
+                        <div className="text-xs text-slate-600">{item.subtitle}</div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-2 text-xs text-slate-500">
               <span>Agent mode</span>
               <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
