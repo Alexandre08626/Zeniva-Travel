@@ -23,7 +23,8 @@ type AccountRecord = {
 function roleToKey(role: string): AgentDirectoryEntry["roleKey"] {
   if (role === "hq") return "hq";
   if (role === "admin") return "admin";
-  if (role === "yacht-partner") return "yacht-partner";
+  if (role === "yacht-broker" || role === "yacht-partner") return "yacht-broker";
+  if (role === "influencer") return "influencer";
   if (role === "partner_owner" || role === "partner_staff") return "partner";
   if (role === "traveler") return "traveler";
   return "travel-agent";
@@ -32,14 +33,15 @@ function roleToKey(role: string): AgentDirectoryEntry["roleKey"] {
 function roleToLabel(role: string): AgentRoleLabel {
   if (role === "hq") return "HQ";
   if (role === "admin") return "Admin";
-  if (role === "yacht-partner") return "Yacht Partner";
+  if (role === "yacht-broker" || role === "yacht-partner") return "Yacht Broker";
+  if (role === "influencer") return "Influencer";
   if (role === "partner_owner" || role === "partner_staff") return "Partner";
   if (role === "traveler") return "Traveler";
   return "Travel Agent";
 }
 
 function makeAgentCode(roleKey: AgentDirectoryEntry["roleKey"], email: string) {
-  const prefix = roleKey === "hq" ? "Z-HQ" : roleKey === "admin" ? "ZA" : roleKey === "yacht-partner" ? "ZY" : roleKey === "partner" ? "ZP" : "ZT";
+  const prefix = roleKey === "hq" ? "Z-HQ" : roleKey === "admin" ? "ZA" : roleKey === "yacht-broker" || roleKey === "yacht-partner" ? "ZY" : roleKey === "influencer" ? "ZI" : roleKey === "partner" ? "ZP" : "ZT";
   const hash = Array.from(email).reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) % 900, 0) + 100;
   return `${prefix}-${hash}`;
 }
@@ -55,7 +57,7 @@ function mapAccountToAgent(account: AccountRecord): AgentDirectoryEntry {
   const roleLabel = roleToLabel(primaryRole);
   const divisions = (Array.isArray(account.divisions) && account.divisions.length
     ? account.divisions
-    : roleKey === "yacht-partner"
+    : roleKey === "yacht-broker" || roleKey === "yacht-partner"
       ? ["YACHT"]
       : roleKey === "partner"
         ? []
