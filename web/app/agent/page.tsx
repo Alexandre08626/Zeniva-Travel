@@ -675,13 +675,21 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
                     <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Trip search</p>
                     <h3 className="text-lg font-bold" style={{ color: TITLE_TEXT }}>Create a new travel search</h3>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setSearchOpen(false)}
-                    className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600"
-                  >
-                    Close
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href="/agent/agent-info"
+                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700"
+                    >
+                      Partner catalog
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => setSearchOpen(false)}
+                      className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600"
+                    >
+                      Close
+                    </button>
+                  </div>
                 </div>
                 <div className="px-6 py-6">
                   <div
