@@ -51,7 +51,7 @@ export default function TravelerAgentChatClient() {
       title: "Zeniva Agent",
       listingTitle: "Human support for escalations",
       unread: 0,
-      avatar: "/branding/lina-avatar.png",
+      avatar: "/branding/logo.png",
       type: "agent",
       messages: [
         {
@@ -184,18 +184,6 @@ export default function TravelerAgentChatClient() {
                 <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">Direct chat</span>
                 <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">Human agent</span>
               </div>
-              <div className="flex flex-wrap gap-2 pt-1">
-                {quickHelpOptions.map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => setInput(option)}
-                    className="rounded-full border border-blue-100 bg-white px-2 py-0.5 text-[11px] font-semibold text-blue-700"
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
             </div>
 
             <div className="rounded-xl border border-blue-100 bg-white p-3 space-y-2">
@@ -207,21 +195,6 @@ export default function TravelerAgentChatClient() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-blue-100 bg-white p-3 space-y-2">
-              <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Quick help</p>
-              <div className="flex flex-wrap gap-2">
-                {quickHelpOptions.map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => setInput(option)}
-                    className="rounded-full border border-blue-100 bg-white px-3 py-1 text-[11px] font-semibold text-blue-700"
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            </div>
           </aside>
 
           <div className="flex-1 min-w-0 rounded-2xl border border-blue-100 bg-white overflow-hidden flex">
@@ -314,13 +287,13 @@ export default function TravelerAgentChatClient() {
                     Human agent
                   </button>
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                <div className="mt-3 flex flex-wrap gap-3">
                   {quickHelpOptions.map((option) => (
                     <button
                       key={option}
                       type="button"
                       onClick={() => setInput(option)}
-                      className="rounded-full border border-blue-100 bg-white px-3 py-1 text-blue-700 font-semibold"
+                      className="rounded-full border-2 border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm hover:border-blue-300"
                     >
                       {option}
                     </button>
