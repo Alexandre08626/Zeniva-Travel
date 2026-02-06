@@ -174,8 +174,80 @@ async function ensureSchema() {
     );
   `);
 
+  await pool.query("ALTER TABLE influencer_commissions ADD COLUMN IF NOT EXISTS status text;");
+  await pool.query("ALTER TABLE influencer_commissions ADD COLUMN IF NOT EXISTS payout_id text;");
+
   await pool.query("CREATE INDEX IF NOT EXISTS influencer_commissions_referral_idx ON influencer_commissions (referral_code);");
   await pool.query("CREATE INDEX IF NOT EXISTS influencer_commissions_booking_idx ON influencer_commissions (booking_id);");
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS influencer_referral_forms (
+      id text PRIMARY KEY,
+      influencer_id text NOT NULL,
+      referral_code text NOT NULL,
+      slug text NOT NULL,
+      title text NOT NULL,
+      created_at timestamptz DEFAULT now()
+    );
+  `);
+
+  await pool.query("CREATE INDEX IF NOT EXISTS influencer_referral_forms_code_idx ON influencer_referral_forms (referral_code);");
+  await pool.query("CREATE UNIQUE INDEX IF NOT EXISTS influencer_referral_forms_slug_idx ON influencer_referral_forms (referral_code, slug);");
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS influencer_referral_leads (
+      id text PRIMARY KEY,
+      form_id text NOT NULL,
+      influencer_id text NOT NULL,
+      referral_code text NOT NULL,
+      traveler_name text,
+      traveler_email text,
+      phone text,
+      destination text,
+      start_date date,
+      end_date date,
+      budget text,
+      notes text,
+      ip_address text,
+      user_agent text,
+      created_at timestamptz DEFAULT now()
+    );
+  `);
+
+  await pool.query("CREATE INDEX IF NOT EXISTS influencer_referral_leads_code_idx ON influencer_referral_leads (referral_code);");
+  await pool.query("CREATE INDEX IF NOT EXISTS influencer_referral_leads_form_idx ON influencer_referral_leads (form_id);");
+  await pool.query("CREATE INDEX IF NOT EXISTS influencer_referral_leads_created_idx ON influencer_referral_leads (created_at);");
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS influencer_clicks (
+      id text PRIMARY KEY,
+      influencer_id text NOT NULL,
+      referral_code text NOT NULL,
+      form_id text,
+      path text,
+      ip_address text,
+      user_agent text,
+      created_at timestamptz DEFAULT now()
+    );
+  `);
+
+  await pool.query("CREATE INDEX IF NOT EXISTS influencer_clicks_code_idx ON influencer_clicks (referral_code);");
+  await pool.query("CREATE INDEX IF NOT EXISTS influencer_clicks_created_idx ON influencer_clicks (created_at);");
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS influencer_payouts (
+      id text PRIMARY KEY,
+      influencer_id text NOT NULL,
+      referral_code text NOT NULL,
+      amount numeric NOT NULL,
+      currency text NOT NULL,
+      status text NOT NULL,
+      paid_at timestamptz,
+      created_at timestamptz DEFAULT now()
+    );
+  `);
+
+  await pool.query("CREATE INDEX IF NOT EXISTS influencer_payouts_code_idx ON influencer_payouts (referral_code);");
 
   schemaReady = true;
 }

@@ -20,7 +20,8 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!user || isHQorAdmin) return;
     if (isInfluencer) {
-      if (!pathname.startsWith("/agent/influencer") && !pathname.startsWith("/agent/settings")) {
+      const allowed = ["/agent/influencer", "/agent/settings", "/agent/chat"].some((path) => pathname === path || pathname.startsWith(`${path}/`));
+      if (!allowed) {
         router.replace("/agent/influencer");
       }
       return;
@@ -33,7 +34,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
     }
   }, [user, roles, isHQorAdmin, isInfluencer, isYachtBroker, pathname, router]);
 
-  const showChat = isHQorAdmin || (!isInfluencer && roles.length > 0);
+  const showChat = isHQorAdmin || roles.length > 0;
 
   return (
     <div className="bg-slate-50 text-slate-900 min-h-screen">

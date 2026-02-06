@@ -57,8 +57,8 @@ export async function POST(request: Request) {
 
     const id = `inf-comm-${crypto.randomUUID()}`;
     await dbQuery(
-      "INSERT INTO influencer_commissions (id, referral_code, influencer_id, booking_id, traveler_email, amount, currency, booking_date, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8, now())",
-      [id, referralCode, influencerId, bookingId, travelerEmail, commission, currency, bookingDate]
+      "INSERT INTO influencer_commissions (id, referral_code, influencer_id, booking_id, traveler_email, amount, currency, booking_date, status, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, now())",
+      [id, referralCode, influencerId, bookingId, travelerEmail, commission, currency, bookingDate, "pending"]
     );
 
     return NextResponse.json({ ok: true, data: { id, referralCode, influencerId, amount: commission, currency, bookingDate } });
