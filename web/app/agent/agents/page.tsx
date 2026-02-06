@@ -43,7 +43,7 @@ export default function AgentsDirectoryPage() {
   useEffect(() => {
     if (IS_PROD) return;
     if (!accounts || accounts.length === 0) return;
-    const agentRoles: Role[] = ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "partner_owner", "partner_staff", "agent", "traveler"];
+    const agentRoles: Role[] = ["hq", "admin", "travel-agent", "yacht-broker", "yacht-partner", "influencer", "finance", "support", "partner_owner", "partner_staff", "agent", "traveler"];
     const agentRoleSet = new Set(agentRoles);
 
     accounts.forEach((account) => {
@@ -80,7 +80,7 @@ export default function AgentsDirectoryPage() {
           return;
         }
 
-        const agentRoles: Role[] = ["hq", "admin", "travel-agent", "yacht-partner", "finance", "support", "partner_owner", "partner_staff", "agent", "traveler"];
+        const agentRoles: Role[] = ["hq", "admin", "travel-agent", "yacht-broker", "yacht-partner", "influencer", "finance", "support", "partner_owner", "partner_staff", "agent", "traveler"];
         const agentRoleSet = new Set(agentRoles);
 
         records.forEach((account: any) => {
@@ -116,7 +116,7 @@ export default function AgentsDirectoryPage() {
       const roleOk =
         roleFilter === "all" ||
         (roleFilter === "travel" && (a.roleLabel === "Travel Agent" || a.roleLabel === "Traveler")) ||
-        (roleFilter === "yacht" && a.roleLabel === "Yacht Partner") ||
+        (roleFilter === "yacht" && a.roleLabel === "Yacht Broker") ||
         (roleFilter === "admin" && (a.roleKey === "admin" || a.roleKey === "hq"));
       const statusOk = statusFilter === "all" || a.status === statusFilter;
       return roleOk && statusOk;
