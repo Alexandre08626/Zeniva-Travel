@@ -131,7 +131,7 @@ export default function PurchaseOrdersPage() {
       .then((res) => res.json())
       .then((payload: { data?: ApiBookingRequest[] }) => {
         const data: ApiBookingRequest[] = Array.isArray(payload?.data) ? payload.data : [];
-        const normalized = data
+        const normalized: BookingRequest[] = data
           .filter((item: ApiBookingRequest) => (isHQ(user) ? true : item.requestedBy === user?.email))
           .map((item: ApiBookingRequest) => ({
             id: item.id,
