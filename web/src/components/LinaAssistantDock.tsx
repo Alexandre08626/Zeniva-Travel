@@ -28,8 +28,8 @@ const MODE_COPY: Record<Mode, {
     title: "Lina Travel Concierge",
     subtitle: "Trip planning, hotels, flights, and experiences tailored to you.",
     placeholder: "Ask Lina to plan your next trip...",
-    ctaLabel: "Open traveler chat",
-    ctaHref: "/chat",
+    ctaLabel: "Open traveler help center",
+    ctaHref: "/chat/agent?channel=agent-alexandre&source=/documents",
     quickPrompts: [
       "Plan a 7-day beach trip under $4,000",
       "Find a boutique hotel in Paris for May",
