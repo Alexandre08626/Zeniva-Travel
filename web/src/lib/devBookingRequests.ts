@@ -13,7 +13,7 @@ export type BookingRequest = {
   title: string;
   clientName: string;
   dossierId?: string;
-  source: "agent" | "lina" | "api";
+  source: "agent" | "lina" | "api" | "traveler";
   provider: string;
   status: BookingRequestStatus;
   paymentStatus: BookingPaymentStatus;

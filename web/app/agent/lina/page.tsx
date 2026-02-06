@@ -441,7 +441,7 @@ export default function LinaCommandCenter() {
   };
 
   return (
-    <main className="min-h-screen" style={{ backgroundColor: "#0b1220", position: 'relative' }}>
+    <main className="min-h-screen lina-light" style={{ backgroundColor: "#F3F6FB", position: 'relative' }}>
       {/* Mode normal button, always visible in top right */}
       <div style={{ position: 'fixed', top: 24, right: 32, zIndex: 2000, display: 'flex', gap: 12 }}>
         <button

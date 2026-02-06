@@ -255,6 +255,36 @@ div[style*="100vw"] {
   }
 }
 
+/* Lina page light theme overrides */
+.lina-light {
+  background-color: #f3f6fb;
+  color: #0f172a;
+}
+
+.lina-light .bg-slate-950,
+.lina-light .bg-slate-900,
+.lina-light .bg-slate-800 {
+  background-color: #ffffff !important;
+}
+
+.lina-light .border-slate-800,
+.lina-light .border-slate-700 {
+  border-color: #e2e8f0 !important;
+}
+
+.lina-light .text-white,
+.lina-light .text-slate-200,
+.lina-light .text-slate-300,
+.lina-light .text-slate-400,
+.lina-light .text-slate-500 {
+  color: #0f172a !important;
+}
+
+.lina-light .bg-gradient-to-r {
+  background-image: none !important;
+  background-color: #ffffff !important;
+}
+
 /* Specific fixes for common Windows laptop resolutions with scaling */
 /* 1366x768 at 100% - Very common Windows laptop resolution */
 @media (min-width: 1300px) and (max-width: 1400px) {

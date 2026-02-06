@@ -51,7 +51,13 @@ export async function POST(request: Request) {
     const body = await request.json();
     const title = String(body?.title || "").trim();
     const clientName = String(body?.clientName || "").trim();
-    const source = body?.source === "api" ? "api" : body?.source === "lina" ? "lina" : "agent";
+    const source = body?.source === "api"
+      ? "api"
+      : body?.source === "lina"
+        ? "lina"
+        : body?.source === "traveler"
+          ? "traveler"
+          : "agent";
     const provider = String(body?.provider || "unknown").trim();
     const totalAmount = Number(body?.totalAmount || 0);
     const currency = String(body?.currency || "USD").toUpperCase();

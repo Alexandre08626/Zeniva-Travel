@@ -19,6 +19,7 @@ type BookingRequest = {
   clientName: string;
   dossierId?: string;
   agentEmail: string;
+  source: "agent" | "lina" | "api" | "traveler";
   department: Department;
   status: Status;
   sellingTotal: number;
@@ -31,7 +32,7 @@ type ApiBookingRequest = {
   title: string;
   clientName: string;
   dossierId?: string;
-  source: "agent" | "lina" | "api";
+  source: "agent" | "lina" | "api" | "traveler";
   provider: string;
   status: Status;
   paymentStatus?: "paid" | "unpaid" | "unknown";
@@ -105,6 +106,7 @@ export default function PurchaseOrdersPage() {
   const [orders, setOrders] = useState<BookingRequest[]>(SAMPLE);
   const [filterStatus, setFilterStatus] = useState<Status | "ALL">("ALL");
   const [filterDept, setFilterDept] = useState<Department | "ALL">("ALL");
+  const [filterSource, setFilterSource] = useState<"ALL" | BookingRequest["source"]>("ALL");
   const [search, setSearch] = useState("");
 
   const [client, setClient] = useState("");
@@ -128,7 +130,6 @@ export default function PurchaseOrdersPage() {
       .then((payload: { data?: ApiBookingRequest[] }) => {
         const data: ApiBookingRequest[] = Array.isArray(payload?.data) ? payload.data : [];
         const normalized = data
-          .filter((item: ApiBookingRequest) => item.source === "agent")
           .filter((item: ApiBookingRequest) => (isHQ(user) ? true : item.requestedBy === user?.email))
           .map((item: ApiBookingRequest) => ({
             id: item.id,
@@ -136,6 +137,7 @@ export default function PurchaseOrdersPage() {
             clientName: item.clientName,
             dossierId: item.dossierId,
             agentEmail: item.requestedBy || "agent@zenivatravel.com",
+            source: item.source === "api" ? "api" : item.source === "lina" ? "lina" : item.source === "traveler" ? "traveler" : "agent",
             department: normalizeDepartment(item.provider || ""),
             status: item.status as Status,
             sellingTotal: item.totalAmount,
@@ -151,13 +153,18 @@ export default function PurchaseOrdersPage() {
     return orders.filter((request) => {
       const matchesStatus = filterStatus === "ALL" ? true : request.status === filterStatus;
       const matchesDept = filterDept === "ALL" ? true : request.department === filterDept;
+      const matchesSource = filterSource === "ALL" ? true : request.source === filterSource;
       const needle = search.toLowerCase();
       const matchesSearch = [request.title, request.clientName, request.dossierId, request.agentEmail]
         .map((value) => (value || "").toLowerCase())
         .some((value) => value.includes(needle));
-      return matchesStatus && matchesDept && matchesSearch;
+      return matchesStatus && matchesDept && matchesSource && matchesSearch;
     });
-  }, [orders, filterStatus, filterDept, search]);
+  }, [orders, filterStatus, filterDept, filterSource, search]);
+
+  const approvedForSelfBooking = useMemo(() => {
+    return orders.filter((request) => request.status === "approved");
+  }, [orders]);
 
   const submitRequest = async () => {
     const now = new Date().toISOString();
@@ -237,6 +244,23 @@ export default function PurchaseOrdersPage() {
         </header>
 
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
+          {approvedForSelfBooking.length > 0 && (
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+              <div className="font-bold">Approved for self-booking</div>
+              <p className="text-emerald-800">
+                These requests are approved and dedicated to you. Proceed with partner booking (ex: TBO) using the details below.
+              </p>
+              <div className="mt-3 grid gap-2 md:grid-cols-2">
+                {approvedForSelfBooking.map((request) => (
+                  <div key={request.id} className="rounded-xl border border-emerald-200 bg-white p-3">
+                    <div className="text-sm font-semibold text-emerald-900">{request.title}</div>
+                    <div className="text-xs text-emerald-700">{request.clientName} · {request.dossierId || "No dossier"}</div>
+                    <div className="text-xs text-emerald-700">{request.currency} {request.sellingTotal.toLocaleString()}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="flex flex-wrap gap-2 text-[12px] font-semibold text-slate-700">
             <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as Status | "ALL")} className="rounded-lg border border-slate-200 px-3 py-2">
               <option value="ALL">All statuses</option>
@@ -250,6 +274,13 @@ export default function PurchaseOrdersPage() {
               <option value="Yacht">Yacht</option>
               <option value="Hotels">Hotels</option>
               <option value="Flights">Flights</option>
+            </select>
+            <select value={filterSource} onChange={(e) => setFilterSource(e.target.value as "ALL" | BookingRequest["source"])} className="rounded-lg border border-slate-200 px-3 py-2">
+              <option value="ALL">All sources</option>
+              <option value="agent">Agent</option>
+              <option value="lina">Lina AI</option>
+              <option value="api">API</option>
+              <option value="traveler">Traveler</option>
             </select>
             <input
               value={search}
@@ -266,7 +297,7 @@ export default function PurchaseOrdersPage() {
                 <tr>
                   <th className="px-3 py-2 text-left">Request</th>
                   <th className="px-3 py-2 text-left">Client / Dossier</th>
-                  <th className="px-3 py-2 text-left">Agent</th>
+                  <th className="px-3 py-2 text-left">Requester</th>
                   <th className="px-3 py-2 text-left">Dept</th>
                   <th className="px-3 py-2 text-left">Total</th>
                   <th className="px-3 py-2 text-left">Status</th>
@@ -281,7 +312,10 @@ export default function PurchaseOrdersPage() {
                       <div className="font-semibold">{po.clientName}</div>
                       <div className="text-xs text-slate-500">{po.dossierId}</div>
                     </td>
-                    <td className="px-3 py-2 text-slate-700">{po.agentEmail}</td>
+                    <td className="px-3 py-2 text-slate-700">
+                      <div className="font-semibold">{po.agentEmail}</div>
+                      <div className="text-xs text-slate-500 uppercase tracking-[0.12em]">{po.source}</div>
+                    </td>
                     <td className="px-3 py-2 text-slate-700">{po.department}</td>
                     <td className="px-3 py-2 text-slate-900 font-bold">{po.currency} {po.sellingTotal.toLocaleString()}</td>
                     <td className="px-3 py-2">
