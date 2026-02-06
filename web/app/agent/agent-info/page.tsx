@@ -7,6 +7,8 @@ import { resortPartners } from "@/src/data/partners/resorts";
 import { GRADIENT_END, GRADIENT_START, LIGHT_BG, TITLE_TEXT, MUTED_TEXT } from "@/src/design/tokens";
 import { useI18n } from "@/src/lib/i18n/I18nProvider";
 import { formatCurrencyAmount, normalizeListingTitle, normalizePriceLabel } from "@/src/lib/format";
+import { useAuthStore } from "@/src/lib/authStore";
+import { normalizeRbacRole } from "@/src/lib/rbac";
 
 type TabKey = "resorts" | "yachts" | "residences";
 
@@ -71,6 +73,10 @@ body { font-family: Arial, sans-serif; padding: 32px; color: #0f172a; }
 export default function AgentInfoPage() {
   const router = useRouter();
   const { locale } = useI18n();
+  const user = useAuthStore((s) => s.user);
+  const roles = user?.roles && user.roles.length ? user.roles : user?.role ? [user.role] : [];
+  const effectiveRole = normalizeRbacRole(user?.effectiveRole) || normalizeRbacRole(roles[0]);
+  const isYachtBroker = effectiveRole === "yacht_broker";
   const [activeTab, setActiveTab] = useState<TabKey>("resorts");
   const [yachts, setYachts] = useState<Listing[]>([]);
   const [residences, setResidences] = useState<Listing[]>([]);
@@ -194,11 +200,17 @@ export default function AgentInfoPage() {
     };
   }, [locale]);
 
-  const tabs = [
-    { key: "resorts" as const, label: "Hotels & Resorts" },
-    { key: "yachts" as const, label: "Yachts" },
-    { key: "residences" as const, label: "Short-term Rentals" },
-  ];
+  const tabs = isYachtBroker
+    ? [{ key: "yachts" as const, label: "Yachts" }]
+    : [
+        { key: "resorts" as const, label: "Hotels & Resorts" },
+        { key: "yachts" as const, label: "Yachts" },
+        { key: "residences" as const, label: "Short-term Rentals" },
+      ];
+
+  useEffect(() => {
+    if (isYachtBroker) setActiveTab("yachts");
+  }, [isYachtBroker]);
 
   const currentList = activeTab === "resorts" ? resorts : activeTab === "yachts" ? yachts : residences;
 

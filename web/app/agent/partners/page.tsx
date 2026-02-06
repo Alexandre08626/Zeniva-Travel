@@ -358,7 +358,7 @@ export default function PartnerAccountsPage() {
   }, [remoteListings]);
 
   const partnersWithListings = useMemo(() => {
-    return mergedPartners.map((partner) => {
+    const base = mergedPartners.map((partner) => {
       const account = data.find((row) => row.id === partner.id || row.email === partner.primaryContactEmail);
       const owner = mergedOwners.find((o) => o.id === partner.ownerId);
       const listings = partnerListings.filter((listing) => listing.partnerId === partner.id);
@@ -374,7 +374,27 @@ export default function PartnerAccountsPage() {
         listingTypes: Array.from(new Set(listings.map((listing) => listing.type as ListingType))),
       };
     });
-  }, [data, partnerListings]);
+    const unassigned = partnerListings.filter((listing) => !listing.partnerId);
+    if (unassigned.length) {
+      base.push({
+        partner: {
+          id: "zeniva-catalog",
+          displayName: "Zeniva Catalog",
+          legalName: "Zeniva Travel",
+          primaryContactEmail: "inventory@zenivatravel.com",
+          phone: "—",
+          ownerId: "zeniva-catalog-owner",
+        },
+        owner: null,
+        account: null,
+        listings: unassigned,
+        assignments: [],
+        locations: Array.from(new Set(unassigned.map((listing) => listing.location))),
+        listingTypes: Array.from(new Set(unassigned.map((listing) => listing.type as ListingType))),
+      });
+    }
+    return base;
+  }, [data, partnerListings, mergedOwners, mergedPartners, listingAssignments]);
 
   const partnerNameMap = useMemo(() => {
     const map = new Map<string, string>();

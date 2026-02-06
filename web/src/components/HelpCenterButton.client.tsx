@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import { GRADIENT_START, GRADIENT_END } from "../design/tokens";
 
 type Message = {
   id: number;
@@ -137,52 +136,6 @@ export default function HelpCenterButton() {
 
   return (
     <>
-      <button
-        onClick={() => {
-          if (typeof window !== "undefined") {
-            window.location.href = "/chat/agent?channel=agent-alexandre&source=/documents";
-          }
-        }}
-        className="help-float hidden sm:flex"
-        style={{
-          position: "fixed",
-          bottom: 96,
-          right: 24,
-          zIndex: 1000,
-          background: `linear-gradient(110deg, ${GRADIENT_START} 0%, ${GRADIENT_END} 60%)`,
-          color: "#fff",
-          border: "none",
-          borderRadius: 999,
-          boxShadow: "0 4px 24px rgba(8, 26, 74, 0.3)",
-          padding: "14px 28px",
-          fontWeight: 600,
-          fontSize: 18,
-          letterSpacing: 0.5,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer",
-          transition: "all 0.2s ease"
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "scale(1.05)";
-          e.currentTarget.style.boxShadow = "0 6px 32px rgba(8, 26, 74, 0.4)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-          e.currentTarget.style.boxShadow = "0 4px 24px rgba(8, 26, 74, 0.3)";
-        }}
-        onMouseDown={(e) => {
-          e.currentTarget.style.transform = "scale(0.95)";
-        }}
-        onMouseUp={(e) => {
-          e.currentTarget.style.transform = "scale(1.05)";
-        }}
-        aria-label={`Talk to an agent at ${COMPANY_INFO.name}`}
-      >
-        Talk to an agent
-      </button>
-
       {showModal && (
         <div
           style={{
