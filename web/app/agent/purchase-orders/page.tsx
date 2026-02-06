@@ -177,6 +177,7 @@ export default function PurchaseOrdersPage() {
       clientName: client,
       dossierId,
       agentEmail: user?.email || "agent@zenivatravel.com",
+      source: "agent",
       department,
       status: "pending_hq",
       sellingTotal: totalNumber,
