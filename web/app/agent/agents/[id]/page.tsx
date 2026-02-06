@@ -383,7 +383,7 @@ export default function AgentProfilePage() {
           </div>
         </section>
 
-        {agent.roleLabel === "Yacht Partner" && (
+        {agent.roleLabel === "Yacht Broker" && (
           <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">
             <div className="flex items-center justify-between">
               <div>
