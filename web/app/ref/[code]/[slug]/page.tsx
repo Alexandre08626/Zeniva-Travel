@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../src/design/tokens";
+import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../../src/design/tokens";
 
 export default function ReferralFormPage() {
   const params = useParams<{ code: string | string[]; slug: string | string[] }>();
