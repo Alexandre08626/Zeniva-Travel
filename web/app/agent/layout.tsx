@@ -18,10 +18,35 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
   const isYachtBroker = effectiveRole === "yacht_broker";
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<
-    { id: string; title: string; subtitle: string; href: string; ts: string }[]
+    { id: string; title: string; subtitle: string; href: string; ts: string; read?: boolean }[]
   >([]);
 
-  const unreadCount = notifications.length;
+  const unreadCount = useMemo(() => notifications.filter((item) => !item.read).length, [notifications]);
+
+  const notificationsKey = useMemo(() => {
+    const identifier = user?.id || user?.email || "anon";
+    return `agent:notifications:read:${identifier}`;
+  }, [user]);
+
+  const persistReadIds = (ids: string[]) => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(notificationsKey, JSON.stringify(ids));
+    } catch {
+      // ignore storage errors
+    }
+  };
+
+  const loadReadIds = () => {
+    if (typeof window === "undefined") return new Set<string>();
+    try {
+      const stored = window.localStorage.getItem(notificationsKey);
+      const parsed = stored ? (JSON.parse(stored) as string[]) : [];
+      return new Set(parsed);
+    } catch {
+      return new Set<string>();
+    }
+  };
 
   useEffect(() => {
     if (!user || isHQorAdmin) return;
@@ -44,6 +69,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
     let active = true;
     const load = async () => {
       try {
+        const readIds = loadReadIds();
         const [bookingRes, agentRes] = await Promise.all([
           fetch("/api/booking-requests"),
           fetch("/api/agent/requests"),
@@ -63,6 +89,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
             subtitle: `${item.status === "pending_hq" ? "Pending approval" : "Needs changes"} · ${item.provider || "manual"}`,
             href: "/agent/purchase-orders",
             ts: item.updatedAt || item.createdAt || new Date().toISOString(),
+            read: readIds.has(`booking-${item.id}`),
           }));
 
         const agentItems = agentRequests
@@ -73,6 +100,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
             subtitle: item.message?.split("\n")[0] || item.message || "New request",
             href: "/agent/chat?channel=hq",
             ts: item.createdAt || new Date().toISOString(),
+            read: readIds.has(`request-${item.id}`),
           }));
 
         if (active) {
@@ -84,10 +112,21 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
     };
 
     load();
+    const interval = window.setInterval(load, 45000);
     return () => {
       active = false;
+      window.clearInterval(interval);
     };
-  }, []);
+  }, [notificationsKey]);
+
+  useEffect(() => {
+    if (!notificationsOpen) return;
+    const unread = notifications.filter((item) => !item.read);
+    if (!unread.length) return;
+    const ids = notifications.map((item) => item.id);
+    persistReadIds(ids);
+    setNotifications((prev) => prev.map((item) => ({ ...item, read: true })));
+  }, [notificationsOpen, notifications]);
 
   const showChat = isHQorAdmin || roles.length > 0;
 
@@ -142,7 +181,20 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
                       <div className="text-xs text-slate-500">No new notifications.</div>
                     )}
                     {notifications.map((item) => (
-                      <Link key={item.id} href={item.href} className="block rounded-xl border border-slate-100 bg-slate-50 p-3 hover:border-slate-200">
+                      <Link
+                        key={item.id}
+                        href={item.href}
+                        className={`block rounded-xl border p-3 hover:border-slate-200 ${item.read ? "border-slate-100 bg-slate-50" : "border-slate-200 bg-white"}`}
+                        onClick={() => {
+                          setNotifications((prev) => {
+                            const next = prev.map((entry) => (entry.id === item.id ? { ...entry, read: true } : entry));
+                            const ids = next.filter((entry) => entry.read).map((entry) => entry.id);
+                            persistReadIds(ids);
+                            return next;
+                          });
+                          setNotificationsOpen(false);
+                        }}
+                      >
                         <div className="text-sm font-semibold text-slate-900">{item.title}</div>
                         <div className="text-xs text-slate-600">{item.subtitle}</div>
                       </Link>

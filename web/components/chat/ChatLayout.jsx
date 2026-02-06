@@ -7,7 +7,7 @@ import Pill from "../../src/components/Pill";
 export default function ChatLayout({ sidebar, chat, snapshot, tripId }) {
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
-      <div className="mx-auto max-w-7xl px-4 py-4 sm:py-6">
+      <div className="mx-auto max-w-[1700px] px-4 py-4 sm:py-6">
         <header className="mb-4 flex flex-col gap-3 sm:mb-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <Link href="/" className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>
@@ -36,9 +36,9 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId }) {
         </header>
 
         <div className="grid grid-cols-12 gap-4">
-          <section className="col-span-12 lg:col-span-3 hidden lg:block">{sidebar}</section>
-          <section className="col-span-12 lg:col-span-6">{chat}</section>
-          <section className="col-span-12 lg:col-span-3 hidden lg:block">{snapshot}</section>
+          <section className="col-span-12 lg:col-span-2 hidden lg:block">{sidebar}</section>
+          <section className="col-span-12 lg:col-span-8">{chat}</section>
+          <section className="col-span-12 lg:col-span-2 hidden lg:block">{snapshot}</section>
         </div>
       </div>
     </main>

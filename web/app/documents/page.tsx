@@ -403,7 +403,7 @@ export default function DocumentsPage() {
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     placeholder="Write to Lina or your Zeniva expert..."
-                    className="flex-1 rounded-full border border-slate-200 px-4 py-2 text-sm outline-none focus:border-blue-400"
+                    className="flex-1 min-w-0 w-full rounded-full border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-400"
                   />
                   <button
                     type="submit"

@@ -719,7 +719,7 @@ export default function LinaCommandCenter() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Écrivez à Lina..."
-                  className="flex-1 rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm font-semibold text-white outline-none focus:border-slate-600"
+                  className="flex-1 min-w-0 w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm font-semibold text-white outline-none focus:border-slate-600"
                   disabled={streaming}
                 />
                 <button

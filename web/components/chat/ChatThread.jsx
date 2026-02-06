@@ -395,7 +395,7 @@ function ChatThread({ tripId }) {
             onKeyDown={onKeyDown}
             placeholder="Describe your trip—AI assistant plans flights, stays, and experiences"
             rows={2}
-            className="flex-1 resize-none rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:border-slate-300"
+            className="flex-1 min-w-0 w-full resize-none rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:border-slate-300"
             style={{ maxHeight: "200px" }}
           />
           <button

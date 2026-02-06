@@ -302,7 +302,7 @@ export default function AgentChatClient() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6">
-      <div className="mx-auto flex h-[calc(100vh-3rem)] max-w-[1500px] flex-col gap-6">
+      <div className="mx-auto flex h-[calc(100vh-3rem)] max-w-[1700px] flex-col gap-6">
         <div className="rounded-3xl border border-slate-200 bg-white/90 px-6 py-5 shadow-sm backdrop-blur">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -322,7 +322,7 @@ export default function AgentChatClient() {
         </div>
 
         <div className="flex flex-1 gap-4 overflow-hidden">
-          <aside className="w-80 xl:w-96 flex flex-col gap-3 overflow-y-auto">
+          <aside className="w-72 xl:w-80 flex flex-col gap-3 overflow-y-auto">
             <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-3 shadow-sm">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Workspace</p>
               <div className="text-sm font-semibold text-slate-900">Agent: {user?.name || "Agent"}</div>
@@ -361,7 +361,7 @@ export default function AgentChatClient() {
 
           <div className="flex-1 min-w-0 rounded-3xl border border-slate-200 bg-white overflow-hidden flex shadow-sm">
             {/* Threads List */}
-            <div className="w-80 border-r border-slate-200 bg-slate-50 flex flex-col h-full">
+            <div className="w-72 border-r border-slate-200 bg-slate-50 flex flex-col h-full">
               <div className="p-4 border-b border-slate-200">
                 <div className="flex items-center justify-between mb-3">
                   <div>
@@ -467,7 +467,7 @@ export default function AgentChatClient() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="@Lina summarize, transfer a dossier, share a client, request HQ help"
-                    className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-200 outline-none"
+                    className="flex-1 min-w-0 w-full px-4 py-3 border border-slate-200 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-200 outline-none"
                   />
                   <button
                     type="submit"
@@ -482,7 +482,7 @@ export default function AgentChatClient() {
             </div>
 
             {/* Agent tools */}
-            <aside className="w-80 border-l border-slate-200 bg-slate-50 hidden xl:flex flex-col overflow-y-auto">
+            <aside className="w-72 border-l border-slate-200 bg-slate-50 hidden xl:flex flex-col overflow-y-auto">
               <div className="p-4 border-b border-slate-200">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Outils agent</p>
                 <h3 className="text-lg font-bold text-slate-900">Power actions</h3>

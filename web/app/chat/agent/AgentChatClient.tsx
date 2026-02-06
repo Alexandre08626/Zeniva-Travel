@@ -156,7 +156,7 @@ export default function TravelerAgentChatClient() {
 
   return (
     <main className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto flex h-[calc(100vh-3rem)] max-w-[1500px] flex-col gap-6">
+      <div className="mx-auto flex h-[calc(100vh-3rem)] max-w-[1700px] flex-col gap-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm uppercase tracking-wide text-slate-500">Help Center</p>
@@ -174,7 +174,7 @@ export default function TravelerAgentChatClient() {
         </div>
 
         <div className="flex flex-1 gap-4 overflow-hidden">
-          <aside className="w-80 xl:w-96 flex flex-col gap-3 overflow-y-auto">
+          <aside className="w-72 xl:w-80 flex flex-col gap-3 overflow-y-auto">
             <div className="rounded-2xl border border-blue-100 bg-white p-4 space-y-3">
               <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Conversation details</p>
               <div className="text-sm font-semibold text-slate-900">{activeThread?.title}</div>
@@ -199,7 +199,7 @@ export default function TravelerAgentChatClient() {
 
           <div className="flex-1 min-w-0 rounded-2xl border border-blue-100 bg-white overflow-hidden flex">
             {/* Threads List */}
-            <div className="w-80 border-r border-blue-100 bg-blue-50/60 flex flex-col h-full">
+            <div className="w-72 border-r border-blue-100 bg-blue-50/60 flex flex-col h-full">
               <div className="p-4 border-b border-blue-100">
                 <div className="flex items-center justify-between mb-3">
                   <div>
@@ -327,7 +327,7 @@ export default function TravelerAgentChatClient() {
                     value={input}
                     onChange={(event) => setInput(event.target.value)}
                     placeholder="Type your message"
-                    className="flex-1 rounded-full border border-blue-100 px-4 py-3 text-sm outline-none"
+                    className="flex-1 min-w-0 w-full rounded-full border border-blue-100 px-4 py-3 text-sm outline-none"
                   />
                   <button
                     onClick={handleSend}

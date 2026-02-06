@@ -136,6 +136,52 @@ export default function HelpCenterButton() {
 
   return (
     <>
+      <button
+        onClick={() => {
+          if (typeof window !== "undefined") {
+            window.location.href = "/chat/agent?channel=agent-alexandre&source=/documents";
+          }
+        }}
+        className="help-float hidden sm:flex"
+        style={{
+          position: "fixed",
+          bottom: 96,
+          right: 24,
+          zIndex: 1000,
+          background: "#f8fafc",
+          color: "#0f172a",
+          border: "1px solid #e2e8f0",
+          borderRadius: 999,
+          boxShadow: "0 6px 18px rgba(15, 23, 42, 0.12)",
+          padding: "12px 22px",
+          fontWeight: 600,
+          fontSize: 16,
+          letterSpacing: 0.3,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+          transition: "all 0.2s ease"
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "translateY(-1px)";
+          e.currentTarget.style.boxShadow = "0 10px 24px rgba(15, 23, 42, 0.16)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.boxShadow = "0 6px 18px rgba(15, 23, 42, 0.12)";
+        }}
+        onMouseDown={(e) => {
+          e.currentTarget.style.transform = "translateY(1px)";
+        }}
+        onMouseUp={(e) => {
+          e.currentTarget.style.transform = "translateY(-1px)";
+        }}
+        aria-label={`Help via ${COMPANY_INFO.name} chat`}
+      >
+        Help
+      </button>
+
       {showModal && (
         <div
           style={{
