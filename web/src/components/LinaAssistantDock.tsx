@@ -142,13 +142,13 @@ export default function LinaAssistantDock() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2 shadow-lg"
+        className="flex items-center gap-3 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-slate-700 shadow-sm hover:border-slate-300"
         aria-label="Open Lina assistant"
       >
         <LinaAvatar size="sm" />
         <div className="text-left">
-          <div className="text-sm font-bold text-slate-900">
-            <AutoTranslate text="Talk to Lina" className="inline" />
+          <div className="text-sm font-semibold text-slate-700">
+            <AutoTranslate text="Help" className="inline" />
           </div>
           <div className="text-[11px] font-semibold text-slate-500">
             {copy.title}
@@ -234,13 +234,6 @@ export default function LinaAssistantDock() {
               </button>
             </div>
 
-            <button
-              type="button"
-              onClick={() => router.push(copy.ctaHref)}
-              className="mt-3 w-full rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
-            >
-              {copy.ctaLabel}
-            </button>
           </div>
         </div>
       )}
