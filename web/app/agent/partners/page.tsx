@@ -385,7 +385,7 @@ export default function PartnerAccountsPage() {
           phone: "—",
           ownerId: "zeniva-catalog-owner",
         },
-        owner: null,
+        owner: undefined,
         account: null,
         listings: unassigned,
         assignments: [],
