@@ -117,6 +117,28 @@ async function ensureSchema() {
   await pool.query("CREATE INDEX IF NOT EXISTS agent_requests_status_idx ON agent_requests (status);");
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS agent_inbox_messages (
+      id text PRIMARY KEY,
+      created_at timestamptz DEFAULT now(),
+      channel_ids jsonb,
+      message text,
+      yacht_name text,
+      desired_date text,
+      full_name text,
+      phone text,
+      email text,
+      source_path text,
+      property_name text,
+      author text,
+      sender_role text,
+      source text
+    );
+  `);
+
+  await pool.query("CREATE INDEX IF NOT EXISTS agent_inbox_messages_created_idx ON agent_inbox_messages (created_at);");
+  await pool.query("CREATE INDEX IF NOT EXISTS agent_inbox_messages_channel_idx ON agent_inbox_messages USING GIN (channel_ids);");
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS clients (
       id text PRIMARY KEY,
       name text NOT NULL,

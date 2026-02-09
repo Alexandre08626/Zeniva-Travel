@@ -86,6 +86,7 @@ export default function AgentChatClient() {
 
   const history = messages[channelId] || [];
   const canHQ = isHQ(user);
+  const resolveSenderRole = (raw: string | undefined) => (raw === "agent" || raw === "hq" || raw === "lina" ? raw : "hq");
 
   useEffect(() => {
     let active = true;
@@ -313,7 +314,9 @@ export default function AgentChatClient() {
         stored.forEach((req: any) => {
           if (req?.id && seenRequestsRef.current.has(req.id)) return;
           const ts = new Date(req.createdAt || Date.now()).toLocaleTimeString().slice(0, 5);
-          const message = { role: "hq" as const, author: "Client Request", text: req.message || "New yacht request", ts };
+          const role = resolveSenderRole(req?.senderRole);
+          const author = req?.author || req?.fullName || req?.email || "Client";
+          const message = { role, author, text: req.message || "New yacht request", ts };
           if (deletedMessageKeysRef.current.has(getMessageKey(message))) return;
           const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["hq"];
           targets.forEach((id) => {
@@ -421,7 +424,35 @@ export default function AgentChatClient() {
     const trimmed = text.trim();
     if (!trimmed) return;
     setInput("");
-    addMessage({ role: canHQ ? "hq" : "agent", author: user?.name || "Agent", text: trimmed });
+    const requestId =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const createdAt = new Date().toISOString();
+    const author = user?.name || "Agent";
+    const senderRole = canHQ ? "hq" : "agent";
+
+    addMessage({ role: senderRole, author, text: trimmed });
+    seenRequestsRef.current.add(requestId);
+    try {
+      await fetch("/api/agent/requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: requestId,
+          createdAt,
+          channelIds: [channelId],
+          message: trimmed,
+          author,
+          senderRole,
+          source: "agent-chat",
+          sourcePath: `/agent/chat?channel=${encodeURIComponent(channelId)}`,
+          propertyName: title,
+        }),
+      });
+    } catch {
+      // ignore
+    }
     // Simple Lina assist when @Lina is mentioned
     if (trimmed.toLowerCase().includes("@lina")) {
       setLinaBusy(true);

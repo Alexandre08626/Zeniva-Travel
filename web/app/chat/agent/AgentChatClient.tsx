@@ -135,6 +135,9 @@ export default function TravelerAgentChatClient() {
       channelIds: [channelId, ADMIN_CHANNEL_ID],
       sourcePath,
       propertyName: listing,
+      author: "Traveler",
+      senderRole: "client",
+      source: "traveler-chat",
       message: [
         "New traveler chat message",
         `Listing: ${listing}`,
