@@ -26,11 +26,7 @@ export default function AgentChatClient() {
   const [channelId, setChannelId] = useState("global");
   const [input, setInput] = useState("");
   const [channelSearch, setChannelSearch] = useState("");
-  const [messages, setMessages] = useState<Record<string, ChatMessage[]>>({
-    global: [],
-    hq: [],
-    "dossier-yacht-55": [],
-  });
+  const [messages, setMessages] = useState<Record<string, ChatMessage[]>>({});
   const [sending, setSending] = useState(false);
   const [linaBusy, setLinaBusy] = useState(false);
   const [contacts, setContacts] = useState<
@@ -223,32 +219,37 @@ export default function AgentChatClient() {
     });
   };
 
+  const refreshMessages = async () => {
+    try {
+      const resp = await fetch("/api/agent/requests", { cache: "no-store" });
+      const payload = await resp.json();
+      const rows = Array.isArray(payload?.data) ? payload.data : [];
+      const nextMessages: Record<string, ChatMessage[]> = {};
+      rows.forEach((row: any) => {
+        if (row?.deleted_at || row?.is_deleted) return;
+        const message = buildMessageFromRow(row);
+        const channelIds: string[] = Array.isArray(row?.channelIds || row?.channel_ids)
+          ? (row.channelIds || row.channel_ids)
+          : ["hq"];
+        channelIds.forEach((id) => {
+          ensureChannel(id, row);
+          nextMessages[id] = [...(nextMessages[id] || []), message];
+        });
+      });
+      Object.values(nextMessages).forEach((list) =>
+        list.sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime())
+      );
+      setMessages(nextMessages);
+    } catch {
+      // ignore
+    }
+  };
+
   useEffect(() => {
     let active = true;
     const loadInitialMessages = async () => {
-      try {
-        const resp = await fetch("/api/agent/requests");
-        const payload = await resp.json();
-        if (!active) return;
-        const rows = Array.isArray(payload?.data) ? payload.data : [];
-        const nextMessages: Record<string, ChatMessage[]> = {};
-        rows.forEach((row: any) => {
-          const message = buildMessageFromRow(row);
-          const channelIds: string[] = Array.isArray(row?.channelIds || row?.channel_ids)
-            ? (row.channelIds || row.channel_ids)
-            : ["hq"];
-          channelIds.forEach((id) => {
-            ensureChannel(id, row);
-            nextMessages[id] = [...(nextMessages[id] || []), message];
-          });
-        });
-        Object.values(nextMessages).forEach((list) =>
-          list.sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime())
-        );
-        setMessages(nextMessages);
-      } catch {
-        // ignore
-      }
+      if (!active) return;
+      await refreshMessages();
     };
 
     void loadInitialMessages();
@@ -303,7 +304,11 @@ export default function AgentChatClient() {
           if (row?.id) removeMessageById(String(row.id));
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          console.info("Supabase realtime status: SUBSCRIBED");
+        }
+      });
 
     return () => {
       client.removeChannel(channel);
@@ -336,9 +341,9 @@ export default function AgentChatClient() {
     }));
     Promise.all(
       toRemove.map((msg) =>
-        fetch(`/api/agent/requests?messageId=${encodeURIComponent(msg.id)}`, { method: "DELETE" }).catch(() => null)
+        fetch(`/api/agent/requests?messageId=${encodeURIComponent(msg.id)}`, { method: "DELETE" })
       )
-    ).catch(() => null);
+    ).catch(() => refreshMessages());
   };
 
   const handleDeleteConversation = async (targetChannelId: string) => {
@@ -348,7 +353,7 @@ export default function AgentChatClient() {
     try {
       await fetch(`/api/agent/requests?channelId=${encodeURIComponent(targetChannelId)}`, { method: "DELETE" });
     } catch {
-      // ignore
+      await refreshMessages();
     }
 
     setChannels((prev) => prev.filter((ch) => ch.id !== targetChannelId));
@@ -369,7 +374,7 @@ export default function AgentChatClient() {
     try {
       await fetch(`/api/agent/requests?channelId=${encodeURIComponent(targetChannelId)}`, { method: "DELETE" });
     } catch {
-      // ignore
+      await refreshMessages();
     }
 
     setMessages((prev) => ({
@@ -387,7 +392,7 @@ export default function AgentChatClient() {
     try {
       await fetch(`/api/agent/requests?messageId=${encodeURIComponent(msg.id)}`, { method: "DELETE" });
     } catch {
-      // ignore
+      await refreshMessages();
     }
   };
 
@@ -421,16 +426,66 @@ export default function AgentChatClient() {
         }),
       });
     } catch {
-      // ignore
+      removeMessageById(requestId);
     }
     // Simple Lina assist when @Lina is mentioned
     if (trimmed.toLowerCase().includes("@lina")) {
       setLinaBusy(true);
       try {
         const { reply } = await sendMessageToLina(trimmed);
-        addMessage({ id: createLocalId(), role: "lina", author: "Lina", text: reply || "Lina processed the request." });
+        const linaId =
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        const linaText = reply || "Lina processed the request.";
+        const linaCreatedAt = new Date().toISOString();
+        addMessage({ id: linaId, role: "lina", author: "Lina", text: linaText, createdAt: linaCreatedAt });
+        try {
+          await fetch("/api/agent/requests", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: linaId,
+              createdAt: linaCreatedAt,
+              channelIds: [channelId],
+              message: linaText,
+              author: "Lina",
+              senderRole: "lina",
+              source: "agent-chat",
+              sourcePath: `/agent/chat?channel=${encodeURIComponent(channelId)}`,
+              propertyName: title,
+            }),
+          });
+        } catch {
+          removeMessageById(linaId);
+        }
       } catch (_) {
-        addMessage({ id: createLocalId(), role: "lina", author: "Lina", text: "Lina is unavailable. Try later." });
+        const failId =
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        const failText = "Lina is unavailable. Try later.";
+        const failCreatedAt = new Date().toISOString();
+        addMessage({ id: failId, role: "lina", author: "Lina", text: failText, createdAt: failCreatedAt });
+        try {
+          await fetch("/api/agent/requests", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: failId,
+              createdAt: failCreatedAt,
+              channelIds: [channelId],
+              message: failText,
+              author: "Lina",
+              senderRole: "lina",
+              source: "agent-chat",
+              sourcePath: `/agent/chat?channel=${encodeURIComponent(channelId)}`,
+              propertyName: title,
+            }),
+          });
+        } catch {
+          removeMessageById(failId);
+        }
       } finally {
         setLinaBusy(false);
       }
