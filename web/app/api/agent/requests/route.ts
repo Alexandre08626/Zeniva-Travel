@@ -90,6 +90,15 @@ async function deleteRequestsByChannelIdSupabase(channelId: string) {
   if (error) throw new Error(error.message);
 }
 
+async function deleteRequestByIdSupabase(messageId: string) {
+  const { client } = getSupabaseAdminClient();
+  const { error } = await client
+    .from("agent_inbox_messages")
+    .delete({ count: "exact" })
+    .eq("id", messageId);
+  if (error) throw new Error(error.message);
+}
+
 async function readRequests(): Promise<AgentRequest[]> {
   try {
     const raw = await fs.readFile(DATA_FILE, "utf-8");
@@ -181,21 +190,26 @@ export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const channelId = searchParams.get("channelId");
-    if (!channelId) {
-      return NextResponse.json({ error: "Missing channelId" }, { status: 400 });
+    const messageId = searchParams.get("messageId");
+    if (!channelId && !messageId) {
+      return NextResponse.json({ error: "Missing channelId or messageId" }, { status: 400 });
     }
 
     if (hasSupabaseEnv()) {
+      if (messageId) {
+        await deleteRequestByIdSupabase(messageId);
+        return NextResponse.json({ data: { removed: 1 } });
+      }
       const before = await readRequestsFromSupabase();
-      await deleteRequestsByChannelIdSupabase(channelId);
+      await deleteRequestsByChannelIdSupabase(channelId as string);
       const after = await readRequestsFromSupabase();
       return NextResponse.json({ data: { removed: Math.max(0, before.length - after.length) } });
     }
 
     const requests = await readRequests();
-    const filtered = requests.filter(
-      (req) => !Array.isArray(req.channelIds) || !req.channelIds.includes(channelId)
-    );
+    const filtered = messageId
+      ? requests.filter((req) => req.id !== messageId)
+      : requests.filter((req) => !Array.isArray(req.channelIds) || !req.channelIds.includes(channelId));
     await writeRequests(filtered);
 
     return NextResponse.json({ data: { removed: requests.length - filtered.length } });

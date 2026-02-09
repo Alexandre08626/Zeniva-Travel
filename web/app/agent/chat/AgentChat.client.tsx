@@ -9,11 +9,14 @@ import { useAuthStore, isHQ } from "../../../src/lib/authStore";
 type MessageRole = "agent" | "hq" | "lina";
 
 type ChatMessage = {
+  id: string;
   role: MessageRole;
   author: string;
   text: string;
   ts: string;
 };
+
+const createLocalId = () => `local-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
 export default function AgentChatClient() {
   const searchParams = useSearchParams();
@@ -23,14 +26,14 @@ export default function AgentChatClient() {
   const [channelSearch, setChannelSearch] = useState("");
   const [messages, setMessages] = useState<Record<string, ChatMessage[]>>({
     global: [
-      { role: "hq", author: "HQ", text: "Daily: push proposals before 4pm ET.", ts: "09:02" },
-      { role: "agent", author: "Alice", text: "Need help with Maldives honeymoon, budget $12k.", ts: "09:05" },
+      { id: "seed-global-1", role: "hq", author: "HQ", text: "Daily: push proposals before 4pm ET.", ts: "09:02" },
+      { id: "seed-global-2", role: "agent", author: "Alice", text: "Need help with Maldives honeymoon, budget $12k.", ts: "09:05" },
     ],
     hq: [
-      { role: "hq", author: "HQ", text: "Audit payments after wire cutoff.", ts: "08:55" },
+      { id: "seed-hq-1", role: "hq", author: "HQ", text: "Audit payments after wire cutoff.", ts: "08:55" },
     ],
     "dossier-yacht-55": [
-      { role: "agent", author: "Marco", text: "Client approved 7-day Med yacht, need crew confirmation.", ts: "08:40" },
+      { id: "seed-dossier-yacht-55-1", role: "agent", author: "Marco", text: "Client approved 7-day Med yacht, need crew confirmation.", ts: "08:40" },
     ],
   });
   const [sending, setSending] = useState(false);
@@ -194,7 +197,8 @@ export default function AgentChatClient() {
           scope: "Help Center",
           unread: ticket.status === "open" ? 1 : 0,
         });
-        newMessages[channelId] = ticket.messages.map((msg: any) => ({
+        newMessages[channelId] = ticket.messages.map((msg: any, idx: number) => ({
+          id: String(msg?.id || `${channelId}-${msg?.ts || ""}-${idx}` || createLocalId()),
           role: msg.role === "user" ? "agent" : "hq",
           author: msg.role === "user" ? "User" : "Bot",
           text: msg.text,
@@ -270,7 +274,13 @@ export default function AgentChatClient() {
 
       stored.forEach((req: any) => {
         const ts = new Date(req.createdAt || Date.now()).toLocaleTimeString().slice(0, 5);
-        const message = { role: "hq" as const, author: "Client Request", text: req.message || "New yacht request", ts };
+        const message = {
+          id: String(req?.id || createLocalId()),
+          role: "hq" as const,
+          author: "Client Request",
+          text: req.message || "New yacht request",
+          ts,
+        };
         const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["hq"];
         targets.forEach((id) => {
           next[id] = [...(next[id] || []), message];
@@ -326,7 +336,9 @@ export default function AgentChatClient() {
           const ts = new Date(req.createdAt || Date.now()).toLocaleTimeString().slice(0, 5);
           const role = resolveSenderRole(req?.senderRole);
           const author = String(req?.author || req?.fullName || req?.email || "Client");
+          const messageId = String(req?.id || createLocalId());
           const message: ChatMessage = {
+            id: messageId,
             role,
             author,
             text: String(req?.message || "New yacht request"),
@@ -336,7 +348,7 @@ export default function AgentChatClient() {
           const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["hq"];
           targets.forEach((id) => {
             ensureMessages(id);
-            const exists = (next[id] || []).some((m) => m.text === message.text && m.ts === message.ts);
+            const exists = (next[id] || []).some((m) => m.id === message.id);
             if (!exists) {
               next[id] = [...(next[id] || []), message];
             }
@@ -375,10 +387,10 @@ export default function AgentChatClient() {
 
   const title = useMemo(() => channels.find((c) => c.id === channelId)?.label || "Chat", [channelId]);
 
-  const getMessageKey = (msg: { role: "agent" | "hq" | "lina"; author: string; text: string; ts: string }) =>
-    `${msg.role}|${msg.author}|${msg.ts}|${msg.text}`;
+  const getMessageKey = (msg: { id: string; role: "agent" | "hq" | "lina"; author: string; text: string; ts: string }) =>
+    msg.id;
 
-  const addMessage = (msg: { role: "agent" | "hq" | "lina"; author: string; text: string }) => {
+  const addMessage = (msg: { id: string; role: "agent" | "hq" | "lina"; author: string; text: string }) => {
     setMessages((prev) => ({
       ...prev,
       [channelId]: [...(prev[channelId] || []), { ...msg, ts: new Date().toLocaleTimeString().slice(0, 5) }],
@@ -426,13 +438,20 @@ export default function AgentChatClient() {
     }
   };
 
-  const handleDeleteMessage = (msg: { role: "agent" | "hq" | "lina"; author: string; text: string; ts: string }) => {
+  const handleDeleteMessage = async (msg: { id: string; role: "agent" | "hq" | "lina"; author: string; text: string; ts: string }) => {
     const key = getMessageKey(msg);
     deletedMessageKeysRef.current.add(key);
     setMessages((prev) => ({
       ...prev,
       [channelId]: (prev[channelId] || []).filter((m) => getMessageKey(m) !== key),
     }));
+    if (!msg.id.startsWith("local-")) {
+      try {
+        await fetch(`/api/agent/requests?messageId=${encodeURIComponent(msg.id)}`, { method: "DELETE" });
+      } catch {
+        // ignore
+      }
+    }
   };
 
   const handleSend = async (text: string) => {
@@ -447,7 +466,7 @@ export default function AgentChatClient() {
     const author = user?.name || "Agent";
     const senderRole = canHQ ? "hq" : "agent";
 
-    addMessage({ role: senderRole, author, text: trimmed });
+    addMessage({ id: requestId, role: senderRole, author, text: trimmed });
     seenRequestsRef.current.add(requestId);
     try {
       await fetch("/api/agent/requests", {
@@ -473,9 +492,9 @@ export default function AgentChatClient() {
       setLinaBusy(true);
       try {
         const { reply } = await sendMessageToLina(trimmed);
-        addMessage({ role: "lina", author: "Lina", text: reply || "Lina processed the request." });
+        addMessage({ id: createLocalId(), role: "lina", author: "Lina", text: reply || "Lina processed the request." });
       } catch (_) {
-        addMessage({ role: "lina", author: "Lina", text: "Lina is unavailable. Try later." });
+        addMessage({ id: createLocalId(), role: "lina", author: "Lina", text: "Lina is unavailable. Try later." });
       } finally {
         setLinaBusy(false);
       }
@@ -703,7 +722,7 @@ export default function AgentChatClient() {
                 )}
                 {history
                   .filter((m) => !deletedMessageKeysRef.current.has(getMessageKey(m)))
-                  .map((m, idx) => {
+                  .map((m) => {
                   const isOwn = m.author === (user?.name || "Agent") && m.role === (canHQ ? "hq" : "agent");
                   const bubbleStyle = isOwn
                     ? "bg-slate-900 text-white"
@@ -711,7 +730,7 @@ export default function AgentChatClient() {
                       ? "bg-amber-50 text-amber-900"
                       : "bg-slate-100 text-slate-900";
                   return (
-                    <div key={idx} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
+                    <div key={m.id} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
                       <div className={`max-w-md px-4 py-3 rounded-lg ${bubbleStyle}`}>
                         <p className="text-xs font-semibold opacity-70 mb-1">{m.author}</p>
                         <p className="text-sm whitespace-pre-line">{m.text}</p>
