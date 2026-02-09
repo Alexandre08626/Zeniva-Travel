@@ -45,7 +45,7 @@ export default function AgentChatClient() {
     { id: "agent-alexandre", label: "Alexandre Blais", scope: "Direct", unread: 0 },
     { id: "agent-jason", label: "Jason Lanthier", scope: "Direct", unread: 0 },
     { id: "agent-marco", label: "Marco", scope: "Direct", unread: 0 },
-    { id: "dossier-trip-104", label: "Dossier TRIP-104", scope: "Client file", unread: 0 },
+    { id: "dossier-trip-104", label: "Case file TRIP-104", scope: "Client file", unread: 0 },
     { id: "dossier-yacht-55", label: "Yacht YCHT-55", scope: "Client file", unread: 1 },
   ]);
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -113,7 +113,13 @@ export default function AgentChatClient() {
 
   useEffect(() => {
     loadDeletedMessageKeys();
-    setMessages((prev) => ({ ...prev }));
+    setMessages((prev) => {
+      const next: Record<string, ChatMessage[]> = {};
+      Object.entries(prev).forEach(([key, items]) => {
+        next[key] = (items || []).filter((item) => !deletedMessageKeysRef.current.has(item.id));
+      });
+      return next;
+    });
   }, []);
 
   useEffect(() => {
@@ -618,14 +624,14 @@ export default function AgentChatClient() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Agent workspace</p>
-              <h1 className="text-2xl font-black text-slate-900">Centre de communication</h1>
-              <p className="text-sm text-slate-500">Coordonnez les dossiers, urgences, et escalades HQ en temps réel.</p>
+              <h1 className="text-2xl font-black text-slate-900">Communication center</h1>
+              <p className="text-sm text-slate-500">Coordinate case files, urgencies, and HQ escalations in real time.</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">HQ voit tout</span>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{channels.length} canaux</span>
+              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">HQ sees everything</span>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{channels.length} channels</span>
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{directThreads} directs</span>
-              <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">{totalUnread} non lus</span>
+              <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">{totalUnread} unread</span>
               <Link href="/agent" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm">Dashboard</Link>
               <Link href="/agent/finance" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm">Finance (HQ)</Link>
             </div>
@@ -637,7 +643,7 @@ export default function AgentChatClient() {
             <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-3 shadow-sm">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Workspace</p>
               <div className="text-sm font-semibold text-slate-900">Agent: {user?.name || "Agent"}</div>
-              <div className="text-xs text-slate-500">Canal actif: {title}</div>
+              <div className="text-xs text-slate-500">Active channel: {title}</div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">Live</span>
                 <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">{history.length} messages</span>
@@ -645,7 +651,7 @@ export default function AgentChatClient() {
             </div>
 
             <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-2 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Actions rapides</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Quick actions</p>
               <div className="flex flex-col gap-2">
                 {quickActions.map((qa) => (
                   <button
@@ -662,10 +668,10 @@ export default function AgentChatClient() {
             <div className="rounded-3xl border border-slate-200 bg-white p-4 text-xs text-slate-600 shadow-sm">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Usage</p>
               <ul className="mt-2 space-y-1">
-                <li>• Global : annonces, SLAs</li>
+                <li>• Global: announcements, SLAs</li>
                 <li>• HQ ↔ agents</li>
-                <li>• Dossier : collaboration client</li>
-                <li>• @Lina : résumés et actions</li>
+                <li>• Case file: client collaboration</li>
+                <li>• @Lina: summaries and actions</li>
               </ul>
             </div>
           </aside>
@@ -676,7 +682,7 @@ export default function AgentChatClient() {
               <div className="p-4 border-b border-slate-200">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Canaux</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Channels</p>
                     <h2 className="text-lg font-bold text-slate-900">All threads</h2>
                   </div>
                   <span className="rounded-full bg-slate-900 text-white text-xs font-semibold px-2 py-1">{filteredChannels.length}</span>
@@ -685,7 +691,7 @@ export default function AgentChatClient() {
                   <input
                     value={channelSearch}
                     onChange={(e) => setChannelSearch(e.target.value)}
-                    placeholder="Agent, dossier, HQ"
+                    placeholder="Agent, case file, HQ"
                     className="w-full pl-4 pr-4 py-2.5 border border-slate-200 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-200 outline-none bg-white"
                   />
                 </div>
@@ -762,7 +768,7 @@ export default function AgentChatClient() {
                       </div>
                       <p className="text-sm text-slate-700 truncate">{(messages[c.id] || []).slice(-1)[0]?.text || "No messages yet"}</p>
                       <div className="mt-2 flex items-center gap-2 text-xs text-slate-500 font-semibold">
-                        <span className="rounded-full bg-slate-100 px-2 py-0.5">Interne</span>
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5">Internal</span>
                         <span className="rounded-full bg-slate-100 px-2 py-0.5">Live</span>
                       </div>
                     </div>
@@ -777,7 +783,7 @@ export default function AgentChatClient() {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <h3 className="font-semibold text-gray-900">{title}</h3>
-                    <p className="text-sm text-gray-600">Historique conservé. HQ voit tout.</p>
+                    <p className="text-sm text-gray-600">History is kept. HQ sees everything.</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -816,7 +822,7 @@ export default function AgentChatClient() {
               <div ref={listRef} className="flex-1 overflow-y-auto p-6 space-y-4">
                 {history.length === 0 && (
                   <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                    Aucun message. Partagez un dossier, demandez du support, ou mentionnez @Lina.
+                    No messages yet. Share a case file, request support, or mention @Lina.
                   </div>
                 )}
                 {history
@@ -864,7 +870,7 @@ export default function AgentChatClient() {
                   <input
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="@Lina summarize, transfer a dossier, share a client, request HQ help"
+                    placeholder="@Lina summarize, transfer a case file, share a client, request HQ help"
                     className="flex-1 min-w-0 w-full px-4 py-3 border border-slate-200 rounded-xl focus:border-slate-400 focus:ring-2 focus:ring-slate-200 outline-none"
                   />
                   <button
@@ -882,15 +888,15 @@ export default function AgentChatClient() {
             {/* Agent tools */}
             <aside className="w-72 border-l border-slate-200 bg-slate-50 hidden xl:flex flex-col overflow-y-auto">
               <div className="p-4 border-b border-slate-200">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Outils agent</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Agent tools</p>
                 <h3 className="text-lg font-bold text-slate-900">Power actions</h3>
               </div>
               <div className="p-4 space-y-4">
                 <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Dossiers</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Case files</p>
                   <ul className="space-y-1 text-xs text-slate-600">
-                    <li>• Open dossier TRIP-104</li>
-                    <li>• Open dossier YCHT-55</li>
+                    <li>• Open case file TRIP-104</li>
+                    <li>• Open case file YCHT-55</li>
                     <li>• Active proposals (3)</li>
                     <li>• Recent payments</li>
                   </ul>
@@ -908,7 +914,7 @@ export default function AgentChatClient() {
 
                 <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Audit</p>
-                  <p className="text-xs text-slate-600">Historique conservé. HQ voit tout. Partagé par dossier/agent.</p>
+                  <p className="text-xs text-slate-600">History is kept. HQ sees everything. Shared by case file/agent.</p>
                 </div>
               </div>
             </aside>
