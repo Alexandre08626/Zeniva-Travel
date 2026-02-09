@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { sendMessageToLina } from "../../../src/lib/linaClient";
 import { normalizeAgentId } from "../../../src/lib/agent/agentWorkspace";
 import { useAuthStore, isHQ } from "../../../src/lib/authStore";
+import { getSupabaseClient } from "../../../src/lib/supabase/client";
 
 type MessageRole = "agent" | "hq" | "lina";
 
@@ -14,10 +15,10 @@ type ChatMessage = {
   author: string;
   text: string;
   ts: string;
+  createdAt?: string;
 };
 
 const createLocalId = () => `local-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-const DELETED_MESSAGES_STORAGE_KEY = "agentChatDeletedMessages";
 
 export default function AgentChatClient() {
   const searchParams = useSearchParams();
@@ -49,8 +50,7 @@ export default function AgentChatClient() {
     { id: "dossier-yacht-55", label: "Yacht YCHT-55", scope: "Client file", unread: 1 },
   ]);
   const listRef = useRef<HTMLDivElement | null>(null);
-  const seenRequestsRef = useRef<Set<string>>(new Set());
-  const deletedMessageKeysRef = useRef<Set<string>>(new Set());
+  const activeChannelRef = useRef(channelId);
   const contactsByChannelIdRef = useRef<
     Map<string, { id: string; name: string; email: string; role: string; roles?: string[]; status?: string; channelId: string; scopeLabel: string }>
   >(new Map());
@@ -88,39 +88,6 @@ export default function AgentChatClient() {
   const canHQ = isHQ(user);
   const resolveSenderRole = (raw: string | undefined): MessageRole =>
     raw === "agent" || raw === "hq" || raw === "lina" ? raw : "hq";
-
-  const loadDeletedMessageKeys = () => {
-    if (typeof window === "undefined") return;
-    try {
-      const raw = localStorage.getItem(DELETED_MESSAGES_STORAGE_KEY);
-      const parsed = JSON.parse(raw || "[]");
-      if (Array.isArray(parsed)) {
-        deletedMessageKeysRef.current = new Set(parsed.filter((id) => typeof id === "string"));
-      }
-    } catch {
-      deletedMessageKeysRef.current = new Set();
-    }
-  };
-
-  const persistDeletedMessageKeys = () => {
-    if (typeof window === "undefined") return;
-    try {
-      localStorage.setItem(DELETED_MESSAGES_STORAGE_KEY, JSON.stringify([...deletedMessageKeysRef.current]));
-    } catch {
-      // ignore
-    }
-  };
-
-  useEffect(() => {
-    loadDeletedMessageKeys();
-    setMessages((prev) => {
-      const next: Record<string, ChatMessage[]> = {};
-      Object.entries(prev).forEach(([key, items]) => {
-        next[key] = (items || []).filter((item) => !deletedMessageKeysRef.current.has(item.id));
-      });
-      return next;
-    });
-  }, []);
 
   useEffect(() => {
     let active = true;
@@ -202,255 +169,186 @@ export default function AgentChatClient() {
     setChannelId(targetChannel);
   }, [searchParams]);
 
-  // Load help tickets
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const helpTickets = JSON.parse(localStorage.getItem("helpTickets") || "[]");
-    const newChannels = [...channels];
-    const newMessages = { ...messages };
-
-    helpTickets.forEach((ticket: any) => {
-      const channelId = `help-${ticket.ticket}`;
-      if (!newChannels.find((c) => c.id === channelId)) {
-        newChannels.push({
-          id: channelId,
-          label: ticket.title,
-          scope: "Help Center",
-          unread: ticket.status === "open" ? 1 : 0,
-        });
-        const mapped = ticket.messages.map((msg: any, idx: number) => ({
-          id: String(msg?.id || `${channelId}-${msg?.ts || ""}-${idx}` || createLocalId()),
-          role: msg.role === "user" ? "agent" : "hq",
-          author: msg.role === "user" ? "User" : "Bot",
-          text: msg.text,
-          ts: msg.ts,
-        }));
-        newMessages[channelId] = mapped.filter((msg: ChatMessage) => !deletedMessageKeysRef.current.has(msg.id));
-      }
-    });
-
-    setChannels(newChannels);
-    setMessages(newMessages);
-  }, []);
-
-  // Mark help ticket as read when selected
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (channelId.startsWith("help-")) {
-      const ticketNumber = channelId.replace("help-", "");
-      const helpTickets = JSON.parse(localStorage.getItem("helpTickets") || "[]");
-      const updatedTickets = helpTickets.map((ticket: any) => {
-        if (ticket.ticket === ticketNumber) {
-          return { ...ticket, status: "read" };
-        }
-        return ticket;
-      });
-      localStorage.setItem("helpTickets", JSON.stringify(updatedTickets));
-
-      // Update channels unread count
-      setChannels((prev) => prev.map((ch) => (ch.id === channelId ? { ...ch, unread: 0 } : ch)));
-    }
+    setChannels((prev) => prev.map((ch) => (ch.id === channelId ? { ...ch, unread: 0 } : ch)));
+    activeChannelRef.current = channelId;
   }, [channelId]);
 
-  // Load yacht request form submissions
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = JSON.parse(localStorage.getItem("yachtRequests") || "[]");
-    if (!stored.length) return;
+  const buildMessageFromRow = (row: any): ChatMessage => {
+    const createdAt = row?.createdAt || row?.created_at || new Date().toISOString();
+    const author = String(row?.author || row?.fullName || row?.full_name || row?.email || "Client");
+    return {
+      id: String(row?.id || createLocalId()),
+      role: resolveSenderRole(row?.senderRole || row?.sender_role),
+      author,
+      text: String(row?.message || ""),
+      ts: new Date(createdAt).toLocaleTimeString().slice(0, 5),
+      createdAt,
+    };
+  };
 
+  const ensureChannel = (id: string, row?: any) => {
     setChannels((prev) => {
-      const next = [...prev];
-      const ensureChannel = (id: string, label: string, scope: string) => {
-        if (!next.find((c) => c.id === id)) {
-          next.push({ id, label, scope, unread: 0 });
-        }
-      };
-
-      ensureChannel("agent-jason", "Jason Lanthier", "Direct");
-      ensureChannel("agent-alexandre", "Alexandre Blais", "Direct");
-      ensureChannel("hq", "HQ", "HQ only");
-
-      stored.forEach((req: any) => {
-        const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["hq"];
-        targets.forEach((id) => {
-          const idx = next.findIndex((c) => c.id === id);
-          if (idx >= 0) {
-            const current = next[idx];
-            next[idx] = { ...current, unread: (current.unread || 0) + 1 };
-          }
-        });
-      });
-
-      return next;
+      if (prev.find((c) => c.id === id)) return prev;
+      const contact = contactsByChannelIdRef.current.get(id);
+      const label = contact?.name || row?.fullName || row?.full_name || row?.email || row?.author || id;
+      const scope = contact?.scopeLabel || (row?.email || row?.full_name ? "Traveler" : "Direct");
+      return [...prev, { id, label, scope, unread: 0 }];
     });
+  };
 
+  const upsertMessage = (channelIds: string[], message: ChatMessage) => {
     setMessages((prev) => {
-      const next = { ...prev };
-      const ensureMessages = (id: string) => {
-        if (!next[id]) next[id] = [];
-      };
-
-      ensureMessages("agent-jason");
-      ensureMessages("agent-alexandre");
-      ensureMessages("hq");
-
-      stored.forEach((req: any) => {
-        const ts = new Date(req.createdAt || Date.now()).toLocaleTimeString().slice(0, 5);
-        const message = {
-          id: String(req?.id || createLocalId()),
-          role: "hq" as const,
-          author: "Client Request",
-          text: req.message || "New yacht request",
-          ts,
-        };
-        if (deletedMessageKeysRef.current.has(message.id)) return;
-        const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["hq"];
-        targets.forEach((id) => {
-          next[id] = [...(next[id] || []), message];
-        });
+      const next: Record<string, ChatMessage[]> = { ...prev };
+      channelIds.forEach((id) => {
+        const current = next[id] || [];
+        const exists = current.some((m) => m.id === message.id);
+        const updated = exists
+          ? current.map((m) => (m.id === message.id ? message : m))
+          : [...current, message];
+        updated.sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
+        next[id] = updated;
       });
-
       return next;
     });
-  }, []);
+  };
 
-  // Load partner requests from server (polling)
+  const removeMessageById = (messageId: string) => {
+    setMessages((prev) => {
+      const next: Record<string, ChatMessage[]> = {};
+      Object.entries(prev).forEach(([id, list]) => {
+        next[id] = (list || []).filter((msg) => msg.id !== messageId);
+      });
+      return next;
+    });
+  };
+
   useEffect(() => {
     let active = true;
-
-    const mergeRequests = (stored: any[]) => {
-      if (!stored.length) return;
-
-      setChannels((prev) => {
-        const next = [...prev];
-        const ensureChannel = (id: string, label: string, scope: string) => {
-          if (!next.find((c) => c.id === id)) {
-            next.push({ id, label, scope, unread: 0 });
-          }
-        };
-
-        stored.forEach((req: any) => {
-          if (req?.id && seenRequestsRef.current.has(req.id)) return;
-          const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["hq"];
-          targets.forEach((id) => {
-            const contact = contactsByChannelIdRef.current.get(id);
-            const label = contact?.name || req?.fullName || req?.email || id;
-            const scope = contact?.scopeLabel || (req?.email ? "Traveler" : "Direct");
-            ensureChannel(id, label, scope);
-            const idx = next.findIndex((c) => c.id === id);
-            if (idx >= 0) {
-              const current = next[idx];
-              next[idx] = { ...current, unread: (current.unread || 0) + 1 };
-            }
-          });
-        });
-
-        return next;
-      });
-
-      setMessages((prev) => {
-        const next = { ...prev };
-        const ensureMessages = (id: string) => {
-          if (!next[id]) next[id] = [];
-        };
-
-        stored.forEach((req: any) => {
-          if (req?.id && seenRequestsRef.current.has(req.id)) return;
-          const ts = new Date(req.createdAt || Date.now()).toLocaleTimeString().slice(0, 5);
-          const role = resolveSenderRole(req?.senderRole);
-          const author = String(req?.author || req?.fullName || req?.email || "Client");
-          const messageId = String(req?.id || createLocalId());
-          const message: ChatMessage = {
-            id: messageId,
-            role,
-            author,
-            text: String(req?.message || "New yacht request"),
-            ts,
-          };
-          if (deletedMessageKeysRef.current.has(getMessageKey(message))) return;
-          const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["hq"];
-          targets.forEach((id) => {
-            ensureMessages(id);
-            const exists = (next[id] || []).some((m) => m.id === message.id);
-            if (!exists) {
-              next[id] = [...(next[id] || []), message];
-            }
-          });
-        });
-
-        stored.forEach((req: any) => {
-          if (req?.id) seenRequestsRef.current.add(req.id);
-        });
-
-        return next;
-      });
-    };
-
-    const loadRequests = async () => {
+    const loadInitialMessages = async () => {
       try {
         const resp = await fetch("/api/agent/requests");
-        const text = await resp.text();
-        const parsed = JSON.parse(text || "{}");
+        const payload = await resp.json();
         if (!active) return;
-        const stored = (parsed && parsed.data) || [];
-        mergeRequests(stored);
+        const rows = Array.isArray(payload?.data) ? payload.data : [];
+        const nextMessages: Record<string, ChatMessage[]> = {};
+        rows.forEach((row: any) => {
+          const message = buildMessageFromRow(row);
+          const channelIds: string[] = Array.isArray(row?.channelIds || row?.channel_ids)
+            ? (row.channelIds || row.channel_ids)
+            : ["hq"];
+          channelIds.forEach((id) => {
+            ensureChannel(id, row);
+            nextMessages[id] = [...(nextMessages[id] || []), message];
+          });
+        });
+        Object.values(nextMessages).forEach((list) =>
+          list.sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime())
+        );
+        setMessages(nextMessages);
       } catch {
         // ignore
       }
     };
 
-    void loadRequests();
-    const interval = setInterval(loadRequests, 5000);
-
+    void loadInitialMessages();
     return () => {
       active = false;
-      clearInterval(interval);
     };
   }, []);
 
+  useEffect(() => {
+    const client = getSupabaseClient();
+    const channel = client
+      .channel("agent-inbox-messages")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "agent_inbox_messages" },
+        (payload) => {
+          const row = payload.new as any;
+          const message = buildMessageFromRow(row);
+          const channelIds: string[] = Array.isArray(row?.channel_ids) ? row.channel_ids : ["hq"];
+          channelIds.forEach((id) => ensureChannel(id, row));
+          upsertMessage(channelIds, message);
+          const activeId = activeChannelRef.current;
+          setChannels((prev) =>
+            prev.map((ch) =>
+              channelIds.includes(ch.id)
+                ? { ...ch, unread: ch.id === activeId ? 0 : (ch.unread || 0) + 1 }
+                : ch
+            )
+          );
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "agent_inbox_messages" },
+        (payload) => {
+          const row = payload.new as any;
+          if (row?.deleted_at || row?.is_deleted) {
+            removeMessageById(String(row?.id));
+            return;
+          }
+          const message = buildMessageFromRow(row);
+          const channelIds: string[] = Array.isArray(row?.channel_ids) ? row.channel_ids : ["hq"];
+          channelIds.forEach((id) => ensureChannel(id, row));
+          upsertMessage(channelIds, message);
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "agent_inbox_messages" },
+        (payload) => {
+          const row = payload.old as any;
+          if (row?.id) removeMessageById(String(row.id));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      client.removeChannel(channel);
+    };
+  }, []);
+
+
   const title = useMemo(() => channels.find((c) => c.id === channelId)?.label || "Chat", [channelId]);
 
-  const getMessageKey = (msg: { id: string; role: "agent" | "hq" | "lina"; author: string; text: string; ts: string }) =>
-    msg.id;
-
-  const addMessage = (msg: { id: string; role: "agent" | "hq" | "lina"; author: string; text: string }) => {
-    setMessages((prev) => ({
-      ...prev,
-      [channelId]: [...(prev[channelId] || []), { ...msg, ts: new Date().toLocaleTimeString().slice(0, 5) }],
-    }));
+  const addMessage = (msg: { id: string; role: "agent" | "hq" | "lina"; author: string; text: string; createdAt?: string }) => {
+    const createdAt = msg.createdAt || new Date().toISOString();
+    const message: ChatMessage = {
+      id: msg.id,
+      role: msg.role,
+      author: msg.author,
+      text: msg.text,
+      ts: new Date(createdAt).toLocaleTimeString().slice(0, 5),
+      createdAt,
+    };
+    upsertMessage([channelId], message);
   };
 
   const handleClearMyMessages = () => {
     const author = user?.name || "Agent";
     const role = canHQ ? "hq" : "agent";
-    const removed = (messages[channelId] || []).filter((m) => m.author === author && m.role === role);
-    removed.forEach((m) => deletedMessageKeysRef.current.add(getMessageKey(m)));
-    persistDeletedMessageKeys();
+    const toRemove = (messages[channelId] || []).filter((m) => m.author === author && m.role === role);
     setMessages((prev) => ({
       ...prev,
       [channelId]: (prev[channelId] || []).filter((m) => !(m.author === author && m.role === role)),
     }));
+    Promise.all(
+      toRemove.map((msg) =>
+        fetch(`/api/agent/requests?messageId=${encodeURIComponent(msg.id)}`, { method: "DELETE" }).catch(() => null)
+      )
+    ).catch(() => null);
   };
 
   const handleDeleteConversation = async (targetChannelId: string) => {
     if (nonDeletableChannels.has(targetChannelId)) return;
     if (typeof window !== "undefined" && !window.confirm("Delete this conversation for everyone?")) return;
 
-    if (targetChannelId.startsWith("help-")) {
-      try {
-        const ticketNumber = targetChannelId.replace("help-", "");
-        const helpTickets = JSON.parse(localStorage.getItem("helpTickets") || "[]");
-        const updatedTickets = helpTickets.filter((ticket: any) => ticket.ticket !== ticketNumber);
-        localStorage.setItem("helpTickets", JSON.stringify(updatedTickets));
-      } catch {
-        // ignore
-      }
-    } else {
-      try {
-        await fetch(`/api/agent/requests?channelId=${encodeURIComponent(targetChannelId)}`, { method: "DELETE" });
-      } catch {
-        // ignore
-      }
+    try {
+      await fetch(`/api/agent/requests?channelId=${encodeURIComponent(targetChannelId)}`, { method: "DELETE" });
+    } catch {
+      // ignore
     }
 
     setChannels((prev) => prev.filter((ch) => ch.id !== targetChannelId));
@@ -468,40 +366,10 @@ export default function AgentChatClient() {
     if (nonDeletableChannels.has(targetChannelId)) return;
     if (typeof window !== "undefined" && !window.confirm("Empty trash for everyone? This deletes all messages in this thread.")) return;
 
-    const channelMessages = messages[targetChannelId] || [];
-    channelMessages.forEach((msg) => deletedMessageKeysRef.current.add(getMessageKey(msg)));
-    persistDeletedMessageKeys();
-
-    if (targetChannelId.startsWith("help-")) {
-      try {
-        const ticketNumber = targetChannelId.replace("help-", "");
-        const helpTickets = JSON.parse(localStorage.getItem("helpTickets") || "[]");
-        const updatedTickets = helpTickets.map((ticket: any) => {
-          if (ticket.ticket !== ticketNumber) return ticket;
-          return { ...ticket, messages: [] };
-        });
-        localStorage.setItem("helpTickets", JSON.stringify(updatedTickets));
-      } catch {
-        // ignore
-      }
-    } else {
-      try {
-        await fetch(`/api/agent/requests?channelId=${encodeURIComponent(targetChannelId)}`, { method: "DELETE" });
-      } catch {
-        // ignore
-      }
-    }
-
-    if (typeof window !== "undefined") {
-      try {
-        const yachtRequests = JSON.parse(localStorage.getItem("yachtRequests") || "[]");
-        const filtered = Array.isArray(yachtRequests)
-          ? yachtRequests.filter((req: any) => !Array.isArray(req?.channelIds) || !req.channelIds.includes(targetChannelId))
-          : yachtRequests;
-        localStorage.setItem("yachtRequests", JSON.stringify(filtered || []));
-      } catch {
-        // ignore
-      }
+    try {
+      await fetch(`/api/agent/requests?channelId=${encodeURIComponent(targetChannelId)}`, { method: "DELETE" });
+    } catch {
+      // ignore
     }
 
     setMessages((prev) => ({
@@ -512,42 +380,14 @@ export default function AgentChatClient() {
   };
 
   const handleDeleteMessage = async (msg: { id: string; role: "agent" | "hq" | "lina"; author: string; text: string; ts: string }) => {
-    const key = getMessageKey(msg);
-    deletedMessageKeysRef.current.add(key);
-    persistDeletedMessageKeys();
     setMessages((prev) => ({
       ...prev,
-      [channelId]: (prev[channelId] || []).filter((m) => getMessageKey(m) !== key),
+      [channelId]: (prev[channelId] || []).filter((m) => m.id !== msg.id),
     }));
-    if (typeof window !== "undefined") {
-      if (channelId.startsWith("help-")) {
-        try {
-          const ticketNumber = channelId.replace("help-", "");
-          const helpTickets = JSON.parse(localStorage.getItem("helpTickets") || "[]");
-          const updatedTickets = helpTickets.map((ticket: any) => {
-            if (ticket.ticket !== ticketNumber) return ticket;
-            const nextMessages = (ticket.messages || []).filter((m: any) => !(m.text === msg.text && m.ts === msg.ts));
-            return { ...ticket, messages: nextMessages };
-          });
-          localStorage.setItem("helpTickets", JSON.stringify(updatedTickets));
-        } catch {
-          // ignore
-        }
-      }
-      try {
-        const yachtRequests = JSON.parse(localStorage.getItem("yachtRequests") || "[]");
-        const filtered = Array.isArray(yachtRequests) ? yachtRequests.filter((req: any) => req?.id !== msg.id) : yachtRequests;
-        localStorage.setItem("yachtRequests", JSON.stringify(filtered || []));
-      } catch {
-        // ignore
-      }
-    }
-    if (!msg.id.startsWith("local-")) {
-      try {
-        await fetch(`/api/agent/requests?messageId=${encodeURIComponent(msg.id)}`, { method: "DELETE" });
-      } catch {
-        // ignore
-      }
+    try {
+      await fetch(`/api/agent/requests?messageId=${encodeURIComponent(msg.id)}`, { method: "DELETE" });
+    } catch {
+      // ignore
     }
   };
 
@@ -563,8 +403,7 @@ export default function AgentChatClient() {
     const author = user?.name || "Agent";
     const senderRole = canHQ ? "hq" : "agent";
 
-    addMessage({ id: requestId, role: senderRole, author, text: trimmed });
-    seenRequestsRef.current.add(requestId);
+    addMessage({ id: requestId, role: senderRole, author, text: trimmed, createdAt });
     try {
       await fetch("/api/agent/requests", {
         method: "POST",
@@ -825,9 +664,7 @@ export default function AgentChatClient() {
                     No messages yet. Share a case file, request support, or mention @Lina.
                   </div>
                 )}
-                {history
-                  .filter((m) => !deletedMessageKeysRef.current.has(getMessageKey(m)))
-                  .map((m) => {
+                {history.map((m) => {
                   const isOwn = m.author === (user?.name || "Agent") && m.role === (canHQ ? "hq" : "agent");
                   const bubbleStyle = isOwn
                     ? "bg-slate-900 text-white"
