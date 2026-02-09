@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
-import { dbQuery } from "../../../src/lib/server/db";
+import { dbQuery } from "../../../../src/lib/server/db";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "agent-requests.json");

@@ -95,7 +95,6 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
       { label: "Purchase Orders", href: "/agent/purchase-orders" },
       { label: "Bookings", href: "/agent/bookings" },
       { label: "Commissions", href: "/agent/commissions" },
-      { label: "Client & Partner Chat", href: "/agent/chat" },
       { label: "Lina AI Desk", href: "/agent/lina" },
       ...(isHQorAdmin
         ? [
