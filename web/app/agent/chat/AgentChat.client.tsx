@@ -482,7 +482,7 @@ export default function AgentChatClient() {
                               onClick={() => handleDeleteMessage(idx)}
                               className="text-[10px] font-semibold text-slate-200 hover:text-white"
                             >
-                              Supprimer
+                              Delete
                             </button>
                           )}
                         </div>
