@@ -82,7 +82,8 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
         { label: "Yacht Desk", href: "/agent/yachts" },
         { label: "Clients", href: "/agent/clients" },
         { label: "Yacht Proposals", href: "/agent/proposals" },
-        { label: "Chat", href: "/agent/chat" },
+        { label: "Client & Partner Chat", href: "/agent/chat" },
+        { label: "Lina AI Desk", href: "/agent/lina" },
         { label: "Settings", href: "/agent/settings" },
       ];
     }
@@ -94,7 +95,8 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
       { label: "Purchase Orders", href: "/agent/purchase-orders" },
       { label: "Bookings", href: "/agent/bookings" },
       { label: "Commissions", href: "/agent/commissions" },
-      { label: "Chat", href: "/agent/chat" },
+      { label: "Client & Partner Chat", href: "/agent/chat" },
+      { label: "Lina AI Desk", href: "/agent/lina" },
       ...(isHQorAdmin
         ? [
             { label: "Control Tower", href: "/agent/control-tower" },
@@ -326,7 +328,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
                       }`}
                     >
                       <span>{item.label}</span>
-                      {item.label === "Chat" && unreadCount > 0 && (
+                      {item.href === "/agent/chat" && unreadCount > 0 && (
                         <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${active ? "bg-white text-slate-900" : "bg-red-500 text-white"}`}>
                           {unreadCount}
                         </span>
@@ -378,7 +380,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
               {navLinks.map((item) => (
                 <Link key={item.href} href={item.href} className="relative rounded-full border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-800 hover:border-slate-400">
                   {item.label}
-                  {item.label === "Chat" && unreadCount > 0 && (
+                  {item.href === "/agent/chat" && unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
                       {unreadCount}
                     </span>
@@ -398,7 +400,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
               {navLinks.map((item) => (
                 <Link key={item.href} href={item.href} className="relative rounded-full border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-800 hover:border-slate-400">
                   {item.label}
-                  {item.label === "Chat" && unreadCount > 0 && (
+                  {item.href === "/agent/chat" && unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
                       {unreadCount}
                     </span>
@@ -608,7 +610,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
               <div className="space-y-5">
                 <div className="rounded-xl border border-slate-200 bg-white p-5">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold" style={{ color: TITLE_TEXT }}>Live client chat</h3>
+                    <h3 className="text-sm font-bold" style={{ color: TITLE_TEXT }}>Client & partner chat</h3>
                     <Link href="/agent/chat" className="text-xs font-semibold" style={{ color: PREMIUM_BLUE }}>Open inbox</Link>
                   </div>
                   <div className="mt-4 space-y-3">
@@ -699,10 +701,14 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
 
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="relative h-40 w-40 overflow-hidden rounded-2xl border border-slate-100 shadow-lg">
+                  <Link
+                    href="/agent/lina/chat"
+                    className="relative h-40 w-40 overflow-hidden rounded-2xl border border-slate-100 shadow-lg transition hover:shadow-xl"
+                    aria-label="Open Lina AI chat"
+                  >
                     <LinaAvatar size="lg" className="h-full w-full" />
                     <span className="absolute -bottom-1 -right-1 h-3 w-3 rounded-full border border-white" style={{ backgroundColor: PREMIUM_BLUE }}></span>
-                  </div>
+                  </Link>
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Lina Agent Command Bar</p>
                     <h2 className="text-2xl font-black" style={{ color: TITLE_TEXT }}>Production-grade control</h2>

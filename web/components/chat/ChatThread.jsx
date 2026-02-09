@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BRAND_BLUE, LIGHT_BG, MUTED_TEXT, TITLE_TEXT } from "../../src/design/tokens";
-import { useTripsStore, addMessage, updateSnapshot, updateTrip, applyTripPatch } from "../../lib/store/tripsStore";
+import { useTripsStore, addMessage, updateSnapshot, updateTrip, applyTripPatch, generateProposal } from "../../lib/store/tripsStore";
 import { sendMessageToLina } from "../../src/lib/linaClient";
 import Label from "../../src/components/Label";
 const quickPrompts = ["Flights", "Hotels", "All-Inclusive", "Cruise", "Excursions"];
@@ -45,7 +45,7 @@ function snapshotPatchFromTrip(trip) {
   return patch;
 }
 
-function createTripFromMergedTrip(mergedTrip) {
+function createTripFromMergedTrip(mergedTrip, proposalSuffix = "") {
   if (typeof window === 'undefined') return;
   const key = 'zeniva_trips_store_v1__guest';
   let store = {};
@@ -89,7 +89,7 @@ function createTripFromMergedTrip(mergedTrip) {
     const params = new URLSearchParams({ destination: mergedTrip.destination || '', checkIn: mergedTrip.checkIn || '', checkOut: mergedTrip.checkOut || '', adults: String(mergedTrip.adults || '') });
     window.location.href = `/yachts?${params.toString()}`;
   } else {
-    window.location.href = `/proposals/${newTripId}/select`;
+    window.location.href = `/proposals/${newTripId}/select${proposalSuffix}`;
   }
 }
 
@@ -139,7 +139,7 @@ function parseTripFromText(text) {
 }
 
 
-function ChatThread({ tripId }) {
+function ChatThread({ tripId, proposalMode = "" }) {
   // Ajout : messages automatiques si infos manquantes
   const [promptedForHotelInfo, setPromptedForHotelInfo] = useState(false);
   const [promptedForStayType, setPromptedForStayType] = useState(false);
@@ -152,6 +152,7 @@ function ChatThread({ tripId }) {
 
   const history = useMemo(() => messages[tripId] || [], [messages, tripId]);
   const snapshot = snapshots[tripId] || {};
+  const proposalSuffix = proposalMode ? `?mode=${encodeURIComponent(proposalMode)}` : "";
 
 
   useEffect(() => {
@@ -209,7 +210,8 @@ function ChatThread({ tripId }) {
         store.proposals[tripId] = { tripId, title: snapshot.destination, sections: [{ title: 'Flights', items: [] }, { title: 'Hotels', items: [] }], priceEstimate: snapshot.budget, images: [], notes: '', updatedAt: now };
         store.selections[tripId] = { flight: null, hotel: null };
         window.localStorage.setItem(key, JSON.stringify(store));
-        window.location.href = `/proposals/${tripId}/select`;
+        generateProposal(tripId);
+        window.location.href = `/proposals/${tripId}/select${proposalSuffix}`;
       }
     }
   }, [userHasInteracted, snapshot.departure, snapshot.destination, snapshot.dates, snapshot.travelers, snapshot.budget, snapshot.style]);

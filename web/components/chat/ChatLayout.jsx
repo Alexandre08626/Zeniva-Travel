@@ -4,24 +4,35 @@ import Image from "next/image";
 import { LIGHT_BG, PREMIUM_BLUE, TITLE_TEXT, MUTED_TEXT } from "../../src/design/tokens";
 import Pill from "../../src/components/Pill";
 
-export default function ChatLayout({ sidebar, chat, snapshot, tripId }) {
+export default function ChatLayout({
+  sidebar,
+  chat,
+  snapshot,
+  tripId,
+  backHref = "/",
+  backLabel = "Back",
+  pillLabel = "Zeniva • AI Travel",
+  callHref,
+  callLabel = "Call AI Assistant",
+}) {
+  const resolvedCallHref = callHref ?? `/call/${tripId || ""}`;
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
       <div className="mx-auto max-w-[1700px] px-4 py-4 sm:py-6">
         <header className="mb-4 flex flex-col gap-3 sm:mb-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/" className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>
-              ← Back
+            <Link href={backHref} className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>
+              ← {backLabel}
             </Link>
-            <Pill>Zeniva • AI Travel</Pill>
+            <Pill>{pillLabel}</Pill>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
-              href={`/call/${tripId || ''}`}
+              href={resolvedCallHref}
               className="rounded-full px-4 py-2 text-sm font-extrabold text-white w-full sm:w-auto text-center"
               style={{ backgroundColor: PREMIUM_BLUE }}
             >
-              Call AI Assistant
+              {callLabel}
             </Link>
             <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: MUTED_TEXT }}>
               <Image

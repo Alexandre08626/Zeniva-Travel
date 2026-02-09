@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { BRAND_BLUE, LIGHT_BG, MUTED_TEXT, PREMIUM_BLUE, TITLE_TEXT } from "../../../../src/design/tokens";
 import { useTripsStore, generateProposal, setProposalSelection, applyTripPatch } from "../../../../lib/store/tripsStore";
 import SelectedSummary from "../../../../src/components/SelectedSummary";
@@ -64,7 +64,11 @@ function resolveIATA(city) {
 export default function ProposalSelectPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const tripId = Array.isArray(params.tripId) ? params.tripId[0] : params.tripId;
+  const mode = searchParams?.get("mode") || "";
+  const isAgentMode = mode === "agent";
+  const modeSuffix = isAgentMode ? "?mode=agent" : "";
 
   const [flights, setFlights] = useState([]);
   const [hotels, setHotels] = useState([]);
@@ -506,7 +510,7 @@ export default function ProposalSelectPage() {
   }, [flights, selection?.flight, tripId]);
 
   const onContinue = () => {
-    router.push(`/proposals/${tripId}/review`);
+    router.push(`/proposals/${tripId}/review${modeSuffix}`);
   };
 
   if (!tripId) return null;
@@ -524,11 +528,11 @@ export default function ProposalSelectPage() {
             </h1>
           </div>
           <button
-            onClick={() => router.push(`/chat/${tripId}`)}
+            onClick={() => router.push(isAgentMode ? `/agent/lina/chat/${tripId}` : `/chat/${tripId}`)}
             className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold"
             style={{ color: PREMIUM_BLUE }}
           >
-            Back to chat
+            {isAgentMode ? "Back to Lina" : "Back to chat"}
           </button>
         </header>
 

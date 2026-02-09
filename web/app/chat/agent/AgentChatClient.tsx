@@ -327,15 +327,21 @@ export default function TravelerAgentChatClient() {
                         <p className={`text-[10px] ${msg.role === "user" ? "text-blue-100" : "text-slate-500"}`}>
                           {msg.ts}
                         </p>
-                        {msg.role === "user" && (
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteMessage(activeThread.id, msg.id)}
-                            className="text-[10px] font-semibold text-blue-100 hover:text-white"
-                          >
-                            Supprimer
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteMessage(activeThread.id, msg.id)}
+                          className={`inline-flex items-center justify-center rounded-full p-1 ${
+                            msg.role === "user" ? "text-blue-100 hover:text-white" : "text-slate-400 hover:text-slate-600"
+                          }`}
+                          aria-label="Delete message"
+                        >
+                          <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" aria-hidden="true" focusable="false">
+                            <path
+                              fill="currentColor"
+                              d="M9 3h6l1 2h4v2H4V5h4l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zM7 9h2v9H7V9z"
+                            />
+                          </svg>
+                        </button>
                       </div>
                     </div>
                   </div>

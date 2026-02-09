@@ -10,7 +10,7 @@ const statusColors = {
   Sent: "bg-blue-50 text-blue-700 border border-blue-100",
 };
 
-export default function ConversationsSidebar({ currentTripId }) {
+export default function ConversationsSidebar({ currentTripId, basePath = "/chat" }) {
   const router = useRouter();
   const { trips, messages } = useTripsStore((s) => ({ trips: s.trips, messages: s.messages }));
 
@@ -24,12 +24,12 @@ export default function ConversationsSidebar({ currentTripId }) {
   };
 
   const onSelect = (id) => {
-    router.push(`/chat/${id}`);
+    router.push(`${basePath}/${id}`);
   };
 
   const onNew = () => {
     const id = createTrip();
-    router.push(`/chat/${id}`);
+    router.push(`${basePath}/${id}`);
   };
 
   return (

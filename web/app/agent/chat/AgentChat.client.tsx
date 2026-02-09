@@ -3,6 +3,7 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { sendMessageToLina } from "../../../src/lib/linaClient";
+import { normalizeAgentId } from "../../../src/lib/agent/agentWorkspace";
 import { useAuthStore, isHQ } from "../../../src/lib/authStore";
 
 export default function AgentChatClient() {
@@ -25,6 +26,11 @@ export default function AgentChatClient() {
   });
   const [sending, setSending] = useState(false);
   const [linaBusy, setLinaBusy] = useState(false);
+  const [contacts, setContacts] = useState<
+    { id: string; name: string; email: string; role: string; roles?: string[]; status?: string; channelId: string; scopeLabel: string }[]
+  >([]);
+  const [contactsLoading, setContactsLoading] = useState(false);
+  const [contactsError, setContactsError] = useState<string | null>(null);
   const [channels, setChannels] = useState([
     { id: "global", label: "Global", scope: "All agents", unread: 2 },
     { id: "hq", label: "HQ", scope: "HQ only", unread: 1 },
@@ -38,8 +44,24 @@ export default function AgentChatClient() {
   ]);
   const listRef = useRef<HTMLDivElement | null>(null);
   const seenRequestsRef = useRef<Set<string>>(new Set());
+  const deletedMessageKeysRef = useRef<Set<string>>(new Set());
+  const contactsByChannelIdRef = useRef<
+    Map<string, { id: string; name: string; email: string; role: string; roles?: string[]; status?: string; channelId: string; scopeLabel: string }>
+  >(new Map());
+  const nonDeletableChannels = useMemo(() => new Set(["global", "hq", "ops"]), []);
   const totalUnread = useMemo(() => channels.reduce((sum, ch) => sum + (ch.unread || 0), 0), [channels]);
   const directThreads = useMemo(() => channels.filter((ch) => ch.scope === "Direct").length, [channels]);
+  const contactsByChannelId = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; email: string; role: string; roles?: string[]; status?: string; channelId: string; scopeLabel: string }>();
+    contacts.forEach((contact) => {
+      map.set(contact.channelId, contact);
+    });
+    return map;
+  }, [contacts]);
+
+  useEffect(() => {
+    contactsByChannelIdRef.current = contactsByChannelId;
+  }, [contactsByChannelId]);
 
   const quickActions = [
     "Share dossier TRIP-104 to Sara",
@@ -55,8 +77,78 @@ export default function AgentChatClient() {
     return channels.filter((c) => c.label.toLowerCase().includes(search) || c.scope.toLowerCase().includes(search));
   }, [channels, channelSearch]);
 
+  const visibleContacts = useMemo(() => {
+    const ownEmail = (user?.email || "").toLowerCase();
+    return contacts
+      .filter((contact) => contact.email.toLowerCase() !== ownEmail)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [contacts, user?.email]);
+
   const history = messages[channelId] || [];
   const canHQ = isHQ(user);
+
+  useEffect(() => {
+    let active = true;
+    const resolveScopeLabel = (role: string, roles?: string[]) => {
+      const allRoles = [role, ...(roles || [])].map((r) => (r || "").toLowerCase());
+      if (allRoles.some((r) => r.includes("traveler"))) return "Traveler";
+      if (allRoles.some((r) => r.includes("partner"))) return "Partner";
+      if (allRoles.some((r) => r.includes("agent") || r.includes("hq") || r.includes("admin"))) return "Agent";
+      return "Contact";
+    };
+
+    const resolveChannelId = (name: string, email: string, role: string, roles?: string[], id?: string) => {
+      const allRoles = [role, ...(roles || [])].map((r) => (r || "").toLowerCase());
+      if (allRoles.some((r) => r.includes("agent") || r.includes("hq") || r.includes("admin"))) {
+        return normalizeAgentId(email || name);
+      }
+      const safeId = id || name || "unknown";
+      return `contact-${String(safeId).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`;
+    };
+
+    const loadContacts = async () => {
+      setContactsLoading(true);
+      setContactsError(null);
+      try {
+        const resp = await fetch("/api/accounts");
+        const payload = await resp.json();
+        if (!resp.ok) throw new Error(payload?.error || "Failed to load contacts");
+        if (!active) return;
+        const rows = Array.isArray(payload?.data) ? payload.data : [];
+        const mapped = rows.map((row: any) => {
+          const name = String(row?.name || "Unknown");
+          const email = String(row?.email || "");
+          const role = String(row?.role || "");
+          const roles = Array.isArray(row?.roles) ? row.roles : undefined;
+          const scopeLabel = resolveScopeLabel(role, roles);
+          const channelId = resolveChannelId(name, email, role, roles, row?.id);
+          return {
+            id: String(row?.id || channelId),
+            name,
+            email,
+            role,
+            roles,
+            status: row?.status,
+            channelId,
+            scopeLabel,
+          };
+        });
+        setContacts(mapped);
+      } catch (err) {
+        if (!active) return;
+        setContactsError(err instanceof Error ? err.message : "Failed to load contacts");
+      } finally {
+        if (active) setContactsLoading(false);
+      }
+    };
+
+    void loadContacts();
+    const interval = setInterval(loadContacts, 10000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     if (!listRef.current) return;
@@ -193,14 +285,14 @@ export default function AgentChatClient() {
           }
         };
 
-        ensureChannel("agent-jason", "Jason Lanthier", "Direct");
-        ensureChannel("agent-alexandre", "Alexandre Blais", "Direct");
-        ensureChannel("hq", "HQ", "HQ only");
-
         stored.forEach((req: any) => {
           if (req?.id && seenRequestsRef.current.has(req.id)) return;
           const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["hq"];
           targets.forEach((id) => {
+            const contact = contactsByChannelIdRef.current.get(id);
+            const label = contact?.name || req?.fullName || req?.email || id;
+            const scope = contact?.scopeLabel || (req?.email ? "Traveler" : "Direct");
+            ensureChannel(id, label, scope);
             const idx = next.findIndex((c) => c.id === id);
             if (idx >= 0) {
               const current = next[idx];
@@ -218,16 +310,14 @@ export default function AgentChatClient() {
           if (!next[id]) next[id] = [];
         };
 
-        ensureMessages("agent-jason");
-        ensureMessages("agent-alexandre");
-        ensureMessages("hq");
-
         stored.forEach((req: any) => {
           if (req?.id && seenRequestsRef.current.has(req.id)) return;
           const ts = new Date(req.createdAt || Date.now()).toLocaleTimeString().slice(0, 5);
           const message = { role: "hq" as const, author: "Client Request", text: req.message || "New yacht request", ts };
+          if (deletedMessageKeysRef.current.has(getMessageKey(message))) return;
           const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["hq"];
           targets.forEach((id) => {
+            ensureMessages(id);
             const exists = (next[id] || []).some((m) => m.text === message.text && m.ts === message.ts);
             if (!exists) {
               next[id] = [...(next[id] || []), message];
@@ -267,6 +357,9 @@ export default function AgentChatClient() {
 
   const title = useMemo(() => channels.find((c) => c.id === channelId)?.label || "Chat", [channelId]);
 
+  const getMessageKey = (msg: { role: "agent" | "hq" | "lina"; author: string; text: string; ts: string }) =>
+    `${msg.role}|${msg.author}|${msg.ts}|${msg.text}`;
+
   const addMessage = (msg: { role: "agent" | "hq" | "lina"; author: string; text: string }) => {
     setMessages((prev) => ({
       ...prev,
@@ -283,10 +376,44 @@ export default function AgentChatClient() {
     }));
   };
 
-  const handleDeleteMessage = (index: number) => {
+  const handleDeleteConversation = async (targetChannelId: string) => {
+    if (nonDeletableChannels.has(targetChannelId)) return;
+    if (typeof window !== "undefined" && !window.confirm("Delete this conversation for everyone?")) return;
+
+    if (targetChannelId.startsWith("help-")) {
+      try {
+        const ticketNumber = targetChannelId.replace("help-", "");
+        const helpTickets = JSON.parse(localStorage.getItem("helpTickets") || "[]");
+        const updatedTickets = helpTickets.filter((ticket: any) => ticket.ticket !== ticketNumber);
+        localStorage.setItem("helpTickets", JSON.stringify(updatedTickets));
+      } catch {
+        // ignore
+      }
+    } else {
+      try {
+        await fetch(`/api/agent/requests?channelId=${encodeURIComponent(targetChannelId)}`, { method: "DELETE" });
+      } catch {
+        // ignore
+      }
+    }
+
+    setChannels((prev) => prev.filter((ch) => ch.id !== targetChannelId));
+    setMessages((prev) => {
+      const next = { ...prev };
+      delete next[targetChannelId];
+      return next;
+    });
+    if (channelId === targetChannelId) {
+      setChannelId("global");
+    }
+  };
+
+  const handleDeleteMessage = (msg: { role: "agent" | "hq" | "lina"; author: string; text: string; ts: string }) => {
+    const key = getMessageKey(msg);
+    deletedMessageKeysRef.current.add(key);
     setMessages((prev) => ({
       ...prev,
-      [channelId]: (prev[channelId] || []).filter((_, i) => i !== index),
+      [channelId]: (prev[channelId] || []).filter((m) => getMessageKey(m) !== key),
     }));
   };
 
@@ -318,6 +445,14 @@ export default function AgentChatClient() {
   const onQuick = (value: string) => {
     setInput(value);
     handleSend(value);
+  };
+
+  const handleOpenContact = (contact: { channelId: string; name: string; scopeLabel: string }) => {
+    setChannels((prev) => {
+      if (prev.some((ch) => ch.id === contact.channelId)) return prev;
+      return [...prev, { id: contact.channelId, label: contact.name, scope: contact.scopeLabel, unread: 0 }];
+    });
+    setChannelId(contact.channelId);
   };
 
   return (
@@ -401,21 +536,51 @@ export default function AgentChatClient() {
               </div>
 
               <div className="flex-1 overflow-y-auto">
+                <div className="border-b border-slate-200 bg-white">
+                  <div className="p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Contacts</p>
+                    <p className="text-xs text-slate-500">Travelers, partners, and agents</p>
+                  </div>
+                  <div className="px-4 pb-4 space-y-2">
+                    {contactsLoading && <div className="text-xs text-slate-500">Loading contacts…</div>}
+                    {contactsError && <div className="text-xs text-rose-600">{contactsError}</div>}
+                    {!contactsLoading && !contactsError && visibleContacts.length === 0 && (
+                      <div className="text-xs text-slate-500">No contacts found.</div>
+                    )}
+                    {!contactsLoading && !contactsError && visibleContacts.slice(0, 8).map((contact) => (
+                      <button
+                        key={contact.channelId}
+                        type="button"
+                        onClick={() => handleOpenContact(contact)}
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="truncate">{contact.name}</span>
+                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">{contact.scopeLabel}</span>
+                        </div>
+                        <div className="text-[10px] text-slate-500 truncate">{contact.email || contact.role}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 {filteredChannels.map((c) => {
                   const active = c.id === channelId;
                   const hiddenHQ = c.id === "hq" && !canHQ;
                   if (hiddenHQ) return null;
                   return (
-                    <button
+                    <div
                       key={c.id}
-                      onClick={() => setChannelId(c.id)}
                       className={`w-full p-4 border-b border-slate-100 text-left transition ${active ? "bg-white" : "hover:bg-slate-50"}`}
                     >
                       <div className="flex items-center gap-3 mb-2">
                         <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-xs font-bold">
                           {c.label.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <button
+                          type="button"
+                          onClick={() => setChannelId(c.id)}
+                          className="flex-1 min-w-0 text-left"
+                        >
                           <div className="flex items-center justify-between mb-1">
                             <span className="font-semibold text-slate-900 truncate">{c.label}</span>
                             {c.unread ? (
@@ -423,14 +588,28 @@ export default function AgentChatClient() {
                             ) : null}
                           </div>
                           <p className="text-sm text-slate-500 truncate">{c.scope}</p>
-                        </div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteConversation(c.id)}
+                          disabled={nonDeletableChannels.has(c.id)}
+                          className="inline-flex items-center justify-center rounded-full p-1.5 text-slate-500 hover:text-slate-700 disabled:opacity-50"
+                          aria-label="Delete conversation"
+                        >
+                          <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true" focusable="false">
+                            <path
+                              fill="currentColor"
+                              d="M9 3h6l1 2h4v2H4V5h4l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zM7 9h2v9H7V9z"
+                            />
+                          </svg>
+                        </button>
                       </div>
                       <p className="text-sm text-slate-700 truncate">{(messages[c.id] || []).slice(-1)[0]?.text || "No messages yet"}</p>
                       <div className="mt-2 flex items-center gap-2 text-xs text-slate-500 font-semibold">
                         <span className="rounded-full bg-slate-100 px-2 py-0.5">Interne</span>
                         <span className="rounded-full bg-slate-100 px-2 py-0.5">Live</span>
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -444,13 +623,29 @@ export default function AgentChatClient() {
                     <h3 className="font-semibold text-gray-900">{title}</h3>
                     <p className="text-sm text-gray-600">Historique conservé. HQ voit tout.</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleClearMyMessages}
-                    className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-700 hover:border-slate-300"
-                  >
-                    Effacer mes messages
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleClearMyMessages}
+                      className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-700 hover:border-slate-300"
+                    >
+                      Clear my messages
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteConversation(channelId)}
+                      disabled={nonDeletableChannels.has(channelId)}
+                      className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white p-1.5 text-slate-600 hover:border-slate-300 disabled:opacity-50"
+                      aria-label="Delete conversation"
+                    >
+                      <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true" focusable="false">
+                        <path
+                          fill="currentColor"
+                          d="M9 3h6l1 2h4v2H4V5h4l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zM7 9h2v9H7V9z"
+                        />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -460,7 +655,9 @@ export default function AgentChatClient() {
                     Aucun message. Partagez un dossier, demandez du support, ou mentionnez @Lina.
                   </div>
                 )}
-                {history.map((m, idx) => {
+                {history
+                  .filter((m) => !deletedMessageKeysRef.current.has(getMessageKey(m)))
+                  .map((m, idx) => {
                   const isOwn = m.author === (user?.name || "Agent") && m.role === (canHQ ? "hq" : "agent");
                   const bubbleStyle = isOwn
                     ? "bg-slate-900 text-white"
@@ -476,15 +673,21 @@ export default function AgentChatClient() {
                           <p className={`text-xs ${isOwn ? "text-slate-200" : "text-slate-500"}`}>
                             {m.ts}
                           </p>
-                          {isOwn && (
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteMessage(idx)}
-                              className="text-[10px] font-semibold text-slate-200 hover:text-white"
-                            >
-                              Delete
-                            </button>
-                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteMessage(m)}
+                            className={`inline-flex items-center justify-center rounded-full p-1 ${
+                              isOwn ? "text-slate-200 hover:text-white" : "text-slate-500 hover:text-slate-700"
+                            }`}
+                            aria-label="Delete message"
+                          >
+                            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" aria-hidden="true" focusable="false">
+                              <path
+                                fill="currentColor"
+                                d="M9 3h6l1 2h4v2H4V5h4l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zM7 9h2v9H7V9z"
+                              />
+                            </svg>
+                          </button>
                         </div>
                       </div>
                     </div>

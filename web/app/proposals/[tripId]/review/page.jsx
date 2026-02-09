@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { BRAND_BLUE, LIGHT_BG, MUTED_TEXT, PREMIUM_BLUE, TITLE_TEXT } from "../../../../src/design/tokens";
 import { useTripsStore, generateProposal } from "../../../../lib/store/tripsStore";
 import { getImagesForDestination, getPartnerHotelImages } from "../../../../src/lib/images";
@@ -11,7 +11,12 @@ import airbnbsData from "../../../../src/data/airbnbs.json";
 export default function ProposalReviewPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const tripId = Array.isArray(params.tripId) ? params.tripId[0] : params.tripId;
+  const mode = searchParams?.get("mode") || "";
+  const isAgentMode = mode === "agent";
+  const modeSuffix = isAgentMode ? "?mode=agent" : "";
+  const [shareStatus, setShareStatus] = useState("");
 
   const { proposal, selection, tripDraft } = useTripsStore((s) => ({
     proposal: s.proposals[tripId],
@@ -86,6 +91,16 @@ export default function ProposalReviewPage() {
   ];
 
   const onPay = () => router.push(`/checkout/${tripId}`);
+  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/checkout/${tripId}` : "";
+  const handleShare = async () => {
+    const url = shareUrl || `/checkout/${tripId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareStatus("Payment link copied.");
+    } catch {
+      setShareStatus("Copy failed. Please copy the link manually.");
+    }
+  };
 
   if (!tripId) return null;
 
@@ -94,23 +109,23 @@ export default function ProposalReviewPage() {
       <div className="mx-auto max-w-6xl px-6 py-8 space-y-6">
         <header className="flex items-center justify-between text-sm">
           <button
-            onClick={() => router.push(`/proposals`)}
+            onClick={() => router.push(isAgentMode ? `/agent/proposals` : `/proposals`)}
             className="text-blue-700 font-semibold"
           >
-            Back to proposals
+            {isAgentMode ? "Back to agent proposals" : "Back to proposals"}
           </button>
           <div className="flex gap-2">
             <button
-              onClick={() => router.push(`/proposals/${tripId}/select`)}
+              onClick={() => router.push(`/proposals/${tripId}/select${modeSuffix}`)}
               className="rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-semibold text-blue-700"
             >
               Edit selections
             </button>
             <button
-              onClick={() => router.push(`/chat/${tripId}`)}
+              onClick={() => router.push(isAgentMode ? `/agent/lina/chat/${tripId}` : `/chat/${tripId}`)}
               className="rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-semibold text-blue-700"
             >
-              Back to chat
+              {isAgentMode ? "Back to Lina" : "Back to chat"}
             </button>
           </div>
         </header>
@@ -118,7 +133,9 @@ export default function ProposalReviewPage() {
         <div className="space-y-2">
           <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Zeniva travel</p>
           <h1 className="text-3xl font-black text-slate-900">Your tailored trip</h1>
-          <div className="text-sm text-blue-800">{tripDraft?.destination || "Your trip"} · Review before payment</div>
+          <div className="text-sm text-blue-800">
+            {tripDraft?.destination || "Your trip"} · {isAgentMode ? "Review before sending to client" : "Review before payment"}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 lg:grid-rows-2 gap-2 rounded-3xl overflow-hidden">
@@ -309,16 +326,40 @@ export default function ProposalReviewPage() {
               </div>
             </div>
 
-            <button
-              onClick={onPay}
-              className="w-full rounded-xl px-4 py-3 text-sm font-extrabold text-white"
-              style={{ backgroundColor: BRAND_BLUE }}
-            >
-              Proceed to payment
-            </button>
-            <div className="rounded-xl border border-blue-200 bg-white p-3 text-xs" style={{ color: MUTED_TEXT }}>
-              You can adjust selections before paying. Policies and fare rules summarized above.
-            </div>
+            {isAgentMode ? (
+              <>
+                <button
+                  onClick={handleShare}
+                  className="w-full rounded-xl px-4 py-3 text-sm font-extrabold text-white"
+                  style={{ backgroundColor: BRAND_BLUE }}
+                >
+                  Send to client for payment
+                </button>
+                <button
+                  onClick={onPay}
+                  className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm font-semibold text-blue-700"
+                >
+                  Preview client payment page
+                </button>
+                <div className="rounded-xl border border-blue-200 bg-white p-3 text-xs" style={{ color: MUTED_TEXT }}>
+                  Share link: {shareUrl || `/checkout/${tripId}`}
+                  {shareStatus ? ` • ${shareStatus}` : ""}
+                </div>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={onPay}
+                  className="w-full rounded-xl px-4 py-3 text-sm font-extrabold text-white"
+                  style={{ backgroundColor: BRAND_BLUE }}
+                >
+                  Proceed to payment
+                </button>
+                <div className="rounded-xl border border-blue-200 bg-white p-3 text-xs" style={{ color: MUTED_TEXT }}>
+                  You can adjust selections before paying. Policies and fare rules summarized above.
+                </div>
+              </>
+            )}
           </aside>
         </div>
       </div>

@@ -11,7 +11,7 @@ import {
   applyTripPatch,
 } from "../../lib/store/tripsStore";
 
-export default function TripSnapshotPanel({ tripId }) {
+export default function TripSnapshotPanel({ tripId, proposalMode = "" }) {
   const router = useRouter();
   const { tripDraft, trip, proposal } = useTripsStore((s) => ({
     tripDraft: s.tripDrafts[tripId],
@@ -122,13 +122,15 @@ export default function TripSnapshotPanel({ tripId }) {
     }
   };
 
+  const proposalSuffix = proposalMode ? `?mode=${encodeURIComponent(proposalMode)}` : "";
+
   const onGenerate = () => {
     const p = generateProposal(tripId);
-    if (p) router.push(`/proposals/${tripId}/select`);
+    if (p) router.push(`/proposals/${tripId}/select${proposalSuffix}`);
   };
 
   const onOpen = () => {
-    router.push(`/proposals/${tripId}/select`);
+    router.push(`/proposals/${tripId}/select${proposalSuffix}`);
   };
 
   const onMarkReady = () => setTripStatus(tripId, "Ready");

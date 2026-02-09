@@ -66,3 +66,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: err?.message || "Failed to save request" }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const channelId = searchParams.get("channelId");
+    if (!channelId) {
+      return NextResponse.json({ error: "Missing channelId" }, { status: 400 });
+    }
+
+    const requests = await readRequests();
+    const filtered = requests.filter((req) => !Array.isArray(req?.channelIds) || !req.channelIds.includes(channelId));
+    await writeRequests(filtered);
+
+    return NextResponse.json({ data: { removed: requests.length - filtered.length } });
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message || "Failed to delete requests" }, { status: 500 });
+  }
+}
