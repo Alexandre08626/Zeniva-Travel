@@ -17,6 +17,7 @@ type ChatMessage = {
 };
 
 const createLocalId = () => `local-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+const DELETED_MESSAGES_STORAGE_KEY = "agentChatDeletedMessages";
 
 export default function AgentChatClient() {
   const searchParams = useSearchParams();
@@ -87,6 +88,33 @@ export default function AgentChatClient() {
   const canHQ = isHQ(user);
   const resolveSenderRole = (raw: string | undefined): MessageRole =>
     raw === "agent" || raw === "hq" || raw === "lina" ? raw : "hq";
+
+  const loadDeletedMessageKeys = () => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem(DELETED_MESSAGES_STORAGE_KEY);
+      const parsed = JSON.parse(raw || "[]");
+      if (Array.isArray(parsed)) {
+        deletedMessageKeysRef.current = new Set(parsed.filter((id) => typeof id === "string"));
+      }
+    } catch {
+      deletedMessageKeysRef.current = new Set();
+    }
+  };
+
+  const persistDeletedMessageKeys = () => {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.setItem(DELETED_MESSAGES_STORAGE_KEY, JSON.stringify([...deletedMessageKeysRef.current]));
+    } catch {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    loadDeletedMessageKeys();
+    setMessages((prev) => ({ ...prev }));
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -184,13 +212,14 @@ export default function AgentChatClient() {
           scope: "Help Center",
           unread: ticket.status === "open" ? 1 : 0,
         });
-        newMessages[channelId] = ticket.messages.map((msg: any, idx: number) => ({
+        const mapped = ticket.messages.map((msg: any, idx: number) => ({
           id: String(msg?.id || `${channelId}-${msg?.ts || ""}-${idx}` || createLocalId()),
           role: msg.role === "user" ? "agent" : "hq",
           author: msg.role === "user" ? "User" : "Bot",
           text: msg.text,
           ts: msg.ts,
         }));
+        newMessages[channelId] = mapped.filter((msg: ChatMessage) => !deletedMessageKeysRef.current.has(msg.id));
       }
     });
 
@@ -268,6 +297,7 @@ export default function AgentChatClient() {
           text: req.message || "New yacht request",
           ts,
         };
+        if (deletedMessageKeysRef.current.has(message.id)) return;
         const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["hq"];
         targets.forEach((id) => {
           next[id] = [...(next[id] || []), message];
@@ -387,6 +417,9 @@ export default function AgentChatClient() {
   const handleClearMyMessages = () => {
     const author = user?.name || "Agent";
     const role = canHQ ? "hq" : "agent";
+    const removed = (messages[channelId] || []).filter((m) => m.author === author && m.role === role);
+    removed.forEach((m) => deletedMessageKeysRef.current.add(getMessageKey(m)));
+    persistDeletedMessageKeys();
     setMessages((prev) => ({
       ...prev,
       [channelId]: (prev[channelId] || []).filter((m) => !(m.author === author && m.role === role)),
@@ -425,13 +458,84 @@ export default function AgentChatClient() {
     }
   };
 
+  const handleEmptyTrash = async (targetChannelId: string) => {
+    if (nonDeletableChannels.has(targetChannelId)) return;
+    if (typeof window !== "undefined" && !window.confirm("Empty trash for everyone? This deletes all messages in this thread.")) return;
+
+    const channelMessages = messages[targetChannelId] || [];
+    channelMessages.forEach((msg) => deletedMessageKeysRef.current.add(getMessageKey(msg)));
+    persistDeletedMessageKeys();
+
+    if (targetChannelId.startsWith("help-")) {
+      try {
+        const ticketNumber = targetChannelId.replace("help-", "");
+        const helpTickets = JSON.parse(localStorage.getItem("helpTickets") || "[]");
+        const updatedTickets = helpTickets.map((ticket: any) => {
+          if (ticket.ticket !== ticketNumber) return ticket;
+          return { ...ticket, messages: [] };
+        });
+        localStorage.setItem("helpTickets", JSON.stringify(updatedTickets));
+      } catch {
+        // ignore
+      }
+    } else {
+      try {
+        await fetch(`/api/agent/requests?channelId=${encodeURIComponent(targetChannelId)}`, { method: "DELETE" });
+      } catch {
+        // ignore
+      }
+    }
+
+    if (typeof window !== "undefined") {
+      try {
+        const yachtRequests = JSON.parse(localStorage.getItem("yachtRequests") || "[]");
+        const filtered = Array.isArray(yachtRequests)
+          ? yachtRequests.filter((req: any) => !Array.isArray(req?.channelIds) || !req.channelIds.includes(targetChannelId))
+          : yachtRequests;
+        localStorage.setItem("yachtRequests", JSON.stringify(filtered || []));
+      } catch {
+        // ignore
+      }
+    }
+
+    setMessages((prev) => ({
+      ...prev,
+      [targetChannelId]: [],
+    }));
+    setChannels((prev) => prev.map((ch) => (ch.id === targetChannelId ? { ...ch, unread: 0 } : ch)));
+  };
+
   const handleDeleteMessage = async (msg: { id: string; role: "agent" | "hq" | "lina"; author: string; text: string; ts: string }) => {
     const key = getMessageKey(msg);
     deletedMessageKeysRef.current.add(key);
+    persistDeletedMessageKeys();
     setMessages((prev) => ({
       ...prev,
       [channelId]: (prev[channelId] || []).filter((m) => getMessageKey(m) !== key),
     }));
+    if (typeof window !== "undefined") {
+      if (channelId.startsWith("help-")) {
+        try {
+          const ticketNumber = channelId.replace("help-", "");
+          const helpTickets = JSON.parse(localStorage.getItem("helpTickets") || "[]");
+          const updatedTickets = helpTickets.map((ticket: any) => {
+            if (ticket.ticket !== ticketNumber) return ticket;
+            const nextMessages = (ticket.messages || []).filter((m: any) => !(m.text === msg.text && m.ts === msg.ts));
+            return { ...ticket, messages: nextMessages };
+          });
+          localStorage.setItem("helpTickets", JSON.stringify(updatedTickets));
+        } catch {
+          // ignore
+        }
+      }
+      try {
+        const yachtRequests = JSON.parse(localStorage.getItem("yachtRequests") || "[]");
+        const filtered = Array.isArray(yachtRequests) ? yachtRequests.filter((req: any) => req?.id !== msg.id) : yachtRequests;
+        localStorage.setItem("yachtRequests", JSON.stringify(filtered || []));
+      } catch {
+        // ignore
+      }
+    }
     if (!msg.id.startsWith("local-")) {
       try {
         await fetch(`/api/agent/requests?messageId=${encodeURIComponent(msg.id)}`, { method: "DELETE" });
@@ -682,6 +786,14 @@ export default function AgentChatClient() {
                       className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-700 hover:border-slate-300"
                     >
                       Clear my messages
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleEmptyTrash(channelId)}
+                      disabled={nonDeletableChannels.has(channelId)}
+                      className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-700 hover:border-slate-300 disabled:opacity-50"
+                    >
+                      Empty trash
                     </button>
                     <button
                       type="button"
