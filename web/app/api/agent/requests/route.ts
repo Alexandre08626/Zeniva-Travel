@@ -5,7 +5,21 @@ import path from "path";
 const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "agent-requests.json");
 
-async function readRequests() {
+type AgentRequest = {
+  id: string;
+  createdAt: string;
+  channelIds?: string[];
+  message?: string;
+  yachtName?: string;
+  desiredDate?: string;
+  fullName?: string;
+  phone?: string;
+  email?: string;
+  sourcePath?: string;
+  propertyName?: string;
+};
+
+async function readRequests(): Promise<AgentRequest[]> {
   try {
     const raw = await fs.readFile(DATA_FILE, "utf-8");
     return JSON.parse(raw || "[]");
@@ -15,7 +29,7 @@ async function readRequests() {
   }
 }
 
-async function writeRequests(requests: any[]) {
+async function writeRequests(requests: AgentRequest[]) {
   await fs.mkdir(DATA_DIR, { recursive: true });
   await fs.writeFile(DATA_FILE, JSON.stringify(requests, null, 2), "utf-8");
 }
@@ -39,11 +53,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `Missing fields: ${missing.join(", ")}` }, { status: 400 });
     }
 
-    const channelIds = Array.isArray(body.channelIds) && body.channelIds.length
-      ? Array.from(new Set(body.channelIds))
+    const rawChannelIds = Array.isArray(body.channelIds) ? body.channelIds : [];
+    const channelIds: string[] = rawChannelIds.length
+      ? Array.from(
+          new Set(
+            rawChannelIds.filter((id: unknown): id is string => typeof id === "string" && id.trim().length > 0)
+          )
+        )
       : ["hq"];
 
-    const newRequest = {
+    const newRequest: AgentRequest = {
       id: body.id || (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`),
       createdAt: body.createdAt || new Date().toISOString(),
       channelIds,
@@ -76,7 +95,9 @@ export async function DELETE(request: Request) {
     }
 
     const requests = await readRequests();
-    const filtered = requests.filter((req) => !Array.isArray(req?.channelIds) || !req.channelIds.includes(channelId));
+    const filtered = requests.filter(
+      (req) => !Array.isArray(req.channelIds) || !req.channelIds.includes(channelId)
+    );
     await writeRequests(filtered);
 
     return NextResponse.json({ data: { removed: requests.length - filtered.length } });
