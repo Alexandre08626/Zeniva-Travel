@@ -25,16 +25,9 @@ export default function AgentChatClient() {
   const [input, setInput] = useState("");
   const [channelSearch, setChannelSearch] = useState("");
   const [messages, setMessages] = useState<Record<string, ChatMessage[]>>({
-    global: [
-      { id: "seed-global-1", role: "hq", author: "HQ", text: "Daily: push proposals before 4pm ET.", ts: "09:02" },
-      { id: "seed-global-2", role: "agent", author: "Alice", text: "Need help with Maldives honeymoon, budget $12k.", ts: "09:05" },
-    ],
-    hq: [
-      { id: "seed-hq-1", role: "hq", author: "HQ", text: "Audit payments after wire cutoff.", ts: "08:55" },
-    ],
-    "dossier-yacht-55": [
-      { id: "seed-dossier-yacht-55-1", role: "agent", author: "Marco", text: "Client approved 7-day Med yacht, need crew confirmation.", ts: "08:40" },
-    ],
+    global: [],
+    hq: [],
+    "dossier-yacht-55": [],
   });
   const [sending, setSending] = useState(false);
   const [linaBusy, setLinaBusy] = useState(false);
@@ -75,13 +68,7 @@ export default function AgentChatClient() {
     contactsByChannelIdRef.current = contactsByChannelId;
   }, [contactsByChannelId]);
 
-  const quickActions = [
-    "Share dossier TRIP-104 to Sara",
-    "Ask HQ for payment override",
-    "Request proposal support",
-    "@Lina summarize this thread",
-    "Link booking ORD-1032",
-  ];
+  const quickActions: string[] = [];
 
   const filteredChannels = useMemo(() => {
     const search = channelSearch.trim().toLowerCase();
