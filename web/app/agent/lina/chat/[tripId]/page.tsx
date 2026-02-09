@@ -14,7 +14,7 @@ export default function AgentLinaTripChatPage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const tripId = Array.isArray(params.tripId) ? params.tripId[0] : params.tripId;
-  const { trip } = useTripsStore((s) => ({ trip: s.trips.find((t) => t.id === tripId) }));
+  const { trip } = useTripsStore((s: any) => ({ trip: s.trips.find((t: any) => t.id === tripId) }));
 
   useEffect(() => {
     const scope = user?.email ? `agent:${user.email}` : "agent-guest";
