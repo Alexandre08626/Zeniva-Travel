@@ -209,7 +209,9 @@ export async function DELETE(request: Request) {
     const requests = await readRequests();
     const filtered = messageId
       ? requests.filter((req) => req.id !== messageId)
-      : requests.filter((req) => !Array.isArray(req.channelIds) || !req.channelIds.includes(channelId));
+      : requests.filter(
+          (req) => !Array.isArray(req.channelIds) || !req.channelIds.includes(channelId as string)
+        );
     await writeRequests(filtered);
 
     return NextResponse.json({ data: { removed: requests.length - filtered.length } });
