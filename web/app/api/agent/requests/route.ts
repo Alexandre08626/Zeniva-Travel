@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
-import { dbQuery } from "../../../../src/lib/server/db";
+import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "agent-requests.json");
@@ -23,15 +23,10 @@ type AgentRequest = {
   source?: string;
 };
 
-const DB_ENV_KEYS = [
-  "DATABASE_URL",
-  "POSTGRES_URL",
-  "POSTGRES_URL_NON_POOLING",
-  "POSTGRES_PRISMA_URL",
-  "POSTGRES_URL_NO_SSL",
-];
-
-const hasDatabaseUrl = () => DB_ENV_KEYS.some((key) => Boolean(process.env[key]));
+const hasSupabaseEnv = () =>
+  Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY) &&
+  Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL) &&
+  Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY);
 
 function mapDbRow(row: any): AgentRequest {
   return {
@@ -52,38 +47,47 @@ function mapDbRow(row: any): AgentRequest {
   };
 }
 
-async function readRequestsFromDb(): Promise<AgentRequest[]> {
-  const { rows } = await dbQuery(
-    "SELECT id, created_at, channel_ids, message, yacht_name, desired_date, full_name, phone, email, source_path, property_name, author, sender_role, source FROM agent_inbox_messages ORDER BY created_at DESC"
-  );
-  return rows.map(mapDbRow);
+async function readRequestsFromSupabase(): Promise<AgentRequest[]> {
+  const { client } = getSupabaseAdminClient();
+  const { data, error } = await client
+    .from("agent_inbox_messages")
+    .select(
+      "id, created_at, channel_ids, message, yacht_name, desired_date, full_name, phone, email, source_path, property_name, author, sender_role, source"
+    )
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data || []).map(mapDbRow);
 }
 
-async function writeRequestToDb(request: AgentRequest) {
+async function writeRequestToSupabase(request: AgentRequest) {
+  const { client } = getSupabaseAdminClient();
   const channelIds = Array.isArray(request.channelIds) ? request.channelIds : [];
-  await dbQuery(
-    "INSERT INTO agent_inbox_messages (id, created_at, channel_ids, message, yacht_name, desired_date, full_name, phone, email, source_path, property_name, author, sender_role, source) VALUES ($1,$2,$3::jsonb,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)",
-    [
-      request.id,
-      request.createdAt || new Date().toISOString(),
-      JSON.stringify(channelIds),
-      request.message || null,
-      request.yachtName || null,
-      request.desiredDate || null,
-      request.fullName || null,
-      request.phone || null,
-      request.email || null,
-      request.sourcePath || null,
-      request.propertyName || null,
-      request.author || null,
-      request.senderRole || null,
-      request.source || null,
-    ]
-  );
+  const { error } = await client.from("agent_inbox_messages").insert({
+    id: request.id,
+    created_at: request.createdAt || new Date().toISOString(),
+    channel_ids: channelIds,
+    message: request.message || null,
+    yacht_name: request.yachtName || null,
+    desired_date: request.desiredDate || null,
+    full_name: request.fullName || null,
+    phone: request.phone || null,
+    email: request.email || null,
+    source_path: request.sourcePath || null,
+    property_name: request.propertyName || null,
+    author: request.author || null,
+    sender_role: request.senderRole || null,
+    source: request.source || null,
+  });
+  if (error) throw new Error(error.message);
 }
 
-async function deleteRequestsByChannelId(channelId: string) {
-  await dbQuery("DELETE FROM agent_inbox_messages WHERE channel_ids ? $1", [channelId]);
+async function deleteRequestsByChannelIdSupabase(channelId: string) {
+  const { client } = getSupabaseAdminClient();
+  const { error } = await client
+    .from("agent_inbox_messages")
+    .delete({ count: "exact" })
+    .contains("channel_ids", [channelId]);
+  if (error) throw new Error(error.message);
 }
 
 async function readRequests(): Promise<AgentRequest[]> {
@@ -103,8 +107,8 @@ async function writeRequests(requests: AgentRequest[]) {
 
 export async function GET() {
   try {
-    if (hasDatabaseUrl()) {
-      const requests = await readRequestsFromDb();
+    if (hasSupabaseEnv()) {
+      const requests = await readRequestsFromSupabase();
       return NextResponse.json({ data: requests });
     }
 
@@ -158,8 +162,8 @@ export async function POST(request: Request) {
       source,
     };
 
-    if (hasDatabaseUrl()) {
-      await writeRequestToDb(newRequest);
+    if (hasSupabaseEnv()) {
+      await writeRequestToSupabase(newRequest);
       return NextResponse.json({ data: newRequest }, { status: 201 });
     }
 
@@ -181,10 +185,10 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Missing channelId" }, { status: 400 });
     }
 
-    if (hasDatabaseUrl()) {
-      const before = await readRequestsFromDb();
-      await deleteRequestsByChannelId(channelId);
-      const after = await readRequestsFromDb();
+    if (hasSupabaseEnv()) {
+      const before = await readRequestsFromSupabase();
+      await deleteRequestsByChannelIdSupabase(channelId);
+      const after = await readRequestsFromSupabase();
       return NextResponse.json({ data: { removed: Math.max(0, before.length - after.length) } });
     }
 
