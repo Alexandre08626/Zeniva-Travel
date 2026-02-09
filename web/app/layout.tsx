@@ -4,7 +4,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import HelpCenterButton from "../src/components/HelpCenterButton.client";
 import BackButton from "../src/components/BackButton.client";
 import LinaAssistantDock from "../src/components/LinaAssistantDock";
 
@@ -97,7 +96,6 @@ export default function RootLayout({
       <body data-brand="blue" className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Providers>
           <BackButton />
-          <HelpCenterButton />
           <LinaAssistantDock />
           {children}
         </Providers>

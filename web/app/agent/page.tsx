@@ -694,7 +694,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
                   <div
                     className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 shadow-xl p-[1px]"
                   >
-                    <div className="rounded-[14px] bg-white/90 backdrop-blur-sm p-6">
+                    <div className="rounded-[14px] bg-white/90 backdrop-blur-sm p-8 md:p-10 min-h-[520px]">
                       <div className="absolute inset-0 -z-10 opacity-40 bg-blue-500/20"></div>
 
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
