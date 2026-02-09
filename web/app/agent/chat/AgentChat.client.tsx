@@ -6,13 +6,22 @@ import { sendMessageToLina } from "../../../src/lib/linaClient";
 import { normalizeAgentId } from "../../../src/lib/agent/agentWorkspace";
 import { useAuthStore, isHQ } from "../../../src/lib/authStore";
 
+type MessageRole = "agent" | "hq" | "lina";
+
+type ChatMessage = {
+  role: MessageRole;
+  author: string;
+  text: string;
+  ts: string;
+};
+
 export default function AgentChatClient() {
   const searchParams = useSearchParams();
   const user = useAuthStore((s) => s.user);
   const [channelId, setChannelId] = useState("global");
   const [input, setInput] = useState("");
   const [channelSearch, setChannelSearch] = useState("");
-  const [messages, setMessages] = useState<Record<string, { role: "agent" | "hq" | "lina"; author: string; text: string; ts: string }[]>>({
+  const [messages, setMessages] = useState<Record<string, ChatMessage[]>>({
     global: [
       { role: "hq", author: "HQ", text: "Daily: push proposals before 4pm ET.", ts: "09:02" },
       { role: "agent", author: "Alice", text: "Need help with Maldives honeymoon, budget $12k.", ts: "09:05" },
@@ -86,7 +95,8 @@ export default function AgentChatClient() {
 
   const history = messages[channelId] || [];
   const canHQ = isHQ(user);
-  const resolveSenderRole = (raw: string | undefined) => (raw === "agent" || raw === "hq" || raw === "lina" ? raw : "hq");
+  const resolveSenderRole = (raw: string | undefined): MessageRole =>
+    raw === "agent" || raw === "hq" || raw === "lina" ? raw : "hq";
 
   useEffect(() => {
     let active = true;
@@ -315,8 +325,13 @@ export default function AgentChatClient() {
           if (req?.id && seenRequestsRef.current.has(req.id)) return;
           const ts = new Date(req.createdAt || Date.now()).toLocaleTimeString().slice(0, 5);
           const role = resolveSenderRole(req?.senderRole);
-          const author = req?.author || req?.fullName || req?.email || "Client";
-          const message = { role, author, text: req.message || "New yacht request", ts };
+          const author = String(req?.author || req?.fullName || req?.email || "Client");
+          const message: ChatMessage = {
+            role,
+            author,
+            text: String(req?.message || "New yacht request"),
+            ts,
+          };
           if (deletedMessageKeysRef.current.has(getMessageKey(message))) return;
           const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["hq"];
           targets.forEach((id) => {
