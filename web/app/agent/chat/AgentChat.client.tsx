@@ -245,6 +245,21 @@ export default function AgentChatClient() {
     }
   };
 
+  const deleteMessagesByIds = async (ids: string[]) => {
+    if (!ids.length) return;
+    try {
+      const client = getSupabaseClient();
+      const chunkSize = 100;
+      for (let i = 0; i < ids.length; i += chunkSize) {
+        const chunk = ids.slice(i, i + chunkSize);
+        const { error } = await client.from("agent_inbox_messages").delete().in("id", chunk);
+        if (error) throw error;
+      }
+    } catch {
+      await refreshMessages();
+    }
+  };
+
   useEffect(() => {
     let active = true;
     const loadInitialMessages = async () => {
@@ -339,11 +354,7 @@ export default function AgentChatClient() {
       ...prev,
       [channelId]: (prev[channelId] || []).filter((m) => !(m.author === author && m.role === role)),
     }));
-    Promise.all(
-      toRemove.map((msg) =>
-        fetch(`/api/agent/requests?messageId=${encodeURIComponent(msg.id)}`, { method: "DELETE" })
-      )
-    ).catch(() => refreshMessages());
+    void deleteMessagesByIds(toRemove.map((msg) => msg.id));
   };
 
   const handleDeleteConversation = async (targetChannelId: string) => {
@@ -351,7 +362,7 @@ export default function AgentChatClient() {
     if (typeof window !== "undefined" && !window.confirm("Delete this conversation for everyone?")) return;
 
     try {
-      await fetch(`/api/agent/requests?channelId=${encodeURIComponent(targetChannelId)}`, { method: "DELETE" });
+      await deleteMessagesByIds((messages[targetChannelId] || []).map((msg) => msg.id));
     } catch {
       await refreshMessages();
     }
@@ -372,7 +383,7 @@ export default function AgentChatClient() {
     if (typeof window !== "undefined" && !window.confirm("Empty trash for everyone? This deletes all messages in this thread.")) return;
 
     try {
-      await fetch(`/api/agent/requests?channelId=${encodeURIComponent(targetChannelId)}`, { method: "DELETE" });
+      await deleteMessagesByIds((messages[targetChannelId] || []).map((msg) => msg.id));
     } catch {
       await refreshMessages();
     }
@@ -390,7 +401,7 @@ export default function AgentChatClient() {
       [channelId]: (prev[channelId] || []).filter((m) => m.id !== msg.id),
     }));
     try {
-      await fetch(`/api/agent/requests?messageId=${encodeURIComponent(msg.id)}`, { method: "DELETE" });
+      await deleteMessagesByIds([msg.id]);
     } catch {
       await refreshMessages();
     }
