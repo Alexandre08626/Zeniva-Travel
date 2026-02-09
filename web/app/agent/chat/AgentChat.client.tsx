@@ -37,6 +37,7 @@ export default function AgentChatClient() {
     { id: "dossier-yacht-55", label: "Yacht YCHT-55", scope: "Client file", unread: 1 },
   ]);
   const listRef = useRef<HTMLDivElement | null>(null);
+  const seenRequestsRef = useRef<Set<string>>(new Set());
   const totalUnread = useMemo(() => channels.reduce((sum, ch) => sum + (ch.unread || 0), 0), [channels]);
   const directThreads = useMemo(() => channels.filter((ch) => ch.scope === "Direct").length, [channels]);
 
@@ -177,78 +178,90 @@ export default function AgentChatClient() {
     });
   }, []);
 
-  // Load partner requests from server
+  // Load partner requests from server (polling)
   useEffect(() => {
     let active = true;
-    fetch("/api/agent/requests")
-      .then(async (r) => {
-        const text = await r.text();
-        try {
-          return JSON.parse(text || "{}") as any;
-        } catch {
-          return { data: [] } as any;
-        }
-      })
-      .then((res) => {
-        if (!active) return;
-        const stored = (res && res.data) || [];
-        if (!stored.length) return;
 
-        setChannels((prev) => {
-          const next = [...prev];
-          const ensureChannel = (id: string, label: string, scope: string) => {
-            if (!next.find((c) => c.id === id)) {
-              next.push({ id, label, scope, unread: 0 });
+    const mergeRequests = (stored: any[]) => {
+      if (!stored.length) return;
+
+      setChannels((prev) => {
+        const next = [...prev];
+        const ensureChannel = (id: string, label: string, scope: string) => {
+          if (!next.find((c) => c.id === id)) {
+            next.push({ id, label, scope, unread: 0 });
+          }
+        };
+
+        ensureChannel("agent-jason", "Jason Lanthier", "Direct");
+        ensureChannel("agent-alexandre", "Alexandre Blais", "Direct");
+        ensureChannel("hq", "HQ", "HQ only");
+
+        stored.forEach((req: any) => {
+          if (req?.id && seenRequestsRef.current.has(req.id)) return;
+          const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["hq"];
+          targets.forEach((id) => {
+            const idx = next.findIndex((c) => c.id === id);
+            if (idx >= 0) {
+              const current = next[idx];
+              next[idx] = { ...current, unread: (current.unread || 0) + 1 };
             }
-          };
-
-          ensureChannel("agent-jason", "Jason Lanthier", "Direct");
-          ensureChannel("agent-alexandre", "Alexandre Blais", "Direct");
-          ensureChannel("hq", "HQ", "HQ only");
-
-          stored.forEach((req: any) => {
-            const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["hq"];
-            targets.forEach((id) => {
-              const idx = next.findIndex((c) => c.id === id);
-              if (idx >= 0) {
-                const current = next[idx];
-                next[idx] = { ...current, unread: (current.unread || 0) + 1 };
-              }
-            });
           });
-
-          return next;
         });
 
-        setMessages((prev) => {
-          const next = { ...prev };
-          const ensureMessages = (id: string) => {
-            if (!next[id]) next[id] = [];
-          };
+        return next;
+      });
 
-          ensureMessages("agent-jason");
-          ensureMessages("agent-alexandre");
-          ensureMessages("hq");
+      setMessages((prev) => {
+        const next = { ...prev };
+        const ensureMessages = (id: string) => {
+          if (!next[id]) next[id] = [];
+        };
 
-          stored.forEach((req: any) => {
-            const ts = new Date(req.createdAt || Date.now()).toLocaleTimeString().slice(0, 5);
-            const message = { role: "hq" as const, author: "Client Request", text: req.message || "New yacht request", ts };
-            const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["hq"];
-            targets.forEach((id) => {
-              const exists = (next[id] || []).some((m) => m.text === message.text && m.ts === message.ts);
-              if (!exists) {
-                next[id] = [...(next[id] || []), message];
-              }
-            });
+        ensureMessages("agent-jason");
+        ensureMessages("agent-alexandre");
+        ensureMessages("hq");
+
+        stored.forEach((req: any) => {
+          if (req?.id && seenRequestsRef.current.has(req.id)) return;
+          const ts = new Date(req.createdAt || Date.now()).toLocaleTimeString().slice(0, 5);
+          const message = { role: "hq" as const, author: "Client Request", text: req.message || "New yacht request", ts };
+          const targets: string[] = Array.isArray(req.channelIds) ? req.channelIds : ["hq"];
+          targets.forEach((id) => {
+            const exists = (next[id] || []).some((m) => m.text === message.text && m.ts === message.ts);
+            if (!exists) {
+              next[id] = [...(next[id] || []), message];
+            }
           });
-
-          return next;
         });
-      })
-      .catch(() => undefined);
+
+        stored.forEach((req: any) => {
+          if (req?.id) seenRequestsRef.current.add(req.id);
+        });
+
+        return next;
+      });
+    };
+
+    const loadRequests = async () => {
+      try {
+        const resp = await fetch("/api/agent/requests");
+        const text = await resp.text();
+        const parsed = JSON.parse(text || "{}");
+        if (!active) return;
+        const stored = (parsed && parsed.data) || [];
+        mergeRequests(stored);
+      } catch {
+        // ignore
+      }
+    };
+
+    void loadRequests();
+    const interval = setInterval(loadRequests, 5000);
 
     return () => {
       active = false;
+      clearInterval(interval);
     };
   }, []);
 
@@ -267,6 +280,13 @@ export default function AgentChatClient() {
     setMessages((prev) => ({
       ...prev,
       [channelId]: (prev[channelId] || []).filter((m) => !(m.author === author && m.role === role)),
+    }));
+  };
+
+  const handleDeleteMessage = (index: number) => {
+    setMessages((prev) => ({
+      ...prev,
+      [channelId]: (prev[channelId] || []).filter((_, i) => i !== index),
     }));
   };
 
@@ -452,9 +472,20 @@ export default function AgentChatClient() {
                       <div className={`max-w-md px-4 py-3 rounded-lg ${bubbleStyle}`}>
                         <p className="text-xs font-semibold opacity-70 mb-1">{m.author}</p>
                         <p className="text-sm whitespace-pre-line">{m.text}</p>
-                        <p className={`text-xs mt-1 ${isOwn ? "text-slate-200" : "text-slate-500"}`}>
-                          {m.ts}
-                        </p>
+                        <div className="mt-1 flex items-center justify-between gap-3">
+                          <p className={`text-xs ${isOwn ? "text-slate-200" : "text-slate-500"}`}>
+                            {m.ts}
+                          </p>
+                          {isOwn && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteMessage(idx)}
+                              className="text-[10px] font-semibold text-slate-200 hover:text-white"
+                            >
+                              Supprimer
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );

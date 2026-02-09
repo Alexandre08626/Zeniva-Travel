@@ -154,6 +154,16 @@ export default function TravelerAgentChatClient() {
     }
   };
 
+  const handleDeleteMessage = (threadId: string, messageId: string) => {
+    setThreads((prev) =>
+      prev.map((thread) =>
+        thread.id === threadId
+          ? { ...thread, messages: thread.messages.filter((msg) => msg.id !== messageId) }
+          : thread
+      )
+    );
+  };
+
   return (
     <main className="min-h-screen bg-slate-50 p-6">
       <div className="mx-auto flex h-[calc(100vh-3rem)] max-w-[1700px] flex-col gap-6">
@@ -313,9 +323,20 @@ export default function TravelerAgentChatClient() {
                       }`}
                     >
                       <p className="whitespace-pre-line">{msg.text}</p>
-                      <p className={`mt-2 text-[10px] ${msg.role === "user" ? "text-blue-100" : "text-slate-500"}`}>
-                        {msg.ts}
-                      </p>
+                      <div className="mt-2 flex items-center justify-between gap-3">
+                        <p className={`text-[10px] ${msg.role === "user" ? "text-blue-100" : "text-slate-500"}`}>
+                          {msg.ts}
+                        </p>
+                        {msg.role === "user" && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteMessage(activeThread.id, msg.id)}
+                            className="text-[10px] font-semibold text-blue-100 hover:text-white"
+                          >
+                            Supprimer
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
