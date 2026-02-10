@@ -1,10 +1,11 @@
 "use client";
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { Send, Search } from "lucide-react";
 import PageHeader from '../../../src/components/partner/PageHeader';
 import LinaAvatar from "../../../src/components/LinaAvatar";
 import { useAuthStore } from "../../../src/lib/authStore";
-import { buildChatChannelId, buildContactChannelId, fetchChatMessages, saveChatMessage } from "../../../src/lib/chatPersistence";
+import { buildChatChannelId, buildContactChannelId } from "../../../src/lib/chatPersistence";
+import { getSupabaseClient } from "../../../src/lib/supabase/client";
 
 type HelpMessage = {
   id: string;
@@ -77,50 +78,96 @@ export default function InboxPage() {
     return merged;
   };
 
-  useEffect(() => {
-    let active = true;
-    const load = async () => {
-      if (!user?.email) return;
-      const [linaRows, agentRows] = await Promise.all([
-        fetchChatMessages(linaChannelId),
-        fetchChatMessages(contactChannelId || agentChannelId),
-      ]);
-      if (!active) return;
+  const refreshMessages = useCallback(async () => {
+    if (!user?.email) return;
+    try {
+      const client = getSupabaseClient();
+      const { data, error } = await client
+        .from("agent_inbox_messages")
+        .select("id, created_at, channel_ids, message, author, sender_role")
+        .order("created_at", { ascending: true });
+      if (error) throw error;
 
-      const mapRows = (rows: any[], senderDefault: HelpMessage["sender"]) =>
-        rows.map((row) => {
-          const createdAt = row?.createdAt || row?.created_at || new Date().toISOString();
-          const senderRole = row?.senderRole || row?.sender_role;
-          const sender = senderRole === "lina" ? "lina" : senderRole === "agent" || senderRole === "hq" ? "agent" : senderDefault;
-          return {
-            id: String(row?.id || createdAt),
-            sender,
-            text: String(row?.message || "").trim() || "Message",
-            timestamp: createdAt,
-          } as HelpMessage;
-        });
+      const rows = Array.isArray(data) ? data : [];
+      const next: Record<string, HelpMessage[]> = { "lina-help": [], "agent-help": [] };
+      rows.forEach((row: any) => {
+        const channelIds: string[] = Array.isArray(row?.channel_ids) ? row.channel_ids : [];
+        const createdAt = row?.created_at || new Date().toISOString();
+        const senderRole = row?.sender_role;
+        const sender = senderRole === "lina" ? "lina" : senderRole === "agent" || senderRole === "hq" ? "agent" : "host";
+        const message: HelpMessage = {
+          id: String(row?.id || createdAt),
+          sender,
+          text: String(row?.message || "").trim() || "Message",
+          timestamp: createdAt,
+        };
+        if (channelIds.includes(linaChannelId)) {
+          next["lina-help"].push(message);
+        }
+        if (channelIds.includes(contactChannelId) || channelIds.includes(agentChannelId)) {
+          next["agent-help"].push(message);
+        }
+      });
 
       setThreads((prev) =>
         prev.map((thread) => {
           if (thread.id === "lina-help") {
-            const mapped = mapRows(linaRows, "host");
-            return { ...thread, messages: mergeMessages(thread.messages, mapped) };
+            return { ...thread, messages: mergeMessages(thread.messages, next["lina-help"]) };
           }
           if (thread.id === "agent-help") {
-            const mapped = mapRows(agentRows, "host");
-            return { ...thread, messages: mergeMessages(thread.messages, mapped) };
+            return { ...thread, messages: mergeMessages(thread.messages, next["agent-help"]) };
           }
           return thread;
         })
       );
+    } catch {
+      // ignore
+    }
+  }, [user?.email, linaChannelId, contactChannelId, agentChannelId]);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      if (!active) return;
+      await refreshMessages();
     };
     void load();
     const interval = window.setInterval(load, 30000);
+
+    let realtimeClient: ReturnType<typeof getSupabaseClient> | null = null;
+    let realtimeChannel: any = null;
+    try {
+      realtimeClient = getSupabaseClient();
+      realtimeChannel = realtimeClient
+        .channel("partner-inbox")
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "agent_inbox_messages" },
+          () => void load()
+        )
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "agent_inbox_messages" },
+          () => void load()
+        )
+        .on(
+          "postgres_changes",
+          { event: "DELETE", schema: "public", table: "agent_inbox_messages" },
+          () => void load()
+        )
+        .subscribe();
+    } catch {
+      // ignore
+    }
+
     return () => {
       active = false;
       window.clearInterval(interval);
+      if (realtimeClient && realtimeChannel) {
+        realtimeClient.removeChannel(realtimeChannel);
+      }
     };
-  }, [user?.email, linaChannelId, agentChannelId, contactChannelId]);
+  }, [refreshMessages]);
 
   const handleSendMessage = async () => {
     if (!messageText.trim() || sending) return;
@@ -147,17 +194,22 @@ export default function InboxPage() {
 
     const activeChannelId = activeTab === "lina" ? linaChannelId : contactChannelId || agentChannelId;
     if (activeChannelId) {
-      await saveChatMessage({
-        channelIds: activeTab === "agent"
-          ? [activeChannelId, "hq"].filter(Boolean)
-          : [activeChannelId],
-        message: newMessage.text,
-        author: user?.name || user?.email || "Partner",
-        senderRole: "client",
-        source: "partner-inbox",
-        sourcePath: "/partner/inbox",
-        propertyName: "Partner Help Center",
-      });
+      try {
+        const client = getSupabaseClient();
+        await client.from("agent_inbox_messages").insert({
+          id: newMessage.id,
+          created_at: newMessage.timestamp,
+          channel_ids: activeTab === "agent" ? [activeChannelId, "hq"].filter(Boolean) : [activeChannelId],
+          message: newMessage.text,
+          author: user?.name || user?.email || "Partner",
+          sender_role: "client",
+          source: "partner-inbox",
+          source_path: "/partner/inbox",
+          property_name: "Partner Help Center",
+        });
+      } catch {
+        // ignore
+      }
     }
 
     if (activeTab === "lina") {
@@ -180,15 +232,22 @@ export default function InboxPage() {
           )
         );
         if (linaChannelId) {
-          await saveChatMessage({
-            channelIds: [linaChannelId],
-            message: reply,
-            author: "Lina",
-            senderRole: "lina",
-            source: "partner-inbox",
-            sourcePath: "/partner/inbox",
-            propertyName: "Partner Help Center",
-          });
+          try {
+            const client = getSupabaseClient();
+            await client.from("agent_inbox_messages").insert({
+              id: linaMessage.id,
+              created_at: linaMessage.timestamp,
+              channel_ids: [linaChannelId],
+              message: reply,
+              author: "Lina",
+              sender_role: "lina",
+              source: "partner-inbox",
+              source_path: "/partner/inbox",
+              property_name: "Partner Help Center",
+            });
+          } catch {
+            // ignore
+          }
         }
       } finally {
         setSending(false);
