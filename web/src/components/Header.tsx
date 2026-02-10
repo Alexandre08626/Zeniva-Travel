@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { PREMIUM_BLUE, TITLE_TEXT, MUTED_TEXT } from "../design/tokens";
 import { logout, useAuthStore, isAgent, isPartner } from "../lib/authStore";
 import LocaleSwitcher from "./LocaleSwitcher";
@@ -11,6 +11,7 @@ import LinaAvatar from "./LinaAvatar";
 import AccountMenu from "./AccountMenu.client";
 import { Bell, Search } from 'lucide-react';
 import AutoTranslate from "./AutoTranslate";
+import { buildContactChannelId, fetchChatMessages } from "../lib/chatPersistence";
 
 export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean; userEmail?: string }) {
   const [mounted, setMounted] = useState(false);
@@ -20,10 +21,100 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
   const agent = mounted && authUser ? isAgent(authUser) : false;
   const previewRole = mounted ? authUser?.effectiveRole : null;
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<
+    { id: string; title: string; subtitle: string; href: string; ts: string }[]
+  >([]);
+
+  const unreadCount = notifications.length;
+  const notificationsKey = useMemo(() => {
+    const identifier = email || "anon";
+    return `travel:notifications:read:${identifier}`;
+  }, [email]);
+
+  const persistReadIds = (ids: string[]) => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(notificationsKey, JSON.stringify(ids));
+    } catch {
+      // ignore storage errors
+    }
+  };
+
+  const loadReadIds = () => {
+    if (typeof window === "undefined") return new Set<string>();
+    try {
+      const stored = window.localStorage.getItem(notificationsKey);
+      const parsed = stored ? (JSON.parse(stored) as string[]) : [];
+      return new Set(parsed);
+    } catch {
+      return new Set<string>();
+    }
+  };
+
+  const contactChannelId = useMemo(() => buildContactChannelId(email), [email]);
+
+  const loadNotifications = useCallback(async () => {
+    if (!contactChannelId) return;
+    try {
+      const readIds = loadReadIds();
+      const rows = await fetchChatMessages(contactChannelId);
+      const mapped = rows.map((row: any) => {
+        const createdAt = row?.createdAt || row?.created_at || new Date().toISOString();
+        const sender = String(row?.senderRole || row?.sender_role || "").toLowerCase();
+        const message = String(row?.message || "").trim() || "New message";
+        const sourcePath = String(row?.sourcePath || row?.source_path || "").trim();
+        const title = sender === "lina"
+          ? "Message from Lina"
+          : sender === "agent" || sender === "hq"
+            ? "Message from agent"
+            : "Message received";
+        return {
+          id: String(row?.id || createdAt),
+          title,
+          subtitle: message,
+          href: sourcePath || "/documents",
+          ts: createdAt,
+          read: readIds.has(String(row?.id || createdAt)),
+        };
+      });
+      setNotifications(mapped.filter((item: any) => !item.read).slice(0, 8));
+    } catch {
+      setNotifications([]);
+    }
+  }, [contactChannelId, loadReadIds]);
+
+  const handleNotificationOpen = useCallback(async (item: { id: string }) => {
+    const nextIds = new Set(loadReadIds());
+    nextIds.add(item.id);
+    persistReadIds(Array.from(nextIds));
+    setNotifications((prev) => prev.filter((entry) => entry.id !== item.id));
+
+    try {
+      await fetch(`/api/agent/requests?messageId=${encodeURIComponent(item.id)}`, { method: "DELETE" });
+    } catch {
+      // ignore deletion errors
+    }
+  }, [loadReadIds, persistReadIds]);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!loggedIn || !contactChannelId) return;
+    let active = true;
+    const load = async () => {
+      if (!active) return;
+      await loadNotifications();
+    };
+    void load();
+    const interval = window.setInterval(load, 45000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [loggedIn, contactChannelId, loadNotifications]);
 
   return (
     <>
@@ -101,7 +192,53 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
             <div className="hidden md:block">
               <button aria-label="Search" className="p-2 rounded-lg hover:bg-gray-100"><Search size={18} /></button>
             </div>
-            <button aria-label="Notifications" className="p-2 rounded-lg hover:bg-gray-100"><Bell size={18} /></button>
+            <div className="relative">
+              <button
+                aria-label="Notifications"
+                className="p-2 rounded-lg hover:bg-gray-100 relative"
+                onClick={() => setNotificationsOpen((prev) => !prev)}
+              >
+                <Bell size={18} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+              {notificationsOpen && (
+                <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl z-40">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Inbox</div>
+                    <button
+                      type="button"
+                      onClick={() => setNotificationsOpen(false)}
+                      className="text-[11px] font-semibold text-slate-500"
+                    >
+                      Close
+                    </button>
+                  </div>
+                  <div className="mt-3 space-y-2 max-h-80 overflow-y-auto">
+                    {notifications.length === 0 && (
+                      <div className="text-xs text-slate-500">No new notifications.</div>
+                    )}
+                    {notifications.map((item) => (
+                      <Link
+                        key={item.id}
+                        href={item.href}
+                        className="block rounded-xl border border-slate-200 bg-white p-3 hover:border-slate-300"
+                        onClick={() => {
+                          void handleNotificationOpen(item);
+                          setNotificationsOpen(false);
+                        }}
+                      >
+                        <div className="text-sm font-semibold text-slate-900">{item.title}</div>
+                        <div className="text-xs text-slate-600">{item.subtitle}</div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
             {loggedIn ? (
               <AccountMenu />
             ) : (
