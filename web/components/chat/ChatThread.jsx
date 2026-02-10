@@ -128,17 +128,25 @@ function parseTripFromText(text) {
 
   if (!origin && !destination && !datesRaw && !budget && !style) return null;
 
-  return {
-    origin,
-    destination,
-    destinationCode: destination?.slice(0, 3) || "",
-    checkIn,
-    checkOut,
-    adults,
-    budget,
-    style,
-  };
-}
+    try {
+      const { reply, tripPatch } = await sendMessageToLina(conversation);
+      addMessage(tripId, "assistant", reply || "");
+      if (tripPatch?.patch) {
+        applyTripPatch(tripId, tripPatch.patch);
+      }
+    } catch (e) {
+      try {
+        const mode = proposalMode === "agent" ? "agent" : "traveler";
+        const resp = await fetch(`/api/chat?prompt=${encodeURIComponent(trimmed)}&mode=${mode}`);
+        const data = await resp.json();
+        const reply = String(data?.reply || "").trim();
+        addMessage(tripId, "assistant", reply || "Sorry, Lina is unavailable right now.");
+      } catch {
+        addMessage(tripId, "assistant", "Sorry, Lina is unavailable right now.");
+      }
+    } finally {
+      setLoading(false);
+    }
 
 
 function ChatThread({ tripId, proposalMode = "" }) {
