@@ -92,7 +92,7 @@ function withDefaultsAccount(a: Account): Account {
   const roles = normalizeAccountRoles(a.roles && a.roles.length ? a.roles : [a.role || "traveler"]);
   const isAgentRole = roles.some((r) => RBAC_ROLES.includes(r as RbacRole));
   const effectiveRole = normalizeRbacRole(roles[0]) || null;
-  const divisions = (() => {
+  const divisions: Division[] = (() => {
     if (!isAgentRole) return [];
     if (effectiveRole === "hq" || effectiveRole === "admin") return [...DIVISIONS];
     if (effectiveRole === "yacht_broker") return ["YACHT"];
