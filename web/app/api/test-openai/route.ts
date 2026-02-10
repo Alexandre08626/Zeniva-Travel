@@ -3,7 +3,7 @@ import { askOpenAI } from '../../../src/lib/askOpenAI';
 
 export async function GET() {
   try {
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: 'API key not found' }, { status: 500 });
     }

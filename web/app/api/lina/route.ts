@@ -156,6 +156,7 @@ const FALLBACK_PROMPT = "Hello, can you introduce yourself and ask the user's de
 const TIMEOUT_MS = Number(process.env.LINA_TIMEOUT_MS || 18000);
 const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const API_BASE = process.env.OPENAI_API_BASE || "https://api.openai.com/v1";
+const OPENAI_KEY = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -170,7 +171,7 @@ async function callProvider(body: any, requestId: string) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          Authorization: `Bearer ${OPENAI_KEY}`,
         },
         body: JSON.stringify(body),
         signal: controller.signal,
@@ -206,9 +207,12 @@ export async function POST(req: NextRequest) {
   const requestId = crypto.randomUUID();
   console.info(`[lina] ${requestId} incoming`, { path: req.nextUrl.pathname });
 
-  if (!process.env.OPENAI_API_KEY) {
+  if (!OPENAI_KEY) {
     console.error(`[lina] ${requestId} missing OPENAI_API_KEY`);
-    return NextResponse.json({ error: "Missing OPENAI_API_KEY on the server", requestId }, { status: 500 });
+    return NextResponse.json(
+      { error: "Missing OPENAI_API_KEY (or NEXT_PUBLIC_OPENAI_API_KEY) on the server", requestId },
+      { status: 500 }
+    );
   }
 
   let json: unknown;

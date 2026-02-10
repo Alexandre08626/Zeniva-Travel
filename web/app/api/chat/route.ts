@@ -139,10 +139,10 @@ export async function GET(request: Request) {
       prompt = "Hello, can you introduce yourself and ask the user's departure city and country?";
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
     if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: "Missing OPENAI_API_KEY on the server." }),
+        JSON.stringify({ error: "Missing OPENAI_API_KEY (or NEXT_PUBLIC_OPENAI_API_KEY) on the server." }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }

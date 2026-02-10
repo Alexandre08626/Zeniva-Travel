@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 const API_BASE = process.env.OPENAI_API_BASE || "https://api.openai.com/v1";
 
 async function checkProvider() {
-  if (!process.env.OPENAI_API_KEY) return { ok: false, status: 500, detail: "OPENAI_API_KEY missing" };
+  const apiKey = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+  if (!apiKey) return { ok: false, status: 500, detail: "OPENAI_API_KEY missing" };
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 5000);
@@ -12,7 +13,7 @@ async function checkProvider() {
     const resp = await fetch(`${API_BASE}/models`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       signal: controller.signal,
     });
@@ -25,8 +26,9 @@ async function checkProvider() {
 }
 
 export async function GET() {
+  const apiKey = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
   const env = {
-    OPENAI_API_KEY: !!process.env.OPENAI_API_KEY,
+    OPENAI_API_KEY: !!apiKey,
     OPENAI_API_BASE: !!process.env.OPENAI_API_BASE,
     OPENAI_MODEL: process.env.OPENAI_MODEL || "gpt-4o-mini",
   };
