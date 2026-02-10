@@ -25,7 +25,7 @@ export default function GroupTripsPage() {
       <section className="mb-8 rounded-3xl px-6 py-8" style={{ background: `linear-gradient(110deg, ${GRADIENT_START} 0%, ${GRADIENT_END} 60%)` }}>
         <div className="mx-auto max-w-6xl text-white">
           <div className="flex flex-col gap-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Agent Catalog</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Traveler Catalog</p>
             <h1 className="text-3xl font-black">Full Travel Inventory</h1>
             <p className="text-sm text-white/90">
               Explore the full traveler catalog and connect with Zeniva to finalize your trip.
