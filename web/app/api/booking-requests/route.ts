@@ -10,6 +10,8 @@ function isHQorAdmin(roles: string[]) {
   return normalized.includes("hq") || normalized.includes("admin");
 }
 
+const USE_MOCK_DATA = process.env.ALLOW_MOCK_DATA === "true";
+
 function canUpdateStatus(status: BookingRequestStatus, current: BookingRequestStatus) {
   if (current === "confirmed_paid") return false;
   if (status === "approved" || status === "needs_changes" || status === "rejected") return true;
@@ -28,7 +30,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const status = url.searchParams.get("status") || "";
 
-    let data = bookingRequests;
+    let data = USE_MOCK_DATA ? bookingRequests : [];
     if (!allowAll) {
       data = data.filter((item) => item.requestedBy && item.requestedBy.toLowerCase() === session.email.toLowerCase());
     }
@@ -47,6 +49,10 @@ export async function POST(request: Request) {
     assertBackendEnv();
     const gate = await requireRbacPermission(request, "bookings:all");
     if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
+
+    if (!USE_MOCK_DATA) {
+      return NextResponse.json({ error: "Booking requests storage is not configured" }, { status: 501 });
+    }
 
     const body = await request.json();
     const title = String(body?.title || "").trim();
@@ -104,6 +110,10 @@ export async function PATCH(request: Request) {
     assertBackendEnv();
     const gate = await requireRbacPermission(request, "bookings:all");
     if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
+
+    if (!USE_MOCK_DATA) {
+      return NextResponse.json({ error: "Booking requests storage is not configured" }, { status: 501 });
+    }
 
     const roles = Array.isArray(gate.session.roles) ? gate.session.roles : [];
     if (!isHQorAdmin(roles)) {
