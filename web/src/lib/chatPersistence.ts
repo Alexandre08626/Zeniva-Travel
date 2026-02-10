@@ -1,3 +1,5 @@
+import { getSupabaseClient } from "./supabase/client";
+
 type ChatSavePayload = {
   channelIds: string[];
   message: string;
@@ -32,24 +34,43 @@ export function buildContactChannelId(userEmail: string | undefined) {
 export async function saveChatMessage(payload: ChatSavePayload) {
   const channelIds = Array.from(new Set(payload.channelIds.filter(Boolean)));
   if (!channelIds.length) return;
+  const record = {
+    id:
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    createdAt: new Date().toISOString(),
+    channelIds,
+    message: payload.message,
+    author: payload.author,
+    senderRole: payload.senderRole,
+    source: payload.source,
+    sourcePath: payload.sourcePath,
+    propertyName: payload.propertyName,
+  };
   try {
     await fetch("/api/agent/requests", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id:
-          typeof crypto !== "undefined" && "randomUUID" in crypto
-            ? crypto.randomUUID()
-            : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-        createdAt: new Date().toISOString(),
-        channelIds,
-        message: payload.message,
-        author: payload.author,
-        senderRole: payload.senderRole,
-        source: payload.source,
-        sourcePath: payload.sourcePath,
-        propertyName: payload.propertyName,
-      }),
+      body: JSON.stringify(record),
+    });
+    return;
+  } catch {
+    // ignore
+  }
+
+  try {
+    const client = getSupabaseClient();
+    await client.from("agent_inbox_messages").insert({
+      id: record.id,
+      created_at: record.createdAt,
+      channel_ids: record.channelIds,
+      message: record.message,
+      author: record.author,
+      sender_role: record.senderRole,
+      source: record.source,
+      source_path: record.sourcePath,
+      property_name: record.propertyName || null,
     });
   } catch {
     // ignore
@@ -61,7 +82,21 @@ export async function fetchChatMessages(channelId: string) {
   try {
     const resp = await fetch(`/api/agent/requests?channelId=${encodeURIComponent(channelId)}`);
     const payload = await resp.json();
-    return Array.isArray(payload?.data) ? payload.data : [];
+    const rows = Array.isArray(payload?.data) ? payload.data : [];
+    if (rows.length > 0) return rows;
+  } catch {
+    // ignore
+  }
+
+  try {
+    const client = getSupabaseClient();
+    const { data, error } = await client
+      .from("agent_inbox_messages")
+      .select("id, created_at, channel_ids, message, author, sender_role, source, source_path, property_name")
+      .contains("channel_ids", [channelId])
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return Array.isArray(data) ? data : [];
   } catch {
     return [] as any[];
   }
