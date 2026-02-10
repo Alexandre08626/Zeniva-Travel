@@ -47,31 +47,7 @@ export async function sendMessageToLina(
     return { reply, raw: rawReply, tripPatch };
   } catch (err: any) {
     console.error("sendMessageToLina error", err);
-    // Fallback: return a friendly mocked Lina reply so the UI remains usable
-    const mockReply = `Sorry, Lina is unavailable right now. Here's a sample reply you can use while developing.
-
-TRIP_PATCH_START
-{
-  "patch": {
-    "departureCity": "YUL",
-    "destination": "Paris",
-    "checkIn": "2026-06-01",
-    "checkOut": "2026-06-08",
-    "adults": 2,
-    "budget": 4500,
-    "currency": "USD"
-  },
-  "confidence": 0.8,
-  "missing_fields": ["accommodationType", "transportationType"],
-  "notes": "Mock data"
-}
-TRIP_PATCH_END
-
-Proposals: I'll prepare 10 personalized trip proposals once Lina is available.`;
-
-    const tripPatch = extractTripPatch(mockReply);
-    const reply = stripTripPatch(mockReply);
-    return { reply, raw: mockReply, tripPatch };
+    throw err;
   }
 }
 
