@@ -146,6 +146,46 @@ export default function TravelerAgentChatClient() {
     }
   }, []);
 
+  const postAgentMessage = async (payload: {
+    id: string;
+    createdAt: string;
+    channelIds: string[];
+    sourcePath: string;
+    propertyName: string;
+    author: string;
+    senderRole: "client" | "agent" | "hq" | "lina";
+    source: string;
+    message: string;
+  }) => {
+    try {
+      const resp = await fetch("/api/agent/requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (resp.ok) return;
+    } catch {
+      // fall through to Supabase fallback
+    }
+
+    try {
+      const client = getSupabaseClient();
+      await client.from("agent_inbox_messages").insert({
+        id: payload.id,
+        created_at: payload.createdAt,
+        channel_ids: payload.channelIds,
+        message: payload.message,
+        source_path: payload.sourcePath,
+        property_name: payload.propertyName,
+        author: payload.author,
+        sender_role: payload.senderRole,
+        source: payload.source,
+      });
+    } catch {
+      // ignore
+    }
+  };
+
   useEffect(() => {
     let active = true;
     const load = async () => {
@@ -284,11 +324,7 @@ export default function TravelerAgentChatClient() {
     };
 
     try {
-      await fetch("/api/agent/requests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      await postAgentMessage(payload);
     } finally {
       setSending(false);
     }
