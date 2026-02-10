@@ -143,40 +143,6 @@ export default function HelpCenterButton() {
           }
         }}
         className="help-float hidden sm:flex"
-        style={{
-          position: "fixed",
-          bottom: 96,
-          right: 24,
-          zIndex: 1000,
-          background: "#f8fafc",
-          color: "#0f172a",
-          border: "1px solid #e2e8f0",
-          borderRadius: 999,
-          boxShadow: "0 6px 18px rgba(15, 23, 42, 0.12)",
-          padding: "12px 22px",
-          fontWeight: 600,
-          fontSize: 16,
-          letterSpacing: 0.3,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer",
-          transition: "all 0.2s ease"
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "translateY(-1px)";
-          e.currentTarget.style.boxShadow = "0 10px 24px rgba(15, 23, 42, 0.16)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow = "0 6px 18px rgba(15, 23, 42, 0.12)";
-        }}
-        onMouseDown={(e) => {
-          e.currentTarget.style.transform = "translateY(1px)";
-        }}
-        onMouseUp={(e) => {
-          e.currentTarget.style.transform = "translateY(-1px)";
-        }}
         aria-label={`Help via ${COMPANY_INFO.name} chat`}
       >
         Help
@@ -342,6 +308,47 @@ export default function HelpCenterButton() {
       )}
 
       <style>{`
+        .help-float {
+          position: fixed;
+          bottom: max(24px, env(safe-area-inset-bottom));
+          right: max(24px, env(safe-area-inset-right));
+          z-index: 80;
+          background: #f8fafc;
+          color: #0f172a;
+          border: 1px solid #e2e8f0;
+          border-radius: 999px;
+          box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+          padding: 12px 22px;
+          font-weight: 600;
+          font-size: 16px;
+          letter-spacing: 0.3px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .help-float:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+        }
+        .help-float:active {
+          transform: translateY(1px);
+        }
+        @media (max-width: 1400px), (max-height: 900px) {
+          .help-float {
+            bottom: max(16px, env(safe-area-inset-bottom));
+            right: max(16px, env(safe-area-inset-right));
+            padding: 10px 18px;
+            font-size: 14px;
+          }
+        }
+        @media (max-width: 1280px), (max-height: 800px) {
+          .help-float {
+            left: max(16px, env(safe-area-inset-left));
+            right: auto;
+          }
+        }
         @media (max-width: 640px) {
           .help-float {
             bottom: 72px !important;
