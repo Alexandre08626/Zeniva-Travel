@@ -61,6 +61,11 @@ export default function SignupPage() {
       }
 
       const referral = getStoredReferral();
+      const agentDivisions = isAgent
+        ? agentRole === "yacht_broker"
+          ? ["YACHT"]
+          : ["TRAVEL"]
+        : [];
       await signup({
         name: name.trim() || (isAgent ? "Agent" : isPartner ? "Partner" : "Traveler"),
         email: email.trim(),
@@ -69,7 +74,7 @@ export default function SignupPage() {
         roles: isPartner ? ["partner_owner"] : undefined,
         agentLevel: isAgent ? "Agent" : undefined,
         inviteCode: isAgent ? inviteCode.trim() : undefined,
-        divisions: isAgent ? ["TRAVEL", "YACHT", "VILLAS", "GROUPS", "RESORTS"] : [],
+        divisions: agentDivisions,
         referralCode: referral?.referralCode,
         influencerId: referral?.influencerId,
       });

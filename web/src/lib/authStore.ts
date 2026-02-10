@@ -79,18 +79,32 @@ function normalizeAccountRoles(input: Array<string | null | undefined>): Role[] 
       normalized.push(role as Role);
     }
   });
-  return Array.from(new Set(normalized));
+  const unique = Array.from(new Set(normalized));
+  const hasHQ = unique.includes("hq") || unique.includes("admin");
+  const hasYachtBroker = unique.includes("yacht_broker");
+  if (hasYachtBroker && !hasHQ) {
+    return unique.filter((role) => role !== "travel_agent");
+  }
+  return unique;
 }
 
 function withDefaultsAccount(a: Account): Account {
   const roles = normalizeAccountRoles(a.roles && a.roles.length ? a.roles : [a.role || "traveler"]);
   const isAgentRole = roles.some((r) => RBAC_ROLES.includes(r as RbacRole));
+  const effectiveRole = normalizeRbacRole(roles[0]) || null;
+  const divisions = (() => {
+    if (!isAgentRole) return [];
+    if (effectiveRole === "hq" || effectiveRole === "admin") return [...DIVISIONS];
+    if (effectiveRole === "yacht_broker") return ["YACHT"];
+    if (effectiveRole === "travel_agent") return ["TRAVEL"];
+    return a.divisions && a.divisions.length > 0 ? a.divisions : [];
+  })();
   return {
     ...a,
     roles,
     role: roles[0], // keep legacy field for compatibility
     agentLevel: isAgentRole ? a.agentLevel || "Agent" : null,
-    divisions: isAgentRole ? (a.divisions && a.divisions.length > 0 ? a.divisions : [...DIVISIONS]) : [],
+    divisions,
     status: a.status || "active",
     createdAt: a.createdAt || new Date().toISOString(),
     email: a.email.trim(),
