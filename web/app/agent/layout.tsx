@@ -158,7 +158,8 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
           href: "/agent/purchase-orders",
           ts: item.updatedAt || item.createdAt || new Date().toISOString(),
           read: readIds.has(`booking-${item.id}`),
-        }));
+        }))
+        .filter((item: any) => !item.read);
 
       const agentItems = agentRequests
         .slice(0, 5)
@@ -169,7 +170,8 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
           href: "/agent/chat?channel=hq",
           ts: item.createdAt || new Date().toISOString(),
           read: readIds.has(`request-${item.id}`),
-        }));
+        }))
+        .filter((item: any) => !item.read);
 
       setNotifications([...bookingItems, ...agentItems].slice(0, 8));
     } catch {
@@ -223,14 +225,24 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
     };
   }, [loadNotifications]);
 
-  useEffect(() => {
-    if (!notificationsOpen) return;
-    const unread = notifications.filter((item) => !item.read);
-    if (!unread.length) return;
-    const ids = notifications.map((item) => item.id);
-    persistReadIds(ids);
-    setNotifications((prev) => prev.map((item) => ({ ...item, read: true })));
-  }, [notificationsOpen, notifications]);
+  const handleNotificationOpen = useCallback(
+    async (item: { id: string }) => {
+      const nextIds = new Set(loadReadIds());
+      nextIds.add(item.id);
+      persistReadIds(Array.from(nextIds));
+      setNotifications((prev) => prev.filter((entry) => entry.id !== item.id));
+
+      if (item.id.startsWith("request-")) {
+        const messageId = item.id.replace(/^request-/, "");
+        try {
+          await fetch(`/api/agent/requests?messageId=${encodeURIComponent(messageId)}`, { method: "DELETE" });
+        } catch {
+          // ignore deletion errors
+        }
+      }
+    },
+    [loadReadIds, persistReadIds]
+  );
 
   const showChat = isHQorAdmin || roles.length > 0;
 
@@ -290,12 +302,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
                         href={item.href}
                         className={`block rounded-xl border p-3 hover:border-slate-200 ${item.read ? "border-slate-100 bg-slate-50" : "border-slate-200 bg-white"}`}
                         onClick={() => {
-                          setNotifications((prev) => {
-                            const next = prev.map((entry) => (entry.id === item.id ? { ...entry, read: true } : entry));
-                            const ids = next.filter((entry) => entry.read).map((entry) => entry.id);
-                            persistReadIds(ids);
-                            return next;
-                          });
+                          void handleNotificationOpen(item);
                           setNotificationsOpen(false);
                         }}
                       >
