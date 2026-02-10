@@ -403,6 +403,28 @@ export default function AgentChatClient() {
     }
   };
 
+  const postMessage = async (payload: {
+    id: string;
+    createdAt: string;
+    channelIds: string[];
+    message: string;
+    author: string;
+    senderRole: "agent" | "hq" | "lina";
+    source: string;
+    sourcePath: string;
+    propertyName: string;
+  }) => {
+    const resp = await fetch("/api/agent/requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) {
+      const data = await resp.json().catch(() => ({}));
+      throw new Error(data?.error || "Failed to send message");
+    }
+  };
+
   const handleSend = async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed) return;
@@ -417,19 +439,17 @@ export default function AgentChatClient() {
 
     addMessage({ id: requestId, role: senderRole, author, text: trimmed, createdAt });
     try {
-      const client = getSupabaseClient();
-      const { error } = await client.from("agent_inbox_messages").insert({
+      await postMessage({
         id: requestId,
-        created_at: createdAt,
-        channel_ids: [channelId],
+        createdAt,
+        channelIds: [channelId],
         message: trimmed,
         author,
-        sender_role: senderRole,
+        senderRole,
         source: "agent-chat",
-        source_path: `/agent/chat?channel=${encodeURIComponent(channelId)}`,
-        property_name: title,
+        sourcePath: `/agent/chat?channel=${encodeURIComponent(channelId)}`,
+        propertyName: title,
       });
-      if (error) throw error;
     } catch {
       removeMessageById(requestId);
     }
@@ -446,19 +466,17 @@ export default function AgentChatClient() {
         const linaCreatedAt = new Date().toISOString();
         addMessage({ id: linaId, role: "lina", author: "Lina", text: linaText, createdAt: linaCreatedAt });
         try {
-          const client = getSupabaseClient();
-          const { error } = await client.from("agent_inbox_messages").insert({
+          await postMessage({
             id: linaId,
-            created_at: linaCreatedAt,
-            channel_ids: [channelId],
+            createdAt: linaCreatedAt,
+            channelIds: [channelId],
             message: linaText,
             author: "Lina",
-            sender_role: "lina",
+            senderRole: "lina",
             source: "agent-chat",
-            source_path: `/agent/chat?channel=${encodeURIComponent(channelId)}`,
-            property_name: title,
+            sourcePath: `/agent/chat?channel=${encodeURIComponent(channelId)}`,
+            propertyName: title,
           });
-          if (error) throw error;
         } catch {
           removeMessageById(linaId);
         }
@@ -471,19 +489,17 @@ export default function AgentChatClient() {
         const failCreatedAt = new Date().toISOString();
         addMessage({ id: failId, role: "lina", author: "Lina", text: failText, createdAt: failCreatedAt });
         try {
-          const client = getSupabaseClient();
-          const { error } = await client.from("agent_inbox_messages").insert({
+          await postMessage({
             id: failId,
-            created_at: failCreatedAt,
-            channel_ids: [channelId],
+            createdAt: failCreatedAt,
+            channelIds: [channelId],
             message: failText,
             author: "Lina",
-            sender_role: "lina",
+            senderRole: "lina",
             source: "agent-chat",
-            source_path: `/agent/chat?channel=${encodeURIComponent(channelId)}`,
-            property_name: title,
+            sourcePath: `/agent/chat?channel=${encodeURIComponent(channelId)}`,
+            propertyName: title,
           });
-          if (error) throw error;
         } catch {
           removeMessageById(failId);
         }
