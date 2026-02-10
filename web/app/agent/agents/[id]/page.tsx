@@ -58,13 +58,12 @@ function mapAccountToAgent(account: AccountRecord): AgentDirectoryEntry {
   const primaryRole = roles[0] || "traveler";
   const roleKey = roleToKey(primaryRole);
   const roleLabel = roleToLabel(primaryRole);
-  const divisions = (Array.isArray(account.divisions) && account.divisions.length
-    ? account.divisions
-    : roleKey === "yacht_broker"
-      ? ["YACHT"]
-      : roleKey === "partner"
-        ? []
-        : ["TRAVEL"]) as Division[];
+  const divisions = ((): Division[] => {
+    if (roleKey === "yacht_broker") return ["YACHT"];
+    if (roleKey === "partner") return [];
+    if (roleKey === "travel_agent") return ["TRAVEL"];
+    return Array.isArray(account.divisions) && account.divisions.length ? account.divisions : ["TRAVEL"];
+  })();
   const createdAt = account.createdAt || new Date().toISOString();
 
   return {

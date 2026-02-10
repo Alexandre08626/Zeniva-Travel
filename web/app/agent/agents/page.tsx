@@ -44,7 +44,7 @@ export default function AgentsDirectoryPage() {
   useEffect(() => {
     if (IS_PROD) return;
     if (!accounts || accounts.length === 0) return;
-    const agentRoles: Role[] = ["hq", "admin", "travel_agent", "yacht_broker", "influencer", "partner_owner", "partner_staff", "traveler"];
+    const agentRoles: Role[] = ["hq", "admin", "travel_agent", "yacht_broker", "influencer", "partner_owner", "partner_staff"];
     const agentRoleSet = new Set(agentRoles);
 
     accounts.forEach((account) => {
@@ -81,7 +81,7 @@ export default function AgentsDirectoryPage() {
           return;
         }
 
-        const agentRoles: Role[] = ["hq", "admin", "travel_agent", "yacht_broker", "influencer", "partner_owner", "partner_staff", "traveler"];
+        const agentRoles: Role[] = ["hq", "admin", "travel_agent", "yacht_broker", "influencer", "partner_owner", "partner_staff"];
         const agentRoleSet = new Set(agentRoles);
 
         records.forEach((account: any) => {
@@ -116,7 +116,7 @@ export default function AgentsDirectoryPage() {
     return source.filter((a) => {
       const roleOk =
         roleFilter === "all" ||
-        (roleFilter === "travel" && (a.roleLabel === "Travel Agent" || a.roleLabel === "Traveler")) ||
+        (roleFilter === "travel" && a.roleLabel === "Travel Agent") ||
         (roleFilter === "yacht" && a.roleLabel === "Yacht Broker") ||
         (roleFilter === "admin" && (a.roleKey === "admin" || a.roleKey === "hq"));
       const statusOk = statusFilter === "all" || a.status === statusFilter;
@@ -308,10 +308,16 @@ function makeAgentCodeFromEmail(roleKey: AgentDirectoryEntry["roleKey"], email: 
 function accountToAgentEntry(account: any): AgentDirectoryEntry | null {
   if (!account?.email) return null;
   const roles = Array.isArray(account.roles) && account.roles.length ? account.roles : account.role ? [account.role] : [];
-  const agentRole = (roles.find((r: Role) => ["hq", "admin", "travel_agent", "yacht_broker", "influencer", "partner_owner", "partner_staff", "traveler"].includes(r)) || "traveler") as Role;
+  const agentRole = roles.find((r: Role) => ["hq", "admin", "travel_agent", "yacht_broker", "influencer", "partner_owner", "partner_staff"].includes(r));
+  if (!agentRole) return null;
   const roleKey = roleToKey(agentRole);
   const roleLabel = roleToLabel(agentRole);
-  const divisions = Array.isArray(account.divisions) && account.divisions.length ? account.divisions : roleKey === "partner" ? [] : ["TRAVEL"];
+  const divisions = (() => {
+    if (roleKey === "partner") return [];
+    if (roleKey === "yacht_broker") return ["YACHT"];
+    if (roleKey === "travel_agent") return ["TRAVEL"];
+    return Array.isArray(account.divisions) && account.divisions.length ? account.divisions : ["TRAVEL"];
+  })();
 
   return {
     id: account.id || `agent-${String(account.email).toLowerCase().replace(/[^a-z0-9]/gi, "-")}`,
