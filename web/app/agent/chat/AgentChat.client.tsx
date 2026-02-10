@@ -34,6 +34,8 @@ export default function AgentChatClient() {
   >([]);
   const [contactsLoading, setContactsLoading] = useState(false);
   const [contactsError, setContactsError] = useState<string | null>(null);
+  const [contactsOpen, setContactsOpen] = useState(false);
+  const [contactType, setContactType] = useState<"Traveler" | "Partner" | "Agent">("Traveler");
   const [channels, setChannels] = useState([
     { id: "global", label: "Global", scope: "All agents", unread: 0 },
     { id: "hq", label: "HQ", scope: "HQ only", unread: 0 },
@@ -73,6 +75,10 @@ export default function AgentChatClient() {
       .filter((contact) => contact.email.toLowerCase() !== ownEmail)
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [contacts, user?.email]);
+
+  const filteredContactsByType = useMemo(() => {
+    return visibleContacts.filter((contact) => contact.scopeLabel === contactType);
+  }, [visibleContacts, contactType]);
 
   const history = messages[channelId] || [];
   const canHQ = isHQ(user);
@@ -614,13 +620,38 @@ export default function AgentChatClient() {
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Contacts</p>
                     <p className="text-xs text-slate-500">Travelers, partners, and agents</p>
                   </div>
-                  <div className="px-4 pb-4 space-y-2">
-                    {contactsLoading && <div className="text-xs text-slate-500">Loading contacts…</div>}
+                  <div className="px-4 pb-4 space-y-3">
+                    <button
+                      type="button"
+                      onClick={() => setContactsOpen((prev) => !prev)}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    >
+                      {contactsOpen ? "Hide contacts" : "New contact"}
+                    </button>
+
+                    <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-600">
+                      {(["Traveler", "Partner", "Agent"] as const).map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => setContactType(type)}
+                          className={`rounded-full border px-3 py-1 ${
+                            contactType === type
+                              ? "border-slate-900 bg-slate-900 text-white"
+                              : "border-slate-200 bg-white text-slate-600"
+                          }`}
+                        >
+                          {type}
+                        </button>
+                      ))}
+                    </div>
+
+                    {contactsLoading && <div className="text-xs text-slate-500">Loading contacts...</div>}
                     {contactsError && <div className="text-xs text-rose-600">{contactsError}</div>}
-                    {!contactsLoading && !contactsError && visibleContacts.length === 0 && (
+                    {contactsOpen && !contactsLoading && !contactsError && filteredContactsByType.length === 0 && (
                       <div className="text-xs text-slate-500">No contacts found.</div>
                     )}
-                    {!contactsLoading && !contactsError && visibleContacts.slice(0, 8).map((contact) => (
+                    {contactsOpen && !contactsLoading && !contactsError && filteredContactsByType.slice(0, 8).map((contact) => (
                       <button
                         key={contact.channelId}
                         type="button"
