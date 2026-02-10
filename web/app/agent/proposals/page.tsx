@@ -22,12 +22,14 @@ type Proposal = {
   owner: string;
 };
 
-const MOCK: Proposal[] = [
-  { id: "PR-2310", client: "Lefebvre", destination: "Lisbon", value: 8400, currency: "USD", status: "Sent", segments: ["Flights", "Hotel", "Transfers"], updatedAt: "2026-01-08T14:20:00Z", owner: "alice@zenivatravel.com" },
-  { id: "PR-2311", client: "NovaTech", destination: "Tokyo", value: 12600, currency: "USD", status: "Approved", segments: ["Flights", "Hotel", "Rail"], updatedAt: "2026-01-07T09:10:00Z", owner: "sara@zenivatravel.com" },
-  { id: "PR-2312", client: "HQ Yacht", destination: "Amalfi", value: 52000, currency: "USD", status: "Draft", segments: ["Yacht", "Chef", "Tender"], updatedAt: "2026-01-06T18:05:00Z", owner: "marco@zenivatravel.com" },
-  { id: "PR-2313", client: "Lavoie", destination: "New York", value: 4100, currency: "USD", status: "Booked", segments: ["Hotel", "Activities"], updatedAt: "2026-01-05T11:42:00Z", owner: "lea@zenivatravel.com" },
-];
+type ProposalRecord = {
+  id: string;
+  owner_email: string;
+  status?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  payload?: Record<string, unknown> | null;
+};
 
 const statusTheme: Record<ProposalStatus, { bg: string; text: string }> = {
   Draft: { bg: "bg-slate-100", text: "text-slate-800" },
@@ -36,22 +38,77 @@ const statusTheme: Record<ProposalStatus, { bg: string; text: string }> = {
   Booked: { bg: "bg-amber-50", text: "text-amber-800" },
 };
 
+const normalizeStatus = (value?: string | null): ProposalStatus => {
+  if (value === "Sent" || value === "Approved" || value === "Booked") return value;
+  return "Draft";
+};
+
+const mapRecordToProposal = (record: ProposalRecord): Proposal | null => {
+  if (!record?.id) return null;
+  const payload = (record.payload || {}) as Record<string, unknown>;
+  const segments = Array.isArray(payload.segments) ? (payload.segments as string[]) : [];
+  const status = normalizeStatus((payload.status as string) || record.status || "Draft");
+  const updatedAt = String(payload.updatedAt || record.updated_at || record.created_at || new Date().toISOString());
+  return {
+    id: record.id,
+    client: String(payload.client || payload.clientName || "Client"),
+    destination: String(payload.destination || payload.title || "Destination"),
+    value: Number(payload.value || payload.total || 0),
+    currency: String(payload.currency || "USD"),
+    status,
+    segments,
+    updatedAt,
+    owner: String(record.owner_email || payload.owner || ""),
+  };
+};
+
 function ProposalsContent() {
   const user = useAuthStore((s) => s.user);
   const effectiveRole = normalizeRbacRole(user?.effectiveRole) || normalizeRbacRole((user?.roles || [])[0]);
   const canSend = user ? hasPermission(user, "send_proposal_to_client") || hasPermission(user, "sales:all") : false;
+  const canViewAll = user ? hasPermission(user, "sales:all") : false;
   const searchParams = useSearchParams();
   const [statusFilter, setStatusFilter] = useState<ProposalStatus | "All">("All");
   const [query, setQuery] = useState(() => searchParams.get("q") || "");
+  const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const incoming = searchParams.get("q") || "";
     setQuery(incoming);
   }, [searchParams]);
 
+  useEffect(() => {
+    if (!user?.email) return;
+    let active = true;
+    const load = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (!canViewAll) params.set("ownerEmail", user.email);
+        const resp = await fetch(`/api/proposals${params.toString() ? `?${params.toString()}` : ""}`, { cache: "no-store" });
+        const payload = await resp.json();
+        if (!resp.ok) throw new Error(payload?.error || "Failed to load proposals");
+        if (!active) return;
+        const rows = Array.isArray(payload?.data) ? payload.data : [];
+        const mapped = rows.map(mapRecordToProposal).filter(Boolean) as Proposal[];
+        setProposals(mapped);
+      } catch {
+        if (!active) return;
+        setProposals([]);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    void load();
+    return () => {
+      active = false;
+    };
+  }, [user?.email, canViewAll]);
+
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
-    return MOCK.filter((p) => {
+    return proposals.filter((p) => {
       if (effectiveRole === "yacht_broker" && !p.segments.some((seg) => seg.toLowerCase().includes("yacht"))) {
         return false;
       }
@@ -59,13 +116,13 @@ function ProposalsContent() {
       const matchesQuery = [p.id, p.client, p.destination].some((v) => v.toLowerCase().includes(q));
       return matchesStatus && matchesQuery;
     });
-  }, [statusFilter, query, effectiveRole]);
+  }, [statusFilter, query, effectiveRole, proposals]);
 
   const totals = useMemo(() => {
     const base: Record<ProposalStatus, number> = { Draft: 0, Sent: 0, Approved: 0, Booked: 0 };
-    MOCK.forEach((p) => { base[p.status] += 1; });
+    proposals.forEach((p) => { base[p.status] += 1; });
     return base;
-  }, []);
+  }, [proposals]);
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
@@ -77,7 +134,7 @@ function ProposalsContent() {
             <p className="text-sm" style={{ color: MUTED_TEXT }}>See every draft, sent link, approval, and booked conversion.</p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs font-semibold">
-            <span className="rounded-full bg-white px-3 py-2 text-slate-800 border border-slate-200 shadow-sm">Total {MOCK.length}</span>
+            <span className="rounded-full bg-white px-3 py-2 text-slate-800 border border-slate-200 shadow-sm">Total {proposals.length}</span>
             <span className="rounded-full bg-blue-50 px-3 py-2 text-blue-700 border border-blue-100">Sent {totals.Sent}</span>
             <span className="rounded-full bg-emerald-50 px-3 py-2 text-emerald-700 border border-emerald-100">Approved {totals.Approved}</span>
             <span className="rounded-full bg-amber-50 px-3 py-2 text-amber-800 border border-amber-100">Booked {totals.Booked}</span>
@@ -114,6 +171,11 @@ function ProposalsContent() {
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
+            {loading && (
+              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-600">
+                Loading proposals...
+              </div>
+            )}
             {filtered.map((p) => (
               <div key={p.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
                 <div className="flex items-center justify-between gap-2">
@@ -224,7 +286,7 @@ function ProposalsContent() {
                 </div>
               </div>
             ))}
-            {filtered.length === 0 && (
+            {!loading && filtered.length === 0 && (
               <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-600">
                 No proposals match your filters.
               </div>

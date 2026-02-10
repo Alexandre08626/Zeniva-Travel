@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../src/design/tokens";
-import { bookings, BookingStatus } from "./data";
+import { type Booking, BookingStatus } from "./data";
 import { useT } from "../../../src/lib/i18n/I18nProvider";
 import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
+import { useAuthStore, hasPermission } from "../../../src/lib/authStore";
 
 const statusColor: Record<BookingStatus, { bg: string; text: string }> = {
   Pending: { bg: "bg-amber-50", text: "text-amber-700" },
@@ -14,11 +15,78 @@ const statusColor: Record<BookingStatus, { bg: string; text: string }> = {
   Invoiced: { bg: "bg-slate-100", text: "text-slate-700" },
 };
 
+type BookingRecord = {
+  id: string;
+  owner_email: string;
+  status?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  payload?: Record<string, unknown> | null;
+};
+
+const normalizeBookingStatus = (value?: string | null): BookingStatus => {
+  if (value === "Confirmed" || value === "Ticketed" || value === "Invoiced") return value;
+  return "Pending";
+};
+
+const mapRecordToBooking = (record: BookingRecord): Booking | null => {
+  if (!record?.id) return null;
+  const payload = (record.payload || {}) as Record<string, unknown>;
+  const status = normalizeBookingStatus((payload.status as string) || record.status || "Pending");
+  return {
+    id: record.id,
+    tripId: String(payload.tripId || record.id),
+    client: String(payload.client || "Client"),
+    destination: String(payload.destination || "Destination"),
+    type: String(payload.type || "Booking"),
+    startDate: String(payload.startDate || ""),
+    endDate: String(payload.endDate || ""),
+    pax: Number(payload.pax || 0),
+    amount: Number(payload.amount || payload.total || 0),
+    currency: String(payload.currency || "USD"),
+    status,
+    agent: String(payload.agent || record.owner_email || ""),
+    createdAt: String(record.created_at || new Date().toISOString()),
+  };
+};
+
 export default function BookingsPage() {
   useRequireAnyPermission(["bookings:all", "bookings:yacht"], "/agent");
+  const user = useAuthStore((s) => s.user);
+  const canViewAll = user ? hasPermission(user, "bookings:all") : false;
   const [statusFilter, setStatusFilter] = useState<BookingStatus | "All">("Confirmed");
   const [query, setQuery] = useState("");
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
   const t = useT();
+
+  useEffect(() => {
+    if (!user?.email) return;
+    let active = true;
+    const load = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (!canViewAll) params.set("ownerEmail", user.email);
+        const resp = await fetch(`/api/bookings${params.toString() ? `?${params.toString()}` : ""}`, { cache: "no-store" });
+        const payload = await resp.json();
+        if (!resp.ok) throw new Error(payload?.error || "Failed to load bookings");
+        if (!active) return;
+        const rows = Array.isArray(payload?.data) ? payload.data : [];
+        const mapped = rows.map(mapRecordToBooking).filter(Boolean) as Booking[];
+        setBookings(mapped);
+      } catch {
+        if (!active) return;
+        setBookings([]);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    void load();
+    return () => {
+      active = false;
+    };
+  }, [user?.email, canViewAll]);
 
   const filtered = useMemo(() => {
     return bookings
@@ -33,16 +101,14 @@ export default function BookingsPage() {
 
   const totals = useMemo(() => {
     const byStatus = { Confirmed: 0, Ticketed: 0, Invoiced: 0 } as Record<Exclude<BookingStatus, "Pending">, number>;
-    bookings
-      .filter((b) => b.status !== "Pending")
-      .forEach((b) => {
+    bookings.filter((b) => b.status !== "Pending").forEach((b) => {
         if (b.status in byStatus) {
           // @ts-expect-error runtime narrowing
           byStatus[b.status] += 1;
         }
       });
     return byStatus;
-  }, []);
+  }, [bookings]);
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: "#F3F6FB" }}>
@@ -99,6 +165,11 @@ export default function BookingsPage() {
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
+            {loading && (
+              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-600">
+                Loading bookings...
+              </div>
+            )}
             {filtered.map((b) => (
               <div key={b.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-2">
                 <div className="flex items-center justify-between gap-2">
@@ -121,7 +192,7 @@ export default function BookingsPage() {
                 </div>
               </div>
             ))}
-            {filtered.length === 0 && (
+            {!loading && filtered.length === 0 && (
               <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-600">
                 {t("bookings.noResults")}
               </div>

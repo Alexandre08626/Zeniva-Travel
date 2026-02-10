@@ -1,11 +1,12 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Header from "../../src/components/Header";
 import Footer from "../../src/components/Footer";
 import { LIGHT_BG, TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE, ACCENT_GOLD } from "../../src/design/tokens";
 import { useTripsStore, deleteTrip, createTrip, updateSnapshot, applyTripPatch, generateProposal, setProposalSelection } from "../../lib/store/tripsStore";
+import { useAuthStore } from "../../src/lib/authStore";
 
 function formatDate(value?: string) {
   if (!value) return "Saved now";
@@ -30,7 +31,12 @@ function statusPill(status: string) {
 
 export default function ProposalsPage() {
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+  const userEmail = user?.email || "";
+  const hasSyncedRef = useRef(false);
   const [selectedTripIds, setSelectedTripIds] = useState<string[]>([]);
+  const [remoteList, setRemoteList] = useState<any[]>([]);
+  const [loadingRemote, setLoadingRemote] = useState(false);
   const { proposals, trips, snapshots, selections, tripDrafts } = useTripsStore((s) => ({
     proposals: s.proposals,
     trips: s.trips,
@@ -39,7 +45,7 @@ export default function ProposalsPage() {
     tripDrafts: s.tripDrafts,
   }));
 
-  const list = useMemo(() => {
+  const localList = useMemo(() => {
     return Object.entries(proposals)
       .map(([tripId, proposal]: [string, any]) => {
         const trip = trips.find((t: any) => t.id === tripId);
@@ -72,7 +78,90 @@ export default function ProposalsPage() {
       .sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
   }, [proposals, trips, snapshots, selections]);
 
+  const list = useMemo(() => {
+    return remoteList.length ? remoteList : localList;
+  }, [remoteList, localList]);
+
   const empty = list.length === 0;
+
+  const buildPayloadFromLocal = (entry: any) => ({
+    tripId: entry.tripId,
+    title: entry.title,
+    destination: entry.destination,
+    status: entry.status,
+    createdAt: entry.createdAt,
+    updatedAt: entry.updatedAt,
+    hasSelection: entry.hasSelection,
+    coverImage: entry.coverImage,
+    travelers: entry.travelers,
+    dates: entry.dates,
+    budget: entry.budget,
+    style: entry.style,
+    accommodationType: entry.accommodationType,
+    transportationType: entry.transportationType,
+    departureCity: entry.departureCity,
+  });
+
+  useEffect(() => {
+    if (!userEmail) return;
+    let active = true;
+    const loadRemote = async () => {
+      setLoadingRemote(true);
+      try {
+        const resp = await fetch(`/api/proposals?ownerEmail=${encodeURIComponent(userEmail)}`, { cache: "no-store" });
+        const payload = await resp.json();
+        if (!resp.ok) throw new Error(payload?.error || "Failed to load proposals");
+        if (!active) return;
+        const rows = Array.isArray(payload?.data) ? payload.data : [];
+        const mapped = rows
+          .map((row: any) => ({
+            ...(row?.payload || {}),
+            tripId: row?.payload?.tripId || row?.id,
+          }))
+          .filter((row: any) => row?.tripId);
+        setRemoteList(mapped);
+
+        if (!rows.length && localList.length && !hasSyncedRef.current) {
+          hasSyncedRef.current = true;
+          await Promise.all(
+            localList.map((entry) =>
+              fetch("/api/proposals", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  id: entry.tripId,
+                  ownerEmail: userEmail,
+                  status: entry.status || "Draft",
+                  createdAt: entry.createdAt,
+                  updatedAt: entry.updatedAt,
+                  payload: buildPayloadFromLocal(entry),
+                }),
+              })
+            )
+          );
+          const refreshed = await fetch(`/api/proposals?ownerEmail=${encodeURIComponent(userEmail)}`, { cache: "no-store" });
+          const refreshedPayload = await refreshed.json();
+          const refreshedRows = Array.isArray(refreshedPayload?.data) ? refreshedPayload.data : [];
+          const refreshedMapped = refreshedRows
+            .map((row: any) => ({
+              ...(row?.payload || {}),
+              tripId: row?.payload?.tripId || row?.id,
+            }))
+            .filter((row: any) => row?.tripId);
+          if (active) setRemoteList(refreshedMapped);
+        }
+      } catch {
+        if (!active) return;
+        setRemoteList([]);
+      } finally {
+        if (active) setLoadingRemote(false);
+      }
+    };
+    void loadRemote();
+    return () => {
+      active = false;
+    };
+  }, [userEmail, localList]);
 
   useEffect(() => {
     if (list.length === 0) return;

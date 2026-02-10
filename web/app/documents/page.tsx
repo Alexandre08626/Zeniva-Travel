@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Header from "../../src/components/Header";
 import Footer from "../../src/components/Footer";
@@ -189,6 +189,9 @@ export default function DocumentsPage() {
   const user = useAuthStore((s) => s.user);
   const { trips, snapshots } = useTripsStore((s) => ({ trips: s.trips, snapshots: s.snapshots }));
   const userId = user?.email || "";
+  const hasSyncedRef = useRef(false);
+  const [remoteDocsByTrip, setRemoteDocsByTrip] = useState<Record<string, DocumentRecord[]>>({});
+  const [loadingRemote, setLoadingRemote] = useState(false);
   const documents = useDocumentsStore((s) => (userId ? s.documents[userId] || {} : {}));
   const localDocuments = useDocumentsStore((s) => s.documents['__local__'] || {});
 
@@ -200,9 +203,79 @@ export default function DocumentsPage() {
     seedDocuments(userId, tripId);
   }, [userId, documents, trips, snapshots]);
 
+  useEffect(() => {
+    if (!userId) return;
+    let active = true;
+    const loadRemote = async () => {
+      setLoadingRemote(true);
+      try {
+        const resp = await fetch(`/api/documents?ownerEmail=${encodeURIComponent(userId)}`, { cache: "no-store" });
+        const payload = await resp.json();
+        if (!resp.ok) throw new Error(payload?.error || "Failed to load documents");
+        if (!active) return;
+        const rows = Array.isArray(payload?.data) ? payload.data : [];
+        const grouped: Record<string, DocumentRecord[]> = {};
+        rows.forEach((row: any) => {
+          const doc = row?.payload || {};
+          const tripId = row?.trip_id || doc?.tripId;
+          if (!tripId || !doc?.id) return;
+          if (!grouped[tripId]) grouped[tripId] = [];
+          grouped[tripId].push(doc as DocumentRecord);
+        });
+        setRemoteDocsByTrip(grouped);
+
+        const localTripIds = Object.keys(documents || {});
+        if (!rows.length && localTripIds.length && !hasSyncedRef.current) {
+          hasSyncedRef.current = true;
+          const syncCalls: Promise<Response>[] = [];
+          localTripIds.forEach((tripId) => {
+            (documents[tripId] || []).forEach((doc) => {
+              syncCalls.push(
+                fetch("/api/documents", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    id: doc.id,
+                    ownerEmail: userId,
+                    tripId,
+                    updatedAt: doc.updatedAt,
+                    payload: { ...doc, tripId },
+                  }),
+                })
+              );
+            });
+          });
+          await Promise.all(syncCalls);
+          const refreshed = await fetch(`/api/documents?ownerEmail=${encodeURIComponent(userId)}`, { cache: "no-store" });
+          const refreshedPayload = await refreshed.json();
+          const refreshedRows = Array.isArray(refreshedPayload?.data) ? refreshedPayload.data : [];
+          const refreshedGrouped: Record<string, DocumentRecord[]> = {};
+          refreshedRows.forEach((row: any) => {
+            const doc = row?.payload || {};
+            const tripId = row?.trip_id || doc?.tripId;
+            if (!tripId || !doc?.id) return;
+            if (!refreshedGrouped[tripId]) refreshedGrouped[tripId] = [];
+            refreshedGrouped[tripId].push(doc as DocumentRecord);
+          });
+          if (active) setRemoteDocsByTrip(refreshedGrouped);
+        }
+      } catch {
+        if (!active) return;
+        setRemoteDocsByTrip({});
+      } finally {
+        if (active) setLoadingRemote(false);
+      }
+    };
+    void loadRemote();
+    return () => {
+      active = false;
+    };
+  }, [userId, documents]);
+
   const list = useMemo(() => {
     if (!userId) return [] as { tripId: string; title: string; destination?: string; dates?: string; travelers?: string; docs: DocumentRecord[] }[];
-    return Object.entries(documents || {}).map(([tripId, docs]) => {
+    const source = Object.keys(remoteDocsByTrip).length ? remoteDocsByTrip : (documents || {});
+    return Object.entries(source).map(([tripId, docs]) => {
       const trip = trips.find((t: any) => t.id === tripId);
       const snap = snapshots[tripId] || {};
       return {
@@ -211,10 +284,10 @@ export default function DocumentsPage() {
         destination: snap.destination || "",
         dates: snap.dates || "",
         travelers: snap.travelers || "",
-        docs,
+        docs: docs as DocumentRecord[],
       };
     });
-  }, [userId, documents, trips, snapshots]);
+  }, [userId, documents, remoteDocsByTrip, trips, snapshots]);
 
   const primaryTrip = list[0];
   const primarySnapshot = primaryTrip ? snapshots[primaryTrip.tripId] || {} : {};

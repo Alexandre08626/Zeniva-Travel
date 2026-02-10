@@ -5,8 +5,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { GRADIENT_END, GRADIENT_START, LIGHT_BG } from "../../src/design/tokens";
 import Header from "../../src/components/Header";
-import TravelSearchWidget from "../../src/components/TravelSearchWidget";
-import LinaWidget from "../../src/components/LinaWidget";
 import AutoTranslate from "../../src/components/AutoTranslate";
 import { createTrip, updateSnapshot, applyTripPatch, generateProposal, setProposalSelection } from "../../lib/store/tripsStore";
 import { normalizeListingTitle, normalizePetFriendly } from "../../src/lib/format";
@@ -178,96 +176,26 @@ export default function AirbnbsPage() {
         </div>
       </div>
 
-      {/* HERO SECTION (Lina Search) */}
-      <section className="hidden sm:block mt-4 mb-8 sm:mt-8 sm:mb-12">
-        <div className="relative w-screen left-1/2 right-1/2 -translate-x-1/2">
-          <div className="relative rounded-3xl overflow-hidden">
-            <div
-              className="absolute inset-0"
-              style={{
-                background: `linear-gradient(110deg, ${GRADIENT_START} 0%, ${GRADIENT_END} 60%)`,
-                opacity: 0.98,
-              }}
-            />
-
-            <div className="relative z-10 w-full mx-auto px-6 py-8 sm:py-12">
-              <div className="flex flex-col md:flex-row items-center gap-6 sm:gap-8">
-                <div className="flex-1 text-center md:text-left">
-                  <div className="mb-3 flex items-center justify-center md:justify-start gap-4">
-                    <img
-                      src="/branding/logo.png"
-                      alt="Zeniva logo"
-                      className="w-auto rounded-lg shadow-sm"
-                      style={{ height: "clamp(2.5rem, 6.5vw, 4.25rem)" }}
-                    />
-                    <div>
-                      <div
-                        className="font-extrabold tracking-tight text-white"
-                        style={{
-                          fontSize: "clamp(2.5rem, 6.5vw, 4.25rem)",
-                          lineHeight: 0.95,
-                          background: "linear-gradient(90deg,#ffffff 60%, #E6B85A 100%)",
-                          WebkitBackgroundClip: "text",
-                          WebkitTextFillColor: "transparent",
-                          textShadow: "0 8px 24px rgba(11,27,77,0.28)",
-                          letterSpacing: "-0.02em",
-                        }}
-                      >
-                        Zeniva Travel AI
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className="mt-3 text-md text-white/90 max-w-xl md:max-w-2xl">
-                    <AutoTranslate
-                      text="Tailor-made journeys, expert recommendations, and ready-to-book itineraries."
-                      className="inline"
-                    />
-                  </p>
-
-                  <div className="mt-6 mx-auto md:mx-0" style={{ width: "min(820px, 100%)" }}>
-                    <div className="bg-white rounded-2xl shadow-lg p-4">
-                      <TravelSearchWidget />
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {[
-                          { id: "q1", label: "Family trip", prompt: "Family beach trip, 7 nights" },
-                          { id: "q2", label: "Romantic", prompt: "Honeymoon Santorini, 5 nights" },
-                          { id: "q3", label: "Budget", prompt: "Sunny destinations under $1500" },
-                        ].map((q) => (
-                          <Link
-                            key={q.id}
-                            href={`/chat?prompt=${encodeURIComponent(q.prompt)}`}
-                            className="inline-block rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 transition"
-                          >
-                            {q.label}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex-1 hidden md:flex items-center justify-center pr-12">
-                  <div className="flex flex-col items-center gap-3">
-                    <span
-                      className="font-extrabold tracking-tight"
-                      style={{
-                        fontSize: "clamp(1.25rem, 2.6vw, 1.75rem)",
-                        lineHeight: 1,
-                        background: "linear-gradient(90deg,#ffffff 60%, #E6B85A 100%)",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                        textShadow: "0 6px 18px rgba(11,27,77,0.22)",
-                        letterSpacing: "-0.02em",
-                      }}
-                    >
-                      Lina AI
-                    </span>
-                    <LinaWidget size={Math.min(336, Math.max(192, 21 * 16))} />
-                  </div>
-                </div>
-              </div>
-            </div>
+      <section className="mb-8 rounded-3xl px-6 py-8" style={{ background: `linear-gradient(110deg, ${GRADIENT_START} 0%, ${GRADIENT_END} 60%)` }}>
+        <div className="mx-auto max-w-6xl text-white">
+          <div className="flex flex-col gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Agent Catalog</p>
+            <h1 className="text-3xl font-black">Full Travel Inventory</h1>
+            <p className="text-sm text-white/90">Concierge-ready listings for resorts, yachts, and private residences.</p>
+          </div>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/partners/resorts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
+              Hotels & Resorts
+            </Link>
+            <Link href="/yachts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
+              Yachts
+            </Link>
+            <Link href="/residences" className="rounded-full px-4 py-2 text-sm font-semibold bg-white text-slate-900">
+              Short-term Rentals
+            </Link>
+            <Link href="/agent/purchase-orders" className="rounded-full border border-white/50 px-4 py-2 text-sm font-semibold text-white">
+              Submit booking request
+            </Link>
           </div>
         </div>
       </section>
