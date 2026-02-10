@@ -313,7 +313,7 @@ export default function TravelerAgentChatClient() {
       sourcePath,
       propertyName: listing,
       author: "Traveler",
-      senderRole: "client",
+      senderRole: "client" as const,
       source: "traveler-chat",
       message: [
         "New traveler chat message",
