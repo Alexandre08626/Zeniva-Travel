@@ -70,6 +70,10 @@ export default function TripWorkspacePage() {
   const client = useMemo(() => clients.find((c) => c.id === (trip?.clientId || "")), [clients, trip]);
 
   useEffect(() => {
+    if (isYachtBroker) {
+      window.location.href = "/agent/yachts";
+      return;
+    }
     if (!trip) return;
     setComponents(trip.components || []);
     setPayments(trip.payments || []);

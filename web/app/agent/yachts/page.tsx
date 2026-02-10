@@ -16,9 +16,9 @@ export default function AgentYachtsPage() {
             <h1 className="text-3xl font-black" style={{ color: TITLE_TEXT }}>Zeniva Yacht catalogue</h1>
             <p className="text-sm" style={{ color: MUTED_TEXT }}>Agents vendent, Zeniva Yacht délivre; commission sur la part 5% Travel.</p>
           </div>
-          <Link href="/agent/trips/T-502" className="rounded-full px-4 py-2 text-sm font-bold text-white" style={{ backgroundColor: PREMIUM_BLUE }}>
-            Ouvrir le dossier yacht
-          </Link>
+          <div className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>
+            Acces inventaire uniquement
+          </div>
         </header>
         <section className="grid gap-3 md:grid-cols-2">
           {yachts.map((y) => (
@@ -29,9 +29,9 @@ export default function AgentYachtsPage() {
               </div>
               <p className="text-sm" style={{ color: MUTED_TEXT }}>{y.location} · {y.guests} guests · Week {y.weekStart}</p>
               <p className="text-sm" style={{ color: MUTED_TEXT }}>Total Sell ${y.pricing.sell} (Travel share 5%)</p>
-              <Link href="/agent/trips/T-502" className="text-sm font-bold" style={{ color: PREMIUM_BLUE }}>
-                Add to proposal →
-              </Link>
+              <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
+                Propositions gerees par le back-office
+              </div>
             </div>
           ))}
         </section>
