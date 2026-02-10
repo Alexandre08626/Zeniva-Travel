@@ -11,6 +11,7 @@ import { getImagesForDestination } from "../../src/lib/images";
 import { createTrip, updateSnapshot, applyTripPatch, generateProposal, setProposalSelection } from "../../lib/store/tripsStore";
 import { useI18n } from "../../src/lib/i18n/I18nProvider";
 import { normalizePriceLabel } from "../../src/lib/format";
+import yachtImageMap from "../../src/data/ycn_yacht_images.json";
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -24,6 +25,8 @@ interface YcnItem {
   images?: string[];
   calendar?: string;
 }
+
+const localYachtImages = yachtImageMap as Record<string, string[]>;
 
 function normalizeCountry(value: string) {
   const raw = (value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -90,14 +93,20 @@ export default function YachtsPageClient() {
         loadFallback();
         return;
       }
-      const ycnItems: YcnItem[] = (Array.isArray(ycnData) ? ycnData : []).map((p: any) => ({
-        title: p.title,
-        destination: p.destination || "",
-        prices: p.prices || [],
-        thumbnail: p.thumbnail || (p.images && p.images[0]) || undefined,
-        images: p.images || [],
-        calendar: p.calendar || undefined,
-      }));
+      const ycnItems: YcnItem[] = (Array.isArray(ycnData) ? ycnData : []).map((p: any) => {
+        const title = (p.title || "Yacht Charter").trim();
+        const mappedImages = localYachtImages[title];
+        const resolvedImages = mappedImages && mappedImages.length ? mappedImages : (p.images || []);
+        const resolvedThumbnail = resolvedImages[0] || p.thumbnail || (p.images && p.images[0]) || undefined;
+        return {
+          title,
+          destination: p.destination || "",
+          prices: p.prices || [],
+          thumbnail: resolvedThumbnail,
+          images: resolvedImages,
+          calendar: p.calendar || undefined,
+        };
+      });
       // Normalize partner yacht shape to YcnItem
       const partnerItems: YcnItem[] = (partnerData || []).map((p: any) => {
         const data = p?.data || p || {};
