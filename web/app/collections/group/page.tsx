@@ -27,12 +27,11 @@ export default function GroupTripsPage() {
           <div className="flex flex-col gap-2">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Agent Catalog</p>
             <h1 className="text-3xl font-black">Full Travel Inventory</h1>
-            <p className="text-sm text-white/90">Group itineraries, resort takeovers, and bespoke experiences handled end to end.</p>
+            <p className="text-sm text-white/90">
+              Agents can access the same traveler catalog and export any listing as HTML for client sharing.
+            </p>
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/collections/group" className="rounded-full px-4 py-2 text-sm font-semibold bg-white text-slate-900">
-              Group Trips
-            </Link>
             <Link href="/partners/resorts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
               Hotels & Resorts
             </Link>
