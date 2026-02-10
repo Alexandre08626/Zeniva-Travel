@@ -451,6 +451,9 @@ export default function LinaCommandCenter() {
     try {
       const { reply } = await sendMessageToLina(text);
       response = reply || "";
+      if (response.toLowerCase().includes("lina is unavailable")) {
+        throw new Error("lina-unavailable");
+      }
     } catch {
       try {
         const resp = await fetch(`/api/chat?prompt=${encodeURIComponent(text)}&mode=agent`);
