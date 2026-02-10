@@ -1,7 +1,7 @@
 "use client";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { signup, useAuthStore, type Role, updatePartnerProfile, logout } from "../../src/lib/authStore";
+import { signup, useAuthStore, type Role, type Division, updatePartnerProfile, logout } from "../../src/lib/authStore";
 import { addAgentFromAccount } from "../../src/lib/agent/agents";
 import { addClient } from "../../src/lib/agent/store";
 import { clearStoredReferral, getStoredReferral } from "../../src/lib/influencer";
@@ -61,7 +61,7 @@ export default function SignupPage() {
       }
 
       const referral = getStoredReferral();
-      const agentDivisions = isAgent
+      const agentDivisions: Division[] = isAgent
         ? agentRole === "yacht_broker"
           ? ["YACHT"]
           : ["TRAVEL"]
