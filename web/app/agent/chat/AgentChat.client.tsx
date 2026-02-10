@@ -35,15 +35,9 @@ export default function AgentChatClient() {
   const [contactsLoading, setContactsLoading] = useState(false);
   const [contactsError, setContactsError] = useState<string | null>(null);
   const [channels, setChannels] = useState([
-    { id: "global", label: "Global", scope: "All agents", unread: 2 },
-    { id: "hq", label: "HQ", scope: "HQ only", unread: 1 },
+    { id: "global", label: "Global", scope: "All agents", unread: 0 },
+    { id: "hq", label: "HQ", scope: "HQ only", unread: 0 },
     { id: "ops", label: "Ops", scope: "Production", unread: 0 },
-    { id: "agent-alice", label: "Alice", scope: "Direct", unread: 0 },
-    { id: "agent-alexandre", label: "Alexandre Blais", scope: "Direct", unread: 0 },
-    { id: "agent-jason", label: "Jason Lanthier", scope: "Direct", unread: 0 },
-    { id: "agent-marco", label: "Marco", scope: "Direct", unread: 0 },
-    { id: "dossier-trip-104", label: "Case file TRIP-104", scope: "Client file", unread: 0 },
-    { id: "dossier-yacht-55", label: "Yacht YCHT-55", scope: "Client file", unread: 1 },
   ]);
   const listRef = useRef<HTMLDivElement | null>(null);
   const activeChannelRef = useRef(channelId);
