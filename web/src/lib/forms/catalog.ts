@@ -29,8 +29,7 @@ export const FORM_DEFINITIONS: FormDefinition[] = [
     description: "Specialized form for Yacht campaigns.",
     origin: "marketing-facebook",
     leadSource: "marketing Jason",
-    ownerPolicy: "fixed",
-    fixedOwnerEmail: "lantierj6@gmail.com",
+    ownerPolicy: "agent",
     fields: [
       { id: "name", label: "Full name", type: "text", required: true },
       { id: "email", label: "Email", type: "email", required: true },

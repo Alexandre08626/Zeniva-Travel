@@ -8,22 +8,28 @@ import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../src/design/tokens";
 
 function buildFormLink(form: FormDefinition, agentEmail?: string) {
-  if (form.id === "yacht-jason") return "/forms/yacht";
+  if (form.id === "yacht-jason") {
+    const param = agentEmail ? `?agent=${encodeURIComponent(agentEmail)}` : "";
+    return `/forms/yacht${param}`;
+  }
   if (form.id === "travel-agent") return "/forms/travel";
   return "/agent/forms";
 }
 
 export default function AgentFormsPage() {
-  useRequireAnyPermission(["sales:all", "sales:yacht"], "/agent");
+  useRequireAnyPermission(["sales:all", "sales:yacht", "read_yachts_inventory"], "/agent");
   const user = useAuthStore((s) => s.user);
   const hq = isHQ(user);
   const isAdmin = Boolean(user?.roles?.includes("admin") || user?.role === "admin");
   const [copied, setCopied] = useState<string | null>(null);
+  const isYachtBroker = Boolean(user?.roles?.includes("yacht_broker") || user?.role === "yacht_broker");
 
   const allowedForms = useMemo(() => {
     if (hq || isAdmin) return FORM_DEFINITIONS;
-    return FORM_DEFINITIONS.filter((form) => hasDivision(user, form.division));
-  }, [hq, isAdmin, user]);
+    const formsForDivision = FORM_DEFINITIONS.filter((form) => hasDivision(user, form.division));
+    if (isYachtBroker) return formsForDivision.filter((form) => form.id === "yacht-jason");
+    return formsForDivision;
+  }, [hq, isAdmin, isYachtBroker, user]);
 
   const onCopy = async (form: FormDefinition) => {
     const url = buildFormLink(form, user?.email || "");

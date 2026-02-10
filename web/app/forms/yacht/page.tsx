@@ -1,11 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { FORM_DEFINITIONS } from "../../../src/lib/forms/catalog";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../src/design/tokens";
 
 export default function YachtFormPage() {
   const form = useMemo(() => FORM_DEFINITIONS.find((f) => f.id === "yacht-jason"), []);
+  const searchParams = useSearchParams();
+  const agentEmail = (searchParams.get("agent") || "").trim();
   const [fields, setFields] = useState<Record<string, any>>({});
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
@@ -26,13 +29,16 @@ export default function YachtFormPage() {
       const res = await fetch("/api/forms/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ formId: form.id, ...fields }),
+        body: JSON.stringify({ formId: form.id, agentEmail, ...fields }),
       });
       if (!res.ok) {
         const payload = await res.json().catch(() => ({}));
         throw new Error(payload?.error || "Failed to submit");
       }
       setStatus("success");
+      if (agentEmail) {
+        window.location.href = "/agent/clients";
+      }
     } catch (err: any) {
       setStatus("error");
       setError(err?.message || "Failed to submit");
