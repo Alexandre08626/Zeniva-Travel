@@ -190,7 +190,7 @@ export default function TravelerAgentChatClient() {
     let active = true;
     const load = async () => {
       if (!active) return;
-      await loadConversation(accountAgentChannelId, channelId);
+      await loadConversation(accountAgentChannelId || channelId, channelId);
       await loadConversation(accountLinaChannelId, "lina-help");
     };
 
@@ -313,6 +313,7 @@ export default function TravelerAgentChatClient() {
       sourcePath,
       propertyName: listing,
       author: "Traveler",
+      email: user?.email || undefined,
       senderRole: "client" as const,
       source: "traveler-chat",
       message: [
