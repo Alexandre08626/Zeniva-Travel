@@ -1,11 +1,9 @@
-"use client";
-
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { FORM_DEFINITIONS } from "../../../src/lib/forms/catalog";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../src/design/tokens";
 
-export default function YachtFormPage() {
+function YachtFormClient() {
   const form = useMemo(() => FORM_DEFINITIONS.find((f) => f.id === "yacht-jason"), []);
   const searchParams = useSearchParams();
   const agentEmail = (searchParams.get("agent") || "").trim();
@@ -103,5 +101,13 @@ export default function YachtFormPage() {
         </form>
       </div>
     </main>
+  );
+}
+
+export default function YachtFormPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <YachtFormClient />
+    </Suspense>
   );
 }
