@@ -220,7 +220,7 @@ export default function PartnerResortsPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Agent Catalog</p>
             <h1 className="text-3xl font-black">Full Travel Inventory</h1>
             <p className="text-sm text-white/90">
-              Agents can access the same traveler catalog and export any listing as HTML for client sharing.
+              Explore the full traveler catalog and connect with Zeniva to finalize your trip.
             </p>
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
@@ -233,7 +233,7 @@ export default function PartnerResortsPage() {
             <Link href="/residences" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
               Short-term Rentals
             </Link>
-            <Link href="/agent/purchase-orders" className="rounded-full border border-white/50 px-4 py-2 text-sm font-semibold text-white">
+            <Link href="/" className="rounded-full border border-white/50 px-4 py-2 text-sm font-semibold text-white">
               Flights
             </Link>
           </div>
