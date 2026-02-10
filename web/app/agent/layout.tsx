@@ -61,7 +61,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
       message.includes("chat message") ||
       message.includes("message:") ||
       sourcePath.includes("/chat");
-    if (isChat) return "Message recu";
+    if (isChat) return "Message received";
 
     const isBooking =
       message.includes("booking") ||
@@ -70,10 +70,10 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
       message.includes("yacht request") ||
       message.includes("travel request") ||
       Boolean(item?.yachtName || item?.desiredDate);
-    if (isBooking) return "Demande de reservation";
+    if (isBooking) return "Booking request";
 
     const isProposal = message.includes("proposal") || message.includes("quote") || message.includes("devis");
-    if (isProposal) return "Nouvelle proposition";
+    if (isProposal) return "New proposal";
 
     const isPartner =
       message.includes("partner") ||
@@ -81,13 +81,13 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
       message.includes("partner request") ||
       sourcePath.includes("/partners") ||
       sourcePath.includes("/partner");
-    if (isPartner) return "Demande partenaire";
+    if (isPartner) return "Partner request";
 
     const isClient =
       message.includes("new client") ||
       message.includes("client") ||
       message.includes("traveler");
-    if (isClient) return "Nouveau client";
+    if (isClient) return "New client";
 
     const isAgent =
       message.includes("agent request") ||
@@ -96,9 +96,9 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
       message.includes("demande") ||
       message.includes("demende") ||
       source.includes("agent");
-    if (isAgent) return "Demande agent";
+    if (isAgent) return "Agent request";
 
-    return "Demande agent";
+    return "Agent request";
   }, []);
 
   const resolveAgentSubtitle = useCallback((item: any) => {
@@ -111,7 +111,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
     if (propertyName) return `Listing: ${propertyName}`;
 
     const raw = String(item?.message || "").trim();
-    if (!raw) return "Nouvelle demande";
+    if (!raw) return "New request";
     const lines = raw.split("\n").map((line) => line.trim()).filter(Boolean);
     const messageLine = lines.find((line) => line.toLowerCase().startsWith("message:"));
     if (messageLine) return messageLine.replace(/^message:\s*/i, "");
@@ -153,8 +153,8 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
         .slice(0, 5)
         .map((item: any) => ({
           id: `booking-${item.id}`,
-          title: `Demande de reservation: ${item.title || item.clientName || "Client"}`,
-          subtitle: `${item.status === "pending_hq" ? "En attente" : "A corriger"} · ${item.provider || "manual"}`,
+          title: `Booking request: ${item.title || item.clientName || "Client"}`,
+          subtitle: `${item.status === "pending_hq" ? "Pending" : "Needs changes"} · ${item.provider || "manual"}`,
           href: "/agent/purchase-orders",
           ts: item.updatedAt || item.createdAt || new Date().toISOString(),
           read: readIds.has(`booking-${item.id}`),
