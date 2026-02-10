@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useRequireRole } from "../../../src/lib/roleGuards";
 import { addAudit, useAuthStore } from "../../../src/lib/authStore";
 import { PREMIUM_BLUE, MUTED_TEXT, ACCENT_GOLD } from "../../../src/design/tokens";
-import { askOpenAI } from "../../../src/lib/askOpenAI";
+import { sendMessageToLina } from "../../../src/lib/linaClient";
 import LinaAvatar from "../../../src/components/LinaAvatar";
 import { buildChatChannelId, fetchChatMessages, saveChatMessage } from "../../../src/lib/chatPersistence";
 
@@ -448,28 +448,16 @@ export default function LinaCommandCenter() {
       }
     }
 
-    // Si pas de dossier sélectionné, Lina répond en mode global avec OpenAI
-    if (!selected) {
-      try {
-        const apiKey = process.env.OPENAI_API_KEY || "";
-        const prompt = `Réponds toujours en français. L'utilisateur a écrit : "${text}". Si la demande concerne la création d'un voyage, explique comment faire.`;
-        response = await askOpenAI(prompt, apiKey);
-      } catch {
-        response = "[Erreur OpenAI]";
-      }
-      addMsg("lina", response, "global");
-      setStreaming(false);
-      return;
-    }
+    const historySource = selected ? (messages[selected.id] || []) : (messages["global"] || []);
+    const conversation = historySource
+      .map((m) => ({ role: m.role === "lina" ? "assistant" : "user", text: m.text }))
+      .concat([{ role: "user", text }]);
 
-    // Si dossier sélectionné, Lina répond en français avec OpenAI et contexte dossier
     try {
-      const apiKey = process.env.OPENAI_API_KEY || "";
-      const dossierContext = selected ? `Dossier: ${selected.id}, Client: ${selected.client}, Destination: ${selected.destination}, Statut: ${selected.status}, Dates: ${selected.travelStart} - ${selected.travelEnd}, Pax: ${selected.pax}, Budget: ${selected.budget}` : "";
-      const prompt = `Tu es Lina, assistante de voyage. Réponds toujours en français. Contexte: ${dossierContext}. L'utilisateur a écrit : "${text}".`;
-      response = await askOpenAI(prompt, apiKey);
+      const { reply } = await sendMessageToLina(conversation);
+      response = reply || "";
     } catch {
-      response = "[Erreur OpenAI]";
+      response = "[Lina error]";
     }
 
     addMsg("lina", response, selected.id);
