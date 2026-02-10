@@ -75,18 +75,26 @@ export default function FeaturedTripsByLina() {
   };
 
   return (
-    <section className="max-w-7xl mx-auto py-10 px-6">
-      <h2 className="text-3xl font-black mb-6">Featured Trips by Lina</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {featuredTrips.map(trip => (
+    <section className="max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+        {featuredTrips.map((trip) => (
           <div key={trip.id} className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
-            <img src={trip.image} alt={trip.title} className="h-64 w-full object-cover" />
-            <div className="p-5 flex-1 flex flex-col">
-              <h3 className="text-xl font-bold mb-1">{trip.title}</h3>
-              <div className="text-sm text-slate-600 mb-2">{trip.destination} • {formatTripDateRange(trip.dates, locale)}</div>
-              <div className="text-sm mb-3">{trip.description}</div>
-              <div className="text-lg font-extrabold text-blue-700 mb-4">{formatCurrencyAmount(trip.price, trip.currency, locale)}</div>
-              <button onClick={() => handleBook(trip)} className="mt-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl transition">Book</button>
+            <img src={trip.image} alt={trip.title} className="h-44 sm:h-52 md:h-56 w-full object-cover" />
+            <div className="p-4 sm:p-5 flex-1 flex flex-col">
+              <h3 className="text-lg sm:text-xl font-bold mb-1 line-clamp-2">{trip.title}</h3>
+              <div className="text-xs sm:text-sm text-slate-600 mb-2">
+                {trip.destination} • {formatTripDateRange(trip.dates, locale)}
+              </div>
+              <div className="text-sm text-slate-700 mb-3 line-clamp-3">{trip.description}</div>
+              <div className="text-base sm:text-lg font-extrabold text-blue-700 mb-4">
+                {formatCurrencyAmount(trip.price, trip.currency, locale)}
+              </div>
+              <button
+                onClick={() => handleBook(trip)}
+                className="mt-auto w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl transition"
+              >
+                Book
+              </button>
             </div>
           </div>
         ))}
