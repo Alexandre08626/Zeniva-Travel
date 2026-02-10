@@ -448,19 +448,20 @@ export default function LinaCommandCenter() {
       }
     }
 
-    const historySource = selected ? (messages[selected.id] || []) : (messages["global"] || []);
-    const conversation = historySource
-      .map((m) => ({ role: m.role === "lina" ? "assistant" : "user", text: m.text }))
-      .concat([{ role: "user", text }]);
-
     try {
-      const { reply } = await sendMessageToLina(conversation);
+      const { reply } = await sendMessageToLina(text);
       response = reply || "";
     } catch {
-      response = "[Lina error]";
+      try {
+        const resp = await fetch(`/api/chat?prompt=${encodeURIComponent(text)}&mode=agent`);
+        const data = await resp.json();
+        response = String(data?.reply || "").trim() || "[Lina error]";
+      } catch {
+        response = "[Lina error]";
+      }
     }
 
-    addMsg("lina", response, selected.id);
+    addMsg("lina", response, selected?.id || "global");
     setStreaming(false);
     return;
   };
