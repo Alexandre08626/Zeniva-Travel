@@ -1,4 +1,6 @@
-import { Suspense, useMemo, useState } from "react";
+"use client";
+
+import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { FORM_DEFINITIONS } from "../../../src/lib/forms/catalog";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../src/design/tokens";
@@ -105,9 +107,5 @@ function YachtFormClient() {
 }
 
 export default function YachtFormPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen" />}>
-      <YachtFormClient />
-    </Suspense>
-  );
+  return <YachtFormClient />;
 }
