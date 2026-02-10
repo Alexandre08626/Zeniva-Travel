@@ -1,5 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+import { useAuthStore } from "../lib/authStore";
+import { buildChatChannelId, buildContactChannelId, saveChatMessage } from "../lib/chatPersistence";
 
 type Message = {
   id: number;
@@ -16,6 +18,9 @@ const COMPANY_INFO = {
 };
 
 export default function HelpCenterButton() {
+  const user = useAuthStore((s) => s.user);
+  const contactChannelId = useMemo(() => buildContactChannelId(user?.email), [user?.email]);
+  const helpCenterChannelId = useMemo(() => buildChatChannelId(user?.email, "help-center"), [user?.email]);
   const [showModal, setShowModal] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -30,6 +35,17 @@ export default function HelpCenterButton() {
 
   const handleOptionClick = (option: string) => {
     setMessages(prev => [...prev, { id: Date.now(), type: 'user', content: option }]);
+    if (helpCenterChannelId || contactChannelId) {
+      void saveChatMessage({
+        channelIds: [helpCenterChannelId, contactChannelId].filter(Boolean),
+        message: option,
+        author: user?.name || user?.email || "Traveler",
+        senderRole: "client",
+        source: "help-center",
+        sourcePath: "/help",
+        propertyName: "Help Center",
+      });
+    }
     
     if (option === "Request a human agent" || option === "Request custom trip planning with a human agent") {
       setShowForm(true);
@@ -50,6 +66,17 @@ export default function HelpCenterButton() {
         type: 'bot',
         content: responses[option] || "How can I assist you?"
       }]);
+      if (helpCenterChannelId) {
+        void saveChatMessage({
+          channelIds: [helpCenterChannelId],
+          message: responses[option] || "How can I assist you?",
+          author: "Lina",
+          senderRole: "lina",
+          source: "help-center",
+          sourcePath: "/help",
+          propertyName: "Help Center",
+        });
+      }
 
       // Create ticket for agent
       const ticketNumber = "HC-" + Date.now();
@@ -73,12 +100,34 @@ export default function HelpCenterButton() {
         type: 'bot',
         content: `Your support ticket has been created: ${ticketNumber}. A human agent will respond to you shortly.`
       }]);
+      if (contactChannelId) {
+        void saveChatMessage({
+          channelIds: [contactChannelId, "hq"].filter(Boolean),
+          message: `Help Center ticket ${ticketNumber}: ${option}`,
+          author: user?.name || user?.email || "Traveler",
+          senderRole: "client",
+          source: "help-center",
+          sourcePath: "/help",
+          propertyName: "Help Center",
+        });
+      }
     }
   };
 
   const handleSendMessage = (message: string) => {
     if (!message.trim()) return;
     setMessages(prev => [...prev, { id: Date.now(), type: 'user', content: message }]);
+    if (helpCenterChannelId || contactChannelId) {
+      void saveChatMessage({
+        channelIds: [helpCenterChannelId, contactChannelId].filter(Boolean),
+        message,
+        author: user?.name || user?.email || "Traveler",
+        senderRole: "client",
+        source: "help-center",
+        sourcePath: "/help",
+        propertyName: "Help Center",
+      });
+    }
     
     // Simulate support response
     setTimeout(() => {
@@ -88,6 +137,17 @@ export default function HelpCenterButton() {
         type: 'bot',
         content: response
       }]);
+      if (helpCenterChannelId) {
+        void saveChatMessage({
+          channelIds: [helpCenterChannelId],
+          message: response,
+          author: "Lina",
+          senderRole: "lina",
+          source: "help-center",
+          sourcePath: "/help",
+          propertyName: "Help Center",
+        });
+      }
     }, 1000);
   };
 
@@ -112,6 +172,17 @@ export default function HelpCenterButton() {
     const existingTickets = JSON.parse(localStorage.getItem('helpTickets') || '[]');
     existingTickets.push(ticketData);
     localStorage.setItem('helpTickets', JSON.stringify(existingTickets));
+    if (contactChannelId) {
+      void saveChatMessage({
+        channelIds: [contactChannelId, "hq"].filter(Boolean),
+        message: `Human agent request ${ticketNumber}\nName: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nReason: ${formData.reason}`,
+        author: formData.name || user?.name || user?.email || "Traveler",
+        senderRole: "client",
+        source: "help-center",
+        sourcePath: "/help",
+        propertyName: "Help Center",
+      });
+    }
 
     setMessages(prev => [...prev, {
       id: Date.now(),

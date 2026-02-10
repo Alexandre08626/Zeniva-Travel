@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Send, Search } from "lucide-react";
 import { getSupabaseClient } from "../../../src/lib/supabase/client";
 import { useAuthStore } from "../../../src/lib/authStore";
-import { buildChatChannelId, fetchChatMessages, saveChatMessage } from "../../../src/lib/chatPersistence";
+import { buildChatChannelId, buildContactChannelId, fetchChatMessages, saveChatMessage } from "../../../src/lib/chatPersistence";
 
 const ADMIN_CHANNEL_ID = "hq";
 
@@ -35,8 +35,8 @@ export default function TravelerAgentChatClient() {
   const channelId = searchParams?.get("channel") || "agent-alexandre";
   const user = useAuthStore((s) => s.user);
   const accountAgentChannelId = useMemo(
-    () => buildChatChannelId(user?.email, `traveler-agent-${channelId}`),
-    [user?.email, channelId]
+    () => buildContactChannelId(user?.email),
+    [user?.email]
   );
   const accountLinaChannelId = useMemo(
     () => buildChatChannelId(user?.email, "traveler-lina"),

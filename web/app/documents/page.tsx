@@ -5,7 +5,7 @@ import Header from "../../src/components/Header";
 import Footer from "../../src/components/Footer";
 import { LIGHT_BG, TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../src/design/tokens";
 import { useAuthStore } from "../../src/lib/authStore";
-import { buildChatChannelId, fetchChatMessages, saveChatMessage } from "../../src/lib/chatPersistence";
+import { buildChatChannelId, buildContactChannelId, fetchChatMessages, saveChatMessage } from "../../src/lib/chatPersistence";
 import { useTripsStore, createTrip } from "../../lib/store/tripsStore";
 import { useDocumentsStore, seedDocuments, DocumentRecord } from "../../src/lib/documentsStore";
 
@@ -302,6 +302,7 @@ export default function DocumentsPage() {
     { id: "m2", role: "agent", author: "Zeniva Agent", text: "I can also call the hotel to confirm your late check-in.", ts: "09:04" },
   ] as { id: string; role: "lina" | "agent" | "partner" | "specialist" | "traveler"; author: string; text: string; ts: string }[]);
   const chatChannelId = useMemo(() => buildChatChannelId(user?.email, "documents-chat"), [user?.email]);
+  const contactChannelId = useMemo(() => buildContactChannelId(user?.email), [user?.email]);
 
   const loggedOut = !userId;
 
@@ -317,9 +318,9 @@ export default function DocumentsPage() {
       { id: `m-${Date.now()}-lina`, role: "lina", author: "Lina (AI)", text: "Got it. I’m on it and will keep you updated here.", ts: now },
     ]);
     setChatInput("");
-    if (chatChannelId) {
+    if (chatChannelId || contactChannelId) {
       void saveChatMessage({
-        channelIds: [chatChannelId],
+        channelIds: [chatChannelId, contactChannelId].filter(Boolean),
         message: trimmed,
         author: user?.name || user?.email || "Traveler",
         senderRole: "client",
