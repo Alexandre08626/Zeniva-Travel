@@ -1,11 +1,12 @@
 "use client";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRequireRole } from "../../../src/lib/roleGuards";
 import { addAudit, useAuthStore } from "../../../src/lib/authStore";
 import { PREMIUM_BLUE, MUTED_TEXT, ACCENT_GOLD } from "../../../src/design/tokens";
 import { askOpenAI } from "../../../src/lib/askOpenAI";
 import LinaAvatar from "../../../src/components/LinaAvatar";
+import { buildChatChannelId, fetchChatMessages, saveChatMessage } from "../../../src/lib/chatPersistence";
 
 import { Role } from "../../../src/lib/authStore";
 
@@ -340,12 +341,65 @@ export default function LinaCommandCenter() {
   const selected = useMemo(() => filtered.find((d) => d.id === selectedId) || filtered[0] || null, [filtered, selectedId]);
 
   // Ajout message : si pas de dossier sélectionné, stocke dans 'global'
+  const mergeMessageLists = (existing: Message[], incoming: Message[]) => {
+    const map = new Map<string, Message>();
+    existing.forEach((msg) => map.set(msg.id, msg));
+    incoming.forEach((msg) => map.set(msg.id, msg));
+    const merged = Array.from(map.values());
+    merged.sort((a, b) => a.ts.localeCompare(b.ts));
+    return merged;
+  };
+
+  const channelFor = (id: string) => buildChatChannelId(user?.email, `agent-lina-${id}`);
+
   const addMsg = (role: "agent" | "lina", text: string, targetId?: string) => {
     const id = targetId || (selected ? selected.id : 'global');
     const entry: Message = { id: uid(), role, text, ts: new Date().toLocaleTimeString().slice(0, 5) };
     setMessages((prev) => ({ ...prev, [id]: [...(prev[id] || []), entry] }));
     if (id !== 'global') addAudit(`lina:${role}`, "dossier", id, { text });
+    const channelId = channelFor(id);
+    if (channelId) {
+      void saveChatMessage({
+        channelIds: [channelId],
+        message: text,
+        author: role === "lina" ? "Lina" : user?.name || user?.email || "Agent",
+        senderRole: role === "lina" ? "lina" : "agent",
+        source: "agent-lina",
+        sourcePath: `/agent/lina${id ? `?dossier=${encodeURIComponent(id)}` : ""}`,
+        propertyName: id || "global",
+      });
+    }
   };
+
+  useEffect(() => {
+    const id = selected ? selected.id : "global";
+    const channelId = channelFor(id);
+    if (!channelId) return;
+    let active = true;
+    const load = async () => {
+      const rows = await fetchChatMessages(channelId);
+      if (!active || !rows.length) return;
+      const mapped = rows.map((row: any) => {
+        const createdAt = row?.createdAt || row?.created_at || new Date().toISOString();
+        const sender = row?.senderRole || row?.sender_role;
+        const role = sender === "lina" ? "lina" : "agent";
+        return {
+          id: String(row?.id || createdAt),
+          role,
+          text: String(row?.message || "").trim() || "Message",
+          ts: new Date(createdAt).toLocaleTimeString().slice(0, 5),
+        } as Message;
+      });
+      setMessages((prev) => ({
+        ...prev,
+        [id]: mergeMessageLists(prev[id] || [], mapped),
+      }));
+    };
+    void load();
+    return () => {
+      active = false;
+    };
+  }, [selected?.id, user?.email]);
 
   const handleSend = async (text: string) => {
     const trimmed = text.trim().toLowerCase();

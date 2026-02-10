@@ -235,6 +235,25 @@ export function addMessage(tripId, role, content) {
   return message;
 }
 
+export function mergeTripMessages(tripId, incoming = []) {
+  const ensuredId = ensureTrip(tripId);
+  if (!Array.isArray(incoming) || incoming.length === 0) return;
+  setState((s) => {
+    const existing = s.messages[ensuredId] || [];
+    const byId = new Map(existing.map((msg) => [msg.id, msg]));
+    incoming.forEach((msg) => {
+      if (!msg || !msg.id) return;
+      byId.set(msg.id, msg);
+    });
+    const merged = Array.from(byId.values());
+    merged.sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
+    return {
+      ...s,
+      messages: { ...s.messages, [ensuredId]: merged },
+    };
+  });
+}
+
 export function setTripTitle(tripId, title) {
   ensureTrip(tripId);
   setState((s) => ({

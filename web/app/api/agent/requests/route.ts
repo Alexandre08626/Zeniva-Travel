@@ -47,14 +47,18 @@ function mapDbRow(row: any): AgentRequest {
   };
 }
 
-async function readRequestsFromSupabase(): Promise<AgentRequest[]> {
+async function readRequestsFromSupabase(channelId?: string): Promise<AgentRequest[]> {
   const { client } = getSupabaseAdminClient();
-  const { data, error } = await client
+  let query = client
     .from("agent_inbox_messages")
     .select(
       "id, created_at, channel_ids, message, yacht_name, desired_date, full_name, phone, email, source_path, property_name, author, sender_role, source"
     )
     .order("created_at", { ascending: false });
+  if (channelId) {
+    query = query.contains("channel_ids", [channelId]);
+  }
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
   return (data || []).map(mapDbRow);
 }
@@ -99,10 +103,12 @@ async function deleteRequestByIdSupabase(messageId: string) {
   if (error) throw new Error(error.message);
 }
 
-async function readRequests(): Promise<AgentRequest[]> {
+async function readRequests(channelId?: string): Promise<AgentRequest[]> {
   try {
     const raw = await fs.readFile(DATA_FILE, "utf-8");
-    return JSON.parse(raw || "[]");
+    const parsed = JSON.parse(raw || "[]");
+    if (!channelId) return parsed;
+    return parsed.filter((row: AgentRequest) => Array.isArray(row.channelIds) && row.channelIds.includes(channelId));
   } catch (err: any) {
     if (err?.code === "ENOENT") return [];
     throw err;
@@ -114,14 +120,16 @@ async function writeRequests(requests: AgentRequest[]) {
   await fs.writeFile(DATA_FILE, JSON.stringify(requests, null, 2), "utf-8");
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const url = new URL(request.url);
+    const channelId = url.searchParams.get("channelId") || undefined;
     if (hasSupabaseEnv()) {
-      const requests = await readRequestsFromSupabase();
+      const requests = await readRequestsFromSupabase(channelId);
       return NextResponse.json({ data: requests });
     }
 
-    const requests = await readRequests();
+    const requests = await readRequests(channelId);
     return NextResponse.json({ data: requests });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to read requests" }, { status: 500 });

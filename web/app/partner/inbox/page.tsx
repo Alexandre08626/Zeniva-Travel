@@ -1,8 +1,10 @@
 "use client";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Send, Search } from "lucide-react";
 import PageHeader from '../../../src/components/partner/PageHeader';
 import LinaAvatar from "../../../src/components/LinaAvatar";
+import { useAuthStore } from "../../../src/lib/authStore";
+import { buildChatChannelId, buildContactChannelId, fetchChatMessages, saveChatMessage } from "../../../src/lib/chatPersistence";
 
 type HelpMessage = {
   id: string;
@@ -54,13 +56,71 @@ const INITIAL_THREADS: HelpThread[] = [
 ];
 
 export default function InboxPage() {
+  const user = useAuthStore((s) => s.user);
   const [messageText, setMessageText] = useState("");
   const [sending, setSending] = useState(false);
   const [activeTab, setActiveTab] = useState<"lina" | "agent">("lina");
   const [threads, setThreads] = useState<HelpThread[]>(INITIAL_THREADS);
   const [selectedThreadId, setSelectedThreadId] = useState("lina-help");
+  const linaChannelId = useMemo(() => buildChatChannelId(user?.email, "partner-lina"), [user?.email]);
+  const agentChannelId = useMemo(() => buildChatChannelId(user?.email, "partner-agent"), [user?.email]);
+  const contactChannelId = useMemo(() => buildContactChannelId(user?.email), [user?.email]);
 
   const activeThread = useMemo(() => threads.find((t) => t.id === selectedThreadId) || threads[0], [threads, selectedThreadId]);
+
+  const mergeMessages = (existing: HelpMessage[], incoming: HelpMessage[]) => {
+    const map = new Map<string, HelpMessage>();
+    existing.forEach((msg) => map.set(msg.id, msg));
+    incoming.forEach((msg) => map.set(msg.id, msg));
+    const merged = Array.from(map.values());
+    merged.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    return merged;
+  };
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      if (!user?.email) return;
+      const [linaRows, agentRows] = await Promise.all([
+        fetchChatMessages(linaChannelId),
+        fetchChatMessages(contactChannelId || agentChannelId),
+      ]);
+      if (!active) return;
+
+      const mapRows = (rows: any[], senderDefault: HelpMessage["sender"]) =>
+        rows.map((row) => {
+          const createdAt = row?.createdAt || row?.created_at || new Date().toISOString();
+          const senderRole = row?.senderRole || row?.sender_role;
+          const sender = senderRole === "lina" ? "lina" : senderRole === "agent" || senderRole === "hq" ? "agent" : senderDefault;
+          return {
+            id: String(row?.id || createdAt),
+            sender,
+            text: String(row?.message || "").trim() || "Message",
+            timestamp: createdAt,
+          } as HelpMessage;
+        });
+
+      setThreads((prev) =>
+        prev.map((thread) => {
+          if (thread.id === "lina-help") {
+            const mapped = mapRows(linaRows, "host");
+            return { ...thread, messages: mergeMessages(thread.messages, mapped) };
+          }
+          if (thread.id === "agent-help") {
+            const mapped = mapRows(agentRows, "host");
+            return { ...thread, messages: mergeMessages(thread.messages, mapped) };
+          }
+          return thread;
+        })
+      );
+    };
+    void load();
+    const interval = window.setInterval(load, 30000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [user?.email, linaChannelId, agentChannelId, contactChannelId]);
 
   const handleSendMessage = async () => {
     if (!messageText.trim() || sending) return;
@@ -85,6 +145,21 @@ export default function InboxPage() {
 
     setMessageText('');
 
+    const activeChannelId = activeTab === "lina" ? linaChannelId : contactChannelId || agentChannelId;
+    if (activeChannelId) {
+      await saveChatMessage({
+        channelIds: activeTab === "agent"
+          ? [activeChannelId, "hq"].filter(Boolean)
+          : [activeChannelId],
+        message: newMessage.text,
+        author: user?.name || user?.email || "Partner",
+        senderRole: "client",
+        source: "partner-inbox",
+        sourcePath: "/partner/inbox",
+        propertyName: "Partner Help Center",
+      });
+    }
+
     if (activeTab === "lina") {
       setSending(true);
       try {
@@ -104,6 +179,17 @@ export default function InboxPage() {
               : thread
           )
         );
+        if (linaChannelId) {
+          await saveChatMessage({
+            channelIds: [linaChannelId],
+            message: reply,
+            author: "Lina",
+            senderRole: "lina",
+            source: "partner-inbox",
+            sourcePath: "/partner/inbox",
+            propertyName: "Partner Help Center",
+          });
+        }
       } finally {
         setSending(false);
       }

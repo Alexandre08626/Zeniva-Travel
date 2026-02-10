@@ -94,7 +94,7 @@ export default function AgentChatClient() {
       if (allRoles.some((r) => r.includes("agent") || r.includes("hq") || r.includes("admin"))) {
         return normalizeAgentId(email || name);
       }
-      const safeId = id || name || "unknown";
+      const safeId = email || id || name || "unknown";
       return `contact-${String(safeId).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`;
     };
 

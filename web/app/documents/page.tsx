@@ -5,6 +5,7 @@ import Header from "../../src/components/Header";
 import Footer from "../../src/components/Footer";
 import { LIGHT_BG, TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../src/design/tokens";
 import { useAuthStore } from "../../src/lib/authStore";
+import { buildChatChannelId, fetchChatMessages, saveChatMessage } from "../../src/lib/chatPersistence";
 import { useTripsStore, createTrip } from "../../lib/store/tripsStore";
 import { useDocumentsStore, seedDocuments, DocumentRecord } from "../../src/lib/documentsStore";
 
@@ -300,6 +301,7 @@ export default function DocumentsPage() {
     { id: "m1", role: "lina", author: "Lina (AI)", text: "I can confirm your flights and finalize your hotel. Want me to proceed?", ts: "09:02" },
     { id: "m2", role: "agent", author: "Zeniva Agent", text: "I can also call the hotel to confirm your late check-in.", ts: "09:04" },
   ] as { id: string; role: "lina" | "agent" | "partner" | "specialist" | "traveler"; author: string; text: string; ts: string }[]);
+  const chatChannelId = useMemo(() => buildChatChannelId(user?.email, "documents-chat"), [user?.email]);
 
   const loggedOut = !userId;
 
@@ -308,12 +310,33 @@ export default function DocumentsPage() {
     const trimmed = chatInput.trim();
     if (!trimmed) return;
     const now = new Date().toLocaleTimeString().slice(0, 5);
+    const createdAt = new Date().toISOString();
     setChatMessages((prev) => [
       ...prev,
       { id: `m-${Date.now()}`, role: "traveler", author: user?.name || "Traveler", text: trimmed, ts: now },
       { id: `m-${Date.now()}-lina`, role: "lina", author: "Lina (AI)", text: "Got it. I’m on it and will keep you updated here.", ts: now },
     ]);
     setChatInput("");
+    if (chatChannelId) {
+      void saveChatMessage({
+        channelIds: [chatChannelId],
+        message: trimmed,
+        author: user?.name || user?.email || "Traveler",
+        senderRole: "client",
+        source: "documents-chat",
+        sourcePath: "/documents",
+        propertyName: "Documents",
+      });
+      void saveChatMessage({
+        channelIds: [chatChannelId],
+        message: "Got it. I’m on it and will keep you updated here.",
+        author: "Lina",
+        senderRole: "lina",
+        source: "documents-chat",
+        sourcePath: "/documents",
+        propertyName: "Documents",
+      });
+    }
   };
 
   useEffect(() => {
@@ -325,7 +348,44 @@ export default function DocumentsPage() {
         { id: "m-partner", role: "partner", author: partnerName || "Partner Host", text: "I can help with property questions and arrival timing.", ts: "09:06" },
       ];
     });
+    if (chatChannelId) {
+      void saveChatMessage({
+        channelIds: [chatChannelId],
+        message: "I can help with property questions and arrival timing.",
+        author: partnerName || "Partner Host",
+        senderRole: "agent",
+        source: "documents-chat",
+        sourcePath: "/documents",
+        propertyName: "Documents",
+      });
+    }
   }, [hasPartner, partnerName]);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      if (!chatChannelId) return;
+      const rows = await fetchChatMessages(chatChannelId);
+      if (!active || !rows.length) return;
+      const mapped = rows.map((row: any) => {
+        const createdAt = row?.createdAt || row?.created_at || new Date().toISOString();
+        const sender = row?.senderRole || row?.sender_role;
+        const role = sender === "lina" ? "lina" : sender === "agent" || sender === "hq" ? "agent" : "traveler";
+        return {
+          id: String(row?.id || createdAt),
+          role,
+          author: row?.author || (role === "lina" ? "Lina (AI)" : role === "agent" ? "Zeniva Agent" : user?.name || "Traveler"),
+          text: String(row?.message || "").trim() || "Message",
+          ts: new Date(createdAt).toLocaleTimeString().slice(0, 5),
+        };
+      });
+      setChatMessages(mapped);
+    };
+    void load();
+    return () => {
+      active = false;
+    };
+  }, [chatChannelId, user?.name]);
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>

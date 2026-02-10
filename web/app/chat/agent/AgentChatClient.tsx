@@ -1,9 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Send, Search } from "lucide-react";
+import { getSupabaseClient } from "../../../src/lib/supabase/client";
+import { useAuthStore } from "../../../src/lib/authStore";
+import { buildChatChannelId, fetchChatMessages, saveChatMessage } from "../../../src/lib/chatPersistence";
 
 const ADMIN_CHANNEL_ID = "hq";
 
@@ -12,6 +15,7 @@ type ChatMessage = {
   role: "user" | "agent" | "lina";
   text: string;
   ts: string;
+  createdAt?: string;
 };
 
 type ChatThread = {
@@ -29,6 +33,15 @@ export default function TravelerAgentChatClient() {
   const listing = searchParams?.get("listing") || "Help Center";
   const sourcePath = searchParams?.get("source") || "/";
   const channelId = searchParams?.get("channel") || "agent-alexandre";
+  const user = useAuthStore((s) => s.user);
+  const accountAgentChannelId = useMemo(
+    () => buildChatChannelId(user?.email, `traveler-agent-${channelId}`),
+    [user?.email, channelId]
+  );
+  const accountLinaChannelId = useMemo(
+    () => buildChatChannelId(user?.email, "traveler-lina"),
+    [user?.email]
+  );
   const [threads, setThreads] = useState<ChatThread[]>([
     {
       id: "lina-help",
@@ -80,6 +93,105 @@ export default function TravelerAgentChatClient() {
 
   const canSend = useMemo(() => input.trim().length > 0, [input]);
 
+  const mapRole = (raw: string | undefined) => {
+    if (raw === "lina") return "lina" as const;
+    if (raw === "agent" || raw === "hq") return "agent" as const;
+    return "user" as const;
+  };
+
+  const extractMessageText = (raw: string) => {
+    const lines = raw.split("\n").map((line) => line.trim()).filter(Boolean);
+    const msgLine = lines.find((line) => line.toLowerCase().startsWith("message:"));
+    if (msgLine) return msgLine.replace(/^message:\s*/i, "");
+    return raw;
+  };
+
+  const mergeMessages = (existing: ChatMessage[], incoming: ChatMessage[]) => {
+    const map = new Map<string, ChatMessage>();
+    existing.forEach((msg) => map.set(msg.id, msg));
+    incoming.forEach((msg) => map.set(msg.id, msg));
+    const merged = Array.from(map.values());
+    merged.sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
+    return merged;
+  };
+
+  const loadConversation = useCallback(async (targetChannelId: string, threadId: string) => {
+    try {
+      if (!targetChannelId) return;
+      const rows = await fetchChatMessages(targetChannelId);
+      const mapped = rows.map((row: any) => {
+        const createdAt = row?.createdAt || row?.created_at || new Date().toISOString();
+        const text = extractMessageText(String(row?.message || "")) || "New message";
+        return {
+          id: String(row?.id || `${createdAt}-${Math.random().toString(16).slice(2)}`),
+          role: mapRole(row?.senderRole || row?.sender_role),
+          text,
+          ts: new Date(createdAt).toLocaleTimeString().slice(0, 5),
+          createdAt,
+        } as ChatMessage;
+      });
+
+      setThreads((prev) =>
+        prev.map((thread) => {
+          if (thread.id !== threadId) return thread;
+          if (!mapped.length) return thread;
+          return {
+            ...thread,
+            messages: mergeMessages(thread.messages, mapped),
+          };
+        })
+      );
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      if (!active) return;
+      await loadConversation(accountAgentChannelId, channelId);
+      await loadConversation(accountLinaChannelId, "lina-help");
+    };
+
+    void load();
+    const interval = window.setInterval(load, 30000);
+
+    let realtimeClient: ReturnType<typeof getSupabaseClient> | null = null;
+    let realtimeChannel: any = null;
+    try {
+      realtimeClient = getSupabaseClient();
+      realtimeChannel = realtimeClient
+        .channel(`traveler-agent-${channelId}`)
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "agent_inbox_messages" },
+          () => void load()
+        )
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "agent_inbox_messages" },
+          () => void load()
+        )
+        .on(
+          "postgres_changes",
+          { event: "DELETE", schema: "public", table: "agent_inbox_messages" },
+          () => void load()
+        )
+        .subscribe();
+    } catch {
+      // Supabase env missing; polling keeps the thread updated.
+    }
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      if (realtimeClient && realtimeChannel) {
+        realtimeClient.removeChannel(realtimeChannel);
+      }
+    };
+  }, [channelId, accountAgentChannelId, accountLinaChannelId, loadConversation]);
+
   const handleSend = async () => {
     if (!canSend || sending) return;
     const text = input.trim();
@@ -89,6 +201,7 @@ export default function TravelerAgentChatClient() {
       role: "user",
       text,
       ts: now.toLocaleTimeString().slice(0, 5),
+      createdAt: now.toISOString(),
     };
 
     setThreads((prev) =>
@@ -98,6 +211,18 @@ export default function TravelerAgentChatClient() {
     );
     setInput("");
     setSending(true);
+
+    if (activeTab === "lina" && accountLinaChannelId) {
+      await saveChatMessage({
+        channelIds: [accountLinaChannelId],
+        message: text,
+        author: user?.name || user?.email || "Traveler",
+        senderRole: "client",
+        source: "traveler-lina",
+        sourcePath,
+        propertyName: listing,
+      });
+    }
 
     if (activeTab === "lina") {
       try {
@@ -109,12 +234,24 @@ export default function TravelerAgentChatClient() {
           role: "lina",
           text: reply,
           ts: new Date().toLocaleTimeString().slice(0, 5),
+          createdAt: new Date().toISOString(),
         };
         setThreads((prev) =>
           prev.map((t) =>
             t.id === "lina-help" ? { ...t, messages: [...t.messages, linaMessage], unread: 0 } : t
           )
         );
+        if (accountLinaChannelId) {
+          await saveChatMessage({
+            channelIds: [accountLinaChannelId],
+            message: reply,
+            author: "Lina",
+            senderRole: "lina",
+            source: "traveler-lina",
+            sourcePath,
+            propertyName: listing,
+          });
+        }
       } finally {
         setSending(false);
       }
@@ -132,7 +269,7 @@ export default function TravelerAgentChatClient() {
           ? crypto.randomUUID()
           : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
       createdAt: new Date().toISOString(),
-      channelIds: [channelId, ADMIN_CHANNEL_ID],
+      channelIds: [channelId, ADMIN_CHANNEL_ID, accountAgentChannelId].filter(Boolean),
       sourcePath,
       propertyName: listing,
       author: "Traveler",

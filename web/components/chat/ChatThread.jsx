@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BRAND_BLUE, LIGHT_BG, MUTED_TEXT, TITLE_TEXT } from "../../src/design/tokens";
-import { useTripsStore, addMessage, updateSnapshot, updateTrip, applyTripPatch, generateProposal } from "../../lib/store/tripsStore";
+import { useTripsStore, addMessage, updateSnapshot, updateTrip, applyTripPatch, generateProposal, mergeTripMessages } from "../../lib/store/tripsStore";
 import { sendMessageToLina } from "../../src/lib/linaClient";
 import Label from "../../src/components/Label";
+import { useAuthStore } from "../../src/lib/authStore";
+import { buildChatChannelId, fetchChatMessages, saveChatMessage } from "../../src/lib/chatPersistence";
 const quickPrompts = ["Flights", "Hotels", "All-Inclusive", "Cruise", "Excursions"];
 
 function snapshotPatchFromTrip(trip) {
@@ -146,6 +148,7 @@ function ChatThread({ tripId, proposalMode = "" }) {
   const containerRef = useRef(null);
   const inputRef = useRef(null);
   const { messages, snapshots } = useTripsStore((s) => ({ messages: s.messages, snapshots: s.snapshots }));
+  const user = useAuthStore((s) => s.user);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [userHasInteracted, setUserHasInteracted] = useState(false);
@@ -153,12 +156,34 @@ function ChatThread({ tripId, proposalMode = "" }) {
   const history = useMemo(() => messages[tripId] || [], [messages, tripId]);
   const snapshot = snapshots[tripId] || {};
   const proposalSuffix = proposalMode ? `?mode=${encodeURIComponent(proposalMode)}` : "";
+  const accountChannelId = useMemo(() => buildChatChannelId(user?.email, `trip-${tripId}`), [user?.email, tripId]);
 
 
   useEffect(() => {
     if (!containerRef.current) return;
     containerRef.current.scrollTop = containerRef.current.scrollHeight;
   }, [history]);
+
+  useEffect(() => {
+    if (!accountChannelId) return;
+    let active = true;
+    const load = async () => {
+      const rows = await fetchChatMessages(accountChannelId);
+      if (!active || !rows.length) return;
+      const mapped = rows.map((row) => {
+        const createdAt = row?.createdAt || row?.created_at || new Date().toISOString();
+        const sender = row?.senderRole || row?.sender_role;
+        const role = sender === "lina" || sender === "agent" || sender === "hq" ? "assistant" : "user";
+        const content = String(row?.message || "").trim() || "Message";
+        return { id: String(row?.id || createdAt), role, content, createdAt };
+      });
+      mergeTripMessages(tripId, mapped);
+    };
+    void load();
+    return () => {
+      active = false;
+    };
+  }, [accountChannelId, tripId]);
 
   // Demander destination/dates si manquantes
   useEffect(() => {
@@ -222,11 +247,33 @@ function ChatThread({ tripId, proposalMode = "" }) {
     if (!trimmed || !tripId) return;
     const conversation = [...history.map((m) => ({ role: m.role, text: m.content })), { role: "user", text: trimmed }];
     addMessage(tripId, "user", trimmed);
+    if (accountChannelId) {
+      await saveChatMessage({
+        channelIds: [accountChannelId],
+        message: trimmed,
+        author: user?.name || user?.email || "Traveler",
+        senderRole: "client",
+        source: "traveler-chat",
+        sourcePath: `/chat/${tripId}`,
+        propertyName: snapshot.destination || "Trip",
+      });
+    }
     setInput("");
     setLoading(true);
     try {
       const { reply, tripPatch } = await sendMessageToLina(conversation);
       addMessage(tripId, "assistant", reply || "");
+      if (accountChannelId && reply) {
+        await saveChatMessage({
+          channelIds: [accountChannelId],
+          message: reply,
+          author: "Lina",
+          senderRole: "lina",
+          source: "traveler-chat",
+          sourcePath: `/chat/${tripId}`,
+          propertyName: snapshot.destination || "Trip",
+        });
+      }
       if (tripPatch?.patch) {
         applyTripPatch(tripId, tripPatch.patch);
       }
