@@ -95,40 +95,6 @@ function createTripFromMergedTrip(mergedTrip, proposalSuffix = "") {
   }
 }
 
-function parseTripFromText(text) {
-  if (!text) return null;
-  const lines = text
-    .split(/\n+/)
-    .map((l) => l.replace(/^[-*•]\s*/, "").trim())
-    .filter(Boolean);
-
-  const pick = (labels) => {
-    const lowerLabels = labels.map((l) => l.toLowerCase());
-    const hit = lines.find((l) => lowerLabels.some((label) => l.toLowerCase().startsWith(label)));
-    if (!hit) return "";
-    const parts = hit.split(/[:\-]\s*/);
-    return parts.slice(1).join(": ").trim();
-  }
-  const destination = pick(["Destination", "Arrivée", "Arrival", "Destination city"]);
-  const datesRaw = pick(["Dates exactes", "Dates", "Check-in", "Travel dates"]);
-  const budgetRaw = pick(["Budget total", "Budget", "Budget total pour le voyage"]);
-  const travelersRaw = pick(["Nombre d'adultes", "Adults", "Travelers", "Voyageurs"]);
-  const style = pick(["Type d'hébergement", "Hébergement", "Accommodation", "Style"]);
-
-  let checkIn = "";
-  let checkOut = "";
-  const dateMatch = datesRaw.match(/(\d{4}-\d{2}-\d{2}).*(\d{4}-\d{2}-\d{2})/);
-  if (dateMatch) {
-    checkIn = dateMatch[1];
-    checkOut = dateMatch[2];
-  }
-
-  const adults = parseInt(travelersRaw, 10) || undefined;
-  const budget = budgetRaw || "";
-
-  if (!origin && !destination && !datesRaw && !budget && !style) return null;
-
-
 function ChatThread({ tripId, proposalMode = "" }) {
   // Ajout : messages automatiques si infos manquantes
   const [promptedForHotelInfo, setPromptedForHotelInfo] = useState(false);
