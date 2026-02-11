@@ -60,44 +60,45 @@ export default function YachtGalleryLightbox({ images, title }: Props) {
   return (
     <>
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-4 lg:grid-rows-2 gap-2 rounded-3xl overflow-hidden">
-        <a
-          href={gridImages[0]}
-          target="_blank"
-          rel="noreferrer"
-          onClick={(event) => {
-            event.preventDefault();
-            openAt(0);
-          }}
-          className="lg:col-span-2 lg:row-span-2 h-80 lg:h-full w-full cursor-zoom-in focus:outline-none"
-          aria-label={`Open ${title} photo 1`}
-        >
+        <div className="relative lg:col-span-2 lg:row-span-2 h-80 lg:h-full w-full">
           <img
             src={gridImages[0]}
             alt={title}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover pointer-events-none"
             loading="eager"
           />
-        </a>
-        {gridImages.slice(1, 5).map((img, i) => (
           <a
-            key={`${img}-${i}`}
-            href={img}
+            href={gridImages[0]}
             target="_blank"
             rel="noreferrer"
             onClick={(event) => {
               event.preventDefault();
-              openAt(i + 1);
+              openAt(0);
             }}
-            className="h-40 lg:h-full w-full cursor-zoom-in focus:outline-none"
-            aria-label={`Open ${title} photo ${i + 2}`}
-          >
+            className="absolute inset-0 z-10 cursor-zoom-in focus:outline-none"
+            aria-label={`Open ${title} photo 1`}
+          />
+        </div>
+        {gridImages.slice(1, 5).map((img, i) => (
+          <div key={`${img}-${i}`} className="relative h-40 lg:h-full w-full">
             <img
               src={img}
               alt={`${title} photo ${i + 2}`}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover pointer-events-none"
               loading="lazy"
             />
-          </a>
+            <a
+              href={img}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(event) => {
+                event.preventDefault();
+                openAt(i + 1);
+              }}
+              className="absolute inset-0 z-10 cursor-zoom-in focus:outline-none"
+              aria-label={`Open ${title} photo ${i + 2}`}
+            />
+          </div>
         ))}
       </div>
 
