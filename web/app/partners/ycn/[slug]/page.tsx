@@ -2,7 +2,7 @@ import { getYcnPackages } from '@/src/data/partners/ycn';
 import { getImagesForDestination } from '@/src/lib/images';
 import Link from 'next/link';
 import Image from 'next/image';
-import YcnGallery from '@/src/components/YcnGallery.client';
+import YachtGalleryLightbox from '@/src/components/yachts/YachtGalleryLightbox.client';
 import YachtRatePicker from '@/src/components/yachts/YachtRatePicker.client';
 import AirbnbAvailability from '@/src/components/airbnbs/AirbnbAvailability.client';
 import AddToProposalButton from '@/src/components/proposals/AddToProposalButton.client';
@@ -28,14 +28,6 @@ function parsePrice(label?: string) {
   const match = label.match(/\$\s*([0-9,.]+)/);
   if (!match) return null;
   return Number(match[1].replace(/,/g, '')) || null;
-}
-
-function isLocalImage(src: string) {
-  return src.startsWith('/');
-}
-
-function isLocalYachtImage(src: string) {
-  return src.startsWith('/yachts/');
 }
 
 export default async function YcnPartnerPage({
@@ -155,51 +147,7 @@ export default async function YcnPartnerPage({
           {item.specs && <p className="text-sm text-slate-600">{item.specs}</p>}
         </div>
 
-        <div className="relative grid grid-cols-1 lg:grid-cols-4 lg:grid-rows-2 gap-2 rounded-3xl overflow-hidden">
-          <div className="lg:col-span-2 lg:row-span-2 h-80 lg:h-full">
-            {isLocalYachtImage(gridImages[0]) ? (
-              <img
-                src={gridImages[0]}
-                alt={item.title}
-                className="h-full w-full object-cover"
-                loading="eager"
-              />
-            ) : (
-              <Image
-                src={gridImages[0]}
-                alt={item.title}
-                width={1200}
-                height={900}
-                unoptimized={isLocalImage(gridImages[0])}
-                className="h-full w-full object-cover"
-                sizes="(min-width: 1024px) 60vw, 100vw"
-                priority
-              />
-            )}
-          </div>
-          {gridImages.slice(1, 5).map((img, i) => (
-            <div key={i} className="h-40 lg:h-full">
-              {isLocalYachtImage(img) ? (
-                <img
-                  src={img}
-                  alt={`${item.title} photo ${i + 2}`}
-                  className="h-full w-full object-cover"
-                  loading="lazy"
-                />
-              ) : (
-                <Image
-                  src={img}
-                  alt={`${item.title} photo ${i + 2}`}
-                  width={800}
-                  height={600}
-                  unoptimized={isLocalImage(img)}
-                  className="h-full w-full object-cover"
-                  sizes="(min-width: 1024px) 20vw, 100vw"
-                />
-              )}
-            </div>
-          ))}
-        </div>
+        <YachtGalleryLightbox images={gridImages} title={item.title} />
 
         <section className="rounded-2xl border border-blue-100 bg-white p-6">
           <p className="text-lg font-bold text-slate-900">
