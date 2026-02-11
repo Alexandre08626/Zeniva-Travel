@@ -7,10 +7,6 @@ type Props = {
   title: string;
 };
 
-function isLocalImage(src: string) {
-  return src.startsWith("/");
-}
-
 export default function YachtGalleryLightbox({ images, title }: Props) {
   const gallery = useMemo(() => images.filter(Boolean), [images]);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -63,11 +59,16 @@ export default function YachtGalleryLightbox({ images, title }: Props) {
 
   return (
     <>
-      <div className="relative grid grid-cols-1 lg:grid-cols-4 lg:grid-rows-2 gap-2 rounded-3xl overflow-hidden">
-        <button
-          type="button"
-          onClick={() => openAt(0)}
-          className="lg:col-span-2 lg:row-span-2 h-80 lg:h-full w-full"
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-4 lg:grid-rows-2 gap-2 rounded-3xl overflow-hidden">
+        <a
+          href={gridImages[0]}
+          target="_blank"
+          rel="noreferrer"
+          onClick={(event) => {
+            event.preventDefault();
+            openAt(0);
+          }}
+          className="lg:col-span-2 lg:row-span-2 h-80 lg:h-full w-full cursor-zoom-in focus:outline-none"
           aria-label={`Open ${title} photo 1`}
         >
           <img
@@ -76,13 +77,18 @@ export default function YachtGalleryLightbox({ images, title }: Props) {
             className="h-full w-full object-cover"
             loading="eager"
           />
-        </button>
+        </a>
         {gridImages.slice(1, 5).map((img, i) => (
-          <button
-            key={img}
-            type="button"
-            onClick={() => openAt(i + 1)}
-            className="h-40 lg:h-full w-full"
+          <a
+            key={`${img}-${i}`}
+            href={img}
+            target="_blank"
+            rel="noreferrer"
+            onClick={(event) => {
+              event.preventDefault();
+              openAt(i + 1);
+            }}
+            className="h-40 lg:h-full w-full cursor-zoom-in focus:outline-none"
             aria-label={`Open ${title} photo ${i + 2}`}
           >
             <img
@@ -91,7 +97,7 @@ export default function YachtGalleryLightbox({ images, title }: Props) {
               className="h-full w-full object-cover"
               loading="lazy"
             />
-          </button>
+          </a>
         ))}
       </div>
 
