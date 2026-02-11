@@ -98,6 +98,22 @@ const residences = [
     ),
     remotePrefix: "residences/tropical-breeze",
   },
+  {
+    id: "the-palms",
+    localDir: path.resolve(
+      projectRoot,
+      "..",
+      "Zeniva Travel",
+      "Proprieté",
+      "Floride",
+      "Itrip",
+      "Floride",
+      "Fort Lauderdale",
+      "4 (The Palms)",
+      "Photo"
+    ),
+    remotePrefix: "residences/the-palms",
+  },
 ];
 
 const allowedExtensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif"]);
