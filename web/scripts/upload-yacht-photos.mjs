@@ -42,9 +42,38 @@ if (!supabaseUrl || !serviceKey) {
 }
 
 const bucket = "yacht-photos";
-const localDir = path.resolve(process.cwd(), "web", "public", "yachts", "52ft-prestige-500-fly-2017");
-const remotePrefix = "yachts/52ft-prestige-500-fly-2017";
-const outputListPath = path.resolve(process.cwd(), "prestige-images-supabase.txt");
+const projectRoot = process.cwd();
+const packagesPath = path.resolve(projectRoot, "web", "src", "data", "ycn_packages.json");
+
+const yachts = [
+  {
+    id: "48ft-sailing-catamaran-1990-2020",
+    localDir: path.resolve(projectRoot, "web", "public", "yachts", "BUBBLE", "Video", "Photo"),
+    remotePrefix: "yachts/48ft-sailing-catamaran-1990-2020",
+  },
+  {
+    id: "50ft-azimut-50-fly-2017",
+    localDir: path.resolve(projectRoot, "web", "public", "yachts", "KILAUEA", "Photo"),
+    remotePrefix: "yachts/50ft-azimut-50-fly-2017",
+  },
+  {
+    id: "60-azimut-fly-2015",
+    localDir: path.resolve(projectRoot, "web", "public", "yachts", "TRIFECTA", "Photo"),
+    remotePrefix: "yachts/60-azimut-fly-2015",
+  },
+  {
+    id: "118-azimut-grande-36-metri-2025",
+    localDir: path.resolve(projectRoot, "web", "public", "yachts", "TYCOON", "Photo"),
+    remotePrefix: "yachts/118-azimut-grande-36-metri-2025",
+  },
+  {
+    id: "52ft-prestige-500-fly-2017",
+    localDir: path.resolve(projectRoot, "web", "public", "yachts", "WHISKEY & WAVES", "Photo"),
+    remotePrefix: "yachts/52ft-prestige-500-fly-2017",
+  },
+];
+
+const allowedExtensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif"]);
 
 const supabase = createClient(supabaseUrl, serviceKey, {
   auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
@@ -64,34 +93,97 @@ async function ensureBucket() {
   }
 }
 
+function getContentType(fileName) {
+  const ext = path.extname(fileName).toLowerCase();
+  if (ext === ".png") return "image/png";
+  if (ext === ".gif") return "image/gif";
+  if (ext === ".webp") return "image/webp";
+  return "image/jpeg";
+}
+
+function readPackageData() {
+  if (!fs.existsSync(packagesPath)) {
+    throw new Error(`Missing ycn packages file: ${packagesPath}`);
+  }
+  const raw = fs.readFileSync(packagesPath, "utf8");
+  return JSON.parse(raw);
+}
+
+function writePackageData(data) {
+  fs.writeFileSync(packagesPath, JSON.stringify(data, null, 2), "utf8");
+}
+
+function listImageFiles(dir) {
+  if (!fs.existsSync(dir)) return [];
+  return fs
+    .readdirSync(dir)
+    .filter((name) => allowedExtensions.has(path.extname(name).toLowerCase()))
+    .sort();
+}
+
+async function uploadWithRetry(bucketName, remotePath, fileBody, contentType, maxAttempts = 3) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const { error } = await supabase.storage
+      .from(bucketName)
+      .upload(remotePath, fileBody, { upsert: true, contentType });
+    if (!error) return;
+    lastError = error;
+    const delayMs = 1000 * attempt;
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+  throw lastError;
+}
+
 async function uploadAll() {
   await ensureBucket();
-  const files = fs.readdirSync(localDir)
-    .filter((name) => name.toLowerCase().endsWith(".jpg"))
-    .sort();
+  const packages = readPackageData();
+  const updateSummary = [];
 
-  const urls = [];
-  for (const name of files) {
-    const localPath = path.join(localDir, name);
-    const remotePath = `${remotePrefix}/${name}`;
-    const fileBody = fs.readFileSync(localPath);
-    const { error: uploadError } = await supabase.storage
-      .from(bucket)
-      .upload(remotePath, fileBody, { upsert: true, contentType: "image/jpeg" });
-    if (uploadError) {
-      throw new Error(`Upload failed for ${name}: ${uploadError.message}`);
+  for (const yacht of yachts) {
+    const files = listImageFiles(yacht.localDir);
+    if (files.length === 0) {
+      console.warn(`No images found for ${yacht.id} at ${yacht.localDir}`);
+      continue;
     }
-    const { data } = supabase.storage.from(bucket).getPublicUrl(remotePath);
-    urls.push(data.publicUrl);
-    console.log(`Uploaded ${name}`);
+
+    const urls = [];
+    let failed = false;
+    for (const name of files) {
+      const localPath = path.join(yacht.localDir, name);
+      const remotePath = `${yacht.remotePrefix}/${name}`;
+      const fileBody = fs.readFileSync(localPath);
+      try {
+        await uploadWithRetry(bucket, remotePath, fileBody, getContentType(name));
+      } catch (uploadError) {
+        console.error(`Upload failed for ${yacht.id}/${name}: ${uploadError.message || uploadError}`);
+        failed = true;
+        break;
+      }
+      const { data } = supabase.storage.from(bucket).getPublicUrl(remotePath);
+      urls.push(data.publicUrl);
+      console.log(`Uploaded ${yacht.id}: ${name}`);
+    }
+
+    if (failed) {
+      console.warn(`Skipping JSON update for ${yacht.id} due to upload errors.`);
+      continue;
+    }
+
+    const target = packages.find((item) => item.id === yacht.id);
+    if (!target) {
+      console.warn(`No package entry found for ${yacht.id}; skipping JSON update.`);
+      continue;
+    }
+
+    target.thumbnail = urls[0];
+    target.images = urls;
+    updateSummary.push({ id: yacht.id, count: urls.length });
   }
 
-  const lines = urls.map((u, i) => {
-    const suffix = i === urls.length - 1 ? "" : ",";
-    return `      "${u}"${suffix}`;
-  });
-  fs.writeFileSync(outputListPath, lines.join("\n"), "utf8");
-  console.log(`\nWrote URL list to ${outputListPath}`);
+  writePackageData(packages);
+  console.log("\nUpdated ycn_packages.json:");
+  updateSummary.forEach((row) => console.log(`- ${row.id}: ${row.count} images`));
 }
 
 uploadAll().catch((err) => {
