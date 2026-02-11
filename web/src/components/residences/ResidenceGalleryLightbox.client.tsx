@@ -92,28 +92,6 @@ export default function ResidenceGalleryLightbox({ images, title }: Props) {
         ))}
       </div>
 
-      <section className="rounded-2xl border border-blue-100 bg-white p-6">
-        <h2 className="text-lg font-bold text-slate-900">All photos</h2>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {gallery.map((img, i) => (
-            <div key={`${img}-${i}`} className="relative aspect-[4/3] overflow-hidden rounded-xl bg-slate-100">
-              <img
-                src={img}
-                alt={`${title} gallery photo ${i + 1}`}
-                className="h-full w-full object-cover pointer-events-none"
-                loading="lazy"
-              />
-              <button
-                type="button"
-                onClick={() => openAt(i)}
-                className="absolute inset-0 z-10 cursor-zoom-in focus:outline-none"
-                aria-label={`Open ${title} gallery photo ${i + 1}`}
-              />
-            </div>
-          ))}
-        </div>
-      </section>
-
       {activeIndex !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
           <button
