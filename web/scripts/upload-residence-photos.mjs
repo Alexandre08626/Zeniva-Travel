@@ -130,9 +130,24 @@ const residences = [
     ),
     remotePrefix: "residences/villa-rio",
   },
+  {
+    id: "central-tropical-villa",
+    localDir: path.resolve(
+      projectRoot,
+      "..",
+      "Zeniva Travel",
+      "Proprieté",
+      "Floride",
+      "Vlad Soumin ( Owner )",
+      "Proprieter",
+      "Central Tropical Villa Heated Pool Close to Beach",
+      "Photo"
+    ),
+    remotePrefix: "residences/central-tropical-villa",
+  },
 ];
 
-const allowedExtensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif"]);
+const allowedExtensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif"]);
 
 const supabase = createClient(supabaseUrl, serviceKey, {
   auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
@@ -154,6 +169,7 @@ async function ensureBucket() {
 
 function getContentType(fileName) {
   const ext = path.extname(fileName).toLowerCase();
+  if (ext === ".avif") return "image/avif";
   if (ext === ".png") return "image/png";
   if (ext === ".gif") return "image/gif";
   if (ext === ".webp") return "image/webp";
