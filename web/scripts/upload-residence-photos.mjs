@@ -114,6 +114,22 @@ const residences = [
     ),
     remotePrefix: "residences/the-palms",
   },
+  {
+    id: "villa-rio",
+    localDir: path.resolve(
+      projectRoot,
+      "..",
+      "Zeniva Travel",
+      "Proprieté",
+      "Floride",
+      "Itrip",
+      "Floride",
+      "Fort Lauderdale",
+      "6 (Villa Rio)",
+      "Photo"
+    ),
+    remotePrefix: "residences/villa-rio",
+  },
 ];
 
 const allowedExtensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif"]);
