@@ -4,6 +4,7 @@ import Image from 'next/image';
 import AirbnbAvailability from '@/src/components/airbnbs/AirbnbAvailability.client';
 import AirbnbBookingSummary from '@/src/components/airbnbs/AirbnbBookingSummary.client';
 import AddToProposalButton from '@/src/components/proposals/AddToProposalButton.client';
+import ResidenceGalleryLightbox from '@/src/components/residences/ResidenceGalleryLightbox.client';
 import { formatCurrencyAmount, normalizeListingTitle, normalizePetFriendly } from '@/src/lib/format';
 
 function slugify(s: string) {
@@ -46,8 +47,6 @@ export default async function AirbnbDetailPage({ params }: { params: Promise<{ s
 
   const gallery = [item.thumbnail, ...(item.images || [])].filter(Boolean) as string[];
   const hero = gallery[0] || '/branding/icon-proposals.svg';
-  const gridImages = [...gallery];
-  while (gridImages.length < 5) gridImages.push(hero);
 
   const displayTitle = normalizeListingTitle(item.title || 'Residence');
 
@@ -93,31 +92,7 @@ export default async function AirbnbDetailPage({ params }: { params: Promise<{ s
           <p className="text-sm text-slate-600">{metaLine}</p>
         </div>
 
-        <div className="relative grid grid-cols-1 lg:grid-cols-4 lg:grid-rows-2 gap-2 rounded-3xl overflow-hidden">
-          <div className="lg:col-span-2 lg:row-span-2 h-80 lg:h-full">
-            <Image
-              src={gridImages[0]}
-              alt={displayTitle}
-              width={1200}
-              height={900}
-              className="h-full w-full object-cover"
-              sizes="(min-width: 1024px) 60vw, 100vw"
-              priority
-            />
-          </div>
-          {gridImages.slice(1, 5).map((img, i) => (
-            <div key={i} className="h-40 lg:h-full">
-              <Image
-                src={img}
-                alt={`${displayTitle} photo ${i + 2}`}
-                width={800}
-                height={600}
-                className="h-full w-full object-cover"
-                sizes="(min-width: 1024px) 20vw, 100vw"
-              />
-            </div>
-          ))}
-        </div>
+        <ResidenceGalleryLightbox images={gallery} title={displayTitle} />
 
         <section className="rounded-2xl border border-blue-100 bg-white p-6">
           <p className="text-lg font-bold text-slate-900">
