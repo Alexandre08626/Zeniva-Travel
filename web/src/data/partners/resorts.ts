@@ -284,13 +284,17 @@ export const resortPartners: ResortPartner[] = [
       {
         name: "Villas & Suites",
         images: [
-          "https://dbijapkm3o6fj.cloudfront.net/resources/923,1004,1,6,4,0,1600,900/-4294-/20240501080926/pool-beach-villa-le-taha-a-by-pearl-resorts.jpeg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/taha-a-pool-beach-villa/TKDV-_DSF0780-sRGB-HD.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/taha-a-pool-beach-villa/TKDV-_DSF0789-sRGB-MD.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/taha-a-pool-beach-villa/TKDV-_DSF0816-sRGB-HD.jpg",
         ],
       },
       {
         name: "Overwater",
         images: [
-          "https://dbijapkm3o6fj.cloudfront.net/resources/923,1004,1,6,4,0,1600,900/-4294-/20240501080926/pool-beach-villa-le-taha-a-by-pearl-resorts.jpeg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/taha-a-villa-overwater-suite/Bathroom.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/taha-a-villa-overwater-suite/Interior%20Overwater%20Suite%202.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/taha-a-villa-overwater-suite/Outside%20Deck.jpg",
         ],
       },
     ],
