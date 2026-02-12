@@ -117,9 +117,15 @@ export default async function AirbnbDetailPage({ params }: { params: Promise<{ s
                 </div>
                 <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">Verified</span>
               </div>
-              <p className="mt-4 text-sm leading-relaxed text-slate-700 whitespace-pre-line">
-                {descriptionText || "Private stays curated by Zeniva, bookable with concierge support."}
-              </p>
+              <details className="group mt-4">
+                <summary className="cursor-pointer text-sm font-semibold text-blue-700">
+                  View description
+                </summary>
+                <p className="mt-3 text-sm leading-relaxed text-slate-700 whitespace-pre-line">
+                  {descriptionText || "Private stays curated by Zeniva, bookable with concierge support."}
+                </p>
+                <div className="mt-2 text-xs text-slate-500">Click again to close.</div>
+              </details>
             </section>
 
             <section className="rounded-2xl border border-blue-100 bg-white p-6">
