@@ -220,6 +220,108 @@ const residences = [
     ),
     remotePrefix: "residences/ultimate-villa-heated-pool-playground",
   },
+  {
+    id: "bora-bora-royal-beach-villa-with-pool",
+    localDir: path.resolve(
+      projectRoot,
+      "..",
+      "Zeniva Travel",
+      "Proprieté",
+      "Polynesie Francaise",
+      "Pearl Resort",
+      "BORA BORA",
+      "Hotel",
+      "Photos",
+      "Rooms",
+      "Royal Beach Villa with pool"
+    ),
+    remotePrefix: "residences/bora-bora-royal-beach-villa-with-pool",
+  },
+  {
+    id: "bora-bora-garden-villa-with-pool",
+    localDir: path.resolve(
+      projectRoot,
+      "..",
+      "Zeniva Travel",
+      "Proprieté",
+      "Polynesie Francaise",
+      "Pearl Resort",
+      "BORA BORA",
+      "Hotel",
+      "Photos",
+      "Rooms",
+      "Garden Villa with pool"
+    ),
+    remotePrefix: "residences/bora-bora-garden-villa-with-pool",
+  },
+  {
+    id: "bora-bora-beach-villa-with-pool",
+    localDir: path.resolve(
+      projectRoot,
+      "..",
+      "Zeniva Travel",
+      "Proprieté",
+      "Polynesie Francaise",
+      "Pearl Resort",
+      "BORA BORA",
+      "Hotel",
+      "Photos",
+      "Rooms",
+      "Beach Villa with Pool"
+    ),
+    remotePrefix: "residences/bora-bora-beach-villa-with-pool",
+  },
+  {
+    id: "bora-bora-overwater-bungalow",
+    localDir: path.resolve(
+      projectRoot,
+      "..",
+      "Zeniva Travel",
+      "Proprieté",
+      "Polynesie Francaise",
+      "Pearl Resort",
+      "BORA BORA",
+      "Hotel",
+      "Photos",
+      "Rooms",
+      "Overwater Bungalow"
+    ),
+    remotePrefix: "residences/bora-bora-overwater-bungalow",
+  },
+  {
+    id: "bora-bora-suite-with-pool",
+    localDir: path.resolve(
+      projectRoot,
+      "..",
+      "Zeniva Travel",
+      "Proprieté",
+      "Polynesie Francaise",
+      "Pearl Resort",
+      "BORA BORA",
+      "Hotel",
+      "Photos",
+      "Rooms",
+      "End of Pontoon Overwater Suite with Pool"
+    ),
+    remotePrefix: "residences/bora-bora-suite-with-pool",
+  },
+  {
+    id: "bora-bora-pool-overwater-villa",
+    localDir: path.resolve(
+      projectRoot,
+      "..",
+      "Zeniva Travel",
+      "Proprieté",
+      "Polynesie Francaise",
+      "Pearl Resort",
+      "BORA BORA",
+      "Hotel",
+      "Photos",
+      "Rooms",
+      "Pool Overwater Villa"
+    ),
+    remotePrefix: "residences/bora-bora-pool-overwater-villa",
+  },
 ];
 
 const allowedExtensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif"]);
