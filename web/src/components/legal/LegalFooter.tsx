@@ -20,7 +20,7 @@ export default function LegalFooter() {
         </div>
         <div className="legal-footer-note">
           Zeniva Travel is operated by Zeniva LLC. For privacy questions, email
-          info@zeniva.ca.
+          privacy@zeniva.ca.
         </div>
       </div>
     </footer>

@@ -27,7 +27,7 @@ export function createLegalMetadata({
       title,
       description,
       url,
-      type: "article",
+      type: "website",
       siteName: LEGAL_BRAND,
     },
     twitter: {
