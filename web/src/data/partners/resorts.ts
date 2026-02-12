@@ -164,13 +164,18 @@ export const resortPartners: ResortPartner[] = [
       {
         name: "Beach & Pool",
         images: [
-          "https://dbijapkm3o6fj.cloudfront.net/resources/1974,1004,1,6,4,0,1600,900/-4620-/20201124084419/ocean-view-room-le-tahiti-by-pearl-resorts.jpeg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/le-tahiti/Aerial%20View%20Black%20Sandy%20Beach%20-%20Tahiti%20Pearl%20Beach%20Resort%20%26%20Spa.jpeg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/le-tahiti/PLAGE-3.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/le-tahiti/PISCINE-2.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/le-tahiti/Pool%20-%20Tahiti%20Pearl%20Beach%20Resort%20%26%20Spa%201.JPG",
         ],
       },
       {
         name: "Rooms",
         images: [
-          "https://dbijapkm3o6fj.cloudfront.net/resources/1974,1004,1,6,4,0,1600,900/-4620-/20201124084419/ocean-view-room-le-tahiti-by-pearl-resorts.jpeg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tahiti-room-resort/King%20Bed.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tahiti-room-resort/Ocean%20View%20Suite.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tahiti-room-resort/Suite%20-%20Bedroom.jpg",
         ],
       },
     ],
