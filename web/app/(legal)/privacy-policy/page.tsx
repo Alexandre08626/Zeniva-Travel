@@ -45,6 +45,21 @@ export default function PrivacyPolicyPage() {
         </ul>
       </div>
 
+      <div className="info-card">
+        <h3>Additional privacy notices</h3>
+        <p>
+          If you use Zeniva in a different role, review the policies below:
+        </p>
+        <ul>
+          <li>
+            <Link href="/privacy-agents">Privacy Policy - Agent Mode</Link>
+          </li>
+          <li>
+            <Link href="/privacy-partners">Privacy Policy - Partner Mode</Link>
+          </li>
+        </ul>
+      </div>
+
       <div className="legal-toc">
         <strong>Table of contents</strong>
         <ul>

@@ -9,6 +9,8 @@ export default function LegalFooter() {
         <div className="legal-footer-links">
           <Link href="/">Home</Link>
           <Link href="/privacy-policy">Privacy</Link>
+          <Link href="/privacy-agents">Privacy Agents</Link>
+          <Link href="/privacy-partners">Privacy Partners</Link>
           <Link href="/cookie-policy">Cookies</Link>
           <Link href="/terms">Terms</Link>
           <Link href="/ai-terms">AI Terms</Link>
