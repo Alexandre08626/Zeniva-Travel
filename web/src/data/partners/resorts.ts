@@ -89,21 +89,102 @@ export const resortPartners: ResortPartner[] = [
     policies: ["Check-in 3pm / Check-out 11am", "No smoking in villas", "Flexible 30-day cancellation (contract)", "Credit card guarantee"],
     media: [
       {
-        name: "Overwater",
+        name: "Overwater Bungalows",
         images: [
-          "https://dbijapkm3o6fj.cloudfront.net/resources/3088,1004,1,6,4,0,1600,900/-4153-/20251113085013/garden-villa-with-pool-le-bora-bora-by-pearl-resorts.jpeg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-overwater-bungalow/Bamboo%20Fences%202.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-overwater-bungalow/Bamboo%20fences%203.JPG",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-overwater-bungalow/Bathroom%201.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-overwater-bungalow/Bathroom%202.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-overwater-bungalow/Bathroom%203.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-overwater-bungalow/Direct%20access%20to%20the%20lagoon.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-overwater-bungalow/Exterior%20view%202.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-overwater-bungalow/Interior%20view%201.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-overwater-bungalow/Interior%20view%202.JPG",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-overwater-bungalow/Overwater%20bungalow%20access.jpg"
         ],
       },
       {
-        name: "Pools & Lagoon",
+        name: "Beach Villas",
         images: [
-          "https://dbijapkm3o6fj.cloudfront.net/resources/3088,1004,1,6,4,0,1600,900/-4153-/20251113085013/garden-villa-with-pool-le-bora-bora-by-pearl-resorts.jpeg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-beach-villa-with-pool/Bathroom%202.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-beach-villa-with-pool/Bathroom.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-beach-villa-with-pool/COIN%20MAQUILLAGE.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-beach-villa-with-pool/Interior%20room%20%26%20living%20room.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-beach-villa-with-pool/Pool%20View.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-beach-villa-with-pool/View%20from%20the%20front%20beach%20area.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-beach-villa-with-pool/View%20from%20the%20master%20bedroom.jpg"
         ],
       },
       {
-        name: "Dining",
+        name: "Garden Villas",
         images: [
-          "https://dbijapkm3o6fj.cloudfront.net/resources/3088,1004,1,6,4,0,1600,900/-4153-/20251113085013/garden-villa-with-pool-le-bora-bora-by-pearl-resorts.jpeg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-garden-villa-with-pool/Aerial%20View.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-garden-villa-with-pool/Bathroom.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-garden-villa-with-pool/Garden%20Villa%20with%20Pool-2.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-garden-villa-with-pool/Garden%20Villa%20with%20Pool-3.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-garden-villa-with-pool/Garden%20Villa%20with%20Pool.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-garden-villa-with-pool/Garden%20Villa%20with%20Pool_2.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-garden-villa-with-pool/Garden%20Villa%20with%20Pool_4.jpg"
+        ],
+      },
+      {
+        name: "Pool Overwater Villas",
+        images: [
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-pool-overwater-villa/Bathroom%201.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-pool-overwater-villa/Bathroom%202.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-pool-overwater-villa/Bathroom%203.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-pool-overwater-villa/Pool%20Overwater%20Villa%201.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-pool-overwater-villa/Pool%20Overwater%20Villa%202.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-pool-overwater-villa/Pool%20Overwater%20Villa%203.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-pool-overwater-villa/Pool%20Overwater%20Villa%204.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-pool-overwater-villa/Pool%20Overwater%20Villa%205.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-pool-overwater-villa/Pool%20Overwater%20Villa%206.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-pool-overwater-villa/Pool%20Overwater%20Villa%207.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-pool-overwater-villa/Pool%20Overwater%20Villa%208.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-pool-overwater-villa/Pool%20Overwater%20Villa.jpg"
+        ],
+      },
+      {
+        name: "Royal Beach Villas",
+        images: [
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-royal-beach-villa-with-pool/Aerial%20View.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-royal-beach-villa-with-pool/Back%20side%20pool.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-royal-beach-villa-with-pool/Bathroom%202.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-royal-beach-villa-with-pool/Bathroom.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-royal-beach-villa-with-pool/Beach.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-royal-beach-villa-with-pool/By%20Night.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-royal-beach-villa-with-pool/COIN%20MAQUILLAGE.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-royal-beach-villa-with-pool/Cosy.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-royal-beach-villa-with-pool/Entrance.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-royal-beach-villa-with-pool/Living%20Room%202.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-royal-beach-villa-with-pool/Living%20room.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-royal-beach-villa-with-pool/Main%20Pool.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-royal-beach-villa-with-pool/Pool%20Lifestyle%202.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-royal-beach-villa-with-pool/Pool%20Lifestyle.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-royal-beach-villa-with-pool/Pool%20View.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-royal-beach-villa-with-pool/Pool%20with%20a%20view.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-royal-beach-villa-with-pool/Private%20beach%20location.jpg"
+        ],
+      },
+      {
+        name: "Suites with Pool",
+        images: [
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-suite-with-pool/Aerial%20View%201.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-suite-with-pool/Aerial%20View%202.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-suite-with-pool/Aerial%20View%203.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-suite-with-pool/Aerial%20View%204.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-suite-with-pool/Aerial%20View%205.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-suite-with-pool/Aerial%20View.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-suite-with-pool/Bathroom.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-suite-with-pool/Deck.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-suite-with-pool/Living%20room%202.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-suite-with-pool/Living%20room.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-suite-with-pool/Make%20up%20desk.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-suite-with-pool/Master%20bedroom.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-suite-with-pool/Otemanu%20View.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-suite-with-pool/SALLE%20DE%20BAIN-2.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-suite-with-pool/SALLE%20DE%20BAIN.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/bora-bora-suite-with-pool/Unique%20location.jpg"
         ],
       },
     ],
@@ -226,15 +307,66 @@ export const resortPartners: ResortPartner[] = [
       {
         name: "Lagoon",
         images: [
-          "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",
-          "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=1600&q=80",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-suite/DRONE.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-suite/DRONE-12.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-suite/DRONE-14.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-premium-overwater-bungalow/VUE%20AERIENNE-12.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-premium-overwater-bungalow/VUE%20AERIENNE-13.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-premium-overwater-bungalow/VUE%20AERIENNE-14.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-premium-overwater-bungalow/VUE%20AERIENNE-20.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-premium-overwater-bungalow/VUE%20AERIENNE-21.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-premium-overwater-bungalow/VUE%20AERIENNE-40.jpg"
         ],
       },
       {
-        name: "Overwater & Beach",
+        name: "Overwater Suites",
         images: [
-          "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=1600&q=80",
-          "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=80",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-suite/SUITE%20PILOTIS.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-suite/SUITE%20PILOTIS-1.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-suite/SUITE%20PILOTIS-2.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-suite/SUITE%20PILOTIS-3.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-suite/SUITE%20PILOTIS-5.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-suite/SUITE%20PILOTIS-6.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-suite/SUITE%20PILOTIS-7.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-suite/SUITE%20PILOTIS-8.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-suite/SUITE%20PILOTIS-9.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-suite/SUITE%20PILOTIS-10.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-suite/SUITE%20PILOTIS-14.jpg"
+        ],
+      },
+      {
+        name: "Overwater Bungalows",
+        images: [
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-bungalow/BUNGALOW%20PILOTIS-10.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-bungalow/BUNGALOW%20PILOTIS-13.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-bungalow/BUNGALOW%20PILOTIS-14.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-bungalow/BUNGALOW%20PILOTIS-16.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-bungalow/BUNGALOW%20PILOTIS-19.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-bungalow/BUNGALOW%20PILOTIS-20.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-bungalow/BUNGALOW%20PILOTIS-5.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-bungalow/BUNGALOW%20PILOTIS-8.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-bungalow/BUNGALOW%20PILOTIS-9.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-bungalow/RESORT-5.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-bungalow/RESORT-6.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-overwater-bungalow/SUNRISE-1.jpg"
+        ],
+      },
+      {
+        name: "Premium Overwater",
+        images: [
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-premium-overwater-bungalow/BUNGALOW%20PILOTIS%20PREMIUM-18.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-premium-overwater-bungalow/BUNGALOW%20PILOTIS-1.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-premium-overwater-bungalow/BUNGALOW%20PILOTIS-10.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-premium-overwater-bungalow/BUNGALOW%20PILOTIS-13.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-premium-overwater-bungalow/BUNGALOW%20PILOTIS-14.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-premium-overwater-bungalow/BUNGALOW%20PILOTIS-17.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-premium-overwater-bungalow/BUNGALOW%20PILOTIS-19.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-premium-overwater-bungalow/BUNGALOW%20PILOTIS-2.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-premium-overwater-bungalow/BUNGALOW%20PILOTIS-20.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-premium-overwater-bungalow/BUNGALOW%20PILOTIS-9.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-premium-overwater-bungalow/RESORT-10.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-premium-overwater-bungalow/RESORT-12.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/tikehau-premium-overwater-bungalow/SUNSET-2.jpg"
         ],
       },
     ],
@@ -357,15 +489,17 @@ export const resortPartners: ResortPartner[] = [
     policies: ["Check-in 2pm / Check-out 11am", "Marquesas time zone (+30 min)"],
     media: [
       {
-        name: "Lodge & Pool",
+        name: "Bungalows",
         images: [
-          "https://www.lenukuhiva.com/uploads/66d9f82606097_PISCINE.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/nuku-niva/Bungalow%201.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/nuku-niva/Bungalow%202.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/nuku-niva/Bungalow%203.jpg"
         ],
       },
       {
-        name: "Island & Culture",
+        name: "Interiors",
         images: [
-          "https://www.lenukuhiva.com/img/2024-01-03-tikehau.jpg",
+          "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/residence-photos/residences/nuku-niva/Bathroom.jpg"
         ],
       },
     ],
