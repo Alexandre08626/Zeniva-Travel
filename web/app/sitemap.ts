@@ -174,5 +174,41 @@ export default function sitemap(): MetadataRoute.Sitemap {
         },
       },
     },
+    {
+      url: `${BASE_URL}/privacy-policy`,
+      lastModified,
+      changeFrequency: "yearly",
+      priority: 0.5,
+    },
+    {
+      url: `${BASE_URL}/cookie-policy`,
+      lastModified,
+      changeFrequency: "yearly",
+      priority: 0.5,
+    },
+    {
+      url: `${BASE_URL}/terms`,
+      lastModified,
+      changeFrequency: "yearly",
+      priority: 0.5,
+    },
+    {
+      url: `${BASE_URL}/ai-terms`,
+      lastModified,
+      changeFrequency: "yearly",
+      priority: 0.4,
+    },
+    {
+      url: `${BASE_URL}/do-not-sell`,
+      lastModified,
+      changeFrequency: "yearly",
+      priority: 0.4,
+    },
+    {
+      url: `${BASE_URL}/data-requests`,
+      lastModified,
+      changeFrequency: "yearly",
+      priority: 0.5,
+    },
   ];
 }

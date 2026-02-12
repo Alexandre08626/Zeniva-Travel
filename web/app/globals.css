@@ -444,3 +444,126 @@ div[style*="100vw"] {
 .animate-slideIn {
   animation: slideIn 0.3s ease-out;
 }
+
+/* Shared button styles for legal UI */
+.legal-button {
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.legal-button.primary {
+  background: #0066ff;
+  color: #ffffff;
+}
+
+.legal-button.secondary {
+  background: #ffffff;
+  border-color: #e5e7eb;
+  color: #0b1120;
+}
+
+.legal-button.tertiary {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #0f172a;
+}
+
+/* Cookie consent UI (global) */
+.consent-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  box-shadow: 0 -10px 30px rgba(15, 23, 42, 0.1);
+  z-index: 40;
+}
+
+.consent-banner-inner {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 18px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.consent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.consent-banner p {
+  margin-top: 6px;
+  color: #475569;
+  max-width: 520px;
+}
+
+.consent-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 24px;
+}
+
+.consent-modal-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 24px;
+  max-width: 520px;
+  width: 100%;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.25);
+}
+
+.consent-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.consent-modal-intro {
+  margin-top: 10px;
+  color: #475569;
+}
+
+.consent-toggle {
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.consent-toggle p {
+  color: #475569;
+  margin-top: 4px;
+}
+
+.consent-modal-note {
+  margin-top: 16px;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+@media (max-width: 720px) {
+  .consent-banner-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
