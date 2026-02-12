@@ -145,6 +145,81 @@ const residences = [
     ),
     remotePrefix: "residences/central-tropical-villa",
   },
+  {
+    id: "heated-pool-spacious-home-7-min-to-beach-bbq",
+    localDir: path.resolve(
+      projectRoot,
+      "..",
+      "Zeniva Travel",
+      "Proprieté",
+      "Floride",
+      "Vlad Soumin ( Owner )",
+      "Proprieter",
+      "Heated Pool-Spacious Home 7 Min to Beach, BBQ",
+      "Photo"
+    ),
+    remotePrefix: "residences/heated-pool-spacious-home-7-min-to-beach-bbq",
+  },
+  {
+    id: "spacious-6br-villa-resort-style-pool-golf-course",
+    localDir: path.resolve(
+      projectRoot,
+      "..",
+      "Zeniva Travel",
+      "Proprieté",
+      "Floride",
+      "Vlad Soumin ( Owner )",
+      "Proprieter",
+      "Spacious 6BR Villa Resort Style Pool Golf Course",
+      "Photo"
+    ),
+    remotePrefix: "residences/spacious-6br-villa-resort-style-pool-golf-course",
+  },
+  {
+    id: "stylish-tropical-villa-with-pool-trampoline",
+    localDir: path.resolve(
+      projectRoot,
+      "..",
+      "Zeniva Travel",
+      "Proprieté",
+      "Floride",
+      "Vlad Soumin ( Owner )",
+      "Proprieter",
+      "Stylish Tropical Villa with Pool Trampoline",
+      "Photo"
+    ),
+    remotePrefix: "residences/stylish-tropical-villa-with-pool-trampoline",
+  },
+  {
+    id: "tranquil-7bd-villa-pool-bbq",
+    localDir: path.resolve(
+      projectRoot,
+      "..",
+      "Zeniva Travel",
+      "Proprieté",
+      "Floride",
+      "Vlad Soumin ( Owner )",
+      "Proprieter",
+      "Tranquil 7BD Villa-Pool-BBQ",
+      "Photo"
+    ),
+    remotePrefix: "residences/tranquil-7bd-villa-pool-bbq",
+  },
+  {
+    id: "ultimate-villa-heated-pool-playground",
+    localDir: path.resolve(
+      projectRoot,
+      "..",
+      "Zeniva Travel",
+      "Proprieté",
+      "Floride",
+      "Vlad Soumin ( Owner )",
+      "Proprieter",
+      "Ultimate Villa Heated Pool Playground",
+      "Photo"
+    ),
+    remotePrefix: "residences/ultimate-villa-heated-pool-playground",
+  },
 ];
 
 const allowedExtensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif"]);
