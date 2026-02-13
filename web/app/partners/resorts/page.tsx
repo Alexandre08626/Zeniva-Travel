@@ -239,6 +239,22 @@ export default function PartnerResortsPage() {
               </Link>
             </div>
             <div className="w-full rounded-3xl border border-white/35 bg-white/15 p-3 shadow-sm backdrop-blur">
+              <div className="flex items-center gap-4 pb-3">
+                <Link
+                  href="/chat/r5ug551qmll3p6p3"
+                  className="inline-flex items-center justify-center rounded-full border border-white/40 bg-white/15 p-1 shadow-sm backdrop-blur transition hover:bg-white/25"
+                  aria-label="Chat with Lina"
+                >
+                  <img
+                    src="/branding/lina-avatar.png"
+                    alt="Lina"
+                    className="h-16 w-16 rounded-full object-cover"
+                  />
+                </Link>
+                <div className="text-sm font-semibold text-white/90">
+                  Lina concierge
+                </div>
+              </div>
               <div className="flex flex-col gap-3 md:flex-row md:items-center">
                 <div className="flex-1">
                   <label htmlFor="resorts-search" className="sr-only">
