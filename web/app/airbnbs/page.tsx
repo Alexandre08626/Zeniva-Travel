@@ -48,6 +48,7 @@ export default function AirbnbsPage() {
   const [items, setItems] = useState<AirbnbItem[]>([]);
   const [visible, setVisible] = useState(12);
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState("");
 
   const isLoggedIn = false;
   const userEmail = "user@email.com";
@@ -109,6 +110,10 @@ export default function AirbnbsPage() {
     };
   }, []);
 
+  useEffect(() => {
+    setVisible(12);
+  }, [query]);
+
   const resolveLocation = (item: AirbnbItem) => {
     const fallback = item.location || "";
     if (!fallback || fallback.toLowerCase().includes("property description")) {
@@ -128,6 +133,15 @@ export default function AirbnbsPage() {
     images: p.images || (p.thumbnail ? [p.thumbnail] : []),
   };
   });
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const filtered = normalizedQuery
+    ? mapped.filter((p) => {
+        const title = p.title.toLowerCase();
+        const location = p.location.toLowerCase();
+        return title.includes(normalizedQuery) || location.includes(normalizedQuery);
+      })
+    : mapped;
 
   const handleAddToProposal = async (stay: { slug: string; title: string; location: string; description: string; image: string; images: string[] }) => {
     const tripId = createTrip({
@@ -185,19 +199,34 @@ export default function AirbnbsPage() {
               Explore the full traveler catalog and connect with Zeniva to finalize your trip.
             </p>
           </div>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/partners/resorts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
-              Hotels & Resorts
-            </Link>
-            <Link href="/yachts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
-              Yachts
-            </Link>
-            <Link href="/residences" className="rounded-full px-4 py-2 text-sm font-semibold bg-white text-slate-900">
-              Short-term Rentals
-            </Link>
-            <Link href="/" className="rounded-full border border-white/50 px-4 py-2 text-sm font-semibold text-white">
-              Flights
-            </Link>
+          <div className="mt-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="flex flex-wrap gap-3">
+              <Link href="/partners/resorts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
+                Hotels & Resorts
+              </Link>
+              <Link href="/yachts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
+                Yachts
+              </Link>
+              <Link href="/residences" className="rounded-full px-4 py-2 text-sm font-semibold bg-white text-slate-900">
+                Short-term Rentals
+              </Link>
+              <Link href="/" className="rounded-full border border-white/50 px-4 py-2 text-sm font-semibold text-white">
+                Flights
+              </Link>
+            </div>
+            <div className="w-full md:max-w-sm">
+              <label htmlFor="residence-search" className="sr-only">
+                Search residences
+              </label>
+              <input
+                id="residence-search"
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search by property or country"
+                className="w-full rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white placeholder:text-white/70 shadow-sm backdrop-blur focus:outline-none focus:ring-2 focus:ring-white/70"
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -220,14 +249,14 @@ export default function AirbnbsPage() {
           <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-600 shadow">
             <AutoTranslate text="Loading residences..." className="inline" />
           </div>
-        ) : mapped.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-600 shadow">
-            <AutoTranslate text="No residences available right now. Please check back soon." className="inline" />
+            <AutoTranslate text="No residences match your search." className="inline" />
           </div>
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {mapped.slice(0, visible).map((p) => (
+              {filtered.slice(0, visible).map((p) => (
                 <div key={p.slug} className="bg-white rounded-2xl shadow p-4 flex flex-col">
                   <div className="h-44 w-full overflow-hidden rounded-lg mb-4">
                     <img src={p.image} alt={p.title} className="w-full h-full object-cover" />
@@ -254,7 +283,7 @@ export default function AirbnbsPage() {
               ))}
             </div>
 
-            {visible < mapped.length && (
+            {visible < filtered.length && (
               <div className="flex justify-center mt-8">
                 <button onClick={() => setVisible((v) => v + 12)} className="px-6 py-3 rounded-full bg-white border shadow">
                   Load more
