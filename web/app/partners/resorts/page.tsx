@@ -223,19 +223,87 @@ export default function PartnerResortsPage() {
               Explore the full traveler catalog and connect with Zeniva to finalize your trip.
             </p>
           </div>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/partners/resorts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white text-slate-900">
-              Hotels & Resorts
-            </Link>
-            <Link href="/yachts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
-              Yachts
-            </Link>
-            <Link href="/residences" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
-              Short-term Rentals
-            </Link>
-            <Link href="/" className="rounded-full border border-white/50 px-4 py-2 text-sm font-semibold text-white">
-              Flights
-            </Link>
+          <div className="mt-10 flex flex-col gap-6">
+            <div className="flex flex-wrap gap-3">
+              <Link href="/partners/resorts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white text-slate-900">
+                Hotels & Resorts
+              </Link>
+              <Link href="/yachts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
+                Yachts
+              </Link>
+              <Link href="/residences" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
+                Short-term Rentals
+              </Link>
+              <Link href="/" className="rounded-full border border-white/50 px-4 py-2 text-sm font-semibold text-white">
+                Flights
+              </Link>
+            </div>
+            <div className="w-full rounded-3xl border border-white/35 bg-white/15 p-3 shadow-sm backdrop-blur">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                <div className="flex-1">
+                  <label htmlFor="resorts-search" className="sr-only">
+                    Search resorts
+                  </label>
+                  <input
+                    id="resorts-search"
+                    type="search"
+                    value={filters.query}
+                    onChange={(event) => setFilters((f) => ({ ...f, query: event.target.value }))}
+                    placeholder="Search resort or destination"
+                    className="w-full rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white/70"
+                  />
+                </div>
+                <div className="flex flex-1 flex-col gap-3 sm:flex-row">
+                  <div className="flex-1">
+                    <label htmlFor="resorts-checkin" className="sr-only">
+                      Check-in date
+                    </label>
+                    <input
+                      id="resorts-checkin"
+                      type="date"
+                      value={filters.checkIn}
+                      onChange={(event) => setFilters((f) => ({ ...f, checkIn: event.target.value }))}
+                      className="w-full rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/70"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label htmlFor="resorts-checkout" className="sr-only">
+                      Check-out date
+                    </label>
+                    <input
+                      id="resorts-checkout"
+                      type="date"
+                      value={filters.checkOut}
+                      onChange={(event) => setFilters((f) => ({ ...f, checkOut: event.target.value }))}
+                      className="w-full rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/70"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label htmlFor="resorts-travelers" className="sr-only">
+                      Travelers
+                    </label>
+                    <select
+                      id="resorts-travelers"
+                      value={String(filters.travelers)}
+                      onChange={(event) => setFilters((f) => ({ ...f, travelers: Math.max(1, Number(event.target.value || 1)) }))}
+                      className="w-full rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/70"
+                    >
+                      {Array.from({ length: 8 }, (_, index) => {
+                        const count = index + 1;
+                        return (
+                          <option key={count} value={String(count)} className="text-slate-900">
+                            {count} traveler{count > 1 ? "s" : ""}
+                          </option>
+                        );
+                      })}
+                      <option value="9" className="text-slate-900">9 travelers</option>
+                      <option value="10" className="text-slate-900">10 travelers</option>
+                      <option value="11" className="text-slate-900">11+ travelers</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -263,42 +331,6 @@ export default function PartnerResortsPage() {
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Filters</div>
               <div className="mt-3 space-y-3">
-                <input
-                  placeholder="Search resort or destination"
-                  className="w-full rounded-lg border px-3 py-2 text-sm"
-                  value={filters.query}
-                  onChange={(e) => setFilters((f) => ({ ...f, query: e.target.value }))}
-                />
-                <input
-                  placeholder="Departure city or address"
-                  className="w-full rounded-lg border px-3 py-2 text-sm"
-                  value={filters.departureCity}
-                  onChange={(e) => setFilters((f) => ({ ...f, departureCity: e.target.value }))}
-                />
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <input
-                    type="date"
-                    className="w-full rounded-lg border px-3 py-2 text-sm"
-                    value={filters.checkIn}
-                    onChange={(e) => setFilters((f) => ({ ...f, checkIn: e.target.value }))}
-                  />
-                  <input
-                    type="date"
-                    className="w-full rounded-lg border px-3 py-2 text-sm"
-                    value={filters.checkOut}
-                    onChange={(e) => setFilters((f) => ({ ...f, checkOut: e.target.value }))}
-                  />
-                </div>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <input
-                    type="number"
-                    min={1}
-                    className="w-full rounded-lg border px-3 py-2 text-sm"
-                    value={filters.travelers}
-                    onChange={(e) => setFilters((f) => ({ ...f, travelers: Math.max(1, Number(e.target.value || 1)) }))}
-                    placeholder="Travelers"
-                  />
-                </div>
                 <select
                   value={filters.status}
                   onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value as ResortStatus | "all" }))}

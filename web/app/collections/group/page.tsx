@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Header from "../../../src/components/Header";
 import Footer from "../../../src/components/Footer";
@@ -14,6 +14,11 @@ const GROUP_IDEAS = [
 ];
 
 export default function GroupTripsPage() {
+  const [query, setQuery] = useState("");
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [travelers, setTravelers] = useState("10");
+
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
       <div className="w-screen left-1/2 right-1/2 -translate-x-1/2 relative">
@@ -31,19 +36,82 @@ export default function GroupTripsPage() {
               Explore the full traveler catalog and connect with Zeniva to finalize your trip.
             </p>
           </div>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/partners/resorts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
-              Hotels & Resorts
-            </Link>
-            <Link href="/yachts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
-              Yachts
-            </Link>
-            <Link href="/residences" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
-              Short-term Rentals
-            </Link>
-            <Link href="/" className="rounded-full border border-white/50 px-4 py-2 text-sm font-semibold text-white">
-              Flights
-            </Link>
+          <div className="mt-10 flex flex-col gap-6">
+            <div className="flex flex-wrap gap-3">
+              <Link href="/partners/resorts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
+                Hotels & Resorts
+              </Link>
+              <Link href="/yachts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
+                Yachts
+              </Link>
+              <Link href="/residences" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
+                Short-term Rentals
+              </Link>
+              <Link href="/" className="rounded-full border border-white/50 px-4 py-2 text-sm font-semibold text-white">
+                Flights
+              </Link>
+            </div>
+            <div className="w-full rounded-3xl border border-white/35 bg-white/15 p-3 shadow-sm backdrop-blur">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                <div className="flex-1">
+                  <label htmlFor="group-search" className="sr-only">
+                    Search destinations
+                  </label>
+                  <input
+                    id="group-search"
+                    type="search"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="Search destinations or themes"
+                    className="w-full rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white/70"
+                  />
+                </div>
+                <div className="flex flex-1 flex-col gap-3 sm:flex-row">
+                  <div className="flex-1">
+                    <label htmlFor="group-checkin" className="sr-only">
+                      Check-in date
+                    </label>
+                    <input
+                      id="group-checkin"
+                      type="date"
+                      value={checkIn}
+                      onChange={(event) => setCheckIn(event.target.value)}
+                      className="w-full rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/70"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label htmlFor="group-checkout" className="sr-only">
+                      Check-out date
+                    </label>
+                    <input
+                      id="group-checkout"
+                      type="date"
+                      value={checkOut}
+                      onChange={(event) => setCheckOut(event.target.value)}
+                      className="w-full rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/70"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label htmlFor="group-travelers" className="sr-only">
+                      Travelers
+                    </label>
+                    <select
+                      id="group-travelers"
+                      value={travelers}
+                      onChange={(event) => setTravelers(event.target.value)}
+                      className="w-full rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/70"
+                    >
+                      <option value="6" className="text-slate-900">6 travelers</option>
+                      <option value="8" className="text-slate-900">8 travelers</option>
+                      <option value="10" className="text-slate-900">10 travelers</option>
+                      <option value="12" className="text-slate-900">12 travelers</option>
+                      <option value="15" className="text-slate-900">15 travelers</option>
+                      <option value="20" className="text-slate-900">20+ travelers</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
