@@ -49,6 +49,9 @@ export default function AirbnbsPage() {
   const [visible, setVisible] = useState(12);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [travelers, setTravelers] = useState("2");
 
   const isLoggedIn = false;
   const userEmail = "user@email.com";
@@ -199,7 +202,7 @@ export default function AirbnbsPage() {
               Explore the full traveler catalog and connect with Zeniva to finalize your trip.
             </p>
           </div>
-          <div className="mt-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="mt-10 flex flex-col gap-6">
             <div className="flex flex-wrap gap-3">
               <Link href="/partners/resorts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
                 Hotels & Resorts
@@ -214,18 +217,71 @@ export default function AirbnbsPage() {
                 Flights
               </Link>
             </div>
-            <div className="w-full md:max-w-sm">
-              <label htmlFor="residence-search" className="sr-only">
-                Search residences
-              </label>
-              <input
-                id="residence-search"
-                type="search"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search by property or country"
-                className="w-full rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white placeholder:text-white/70 shadow-sm backdrop-blur focus:outline-none focus:ring-2 focus:ring-white/70"
-              />
+            <div className="w-full rounded-3xl border border-white/35 bg-white/15 p-3 shadow-sm backdrop-blur">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                <div className="flex-1">
+                  <label htmlFor="residence-search" className="sr-only">
+                    Search residences
+                  </label>
+                  <input
+                    id="residence-search"
+                    type="search"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="Search by property or country"
+                    className="w-full rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white/70"
+                  />
+                </div>
+                <div className="flex flex-1 flex-col gap-3 sm:flex-row">
+                  <div className="flex-1">
+                    <label htmlFor="residence-checkin" className="sr-only">
+                      Check-in date
+                    </label>
+                    <input
+                      id="residence-checkin"
+                      type="date"
+                      value={checkIn}
+                      onChange={(event) => setCheckIn(event.target.value)}
+                      className="w-full rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white/70"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label htmlFor="residence-checkout" className="sr-only">
+                      Check-out date
+                    </label>
+                    <input
+                      id="residence-checkout"
+                      type="date"
+                      value={checkOut}
+                      onChange={(event) => setCheckOut(event.target.value)}
+                      className="w-full rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white/70"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label htmlFor="residence-travelers" className="sr-only">
+                      Travelers
+                    </label>
+                    <select
+                      id="residence-travelers"
+                      value={travelers}
+                      onChange={(event) => setTravelers(event.target.value)}
+                      className="w-full rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/70"
+                    >
+                      {Array.from({ length: 8 }, (_, index) => {
+                        const count = index + 1;
+                        return (
+                          <option key={count} value={String(count)} className="text-slate-900">
+                            {count} traveler{count > 1 ? "s" : ""}
+                          </option>
+                        );
+                      })}
+                      <option value="9" className="text-slate-900">9 travelers</option>
+                      <option value="10" className="text-slate-900">10 travelers</option>
+                      <option value="11" className="text-slate-900">11+ travelers</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -43,9 +43,7 @@ export default function HotelsSearchPage() {
 function HotelsSearchContent() {
   const router = useRouter();
   const params = useSearchParams();
-    React.useEffect(() => {
-      router.replace("/checkout/7su42fb8mkq615pm");
-    }, [router]);
+
 
   const destination = params.get("destination") || "";
   const rawCheckIn = params.get("checkIn") || "";

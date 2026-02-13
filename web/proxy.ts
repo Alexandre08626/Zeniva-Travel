@@ -44,6 +44,10 @@ function getAllowedOrigins(req: NextRequest) {
   return Array.from(new Set(expanded.map(normalizeOrigin)));
 }
 
+function hasPrefixSegment(pathname: string, prefix: string) {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
+
 export default function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -85,9 +89,9 @@ export default function proxy(req: NextRequest) {
   const isPartner = roles.includes("partner_owner") || roles.includes("partner_staff") || roles.includes("hq");
 
   // Protect agent routes and agent API
-  if (pathname.startsWith("/agent") || pathname.startsWith("/api/agent")) {
+  if (hasPrefixSegment(pathname, "/agent") || hasPrefixSegment(pathname, "/api/agent")) {
     if (!isAgent) {
-      if (pathname.startsWith("/api/agent")) {
+      if (hasPrefixSegment(pathname, "/api/agent")) {
         return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
       }
       const redirectUrl = new URL("/", req.url);
@@ -98,9 +102,9 @@ export default function proxy(req: NextRequest) {
   }
 
   // Protect partner routes and partner API
-  if (pathname.startsWith("/partner") || pathname.startsWith("/api/partner")) {
+  if (hasPrefixSegment(pathname, "/partner") || hasPrefixSegment(pathname, "/api/partner")) {
     if (!isPartner) {
-      if (pathname.startsWith("/api/partner")) {
+      if (hasPrefixSegment(pathname, "/api/partner")) {
         return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
       }
       const redirectUrl = new URL("/", req.url);
