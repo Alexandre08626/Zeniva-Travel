@@ -63,8 +63,12 @@ function normalizeMulti(value?: string | string[]) {
 }
 
 function parsePriceToNumber(price: string) {
-  const match = String(price || "").match(/([0-9]+(?:\.[0-9]+)?)/);
-  return match ? Number(match[1]) : Number.NaN;
+  const raw = String(price || "").trim();
+  if (!raw) return Number.NaN;
+  const normalized = raw.replace(/[^0-9.,]/g, "").replace(/,/g, "");
+  if (!normalized) return Number.NaN;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
 }
 
 function getStopsCount(stops: string) {
@@ -139,7 +143,7 @@ function mapDuffelOffers(result: any): OfferCard[] {
 }
 
 async function loadOffers(params: Params) {
-  const { from, to, depart, ret, passengers = "1" } = params;
+  const { from, to, depart, ret, passengers = "1", trip = "roundtrip", cabin = "Economy" } = params;
 
   if (!from || !to || !depart) {
     return { offers: [], message: "Veuillez saisir origine, destination et date de départ." };
@@ -154,7 +158,7 @@ async function loadOffers(params: Params) {
   ];
 
   // Add return slice for round-trip searches
-  if (ret) {
+  if (trip !== "oneway" && ret) {
     slices.push({
       origin: String(to).toUpperCase(),
       destination: String(from).toUpperCase(),
@@ -162,9 +166,18 @@ async function loadOffers(params: Params) {
     });
   }
 
+  const cabinMap: Record<string, string> = {
+    "economy": "economy",
+    "premium economy": "premium_economy",
+    "business": "business",
+    "first": "first",
+  };
+  const requestedCabin = cabinMap[String(cabin || "").toLowerCase()];
+
   const body = {
     passengers: Array.from({ length: Number(passengers) || 1 }).map(() => ({ type: "adult" })),
     slices,
+    ...(requestedCabin ? { cabin_class: requestedCabin } : {}),
   };
 
   try {
@@ -228,6 +241,7 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
         const durationMins = durationToMinutes(offer.duration);
         if (Number.isFinite(durationMins) && durationMins > Number(maxDuration) * 60) return false;
       }
+      if (cabin && offer.cabin && String(offer.cabin).toLowerCase() !== String(cabin).toLowerCase()) return false;
       if (selectedAirlines.length > 0 && !selectedAirlines.includes((offer.carrierCode || "").toUpperCase())) return false;
       if (airline && !offer.carrier.toLowerCase().includes(airline.toLowerCase().trim())) return false;
       if (departAfter || departBefore) {
@@ -285,22 +299,14 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
 
           <form action="/search/flights" method="GET" className="space-y-4">
             <div className="grid grid-cols-2 gap-2">
-              <button
-                type="submit"
-                name="trip"
-                value="oneway"
-                className={`rounded-lg border px-3 py-2 text-sm font-semibold ${trip === "oneway" ? "border-blue-500 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-700"}`}
-              >
+              <label className={`rounded-lg border px-3 py-2 text-sm font-semibold cursor-pointer ${trip === "oneway" ? "border-blue-500 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-700"}`}>
+                <input type="radio" name="trip" value="oneway" defaultChecked={trip === "oneway"} className="mr-2" />
                 One-way
-              </button>
-              <button
-                type="submit"
-                name="trip"
-                value="roundtrip"
-                className={`rounded-lg border px-3 py-2 text-sm font-semibold ${trip !== "oneway" ? "border-blue-500 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-700"}`}
-              >
+              </label>
+              <label className={`rounded-lg border px-3 py-2 text-sm font-semibold cursor-pointer ${trip !== "oneway" ? "border-blue-500 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-700"}`}>
+                <input type="radio" name="trip" value="roundtrip" defaultChecked={trip !== "oneway"} className="mr-2" />
                 Round-trip
-              </button>
+              </label>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
