@@ -384,7 +384,7 @@ function ChatThread({ tripId, proposalMode = "" }) {
         ))}
       </div>
 
-      <div className="border-t border-slate-100 px-5 py-3 space-y-3">
+      <div className="border-t border-slate-100 px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.9rem)] space-y-3">
         <div className="flex flex-wrap gap-2">
           {quickPrompts.map((qp) => (
             <button

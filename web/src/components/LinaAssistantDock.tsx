@@ -47,10 +47,14 @@ export default function LinaAssistantDock() {
   const mode = useMemo(() => inferMode(pathname, role), [pathname, role]);
   const copy = MODE_COPY[mode];
 
+  if (pathname.startsWith("/chat") || pathname.startsWith("/call")) {
+    return null;
+  }
+
   const helpUrl = "https://www.zenivatravel.com/chat/agent?channel=agent-alexandre&source=/documents";
 
   return (
-    <div className="fixed bottom-6 right-6 z-[60]">
+    <div className="hidden sm:block fixed bottom-6 right-6 z-[60]">
       <button
         type="button"
         onClick={() => {

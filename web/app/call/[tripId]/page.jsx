@@ -52,12 +52,12 @@ function CallLayout({ sidebar, chat, snapshot, videoCall }) {
         </header>
 
         <div className="grid grid-cols-12 gap-4">
-          <section className="col-span-12 lg:col-span-3 hidden lg:block">{sidebar}</section>
-          <section className="col-span-12 lg:col-span-6 space-y-4">
+          <section className="col-span-12 lg:col-span-6 order-1 space-y-4">
             {videoCall}
             {chat}
           </section>
-          <section className="col-span-12 lg:col-span-3 hidden lg:block">{snapshot}</section>
+          <section className="col-span-12 lg:col-span-3 order-2 lg:order-none">{sidebar}</section>
+          <section className="col-span-12 lg:col-span-3 order-3 lg:order-none">{snapshot}</section>
         </div>
       </div>
     </main>

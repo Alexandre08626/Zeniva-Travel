@@ -1,7 +1,7 @@
 // src/app/page.tsx
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PREMIUM_BLUE, LIGHT_BG, TITLE_TEXT, GRADIENT_START, GRADIENT_END } from "../src/design/tokens";
+import { PREMIUM_BLUE, BRAND_BLUE, ACCENT_GOLD, LIGHT_BG, TITLE_TEXT, GRADIENT_START, GRADIENT_END } from "../src/design/tokens";
 import Header from "../src/components/Header";
 import Footer from "../src/components/Footer";
 import TravelSearchWidget from "../src/components/TravelSearchWidget";
@@ -191,69 +191,71 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* MOBILE HERO (matches phone mock) */}
-      <section className="sm:hidden mt-0 bg-[#0b1226]">
+      {/* MOBILE HERO (premium mobile-first) */}
+      <section className="sm:hidden mt-0" style={{ backgroundColor: LIGHT_BG }}>
         <div className="relative w-screen left-1/2 right-1/2 -translate-x-1/2">
           <div
             className="relative min-h-[100dvh] overflow-hidden"
             style={{
-              backgroundColor: "#0b1226",
+              background: `linear-gradient(160deg, rgba(8,26,74,0.08) 0%, rgba(43,107,255,0.13) 48%, ${LIGHT_BG} 100%)`,
             }}
           >
-            <div className="relative z-10 px-5 pt-5 pb-12 flex flex-col min-h-[100dvh]">
+            <div className="absolute -top-20 -right-10 h-48 w-48 rounded-full blur-3xl" style={{ background: "rgba(43,107,255,0.24)" }} />
+            <div className="absolute top-20 -left-10 h-44 w-44 rounded-full blur-3xl" style={{ background: "rgba(8,26,74,0.18)" }} />
+            <div className="relative z-10 px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+1rem)] flex flex-col min-h-[100dvh]">
               <div className="flex items-center justify-center gap-3">
                 <img
                   src="/branding/logo.png"
                   alt="Zeniva"
                   className="h-9 w-auto rounded-lg shadow-sm"
                 />
-                <h1 className="text-[26px] font-semibold tracking-tight text-white">Zeniva Travel AI</h1>
+                <h1 className="text-[26px] font-semibold tracking-tight text-slate-900">Zeniva Travel AI</h1>
               </div>
-              <p className="mt-2 text-center text-sm text-white/80">Ultra‑personalised travel, assisted by Lina AI.</p>
+              <p className="mt-2 text-center text-sm text-slate-600">Ultra-personalised travel, assisted by Lina AI.</p>
 
               <div
-                className="mt-6 rounded-3xl border border-[#1e2a4d] bg-[#0c1733] p-4 shadow-[0_24px_80px_rgba(8,18,42,0.6)]"
+                className="mt-6 rounded-3xl border border-white/70 bg-white/88 p-4 shadow-[0_22px_70px_rgba(11,27,77,0.16)] backdrop-blur-xl"
               >
                 <div className="flex items-center justify-end gap-2">
-                  <Link href="/signup" className="rounded-full border border-white/30 px-3 py-1 text-xs font-semibold text-white">Sign up</Link>
-                  <Link href="/login" className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-900">Log in</Link>
+                  <Link href="/signup" className="rounded-full border px-3 py-1 text-xs font-semibold" style={{ borderColor: "rgba(11,27,77,0.25)", color: PREMIUM_BLUE }}>Sign up</Link>
+                  <Link href="/login" className="rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ backgroundColor: PREMIUM_BLUE }}>Log in</Link>
                 </div>
 
                 <div className="mt-4 space-y-4">
-                  <Link href="/call" className="rounded-2xl border border-[#1e2a4d] bg-[#13244a] p-3 block">
+                  <Link href="/call" className="rounded-2xl border bg-white p-3 block shadow-sm" style={{ borderColor: "rgba(11,27,77,0.14)" }}>
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-[#1b2b52] flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-full flex items-center justify-center border" style={{ backgroundColor: "rgba(43,107,255,0.08)", borderColor: "rgba(11,27,77,0.12)" }}>
                         <img src="/branding/lina-avatar.png" alt="Lina" className="h-9 w-9 rounded-full" />
                       </div>
                       <div>
-                        <div className="text-[10px] uppercase tracking-[0.2em] text-white/70">Video AI</div>
-                        <div className="text-white font-semibold">Call Lina</div>
+                        <div className="text-[10px] uppercase tracking-[0.2em]" style={{ color: BRAND_BLUE }}>Video AI</div>
+                        <div className="text-slate-900 font-semibold text-base">Call Lina</div>
                       </div>
                     </div>
-                    <p className="mt-2 text-[12px] text-white/75">
+                    <p className="mt-2 text-[13px] text-slate-600 leading-relaxed">
                       Live AI video concierge to design your next trip and answer questions in real time.
                     </p>
                   </Link>
 
                   <div className="flex items-start gap-3">
-                    <Link href="/chat" className="flex-1 rounded-2xl border border-[#1e2a4d] bg-[#13244a] p-3 block">
+                    <Link href="/chat" className="flex-1 rounded-2xl border bg-white p-3 block shadow-sm" style={{ borderColor: "rgba(11,27,77,0.14)" }}>
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-[#1b2b52] flex items-center justify-center">
+                        <div className="h-10 w-10 rounded-full flex items-center justify-center border" style={{ backgroundColor: "rgba(43,107,255,0.08)", borderColor: "rgba(11,27,77,0.12)" }}>
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M5 5h14v9H8l-3 3V5z" stroke="rgba(255,255,255,0.9)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M5 5h14v9H8l-3 3V5z" stroke={PREMIUM_BLUE} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
                         </div>
                         <div>
-                          <div className="text-[10px] uppercase tracking-[0.2em] text-white/70">Chat AI</div>
-                          <div className="text-white font-semibold">Chat with Lina</div>
+                          <div className="text-[10px] uppercase tracking-[0.2em]" style={{ color: BRAND_BLUE }}>Chat AI</div>
+                          <div className="text-slate-900 font-semibold text-base">Chat with Lina</div>
                         </div>
                       </div>
-                      <p className="mt-2 text-[12px] text-white/75">
+                      <p className="mt-2 text-[13px] text-slate-600 leading-relaxed">
                         Text conversation to define dates, budget, destinations, and preferred travel style.
                       </p>
                     </Link>
 
-                    <div className="rounded-[24px] border border-[#1e2a4d] bg-[#0f1f3f] p-2 shadow-[0_18px_50px_rgba(8,18,42,0.6)]">
+                    <div className="rounded-[24px] border bg-white p-2 shadow-[0_14px_34px_rgba(11,27,77,0.12)]" style={{ borderColor: "rgba(11,27,77,0.14)" }}>
                       <img
                         src="/branding/lina-avatar.png"
                         alt="Lina portrait"
@@ -263,7 +265,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className="mt-5 rounded-2xl overflow-hidden border border-[#1e2a4d]">
+                <div className="mt-5 rounded-2xl overflow-hidden border" style={{ borderColor: "rgba(11,27,77,0.14)" }}>
                   <img
                     src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=60"
                     alt="Beach escape"
@@ -276,10 +278,10 @@ export default function HomePage() {
                 <h1
                   className="text-4xl font-semibold leading-[1.05]"
                   style={{
-                    background: "linear-gradient(90deg,#f8e7b8 0%, #e4c06a 55%, #cfa24a 100%)",
+                    background: `linear-gradient(92deg, ${TITLE_TEXT} 0%, ${PREMIUM_BLUE} 52%, ${ACCENT_GOLD} 100%)`,
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
-                    textShadow: "0 10px 30px rgba(0,0,0,0.35)",
+                    textShadow: "0 10px 24px rgba(11,27,77,0.14)",
                   }}
                 >
                   Discover. Connect.

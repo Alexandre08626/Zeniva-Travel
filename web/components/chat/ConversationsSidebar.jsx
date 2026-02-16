@@ -33,7 +33,7 @@ export default function ConversationsSidebar({ currentTripId, basePath = "/chat"
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm" style={{ minHeight: "72vh" }}>
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm min-h-0 md:min-h-[72vh]">
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
         <div className="text-sm font-bold" style={{ color: TITLE_TEXT }}>
           Trips

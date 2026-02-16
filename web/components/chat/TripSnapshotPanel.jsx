@@ -136,7 +136,7 @@ export default function TripSnapshotPanel({ tripId, proposalMode = "" }) {
   const onMarkReady = () => setTripStatus(tripId, "Ready");
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4" style={{ minHeight: "72vh" }}>
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 min-h-0 md:min-h-[72vh]">
       <div className="flex items-center justify-between mb-3">
         <div>
           <Label>Trip snapshot</Label>
