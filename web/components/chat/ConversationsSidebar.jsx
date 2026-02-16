@@ -32,19 +32,35 @@ export default function ConversationsSidebar({ currentTripId, basePath = "/chat"
     router.push(`${basePath}/${id}`);
   };
 
+  const onProposal = () => {
+    const targetTripId = currentTripId || sortedTrips[0]?.id;
+    if (!targetTripId) return;
+    router.push(`/proposals/${targetTripId}/select`);
+  };
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white shadow-sm min-h-0 md:min-h-[72vh]">
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
         <div className="text-sm font-bold" style={{ color: TITLE_TEXT }}>
           Trips
         </div>
-        <button
-          onClick={onNew}
-          className="rounded-full px-3 py-1 text-xs font-semibold text-white"
-          style={{ backgroundColor: BRAND_BLUE }}
-        >
-          + New Trip
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onProposal}
+            disabled={!currentTripId && sortedTrips.length === 0}
+            className="rounded-full border px-3 py-1 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ color: TITLE_TEXT, borderColor: "#e2e8f0" }}
+          >
+            Proposal
+          </button>
+          <button
+            onClick={onNew}
+            className="rounded-full px-3 py-1 text-xs font-semibold text-white"
+            style={{ backgroundColor: BRAND_BLUE }}
+          >
+            + New Trip
+          </button>
+        </div>
       </div>
 
       <div className="divide-y divide-slate-100">
