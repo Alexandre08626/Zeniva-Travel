@@ -7,7 +7,7 @@ import { normalizeAgentId } from "../../../src/lib/agent/agentWorkspace";
 import { useAuthStore, isHQ } from "../../../src/lib/authStore";
 import { getSupabaseClient } from "../../../src/lib/supabase/client";
 
-type MessageRole = "agent" | "hq" | "lina";
+type MessageRole = "agent" | "hq" | "lina" | "client";
 
 type ChatMessage = {
   id: string;
@@ -83,7 +83,7 @@ export default function AgentChatClient() {
   const history = messages[channelId] || [];
   const canHQ = isHQ(user);
   const resolveSenderRole = (raw: string | undefined): MessageRole =>
-    raw === "agent" || raw === "hq" || raw === "lina" ? raw : "hq";
+    raw === "agent" || raw === "hq" || raw === "lina" || raw === "client" ? raw : "hq";
 
   useEffect(() => {
     let active = true;
@@ -220,19 +220,16 @@ export default function AgentChatClient() {
   };
 
   const refreshMessages = async () => {
-    try {
-      const client = getSupabaseClient();
-      const { data, error } = await client
-        .from("agent_inbox_messages")
-        .select("id, created_at, channel_ids, message, author, sender_role")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      const rows = Array.isArray(data) ? data : [];
+    const hydrateFromRows = (rows: any[]) => {
       const nextMessages: Record<string, ChatMessage[]> = {};
       rows.forEach((row: any) => {
         if (row?.deleted_at || row?.is_deleted) return;
         const message = buildMessageFromRow(row);
-        const channelIds: string[] = Array.isArray(row?.channel_ids) ? row.channel_ids : ["hq"];
+        const channelIds: string[] = Array.isArray(row?.channelIds)
+          ? row.channelIds
+          : Array.isArray(row?.channel_ids)
+            ? row.channel_ids
+            : ["hq"];
         channelIds.forEach((id) => {
           ensureChannel(id, row);
           nextMessages[id] = [...(nextMessages[id] || []), message];
@@ -242,6 +239,29 @@ export default function AgentChatClient() {
         list.sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime())
       );
       setMessages(nextMessages);
+    };
+
+    try {
+      const resp = await fetch("/api/agent/requests", { cache: "no-store" });
+      const payload = await resp.json().catch(() => ({}));
+      if (resp.ok) {
+        const rows = Array.isArray(payload?.data) ? payload.data : [];
+        hydrateFromRows(rows);
+        return;
+      }
+    } catch {
+      // fallback to direct Supabase read
+    }
+
+    try {
+      const client = getSupabaseClient();
+      const { data, error } = await client
+        .from("agent_inbox_messages")
+        .select("id, created_at, channel_ids, message, author, sender_role")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      const rows = Array.isArray(data) ? data : [];
+      hydrateFromRows(rows);
     } catch {
       // ignore
     }
@@ -270,8 +290,10 @@ export default function AgentChatClient() {
     };
 
     void loadInitialMessages();
+    const interval = window.setInterval(loadInitialMessages, 10000);
     return () => {
       active = false;
+      window.clearInterval(interval);
     };
   }, []);
 
