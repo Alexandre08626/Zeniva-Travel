@@ -47,9 +47,11 @@ export default function ChatLayout({
         </header>
 
         <div className="grid grid-cols-12 gap-4">
-          <section className="col-span-12 lg:col-span-8 order-1">{chat}</section>
-          <section className="col-span-12 lg:col-span-2 order-2 lg:order-none">{sidebar}</section>
-          <section className="col-span-12 lg:col-span-2 order-3 lg:order-none">{snapshot}</section>
+          <section className="col-span-12 lg:col-span-9 order-1">{chat}</section>
+          <aside className="col-span-12 lg:col-span-3 order-2 space-y-4">
+            <section>{sidebar}</section>
+            <section>{snapshot}</section>
+          </aside>
         </div>
       </div>
     </main>
