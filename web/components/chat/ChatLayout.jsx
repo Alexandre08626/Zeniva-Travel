@@ -18,7 +18,7 @@ export default function ChatLayout({
   const resolvedCallHref = callHref ?? `/call/${tripId || ""}`;
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
-      <div className="mx-auto max-w-[1440px] px-4 py-4 sm:py-6">
+      <div className="w-full px-4 py-4 sm:py-6">
         <header className="mb-4 flex flex-col gap-3 sm:mb-5 sm:flex-row sm:items-center sm:justify-between max-sm:rounded-2xl max-sm:border max-sm:border-slate-200 max-sm:bg-white/90 max-sm:px-4 max-sm:py-3 max-sm:shadow-sm">
           <div className="flex items-center gap-3">
             <Link href={backHref} className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>
