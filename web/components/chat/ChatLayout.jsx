@@ -18,7 +18,7 @@ export default function ChatLayout({
   const resolvedCallHref = callHref ?? `/call/${tripId || ""}`;
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
-      <div className="mx-auto max-w-[1700px] px-4 py-4 sm:py-6">
+      <div className="mx-auto max-w-[1440px] px-4 py-4 sm:py-6">
         <header className="mb-4 flex flex-col gap-3 sm:mb-5 sm:flex-row sm:items-center sm:justify-between max-sm:rounded-2xl max-sm:border max-sm:border-slate-200 max-sm:bg-white/90 max-sm:px-4 max-sm:py-3 max-sm:shadow-sm">
           <div className="flex items-center gap-3">
             <Link href={backHref} className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>
@@ -46,10 +46,10 @@ export default function ChatLayout({
           </div>
         </header>
 
-        <div className="grid grid-cols-12 gap-4 lg:h-[calc(100vh-10.5rem)] lg:overflow-hidden">
-          <section className="col-span-12 lg:col-span-2 order-2 lg:order-1 min-h-0">{snapshot}</section>
-          <section className="col-span-12 lg:col-span-8 order-1 lg:order-2 min-h-0 h-full">{chat}</section>
-          <section className="col-span-12 lg:col-span-2 order-3 lg:order-3 min-h-0">{sidebar}</section>
+        <div className="grid grid-cols-12 gap-4 lg:grid-cols-[300px_minmax(0,1fr)_300px] xl:grid-cols-[320px_minmax(0,1fr)_320px] lg:h-[calc(100vh-10.5rem)] lg:overflow-hidden">
+          <section className="col-span-12 order-2 lg:order-1 min-h-0">{snapshot}</section>
+          <section className="col-span-12 order-1 lg:order-2 min-h-0 h-full">{chat}</section>
+          <section className="col-span-12 order-3 lg:order-3 min-h-0">{sidebar}</section>
         </div>
       </div>
     </main>
