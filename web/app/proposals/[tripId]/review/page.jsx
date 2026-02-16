@@ -243,20 +243,63 @@ export default function ProposalReviewPage() {
   };
 
   const openHotelStep = () => {
-    const search = new URLSearchParams({
-      destination: String(tripDraft?.destination || "").trim(),
-      checkIn: String(tripDraft?.checkIn || "").trim(),
-      checkOut: String(tripDraft?.checkOut || "").trim(),
-      guests: String(tripDraft?.adults || 1),
-      rooms: "1",
-      proposalTripId: String(tripId || ""),
-    });
+    const destination = String(tripDraft?.destination || "").trim();
+    const checkIn = String(tripDraft?.checkIn || "").trim();
+    const checkOut = String(tripDraft?.checkOut || "").trim();
+    const guests = String(tripDraft?.adults || 1);
+    const rooms = "1";
+    const budget = String(tripDraft?.budget || "");
+    const selectedStay = selection?.hotel || uniqueHotels?.[0] || null;
 
-    if (isAgentMode) {
-      search.set("mode", "agent");
+    if (typeof window !== "undefined" && selectedStay) {
+      const rawPrice = String(selectedStay?.price || "");
+      const priceMatch = rawPrice.match(/([A-Z]{3})\s*([0-9.,]+)/i);
+      const totalCurrency = priceMatch?.[1]?.toUpperCase() || "USD";
+      const totalAmount = priceMatch?.[2]?.replace(/,/g, "") || "0.00";
+
+      const draft = {
+        selectedSearchResult: {
+          id: selectedStay?.id,
+          name: selectedStay?.name || "Selected stay",
+          location: selectedStay?.location || destination,
+          room: selectedStay?.room || "Room",
+          image: selectedStay?.image || "",
+          photos: Array.isArray(selectedStay?.images) ? selectedStay.images : [selectedStay?.image].filter(Boolean),
+          provider: selectedStay?.provider || "amadeus",
+        },
+        selectedRateId: `proposal-rate-${tripId}`,
+        selectedRate: {
+          id: `proposal-rate-${tripId}`,
+          room_type: { name: selectedStay?.room || "Room" },
+          refundable: false,
+          conditions: "Selected from proposal review. Final partner terms apply.",
+          cancellation_timeline: [],
+        },
+        quote: {
+          id: `proposal-quote-${tripId}`,
+          total_amount: totalAmount,
+          total_currency: totalCurrency,
+          refundable: false,
+        },
+        searchContext: {
+          destination,
+          checkIn,
+          checkOut,
+          guests,
+          rooms,
+          budget,
+          nights: tripDraft?.checkIn && tripDraft?.checkOut ? null : null,
+          proposalTripId: String(tripId || ""),
+          proposalMode: isAgentMode ? "agent" : "",
+        },
+      };
+
+      window.sessionStorage.setItem("hotel_booking_draft_v1", JSON.stringify(draft));
     }
 
-    router.push(`/search/hotels?${search.toString()}`);
+    const search = new URLSearchParams({ destination, checkIn, checkOut, guests, rooms, budget, proposalTripId: String(tripId || "") });
+    if (isAgentMode) search.set("mode", "agent");
+    router.push(`/booking/hotels/review?${search.toString()}`);
   };
 
   const handleShare = async () => {
