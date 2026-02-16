@@ -149,6 +149,36 @@ export default function TripSnapshotPanel({ tripId, proposalMode = "" }) {
         </span>
       </div>
 
+      <div className="mb-4 space-y-2">
+        <button
+          onClick={onGenerate}
+          disabled={!effectiveSnapshot?.dates || !effectiveSnapshot?.destination || !effectiveSnapshot?.travelers}
+          className={`w-full rounded-xl px-4 py-3 text-sm font-extrabold text-white ${!effectiveSnapshot?.dates || !effectiveSnapshot?.destination || !effectiveSnapshot?.travelers ? 'opacity-50 cursor-not-allowed' : ''}`}
+          style={{ backgroundColor: BRAND_BLUE }}
+        >
+          Generate Proposal
+        </button>
+        <button
+          onClick={onOpen}
+          className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-extrabold"
+          style={{ color: PREMIUM_BLUE }}
+        >
+          Open Proposal
+        </button>
+        <button
+          onClick={onMarkReady}
+          className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold"
+          style={{ color: TITLE_TEXT }}
+        >
+          Mark Ready / Save
+        </button>
+        {proposal && (
+          <div className="rounded-lg bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 border border-emerald-100">
+            Proposal saved · {new Date(proposal.updatedAt).toLocaleString()}
+          </div>
+        )}
+      </div>
+
       <div className="space-y-3">
         {[
           { key: "departure", label: "Departure city" },
@@ -226,35 +256,6 @@ export default function TripSnapshotPanel({ tripId, proposalMode = "" }) {
         </div>
       )}
 
-      <div className="mt-5 space-y-2">
-        <button
-          onClick={onGenerate}
-          disabled={!effectiveSnapshot?.dates || !effectiveSnapshot?.destination || !effectiveSnapshot?.travelers}
-          className={`w-full rounded-xl px-4 py-3 text-sm font-extrabold text-white ${!effectiveSnapshot?.dates || !effectiveSnapshot?.destination || !effectiveSnapshot?.travelers ? 'opacity-50 cursor-not-allowed' : ''}`}
-          style={{ backgroundColor: BRAND_BLUE }}
-        >
-          Generate Proposal
-        </button>
-        <button
-          onClick={onOpen}
-          className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-extrabold"
-          style={{ color: PREMIUM_BLUE }}
-        >
-          Open Proposal
-        </button>
-        <button
-          onClick={onMarkReady}
-          className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold"
-          style={{ color: TITLE_TEXT }}
-        >
-          Mark Ready / Save
-        </button>
-        {proposal && (
-          <div className="rounded-lg bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 border border-emerald-100">
-            Proposal saved · {new Date(proposal.updatedAt).toLocaleString()}
-          </div>
-        )}
-      </div>
     </div>
   );
 }
