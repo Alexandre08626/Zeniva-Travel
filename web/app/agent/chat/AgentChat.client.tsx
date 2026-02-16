@@ -475,13 +475,14 @@ export default function AgentChatClient() {
     const createdAt = new Date().toISOString();
     const author = user?.name || "Agent";
     const senderRole = canHQ ? "hq" : "agent";
+    const channelIdsToSend = Array.from(new Set([channelId, "hq"].filter(Boolean)));
 
     addMessage({ id: requestId, role: senderRole, author, text: trimmed, createdAt });
     try {
       await postMessage({
         id: requestId,
         createdAt,
-        channelIds: [channelId],
+        channelIds: channelIdsToSend,
         message: trimmed,
         author,
         senderRole,
@@ -508,7 +509,7 @@ export default function AgentChatClient() {
           await postMessage({
             id: linaId,
             createdAt: linaCreatedAt,
-            channelIds: [channelId],
+            channelIds: channelIdsToSend,
             message: linaText,
             author: "Lina",
             senderRole: "lina",
@@ -531,7 +532,7 @@ export default function AgentChatClient() {
           await postMessage({
             id: failId,
             createdAt: failCreatedAt,
-            channelIds: [channelId],
+            channelIds: channelIdsToSend,
             message: failText,
             author: "Lina",
             senderRole: "lina",

@@ -163,14 +163,20 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
 
       const agentItems = agentRequests
         .slice(0, 5)
-        .map((item: any) => ({
-          id: `request-${item.id}`,
-          title: resolveAgentTitle(item),
-          subtitle: resolveAgentSubtitle(item),
-          href: "/agent/chat?channel=hq",
-          ts: item.createdAt || new Date().toISOString(),
-          read: readIds.has(`request-${item.id}`),
-        }))
+        .map((item: any) => {
+          const channelIds = Array.isArray(item?.channelIds)
+            ? item.channelIds.filter((id: unknown) => typeof id === "string" && id.trim())
+            : [];
+          const preferredChannel = channelIds.find((id: string) => id !== "hq" && id !== "lina-help") || channelIds[0] || "hq";
+          return {
+            id: `request-${item.id}`,
+            title: resolveAgentTitle(item),
+            subtitle: resolveAgentSubtitle(item),
+            href: `/agent/chat?channel=${encodeURIComponent(preferredChannel)}`,
+            ts: item.createdAt || new Date().toISOString(),
+            read: readIds.has(`request-${item.id}`),
+          };
+        })
         .filter((item: any) => !item.read);
 
       setNotifications([...bookingItems, ...agentItems].slice(0, 8));
