@@ -5,7 +5,7 @@ import ConversationsSidebar from "../../../components/chat/ConversationsSidebar"
 import ChatThread from "../../../components/chat/ChatThread";
 import TripSnapshotPanel from "../../../components/chat/TripSnapshotPanel";
 import { applyTripPatch, ensureSeedTrip, useTripsStore } from "../../../lib/store/tripsStore";
-import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../src/design/tokens";
+import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE, BRAND_BLUE, LIGHT_BG, ACCENT_GOLD } from "../../../src/design/tokens";
 import { sendMessageToLina } from "../../../src/lib/linaClient";
 
 const LINA_URL =
@@ -13,23 +13,40 @@ const LINA_URL =
 
 function CallLayout({ sidebar, chat, snapshot, videoCall }) {
   const router = useRouter();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(max-width: 639px)");
+    const sync = () => setIsMobile(media.matches);
+    sync();
+    media.addEventListener?.("change", sync);
+    return () => media.removeEventListener?.("change", sync);
+  }, []);
+
   return (
-    <main className="min-h-screen" style={{ backgroundColor: "#f9fbff" }}>
+    <main
+      className="min-h-screen"
+      style={isMobile
+        ? { background: `linear-gradient(160deg, rgba(8,26,74,0.08) 0%, rgba(43,107,255,0.12) 46%, ${LIGHT_BG} 100%)` }
+        : { backgroundColor: "#f9fbff" }}
+    >
+      {isMobile && <div className="absolute -top-12 right-0 h-48 w-48 rounded-full blur-3xl" style={{ backgroundColor: "rgba(43,107,255,0.22)" }} />}
       <div className="mx-auto max-w-7xl px-4 py-4 sm:py-6">
-        <header className="mb-4 flex flex-col gap-3 sm:mb-5 sm:flex-row sm:items-center sm:justify-between">
+        <header className={`mb-4 flex flex-col gap-3 sm:mb-5 sm:flex-row sm:items-center sm:justify-between ${isMobile ? "rounded-2xl border border-slate-200 bg-white/92 px-4 py-3 shadow-sm backdrop-blur" : ""}`}>
           <div className="flex items-center gap-3">
             <a href="/" className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>
               ← Back
             </a>
-            <div className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm">
+            <div className="rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm" style={isMobile ? { borderColor: "rgba(11,27,77,0.18)", color: PREMIUM_BLUE } : {}}>
               Lina Traveler · Video call
             </div>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <a
               href="/chat"
-              className="rounded-full px-4 py-2 text-sm font-semibold border border-slate-200 bg-white w-full sm:w-auto text-center"
-              style={{ color: TITLE_TEXT }}
+              className="rounded-full px-4 py-2 text-sm font-semibold border bg-white w-full sm:w-auto text-center"
+              style={isMobile ? { color: TITLE_TEXT, borderColor: "rgba(11,27,77,0.18)" } : { color: TITLE_TEXT }}
             >
               Switch to Chat
             </a>
@@ -43,9 +60,9 @@ function CallLayout({ sidebar, chat, snapshot, videoCall }) {
                   alt="Lina avatar"
                   width={40}
                   height={40}
-                  className="rounded-full shadow-sm cursor-pointer"
+                  className={`rounded-full shadow-sm cursor-pointer ${isMobile ? "ring-2 ring-white" : ""}`}
                 />
-                <span>Chat with Lina</span>
+                <span className={isMobile ? "font-bold" : ""}>Chat with Lina</span>
               </button>
             </div>
           </div>
@@ -71,9 +88,19 @@ function CallNotesPanel({ tripId }) {
   const [autoSync, setAutoSync] = useState(true);
   const [error, setError] = useState("");
   const [lastSyncedAt, setLastSyncedAt] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
   const recognitionRef = useRef(null);
   const syncTimerRef = useRef(null);
   const lastSyncedLengthRef = useRef(0);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(max-width: 639px)");
+    const sync = () => setIsMobile(media.matches);
+    sync();
+    media.addEventListener?.("change", sync);
+    return () => media.removeEventListener?.("change", sync);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -178,13 +205,22 @@ function CallNotesPanel({ tripId }) {
   }, [notes, autoSync, syncing]);
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+    <div className={`rounded-2xl border border-slate-200 bg-white p-4 ${isMobile ? "shadow-[0_16px_46px_rgba(11,27,77,0.10)]" : "shadow-sm"}`}>
       <div className="flex items-center justify-between mb-3">
-        <div className="text-sm font-extrabold" style={{ color: TITLE_TEXT }}>Call notes</div>
+        <div>
+          {isMobile && <div className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: BRAND_BLUE }}>Voice capture</div>}
+          <div className="text-sm font-extrabold" style={{ color: TITLE_TEXT }}>Call notes</div>
+        </div>
         <button
           onClick={toggleListening}
-          className={`rounded-full px-3 py-1 text-xs font-semibold border ${listening ? "bg-black text-white" : "bg-white"}`}
-          style={{ color: listening ? "#fff" : TITLE_TEXT }}
+          className={`rounded-full px-3 py-1 text-xs font-semibold border ${listening ? "text-white" : "bg-white"}`}
+          style={isMobile
+            ? {
+                color: listening ? "#fff" : TITLE_TEXT,
+                backgroundColor: listening ? PREMIUM_BLUE : "#fff",
+                borderColor: listening ? PREMIUM_BLUE : "#e2e8f0",
+              }
+            : { color: listening ? "#fff" : TITLE_TEXT, backgroundColor: listening ? "#111827" : "#fff" }}
         >
           {listening ? "Stop" : "Start"} voice notes
         </button>
@@ -195,18 +231,18 @@ function CallNotesPanel({ tripId }) {
         onChange={(e) => setNotes(e.target.value)}
         rows={6}
         placeholder="Paste or dictate the call summary here. Lina will extract the trip details for the snapshot."
-        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:border-slate-300"
+        className={`w-full rounded-xl px-3 py-2 text-sm font-semibold outline-none ${isMobile ? "border border-slate-300 focus:border-slate-400" : "border border-slate-200 focus:border-slate-300"}`}
       />
 
       {error && <div className="mt-2 text-xs text-red-600">{error}</div>}
       {lastSyncedAt && <div className="mt-2 text-xs text-emerald-600">Snapshot updated at {lastSyncedAt}</div>}
 
-      <div className="mt-3 flex items-center gap-2">
+      <div className={`mt-3 flex items-center gap-2 ${isMobile ? "flex-wrap" : ""}`}>
         <button
           onClick={syncNotes}
           disabled={syncing || !notes.trim()}
           className={`rounded-full px-4 py-2 text-xs font-semibold ${syncing || !notes.trim() ? "opacity-50 cursor-not-allowed" : ""}`}
-          style={{ backgroundColor: "#111827", color: "#fff" }}
+          style={{ backgroundColor: isMobile ? PREMIUM_BLUE : "#111827", color: "#fff" }}
         >
           {syncing ? "Syncing..." : "Sync to snapshot"}
         </button>
@@ -235,6 +271,16 @@ export default function CallTripPage() {
   const router = useRouter();
   const tripId = Array.isArray(params.tripId) ? params.tripId[0] : params.tripId;
   const { trip } = useTripsStore((s) => ({ trip: s.trips.find((t) => t.id === tripId) }));
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(max-width: 639px)");
+    const sync = () => setIsMobile(media.matches);
+    sync();
+    media.addEventListener?.("change", sync);
+    return () => media.removeEventListener?.("change", sync);
+  }, []);
 
   useEffect(() => {
     if (!tripId) {
@@ -249,7 +295,13 @@ export default function CallTripPage() {
   }, [tripId, trip, router]);
 
   const videoCallSection = (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+    <div className={`overflow-hidden border border-slate-200 bg-white ${isMobile ? "rounded-3xl shadow-[0_20px_60px_rgba(11,27,77,0.14)]" : "rounded-2xl shadow-xl"}`}>
+      {isMobile && (
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100" style={{ background: `linear-gradient(110deg, ${PREMIUM_BLUE} 0%, ${BRAND_BLUE} 72%)` }}>
+          <div className="text-sm font-bold text-white">Lina Live Call</div>
+          <div className="text-[11px] font-semibold" style={{ color: ACCENT_GOLD }}>Premium stream</div>
+        </div>
+      )}
       <div className="relative" style={{ paddingTop: "56.25%" }}>
         <iframe
           src={LINA_URL}
@@ -258,14 +310,14 @@ export default function CallTripPage() {
           allow="microphone; camera; autoplay; encrypted-media"
         />
       </div>
-      <div className="flex items-center justify-between px-4 py-3 text-sm text-slate-600">
-        <span>🎥 Video call with Lina - same AI as chat</span>
+      <div className={`px-4 py-3 text-sm text-slate-600 bg-white ${isMobile ? "flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between" : "flex items-center justify-between"}`}>
+        <span className={isMobile ? "font-semibold" : ""}>🎥 Video call with Lina — same AI as chat</span>
         <a
           href={LINA_URL}
           target="_blank"
           rel="noreferrer"
-          className="font-bold"
-          style={{ color: PREMIUM_BLUE }}
+          className={`font-bold ${isMobile ? "rounded-full border px-3 py-1 text-center" : ""}`}
+          style={isMobile ? { color: PREMIUM_BLUE, borderColor: "rgba(11,27,77,0.18)" } : { color: PREMIUM_BLUE }}
         >
           Open in new tab
         </a>

@@ -19,7 +19,7 @@ export default function ChatLayout({
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
       <div className="mx-auto max-w-[1700px] px-4 py-4 sm:py-6">
-        <header className="mb-4 flex flex-col gap-3 sm:mb-5 sm:flex-row sm:items-center sm:justify-between">
+        <header className="mb-4 flex flex-col gap-3 sm:mb-5 sm:flex-row sm:items-center sm:justify-between max-sm:rounded-2xl max-sm:border max-sm:border-slate-200 max-sm:bg-white/90 max-sm:px-4 max-sm:py-3 max-sm:shadow-sm">
           <div className="flex items-center gap-3">
             <Link href={backHref} className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>
               ← {backLabel}
@@ -29,7 +29,7 @@ export default function ChatLayout({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               href={resolvedCallHref}
-              className="rounded-full px-4 py-2 text-sm font-extrabold text-white w-full sm:w-auto text-center"
+              className="rounded-full px-4 py-2 text-sm font-extrabold text-white w-full sm:w-auto text-center max-sm:shadow-sm"
               style={{ backgroundColor: PREMIUM_BLUE }}
             >
               {callLabel}
