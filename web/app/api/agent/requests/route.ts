@@ -25,8 +25,7 @@ type AgentRequest = {
 
 const hasSupabaseEnv = () =>
   Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY) &&
-  Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL) &&
-  Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY);
+  Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL);
 
 function mapDbRow(row: any): AgentRequest {
   const channelIds = Array.isArray(row.channel_ids) && row.channel_ids.length ? row.channel_ids : ["hq"];
