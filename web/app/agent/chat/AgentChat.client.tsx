@@ -419,7 +419,7 @@ export default function AgentChatClient() {
     setChannels((prev) => prev.map((ch) => (ch.id === targetChannelId ? { ...ch, unread: 0 } : ch)));
   };
 
-  const handleDeleteMessage = async (msg: { id: string; role: "agent" | "hq" | "lina"; author: string; text: string; ts: string }) => {
+  const handleDeleteMessage = async (msg: ChatMessage) => {
     setMessages((prev) => ({
       ...prev,
       [channelId]: (prev[channelId] || []).filter((m) => m.id !== msg.id),
