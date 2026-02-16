@@ -1,0 +1,221 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+
+type DraftData = {
+  selectedSearchResult?: {
+    name?: string;
+    location?: string;
+    room?: string;
+  } | null;
+  selectedRateId?: string;
+  selectedRate?: {
+    id?: string;
+    room_type?: { name?: string };
+    refundable?: boolean;
+    conditions?: string;
+    cancellation_timeline?: Array<{ deadline?: string; at?: string; refund_amount?: string; penalty_amount?: string }>;
+  } | null;
+  quote?: {
+    id?: string;
+    total_amount?: string;
+    total_currency?: string;
+    tax_amount?: string;
+    taxes_total?: string;
+    tax?: string;
+    fee_amount?: string;
+    fees_total?: string;
+    fees?: string;
+    due_at_property_amount?: string;
+    due_at_accommodation_amount?: string;
+    due_at_property?: string;
+    refundable?: boolean;
+  } | null;
+  pendingBooking?: any;
+  searchContext?: {
+    destination?: string;
+    checkIn?: string;
+    checkOut?: string;
+    guests?: string;
+    rooms?: string;
+    budget?: string;
+    summary?: { stay?: string; guestLabel?: string };
+    nights?: number | null;
+  };
+};
+
+const BOOKING_DRAFT_KEY = "hotel_booking_draft_v1";
+
+export default function HotelReviewClient() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const [draft, setDraft] = useState<DraftData | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = window.sessionStorage.getItem(BOOKING_DRAFT_KEY);
+      if (!raw) return;
+      setDraft(JSON.parse(raw));
+    } catch {
+      setDraft(null);
+    }
+  }, []);
+
+  const destination = params.get("destination") || draft?.searchContext?.destination || "";
+  const checkIn = params.get("checkIn") || draft?.searchContext?.checkIn || "";
+  const checkOut = params.get("checkOut") || draft?.searchContext?.checkOut || "";
+  const guests = params.get("guests") || draft?.searchContext?.guests || "2";
+  const rooms = params.get("rooms") || draft?.searchContext?.rooms || "1";
+  const budget = params.get("budget") || draft?.searchContext?.budget || "";
+  const nights = draft?.searchContext?.nights || null;
+
+  const summary = useMemo(() => {
+    const stay = checkIn && checkOut ? `${checkIn} → ${checkOut}` : checkIn || checkOut || "Select dates";
+    const guestLabel = `${guests} guest${guests === "1" ? "" : "s"}${rooms ? ` · ${rooms} room${rooms === "1" ? "" : "s"}` : ""}`;
+    return { stay, guestLabel };
+  }, [checkIn, checkOut, guests, rooms]);
+
+  const quote = draft?.quote;
+  const selectedRate = draft?.selectedRate;
+  const selectedSearchResult = draft?.selectedSearchResult;
+
+  const formatAmount = (value: any, currency?: string) => {
+    if (value === null || value === undefined || value === "") return "N/A";
+    if (typeof value === "string" || typeof value === "number") {
+      return currency ? `${value} ${currency}` : String(value);
+    }
+    if (typeof value === "object") {
+      const amount = value.amount ?? value.value ?? value.total ?? value.total_amount;
+      const cur = value.currency ?? value.currency_code ?? currency;
+      if (amount !== undefined && amount !== null) {
+        return cur ? `${amount} ${cur}` : String(amount);
+      }
+    }
+    return String(value);
+  };
+
+  if (!draft || !quote) {
+    return (
+      <main className="min-h-screen bg-slate-50 py-10 px-4">
+        <div className="mx-auto max-w-3xl rounded-2xl bg-white border border-slate-200 p-6 shadow-sm">
+          <h1 className="text-2xl font-black text-slate-900">No hotel draft found</h1>
+          <p className="mt-2 text-sm text-slate-600">Please select a hotel and a room rate first.</p>
+          <Link href="/search/hotels" className="mt-4 inline-flex rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
+            Back to hotels search
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-slate-50 py-10 px-4">
+      <div className="mx-auto max-w-4xl space-y-4">
+        <header className="rounded-2xl bg-white px-5 py-4 shadow-sm border border-slate-200">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Review before confirmation</p>
+          <h1 className="text-2xl font-black text-slate-900">Hotel booking details</h1>
+          <p className="text-sm text-slate-600">{summary.stay} · {summary.guestLabel}{budget ? ` · Budget ${budget}` : ""}</p>
+        </header>
+
+        <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
+          <div className="border rounded-lg p-4 space-y-2">
+            <h3 className="font-semibold text-lg">Accommodation summary</h3>
+            <p><strong>Hotel:</strong> {selectedSearchResult?.name || "Selected hotel"}</p>
+            <p><strong>Location:</strong> {selectedSearchResult?.location || destination}</p>
+            <p><strong>Dates:</strong> {summary.stay}{nights ? ` · ${nights} night${nights === 1 ? "" : "s"}` : ""}</p>
+            <p><strong>Guests:</strong> {summary.guestLabel}</p>
+            <p><strong>Room:</strong> {selectedRate?.room_type?.name || selectedSearchResult?.room || "Room"}</p>
+            <p><strong>Refundable:</strong> {String(Boolean(selectedRate?.refundable ?? quote?.refundable))}</p>
+          </div>
+
+          <div className="border rounded-lg p-4">
+            <h3 className="font-semibold text-lg mb-2">Price breakdown</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-slate-700">
+              <div>Total: {formatAmount(quote?.total_amount, quote?.total_currency)}</div>
+              <div>Taxes: {formatAmount(quote?.tax_amount || quote?.taxes_total || quote?.tax, quote?.total_currency)}</div>
+              <div>Fees: {formatAmount(quote?.fee_amount || quote?.fees_total || quote?.fees, quote?.total_currency)}</div>
+              <div>Due at accommodation: {formatAmount(quote?.due_at_property_amount || quote?.due_at_accommodation_amount || quote?.due_at_property, quote?.total_currency)}</div>
+            </div>
+          </div>
+
+          <div className="border rounded-lg p-4 space-y-2">
+            <h3 className="font-semibold text-lg">Policies & terms</h3>
+            <div className="text-sm text-slate-700">
+              <div><strong>Cancellation:</strong> {selectedRate?.cancellation_timeline ? "See timeline below" : "See rate conditions"}</div>
+              {selectedRate?.cancellation_timeline && Array.isArray(selectedRate.cancellation_timeline) && (
+                <ul className="mt-2 list-disc pl-5 text-xs text-slate-600">
+                  {selectedRate.cancellation_timeline.map((item: any, idx: number) => (
+                    <li key={`${item?.deadline || idx}`}>{item?.deadline || item?.at} · {item?.refund_amount || item?.penalty_amount || "See details"}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            {selectedRate?.conditions && <p className="text-xs text-slate-600">Rate conditions: {selectedRate.conditions}</p>}
+            <div className="text-xs text-slate-600">Booking.com terms: <a className="underline" href="https://www.booking.com/content/terms.html" target="_blank" rel="noreferrer">View terms</a></div>
+          </div>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.target as HTMLFormElement);
+              const pendingBooking = {
+                quote_id: quote.id,
+                phone_number: formData.get("phone") as string,
+                email: formData.get("email") as string,
+                guests: [{
+                  given_name: formData.get("firstName") as string,
+                  family_name: formData.get("lastName") as string,
+                }],
+                accommodation_special_requests: formData.get("requests") as string,
+              };
+
+              const nextDraft = {
+                ...draft,
+                pendingBooking,
+              };
+              window.sessionStorage.setItem(BOOKING_DRAFT_KEY, JSON.stringify(nextDraft));
+
+              const nextParams = new URLSearchParams({ destination, checkIn, checkOut, guests, rooms, budget, resume: "payment" });
+              router.push(`/search/hotels?${nextParams.toString()}`);
+            }}
+            className="space-y-4"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700">First Name</label>
+                <input name="firstName" required className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Last Name</label>
+                <input name="lastName" required className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Email</label>
+                <input name="email" type="email" required className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Phone</label>
+                <input name="phone" required className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Special Requests</label>
+              <textarea name="requests" className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" rows={3} />
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Link href={`/search/hotels?${new URLSearchParams({ destination, checkIn, checkOut, guests, rooms, budget }).toString()}`} className="rounded-full border px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                Back to results
+              </Link>
+              <button type="submit" className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                Continue to payment
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </main>
+  );
+}

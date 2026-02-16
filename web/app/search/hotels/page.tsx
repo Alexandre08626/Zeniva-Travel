@@ -43,6 +43,7 @@ export default function HotelsSearchPage() {
 function HotelsSearchContent() {
   const router = useRouter();
   const params = useSearchParams();
+  const BOOKING_DRAFT_KEY = "hotel_booking_draft_v1";
 
 
   const destination = params.get("destination") || "";
@@ -51,6 +52,7 @@ function HotelsSearchContent() {
   const guests = params.get("guests") || "2";
   const rooms = params.get("rooms") || "1";
   const budget = params.get("budget") || "";
+  const resume = params.get("resume") || "";
 
   const normalizeDate = (value: string) => {
     const trimmed = value.trim();
@@ -213,7 +215,35 @@ function HotelsSearchContent() {
       }
 
       setQuote(json.quote);
-      setBookingStep('quote');
+      if (typeof window !== "undefined") {
+        const draft = {
+          selectedSearchResult,
+          selectedRateId: rateId,
+          selectedRate: rates.find((rate) => rate.id === rateId) || null,
+          quote: json.quote,
+          searchContext: {
+            destination,
+            checkIn,
+            checkOut,
+            guests,
+            rooms,
+            budget,
+            summary,
+            nights,
+          },
+        };
+        window.sessionStorage.setItem(BOOKING_DRAFT_KEY, JSON.stringify(draft));
+      }
+
+      const reviewParams = new URLSearchParams({
+        destination,
+        checkIn,
+        checkOut,
+        guests,
+        rooms,
+        budget,
+      });
+      router.push(`/booking/hotels/review?${reviewParams.toString()}`);
     } catch (e: any) {
       setError(e?.message || "Failed to create quote");
     } finally {
@@ -255,6 +285,10 @@ function HotelsSearchContent() {
 
       setBookingStep('booking');
       setBooking(json.booking || json);
+
+      if (typeof window !== "undefined") {
+        window.sessionStorage.removeItem(BOOKING_DRAFT_KEY);
+      }
 
       // Persist a document record so the confirmation appears in My Travel Documents
       try {
@@ -381,6 +415,28 @@ function HotelsSearchContent() {
     loadDuffelStays();
     loadAmadeus();
   }, [destination, checkIn, checkOut, guests, rooms, budget]);
+
+  React.useEffect(() => {
+    if (resume !== "payment") return;
+    if (typeof window === "undefined") return;
+
+    try {
+      const rawDraft = window.sessionStorage.getItem(BOOKING_DRAFT_KEY);
+      if (!rawDraft) return;
+      const draft = JSON.parse(rawDraft);
+      if (!draft?.quote) return;
+
+      setSelectedSearchResult(draft.selectedSearchResult || null);
+      const selectedRate = draft.selectedRate || null;
+      setRates(selectedRate ? [selectedRate] : []);
+      setSelectedRateId(draft.selectedRateId || selectedRate?.id || "");
+      setQuote(draft.quote);
+      setPendingBooking(draft.pendingBooking || null);
+      setBookingStep("payment");
+    } catch {
+      // ignore invalid draft payload
+    }
+  }, [resume]);
 
   return (
     <main className="min-h-screen bg-slate-50 py-10 px-4">
