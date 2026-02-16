@@ -251,6 +251,74 @@ function HotelsSearchContent() {
     }
   };
 
+  const buildAmadeusQuote = (option: StayOption) => {
+    const rawPrice = String(option.price || "").trim();
+    const match = rawPrice.match(/^([A-Z]{3})\s*([0-9,.]+)(?:\s*\/\s*night)?/i);
+    const currency = match?.[1]?.toUpperCase() || "USD";
+    const amount = match?.[2] ? Number(match[2].replace(/,/g, "")) : 0;
+    const hasNight = /night/i.test(rawPrice);
+    const totalAmount = hasNight && nights ? (amount * nights).toFixed(2) : (Number.isFinite(amount) && amount > 0 ? amount.toFixed(2) : "0.00");
+
+    return {
+      id: `amadeus-quote-${option.id}-${Date.now()}`,
+      total_amount: totalAmount,
+      total_currency: currency,
+      refundable: false,
+      provider: "amadeus",
+    };
+  };
+
+  const handleSelectAmadeusAccommodation = (option: StayOption) => {
+    const syntheticQuote = buildAmadeusQuote(option);
+    const syntheticRate = {
+      id: `amadeus-rate-${option.id}`,
+      room_type: { name: option.room || "Room" },
+      refundable: false,
+      conditions: "Amadeus sourced offer. Final supplier conditions apply at confirmation.",
+      cancellation_timeline: [],
+      total_amount: syntheticQuote.total_amount,
+      total_currency: syntheticQuote.total_currency,
+      provider: "amadeus",
+    };
+
+    setSelectedId(option.id);
+    setSelectedSearchResult(option);
+    setQuote(syntheticQuote);
+    setRates([syntheticRate]);
+    setSelectedRateId(syntheticRate.id);
+
+    if (typeof window !== "undefined") {
+      const draft = {
+        selectedSearchResult: option,
+        selectedRateId: syntheticRate.id,
+        selectedRate: syntheticRate,
+        quote: syntheticQuote,
+        searchContext: {
+          destination,
+          checkIn,
+          checkOut,
+          guests,
+          rooms,
+          budget,
+          summary,
+          nights,
+          provider: "amadeus",
+        },
+      };
+      window.sessionStorage.setItem(BOOKING_DRAFT_KEY, JSON.stringify(draft));
+    }
+
+    const reviewParams = new URLSearchParams({
+      destination,
+      checkIn,
+      checkOut,
+      guests,
+      rooms,
+      budget,
+    });
+    router.push(`/booking/hotels/review?${reviewParams.toString()}`);
+  };
+
   const buildLocalBooking = (bookingData: any) => ({
     id: `local-booking-${Date.now()}`,
     booking_reference: `ZNV-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
@@ -544,9 +612,10 @@ function HotelsSearchContent() {
 
               <div className="space-y-3">
                 {amadeusOptions.map((h) => (
-                  <div
+                  <button
                     key={h.id}
-                    className="w-full rounded-xl border bg-slate-50 p-3 shadow-sm flex flex-col gap-3 text-left md:flex-row md:items-center md:justify-between border-slate-200"
+                    onClick={() => handleSelectAmadeusAccommodation(h)}
+                    className={`w-full rounded-xl border bg-slate-50 p-3 shadow-sm flex flex-col gap-3 text-left md:flex-row md:items-center md:justify-between ${selectedId === h.id ? "border-blue-500 ring-2 ring-blue-100" : "border-slate-200"}`}
                   >
                     <div className="flex items-start gap-3">
                       <div className="h-16 w-20 overflow-hidden rounded-lg bg-white border border-slate-200">
@@ -579,7 +648,7 @@ function HotelsSearchContent() {
                       })()}
                       {h.badge && <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">{h.badge}</span>}
                     </div>
-                  </div>
+                  </button>
                 ))}
 
                 {!amadeusLoading && amadeusOptions.length === 0 && !amadeusError && (
