@@ -17,15 +17,36 @@ type OfferCard = {
   carrierLogo?: string;
 };
 
-function getAirlineLogo(code?: string, carrier?: string) {
-  const normalizedCode = (code || "").trim().toUpperCase();
-  if (normalizedCode) return `https://images.kiwi.com/airlines/64/${normalizedCode}.png`;
-  const fallbackCode = String(carrier || "").trim().slice(0, 2).toUpperCase();
-  return fallbackCode ? `https://images.kiwi.com/airlines/64/${fallbackCode}.png` : "";
+const AIRLINE_CODE_BY_NAME: Record<string, string> = {
+  "air canada": "AC",
+  "air canada rouge": "RV",
+};
+
+function resolveAirlineCode(offer?: OfferCard) {
+  const explicit = String(offer?.carrierCode || "").trim().toUpperCase();
+  if (/^[A-Z0-9]{2}$/.test(explicit)) return explicit;
+
+  const codePrefix = String(offer?.code || "").trim().toUpperCase().match(/^([A-Z0-9]{2})/);
+  if (codePrefix?.[1]) return codePrefix[1];
+
+  const carrierName = String(offer?.carrier || "").trim().toLowerCase();
+  if (carrierName && AIRLINE_CODE_BY_NAME[carrierName]) return AIRLINE_CODE_BY_NAME[carrierName];
+
+  const fallbackCode = carrierName.replace(/[^a-z0-9]/g, "").slice(0, 2).toUpperCase();
+  return fallbackCode || "";
+}
+
+function getAirlineLogo(offer?: OfferCard) {
+  const code = resolveAirlineCode(offer);
+  return code ? `https://images.kiwi.com/airlines/64/${code}.png` : "";
 }
 
 type SelectionState = {
   offers: OfferCard[];
+  searchContext?: {
+    proposalTripId?: string;
+    proposalMode?: "agent" | "";
+  };
 };
 
 function Stepper({ step }: { step: number }) {
@@ -72,6 +93,12 @@ export default function FlightPaymentPage() {
   }, []);
 
   const offers = selection?.offers || [];
+  const proposalTripId = String(selection?.searchContext?.proposalTripId || "").trim();
+  const proposalMode = String(selection?.searchContext?.proposalMode || "").trim();
+  const proposalReturnPath = proposalTripId
+    ? `/proposals/${proposalTripId}/review${proposalMode === "agent" ? "?mode=agent" : ""}`
+    : "";
+
   const totalPrice = useMemo(() => {
     const base = offers.reduce((sum, o) => sum + (Number(String(o.price).replace(/[^0-9.]/g, "")) || 0), 0);
     const bagFee = bags.checked * 35 + bags.carryOn * 0;
@@ -79,7 +106,12 @@ export default function FlightPaymentPage() {
     return total ? `USD ${total.toFixed(2)}` : offers[0]?.price || "Price on request";
   }, [offers, bags]);
 
-  const onPay = () => {
+  const onContinue = () => {
+    if (proposalReturnPath) {
+      router.push(proposalReturnPath);
+      return;
+    }
+
     const primary = offers[0];
     if (!primary) return;
     const params = new URLSearchParams({
@@ -114,9 +146,9 @@ export default function FlightPaymentPage() {
             <p className="text-sm font-semibold text-slate-700">Selected flights</p>
             {offers.map((o) => (
               <div key={o.id} className="mt-2 border border-slate-200 rounded-2xl p-3 flex items-start gap-3">
-                {(o.carrierLogo || getAirlineLogo(o.carrierCode, o.carrier)) ? (
+                {(o.carrierLogo || getAirlineLogo(o)) ? (
                   <img
-                    src={o.carrierLogo || getAirlineLogo(o.carrierCode, o.carrier)}
+                    src={o.carrierLogo || getAirlineLogo(o)}
                     alt={o.carrier}
                     className="h-10 w-10 rounded-xl bg-white border border-slate-200 object-contain p-1"
                     loading="lazy"
@@ -152,10 +184,10 @@ export default function FlightPaymentPage() {
 
           <div className="flex justify-end">
             <button
-              onClick={onPay}
+              onClick={onContinue}
               className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white"
             >
-              Continue to payment
+              {proposalReturnPath ? "Continue to proposal review" : "Continue to payment"}
             </button>
           </div>
         </section>

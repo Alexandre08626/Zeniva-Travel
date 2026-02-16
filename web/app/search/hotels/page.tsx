@@ -53,6 +53,8 @@ function HotelsSearchContent() {
   const rooms = params.get("rooms") || "1";
   const budget = params.get("budget") || "";
   const resume = params.get("resume") || "";
+  const proposalTripId = params.get("proposalTripId") || "";
+  const proposalMode = params.get("mode") === "agent" ? "agent" : "";
 
   const normalizeDate = (value: string) => {
     const trimmed = value.trim();
@@ -230,6 +232,8 @@ function HotelsSearchContent() {
             budget,
             summary,
             nights,
+            proposalTripId,
+            proposalMode,
           },
         };
         window.sessionStorage.setItem(BOOKING_DRAFT_KEY, JSON.stringify(draft));
@@ -243,6 +247,12 @@ function HotelsSearchContent() {
         rooms,
         budget,
       });
+      if (proposalTripId) {
+        reviewParams.set("proposalTripId", proposalTripId);
+      }
+      if (proposalMode) {
+        reviewParams.set("mode", proposalMode);
+      }
       router.push(`/booking/hotels/review?${reviewParams.toString()}`);
     } catch (e: any) {
       setError(e?.message || "Failed to create quote");
@@ -303,6 +313,8 @@ function HotelsSearchContent() {
           summary,
           nights,
           provider: "amadeus",
+          proposalTripId,
+          proposalMode,
         },
       };
       window.sessionStorage.setItem(BOOKING_DRAFT_KEY, JSON.stringify(draft));
@@ -316,6 +328,12 @@ function HotelsSearchContent() {
       rooms,
       budget,
     });
+    if (proposalTripId) {
+      reviewParams.set("proposalTripId", proposalTripId);
+    }
+    if (proposalMode) {
+      reviewParams.set("mode", proposalMode);
+    }
     router.push(`/booking/hotels/review?${reviewParams.toString()}`);
   };
 

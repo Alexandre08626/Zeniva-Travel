@@ -200,6 +200,8 @@ export default function ProposalReviewPage() {
       const routeParts = String(selection?.flight?.route || "")
         .split("→")
         .map((item) => item.trim());
+      const flightNumber = String(selection?.flight?.flightNumber || "").trim();
+      const inferredCarrierCode = flightNumber.match(/^([A-Z0-9]{2})/)?.[1] || "";
       const fromCode = routeParts[0] || (tripDraft?.departureCity || "").toUpperCase();
       const toCode = routeParts[1] || (tripDraft?.destination || "").toUpperCase();
       const cabinRaw = String(selection?.flight?.fare || tripDraft?.travelClass || "Economy").toLowerCase();
@@ -210,7 +212,8 @@ export default function ProposalReviewPage() {
           {
             id: selection?.flight?.id || `proposal-flight-${tripId}`,
             carrier: selection?.flight?.airline || "Airline",
-            code: selection?.flight?.flightNumber || "",
+            code: flightNumber,
+            carrierCode: inferredCarrierCode,
             depart: String(selection?.flight?.times || "").split("–")[0]?.trim() || "",
             arrive: String(selection?.flight?.times || "").split("–")[1]?.trim() || "",
             duration: selection?.flight?.duration || "",
@@ -227,6 +230,8 @@ export default function ProposalReviewPage() {
           ret: tripDraft?.checkOut || "",
           passengers: String(tripDraft?.adults || 1),
           cabin,
+          proposalTripId: tripId,
+          proposalMode: isAgentMode ? "agent" : "",
         },
       };
 
@@ -235,6 +240,24 @@ export default function ProposalReviewPage() {
 
     router.push(path);
   };
+
+  const openHotelStep = () => {
+    const search = new URLSearchParams({
+      destination: String(tripDraft?.destination || "").trim(),
+      checkIn: String(tripDraft?.checkIn || "").trim(),
+      checkOut: String(tripDraft?.checkOut || "").trim(),
+      guests: String(tripDraft?.adults || 1),
+      rooms: "1",
+      proposalTripId: String(tripId || ""),
+    });
+
+    if (isAgentMode) {
+      search.set("mode", "agent");
+    }
+
+    router.push(`/search/hotels?${search.toString()}`);
+  };
+
   const handleShare = async () => {
     const url = shareUrl || `/checkout/${tripId}`;
     try {
@@ -379,6 +402,14 @@ export default function ProposalReviewPage() {
                     onChange={(event) => persistHotelChecklist({ hotelCancellationConfirmed: event.target.checked })}
                   />
                 </label>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={openHotelStep}
+                  className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+                >
+                  Validate hotel details
+                </button>
               </div>
             </div>
           </div>

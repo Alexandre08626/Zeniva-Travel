@@ -46,6 +46,8 @@ type DraftData = {
     budget?: string;
     summary?: { stay?: string; guestLabel?: string };
     nights?: number | null;
+    proposalTripId?: string;
+    proposalMode?: "agent" | "";
   };
 };
 
@@ -74,6 +76,8 @@ export default function HotelReviewClient() {
   const rooms = params.get("rooms") || draft?.searchContext?.rooms || "1";
   const budget = params.get("budget") || draft?.searchContext?.budget || "";
   const nights = draft?.searchContext?.nights || null;
+  const proposalTripId = params.get("proposalTripId") || draft?.searchContext?.proposalTripId || "";
+  const proposalMode = params.get("mode") || draft?.searchContext?.proposalMode || "";
 
   const summary = useMemo(() => {
     const stay = checkIn && checkOut ? `${checkIn} → ${checkOut}` : checkIn || checkOut || "Select dates";
@@ -232,6 +236,30 @@ export default function HotelReviewClient() {
                 };
                 window.sessionStorage.setItem(BOOKING_DRAFT_KEY, JSON.stringify(nextDraft));
 
+                if (proposalTripId) {
+                  const checklistKey = `proposal_review_checklist_${proposalTripId}`;
+                  let existingChecklist = {};
+                  try {
+                    existingChecklist = JSON.parse(window.localStorage.getItem(checklistKey) || "{}");
+                  } catch {
+                    existingChecklist = {};
+                  }
+
+                  window.localStorage.setItem(
+                    checklistKey,
+                    JSON.stringify({
+                      ...existingChecklist,
+                      hotelTravelerConfirmed: true,
+                      hotelPoliciesConfirmed: true,
+                      hotelCancellationConfirmed: true,
+                    })
+                  );
+
+                  const modeSuffix = proposalMode === "agent" ? "?mode=agent" : "";
+                  router.push(`/proposals/${proposalTripId}/review${modeSuffix}`);
+                  return;
+                }
+
                 const nextParams = new URLSearchParams({ destination, checkIn, checkOut, guests, rooms, budget, resume: "payment" });
                 router.push(`/search/hotels?${nextParams.toString()}`);
               };
@@ -282,7 +310,7 @@ export default function HotelReviewClient() {
                 Back to results
               </Link>
               <button type="submit" disabled={!acceptedTerms} className={`rounded-full px-4 py-2 text-sm font-semibold text-white ${acceptedTerms ? "bg-blue-600 hover:bg-blue-700" : "bg-slate-300 cursor-not-allowed"}`}>
-                Continue to payment
+                {proposalTripId ? "Continue to proposal review" : "Continue to payment"}
               </button>
             </div>
           </form>
