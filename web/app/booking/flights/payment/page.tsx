@@ -13,7 +13,16 @@ type OfferCard = {
   price: string;
   cabin: string;
   stops: string;
+  carrierCode?: string;
+  carrierLogo?: string;
 };
+
+function getAirlineLogo(code?: string, carrier?: string) {
+  const normalizedCode = (code || "").trim().toUpperCase();
+  if (normalizedCode) return `https://images.kiwi.com/airlines/64/${normalizedCode}.png`;
+  const fallbackCode = String(carrier || "").trim().slice(0, 2).toUpperCase();
+  return fallbackCode ? `https://images.kiwi.com/airlines/64/${fallbackCode}.png` : "";
+}
 
 type SelectionState = {
   offers: OfferCard[];
@@ -104,10 +113,24 @@ export default function FlightPaymentPage() {
           <div>
             <p className="text-sm font-semibold text-slate-700">Selected flights</p>
             {offers.map((o) => (
-              <div key={o.id} className="mt-2 border border-slate-200 rounded-xl p-3">
-                <div className="text-sm font-semibold text-slate-800">{o.carrier} · {o.code}</div>
-                <div className="text-sm text-slate-600">{o.depart} → {o.arrive} · {o.duration} · {o.stops}</div>
-                <div className="text-sm text-slate-600">Cabin: {o.cabin}</div>
+              <div key={o.id} className="mt-2 border border-slate-200 rounded-2xl p-3 flex items-start gap-3">
+                {(o.carrierLogo || getAirlineLogo(o.carrierCode, o.carrier)) ? (
+                  <img
+                    src={o.carrierLogo || getAirlineLogo(o.carrierCode, o.carrier)}
+                    alt={o.carrier}
+                    className="h-10 w-10 rounded-xl bg-white border border-slate-200 object-contain p-1"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="h-10 w-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-sm font-bold text-slate-800">
+                    {o.carrier?.[0] || "?"}
+                  </div>
+                )}
+                <div>
+                  <div className="text-sm font-semibold text-slate-800">{o.carrier}{o.carrierCode ? ` (${o.carrierCode})` : ""} · {o.code}</div>
+                  <div className="text-sm text-slate-600">{o.depart} → {o.arrive} · {o.duration} · {o.stops}</div>
+                  <div className="text-sm text-slate-600">Cabin: {o.cabin}</div>
+                </div>
               </div>
             ))}
           </div>

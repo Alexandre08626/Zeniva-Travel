@@ -13,8 +13,17 @@ type OfferCard = {
   price: string;
   cabin: string;
   stops: string;
+  carrierCode?: string;
+  carrierLogo?: string;
   badge?: string;
 };
+
+function getAirlineLogo(code?: string, carrier?: string) {
+  const normalizedCode = (code || "").trim().toUpperCase();
+  if (normalizedCode) return `https://images.kiwi.com/airlines/64/${normalizedCode}.png`;
+  const fallbackCode = String(carrier || "").trim().slice(0, 2).toUpperCase();
+  return fallbackCode ? `https://images.kiwi.com/airlines/64/${fallbackCode}.png` : "";
+}
 
 type SearchContext = {
   from?: string;
@@ -68,6 +77,8 @@ export default function FlightReviewClient() {
       price: params.get("price") || "",
       cabin: params.get("cabin") || "",
       stops: params.get("stops") || "",
+      carrierCode: params.get("carrierCode") || "",
+      carrierLogo: params.get("carrierLogo") || "",
     };
 
     const searchContext: SearchContext = {
@@ -108,11 +119,25 @@ export default function FlightReviewClient() {
 
         <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-6 space-y-4">
           {offers.map((offer) => (
-            <div key={offer.id} className="border border-slate-200 rounded-xl p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-slate-800">{offer.carrier} · {offer.code}</p>
-                <p className="text-xl font-black text-slate-900">{offer.depart} → {offer.arrive}</p>
-                <p className="text-sm text-slate-600">{offer.duration} · {offer.stops} · {offer.cabin}</p>
+            <div key={offer.id} className="border border-slate-200 rounded-2xl p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-start gap-3">
+                {(offer.carrierLogo || getAirlineLogo(offer.carrierCode, offer.carrier)) ? (
+                  <img
+                    src={offer.carrierLogo || getAirlineLogo(offer.carrierCode, offer.carrier)}
+                    alt={offer.carrier}
+                    className="h-12 w-12 rounded-xl bg-white border border-slate-200 object-contain p-1"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="h-12 w-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-sm font-bold text-slate-800">
+                    {offer.carrier[0] || "?"}
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">{offer.carrier}{offer.carrierCode ? ` (${offer.carrierCode})` : ""} · {offer.code}</p>
+                  <p className="text-xl font-black text-slate-900">{offer.depart} → {offer.arrive}</p>
+                  <p className="text-sm text-slate-600">{offer.duration} · {offer.stops} · {offer.cabin}</p>
+                </div>
               </div>
               <div className="text-lg font-black text-slate-900">{offer.price}</div>
             </div>
