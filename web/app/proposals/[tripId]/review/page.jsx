@@ -17,6 +17,14 @@ export default function ProposalReviewPage() {
   const isAgentMode = mode === "agent";
   const modeSuffix = isAgentMode ? "?mode=agent" : "";
   const [shareStatus, setShareStatus] = useState("");
+  const [workflow, setWorkflow] = useState({
+    passengersComplete: false,
+    seatsComplete: false,
+    bagsComplete: false,
+    hotelTravelerConfirmed: false,
+    hotelPoliciesConfirmed: false,
+    hotelCancellationConfirmed: false,
+  });
 
   const { proposal, selection, tripDraft } = useTripsStore((s) => ({
     proposal: s.proposals[tripId],
@@ -92,6 +100,141 @@ export default function ProposalReviewPage() {
 
   const onPay = () => router.push(`/checkout/${tripId}`);
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/checkout/${tripId}` : "";
+
+  const allWorkflowComplete =
+    workflow.passengersComplete &&
+    workflow.seatsComplete &&
+    workflow.bagsComplete &&
+    workflow.hotelTravelerConfirmed &&
+    workflow.hotelPoliciesConfirmed &&
+    workflow.hotelCancellationConfirmed;
+
+  const refreshWorkflow = () => {
+    if (typeof window === "undefined") return;
+    const expectedPax = Math.max(1, Number(tripDraft?.adults || 1));
+
+    let pax = [];
+    let seats = [];
+    let bags = null;
+    let localChecklist = {};
+
+    try {
+      pax = JSON.parse(window.sessionStorage.getItem("flight_passengers") || "[]");
+    } catch {
+      pax = [];
+    }
+
+    try {
+      seats = JSON.parse(window.sessionStorage.getItem("flight_seats") || "[]");
+    } catch {
+      seats = [];
+    }
+
+    try {
+      bags = JSON.parse(window.sessionStorage.getItem("flight_bags") || "null");
+    } catch {
+      bags = null;
+    }
+
+    try {
+      localChecklist = JSON.parse(window.localStorage.getItem(`proposal_review_checklist_${tripId}`) || "{}");
+    } catch {
+      localChecklist = {};
+    }
+
+    const normalizedPax = Array.isArray(pax) ? pax : [];
+    const normalizedSeats = Array.isArray(seats) ? seats : [];
+
+    const passengersComplete =
+      normalizedPax.length >= expectedPax &&
+      normalizedPax.slice(0, expectedPax).every((item) =>
+        String(item?.firstName || "").trim() &&
+        String(item?.lastName || "").trim() &&
+        String(item?.dob || "").trim() &&
+        String(item?.passport || "").trim()
+      );
+
+    const seatsComplete =
+      normalizedSeats.length >= expectedPax &&
+      normalizedSeats.slice(0, expectedPax).every((seat) => String(seat || "").trim());
+
+    const bagsComplete = Boolean(
+      bags &&
+      Number.isFinite(Number(bags?.carryOn)) &&
+      Number.isFinite(Number(bags?.checked))
+    );
+
+    setWorkflow({
+      passengersComplete,
+      seatsComplete,
+      bagsComplete,
+      hotelTravelerConfirmed: Boolean(localChecklist?.hotelTravelerConfirmed),
+      hotelPoliciesConfirmed: Boolean(localChecklist?.hotelPoliciesConfirmed),
+      hotelCancellationConfirmed: Boolean(localChecklist?.hotelCancellationConfirmed),
+    });
+  };
+
+  useEffect(() => {
+    refreshWorkflow();
+    const onFocus = () => refreshWorkflow();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [tripId, tripDraft?.adults]);
+
+  const persistHotelChecklist = (patch) => {
+    if (typeof window === "undefined") return;
+    const key = `proposal_review_checklist_${tripId}`;
+    let current = {};
+    try {
+      current = JSON.parse(window.localStorage.getItem(key) || "{}");
+    } catch {
+      current = {};
+    }
+    const next = { ...current, ...patch };
+    window.localStorage.setItem(key, JSON.stringify(next));
+    setWorkflow((prev) => ({ ...prev, ...patch }));
+  };
+
+  const openFlightStep = (path) => {
+    if (typeof window !== "undefined") {
+      const routeParts = String(selection?.flight?.route || "")
+        .split("→")
+        .map((item) => item.trim());
+      const fromCode = routeParts[0] || (tripDraft?.departureCity || "").toUpperCase();
+      const toCode = routeParts[1] || (tripDraft?.destination || "").toUpperCase();
+      const cabinRaw = String(selection?.flight?.fare || tripDraft?.travelClass || "Economy").toLowerCase();
+      const cabin = cabinRaw.includes("business") ? "Business" : cabinRaw.includes("first") ? "First" : cabinRaw.includes("premium") ? "Premium Economy" : "Economy";
+
+      const flightSelectionDraft = {
+        offers: [
+          {
+            id: selection?.flight?.id || `proposal-flight-${tripId}`,
+            carrier: selection?.flight?.airline || "Airline",
+            code: selection?.flight?.flightNumber || "",
+            depart: String(selection?.flight?.times || "").split("–")[0]?.trim() || "",
+            arrive: String(selection?.flight?.times || "").split("–")[1]?.trim() || "",
+            duration: selection?.flight?.duration || "",
+            stops: selection?.flight?.layovers ? `${selection.flight.layovers} stop` : "Nonstop",
+            cabin,
+            price: selection?.flight?.price || "Price on request",
+            bags: selection?.flight?.bags || "",
+          },
+        ],
+        searchContext: {
+          from: fromCode,
+          to: toCode,
+          depart: tripDraft?.checkIn || "",
+          ret: tripDraft?.checkOut || "",
+          passengers: String(tripDraft?.adults || 1),
+          cabin,
+        },
+      };
+
+      window.sessionStorage.setItem("flight_selection", JSON.stringify(flightSelectionDraft));
+    }
+
+    router.push(path);
+  };
   const handleShare = async () => {
     const url = shareUrl || `/checkout/${tripId}`;
     try {
@@ -161,6 +304,90 @@ export default function ProposalReviewPage() {
             <span className="font-semibold">4.92</span>
             <span>· 52 reviews</span>
           </div>
+        </section>
+
+        <section className="rounded-2xl border border-blue-100 bg-white p-6 space-y-4">
+          <div>
+            <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Required before payment</p>
+            <h2 className="text-xl font-black text-slate-900">Booking process checklist</h2>
+            <p className="text-sm text-slate-600">Complete all required steps for flights and accommodation before final payment.</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="rounded-xl border border-slate-200 p-4 space-y-3">
+              <p className="text-sm font-extrabold text-slate-900">Flights process</p>
+              <div className="space-y-2 text-sm">
+                <div className={`flex items-center justify-between ${workflow.passengersComplete ? "text-emerald-700" : "text-slate-700"}`}>
+                  <span>Passenger + passport details</span>
+                  <span>{workflow.passengersComplete ? "✓" : "Required"}</span>
+                </div>
+                <div className={`flex items-center justify-between ${workflow.seatsComplete ? "text-emerald-700" : "text-slate-700"}`}>
+                  <span>Seat selection</span>
+                  <span>{workflow.seatsComplete ? "✓" : "Required"}</span>
+                </div>
+                <div className={`flex items-center justify-between ${workflow.bagsComplete ? "text-emerald-700" : "text-slate-700"}`}>
+                  <span>Baggage selection</span>
+                  <span>{workflow.bagsComplete ? "✓" : "Required"}</span>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => openFlightStep("/booking/flights/passengers")}
+                  className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+                >
+                  Passengers & passport
+                </button>
+                <button
+                  onClick={() => openFlightStep("/booking/flights/seats")}
+                  className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+                >
+                  Seats
+                </button>
+                <button
+                  onClick={() => openFlightStep("/booking/flights/bags")}
+                  className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+                >
+                  Bags
+                </button>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 p-4 space-y-3">
+              <p className="text-sm font-extrabold text-slate-900">Accommodation process</p>
+              <div className="space-y-2 text-sm text-slate-700">
+                <label className="flex items-center justify-between gap-2">
+                  <span>Traveler details complete (name/email/phone)</span>
+                  <input
+                    type="checkbox"
+                    checked={workflow.hotelTravelerConfirmed}
+                    onChange={(event) => persistHotelChecklist({ hotelTravelerConfirmed: event.target.checked })}
+                  />
+                </label>
+                <label className="flex items-center justify-between gap-2">
+                  <span>Property policies reviewed</span>
+                  <input
+                    type="checkbox"
+                    checked={workflow.hotelPoliciesConfirmed}
+                    onChange={(event) => persistHotelChecklist({ hotelPoliciesConfirmed: event.target.checked })}
+                  />
+                </label>
+                <label className="flex items-center justify-between gap-2">
+                  <span>Cancellation terms acknowledged</span>
+                  <input
+                    type="checkbox"
+                    checked={workflow.hotelCancellationConfirmed}
+                    onChange={(event) => persistHotelChecklist({ hotelCancellationConfirmed: event.target.checked })}
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {!allWorkflowComplete && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              Complete all required steps above before proceeding to payment.
+            </div>
+          )}
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,360px] gap-8 items-start">
@@ -330,14 +557,17 @@ export default function ProposalReviewPage() {
               <>
                 <button
                   onClick={handleShare}
+                  disabled={!allWorkflowComplete}
                   className="w-full rounded-xl px-4 py-3 text-sm font-extrabold text-white"
-                  style={{ backgroundColor: BRAND_BLUE }}
+                  style={{ backgroundColor: BRAND_BLUE, opacity: allWorkflowComplete ? 1 : 0.6 }}
                 >
                   Send to client for payment
                 </button>
                 <button
                   onClick={onPay}
+                  disabled={!allWorkflowComplete}
                   className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm font-semibold text-blue-700"
+                  style={{ opacity: allWorkflowComplete ? 1 : 0.6 }}
                 >
                   Preview client payment page
                 </button>
@@ -350,13 +580,14 @@ export default function ProposalReviewPage() {
               <>
                 <button
                   onClick={onPay}
+                  disabled={!allWorkflowComplete}
                   className="w-full rounded-xl px-4 py-3 text-sm font-extrabold text-white"
-                  style={{ backgroundColor: BRAND_BLUE }}
+                  style={{ backgroundColor: BRAND_BLUE, opacity: allWorkflowComplete ? 1 : 0.6 }}
                 >
-                  Proceed to payment
+                  {allWorkflowComplete ? "Proceed to payment" : "Complete required steps first"}
                 </button>
                 <div className="rounded-xl border border-blue-200 bg-white p-3 text-xs" style={{ color: MUTED_TEXT }}>
-                  You can adjust selections before paying. Policies and fare rules summarized above.
+                  You can adjust selections before paying. Passenger/passport, seats, bags, and accommodation checks are required.
                 </div>
               </>
             )}
