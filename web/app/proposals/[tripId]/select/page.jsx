@@ -61,6 +61,67 @@ function resolveIATA(city) {
   return upper.slice(0, 3); // fallback
 }
 
+function parsePriceValue(value) {
+  if (value === null || value === undefined) return Number.NaN;
+  const normalized = String(value).replace(/[^0-9.,]/g, "").replace(/,/g, "");
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
+}
+
+function getStopsCount(stopsLabel) {
+  if (!stopsLabel) return 0;
+  if (/nonstop/i.test(stopsLabel)) return 0;
+  const m = String(stopsLabel).match(/(\d+)/);
+  return m ? Number(m[1]) : 0;
+}
+
+function getAirlineLogoFromFlight(flight) {
+  const explicit = String(flight?.carrierCode || "").trim().toUpperCase();
+  const fromNumber = String(flight?.flightNumber || flight?.code || "")
+    .trim()
+    .toUpperCase()
+    .match(/^([A-Z0-9]{2})/)?.[1] || "";
+  const code = explicit || fromNumber;
+  return code ? `https://images.kiwi.com/airlines/64/${code}.png` : "";
+}
+
+function getPartnerLogo(partner) {
+  const key = String(partner || "").trim().toLowerCase();
+  if (!key) return "";
+  const map = {
+    duffel: "https://logo.clearbit.com/duffel.com",
+    amadeus: "https://logo.clearbit.com/amadeus.com",
+    hotelbeds: "https://logo.clearbit.com/hotelbeds.com",
+    airbnb: "https://logo.clearbit.com/airbnb.com",
+    ycn: "https://logo.clearbit.com/yachtcharternetwork.com",
+    zeniva: "https://logo.clearbit.com/zenivatravel.com",
+  };
+  return map[key] || "";
+}
+
+function getTimeBucket(timeLabel) {
+  const raw = String(timeLabel || "").trim().toUpperCase();
+  if (!raw) return "any";
+
+  let hour = Number(raw.match(/^(\d{1,2})/)?.[1] || Number.NaN);
+  const isPM = raw.includes("PM");
+  const isAM = raw.includes("AM");
+  if (Number.isFinite(hour)) {
+    if (isPM && hour < 12) hour += 12;
+    if (isAM && hour === 12) hour = 0;
+    if (hour < 6) return "night";
+    if (hour < 12) return "morning";
+    if (hour < 18) return "afternoon";
+    return "evening";
+  }
+
+  if (raw.includes("MORNING")) return "morning";
+  if (raw.includes("AFTERNOON")) return "afternoon";
+  if (raw.includes("EVENING")) return "evening";
+  if (raw.includes("NIGHT")) return "night";
+  return "any";
+}
+
 export default function ProposalSelectPage() {
   const params = useParams();
   const router = useRouter();
@@ -82,6 +143,28 @@ export default function ProposalSelectPage() {
   const [errorHotels, setErrorHotels] = useState(null);
   const [errorActivities, setErrorActivities] = useState(null);
   const [errorTransfers, setErrorTransfers] = useState(null);
+  const [filters, setFilters] = useState({
+    flightQuery: "",
+    flightDirectOnly: false,
+    flightMaxStops: "",
+    flightMaxPrice: "",
+    flightCabin: "all",
+    flightSort: "best",
+    selectedAirlines: [],
+    hotelQuery: "",
+    hotelProvider: "all",
+    hotelType: "all",
+    hotelMaxPrice: "",
+    hotelMinRating: "",
+    activityQuery: "",
+    activitySupplier: "all",
+    activityMaxPrice: "",
+    activityWhen: "any",
+    transferQuery: "",
+    transferSupplier: "all",
+    transferType: "any",
+    transferMaxPrice: "",
+  });
 
   const { proposal, selection, tripDraft, snapshot } = useTripsStore((s) => ({
     proposal: s.proposals[tripId],
@@ -197,6 +280,7 @@ export default function ProposalSelectPage() {
           return {
             id: o?.id || `offer-${idx}`,
             airline: firstSeg?.marketing_carrier?.name || firstSeg?.operating_carrier?.name || "Airline",
+            carrierCode: firstSeg?.marketing_carrier?.iata_code || firstSeg?.operating_carrier?.iata_code || "",
             route: `${origin.toUpperCase()} → ${destination.toUpperCase()}`,
             times: `${firstSeg?.departing_at?.slice(11, 16) || ""} – ${lastSeg?.arriving_at?.slice(11, 16) || ""}`,
             fare: o?.cabin_class || o?.cabin || "",
@@ -208,6 +292,10 @@ export default function ProposalSelectPage() {
             originName,
             destinationName,
             layovers: slice?.segments?.length - 1 || 0,
+            carrierLogo: getAirlineLogoFromFlight({
+              carrierCode: firstSeg?.marketing_carrier?.iata_code || firstSeg?.operating_carrier?.iata_code || "",
+              flightNumber,
+            }),
           };
         });
         setFlights(mapped);
@@ -243,6 +331,9 @@ export default function ProposalSelectPage() {
         name: y.title,
         location: y.destination,
         price: y.prices?.[0] || "Price on request",
+        rating: 4.9,
+        provider: "YCN",
+        type: "yacht",
         room: "Yacht",
         image: y.images?.[0] || y.thumbnail || "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=80",
         images: y.images || [y.thumbnail].filter(Boolean), // Include all images for gallery
@@ -274,6 +365,9 @@ export default function ProposalSelectPage() {
           name: a.title,
           location: a.location,
           price: "Price on request", // or parse from description
+          rating: 4.8,
+          provider: "Airbnb",
+          type: "residence",
           room: `${bedrooms} bed • ${bathrooms} bath`,
           image: a.images?.[0] || a.thumbnail,
         };
@@ -315,8 +409,9 @@ export default function ProposalSelectPage() {
         if (res.status === 503 || json?.meta?.status === 503 || json?.temporary) {
           console.log("Duffel Stays API temporarily unavailable (503), using mock hotels");
           const mocks = getMockHotels(destination);
-          setHotels(mocks);
-          setProposalSelection(tripId, { hotel: mocks[0] });
+          const normalizedMocks = mocks.map((h) => ({ ...h, provider: "Duffel", rating: 4.5, type: "hotel" }));
+          setHotels(normalizedMocks);
+          setProposalSelection(tripId, { hotel: normalizedMocks[0] });
           setErrorHotels("Hotel search temporarily unavailable (showing sample options)");
           return;
         }
@@ -327,17 +422,25 @@ export default function ProposalSelectPage() {
         if (list.length === 0) {
           console.log("No offers found, using mock hotels");
           const mocks = getMockHotels(destination);
-          setHotels(mocks);
-          setProposalSelection(tripId, { hotel: mocks[0] });
+          const normalizedMocks = mocks.map((h) => ({ ...h, provider: "Duffel", rating: 4.5, type: "hotel" }));
+          setHotels(normalizedMocks);
+          setProposalSelection(tripId, { hotel: normalizedMocks[0] });
         } else {
-          setHotels(list);
-          setProposalSelection(tripId, { hotel: list[0] || null });
+          const normalizedHotels = list.map((h) => ({
+            ...h,
+            provider: h.provider || "Duffel",
+            rating: Number(h.rating || h.review_score || 4.5),
+            type: h.type || "hotel",
+          }));
+          setHotels(normalizedHotels);
+          setProposalSelection(tripId, { hotel: normalizedHotels[0] || null });
         }
       } catch (e) {
         console.error("Hotels fetch error:", e);
         const mocks = getMockHotels(destination);
-        setHotels(mocks);
-        setProposalSelection(tripId, { hotel: mocks[0] });
+        const normalizedMocks = mocks.map((h) => ({ ...h, provider: "Duffel", rating: 4.5, type: "hotel" }));
+        setHotels(normalizedMocks);
+        setProposalSelection(tripId, { hotel: normalizedMocks[0] });
         setErrorHotels(e?.message || "Failed to load hotels (showing mock options)");
       } finally {
         setLoadingHotels(false);
@@ -390,6 +493,9 @@ export default function ProposalSelectPage() {
           time: a.startDateTime ? new Date(a.startDateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "",
           price: a.price,
           supplier: a.supplierRef,
+          provider: "Hotelbeds",
+          rating: Number(a?.content?.rating || 4.6),
+          category: a?.type || "activity",
           description: a.description || a.title,
           image: a.images?.[0] || "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=80",
           images: a.images || [],
@@ -459,6 +565,7 @@ export default function ProposalSelectPage() {
           date: t.startDateTime ? new Date(t.startDateTime).toLocaleDateString() : "",
           price: t.price,
           supplier: t.supplierRef,
+          provider: "Hotelbeds",
           vehicle: t.vehicle?.name || t.transferType,
           shared: t.transferType === "SHARED",
           image: t.images?.[0] || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=900&q=80",
@@ -509,6 +616,125 @@ export default function ProposalSelectPage() {
     }
   }, [flights, selection?.flight, tripId]);
 
+  const airlineOptions = useMemo(
+    () => Array.from(new Map(
+      flights.map((flight) => {
+        const code = String(flight?.carrierCode || "").toUpperCase();
+        return [code || flight.airline, {
+          code,
+          name: flight.airline,
+          logo: flight.carrierLogo || getAirlineLogoFromFlight(flight),
+        }];
+      })
+    ).values()).filter((item) => item.name),
+    [flights]
+  );
+
+  const hotelProviders = useMemo(
+    () => ["all", ...Array.from(new Set(hotels.map((hotel) => String(hotel?.provider || "").trim()).filter(Boolean)))],
+    [hotels]
+  );
+  const activitySuppliers = useMemo(
+    () => ["all", ...Array.from(new Set(activities.map((activity) => String(activity?.supplier || activity?.provider || "").trim()).filter(Boolean)))],
+    [activities]
+  );
+  const transferSuppliers = useMemo(
+    () => ["all", ...Array.from(new Set(transfers.map((transfer) => String(transfer?.supplier || transfer?.provider || "").trim()).filter(Boolean)))],
+    [transfers]
+  );
+
+  const filteredFlights = useMemo(() => {
+    const list = flights
+      .filter((flight) => {
+        const query = filters.flightQuery.trim().toLowerCase();
+        if (query) {
+          const hay = `${flight.airline} ${flight.route} ${flight.flightNumber} ${flight.fare}`.toLowerCase();
+          if (!hay.includes(query)) return false;
+        }
+
+        if (filters.flightDirectOnly && getStopsCount(flight.stops) > 0) return false;
+        if (filters.flightMaxStops !== "" && getStopsCount(flight.stops) > Number(filters.flightMaxStops)) return false;
+        if (filters.flightMaxPrice !== "") {
+          const p = parsePriceValue(flight.price);
+          if (Number.isFinite(p) && p > Number(filters.flightMaxPrice)) return false;
+        }
+        if (filters.flightCabin !== "all" && String(flight.fare || "").toLowerCase() !== String(filters.flightCabin).toLowerCase()) return false;
+        if (filters.selectedAirlines.length > 0 && !filters.selectedAirlines.includes(String(flight.carrierCode || "").toUpperCase())) return false;
+        return true;
+      })
+      .slice();
+
+    if (filters.flightSort === "price") {
+      list.sort((a, b) => (parsePriceValue(a.price) || Number.MAX_SAFE_INTEGER) - (parsePriceValue(b.price) || Number.MAX_SAFE_INTEGER));
+    } else if (filters.flightSort === "duration") {
+      list.sort((a, b) => (Number(a.duration?.match(/(\d+)h/)?.[1] || 99) * 60 + Number(a.duration?.match(/(\d+)m/)?.[1] || 0)) - (Number(b.duration?.match(/(\d+)h/)?.[1] || 99) * 60 + Number(b.duration?.match(/(\d+)m/)?.[1] || 0)));
+    }
+
+    return list;
+  }, [flights, filters]);
+
+  const filteredHotels = useMemo(() => hotels.filter((hotel) => {
+    const query = filters.hotelQuery.trim().toLowerCase();
+    if (query) {
+      const hay = `${hotel.name} ${hotel.location} ${hotel.room}`.toLowerCase();
+      if (!hay.includes(query)) return false;
+    }
+    if (filters.hotelProvider !== "all" && String(hotel?.provider || "").toLowerCase() !== String(filters.hotelProvider).toLowerCase()) return false;
+
+    const hotelType = String(hotel?.type || (hotel?.room === "Yacht" ? "yacht" : "hotel")).toLowerCase();
+    if (filters.hotelType !== "all" && hotelType !== filters.hotelType) return false;
+
+    if (filters.hotelMaxPrice !== "") {
+      const p = parsePriceValue(hotel.price);
+      if (Number.isFinite(p) && p > Number(filters.hotelMaxPrice)) return false;
+    }
+    if (filters.hotelMinRating !== "") {
+      const rating = Number(hotel?.rating || 0);
+      if (Number.isFinite(rating) && rating < Number(filters.hotelMinRating)) return false;
+    }
+    return true;
+  }), [hotels, filters]);
+
+  const filteredActivities = useMemo(() => activities.filter((activity) => {
+    const query = filters.activityQuery.trim().toLowerCase();
+    if (query) {
+      const hay = `${activity.name} ${activity.supplier} ${activity.description || ""}`.toLowerCase();
+      if (!hay.includes(query)) return false;
+    }
+    if (filters.activitySupplier !== "all") {
+      const supplier = String(activity?.supplier || activity?.provider || "").toLowerCase();
+      if (supplier !== String(filters.activitySupplier).toLowerCase()) return false;
+    }
+    if (filters.activityMaxPrice !== "") {
+      const p = parsePriceValue(activity.price);
+      if (Number.isFinite(p) && p > Number(filters.activityMaxPrice)) return false;
+    }
+    if (filters.activityWhen !== "any") {
+      const bucket = getTimeBucket(activity.time);
+      if (bucket !== filters.activityWhen) return false;
+    }
+    return true;
+  }), [activities, filters]);
+
+  const filteredTransfers = useMemo(() => transfers.filter((transfer) => {
+    const query = filters.transferQuery.trim().toLowerCase();
+    if (query) {
+      const hay = `${transfer.name} ${transfer.route} ${transfer.vehicle || ""}`.toLowerCase();
+      if (!hay.includes(query)) return false;
+    }
+    if (filters.transferSupplier !== "all") {
+      const supplier = String(transfer?.supplier || transfer?.provider || "").toLowerCase();
+      if (supplier !== String(filters.transferSupplier).toLowerCase()) return false;
+    }
+    if (filters.transferType === "private" && transfer.shared) return false;
+    if (filters.transferType === "shared" && !transfer.shared) return false;
+    if (filters.transferMaxPrice !== "") {
+      const p = parsePriceValue(transfer.price);
+      if (Number.isFinite(p) && p > Number(filters.transferMaxPrice)) return false;
+    }
+    return true;
+  }), [transfers, filters]);
+
   const onContinue = () => {
     router.push(`/proposals/${tripId}/review${modeSuffix}`);
   };
@@ -545,8 +771,188 @@ export default function ProposalSelectPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-          <div className="lg:col-span-2 space-y-5">
+        <div className="grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)_320px] gap-4 items-start">
+          <aside className="xl:sticky xl:top-4 rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Zeniva Travel</p>
+              <h2 className="text-lg font-black text-slate-900">Advanced filters</h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Flights {filteredFlights.length} · Stays {filteredHotels.length} · Activities {filteredActivities.length} · Transfers {filteredTransfers.length}
+              </p>
+            </div>
+
+            <section className="space-y-2">
+              <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">Flights</p>
+              <input
+                value={filters.flightQuery}
+                onChange={(e) => setFilters((prev) => ({ ...prev, flightQuery: e.target.value }))}
+                placeholder="Airline, route, fare"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="number"
+                  min={0}
+                  value={filters.flightMaxPrice}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, flightMaxPrice: e.target.value }))}
+                  placeholder="Max price"
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                />
+                <select
+                  value={filters.flightMaxStops}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, flightMaxStops: e.target.value }))}
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                >
+                  <option value="">Any stops</option>
+                  <option value="0">Nonstop</option>
+                  <option value="1">Up to 1 stop</option>
+                  <option value="2">Up to 2 stops</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  value={filters.flightCabin}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, flightCabin: e.target.value }))}
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                >
+                  <option value="all">All cabins</option>
+                  <option value="economy">Economy</option>
+                  <option value="premium economy">Premium Economy</option>
+                  <option value="business">Business</option>
+                  <option value="first">First</option>
+                </select>
+                <select
+                  value={filters.flightSort}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, flightSort: e.target.value }))}
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                >
+                  <option value="best">Sort: Best</option>
+                  <option value="price">Sort: Price</option>
+                  <option value="duration">Sort: Duration</option>
+                </select>
+              </div>
+              <label className="inline-flex items-center gap-2 text-xs text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={filters.flightDirectOnly}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, flightDirectOnly: e.target.checked }))}
+                />
+                Direct flights only
+              </label>
+              {airlineOptions.length > 0 && (
+                <div className="max-h-36 overflow-auto rounded-lg border border-slate-200 p-2 space-y-1">
+                  {airlineOptions.map((airline) => (
+                    <label key={`${airline.code}-${airline.name}`} className="flex items-center gap-2 text-xs text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={filters.selectedAirlines.includes(String(airline.code || "").toUpperCase())}
+                        onChange={(e) => {
+                          const code = String(airline.code || "").toUpperCase();
+                          setFilters((prev) => ({
+                            ...prev,
+                            selectedAirlines: e.target.checked
+                              ? Array.from(new Set([...prev.selectedAirlines, code]))
+                              : prev.selectedAirlines.filter((item) => item !== code),
+                          }));
+                        }}
+                      />
+                      {airline.logo ? <img src={airline.logo} alt={airline.name} className="h-5 w-5 rounded-full border border-slate-200 bg-white" loading="lazy" /> : null}
+                      <span>{airline.name}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            <section className="space-y-2">
+              <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">Hotels / Stays</p>
+              <input value={filters.hotelQuery} onChange={(e) => setFilters((prev) => ({ ...prev, hotelQuery: e.target.value }))} placeholder="Hotel, location, room" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+              <div className="grid grid-cols-2 gap-2">
+                <select value={filters.hotelProvider} onChange={(e) => setFilters((prev) => ({ ...prev, hotelProvider: e.target.value }))} className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                  {hotelProviders.map((provider) => <option key={provider} value={provider}>{provider === "all" ? "All providers" : provider}</option>)}
+                </select>
+                <select value={filters.hotelType} onChange={(e) => setFilters((prev) => ({ ...prev, hotelType: e.target.value }))} className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                  <option value="all">All types</option>
+                  <option value="hotel">Hotel</option>
+                  <option value="yacht">Yacht</option>
+                  <option value="residence">Residence</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <input type="number" min={0} value={filters.hotelMaxPrice} onChange={(e) => setFilters((prev) => ({ ...prev, hotelMaxPrice: e.target.value }))} placeholder="Max price" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+                <select value={filters.hotelMinRating} onChange={(e) => setFilters((prev) => ({ ...prev, hotelMinRating: e.target.value }))} className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                  <option value="">Any rating</option>
+                  <option value="3">3.0+</option>
+                  <option value="4">4.0+</option>
+                  <option value="4.5">4.5+</option>
+                </select>
+              </div>
+            </section>
+
+            <section className="space-y-2">
+              <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">Activities</p>
+              <input value={filters.activityQuery} onChange={(e) => setFilters((prev) => ({ ...prev, activityQuery: e.target.value }))} placeholder="Name or keyword" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+              <div className="grid grid-cols-2 gap-2">
+                <select value={filters.activitySupplier} onChange={(e) => setFilters((prev) => ({ ...prev, activitySupplier: e.target.value }))} className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                  {activitySuppliers.map((supplier) => <option key={supplier} value={supplier}>{supplier === "all" ? "All suppliers" : supplier}</option>)}
+                </select>
+                <select value={filters.activityWhen} onChange={(e) => setFilters((prev) => ({ ...prev, activityWhen: e.target.value }))} className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                  <option value="any">Any time</option>
+                  <option value="morning">Morning</option>
+                  <option value="afternoon">Afternoon</option>
+                  <option value="evening">Evening</option>
+                  <option value="night">Night</option>
+                </select>
+              </div>
+              <input type="number" min={0} value={filters.activityMaxPrice} onChange={(e) => setFilters((prev) => ({ ...prev, activityMaxPrice: e.target.value }))} placeholder="Max price" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+            </section>
+
+            <section className="space-y-2">
+              <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">Transfers</p>
+              <input value={filters.transferQuery} onChange={(e) => setFilters((prev) => ({ ...prev, transferQuery: e.target.value }))} placeholder="Route, vehicle" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+              <div className="grid grid-cols-2 gap-2">
+                <select value={filters.transferSupplier} onChange={(e) => setFilters((prev) => ({ ...prev, transferSupplier: e.target.value }))} className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                  {transferSuppliers.map((supplier) => <option key={supplier} value={supplier}>{supplier === "all" ? "All suppliers" : supplier}</option>)}
+                </select>
+                <select value={filters.transferType} onChange={(e) => setFilters((prev) => ({ ...prev, transferType: e.target.value }))} className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                  <option value="any">Any type</option>
+                  <option value="private">Private</option>
+                  <option value="shared">Shared</option>
+                </select>
+              </div>
+              <input type="number" min={0} value={filters.transferMaxPrice} onChange={(e) => setFilters((prev) => ({ ...prev, transferMaxPrice: e.target.value }))} placeholder="Max price" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+            </section>
+
+            <button
+              onClick={() => setFilters({
+                flightQuery: "",
+                flightDirectOnly: false,
+                flightMaxStops: "",
+                flightMaxPrice: "",
+                flightCabin: "all",
+                flightSort: "best",
+                selectedAirlines: [],
+                hotelQuery: "",
+                hotelProvider: "all",
+                hotelType: "all",
+                hotelMaxPrice: "",
+                hotelMinRating: "",
+                activityQuery: "",
+                activitySupplier: "all",
+                activityMaxPrice: "",
+                activityWhen: "any",
+                transferQuery: "",
+                transferSupplier: "all",
+                transferType: "any",
+                transferMaxPrice: "",
+              })}
+              className="w-full rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
+            >
+              Reset filters
+            </button>
+          </aside>
+
+          <div className="space-y-5">
             <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
               <div className="flex items-center justify-between mb-3">
                 <div>
@@ -570,8 +976,9 @@ export default function ProposalSelectPage() {
               {loadingFlights && <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700">Loading flights…</div>}
               {errorFlights && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">{errorFlights}</div>}
               <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
-                {flights.map((f) => {
+                {filteredFlights.map((f) => {
                   const active = selection?.flight?.id === f.id;
+                  const airlineLogo = f.carrierLogo || getAirlineLogoFromFlight(f);
                   return (
                     <button
                       key={f.id}
@@ -580,9 +987,16 @@ export default function ProposalSelectPage() {
                         active ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white"
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm font-bold" style={{ color: TITLE_TEXT }}>
-                          {f.airline} • {f.route}
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          {airlineLogo ? (
+                            <img src={airlineLogo} alt={f.airline} className="h-10 w-10 rounded-full border border-slate-200 bg-white p-1 object-contain" loading="lazy" />
+                          ) : (
+                            <div className="h-10 w-10 rounded-full border border-slate-200 bg-white flex items-center justify-center text-xs font-bold text-slate-700">{String(f.airline || "A").slice(0, 1)}</div>
+                          )}
+                          <div className="text-sm font-bold truncate" style={{ color: TITLE_TEXT }}>
+                            {f.airline} • {f.route}
+                          </div>
                         </div>
                         <div className="text-sm font-extrabold" style={{ color: PREMIUM_BLUE }}>{f.price}</div>
                       </div>
@@ -592,7 +1006,7 @@ export default function ProposalSelectPage() {
                     </button>
                   );
                 })}
-                {!loadingFlights && flights.length === 0 && !errorFlights && (
+                {!loadingFlights && filteredFlights.length === 0 && !errorFlights && (
                   <div className="rounded-xl border border-dashed border-slate-200 bg-white p-3 text-xs text-slate-600">
                     <div>No flights yet. Ensure trip draft has origin/destination/date.</div>
                     <div className="mt-2 flex gap-2">
@@ -631,12 +1045,13 @@ export default function ProposalSelectPage() {
               {loadingHotels && <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700">Loading stays…</div>}
               {errorHotels && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">{errorHotels}</div>}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[420px] overflow-y-auto pr-1">
-                {hotels.map((h) => {
+                {filteredHotels.map((h) => {
                   const active = selection?.hotel?.id === h.id;
                   const hotelImages = getPartnerHotelImages(tripDraft?.destination || h.location || h.name);
                   const image = h.image || hotelImages[0];
                   const isYacht = h.room === "Yacht";
                   const images = isYacht ? (h.images || [image]) : [image];
+                  const providerLogo = getPartnerLogo(h.provider);
                   
                   return (
                     <button
@@ -647,6 +1062,11 @@ export default function ProposalSelectPage() {
                       }`}
                     >
                       <div className="h-32 w-full overflow-hidden relative">
+                        {providerLogo ? (
+                          <div className="absolute top-2 left-2 z-10 rounded-full border border-white bg-white/95 p-1">
+                            <img src={providerLogo} alt={h.provider || "Partner"} className="h-5 w-5 object-contain" loading="lazy" />
+                          </div>
+                        ) : null}
                         {images.length > 1 ? (
                           <div className="flex h-full">
                             <img src={images[0]} alt={h.name} className="h-full w-2/3 object-cover" />
@@ -668,12 +1088,13 @@ export default function ProposalSelectPage() {
                       <div className="p-3 space-y-1">
                         <div className="text-sm font-bold" style={{ color: TITLE_TEXT }}>{h.name}</div>
                         <div className="text-xs" style={{ color: MUTED_TEXT }}>{h.room} • {h.location}</div>
+                        <div className="text-xs" style={{ color: MUTED_TEXT }}>Partner: {h.provider || "Local partner"}{h.rating ? ` • ${Number(h.rating).toFixed(1)}★` : ""}</div>
                         <div className="text-sm font-extrabold" style={{ color: PREMIUM_BLUE }}>{h.price}</div>
                       </div>
                     </button>
                   );
                 })}
-                {!loadingHotels && hotels.length === 0 && !errorHotels && (
+                {!loadingHotels && filteredHotels.length === 0 && !errorHotels && (
                   <div className="rounded-xl border border-dashed border-slate-200 bg-white p-3 text-xs text-slate-600">No stays yet. Ensure destination + check-in/check-out are set.</div>
                 )}
               </div>
@@ -689,8 +1110,9 @@ export default function ProposalSelectPage() {
               {loadingActivities && <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700">Loading activities…</div>}
               {errorActivities && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">{errorActivities}</div>}
               <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
-                {activities.map((a) => {
+                {filteredActivities.map((a) => {
                   const active = selection?.activity?.id === a.id;
+                  const providerLogo = getPartnerLogo(a.provider || a.supplier);
                   return (
                     <button
                       key={a.id}
@@ -700,18 +1122,27 @@ export default function ProposalSelectPage() {
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <div className="text-sm font-bold" style={{ color: TITLE_TEXT }}>
-                          {a.name}
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="h-10 w-10 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+                            <img src={a.image} alt={a.name} className="h-full w-full object-cover" loading="lazy" />
+                          </div>
+                          <div className="text-sm font-bold truncate" style={{ color: TITLE_TEXT }}>
+                            {a.name}
+                          </div>
                         </div>
                         <div className="text-sm font-extrabold" style={{ color: PREMIUM_BLUE }}>{a.price}</div>
                       </div>
                       <div className="mt-1 text-xs" style={{ color: MUTED_TEXT }}>
                         {a.date} at {a.time} • {a.supplier}
                       </div>
+                      <div className="mt-1 flex items-center gap-2 text-[11px]" style={{ color: MUTED_TEXT }}>
+                        {providerLogo ? <img src={providerLogo} alt={a.provider || a.supplier} className="h-4 w-4 rounded-full border border-slate-200" loading="lazy" /> : null}
+                        <span>Partner: {a.provider || a.supplier || "Activity partner"}</span>
+                      </div>
                     </button>
                   );
                 })}
-                {!loadingActivities && activities.length === 0 && !errorActivities && (
+                {!loadingActivities && filteredActivities.length === 0 && !errorActivities && (
                   <div className="rounded-xl border border-dashed border-slate-200 bg-white p-3 text-xs text-slate-600">No activities available for this destination.</div>
                 )}
               </div>
@@ -727,8 +1158,9 @@ export default function ProposalSelectPage() {
               {loadingTransfers && <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700">Loading transfers…</div>}
               {errorTransfers && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">{errorTransfers}</div>}
               <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
-                {transfers.map((t) => {
+                {filteredTransfers.map((t) => {
                   const active = selection?.transfer?.id === t.id;
+                  const providerLogo = getPartnerLogo(t.provider || t.supplier);
                   return (
                     <button
                       key={t.id}
@@ -738,18 +1170,27 @@ export default function ProposalSelectPage() {
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <div className="text-sm font-bold" style={{ color: TITLE_TEXT }}>
-                          {t.name}
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="h-10 w-10 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+                            <img src={t.image} alt={t.name} className="h-full w-full object-cover" loading="lazy" />
+                          </div>
+                          <div className="text-sm font-bold truncate" style={{ color: TITLE_TEXT }}>
+                            {t.name}
+                          </div>
                         </div>
                         <div className="text-sm font-extrabold" style={{ color: PREMIUM_BLUE }}>{t.price}</div>
                       </div>
                       <div className="mt-1 text-xs" style={{ color: MUTED_TEXT }}>
-                        {t.route} • {t.date} • {t.supplier}
+                        {t.route} • {t.date} • {t.supplier} • {t.shared ? "Shared" : "Private"}
+                      </div>
+                      <div className="mt-1 flex items-center gap-2 text-[11px]" style={{ color: MUTED_TEXT }}>
+                        {providerLogo ? <img src={providerLogo} alt={t.provider || t.supplier} className="h-4 w-4 rounded-full border border-slate-200" loading="lazy" /> : null}
+                        <span>Partner: {t.provider || t.supplier || "Transfer partner"}</span>
                       </div>
                     </button>
                   );
                 })}
-                {!loadingTransfers && transfers.length === 0 && !errorTransfers && (
+                {!loadingTransfers && filteredTransfers.length === 0 && !errorTransfers && (
                   <div className="rounded-xl border border-dashed border-slate-200 bg-white p-3 text-xs text-slate-600">No transfers available for this route.</div>
                 )}
               </div>
