@@ -188,9 +188,11 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
       return 0;
     });
 
+  const carrierSuggestions = Array.from(new Set(offers.map((offer) => offer.carrier).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+
   return (
     <main className="min-h-screen bg-slate-50 py-10 px-4">
-      <div className="mx-auto max-w-7xl grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-4 items-start">
+      <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_360px] gap-4 items-start">
         <div className="space-y-4">
         <header className="rounded-2xl bg-white px-5 py-4 shadow-sm border border-slate-200 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
@@ -260,7 +262,7 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
         </section>
         </div>
 
-        <aside className="lg:sticky lg:top-6 rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
+        <aside className="md:sticky md:top-6 rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Advanced search</p>
             <h2 className="text-lg font-black text-slate-900">Flight filters & options</h2>
@@ -347,7 +349,18 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
 
             <div>
               <label className="block text-xs font-medium text-slate-600">Preferred airline</label>
-              <input name="airline" defaultValue={airline} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" placeholder="Air Canada" />
+              <input
+                name="airline"
+                list="airline-options"
+                defaultValue={airline}
+                className="mt-1 block w-full rounded-md border-slate-300 shadow-sm"
+                placeholder="Air Canada"
+              />
+              <datalist id="airline-options">
+                {carrierSuggestions.map((carrier) => (
+                  <option key={carrier} value={carrier} />
+                ))}
+              </datalist>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
