@@ -162,25 +162,48 @@ export default function HotelReviewClient() {
               e.preventDefault();
               if (!acceptedTerms) return;
               const formData = new FormData(e.target as HTMLFormElement);
+              const firstName = String(formData.get("firstName") || "").trim();
+              const lastName = String(formData.get("lastName") || "").trim();
+              const email = String(formData.get("email") || "").trim();
+              const phone = String(formData.get("phone") || "").trim();
+              const displayName = `${firstName} ${lastName}`.trim();
               const pendingBooking = {
                 quote_id: quote.id,
-                phone_number: formData.get("phone") as string,
-                email: formData.get("email") as string,
+                phone_number: phone,
+                email,
                 guests: [{
-                  given_name: formData.get("firstName") as string,
-                  family_name: formData.get("lastName") as string,
+                  given_name: firstName,
+                  family_name: lastName,
                 }],
                 accommodation_special_requests: formData.get("requests") as string,
               };
 
-              const nextDraft = {
-                ...draft,
-                pendingBooking,
-              };
-              window.sessionStorage.setItem(BOOKING_DRAFT_KEY, JSON.stringify(nextDraft));
+              const persistAndContinue = async () => {
+                try {
+                  await fetch("/api/auth/me", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      displayName,
+                      bookingEmail: email,
+                      phone,
+                    }),
+                  });
+                } catch {
+                  // Non-blocking for booking flow
+                }
 
-              const nextParams = new URLSearchParams({ destination, checkIn, checkOut, guests, rooms, budget, resume: "payment" });
-              router.push(`/search/hotels?${nextParams.toString()}`);
+                const nextDraft = {
+                  ...draft,
+                  pendingBooking,
+                };
+                window.sessionStorage.setItem(BOOKING_DRAFT_KEY, JSON.stringify(nextDraft));
+
+                const nextParams = new URLSearchParams({ destination, checkIn, checkOut, guests, rooms, budget, resume: "payment" });
+                router.push(`/search/hotels?${nextParams.toString()}`);
+              };
+
+              void persistAndContinue();
             }}
             className="space-y-4"
           >
