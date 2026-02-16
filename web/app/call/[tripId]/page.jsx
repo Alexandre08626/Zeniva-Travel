@@ -68,15 +68,13 @@ function CallLayout({ sidebar, chat, snapshot, videoCall }) {
           </div>
         </header>
 
-        <div className="grid grid-cols-12 gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:h-[calc(100vh-10.5rem)] lg:overflow-hidden">
-          <section className="col-span-12 order-1 space-y-4 min-h-0 lg:overflow-y-auto">
+        <div className="grid grid-cols-12 gap-4 lg:grid-cols-[300px_minmax(0,1fr)_300px] xl:grid-cols-[320px_minmax(0,1fr)_320px] lg:h-[calc(100vh-10.5rem)] lg:overflow-hidden">
+          <section className="col-span-12 lg:col-span-1 order-2 lg:order-1 min-h-0 lg:overflow-y-auto">{snapshot}</section>
+          <section className="col-span-12 lg:col-span-1 order-1 lg:order-2 space-y-4 min-h-0 lg:overflow-y-auto">
             {videoCall}
             {chat}
           </section>
-          <aside className="col-span-12 order-2 space-y-4 min-h-0 lg:overflow-y-auto">
-            <section>{sidebar}</section>
-            <section>{snapshot}</section>
-          </aside>
+          <section className="col-span-12 lg:col-span-1 order-3 lg:order-3 min-h-0 lg:overflow-y-auto">{sidebar}</section>
         </div>
       </div>
     </main>
