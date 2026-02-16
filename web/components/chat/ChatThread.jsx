@@ -343,7 +343,7 @@ function ChatThread({ tripId, proposalMode = "" }) {
   };
 
   return (
-    <div className={`flex flex-col overflow-hidden ${isMobile ? "rounded-3xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(11,27,77,0.12)] min-h-[65vh] h-[calc(100dvh-9rem)]" : "rounded-2xl border border-slate-200 bg-white shadow-sm min-h-[60vh] md:min-h-[72vh] md:h-[calc(100vh-10rem)]"}`}>
+    <div className={`flex flex-col overflow-hidden ${isMobile ? "rounded-3xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(11,27,77,0.12)] min-h-[65vh] h-[calc(100dvh-9rem)]" : "rounded-2xl border border-slate-200 bg-white shadow-sm min-h-[60vh] md:min-h-[72vh] lg:min-h-0 lg:h-full"}`}>
       {isMobile ? (
         <div
           className="px-4 py-4 border-b border-white/15"
@@ -383,7 +383,11 @@ function ChatThread({ tripId, proposalMode = "" }) {
         </div>
       )}
 
-      <div ref={containerRef} className={`flex-1 overflow-y-auto space-y-3 ${isMobile ? "px-4 py-4" : "px-5 py-4"}`} style={{ backgroundColor: LIGHT_BG }}>
+      <div
+        ref={containerRef}
+        className={`flex-1 overflow-y-scroll space-y-3 ${isMobile ? "px-4 py-4" : "px-5 py-4"}`}
+        style={{ backgroundColor: LIGHT_BG, scrollbarGutter: "stable" }}
+      >
         {history.length === 0 && (
           <div className={`${isMobile ? "rounded-2xl border border-slate-200 bg-white p-4 text-sm shadow-sm" : "rounded-xl border border-dashed border-slate-200 bg-white p-4 text-sm"}`} style={{ color: MUTED_TEXT }}>
             {isMobile && <div className="text-xs font-bold uppercase tracking-[0.15em]" style={{ color: BRAND_BLUE }}>Start fast</div>}

@@ -46,10 +46,10 @@ export default function ChatLayout({
           </div>
         </header>
 
-        <div className="grid grid-cols-12 gap-4">
-          <section className="col-span-12 lg:col-span-2 order-2 lg:order-1">{snapshot}</section>
-          <section className="col-span-12 lg:col-span-8 order-1 lg:order-2">{chat}</section>
-          <section className="col-span-12 lg:col-span-2 order-3 lg:order-3">{sidebar}</section>
+        <div className="grid grid-cols-12 gap-4 lg:h-[calc(100vh-10.5rem)] lg:overflow-hidden">
+          <section className="col-span-12 lg:col-span-2 order-2 lg:order-1 min-h-0">{snapshot}</section>
+          <section className="col-span-12 lg:col-span-8 order-1 lg:order-2 min-h-0 h-full">{chat}</section>
+          <section className="col-span-12 lg:col-span-2 order-3 lg:order-3 min-h-0">{sidebar}</section>
         </div>
       </div>
     </main>
