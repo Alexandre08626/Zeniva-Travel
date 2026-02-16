@@ -118,23 +118,25 @@ export default function ProposalReviewPage() {
     let bags = null;
     let localChecklist = {};
 
-    try {
-      pax = JSON.parse(window.sessionStorage.getItem("flight_passengers") || "[]");
-    } catch {
-      pax = [];
-    }
+    const parseStoredValue = (key, fallbackValue) => {
+      try {
+        const fromSession = window.sessionStorage.getItem(key);
+        if (fromSession) return JSON.parse(fromSession);
+      } catch {
+        // ignore
+      }
+      try {
+        const fromLocal = window.localStorage.getItem(key);
+        if (fromLocal) return JSON.parse(fromLocal);
+      } catch {
+        // ignore
+      }
+      return fallbackValue;
+    };
 
-    try {
-      seats = JSON.parse(window.sessionStorage.getItem("flight_seats") || "[]");
-    } catch {
-      seats = [];
-    }
-
-    try {
-      bags = JSON.parse(window.sessionStorage.getItem("flight_bags") || "null");
-    } catch {
-      bags = null;
-    }
+    pax = parseStoredValue("flight_passengers", []);
+    seats = parseStoredValue("flight_seats", []);
+    bags = parseStoredValue("flight_bags", null);
 
     try {
       localChecklist = JSON.parse(window.localStorage.getItem(`proposal_review_checklist_${tripId}`) || "{}");
@@ -150,8 +152,7 @@ export default function ProposalReviewPage() {
       normalizedPax.slice(0, expectedPax).every((item) =>
         String(item?.firstName || "").trim() &&
         String(item?.lastName || "").trim() &&
-        String(item?.dob || "").trim() &&
-        String(item?.passport || "").trim()
+        String(item?.dob || "").trim()
       );
 
     const seatsComplete =

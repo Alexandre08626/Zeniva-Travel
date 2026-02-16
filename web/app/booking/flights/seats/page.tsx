@@ -41,6 +41,7 @@ export default function FlightSeatsPage() {
   const router = useRouter();
   const [selected, setSelected] = useState<string[]>([]);
   const [passengerCount, setPassengerCount] = useState(1);
+  const [activePassenger, setActivePassenger] = useState(0);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -65,11 +66,13 @@ export default function FlightSeatsPage() {
     setSelected((prev) => prev.map((s, i) => (i === index ? seat : s)));
   };
 
-  const canContinue = selected.every((s) => s);
+  const canContinue = selected.length >= passengerCount && selected.slice(0, passengerCount).every((s) => s);
 
   const onContinue = () => {
     if (typeof window !== "undefined") {
-      window.sessionStorage.setItem("flight_seats", JSON.stringify(selected));
+      const payload = JSON.stringify(selected);
+      window.sessionStorage.setItem("flight_seats", payload);
+      window.localStorage.setItem("flight_seats", payload);
     }
     router.push("/booking/flights/bags");
   };
@@ -97,12 +100,17 @@ export default function FlightSeatsPage() {
           <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
             <div className="space-y-3">
               {Array.from({ length: passengerCount }).map((_, idx) => (
-                <div key={idx} className="border border-slate-200 rounded-xl p-4 space-y-2">
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setActivePassenger(idx)}
+                  className={`w-full text-left border rounded-xl p-4 space-y-2 ${activePassenger === idx ? "border-blue-500 bg-blue-50" : "border-slate-200"}`}
+                >
                   <div className="text-sm font-semibold text-slate-700">Passenger {idx + 1}</div>
                   <div className="text-sm text-slate-500">
                     Seat: <span className="font-semibold text-slate-900">{selected[idx] || "Not selected"}</span>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
 
@@ -139,7 +147,7 @@ export default function FlightSeatsPage() {
                             <button
                               key={seat.id}
                               type="button"
-                              onClick={() => onSelect(0, seat.id)}
+                              onClick={() => onSelect(activePassenger, seat.id)}
                               className={`rounded-lg border px-2 py-1 text-[11px] font-semibold ${isSelected ? "bg-blue-600 text-white border-blue-600" : `${zoneClass} border-slate-200 text-slate-700`}`}
                             >
                               {seat.id}
@@ -160,7 +168,7 @@ export default function FlightSeatsPage() {
                             <button
                               key={seat.id}
                               type="button"
-                              onClick={() => onSelect(0, seat.id)}
+                              onClick={() => onSelect(activePassenger, seat.id)}
                               className={`rounded-lg border px-2 py-1 text-[11px] font-semibold ${isSelected ? "bg-blue-600 text-white border-blue-600" : `${zoneClass} border-slate-200 text-slate-700`}`}
                             >
                               {seat.id}

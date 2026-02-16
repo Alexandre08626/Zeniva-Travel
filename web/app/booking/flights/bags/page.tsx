@@ -23,7 +23,9 @@ export default function FlightBagsPage() {
 
   const onContinue = () => {
     if (typeof window !== "undefined") {
-      window.sessionStorage.setItem("flight_bags", JSON.stringify({ carryOn, checked }));
+      const payload = JSON.stringify({ carryOn, checked });
+      window.sessionStorage.setItem("flight_bags", payload);
+      window.localStorage.setItem("flight_bags", payload);
     }
     router.push("/booking/flights/payment");
   };

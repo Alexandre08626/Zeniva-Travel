@@ -58,7 +58,10 @@ export default function FlightPassengersPage() {
     });
   }, [count]);
 
-  const canContinue = useMemo(() => passengers.every((p) => p.firstName && p.lastName && p.dob), [passengers]);
+  const canContinue = useMemo(() => {
+    if (passengers.length < count) return false;
+    return passengers.slice(0, count).every((p) => p.firstName && p.lastName && p.dob);
+  }, [passengers, count]);
 
   const onChange = (index: number, key: keyof Passenger, value: string) => {
     setPassengers((prev) => prev.map((p, i) => (i === index ? { ...p, [key]: value } : p)));
@@ -66,7 +69,9 @@ export default function FlightPassengersPage() {
 
   const onContinue = () => {
     if (typeof window !== "undefined") {
-      window.sessionStorage.setItem("flight_passengers", JSON.stringify(passengers));
+      const payload = JSON.stringify(passengers);
+      window.sessionStorage.setItem("flight_passengers", payload);
+      window.localStorage.setItem("flight_passengers", payload);
     }
     router.push("/booking/flights/seats");
   };
