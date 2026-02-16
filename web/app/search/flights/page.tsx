@@ -11,10 +11,14 @@ type Params = {
   passengers?: string;
   cabin?: string;
   direct?: string;
+  minPrice?: string;
   maxStops?: string;
   maxPrice?: string;
   airline?: string;
   airlines?: string | string[];
+  depWindow?: string | string[];
+  arrWindow?: string | string[];
+  maxDuration?: string;
   departAfter?: string;
   departBefore?: string;
   sort?: string;
@@ -49,6 +53,15 @@ function normalizeAirlines(value?: string | string[]) {
     .filter(Boolean);
 }
 
+function normalizeMulti(value?: string | string[]) {
+  if (!value) return [] as string[];
+  const raw = Array.isArray(value) ? value : [value];
+  return raw
+    .flatMap((entry) => String(entry).split(","))
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 function parsePriceToNumber(price: string) {
   const match = String(price || "").match(/([0-9]+(?:\.[0-9]+)?)/);
   return match ? Number(match[1]) : Number.NaN;
@@ -73,6 +86,14 @@ function durationToMinutes(duration: string) {
   const h = Number((duration.match(/(\d+)h/) || [])[1] || 0);
   const m = Number((duration.match(/(\d+)m/) || [])[1] || 0);
   return h * 60 + m;
+}
+
+function getTimeWindow(minutes: number | null) {
+  if (minutes === null) return "";
+  if (minutes < 6 * 60) return "night";
+  if (minutes < 12 * 60) return "morning";
+  if (minutes < 18 * 60) return "afternoon";
+  return "evening";
 }
 
 function formatDuration(minutes?: number) {
@@ -168,15 +189,21 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
     passengers = "2",
     cabin = "Economy",
     direct = "",
+    minPrice = "",
     maxStops = "",
     maxPrice = "",
     airline = "",
     airlines,
+    depWindow,
+    arrWindow,
+    maxDuration = "",
     departAfter = "",
     departBefore = "",
     sort = "best",
   } = resolved;
   const selectedAirlines = normalizeAirlines(airlines);
+  const selectedDepartureWindows = normalizeMulti(depWindow);
+  const selectedArrivalWindows = normalizeMulti(arrWindow);
   const routeLabel = [from || "Origin", to || "Destination"].join(" → ");
   const paxLabel = `${passengers} pax${cabin ? ` · ${cabin}` : ""}`;
   const isRoundTrip = trip !== "oneway" && !!ret;
@@ -189,9 +216,17 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
     .filter((offer) => {
       if (direct === "1" && getStopsCount(offer.stops) > 0) return false;
       if (maxStops && Number.isFinite(Number(maxStops)) && getStopsCount(offer.stops) > Number(maxStops)) return false;
+      if (minPrice && Number.isFinite(Number(minPrice))) {
+        const numericPrice = parsePriceToNumber(offer.price);
+        if (Number.isFinite(numericPrice) && numericPrice < Number(minPrice)) return false;
+      }
       if (maxPrice && Number.isFinite(Number(maxPrice))) {
         const numericPrice = parsePriceToNumber(offer.price);
         if (Number.isFinite(numericPrice) && numericPrice > Number(maxPrice)) return false;
+      }
+      if (maxDuration && Number.isFinite(Number(maxDuration))) {
+        const durationMins = durationToMinutes(offer.duration);
+        if (Number.isFinite(durationMins) && durationMins > Number(maxDuration) * 60) return false;
       }
       if (selectedAirlines.length > 0 && !selectedAirlines.includes((offer.carrierCode || "").toUpperCase())) return false;
       if (airline && !offer.carrier.toLowerCase().includes(airline.toLowerCase().trim())) return false;
@@ -202,12 +237,21 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
         if (dep !== null && after !== null && dep < after) return false;
         if (dep !== null && before !== null && dep > before) return false;
       }
+      if (selectedDepartureWindows.length > 0) {
+        const depWindow = getTimeWindow(toMinutes(offer.depart));
+        if (!depWindow || !selectedDepartureWindows.includes(depWindow)) return false;
+      }
+      if (selectedArrivalWindows.length > 0) {
+        const arrWindow = getTimeWindow(toMinutes(offer.arrive));
+        if (!arrWindow || !selectedArrivalWindows.includes(arrWindow)) return false;
+      }
       return true;
     })
     .sort((a, b) => {
       if (sort === "price") return parsePriceToNumber(a.price) - parsePriceToNumber(b.price);
       if (sort === "duration") return durationToMinutes(a.duration) - durationToMinutes(b.duration);
       if (sort === "depart") return (toMinutes(a.depart) ?? 0) - (toMinutes(b.depart) ?? 0);
+      if (sort === "arrive") return (toMinutes(a.arrive) ?? 0) - (toMinutes(b.arrive) ?? 0);
       return 0;
     });
 
@@ -219,6 +263,12 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
         .map((offer) => [offer.carrierCode as string, { code: offer.carrierCode as string, name: offer.carrier, logo: offer.carrierLogo || getAirlineLogo(offer.carrierCode) }])
     ).values()
   ).sort((a, b) => a.name.localeCompare(b.name));
+  const numericPrices = filteredOffers
+    .map((offer) => parsePriceToNumber(offer.price))
+    .filter((price) => Number.isFinite(price));
+  const minVisiblePrice = numericPrices.length ? Math.min(...numericPrices) : null;
+  const maxVisiblePrice = numericPrices.length ? Math.max(...numericPrices) : null;
+  const nonstopCount = filteredOffers.filter((offer) => getStopsCount(offer.stops) === 0).length;
 
   return (
     <main className="min-h-screen bg-slate-50 py-10 px-4">
@@ -227,6 +277,10 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Zeniva Travel</p>
             <h2 className="text-lg font-black text-slate-900">Flight filters</h2>
+            <p className="text-xs text-slate-500 mt-1">{filteredOffers.length} results · {nonstopCount} nonstop</p>
+            {minVisiblePrice !== null && maxVisiblePrice !== null && (
+              <p className="text-xs text-slate-500">USD {minVisiblePrice.toFixed(0)} - USD {maxVisiblePrice.toFixed(0)}</p>
+            )}
           </div>
 
           <form action="/search/flights" method="GET" className="space-y-4">
@@ -294,6 +348,10 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
 
             <div className="grid grid-cols-2 gap-3">
               <div>
+                <label className="block text-xs font-medium text-slate-600">Min price (USD)</label>
+                <input name="minPrice" type="number" min="1" step="1" defaultValue={minPrice} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" placeholder="200" />
+              </div>
+              <div>
                 <label className="block text-xs font-medium text-slate-600">Max stops</label>
                 <select name="maxStops" defaultValue={maxStops} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm">
                   <option value="">Any</option>
@@ -302,9 +360,16 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
                   <option value="2">Up to 2 stops</option>
                 </select>
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-slate-600">Max price (USD)</label>
                 <input name="maxPrice" type="number" min="1" step="1" defaultValue={maxPrice} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" placeholder="700" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600">Max duration (hours)</label>
+                <input name="maxDuration" type="number" min="1" step="1" defaultValue={maxDuration} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" placeholder="12" />
               </div>
             </div>
 
@@ -327,7 +392,7 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
             {carrierOptions.length > 0 && (
               <div className="space-y-2">
                 <p className="text-xs font-medium text-slate-600">Airlines</p>
-                <div className="max-h-40 overflow-auto rounded-lg border border-slate-200 p-2 space-y-1">
+                <div className="max-h-48 overflow-auto rounded-lg border border-slate-200 p-2 space-y-1">
                   {carrierOptions.map((carrier) => (
                     <label key={carrier.code} className="flex items-center gap-2 text-xs text-slate-700">
                       <input type="checkbox" name="airlines" value={carrier.code} defaultChecked={selectedAirlines.includes(carrier.code)} />
@@ -338,6 +403,26 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
                 </div>
               </div>
             )}
+
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-slate-600">Departure window</p>
+              <div className="grid grid-cols-2 gap-1 text-xs text-slate-700">
+                <label className="inline-flex items-center gap-2"><input type="checkbox" name="depWindow" value="morning" defaultChecked={selectedDepartureWindows.includes("morning")} /> Morning</label>
+                <label className="inline-flex items-center gap-2"><input type="checkbox" name="depWindow" value="afternoon" defaultChecked={selectedDepartureWindows.includes("afternoon")} /> Afternoon</label>
+                <label className="inline-flex items-center gap-2"><input type="checkbox" name="depWindow" value="evening" defaultChecked={selectedDepartureWindows.includes("evening")} /> Evening</label>
+                <label className="inline-flex items-center gap-2"><input type="checkbox" name="depWindow" value="night" defaultChecked={selectedDepartureWindows.includes("night")} /> Night</label>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-slate-600">Arrival window</p>
+              <div className="grid grid-cols-2 gap-1 text-xs text-slate-700">
+                <label className="inline-flex items-center gap-2"><input type="checkbox" name="arrWindow" value="morning" defaultChecked={selectedArrivalWindows.includes("morning")} /> Morning</label>
+                <label className="inline-flex items-center gap-2"><input type="checkbox" name="arrWindow" value="afternoon" defaultChecked={selectedArrivalWindows.includes("afternoon")} /> Afternoon</label>
+                <label className="inline-flex items-center gap-2"><input type="checkbox" name="arrWindow" value="evening" defaultChecked={selectedArrivalWindows.includes("evening")} /> Evening</label>
+                <label className="inline-flex items-center gap-2"><input type="checkbox" name="arrWindow" value="night" defaultChecked={selectedArrivalWindows.includes("night")} /> Night</label>
+              </div>
+            </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -362,6 +447,7 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
                   <option value="price">Lowest price</option>
                   <option value="duration">Shortest trip</option>
                   <option value="depart">Earliest departure</option>
+                  <option value="arrive">Earliest arrival</option>
                 </select>
               </div>
             </div>
@@ -380,7 +466,7 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
         <div className="space-y-4">
         <header className="rounded-2xl bg-white px-5 py-4 shadow-sm border border-slate-200 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Flights search</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Zeniva Travel · Flights</p>
             <h1 className="text-2xl font-black text-slate-900">{routeLabel}</h1>
             <p className="text-sm text-slate-600">{datesLabel} · {paxLabel}</p>
           </div>
@@ -415,7 +501,7 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
           {message && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">{message}</div>}
           {!message && filteredOffers.length === 0 && (
             <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
-              Aucun résultat ne correspond à vos filtres avancés. Modifiez la barre de recherche à droite.
+              Aucun résultat ne correspond à vos filtres avancés. Modifiez les filtres à gauche.
             </div>
           )}
 
