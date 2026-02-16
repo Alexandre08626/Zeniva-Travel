@@ -391,7 +391,7 @@ export default function DocumentsPage() {
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
       <div className="mx-auto w-full max-w-none px-6 pb-14 pt-6 space-y-6">
-        <Header isLoggedIn={!!userId} userEmail={userId} />
+        <Header isLoggedIn={!!userId} userEmail={userId} hideAgentWorkspaceSwitch />
 
         <div className="rounded-[24px] border border-slate-100 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

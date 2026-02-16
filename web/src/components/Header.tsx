@@ -13,7 +13,15 @@ import { Bell, Search } from 'lucide-react';
 import AutoTranslate from "./AutoTranslate";
 import { buildContactChannelId, fetchChatMessages } from "../lib/chatPersistence";
 
-export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean; userEmail?: string }) {
+export default function Header({
+  isLoggedIn,
+  userEmail,
+  hideAgentWorkspaceSwitch = false,
+}: {
+  isLoggedIn?: boolean;
+  userEmail?: string;
+  hideAgentWorkspaceSwitch?: boolean;
+}) {
   const [mounted, setMounted] = useState(false);
   const authUser = useAuthStore((s) => s.user);
   const loggedIn = mounted ? (authUser ? true : isLoggedIn) : Boolean(isLoggedIn);
@@ -161,7 +169,7 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
                   Preview: {previewRole.replace('_', ' ')}
                 </span>
               )}
-              {agent && (
+              {agent && !hideAgentWorkspaceSwitch && (
                 <Link
                   href="/agent"
                   className="rounded-full border px-4 py-2 text-sm font-semibold"
