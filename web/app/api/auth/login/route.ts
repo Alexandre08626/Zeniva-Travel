@@ -10,7 +10,28 @@ function normalizeStringArray(value: unknown, fallback: string[] = []) {
   return fallback;
 }
 
-function buildSessionResponse(account: {
+function shouldUseSecureCookies(request: Request) {
+  try {
+    const proto = request.headers.get("x-forwarded-proto") || "";
+    if (proto) return proto.includes("https");
+    const url = new URL(request.url);
+    const host = url.hostname.toLowerCase();
+    if (host === "localhost" || host === "127.0.0.1") return false;
+    return url.protocol === "https:";
+  } catch {
+    return process.env.NODE_ENV === "production";
+  }
+}
+
+function computeDefaultActiveSpace(roles: string[]) {
+  const hasPartnerRole = roles.includes("partner_owner") || roles.includes("partner_staff");
+  if (hasPartnerRole) return "partner" as const;
+  const hasAgentRole = roles.some((role) => Boolean(normalizeRbacRole(role)));
+  if (hasAgentRole) return "agent" as const;
+  return "traveler" as const;
+}
+
+function buildSessionResponse(request: Request, account: {
   id: string;
   name: string;
   email: string;
@@ -31,6 +52,8 @@ function buildSessionResponse(account: {
       : ["traveler"]).map((role) => normalizeRbacRole(role) || role);
   const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7;
   const token = signSession({ email: account.email, roles, exp });
+  const activeSpace = computeDefaultActiveSpace(roles);
+  const secureCookies = shouldUseSecureCookies(request);
 
   const response = NextResponse.json({
     user: {
@@ -53,11 +76,47 @@ function buildSessionResponse(account: {
   response.cookies.set(getSessionCookieName(), token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: true,
+    secure: secureCookies,
     path: "/",
     ...(cookieDomain ? { domain: cookieDomain } : {}),
     maxAge: 60 * 60 * 24 * 7,
   });
+
+  response.cookies.set("zeniva_roles", encodeURIComponent(JSON.stringify(roles)), {
+    httpOnly: false,
+    sameSite: "lax",
+    secure: secureCookies,
+    path: "/",
+    ...(cookieDomain ? { domain: cookieDomain } : {}),
+    maxAge: 60 * 60 * 24 * 7,
+  });
+  response.cookies.set("zeniva_active_space", activeSpace, {
+    httpOnly: false,
+    sameSite: "lax",
+    secure: secureCookies,
+    path: "/",
+    ...(cookieDomain ? { domain: cookieDomain } : {}),
+    maxAge: 60 * 60 * 24 * 7,
+  });
+  response.cookies.set("zeniva_email", account.email, {
+    httpOnly: false,
+    sameSite: "lax",
+    secure: secureCookies,
+    path: "/",
+    ...(cookieDomain ? { domain: cookieDomain } : {}),
+    maxAge: 60 * 60 * 24 * 7,
+  });
+  if (account.traveler_profile) {
+    response.cookies.set("zeniva_has_traveler_profile", "1", {
+      httpOnly: false,
+      sameSite: "lax",
+      secure: secureCookies,
+      path: "/",
+      ...(cookieDomain ? { domain: cookieDomain } : {}),
+      maxAge: 60 * 60 * 24 * 7,
+    });
+  }
+
   return response;
 }
 
@@ -116,7 +175,7 @@ export async function POST(request: Request) {
 
       const storedHash = (fallbackAccount as any)?.password_hash as string | null | undefined;
       if (fallbackAccount && storedHash && verifyPassword(password, storedHash)) {
-        return buildSessionResponse({
+        return buildSessionResponse(request, {
           ...fallbackAccount,
           roles: Array.isArray(fallbackAccount.roles) ? fallbackAccount.roles : null,
           divisions: Array.isArray(fallbackAccount.divisions) ? fallbackAccount.divisions : null,
@@ -183,7 +242,7 @@ export async function POST(request: Request) {
       account = createdAccount;
     }
 
-    return buildSessionResponse({
+    return buildSessionResponse(request, {
       ...account,
       roles: Array.isArray(account.roles) ? account.roles : null,
       divisions: Array.isArray(account.divisions) ? account.divisions : null,

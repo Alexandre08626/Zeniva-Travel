@@ -17,6 +17,7 @@ export const RBAC_PERMISSIONS: Record<RbacRole, string[]> = {
     "clients:own",
   ],
   yacht_broker: [
+    "yacht_listings:manage",
     "read_yachts_inventory",
     "create_yacht_proposal",
     "send_proposal_to_client",
