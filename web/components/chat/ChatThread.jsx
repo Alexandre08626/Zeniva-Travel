@@ -343,7 +343,7 @@ function ChatThread({ tripId, proposalMode = "" }) {
   };
 
   return (
-    <div className={`flex flex-col overflow-hidden ${isMobile ? "rounded-3xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(11,27,77,0.12)] min-h-[65vh]" : "rounded-2xl border border-slate-200 bg-white shadow-sm min-h-[60vh] md:min-h-[72vh]"}`}>
+    <div className={`flex flex-col overflow-hidden ${isMobile ? "rounded-3xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(11,27,77,0.12)] min-h-[65vh] h-[calc(100dvh-9rem)]" : "rounded-2xl border border-slate-200 bg-white shadow-sm min-h-[60vh] md:min-h-[72vh] md:h-[calc(100vh-10rem)]"}`}>
       {isMobile ? (
         <div
           className="px-4 py-4 border-b border-white/15"
@@ -448,23 +448,7 @@ function ChatThread({ tripId, proposalMode = "" }) {
       </div>
 
       <div className={`space-y-3 ${isMobile ? "border-t border-slate-200 bg-white/95 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.9rem)]" : "border-t border-slate-100 px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.9rem)]"}`}>
-        <div className="flex flex-wrap gap-2">
-          {quickPrompts.map((qp) => (
-            <button
-              key={qp}
-              onClick={() => onQuick(qp)}
-              className={`rounded-full border px-3 py-1 text-xs font-semibold ${isMobile ? "transition" : "hover:border-slate-300"}`}
-              style={isMobile ? {
-                color: qp === "Flights" || qp === "Hotels" ? "#fff" : TITLE_TEXT,
-                backgroundColor: qp === "Flights" || qp === "Hotels" ? PREMIUM_BLUE : "#fff",
-                borderColor: qp === "Flights" || qp === "Hotels" ? PREMIUM_BLUE : "#e2e8f0",
-              } : { color: TITLE_TEXT }}
-            >
-              {qp}
-            </button>
-          ))}
-        </div>
-
+        <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Write your message</div>
         <form onSubmit={onSubmit} className={`flex items-end ${isMobile ? "gap-2" : "gap-3"}`}>
           <textarea
             ref={inputRef}
@@ -485,6 +469,23 @@ function ChatThread({ tripId, proposalMode = "" }) {
             {loading ? "Sending..." : "Send"}
           </button>
         </form>
+
+        <div className="flex flex-wrap gap-2">
+          {quickPrompts.map((qp) => (
+            <button
+              key={qp}
+              onClick={() => onQuick(qp)}
+              className={`rounded-full border px-3 py-1 text-xs font-semibold ${isMobile ? "transition" : "hover:border-slate-300"}`}
+              style={isMobile ? {
+                color: qp === "Flights" || qp === "Hotels" ? "#fff" : TITLE_TEXT,
+                backgroundColor: qp === "Flights" || qp === "Hotels" ? PREMIUM_BLUE : "#fff",
+                borderColor: qp === "Flights" || qp === "Hotels" ? PREMIUM_BLUE : "#e2e8f0",
+              } : { color: TITLE_TEXT }}
+            >
+              {qp}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
