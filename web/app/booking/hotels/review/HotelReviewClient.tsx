@@ -9,6 +9,9 @@ type DraftData = {
     name?: string;
     location?: string;
     room?: string;
+    image?: string;
+    photos?: string[];
+    provider?: string;
   } | null;
   selectedRateId?: string;
   selectedRate?: {
@@ -81,6 +84,14 @@ export default function HotelReviewClient() {
   const quote = draft?.quote;
   const selectedRate = draft?.selectedRate;
   const selectedSearchResult = draft?.selectedSearchResult;
+  const hotelPhotos = useMemo(() => {
+    const rawPhotos = Array.isArray(selectedSearchResult?.photos)
+      ? selectedSearchResult.photos.filter((photo): photo is string => typeof photo === "string" && photo.trim().length > 0)
+      : [];
+    if (rawPhotos.length > 0) return rawPhotos.slice(0, 8);
+    if (selectedSearchResult?.image) return [selectedSearchResult.image];
+    return [];
+  }, [selectedSearchResult]);
 
   const formatAmount = (value: any, currency?: string) => {
     if (value === null || value === undefined || value === "") return "N/A";
@@ -130,6 +141,24 @@ export default function HotelReviewClient() {
             <p><strong>Room:</strong> {selectedRate?.room_type?.name || selectedSearchResult?.room || "Room"}</p>
             <p><strong>Refundable:</strong> {String(Boolean(selectedRate?.refundable ?? quote?.refundable))}</p>
           </div>
+
+          {hotelPhotos.length > 0 && (
+            <div className="border rounded-lg p-4 space-y-2">
+              <h3 className="font-semibold text-lg">Hotel photos</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {hotelPhotos.map((photo, idx) => (
+                  <div key={`${photo}-${idx}`} className="h-28 md:h-32 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+                    <img
+                      src={photo}
+                      alt={`${selectedSearchResult?.name || "Hotel"} photo ${idx + 1}`}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="border rounded-lg p-4">
             <h3 className="font-semibold text-lg mb-2">Price breakdown</h3>
