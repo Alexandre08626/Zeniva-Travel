@@ -12,6 +12,8 @@ type OfferCard = {
   price: string;
   cabin: string;
   stops: string;
+  carrierCode?: string;
+  carrierLogo?: string;
   badge?: string;
 };
 
@@ -78,11 +80,20 @@ export default function FlightOffers({
           className={`rounded-xl border p-4 shadow-sm flex flex-col gap-3 md:flex-row md:items-center md:justify-between ${selected.includes(r.id) ? 'ring-2 ring-blue-200 border-blue-300 bg-white' : 'bg-slate-50 border-slate-200'}`}
         >
           <div className="flex items-start gap-3">
-            <div className="h-10 w-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-sm font-bold text-slate-800">
-              {r.carrier[0] || "?"}
-            </div>
+            {r.carrierLogo ? (
+              <img
+                src={r.carrierLogo}
+                alt={r.carrier}
+                className="h-10 w-10 rounded-full bg-white border border-slate-200 object-contain p-1"
+                loading="lazy"
+              />
+            ) : (
+              <div className="h-10 w-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-sm font-bold text-slate-800">
+                {r.carrier[0] || "?"}
+              </div>
+            )}
             <div>
-              <p className="text-sm font-semibold text-slate-800">{r.carrier} · {r.code}</p>
+              <p className="text-sm font-semibold text-slate-800">{r.carrier}{r.carrierCode ? ` (${r.carrierCode})` : ""} · {r.code}</p>
               <p className="text-xl font-black text-slate-900">{r.depart} → {r.arrive}</p>
               <p className="text-sm text-slate-600">{r.duration} · {r.stops} · {r.cabin}</p>
             </div>

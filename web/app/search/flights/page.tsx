@@ -14,6 +14,7 @@ type Params = {
   maxStops?: string;
   maxPrice?: string;
   airline?: string;
+  airlines?: string | string[];
   departAfter?: string;
   departBefore?: string;
   sort?: string;
@@ -29,8 +30,24 @@ type OfferCard = {
   price: string;
   cabin: string;
   stops: string;
+  carrierCode?: string;
+  carrierLogo?: string;
   badge?: string;
 };
+
+function getAirlineLogo(code?: string) {
+  if (!code) return "";
+  return `https://images.kiwi.com/airlines/64/${code.toUpperCase()}.png`;
+}
+
+function normalizeAirlines(value?: string | string[]) {
+  if (!value) return [] as string[];
+  const raw = Array.isArray(value) ? value : [value];
+  return raw
+    .flatMap((entry) => String(entry).split(","))
+    .map((entry) => entry.trim().toUpperCase())
+    .filter(Boolean);
+}
 
 function parsePriceToNumber(price: string) {
   const match = String(price || "").match(/([0-9]+(?:\.[0-9]+)?)/);
@@ -73,6 +90,7 @@ function mapDuffelOffers(result: any): OfferCard[] {
     const lastSeg = firstSlice?.segments?.[firstSlice?.segments?.length - 1];
 
     const carrier = firstSeg?.marketing_carrier?.name || firstSeg?.operating_carrier?.name || "Airline";
+    const carrierCode = firstSeg?.marketing_carrier?.iata_code || firstSeg?.operating_carrier?.iata_code || "";
     const code = firstSeg?.marketing_carrier_flight_number || offer?.id || `flight-${idx + 1}`;
 
     const departTime = firstSeg?.departing_at ? new Date(firstSeg.departing_at).toISOString().slice(11, 16) : "";
@@ -92,6 +110,8 @@ function mapDuffelOffers(result: any): OfferCard[] {
       price,
       cabin: offer?.cabin || offer?.cabin_class || "",
       stops,
+      carrierCode,
+      carrierLogo: getAirlineLogo(carrierCode),
       badge: offer?.owner_booking_allowed === false ? "Request" : undefined,
     } as OfferCard;
   });
@@ -151,10 +171,12 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
     maxStops = "",
     maxPrice = "",
     airline = "",
+    airlines,
     departAfter = "",
     departBefore = "",
     sort = "best",
   } = resolved;
+  const selectedAirlines = normalizeAirlines(airlines);
   const routeLabel = [from || "Origin", to || "Destination"].join(" → ");
   const paxLabel = `${passengers} pax${cabin ? ` · ${cabin}` : ""}`;
   const isRoundTrip = trip !== "oneway" && !!ret;
@@ -171,6 +193,7 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
         const numericPrice = parsePriceToNumber(offer.price);
         if (Number.isFinite(numericPrice) && numericPrice > Number(maxPrice)) return false;
       }
+      if (selectedAirlines.length > 0 && !selectedAirlines.includes((offer.carrierCode || "").toUpperCase())) return false;
       if (airline && !offer.carrier.toLowerCase().includes(airline.toLowerCase().trim())) return false;
       if (departAfter || departBefore) {
         const dep = toMinutes(offer.depart);
@@ -189,83 +212,21 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
     });
 
   const carrierSuggestions = Array.from(new Set(offers.map((offer) => offer.carrier).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+  const carrierOptions = Array.from(
+    new Map(
+      offers
+        .filter((offer) => offer.carrier && offer.carrierCode)
+        .map((offer) => [offer.carrierCode as string, { code: offer.carrierCode as string, name: offer.carrier, logo: offer.carrierLogo || getAirlineLogo(offer.carrierCode) }])
+    ).values()
+  ).sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <main className="min-h-screen bg-slate-50 py-10 px-4">
-      <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_360px] gap-4 items-start">
-        <div className="space-y-4">
-        <header className="rounded-2xl bg-white px-5 py-4 shadow-sm border border-slate-200 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Flights search</p>
-            <h1 className="text-2xl font-black text-slate-900">{routeLabel}</h1>
-            <p className="text-sm text-slate-600">{datesLabel} · {paxLabel}</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {!isRoundTrip && <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">One-way</span>}
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">Showing {filteredOffers.length} options</span>
-          </div>
-        </header>
-
-        <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-3">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div className="flex flex-wrap gap-2 text-xs">
-              <span className="rounded-full bg-slate-100 px-3 py-1 font-semibold text-slate-800">Sort: Best</span>
-              <span className="rounded-full bg-slate-100 px-3 py-1 font-semibold text-slate-800">Filters: Nonstop, Carry-on</span>
-            </div>
-            <div className="flex gap-2">
-              <Link
-                href={`/chat?prompt=${encodeURIComponent(askPrompt)}`}
-                className="rounded-full bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-2 text-sm font-semibold text-white shadow hover:opacity-95"
-              >
-                Ask Lina
-              </Link>
-              <Link
-                href="/"
-                className="rounded-full border px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
-              >
-                New search
-              </Link>
-            </div>
-          </div>
-
-          {message && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">{message}</div>}
-          {!message && filteredOffers.length === 0 && (
-            <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
-              Aucun résultat ne correspond à vos filtres avancés. Modifiez la barre de recherche à droite.
-            </div>
-          )}
-
-          <div className="space-y-3">
-            {/* Use client component for interactive selection */}
-            {/* @ts-ignore */}
-            <FlightOffers
-              offers={filteredOffers}
-              roundTrip={!!ret}
-              searchContext={{
-                from,
-                to,
-                depart,
-                ret,
-                passengers,
-                cabin,
-              }}
-            />
-          </div>
-        </section>
-
-        <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-2">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-slate-800">Search context</p>
-            <span className="text-xs text-slate-500">Visible to agents only</span>
-          </div>
-          <pre className="text-xs bg-slate-50 p-3 rounded border border-slate-100 overflow-x-auto">{JSON.stringify(resolved, null, 2)}</pre>
-        </section>
-        </div>
-
+      <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)] gap-4 items-start">
         <aside className="md:sticky md:top-6 rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Advanced search</p>
-            <h2 className="text-lg font-black text-slate-900">Flight filters & options</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Zeniva Travel</p>
+            <h2 className="text-lg font-black text-slate-900">Flight filters</h2>
           </div>
 
           <form action="/search/flights" method="GET" className="space-y-4">
@@ -363,6 +324,21 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
               </datalist>
             </div>
 
+            {carrierOptions.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-slate-600">Airlines</p>
+                <div className="max-h-40 overflow-auto rounded-lg border border-slate-200 p-2 space-y-1">
+                  {carrierOptions.map((carrier) => (
+                    <label key={carrier.code} className="flex items-center gap-2 text-xs text-slate-700">
+                      <input type="checkbox" name="airlines" value={carrier.code} defaultChecked={selectedAirlines.includes(carrier.code)} />
+                      <img src={carrier.logo} alt={carrier.name} className="h-5 w-5 rounded-full border border-slate-200 bg-white" loading="lazy" />
+                      <span className="truncate">{carrier.name} ({carrier.code})</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-slate-600">Depart after</label>
@@ -400,6 +376,76 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
             </div>
           </form>
         </aside>
+
+        <div className="space-y-4">
+        <header className="rounded-2xl bg-white px-5 py-4 shadow-sm border border-slate-200 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Flights search</p>
+            <h1 className="text-2xl font-black text-slate-900">{routeLabel}</h1>
+            <p className="text-sm text-slate-600">{datesLabel} · {paxLabel}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {!isRoundTrip && <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">One-way</span>}
+            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">Showing {filteredOffers.length} options</span>
+          </div>
+        </header>
+
+        <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-3">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-wrap gap-2 text-xs">
+              <span className="rounded-full bg-slate-100 px-3 py-1 font-semibold text-slate-800">Sort: Best</span>
+              <span className="rounded-full bg-slate-100 px-3 py-1 font-semibold text-slate-800">Filters: Nonstop, Carry-on</span>
+            </div>
+            <div className="flex gap-2">
+              <Link
+                href={`/chat?prompt=${encodeURIComponent(askPrompt)}`}
+                className="rounded-full bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-2 text-sm font-semibold text-white shadow hover:opacity-95"
+              >
+                Ask Lina
+              </Link>
+              <Link
+                href="/"
+                className="rounded-full border px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+              >
+                New search
+              </Link>
+            </div>
+          </div>
+
+          {message && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">{message}</div>}
+          {!message && filteredOffers.length === 0 && (
+            <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
+              Aucun résultat ne correspond à vos filtres avancés. Modifiez la barre de recherche à droite.
+            </div>
+          )}
+
+          <div className="space-y-3">
+            {/* Use client component for interactive selection */}
+            {/* @ts-ignore */}
+            <FlightOffers
+              offers={filteredOffers}
+              roundTrip={!!ret}
+              searchContext={{
+                from,
+                to,
+                depart,
+                ret,
+                passengers,
+                cabin,
+              }}
+            />
+          </div>
+        </section>
+
+        <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-slate-800">Search context</p>
+            <span className="text-xs text-slate-500">Visible to agents only</span>
+          </div>
+          <pre className="text-xs bg-slate-50 p-3 rounded border border-slate-100 overflow-x-auto">{JSON.stringify(resolved, null, 2)}</pre>
+        </section>
+        </div>
+
       </div>
     </main>
   );
