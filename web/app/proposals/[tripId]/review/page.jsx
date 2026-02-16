@@ -420,6 +420,15 @@ export default function ProposalReviewPage() {
               Complete all required steps above before proceeding to payment.
             </div>
           )}
+
+          <div className="flex justify-end">
+            <button
+              onClick={refreshWorkflow}
+              className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+            >
+              Refresh checklist
+            </button>
+          </div>
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,360px] gap-8 items-start">
