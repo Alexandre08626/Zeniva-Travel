@@ -142,9 +142,9 @@ export default function HotelReviewClient() {
             <p><strong>Refundable:</strong> {String(Boolean(selectedRate?.refundable ?? quote?.refundable))}</p>
           </div>
 
-          {hotelPhotos.length > 0 && (
-            <div className="border rounded-lg p-4 space-y-2">
-              <h3 className="font-semibold text-lg">Hotel photos</h3>
+          <div className="border rounded-lg p-4 space-y-2">
+            <h3 className="font-semibold text-lg">Hotel photos</h3>
+            {hotelPhotos.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 {hotelPhotos.map((photo, idx) => (
                   <div key={`${photo}-${idx}`} className="h-28 md:h-32 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
@@ -157,8 +157,12 @@ export default function HotelReviewClient() {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-4 text-sm text-slate-600">
+                No photos available for this selected hotel yet.
+              </div>
+            )}
+          </div>
 
           <div className="border rounded-lg p-4">
             <h3 className="font-semibold text-lg mb-2">Price breakdown</h3>
