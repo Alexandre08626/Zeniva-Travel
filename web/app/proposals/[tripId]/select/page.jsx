@@ -143,6 +143,7 @@ export default function ProposalSelectPage() {
   const [errorHotels, setErrorHotels] = useState(null);
   const [errorActivities, setErrorActivities] = useState(null);
   const [errorTransfers, setErrorTransfers] = useState(null);
+  const [selectedTransferKey, setSelectedTransferKey] = useState("");
   const [filters, setFilters] = useState({
     flightQuery: "",
     flightDirectOnly: false,
@@ -550,8 +551,8 @@ export default function ProposalSelectPage() {
           throw new Error(data?.error || `API returned ${response.status}`);
         }
 
-        const mappedTransfers = (data.transfers || []).map(t => ({
-          id: t.id,
+        const mappedTransfers = (data.transfers || []).map((t, idx) => ({
+          id: t.id || `${t.supplierRef || "transfer"}-${t.title || "item"}-${t.startDateTime || idx}`,
           name: t.title,
           route: t.location,
           date: t.startDateTime ? new Date(t.startDateTime).toLocaleDateString() : "",
@@ -598,8 +599,19 @@ export default function ProposalSelectPage() {
   };
 
   const onSelectTransfer = (transfer) => {
-    setProposalSelection(tripId, { transfer });
+    const normalizedTransfer = {
+      ...transfer,
+      id: transfer?.id || `${transfer?.supplier || "transfer"}-${transfer?.name || "item"}-${transfer?.date || Date.now()}`,
+    };
+    setSelectedTransferKey(normalizedTransfer.id);
+    setProposalSelection(tripId, { transfer: normalizedTransfer });
   };
+
+  useEffect(() => {
+    if (selection?.transfer?.id) {
+      setSelectedTransferKey(selection.transfer.id);
+    }
+  }, [selection?.transfer?.id]);
 
   // Auto-select the first loaded flight if none chosen yet so the summary shows the live route/pricing.
   useEffect(() => {
@@ -1151,12 +1163,13 @@ export default function ProposalSelectPage() {
               {errorTransfers && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">{errorTransfers}</div>}
               <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
                 {filteredTransfers.map((t) => {
-                  const active = selection?.transfer?.id === t.id;
+                  const transferKey = t.id || `${t.supplier || "transfer"}-${t.name || "item"}-${t.date || ""}`;
+                  const active = selectedTransferKey ? selectedTransferKey === transferKey : selection?.transfer?.id === transferKey;
                   const providerLogo = getPartnerLogo(t.provider || t.supplier);
                   return (
                     <button
-                      key={t.id}
-                      onClick={() => onSelectTransfer(t)}
+                      key={transferKey}
+                      onClick={() => onSelectTransfer({ ...t, id: transferKey })}
                       className={`w-full text-left rounded-xl border px-4 py-3 shadow-sm transition ${
                         active ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white"
                       }`}
