@@ -29,10 +29,11 @@ const hasSupabaseEnv = () =>
   Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY);
 
 function mapDbRow(row: any): AgentRequest {
+  const channelIds = Array.isArray(row.channel_ids) && row.channel_ids.length ? row.channel_ids : ["hq"];
   return {
     id: row.id,
     createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
-    channelIds: Array.isArray(row.channel_ids) ? row.channel_ids : [],
+    channelIds,
     message: row.message || undefined,
     yachtName: row.yacht_name || undefined,
     desiredDate: row.desired_date || undefined,

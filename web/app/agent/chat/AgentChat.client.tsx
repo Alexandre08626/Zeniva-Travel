@@ -240,7 +240,8 @@ export default function AgentChatClient() {
           : Array.isArray(row?.channel_ids)
             ? row.channel_ids
             : ["hq"];
-        channelIds.forEach((id) => {
+        const safeChannelIds = channelIds.length ? channelIds : ["hq"];
+        safeChannelIds.forEach((id) => {
           ensureChannel(id, row);
           nextMessages[id] = [...(nextMessages[id] || []), message];
         });

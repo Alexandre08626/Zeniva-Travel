@@ -140,7 +140,8 @@ export default function TravelerAgentChatClient() {
           : Array.isArray(row?.channel_ids)
             ? row.channel_ids
             : [];
-        if (!channelIds.includes(channelId) && !channelIds.includes(linaChannelId)) return;
+        const safeChannelIds = channelIds.length ? channelIds : ["hq"];
+        if (!safeChannelIds.includes(channelId) && !safeChannelIds.includes(linaChannelId)) return;
         const createdAt = row?.createdAt || row?.created_at || new Date().toISOString();
         const message: ChatMessage = {
           id: String(row?.id || `${createdAt}-${Math.random().toString(16).slice(2)}`),
@@ -149,7 +150,7 @@ export default function TravelerAgentChatClient() {
           ts: new Date(createdAt).toLocaleTimeString().slice(0, 5),
           createdAt,
         };
-        channelIds.forEach((id) => {
+        safeChannelIds.forEach((id) => {
           if (id !== channelId && id !== linaChannelId) return;
           next[id] = [...(next[id] || []), message];
         });
