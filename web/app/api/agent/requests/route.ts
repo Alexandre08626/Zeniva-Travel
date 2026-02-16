@@ -55,7 +55,7 @@ async function readRequestsFromSupabase(channelId?: string): Promise<AgentReques
       "id, created_at, channel_ids, message, yacht_name, desired_date, full_name, phone, email, source_path, property_name, author, sender_role, source"
     )
     .order("created_at", { ascending: false });
-  if (channelId) {
+  if (channelId && channelId !== "hq") {
     query = query.contains("channel_ids", [channelId]);
   }
   const { data, error } = await query;
@@ -107,6 +107,7 @@ async function readRequests(channelId?: string): Promise<AgentRequest[]> {
   try {
     const raw = await fs.readFile(DATA_FILE, "utf-8");
     const parsed = JSON.parse(raw || "[]");
+    if (channelId === "hq") return parsed;
     if (!channelId) return parsed;
     return parsed.filter((row: AgentRequest) => Array.isArray(row.channelIds) && row.channelIds.includes(channelId));
   } catch (err: any) {
@@ -147,13 +148,14 @@ export async function POST(request: Request) {
     }
 
     const rawChannelIds = Array.isArray(body.channelIds) ? body.channelIds : [];
-    const channelIds: string[] = rawChannelIds.length
+    const channelIdsSeed: string[] = rawChannelIds.length
       ? Array.from(
           new Set(
             rawChannelIds.filter((id: unknown): id is string => typeof id === "string" && id.trim().length > 0)
           )
         )
       : ["hq"];
+    const channelIds = Array.from(new Set([...channelIdsSeed, "hq"]));
 
     const senderRole =
       body?.senderRole === "agent" || body?.senderRole === "hq" || body?.senderRole === "lina" || body?.senderRole === "client"
