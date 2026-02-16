@@ -584,7 +584,7 @@ export default function ProposalSelectPage() {
     };
 
     run();
-  }, [tripDraft?.destination, tripDraft?.checkIn, tripDraft?.adults, tripDraft?.includeTransfers, tripId, selection?.hotel?.location, selection?.transfer]);
+  }, [tripDraft?.destination, tripDraft?.checkIn, tripDraft?.adults, tripDraft?.includeTransfers, tripId, selection?.hotel?.location]);
 
   const onSelectFlight = (flight) => {
     setProposalSelection(tripId, { flight });
@@ -1174,6 +1174,11 @@ export default function ProposalSelectPage() {
                         active ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white"
                       }`}
                     >
+                      {active && (
+                        <div className="mb-2 inline-flex rounded-full bg-blue-600 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-white">
+                          Selected
+                        </div>
+                      )}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="h-10 w-10 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
