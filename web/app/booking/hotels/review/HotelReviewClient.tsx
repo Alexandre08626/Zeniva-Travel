@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { persistWorkflowStatePatch } from "../../../../src/lib/workflowPersistence";
 
 type DraftData = {
   selectedSearchResult?: {
@@ -254,6 +255,16 @@ export default function HotelReviewClient() {
                       hotelCancellationConfirmed: true,
                     })
                   );
+
+                  void persistWorkflowStatePatch({
+                    [proposalTripId]: {
+                      proposal_review_checklist: {
+                        hotelTravelerConfirmed: true,
+                        hotelPoliciesConfirmed: true,
+                        hotelCancellationConfirmed: true,
+                      },
+                    },
+                  });
 
                   const modeSuffix = proposalMode === "agent" ? "?mode=agent" : "";
                   router.push(`/proposals/${proposalTripId}/review${modeSuffix}`);

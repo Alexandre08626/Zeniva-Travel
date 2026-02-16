@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { persistWorkflowStatePatch } from "../../../../src/lib/workflowPersistence";
 
 function Stepper({ step }: { step: number }) {
   const steps = ["Review", "Passengers", "Seats", "Bags", "Payment"];
@@ -42,6 +43,7 @@ export default function FlightSeatsPage() {
   const [selected, setSelected] = useState<string[]>([]);
   const [passengerCount, setPassengerCount] = useState(1);
   const [activePassenger, setActivePassenger] = useState(0);
+  const [proposalTripId, setProposalTripId] = useState("");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -51,6 +53,18 @@ export default function FlightSeatsPage() {
         const parsed = JSON.parse(raw);
         setPassengerCount(Array.isArray(parsed) ? parsed.length : 1);
       } catch (_) {}
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const raw = window.sessionStorage.getItem("flight_selection");
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw);
+      setProposalTripId(String(parsed?.searchContext?.proposalTripId || ""));
+    } catch {
+      setProposalTripId("");
     }
   }, []);
 
@@ -73,6 +87,14 @@ export default function FlightSeatsPage() {
       const payload = JSON.stringify(selected);
       window.sessionStorage.setItem("flight_seats", payload);
       window.localStorage.setItem("flight_seats", payload);
+
+      if (proposalTripId) {
+        void persistWorkflowStatePatch({
+          [proposalTripId]: {
+            flight_seats: selected,
+          },
+        });
+      }
     }
     router.push("/booking/flights/bags");
   };

@@ -22,6 +22,21 @@ export default function CheckoutPage() {
   const userId = user?.email || "";
   const [paymentStatus, setPaymentStatus] = useState("idle");
   const [confirmationId, setConfirmationId] = useState("");
+  const [travelerForm, setTravelerForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: user?.email || "",
+    phone: "",
+    country: "",
+    loyaltyNumber: "",
+    requests: "",
+  });
+  const [paymentForm, setPaymentForm] = useState({
+    cardNumber: "",
+    cardName: "",
+    expiry: "",
+    cvc: "",
+  });
 
   const hero = useMemo(() => {
     // Use selected accommodation image if available, otherwise fallback to destination images
@@ -50,13 +65,25 @@ export default function CheckoutPage() {
 
   if (!proposalId) return null;
 
-  const handlePayNow = () => {
-    if (paymentStatus === "confirmed") return;
+  const canSubmitPayment =
+    Boolean(travelerForm.firstName.trim()) &&
+    Boolean(travelerForm.lastName.trim()) &&
+    Boolean(travelerForm.email.trim()) &&
+    Boolean(travelerForm.phone.trim()) &&
+    Boolean(paymentForm.cardNumber.trim()) &&
+    Boolean(paymentForm.cardName.trim()) &&
+    Boolean(paymentForm.expiry.trim()) &&
+    Boolean(paymentForm.cvc.trim());
+
+  const handlePayNow = async () => {
+    if (paymentStatus !== "idle") return;
+    if (!canSubmitPayment) return;
     setPaymentStatus("processing");
 
     const now = new Date().toISOString();
     const bookingId = `checkout-${Date.now()}`;
     const confirmationNumber = `ZNV-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+    const invoiceId = `${bookingId}-invoice`;
     const existingTrip = trips.find((t) => t.id === proposalId);
     const tripId = existingTrip
       ? proposalId
@@ -67,25 +94,129 @@ export default function CheckoutPage() {
           travelers: tripDraft?.adults ? String(tripDraft.adults) : "",
         });
 
-    if (userId) {
-      const existing = (getDocumentsForUser(userId) || {})[tripId] || [];
-      const doc = {
-        id: bookingId,
-        tripId,
-        userId,
-        type: "confirmation",
-        title: `Checkout confirmation (${tripDraft?.destination || "Trip"})`,
-        provider: "Zeniva",
-        confirmationNumber,
-        url: `/test/duffel-stays/confirmation?docId=${encodeURIComponent(bookingId)}`,
-        updatedAt: now,
-        details: JSON.stringify({ booking_reference: confirmationNumber, status: "confirmed" }),
-      };
-      upsertDocuments(userId, tripId, [doc, ...existing]);
+    const confirmationPath = `/checkout/${proposalId}/confirmation?bookingId=${encodeURIComponent(bookingId)}&invoiceId=${encodeURIComponent(invoiceId)}&tripId=${encodeURIComponent(tripId)}&confirmationNumber=${encodeURIComponent(confirmationNumber)}`;
+
+    const confirmationDoc = {
+      id: bookingId,
+      tripId,
+      userId,
+      type: "confirmation",
+      title: `Payment confirmation (${tripDraft?.destination || "Trip"})`,
+      provider: "Zeniva",
+      confirmationNumber,
+      url: confirmationPath,
+      updatedAt: now,
+      details: JSON.stringify({
+        booking_reference: confirmationNumber,
+        status: "confirmed",
+        destination: tripDraft?.destination || "",
+        travelers: tripDraft?.adults || pricing.travelers,
+        paymentContact: {
+          firstName: travelerForm.firstName,
+          lastName: travelerForm.lastName,
+          email: travelerForm.email,
+          phone: travelerForm.phone,
+          country: travelerForm.country,
+        },
+      }),
+    };
+
+    const invoiceDoc = {
+      id: invoiceId,
+      tripId,
+      userId,
+      type: "invoice",
+      title: `Invoice (${tripDraft?.destination || "Trip"})`,
+      provider: "Zeniva",
+      confirmationNumber: `INV-${confirmationNumber}`,
+      url: `/api/partners/duffel-stays/bookings/mock-pdf?docId=${encodeURIComponent(invoiceId)}`,
+      updatedAt: now,
+      details: JSON.stringify({
+        booking_reference: confirmationNumber,
+        subtotal: pricing.hasAnyPrice ? pricing.subtotal : null,
+        fees: pricing.hasAnyPrice ? pricing.fees : null,
+        total: pricing.hasAnyPrice ? pricing.total : null,
+        currency: "USD",
+      }),
+    };
+
+    const confirmationPayload = {
+      bookingId,
+      invoiceId,
+      confirmationNumber,
+      proposalId,
+      tripId,
+      createdAt: now,
+      traveler: travelerForm,
+      payment: {
+        cardName: paymentForm.cardName,
+        cardLast4: paymentForm.cardNumber.replace(/\s+/g, "").slice(-4),
+      },
+      itinerary: {
+        departureCity: tripDraft?.departureCity || "",
+        destination: tripDraft?.destination || "",
+        checkIn: tripDraft?.checkIn || "",
+        checkOut: tripDraft?.checkOut || "",
+        travelers: tripDraft?.adults || pricing.travelers,
+      },
+      totalLabel: pricing.hasAnyPrice ? formatCurrency(pricing.total) : "On request",
+      links: {
+        confirmationPath,
+        invoicePath: invoiceDoc.url,
+      },
+    };
+
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem(`checkout_confirmation_${bookingId}`, JSON.stringify(confirmationPayload));
     }
 
-    setConfirmationId(bookingId);
-    setPaymentStatus("confirmed");
+    if (userId) {
+      const existing = (getDocumentsForUser(userId) || {})[tripId] || [];
+      upsertDocuments(userId, tripId, [confirmationDoc, invoiceDoc, ...existing]);
+
+      await Promise.allSettled([
+        fetch("/api/documents", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: confirmationDoc.id,
+            ownerEmail: userId,
+            tripId,
+            updatedAt: now,
+            payload: confirmationDoc,
+          }),
+        }),
+        fetch("/api/documents", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: invoiceDoc.id,
+            ownerEmail: userId,
+            tripId,
+            updatedAt: now,
+            payload: invoiceDoc,
+          }),
+        }),
+        fetch("/api/bookings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: bookingId,
+            ownerEmail: userId,
+            status: "Invoiced",
+            createdAt: now,
+            updatedAt: now,
+            payload: confirmationPayload,
+          }),
+        }),
+      ]);
+    }
+
+    setConfirmationId(confirmationNumber);
+    setPaymentStatus("confirmation");
+    setTimeout(() => {
+      router.push(confirmationPath);
+    }, 700);
   };
 
   return (
@@ -155,6 +286,27 @@ export default function CheckoutPage() {
                     <input
                       className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
                       placeholder={label}
+                      value={
+                        label === "First name"
+                          ? travelerForm.firstName
+                          : label === "Last name"
+                          ? travelerForm.lastName
+                          : label === "Email"
+                          ? travelerForm.email
+                          : travelerForm.phone
+                      }
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setTravelerForm((prev) =>
+                          label === "First name"
+                            ? { ...prev, firstName: value }
+                            : label === "Last name"
+                            ? { ...prev, lastName: value }
+                            : label === "Email"
+                            ? { ...prev, email: value }
+                            : { ...prev, phone: value }
+                        );
+                      }}
                     />
                   </label>
                 ))}
@@ -166,6 +318,23 @@ export default function CheckoutPage() {
                     <input
                       className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
                       placeholder={label}
+                      value={
+                        label === "Country"
+                          ? travelerForm.country
+                          : label === "Loyalty number (optional)"
+                          ? travelerForm.loyaltyNumber
+                          : travelerForm.requests
+                      }
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setTravelerForm((prev) =>
+                          label === "Country"
+                            ? { ...prev, country: value }
+                            : label === "Loyalty number (optional)"
+                            ? { ...prev, loyaltyNumber: value }
+                            : { ...prev, requests: value }
+                        );
+                      }}
                     />
                   </label>
                 ))}
@@ -180,19 +349,19 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <label className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
                   Card number
-                  <input className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="4242 4242 4242 4242" />
+                  <input className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="4242 4242 4242 4242" value={paymentForm.cardNumber} onChange={(event) => setPaymentForm((prev) => ({ ...prev, cardNumber: event.target.value }))} />
                 </label>
                 <label className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
                   Name on card
-                  <input className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Traveler Name" />
+                  <input className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Traveler Name" value={paymentForm.cardName} onChange={(event) => setPaymentForm((prev) => ({ ...prev, cardName: event.target.value }))} />
                 </label>
                 <label className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
                   Expiry
-                  <input className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="MM/YY" />
+                  <input className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="MM/YY" value={paymentForm.expiry} onChange={(event) => setPaymentForm((prev) => ({ ...prev, expiry: event.target.value }))} />
                 </label>
                 <label className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
                   CVC
-                  <input className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="123" />
+                  <input className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="123" value={paymentForm.cvc} onChange={(event) => setPaymentForm((prev) => ({ ...prev, cvc: event.target.value }))} />
                 </label>
               </div>
               <div className="rounded-xl bg-slate-50 border border-dashed border-slate-200 px-4 py-3 text-xs" style={{ color: MUTED_TEXT }}>
@@ -282,10 +451,11 @@ export default function CheckoutPage() {
 
             <button
               className="w-full rounded-full px-4 py-3 text-sm font-extrabold text-white shadow-sm"
-              style={{ backgroundColor: BRAND_BLUE }}
+              style={{ backgroundColor: BRAND_BLUE, opacity: canSubmitPayment ? 1 : 0.6 }}
               onClick={handlePayNow}
+              disabled={!canSubmitPayment || paymentStatus === "processing" || paymentStatus === "confirmation"}
             >
-              {paymentStatus === "confirmed" ? "Payment confirmed" : paymentStatus === "processing" ? "Processing…" : "Pay now (mock)"}
+              {paymentStatus === "confirmation" ? "Payment confirmation" : paymentStatus === "processing" ? "Processing…" : "Pay now (mock)"}
             </button>
             <div className="rounded-xl border border-slate-200 bg-white p-3 text-xs" style={{ color: MUTED_TEXT }}>
               After payment, your concierge will confirm ticketing and send e-tickets via email.

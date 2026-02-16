@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { persistWorkflowStatePatch } from "../../../../src/lib/workflowPersistence";
 
 function Stepper({ step }: { step: number }) {
   const steps = ["Review", "Passengers", "Seats", "Bags", "Payment"];
@@ -26,6 +27,23 @@ export default function FlightBagsPage() {
       const payload = JSON.stringify({ carryOn, checked });
       window.sessionStorage.setItem("flight_bags", payload);
       window.localStorage.setItem("flight_bags", payload);
+
+      const selectionRaw = window.sessionStorage.getItem("flight_selection");
+      if (selectionRaw) {
+        try {
+          const parsed = JSON.parse(selectionRaw);
+          const proposalTripId = String(parsed?.searchContext?.proposalTripId || "");
+          if (proposalTripId) {
+            void persistWorkflowStatePatch({
+              [proposalTripId]: {
+                flight_bags: { carryOn, checked },
+              },
+            });
+          }
+        } catch {
+          // ignore
+        }
+      }
     }
     router.push("/booking/flights/payment");
   };

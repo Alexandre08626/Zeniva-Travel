@@ -5,6 +5,7 @@ import { BRAND_BLUE, LIGHT_BG, MUTED_TEXT, PREMIUM_BLUE, TITLE_TEXT } from "../.
 import { useTripsStore, generateProposal } from "../../../../lib/store/tripsStore";
 import { getImagesForDestination, getPartnerHotelImages } from "../../../../src/lib/images";
 import { computePrice, formatCurrency } from "../../../../src/lib/pricing";
+import { loadTripWorkflowState, persistWorkflowStatePatch } from "../../../../src/lib/workflowPersistence";
 import yachtsData from "../../../../src/data/ycn_packages.json";
 import airbnbsData from "../../../../src/data/airbnbs.json";
 
@@ -109,7 +110,7 @@ export default function ProposalReviewPage() {
     workflow.hotelPoliciesConfirmed &&
     workflow.hotelCancellationConfirmed;
 
-  const refreshWorkflow = () => {
+  const refreshWorkflow = async () => {
     if (typeof window === "undefined") return;
     const expectedPax = Math.max(1, Number(tripDraft?.adults || 1));
 
@@ -138,14 +139,28 @@ export default function ProposalReviewPage() {
     seats = parseStoredValue("flight_seats", []);
     bags = parseStoredValue("flight_bags", null);
 
+    const serverWorkflow = tripId ? await loadTripWorkflowState(String(tripId)) : null;
+    const serverPax = Array.isArray(serverWorkflow?.flight_passengers) ? serverWorkflow.flight_passengers : [];
+    const serverSeats = Array.isArray(serverWorkflow?.flight_seats) ? serverWorkflow.flight_seats : [];
+    const serverBags = serverWorkflow?.flight_bags && typeof serverWorkflow.flight_bags === "object" ? serverWorkflow.flight_bags : null;
+    const serverChecklist =
+      serverWorkflow?.proposal_review_checklist && typeof serverWorkflow.proposal_review_checklist === "object"
+        ? serverWorkflow.proposal_review_checklist
+        : {};
+
     try {
       localChecklist = JSON.parse(window.localStorage.getItem(`proposal_review_checklist_${tripId}`) || "{}");
     } catch {
       localChecklist = {};
     }
 
-    const normalizedPax = Array.isArray(pax) ? pax : [];
-    const normalizedSeats = Array.isArray(seats) ? seats : [];
+    const normalizedPax = Array.isArray(pax) && pax.length ? pax : serverPax;
+    const normalizedSeats = Array.isArray(seats) && seats.length ? seats : serverSeats;
+    const normalizedBags =
+      bags && typeof bags === "object" && Object.keys(bags).length > 0
+        ? bags
+        : serverBags;
+    const mergedChecklist = { ...serverChecklist, ...localChecklist };
 
     const passengersComplete =
       normalizedPax.length >= expectedPax &&
@@ -160,24 +175,26 @@ export default function ProposalReviewPage() {
       normalizedSeats.slice(0, expectedPax).every((seat) => String(seat || "").trim());
 
     const bagsComplete = Boolean(
-      bags &&
-      Number.isFinite(Number(bags?.carryOn)) &&
-      Number.isFinite(Number(bags?.checked))
+      normalizedBags &&
+      Number.isFinite(Number(normalizedBags?.carryOn)) &&
+      Number.isFinite(Number(normalizedBags?.checked))
     );
 
     setWorkflow({
       passengersComplete,
       seatsComplete,
       bagsComplete,
-      hotelTravelerConfirmed: Boolean(localChecklist?.hotelTravelerConfirmed),
-      hotelPoliciesConfirmed: Boolean(localChecklist?.hotelPoliciesConfirmed),
-      hotelCancellationConfirmed: Boolean(localChecklist?.hotelCancellationConfirmed),
+      hotelTravelerConfirmed: Boolean(mergedChecklist?.hotelTravelerConfirmed),
+      hotelPoliciesConfirmed: Boolean(mergedChecklist?.hotelPoliciesConfirmed),
+      hotelCancellationConfirmed: Boolean(mergedChecklist?.hotelCancellationConfirmed),
     });
   };
 
   useEffect(() => {
-    refreshWorkflow();
-    const onFocus = () => refreshWorkflow();
+    void refreshWorkflow();
+    const onFocus = () => {
+      void refreshWorkflow();
+    };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [tripId, tripDraft?.adults]);
@@ -194,6 +211,14 @@ export default function ProposalReviewPage() {
     const next = { ...current, ...patch };
     window.localStorage.setItem(key, JSON.stringify(next));
     setWorkflow((prev) => ({ ...prev, ...patch }));
+
+    if (tripId) {
+      void persistWorkflowStatePatch({
+        [String(tripId)]: {
+          proposal_review_checklist: patch,
+        },
+      });
+    }
   };
 
   const openFlightStep = (path) => {

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { persistWorkflowStatePatch } from "../../../../src/lib/workflowPersistence";
 
 type Passenger = {
   firstName: string;
@@ -12,6 +13,7 @@ type Passenger = {
 
 type SearchContext = {
   passengers?: string;
+  proposalTripId?: string;
 };
 
 type SelectionState = {
@@ -35,6 +37,7 @@ export default function FlightPassengersPage() {
   const router = useRouter();
   const [passengers, setPassengers] = useState<Passenger[]>([]);
   const [count, setCount] = useState(1);
+  const [proposalTripId, setProposalTripId] = useState("");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -44,6 +47,7 @@ export default function FlightPassengersPage() {
         const parsed: SelectionState = JSON.parse(raw);
         const num = Number(parsed?.searchContext?.passengers || 1) || 1;
         setCount(num);
+        setProposalTripId(String(parsed?.searchContext?.proposalTripId || ""));
       } catch (_) {}
     }
   }, []);
@@ -72,6 +76,14 @@ export default function FlightPassengersPage() {
       const payload = JSON.stringify(passengers);
       window.sessionStorage.setItem("flight_passengers", payload);
       window.localStorage.setItem("flight_passengers", payload);
+
+      if (proposalTripId) {
+        void persistWorkflowStatePatch({
+          [proposalTripId]: {
+            flight_passengers: passengers,
+          },
+        });
+      }
     }
     router.push("/booking/flights/seats");
   };
