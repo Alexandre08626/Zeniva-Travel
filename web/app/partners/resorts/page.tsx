@@ -214,17 +214,17 @@ export default function PartnerResortsPage() {
         </div>
       </div>
 
-      <section className="mb-8 rounded-3xl px-6 py-8" style={{ background: `linear-gradient(110deg, ${GRADIENT_START} 0%, ${GRADIENT_END} 60%)` }}>
+      <section className="mb-6 rounded-2xl sm:rounded-3xl px-4 sm:px-6 py-5 sm:py-8 overflow-hidden" style={{ background: `linear-gradient(110deg, ${GRADIENT_START} 0%, ${GRADIENT_END} 60%)` }}>
         <div className="mx-auto max-w-6xl text-white">
-          <div className="flex flex-col gap-2">
+          <div className="hidden sm:flex flex-col gap-2">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Traveler Catalog</p>
             <h1 className="text-3xl font-black">Full Travel Inventory</h1>
             <p className="text-sm text-white/90">
               Explore the full traveler catalog and connect with Zeniva to finalize your trip.
             </p>
           </div>
-          <div className="mt-10 flex flex-col gap-6">
-            <div className="flex flex-wrap gap-3">
+          <div className="mt-3 sm:mt-10 flex flex-col gap-4 sm:gap-6">
+            <div className="hidden sm:flex flex-wrap gap-3">
               <Link href="/partners/resorts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white text-slate-900">
                 Hotels & Resorts
               </Link>
@@ -238,7 +238,7 @@ export default function PartnerResortsPage() {
                 Flights
               </Link>
             </div>
-            <div className="w-full rounded-3xl border border-white/35 bg-white/15 p-3 shadow-sm backdrop-blur">
+            <div className="w-full max-w-full rounded-2xl sm:rounded-3xl border border-white/35 bg-white/15 p-2.5 sm:p-3 shadow-sm backdrop-blur overflow-hidden">
               <div className="flex items-center gap-4 pb-3">
                 <Link
                   href="/chat/r5ug551qmll3p6p3"
@@ -248,15 +248,15 @@ export default function PartnerResortsPage() {
                   <img
                     src="/branding/lina-avatar.png"
                     alt="Lina"
-                    className="h-16 w-16 rounded-full object-cover"
+                    className="h-14 w-14 sm:h-16 sm:w-16 rounded-full object-cover"
                   />
                 </Link>
                 <div className="text-sm font-semibold text-white/90">
                   Lina concierge
                 </div>
               </div>
-              <div className="flex flex-col gap-3 md:flex-row md:items-center">
-                <div className="flex-1">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center min-w-0">
+                <div className="flex-1 min-w-0">
                   <label htmlFor="resorts-search" className="sr-only">
                     Search resorts
                   </label>
@@ -266,11 +266,11 @@ export default function PartnerResortsPage() {
                     value={filters.query}
                     onChange={(event) => setFilters((f) => ({ ...f, query: event.target.value }))}
                     placeholder="Search resort or destination"
-                    className="w-full rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white/70"
+                    className="w-full max-w-full min-w-0 rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white/70"
                   />
                 </div>
-                <div className="flex flex-1 flex-col gap-3 sm:flex-row">
-                  <div className="flex-1">
+                <div className="flex flex-1 min-w-0 flex-col gap-3 sm:flex-row">
+                  <div className="flex-1 min-w-0">
                     <label htmlFor="resorts-checkin" className="sr-only">
                       Check-in date
                     </label>
@@ -279,10 +279,10 @@ export default function PartnerResortsPage() {
                       type="date"
                       value={filters.checkIn}
                       onChange={(event) => setFilters((f) => ({ ...f, checkIn: event.target.value }))}
-                      className="w-full rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/70"
+                      className="w-full max-w-full min-w-0 rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/70"
                     />
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <label htmlFor="resorts-checkout" className="sr-only">
                       Check-out date
                     </label>
@@ -291,10 +291,10 @@ export default function PartnerResortsPage() {
                       type="date"
                       value={filters.checkOut}
                       onChange={(event) => setFilters((f) => ({ ...f, checkOut: event.target.value }))}
-                      className="w-full rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/70"
+                      className="w-full max-w-full min-w-0 rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/70"
                     />
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <label htmlFor="resorts-travelers" className="sr-only">
                       Travelers
                     </label>
@@ -302,7 +302,7 @@ export default function PartnerResortsPage() {
                       id="resorts-travelers"
                       value={String(filters.travelers)}
                       onChange={(event) => setFilters((f) => ({ ...f, travelers: Math.max(1, Number(event.target.value || 1)) }))}
-                      className="w-full rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/70"
+                      className="w-full max-w-full min-w-0 rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/70"
                     >
                       {Array.from({ length: 8 }, (_, index) => {
                         const count = index + 1;
