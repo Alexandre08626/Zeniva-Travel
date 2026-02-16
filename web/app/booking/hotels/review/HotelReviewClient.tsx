@@ -52,6 +52,7 @@ export default function HotelReviewClient() {
   const router = useRouter();
   const params = useSearchParams();
   const [draft, setDraft] = useState<DraftData | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   useEffect(() => {
     try {
@@ -159,6 +160,7 @@ export default function HotelReviewClient() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
+              if (!acceptedTerms) return;
               const formData = new FormData(e.target as HTMLFormElement);
               const pendingBooking = {
                 quote_id: quote.id,
@@ -205,11 +207,25 @@ export default function HotelReviewClient() {
               <textarea name="requests" className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" rows={3} />
             </div>
 
+            <label className="flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(event) => setAcceptedTerms(event.target.checked)}
+                className="mt-0.5"
+                required
+              />
+              <span>
+                I confirm that I reviewed all booking details and I accept the terms and cancellation policies.
+                {" "}<a className="underline" href="https://www.booking.com/content/terms.html" target="_blank" rel="noreferrer">View terms</a>
+              </span>
+            </label>
+
             <div className="flex flex-wrap gap-2">
               <Link href={`/search/hotels?${new URLSearchParams({ destination, checkIn, checkOut, guests, rooms, budget }).toString()}`} className="rounded-full border px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
                 Back to results
               </Link>
-              <button type="submit" className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+              <button type="submit" disabled={!acceptedTerms} className={`rounded-full px-4 py-2 text-sm font-semibold text-white ${acceptedTerms ? "bg-blue-600 hover:bg-blue-700" : "bg-slate-300 cursor-not-allowed"}`}>
                 Continue to payment
               </button>
             </div>
