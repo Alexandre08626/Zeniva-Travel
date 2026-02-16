@@ -102,7 +102,21 @@ export default function TravelerAgentChatClient() {
   const mergeMessages = (existing: ChatMessage[], incoming: ChatMessage[]) => {
     const map = new Map<string, ChatMessage>();
     existing.forEach((msg) => map.set(msg.id, msg));
-    incoming.forEach((msg) => map.set(msg.id, msg));
+    incoming.forEach((msg) => {
+      const previous = map.get(msg.id);
+      if (!previous) {
+        map.set(msg.id, msg);
+        return;
+      }
+      const incomingText = (msg.text || "").trim();
+      map.set(msg.id, {
+        ...previous,
+        ...msg,
+        text: incomingText.length ? msg.text : previous.text,
+        role: msg.role || previous.role,
+        createdAt: msg.createdAt || previous.createdAt,
+      });
+    });
     const merged = Array.from(map.values());
     merged.sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
     return merged;

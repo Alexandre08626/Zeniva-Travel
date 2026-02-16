@@ -198,9 +198,19 @@ export default function AgentChatClient() {
       const next: Record<string, ChatMessage[]> = { ...prev };
       channelIds.forEach((id) => {
         const current = next[id] || [];
-        const exists = current.some((m) => m.id === message.id);
-        const updated = exists
-          ? current.map((m) => (m.id === message.id ? message : m))
+        const updated = current.some((m) => m.id === message.id)
+          ? current.map((m) => {
+              if (m.id !== message.id) return m;
+              const incomingText = (message.text || "").trim();
+              return {
+                ...m,
+                ...message,
+                text: incomingText.length ? message.text : m.text,
+                author: (message.author || "").trim() ? message.author : m.author,
+                role: message.role || m.role,
+                createdAt: message.createdAt || m.createdAt,
+              };
+            })
           : [...current, message];
         updated.sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
         next[id] = updated;
