@@ -382,7 +382,7 @@ export default function ProposalSelectPage() {
       return;
     }
 
-    // Default to Hotel: call Duffel stays
+    // Default to Hotel: call Amadeus (temporary single provider)
     if (!destination || !checkIn || !checkOut) {
       setHotels([]);
       setErrorHotels("Missing destination or dates in trip draft");
@@ -393,44 +393,36 @@ export default function ProposalSelectPage() {
       setLoadingHotels(true);
       setErrorHotels(null);
       try {
+        const cityCode = resolveIATA(destination) || String(destination).trim().slice(0, 3).toUpperCase();
         const qs = new URLSearchParams({
-          destination: destination,
+          cityCode,
           checkIn,
           checkOut,
-          guests: "2",
-          rooms: "1",
+          adults: String(tripDraft?.adults || 2),
+          radius: "10",
         }).toString();
-        console.log("Fetching hotels with qs:", qs);
-        const res = await fetch(`/api/partners/duffel-stays?${qs}`);
+        console.log("Fetching hotels from Amadeus with qs:", qs);
+        const res = await fetch(`/api/partners/amadeus?${qs}`);
         const json = await res.json();
-        console.log("Hotels API response:", json);
-        
-        // Handle 503 service unavailable errors by using mocks directly
-        if (res.status === 503 || json?.meta?.status === 503 || json?.temporary) {
-          console.log("Duffel Stays API temporarily unavailable (503), using mock hotels");
-          const mocks = getMockHotels(destination);
-          const normalizedMocks = mocks.map((h) => ({ ...h, provider: "Duffel", rating: 4.5, type: "hotel" }));
-          setHotels(normalizedMocks);
-          setProposalSelection(tripId, { hotel: normalizedMocks[0] });
-          setErrorHotels("Hotel search temporarily unavailable (showing sample options)");
-          return;
-        }
-        
+        console.log("Amadeus Hotels API response:", json);
+
         if (!res.ok || !json?.ok) throw new Error(json?.error || res.statusText);
         const list = json?.offers || [];
-        console.log("Setting hotels:", list);
+        console.log("Setting Amadeus hotels:", list);
         if (list.length === 0) {
-          console.log("No offers found, using mock hotels");
+          console.log("No Amadeus offers found, using mock hotels");
           const mocks = getMockHotels(destination);
-          const normalizedMocks = mocks.map((h) => ({ ...h, provider: "Duffel", rating: 4.5, type: "hotel" }));
+          const normalizedMocks = mocks.map((h) => ({ ...h, provider: "Amadeus", rating: 4.5, type: "hotel" }));
           setHotels(normalizedMocks);
           setProposalSelection(tripId, { hotel: normalizedMocks[0] });
         } else {
           const normalizedHotels = list.map((h) => ({
             ...h,
-            provider: h.provider || "Duffel",
+            provider: "Amadeus",
             rating: Number(h.rating || h.review_score || 4.5),
             type: h.type || "hotel",
+            image: h.image || (Array.isArray(h.photos) ? h.photos[0] : "") || h.thumbnail,
+            images: Array.isArray(h.photos) && h.photos.length > 0 ? h.photos : [h.image].filter(Boolean),
           }));
           setHotels(normalizedHotels);
           setProposalSelection(tripId, { hotel: normalizedHotels[0] || null });
@@ -438,10 +430,10 @@ export default function ProposalSelectPage() {
       } catch (e) {
         console.error("Hotels fetch error:", e);
         const mocks = getMockHotels(destination);
-        const normalizedMocks = mocks.map((h) => ({ ...h, provider: "Duffel", rating: 4.5, type: "hotel" }));
+        const normalizedMocks = mocks.map((h) => ({ ...h, provider: "Amadeus", rating: 4.5, type: "hotel" }));
         setHotels(normalizedMocks);
         setProposalSelection(tripId, { hotel: normalizedMocks[0] });
-        setErrorHotels(e?.message || "Failed to load hotels (showing mock options)");
+        setErrorHotels(e?.message || "Failed to load Amadeus hotels (showing mock options)");
       } finally {
         setLoadingHotels(false);
       }

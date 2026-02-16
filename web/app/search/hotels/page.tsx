@@ -44,6 +44,7 @@ function HotelsSearchContent() {
   const router = useRouter();
   const params = useSearchParams();
   const BOOKING_DRAFT_KEY = "hotel_booking_draft_v1";
+  const USE_AMADEUS_ONLY = true;
 
 
   const destination = params.get("destination") || "";
@@ -432,8 +433,15 @@ function HotelsSearchContent() {
       return;
     }
 
-    // Load Duffel Stays
+    // Load Duffel Stays (disabled in Amadeus-only mode)
     const loadDuffelStays = async () => {
+      if (USE_AMADEUS_ONLY) {
+        setOptions([]);
+        setSelectedId("");
+        setError(null);
+        return;
+      }
+
       setLoading(true);
       setError(null);
       try {
@@ -562,6 +570,7 @@ function HotelsSearchContent() {
         {bookingStep === 'search' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Duffel Stays Section */}
+            {!USE_AMADEUS_ONLY && (
             <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-slate-800">🏨 Duffel Stays</h2>
@@ -617,6 +626,7 @@ function HotelsSearchContent() {
                 )}
               </div>
             </section>
+            )}
 
             {/* Amadeus Section */}
             <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
