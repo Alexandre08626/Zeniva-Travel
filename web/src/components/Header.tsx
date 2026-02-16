@@ -89,12 +89,6 @@ export default function Header({ isLoggedIn, userEmail }: { isLoggedIn?: boolean
     nextIds.add(item.id);
     persistReadIds(Array.from(nextIds));
     setNotifications((prev) => prev.filter((entry) => entry.id !== item.id));
-
-    try {
-      await fetch(`/api/agent/requests?messageId=${encodeURIComponent(item.id)}`, { method: "DELETE" });
-    } catch {
-      // ignore deletion errors
-    }
   }, [loadReadIds, persistReadIds]);
 
   useEffect(() => {

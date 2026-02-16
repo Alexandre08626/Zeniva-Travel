@@ -231,15 +231,6 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
       nextIds.add(item.id);
       persistReadIds(Array.from(nextIds));
       setNotifications((prev) => prev.filter((entry) => entry.id !== item.id));
-
-      if (item.id.startsWith("request-")) {
-        const messageId = item.id.replace(/^request-/, "");
-        try {
-          await fetch(`/api/agent/requests?messageId=${encodeURIComponent(messageId)}`, { method: "DELETE" });
-        } catch {
-          // ignore deletion errors
-        }
-      }
     },
     [loadReadIds, persistReadIds]
   );
