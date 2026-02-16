@@ -32,7 +32,7 @@ function CallLayout({ sidebar, chat, snapshot, videoCall }) {
         : { backgroundColor: "#f9fbff" }}
     >
       {isMobile && <div className="absolute -top-12 right-0 h-48 w-48 rounded-full blur-3xl" style={{ backgroundColor: "rgba(43,107,255,0.22)" }} />}
-      <div className="mx-auto max-w-7xl px-4 py-4 sm:py-6">
+      <div className="w-full px-4 py-4 sm:py-6">
         <header className={`mb-4 flex flex-col gap-3 sm:mb-5 sm:flex-row sm:items-center sm:justify-between ${isMobile ? "rounded-2xl border border-slate-200 bg-white/92 px-4 py-3 shadow-sm backdrop-blur" : ""}`}>
           <div className="flex items-center gap-3">
             <a href="/" className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>
@@ -68,13 +68,15 @@ function CallLayout({ sidebar, chat, snapshot, videoCall }) {
           </div>
         </header>
 
-        <div className="grid grid-cols-12 gap-4">
-          <section className="col-span-12 lg:col-span-6 order-1 space-y-4">
+        <div className="grid grid-cols-12 gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:h-[calc(100vh-10.5rem)] lg:overflow-hidden">
+          <section className="col-span-12 order-1 space-y-4 min-h-0 lg:overflow-y-auto">
             {videoCall}
             {chat}
           </section>
-          <section className="col-span-12 lg:col-span-3 order-2 lg:order-none">{sidebar}</section>
-          <section className="col-span-12 lg:col-span-3 order-3 lg:order-none">{snapshot}</section>
+          <aside className="col-span-12 order-2 space-y-4 min-h-0 lg:overflow-y-auto">
+            <section>{sidebar}</section>
+            <section>{snapshot}</section>
+          </aside>
         </div>
       </div>
     </main>
