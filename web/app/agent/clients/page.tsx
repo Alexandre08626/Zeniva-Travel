@@ -18,7 +18,8 @@ export default function ClientsPage() {
   const [phone, setPhone] = useState("");
   const [division, setDivision] = useState<Division>("TRAVEL");
   const [agentEmail, setAgentEmail] = useState("");
-  const [clientsState, setClientsState] = useState<Client[]>(IS_PROD ? [] : listClients());
+  const [clientsState, setClientsState] = useState<ClientProfile[]>(IS_PROD ? [] : (listClients() as ClientProfile[]));
+  const [selectedClient, setSelectedClient] = useState<ClientProfile | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -239,7 +240,16 @@ export default function ClientsPage() {
               <tbody>
                 {clients.map((c) => (
                   <tr key={c.id} className="border-t border-slate-100">
-                    <td className="py-2 pr-3" style={{ color: TITLE_TEXT }}>{c.name}</td>
+                    <td className="py-2 pr-3" style={{ color: TITLE_TEXT }}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedClient(c)}
+                        className="text-left font-semibold hover:underline"
+                        style={{ color: TITLE_TEXT }}
+                      >
+                        {c.name}
+                      </button>
+                    </td>
                     <td className="py-2 pr-3 text-xs" style={{ color: MUTED_TEXT }}>{c.email || "-"}</td>
                     <td className="py-2 pr-3 text-xs" style={{ color: MUTED_TEXT }}>{c.phone || "-"}</td>
                     <td className="py-2 pr-3 text-xs font-semibold"><span className="rounded-full bg-slate-100 px-2 py-1">{c.primaryDivision || "TRAVEL"}</span></td>
@@ -267,8 +277,75 @@ export default function ClientsPage() {
             </table>
           </div>
         </section>
+
+        {selectedClient && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+            <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+              <div className="mb-4 flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Client profile</p>
+                  <h2 className="text-2xl font-black" style={{ color: TITLE_TEXT }}>{selectedClient.name}</h2>
+                  <p className="text-xs" style={{ color: MUTED_TEXT }}>ID: {selectedClient.id}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedClient(null)}
+                  className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <ProfileField label="Name" value={selectedClient.name} />
+                <ProfileField label="Email" value={selectedClient.email} />
+                <ProfileField label="Phone" value={selectedClient.phone} />
+                <ProfileField label="Primary division" value={selectedClient.primaryDivision || "TRAVEL"} />
+                <ProfileField label="Owner" value={selectedClient.ownerEmail} />
+                <ProfileField label="Origin" value={originLabel(selectedClient.origin)} />
+                <ProfileField label="Assigned agents" value={selectedClient.assignedAgents?.join(", ") || "-"} />
+                <ProfileField
+                  label="Commission rule"
+                  value={selectedClient.assignedAgents && selectedClient.assignedAgents.length > 0 ? "Agent commission" : "100% Zeniva Travel"}
+                />
+                <ProfileField label="Budget" value={selectedClient.budget} />
+                <ProfileField label="Created at" value={selectedClient.createdAt ? new Date(selectedClient.createdAt).toLocaleString() : undefined} />
+              </div>
+
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Preferences</p>
+                  <p className="mt-2 text-sm" style={{ color: TITLE_TEXT }}>{selectedClient.preferences || "-"}</p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Notes</p>
+                  <p className="mt-2 text-sm" style={{ color: TITLE_TEXT }}>{selectedClient.notes || "-"}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </main>
+  );
+}
+
+type ClientProfile = Client & {
+  createdAt?: string;
+};
+
+function originLabel(origin?: Client["origin"]) {
+  if (origin === "agent") return "Agent-added";
+  if (origin === "web_signup") return "Web signup";
+  return "Direct";
+}
+
+function ProfileField({ label, value }: { label: string; value?: string }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{label}</p>
+      <p className="mt-2 text-sm" style={{ color: TITLE_TEXT }}>{value || "-"}</p>
+    </div>
   );
 }
 
@@ -280,7 +357,7 @@ function toDivision(value?: string): Division | undefined {
   return DIVISIONS.includes(normalized as Division) ? (normalized as Division) : undefined;
 }
 
-function toClient(record: any): Client | null {
+function toClient(record: any): ClientProfile | null {
   if (!record?.id || !record?.name || !record?.ownerEmail) return null;
   return {
     id: String(record.id),
@@ -291,12 +368,16 @@ function toClient(record: any): Client | null {
     origin: record.origin === "agent" ? "agent" : record.origin === "web_signup" ? "web_signup" : "house",
     assignedAgents: Array.isArray(record.assignedAgents) ? record.assignedAgents.map((agent: string) => String(agent)) : [],
     primaryDivision: toDivision(record.primaryDivision),
+    budget: record.budget ? String(record.budget) : undefined,
+    preferences: record.preferences ? String(record.preferences) : undefined,
+    notes: record.notes ? String(record.notes) : undefined,
+    createdAt: record.createdAt ? String(record.createdAt) : undefined,
   };
 }
 
-function mergeClients(local: Client[], remote: Client[]) {
-  const byKey = new Map<string, Client>();
-  const makeKey = (c: Client) => (c.email ? c.email.toLowerCase() : c.id);
+function mergeClients(local: ClientProfile[], remote: ClientProfile[]) {
+  const byKey = new Map<string, ClientProfile>();
+  const makeKey = (c: ClientProfile) => (c.email ? c.email.toLowerCase() : c.id);
 
   local.forEach((client) => {
     byKey.set(makeKey(client), client);
