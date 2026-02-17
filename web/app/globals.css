@@ -251,59 +251,6 @@ main {
   background-color: #ffffff !important;
 }
 
-/* Specific fixes for common Windows laptop resolutions with scaling */
-/* 1366x768 at 100% - Very common Windows laptop resolution */
-@media (min-width: 1300px) and (max-width: 1400px) {
-  section h2 {
-    font-size: 1.875rem;
-  }
-}
-
-/* 1536x864 - Windows 125% scaling from 1920x1080 */
-@media (min-width: 1500px) and (max-width: 1560px) {
-  main {
-    padding-left: 40px;
-    padding-right: 40px;
-  }
-}
-
-
-/* 1280x720/800 - Windows 150% scaling from 1920x1080 */
-@media (min-width: 1200px) and (max-width: 1300px) {
-  main {
-    padding-left: 24px;
-    padding-right: 24px;
-  }
-
-  section h2 {
-    font-size: 1.75rem;
-  }
-
-  .text-4xl {
-    font-size: 1.875rem !important;
-  }
-}
-
-/* 1024-1100px - Smaller laptops or heavily scaled */
-@media (min-width: 1024px) and (max-width: 1100px) {
-  main {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-
-  section h2 {
-    font-size: 1.5rem;
-  }
-
-  .text-4xl {
-    font-size: 1.5rem !important;
-  }
-
-  .text-3xl {
-    font-size: 1.25rem !important;
-  }
-}
-
 @media (max-width: 768px) {
   :root {
     --foreground: #111111;
