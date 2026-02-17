@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { useAuthStore } from "../../../src/lib/authStore";
 import { normalizeRbacRole } from "../../../src/lib/rbac";
+import AgentListingCreateForm from "./_components/AgentListingCreateForm";
 
 type ListingRecord = {
   id: string;
@@ -31,10 +33,14 @@ function workflowLabel(value?: string) {
 
 export default function AgentListingsHubPage() {
   const user = useAuthStore((state) => state.user);
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [items, setItems] = useState<ListingRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "yacht" | "hotel" | "home">("all");
+  const view = (searchParams.get("view") || "list").toLowerCase();
+  const showCreate = view === "create";
 
   const roles = user?.roles && user.roles.length ? user.roles : user?.role ? [user.role] : [];
   const effectiveRole = normalizeRbacRole(user?.effectiveRole) || normalizeRbacRole(roles[0]);
@@ -94,58 +100,77 @@ export default function AgentListingsHubPage() {
           <p className="mt-2 text-sm text-slate-600">Clique sur une annonce pour l’éditer comme un éditeur hosting.</p>
         </div>
         <div className="flex gap-2">
-          <Link href="/agent/listings/new" className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white">+ Create listing</Link>
+          <button
+            type="button"
+            onClick={() => router.push(showCreate ? "/agent/listings" : "/agent/listings?view=create")}
+            className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+          >
+            {showCreate ? "Back to listings" : "+ Create listing"}
+          </button>
           <Link href="/agent/inventory" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700">Inventory</Link>
         </div>
       </div>
 
-      <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
-        <div className="grid gap-3 md:grid-cols-3">
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search title, city, source" className="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
-          <select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as any)} className="rounded-xl border border-slate-300 px-3 py-2 text-sm">
-            <option value="all">All types</option>
-            <option value="yacht">Yacht</option>
-            <option value="hotel">Hotel</option>
-            <option value="home">Short-term rental</option>
-          </select>
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">{filtered.length} annonces</div>
-        </div>
-      </section>
+      {showCreate ? (
+        <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Create listing</p>
+          <h2 className="mt-2 text-xl font-black text-slate-900">New listing</h2>
+          <p className="mt-1 text-sm text-slate-600">Create a draft, then continue in the editor.</p>
+          <div className="mt-5">
+            <AgentListingCreateForm mode="embedded" onCreated={() => router.push("/agent/listings")} />
+          </div>
+        </section>
+      ) : (
+        <>
+          <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+            <div className="grid gap-3 md:grid-cols-3">
+              <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search title, city, source" className="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+              <select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as any)} className="rounded-xl border border-slate-300 px-3 py-2 text-sm">
+                <option value="all">All types</option>
+                <option value="yacht">Yacht</option>
+                <option value="hotel">Hotel</option>
+                <option value="home">Short-term rental</option>
+              </select>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">{filtered.length} annonces</div>
+            </div>
+          </section>
 
-      <section className="mt-5 space-y-3">
-        {loading ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600">Loading listings...</div>
-        ) : filtered.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600">No listing found.</div>
-        ) : (
-          filtered.map((item) => {
-            const location = String(item?.data?.location || item?.data?.destination || "");
-            const thumbnail = String(item?.data?.thumbnail || item?.data?.images?.[0] || "");
-            const workflow = workflowLabel(item.workflowStatus);
-            const status = String(item.status || "published");
-            return (
-              <Link key={item.id} href={`/agent/listings/editor/${encodeURIComponent(item.id)}`} className="block rounded-2xl border border-slate-200 bg-white p-4 hover:border-slate-400">
-                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                  <div className="flex items-center gap-3">
-                    {thumbnail ? <img src={thumbnail} alt={item.title} className="h-14 w-16 rounded-lg object-cover" /> : <div className="h-14 w-16 rounded-lg bg-slate-100" />}
-                    <div>
-                      <p className="text-sm font-bold text-slate-900">{item.title}</p>
-                      <p className="text-xs text-slate-500">{location || "—"}</p>
+          <section className="mt-5 space-y-3">
+            {loading ? (
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600">Loading listings...</div>
+            ) : filtered.length === 0 ? (
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600">No listing found.</div>
+            ) : (
+              filtered.map((item) => {
+                const location = String(item?.data?.location || item?.data?.destination || "");
+                const thumbnail = String(item?.data?.thumbnail || item?.data?.images?.[0] || "");
+                const workflow = workflowLabel(item.workflowStatus);
+                const status = String(item.status || "published");
+                return (
+                  <Link key={item.id} href={`/agent/listings/editor/${encodeURIComponent(item.id)}`} className="block rounded-2xl border border-slate-200 bg-white p-4 hover:border-slate-400">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <div className="flex items-center gap-3">
+                        {thumbnail ? <img src={thumbnail} alt={item.title} className="h-14 w-16 rounded-lg object-cover" /> : <div className="h-14 w-16 rounded-lg bg-slate-100" />}
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">{item.title}</p>
+                          <p className="text-xs text-slate-500">{location || "—"}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-xs font-semibold">
+                        <span className="rounded-full border border-slate-200 px-3 py-1">{typeLabel(item.type)}</span>
+                        <span className="rounded-full border border-slate-200 px-3 py-1">{status}</span>
+                        <span className={`rounded-full px-3 py-1 ${item.workflowStatus === "completed" ? "bg-emerald-100 text-emerald-700" : item.workflowStatus === "paused" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>{workflow}</span>
+                        <span className="rounded-full border border-slate-200 px-3 py-1">source: {item.source || "catalog"}</span>
+                        <span className={`rounded-full px-3 py-1 ${item.editable ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700"}`}>{item.editable ? "Editable" : "Read only"}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2 text-xs font-semibold">
-                    <span className="rounded-full border border-slate-200 px-3 py-1">{typeLabel(item.type)}</span>
-                    <span className="rounded-full border border-slate-200 px-3 py-1">{status}</span>
-                    <span className={`rounded-full px-3 py-1 ${item.workflowStatus === "completed" ? "bg-emerald-100 text-emerald-700" : item.workflowStatus === "paused" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>{workflow}</span>
-                    <span className="rounded-full border border-slate-200 px-3 py-1">source: {item.source || "catalog"}</span>
-                    <span className={`rounded-full px-3 py-1 ${item.editable ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700"}`}>{item.editable ? "Editable" : "Read only"}</span>
-                  </div>
-                </div>
-              </Link>
-            );
-          })
-        )}
-      </section>
+                  </Link>
+                );
+              })
+            )}
+          </section>
+        </>
+      )}
     </main>
   );
 }
