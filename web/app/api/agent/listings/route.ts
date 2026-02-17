@@ -115,15 +115,18 @@ function requireAgentSession(request: Request) {
   }
 
   const isAdmin = roles.includes("hq") || roles.includes("admin");
+  const isYachtBroker = roles.includes("yacht_broker");
   const canManageYachts = hasRbacPermission("yacht_listings:manage", { roles: session.roles });
 
-  return { ok: true as const, session, roles, isAdmin, canManageYachts };
+  return { ok: true as const, session, roles, isAdmin, isYachtBroker, canManageYachts };
 }
 
 export async function GET(request: Request) {
   try {
     const gate = requireAgentSession(request);
     if (!gate.ok) return gate.error;
+
+    const { isYachtBroker, isAdmin } = gate;
 
     const url = new URL(request.url);
     const requestedId = (url.searchParams.get("id") || "").trim();
@@ -141,6 +144,9 @@ export async function GET(request: Request) {
 
         if (agentErr) return NextResponse.json({ error: agentErr.message }, { status: 500 });
         if (agentRow) {
+          if (isYachtBroker) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+          }
           return NextResponse.json({
             data: {
               id: agentRow.id,
@@ -190,6 +196,9 @@ export async function GET(request: Request) {
 
       // Static sources by prefix
       if (requestedId.startsWith("airbnb-")) {
+        if (isYachtBroker) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
         const key = requestedId.slice("airbnb-".length);
         const byId = (Array.isArray(airbnbsData) ? airbnbsData : []).find((x: any) => String(x?.id || "") === key);
         const idx = Number.isFinite(Number(key)) ? Number(key) : -1;
@@ -257,6 +266,9 @@ export async function GET(request: Request) {
       }
 
       if (requestedId.startsWith("resort-")) {
+        if (isYachtBroker) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
         const key = requestedId.slice("resort-".length);
         const resort = resortPartners.find((r: any) => String(r?.id || "") === key);
         if (!resort) return NextResponse.json({ error: "Listing not found" }, { status: 404 });
@@ -435,29 +447,33 @@ export async function GET(request: Request) {
         updatedAt: item.updated_at || null,
       }));
 
-      const { data: agentRows } = await client
-        .from("agent_listings")
-        .select("id, type, title, status, data, created_at, updated_at")
-        .order("created_at", { ascending: false });
+      if (!isYachtBroker) {
+        const { data: agentRows } = await client
+          .from("agent_listings")
+          .select("id, type, title, status, data, created_at, updated_at")
+          .order("created_at", { ascending: false });
 
-      supabaseAgentListings = (agentRows || []).map((item: any) => ({
-        id: item.id,
-        type: item.type || "hotel",
-        title: item.title,
-        status: item.status || "draft",
-        workflowStatus: item?.data?.workflowStatus || "in_progress",
-        createdByAgent: Boolean(item?.data?.createdByAgent),
-        thumbnail: item?.data?.thumbnail || (Array.isArray(item?.data?.images) ? item.data.images[0] : "") || "",
-        location: item?.data?.location || item?.data?.destination || "",
-        data: item.data || {},
-        source: "agent",
-        editable: true,
-        createdAt: item.created_at || null,
-        updatedAt: item.updated_at || null,
-      }));
+        supabaseAgentListings = (agentRows || []).map((item: any) => ({
+          id: item.id,
+          type: item.type || "hotel",
+          title: item.title,
+          status: item.status || "draft",
+          workflowStatus: item?.data?.workflowStatus || "in_progress",
+          createdByAgent: Boolean(item?.data?.createdByAgent),
+          thumbnail: item?.data?.thumbnail || (Array.isArray(item?.data?.images) ? item.data.images[0] : "") || "",
+          location: item?.data?.location || item?.data?.destination || "",
+          data: item.data || {},
+          source: "agent",
+          editable: true,
+          createdAt: item.created_at || null,
+          updatedAt: item.updated_at || null,
+        }));
+      }
     }
 
-    const all = [...catalogListings, ...resortListings, ...ycnListings, ...airbnbListings, ...supabaseYachts, ...supabaseAgentListings];
+    const all = isYachtBroker
+      ? [...catalogListings, ...ycnListings, ...supabaseYachts].filter((it: any) => String(it?.type) === "yacht")
+      : [...catalogListings, ...resortListings, ...ycnListings, ...airbnbListings, ...supabaseYachts, ...supabaseAgentListings];
 
     return NextResponse.json({ data: all.map(toSummary) });
   } catch (err: any) {

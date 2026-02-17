@@ -5,7 +5,6 @@ import { useSearchParams } from "next/navigation";
 import { sendMessageToLina } from "../../../src/lib/linaClient";
 import { normalizeAgentId } from "../../../src/lib/agent/agentWorkspace";
 import { useAuthStore, isHQ } from "../../../src/lib/authStore";
-import { getSupabaseClient } from "../../../src/lib/supabase/client";
 
 type MessageRole = "agent" | "hq" | "lina" | "client";
 
@@ -260,35 +259,26 @@ export default function AgentChatClient() {
         hydrateFromRows(rows);
       }
     } catch {
-      // continue with direct Supabase read below
-    }
-
-    try {
-      const client = getSupabaseClient();
-      const { data, error } = await client
-        .from("agent_inbox_messages")
-        .select("id, created_at, channel_ids, message, author, sender_role")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      const rows = Array.isArray(data) ? data : [];
-      hydrateFromRows(rows);
-    } catch {
       // ignore
     }
   };
 
   const deleteMessagesByIds = async (ids: string[]) => {
     if (!ids.length) return;
-    try {
-      const client = getSupabaseClient();
-      const chunkSize = 100;
-      for (let i = 0; i < ids.length; i += chunkSize) {
-        const chunk = ids.slice(i, i + chunkSize);
-        const { error } = await client.from("agent_inbox_messages").delete().in("id", chunk);
-        if (error) throw error;
-      }
-    } catch {
-      await refreshMessages();
+    const chunkSize = 25;
+    for (let i = 0; i < ids.length; i += chunkSize) {
+      const chunk = ids.slice(i, i + chunkSize);
+      await Promise.all(
+        chunk.map(async (messageId) => {
+          const resp = await fetch(`/api/agent/requests?messageId=${encodeURIComponent(messageId)}`, {
+            method: "DELETE",
+          });
+          if (!resp.ok) {
+            const data = await resp.json().catch(() => ({}));
+            throw new Error(data?.error || "Failed to delete message");
+          }
+        })
+      );
     }
   };
 
@@ -306,64 +296,6 @@ export default function AgentChatClient() {
       window.clearInterval(interval);
     };
   }, []);
-
-  useEffect(() => {
-    const client = getSupabaseClient();
-    const channel = client
-      .channel("agent-inbox-messages")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "agent_inbox_messages" },
-        (payload) => {
-          const row = payload.new as any;
-          const message = buildMessageFromRow(row);
-          const channelIds: string[] = Array.isArray(row?.channel_ids) ? row.channel_ids : ["hq"];
-          channelIds.forEach((id) => ensureChannel(id, row));
-          upsertMessage(channelIds, message);
-          const activeId = activeChannelRef.current;
-          setChannels((prev) =>
-            prev.map((ch) =>
-              channelIds.includes(ch.id)
-                ? { ...ch, unread: ch.id === activeId ? 0 : (ch.unread || 0) + 1 }
-                : ch
-            )
-          );
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "agent_inbox_messages" },
-        (payload) => {
-          const row = payload.new as any;
-          if (row?.deleted_at || row?.is_deleted) {
-            removeMessageById(String(row?.id));
-            return;
-          }
-          const message = buildMessageFromRow(row);
-          const channelIds: string[] = Array.isArray(row?.channel_ids) ? row.channel_ids : ["hq"];
-          channelIds.forEach((id) => ensureChannel(id, row));
-          upsertMessage(channelIds, message);
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "DELETE", schema: "public", table: "agent_inbox_messages" },
-        (payload) => {
-          const row = payload.old as any;
-          if (row?.id) removeMessageById(String(row.id));
-        }
-      )
-      .subscribe((status) => {
-        if (status === "SUBSCRIBED") {
-          console.info("Supabase realtime status: SUBSCRIBED");
-        }
-      });
-
-    return () => {
-      client.removeChannel(channel);
-    };
-  }, []);
-
 
   const title = useMemo(() => channels.find((c) => c.id === channelId)?.label || "Chat", [channelId]);
 
@@ -452,24 +384,6 @@ export default function AgentChatClient() {
     sourcePath: string;
     propertyName: string;
   }) => {
-    try {
-      const client = getSupabaseClient();
-      const { error } = await client.from("agent_inbox_messages").insert({
-        id: payload.id,
-        created_at: payload.createdAt,
-        channel_ids: payload.channelIds,
-        message: payload.message,
-        author: payload.author,
-        sender_role: payload.senderRole,
-        source: payload.source,
-        source_path: payload.sourcePath,
-        property_name: payload.propertyName,
-      });
-      if (!error) return;
-    } catch {
-      // fall through to API fallback
-    }
-
     const resp = await fetch("/api/agent/requests", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

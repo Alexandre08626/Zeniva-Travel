@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
 import { getSupabaseAdminClient, getSupabaseAnonClient } from "../../../../src/lib/supabase/server";
+import { getSessionCookieName, verifySession } from "../../../../src/lib/server/auth";
+import { normalizeRbacRoles } from "../../../../src/lib/rbac";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "agent-requests.json");
@@ -26,6 +28,41 @@ type AgentRequest = {
 const hasSupabaseEnv = () =>
   Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY) &&
   Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL);
+
+function getCookieValue(cookieHeader: string, name: string) {
+  return (
+    cookieHeader
+      .split(";")
+      .map((item) => item.trim())
+      .find((item) => item.startsWith(`${name}=`))
+      ?.split("=")[1] || ""
+  );
+}
+
+function requireAgentSession(request: Request) {
+  const cookies = request.headers.get("cookie") || "";
+  const token = getCookieValue(cookies, getSessionCookieName());
+  const session = verifySession(token);
+  if (!session) {
+    return { ok: false as const, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
+  }
+  const roles = normalizeRbacRoles(session.roles || []);
+  if (!roles.length) {
+    return { ok: false as const, error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
+  }
+  const isAdmin = roles.includes("hq") || roles.includes("admin");
+  const isYachtBroker = roles.includes("yacht_broker");
+  return { ok: true as const, session, roles, isAdmin, isYachtBroker };
+}
+
+function toAgentChannelIdFromEmail(email: string) {
+  const local = String(email || "").split("@")[0] || "";
+  const slug = local
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+  return slug ? `agent-${slug}` : "agent";
+}
 
 function getSupabaseApiClient() {
   if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -78,6 +115,20 @@ async function readRequestsFromSupabase(channelId?: string): Promise<AgentReques
   const mapped = (data || []).map(mapDbRow);
   if (!channelId || channelId === "hq") return mapped;
   return mapped.filter((row) => Array.isArray(row.channelIds) && row.channelIds.includes(channelId));
+}
+
+async function readRequestsFromSupabaseByContains(channelId: string): Promise<AgentRequest[]> {
+  const client = getSupabaseApiClient();
+  const { data, error } = await client
+    .from("agent_inbox_messages")
+    .select(
+      "id, created_at, channel_ids, message, yacht_name, desired_date, full_name, phone, email, source_path, property_name, author, sender_role, source"
+    )
+    .contains("channel_ids", [channelId])
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return (data || []).map(mapDbRow);
 }
 
 async function writeRequestToSupabase(request: AgentRequest) {
@@ -147,14 +198,29 @@ async function writeRequests(requests: AgentRequest[]) {
 
 export async function GET(request: Request) {
   try {
+    const gate = requireAgentSession(request);
+    if (!gate.ok) return gate.error;
+
+    const { isAdmin, isYachtBroker, session } = gate;
+
     const url = new URL(request.url);
     const channelId = url.searchParams.get("channelId") || undefined;
+
+    // Yacht brokers must only see their own direct channel (never "hq" or others)
+    const brokerChannelId = isYachtBroker ? toAgentChannelIdFromEmail(session.email) : null;
+    const effectiveChannelId = brokerChannelId || channelId;
+
     if (hasSupabaseEnv()) {
-      const requests = await readRequestsFromSupabase(channelId);
+      if (effectiveChannelId && (!isAdmin || brokerChannelId)) {
+        const requests = await readRequestsFromSupabaseByContains(effectiveChannelId);
+        return NextResponse.json({ data: requests });
+      }
+
+      const requests = await readRequestsFromSupabase(isAdmin ? channelId : effectiveChannelId || undefined);
       return NextResponse.json({ data: requests });
     }
 
-    const requests = await readRequests(channelId);
+    const requests = await readRequests(isAdmin ? channelId : effectiveChannelId || undefined);
     return NextResponse.json({ data: requests });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to read requests" }, { status: 500 });
@@ -185,6 +251,13 @@ export async function POST(request: Request) {
       body?.senderRole === "agent" || body?.senderRole === "hq" || body?.senderRole === "lina" || body?.senderRole === "client"
         ? body.senderRole
         : undefined;
+
+    // Only authenticated agents/HQ/Lina can send non-client messages.
+    if (senderRole && senderRole !== "client") {
+      const gate = requireAgentSession(request);
+      if (!gate.ok) return gate.error;
+    }
+
     const author = body?.author || body?.fullName || body?.email || "Client";
     const source = body?.source || (hasChatPayload ? "traveler-chat" : "form");
 
@@ -222,6 +295,12 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    const gate = requireAgentSession(request);
+    if (!gate.ok) return gate.error;
+    if (!gate.isAdmin) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url);
     const channelId = searchParams.get("channelId");
     const messageId = searchParams.get("messageId");

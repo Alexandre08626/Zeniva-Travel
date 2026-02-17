@@ -139,9 +139,13 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
   const loadNotifications = useCallback(async () => {
     try {
       const readIds = loadReadIds();
+      const brokerChannelId = isYachtBroker && user?.email
+        ? `agent-${String(user.email).split("@")[0].toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`
+        : null;
+
       const [bookingRes, agentRes] = await Promise.all([
         fetch("/api/booking-requests"),
-        fetch("/api/agent/requests"),
+        fetch(brokerChannelId ? `/api/agent/requests?channelId=${encodeURIComponent(brokerChannelId)}` : "/api/agent/requests"),
       ]);
       const bookingPayload = await bookingRes.json();
       const agentPayload = await agentRes.json();
