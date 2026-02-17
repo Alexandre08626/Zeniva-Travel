@@ -61,6 +61,39 @@ function resolveIATA(city) {
   return upper.slice(0, 3); // fallback
 }
 
+function normalizeText(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function residenceMatchesDestination(residence, destination) {
+  const normalizedDestination = normalizeText(destination);
+  if (!normalizedDestination) return false;
+
+  const destinationIata = resolveIATA(destination);
+  const destinationCandidates = Object.keys(iataMap).filter(
+    (city) => iataMap[city] === destinationIata
+  );
+
+  const haystack = normalizeText(
+    [
+      residence?.location,
+      residence?.title,
+      residence?.description,
+    ]
+      .filter(Boolean)
+      .join(" ")
+  );
+
+  if (!haystack) return false;
+  if (haystack.includes(normalizedDestination)) return true;
+
+  return destinationCandidates.some((city) => haystack.includes(normalizeText(city)));
+}
+
 function parsePriceValue(value) {
   if (value === null || value === undefined) return Number.NaN;
   const normalized = String(value).replace(/[^0-9.,]/g, "").replace(/,/g, "");
@@ -365,8 +398,10 @@ export default function ProposalSelectPage() {
 
     const normalizedStyle = (style || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     if (accommodationType === "Residence" || accommodationType === "Airbnb" || normalizedStyle.includes('private') || normalizedStyle.includes('residence')) {
-      // Load all residences from Zeniva inventory (no destination filtering)
-      const filteredResidences = residencesData; // Show all listings
+      // Load residences linked to trip destination only
+      const filteredResidences = residencesData.filter((residence) =>
+        residenceMatchesDestination(residence, destination)
+      );
       const mappedResidences = filteredResidences.map(a => {
         const desc = a.description;
         const bedroomsMatch = desc.match(/Bedrooms\s*\n\s*(\d+)/i);
@@ -390,6 +425,11 @@ export default function ProposalSelectPage() {
       // Ensure accommodationType is set to "Residence" in trip draft
       if (tripDraft?.accommodationType !== "Residence") {
         applyTripPatch(tripId, { accommodationType: "Residence" });
+      }
+      if (mappedResidences.length === 0) {
+        setErrorHotels(`No short-term rentals found for ${destination}.`);
+      } else {
+        setErrorHotels(null);
       }
       setLoadingHotels(false);
       return;
