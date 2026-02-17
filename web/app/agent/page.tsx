@@ -81,6 +81,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
     if (isYachtBroker && !isHQorAdmin) {
       return [
         { label: "Yacht Desk", href: "/agent/yachts" },
+        { label: "Listings", href: "/agent/listings" },
         { label: "Create Listing", href: "/agent/listings/new" },
         { label: "Inventory", href: "/agent/inventory" },
         { label: "Clients", href: "/agent/clients" },
@@ -92,6 +93,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
     }
     return [
       { label: "Dashboard", href: "/agent" },
+      { label: "Listings", href: "/agent/listings" },
       { label: "Create Listing", href: "/agent/listings/new" },
       { label: "Inventory", href: "/agent/inventory" },
       { label: "Clients", href: "/agent/clients" },

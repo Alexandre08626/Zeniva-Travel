@@ -28,7 +28,7 @@ type FormState = {
 
 const initialState: FormState = {
   type: "yacht",
-  status: "published",
+  status: "draft",
   workflowStatus: "in_progress",
   title: "",
   description: "",
@@ -123,11 +123,12 @@ export default function AgentCreateListingPage() {
         throw new Error(result?.error || "Failed to publish listing");
       }
 
-      setSuccess(`Listing published. It is now visible on ${publishTarget} and in /agent/partners.`);
+      const createdId = result?.data?.id ? String(result.data.id) : "";
+      setSuccess("Listing created. Opening editor...");
 
       setTimeout(() => {
-        router.push(publishTarget);
-      }, 1200);
+        router.push(createdId ? `/agent/listings/editor/${encodeURIComponent(createdId)}` : "/agent/listings");
+      }, 600);
     } catch (submitError: any) {
       setError(submitError?.message || "Failed to publish listing.");
     } finally {

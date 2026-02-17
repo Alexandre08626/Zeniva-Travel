@@ -4,6 +4,8 @@ import { listings } from "../../../../src/lib/devPartnerStore";
 import { hasRbacPermission, normalizeRbacRoles } from "../../../../src/lib/rbac";
 import { getSessionCookieName, verifySession } from "../../../../src/lib/server/auth";
 import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
+import { resortPartners } from "../../../../src/data/partners/resorts";
+import ycnData from "../../../../src/data/ycn_packages.json";
 
 type ListingType = "yacht" | "hotel" | "home";
 type ListingStatus = "published" | "draft" | "archived";
@@ -67,17 +69,134 @@ async function getAccountIdByEmail(email: string) {
   return data?.id || null;
 }
 
+function requireAgentSession(request: Request) {
+  const cookies = request.headers.get("cookie") || "";
+  const token = getCookieValue(cookies, getSessionCookieName());
+  const session = verifySession(token);
+  if (!session) {
+    return { ok: false as const, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
+  }
+
+  const roles = normalizeRbacRoles(session.roles || []);
+  if (!roles.length) {
+    return { ok: false as const, error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
+  }
+
+  const isAdmin = roles.includes("hq") || roles.includes("admin");
+  const canManageYachts = hasRbacPermission("yacht_listings:manage", { roles: session.roles });
+
+  return { ok: true as const, session, roles, isAdmin, canManageYachts };
+}
+
+export async function GET(request: Request) {
+  try {
+    const gate = requireAgentSession(request);
+    if (!gate.ok) return gate.error;
+
+    const catalogListings = listings.map((item: any) => ({
+      id: item.id,
+      type: item.type,
+      title: item.title,
+      status: item.status || "published",
+      workflowStatus: item.workflowStatus || "in_progress",
+      data: {
+        title: item.title,
+        location: item.location || "",
+        destination: item.location || "",
+        description: item.description || "",
+        price: item.price,
+        currency: item.currency,
+        images: Array.isArray(item.images) ? item.images : item.thumbnail ? [item.thumbnail] : [],
+        thumbnail: item.thumbnail || (Array.isArray(item.images) ? item.images[0] : "") || "",
+        capacity: item.capacity,
+        bedrooms: item.bedrooms,
+        bathrooms: item.bathrooms,
+        partnerId: item.partnerId,
+        createdByAgent: Boolean(item.createdByAgent),
+      },
+      source: "catalog",
+      editable: true,
+      createdAt: item.createdAt || null,
+      updatedAt: item.updatedAt || null,
+    }));
+
+    const resortListings = resortPartners.map((resort) => ({
+      id: `resort-${resort.id}`,
+      type: "hotel",
+      title: resort.name,
+      status: resort.status || "published",
+      workflowStatus: "in_progress",
+      data: {
+        title: resort.name,
+        location: resort.destination,
+        destination: resort.destination,
+        description: resort.description || resort.positioning,
+        images: resort.media?.flatMap((group) => group.images) || [],
+        thumbnail: resort.media?.[0]?.images?.[0] || "",
+      },
+      source: "resort",
+      editable: false,
+      createdAt: null,
+      updatedAt: null,
+    }));
+
+    const ycnListings = (Array.isArray(ycnData) ? ycnData : []).map((item: any, index: number) => ({
+      id: `ycn-${item?.id || index}`,
+      type: "yacht",
+      title: item?.title || "Yacht Charter",
+      status: "published",
+      workflowStatus: "in_progress",
+      data: {
+        title: item?.title || "Yacht Charter",
+        location: item?.destination || "",
+        destination: item?.destination || "",
+        description: "Curated YCN listing",
+        prices: item?.prices || [],
+        images: item?.images || [],
+        thumbnail: item?.thumbnail || (item?.images && item.images[0]) || "",
+      },
+      source: "ycn",
+      editable: false,
+      createdAt: null,
+      updatedAt: null,
+    }));
+
+    let supabaseYachts: any[] = [];
+    if (hasSupabaseEnv()) {
+      const { client } = getSupabaseAdminClient();
+      const { data } = await client
+        .from("yacht_listings")
+        .select("id, type, title, status, data, created_at, updated_at")
+        .order("created_at", { ascending: false });
+
+      supabaseYachts = (data || []).map((item: any) => ({
+        id: item.id,
+        type: item.type || "yacht",
+        title: item.title,
+        status: item.status || "published",
+        workflowStatus: item?.data?.workflowStatus || "in_progress",
+        data: item.data || {},
+        source: "partner",
+        editable: true,
+        createdAt: item.created_at || null,
+        updatedAt: item.updated_at || null,
+      }));
+    }
+
+    return NextResponse.json({
+      data: [...catalogListings, ...resortListings, ...ycnListings, ...supabaseYachts],
+    });
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message || "Failed to load listings" }, { status: 500 });
+  }
+}
+
 export async function POST(request: Request) {
   try {
-    const cookies = request.headers.get("cookie") || "";
-    const token = getCookieValue(cookies, getSessionCookieName());
-    const session = verifySession(token);
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const gate = requireAgentSession(request);
+    if (!gate.ok) return gate.error;
 
-    const roles = normalizeRbacRoles(session.roles || []);
-    const isAdmin = roles.includes("hq") || roles.includes("admin");
-    const canManageYachts = hasRbacPermission("yacht_listings:manage", { roles: session.roles });
-
+    const { session, isAdmin, canManageYachts } = gate;
     if (!canManageYachts) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -194,6 +313,119 @@ export async function POST(request: Request) {
     return NextResponse.json({ data: createdListing }, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to create listing" }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const gate = requireAgentSession(request);
+    if (!gate.ok) return gate.error;
+
+    const { isAdmin, canManageYachts } = gate;
+    if (!canManageYachts) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const payload = await request.json().catch(() => null);
+    if (!payload) return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+
+    const id = String(payload.id || "").trim();
+    if (!id) return NextResponse.json({ error: "Listing id required" }, { status: 400 });
+
+    const title = String(payload.title || "").trim();
+    const location = String(payload.location || "").trim();
+    const description = String(payload.description || "").trim();
+    const status = normalizeStatus(payload.status);
+    const workflowStatus = normalizeWorkflowStatus(payload.workflowStatus);
+    const currency = String(payload.currency || "USD").toUpperCase();
+    const images = normalizeImages(payload.images || payload.photos);
+    const thumbnail = String(payload.thumbnail || images[0] || "").trim();
+    const priceValue = payload.price;
+    const price = typeof priceValue === "number" ? priceValue : Number(priceValue || 0) || undefined;
+
+    const localIndex = listings.findIndex((item: any) => String(item.id) === id);
+    if (localIndex >= 0) {
+      const existing = listings[localIndex];
+      const localType = normalizeType(payload.type || existing.type);
+      if (localType !== "yacht" && !isAdmin) {
+        return NextResponse.json({ error: "Only admin can update hotel or short-term rental listings" }, { status: 403 });
+      }
+
+      const updated = {
+        ...existing,
+        title: title || existing.title,
+        type: localType || existing.type,
+        status,
+        workflowStatus,
+        location: location || existing.location || "",
+        description: description || existing.description || "",
+        price: price ?? existing.price,
+        currency,
+        images: images.length ? images : existing.images || [],
+        thumbnail: thumbnail || existing.thumbnail || (images.length ? images[0] : ""),
+        capacity: Number(payload.capacity || existing.capacity || 0) || undefined,
+        bedrooms: Number(payload.bedrooms || existing.bedrooms || 0) || undefined,
+        bathrooms: Number(payload.bathrooms || existing.bathrooms || 0) || undefined,
+        partnerId: String(payload.partnerId || existing.partnerId || "") || undefined,
+        updatedAt: new Date().toISOString(),
+      };
+
+      listings[localIndex] = updated;
+      return NextResponse.json({ data: updated });
+    }
+
+    if (!hasSupabaseEnv()) {
+      return NextResponse.json({ error: "Listing not found" }, { status: 404 });
+    }
+
+    const { client } = getSupabaseAdminClient();
+    const { data: existingYacht, error: loadError } = await client
+      .from("yacht_listings")
+      .select("id, type, title, status, data")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (loadError) return NextResponse.json({ error: loadError.message }, { status: 500 });
+    if (!existingYacht) return NextResponse.json({ error: "Listing not found" }, { status: 404 });
+
+    const currentData = typeof existingYacht.data === "object" && existingYacht.data ? existingYacht.data : {};
+    const yachtData = {
+      ...currentData,
+      title: title || existingYacht.title,
+      location: location || (currentData as any).location || "",
+      destination: location || (currentData as any).destination || (currentData as any).location || "",
+      description: description || (currentData as any).description || "",
+      currency,
+      price: price ?? (currentData as any).price,
+      prices: price ? [`${currency} ${price}`] : (currentData as any).prices || [],
+      images: images.length ? images : (currentData as any).images || [],
+      thumbnail: thumbnail || (currentData as any).thumbnail || (images.length ? images[0] : ""),
+      workflowStatus,
+      partnerId: String(payload.partnerId || (currentData as any).partnerId || "") || undefined,
+      capacity: Number(payload.capacity || (currentData as any).capacity || 0) || undefined,
+      bedrooms: Number(payload.bedrooms || (currentData as any).bedrooms || 0) || undefined,
+      bathrooms: Number(payload.bathrooms || (currentData as any).bathrooms || 0) || undefined,
+    };
+
+    const now = new Date().toISOString();
+    const { data: updatedYacht, error: updateError } = await client
+      .from("yacht_listings")
+      .update({
+        title: title || existingYacht.title,
+        status,
+        data: yachtData,
+        updated_at: now,
+        published_at: status === "published" ? now : null,
+      })
+      .eq("id", id)
+      .select("id, type, title, status, data, created_at, updated_at")
+      .single();
+
+    if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
+
+    return NextResponse.json({ data: updatedYacht });
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message || "Failed to update listing" }, { status: 500 });
   }
 }
 

@@ -262,6 +262,11 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
               </Link>
             )}
             {canCreateListings && (
+              <Link href="/agent/listings" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
+                <span>Listings</span>
+              </Link>
+            )}
+            {canCreateListings && (
               <Link href="/agent/listings/new" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
                 <span>+ Create listing</span>
               </Link>
