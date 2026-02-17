@@ -180,10 +180,8 @@ export default function TravelerAgentChatClient() {
         const next = mapRowsToMessages(linaRows);
         upsertThreadMessages(next);
       }
-
-      if (directResp.ok || linaResp.ok) return;
     } catch {
-      // fallback to direct Supabase read below
+      // Continue with direct Supabase read below
     }
 
     try {
@@ -229,19 +227,8 @@ export default function TravelerAgentChatClient() {
     message: string;
   }) => {
     try {
-      const resp = await fetch("/api/agent/requests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (resp.ok) return;
-    } catch {
-      // fall through to Supabase fallback
-    }
-
-    try {
       const client = getSupabaseClient();
-      await client.from("agent_inbox_messages").insert({
+      const { error } = await client.from("agent_inbox_messages").insert({
         id: payload.id,
         created_at: payload.createdAt,
         channel_ids: payload.channelIds,
@@ -252,6 +239,18 @@ export default function TravelerAgentChatClient() {
         sender_role: payload.senderRole,
         source: payload.source,
       });
+      if (!error) return;
+    } catch {
+      // fall through to API fallback
+    }
+
+    try {
+      const resp = await fetch("/api/agent/requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (resp.ok) return;
     } catch {
       // ignore
     }

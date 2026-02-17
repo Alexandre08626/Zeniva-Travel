@@ -258,10 +258,9 @@ export default function AgentChatClient() {
       if (resp.ok) {
         const rows = Array.isArray(payload?.data) ? payload.data : [];
         hydrateFromRows(rows);
-        return;
       }
     } catch {
-      // fallback to direct Supabase read
+      // continue with direct Supabase read below
     }
 
     try {
@@ -453,6 +452,24 @@ export default function AgentChatClient() {
     sourcePath: string;
     propertyName: string;
   }) => {
+    try {
+      const client = getSupabaseClient();
+      const { error } = await client.from("agent_inbox_messages").insert({
+        id: payload.id,
+        created_at: payload.createdAt,
+        channel_ids: payload.channelIds,
+        message: payload.message,
+        author: payload.author,
+        sender_role: payload.senderRole,
+        source: payload.source,
+        source_path: payload.sourcePath,
+        property_name: payload.propertyName,
+      });
+      if (!error) return;
+    } catch {
+      // fall through to API fallback
+    }
+
     const resp = await fetch("/api/agent/requests", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

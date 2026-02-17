@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { getSupabaseClient } from "../../lib/supabase/client";
 
 const STORAGE_KEY = "yachtRequests";
 const JASON_CHANNEL_ID = "agent-jason";
@@ -93,14 +94,42 @@ export default function YachtRequestForm({ yachtName, sourcePath }: Props) {
     };
 
     try {
-      const resp = await fetch("/api/agent/requests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(request),
-      });
+      let delivered = false;
 
-      if (!resp.ok) {
-        throw new Error("Failed to send request");
+      try {
+        const client = getSupabaseClient();
+        const { error } = await client.from("agent_inbox_messages").insert({
+          id: request.id,
+          created_at: request.createdAt,
+          channel_ids: request.channelIds,
+          message: request.message,
+          yacht_name: request.yachtName,
+          desired_date: request.desiredDate,
+          full_name: request.fullName,
+          phone: request.phone,
+          email: request.email,
+          source_path: request.sourcePath,
+          author: request.fullName,
+          sender_role: "client",
+          source: "yacht-form",
+        });
+        if (!error) {
+          delivered = true;
+        }
+      } catch {
+        // fallback to API
+      }
+
+      if (!delivered) {
+        const resp = await fetch("/api/agent/requests", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(request),
+        });
+
+        if (!resp.ok) {
+          throw new Error("Failed to send request");
+        }
       }
     } catch (err) {
       persistRequest(request);

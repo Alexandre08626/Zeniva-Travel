@@ -50,6 +50,7 @@ function hasPrefixSegment(pathname: string, prefix: string) {
 
 export default function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const isPublicAgentRequestsApi = hasPrefixSegment(pathname, "/api/agent/requests");
 
   if (!SAFE_METHODS.has(req.method)) {
     const origin = req.headers.get("origin");
@@ -89,7 +90,7 @@ export default function proxy(req: NextRequest) {
   const isPartner = roles.includes("partner_owner") || roles.includes("partner_staff") || roles.includes("hq");
 
   // Protect agent routes and agent API
-  if (hasPrefixSegment(pathname, "/agent") || hasPrefixSegment(pathname, "/api/agent")) {
+  if ((hasPrefixSegment(pathname, "/agent") || hasPrefixSegment(pathname, "/api/agent")) && !isPublicAgentRequestsApi) {
     if (!isAgent) {
       if (hasPrefixSegment(pathname, "/api/agent")) {
         return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });

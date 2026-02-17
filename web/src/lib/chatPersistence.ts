@@ -49,19 +49,8 @@ export async function saveChatMessage(payload: ChatSavePayload) {
     propertyName: payload.propertyName,
   };
   try {
-    await fetch("/api/agent/requests", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(record),
-    });
-    return;
-  } catch {
-    // ignore
-  }
-
-  try {
     const client = getSupabaseClient();
-    await client.from("agent_inbox_messages").insert({
+    const { error } = await client.from("agent_inbox_messages").insert({
       id: record.id,
       created_at: record.createdAt,
       channel_ids: record.channelIds,
@@ -72,6 +61,17 @@ export async function saveChatMessage(payload: ChatSavePayload) {
       source_path: record.sourcePath,
       property_name: record.propertyName || null,
     });
+    if (!error) return;
+  } catch {
+    // fall through to API fallback
+  }
+
+  try {
+    await fetch("/api/agent/requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(record),
+    });
   } catch {
     // ignore
   }
@@ -79,11 +79,16 @@ export async function saveChatMessage(payload: ChatSavePayload) {
 
 export async function fetchChatMessages(channelId: string) {
   if (!channelId) return [] as any[];
+  const mapById = new Map<string, any>();
+
   try {
     const resp = await fetch(`/api/agent/requests?channelId=${encodeURIComponent(channelId)}`);
     const payload = await resp.json();
     const rows = Array.isArray(payload?.data) ? payload.data : [];
-    if (rows.length > 0) return rows;
+    rows.forEach((row) => {
+      const key = String(row?.id || "");
+      if (key) mapById.set(key, row);
+    });
   } catch {
     // ignore
   }
@@ -96,8 +101,20 @@ export async function fetchChatMessages(channelId: string) {
       .contains("channel_ids", [channelId])
       .order("created_at", { ascending: false });
     if (error) throw error;
-    return Array.isArray(data) ? data : [];
+    const rows = Array.isArray(data) ? data : [];
+    rows.forEach((row) => {
+      const key = String(row?.id || "");
+      if (key) mapById.set(key, row);
+    });
   } catch {
-    return [] as any[];
+    // ignore
   }
+
+  const merged = Array.from(mapById.values());
+  merged.sort((a, b) => {
+    const aTime = new Date(a?.created_at || a?.createdAt || 0).getTime();
+    const bTime = new Date(b?.created_at || b?.createdAt || 0).getTime();
+    return bTime - aTime;
+  });
+  return merged;
 }

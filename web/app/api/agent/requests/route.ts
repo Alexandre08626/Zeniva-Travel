@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
-import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
+import { getSupabaseAdminClient, getSupabaseAnonClient } from "../../../../src/lib/supabase/server";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "agent-requests.json");
@@ -24,11 +24,29 @@ type AgentRequest = {
 };
 
 const hasSupabaseEnv = () =>
-  Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY) &&
+  Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY) &&
   Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL);
 
+function getSupabaseApiClient() {
+  if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return getSupabaseAdminClient().client;
+  }
+  return getSupabaseAnonClient().client;
+}
+
 function mapDbRow(row: any): AgentRequest {
-  const channelIds = Array.isArray(row.channel_ids) && row.channel_ids.length ? row.channel_ids : ["hq"];
+  const channelIds = Array.isArray(row.channel_ids)
+    ? row.channel_ids
+    : typeof row.channel_ids === "string"
+      ? (() => {
+          try {
+            const parsed = JSON.parse(row.channel_ids);
+            return Array.isArray(parsed) ? parsed : [row.channel_ids];
+          } catch {
+            return [row.channel_ids];
+          }
+        })()
+      : ["hq"];
   return {
     id: row.id,
     createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
@@ -48,23 +66,22 @@ function mapDbRow(row: any): AgentRequest {
 }
 
 async function readRequestsFromSupabase(channelId?: string): Promise<AgentRequest[]> {
-  const { client } = getSupabaseAdminClient();
-  let query = client
+  const client = getSupabaseApiClient();
+  const query = client
     .from("agent_inbox_messages")
     .select(
       "id, created_at, channel_ids, message, yacht_name, desired_date, full_name, phone, email, source_path, property_name, author, sender_role, source"
     )
     .order("created_at", { ascending: false });
-  if (channelId && channelId !== "hq") {
-    query = query.contains("channel_ids", [channelId]);
-  }
   const { data, error } = await query;
   if (error) throw new Error(error.message);
-  return (data || []).map(mapDbRow);
+  const mapped = (data || []).map(mapDbRow);
+  if (!channelId || channelId === "hq") return mapped;
+  return mapped.filter((row) => Array.isArray(row.channelIds) && row.channelIds.includes(channelId));
 }
 
 async function writeRequestToSupabase(request: AgentRequest) {
-  const { client } = getSupabaseAdminClient();
+  const client = getSupabaseApiClient();
   const channelIds = Array.isArray(request.channelIds) ? request.channelIds : [];
   const { error } = await client.from("agent_inbox_messages").insert({
     id: request.id,
@@ -86,16 +103,23 @@ async function writeRequestToSupabase(request: AgentRequest) {
 }
 
 async function deleteRequestsByChannelIdSupabase(channelId: string) {
-  const { client } = getSupabaseAdminClient();
-  const { error } = await client
-    .from("agent_inbox_messages")
-    .delete({ count: "exact" })
-    .contains("channel_ids", [channelId]);
-  if (error) throw new Error(error.message);
+  const client = getSupabaseApiClient();
+  const rows = await readRequestsFromSupabase(channelId);
+  if (!rows.length) return;
+  const ids = rows.map((row) => row.id).filter(Boolean);
+  const chunkSize = 100;
+  for (let i = 0; i < ids.length; i += chunkSize) {
+    const chunk = ids.slice(i, i + chunkSize);
+    const { error } = await client
+      .from("agent_inbox_messages")
+      .delete({ count: "exact" })
+      .in("id", chunk);
+    if (error) throw new Error(error.message);
+  }
 }
 
 async function deleteRequestByIdSupabase(messageId: string) {
-  const { client } = getSupabaseAdminClient();
+  const client = getSupabaseApiClient();
   const { error } = await client
     .from("agent_inbox_messages")
     .delete({ count: "exact" })
