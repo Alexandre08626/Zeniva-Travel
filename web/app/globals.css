@@ -115,7 +115,31 @@ html {
 }
 
 main {
+  padding-left: 7.5vw;
+  padding-right: 7.5vw;
   overflow-x: hidden;
+}
+
+main > div[class*="max-w-"],
+main > section > div[class*="max-w-"],
+main > div > div[class*="max-w-"],
+main > section > div > div[class*="max-w-"] {
+  max-width: 1400px !important;
+  width: 85% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Force full-bleed sections back to 85% width */
+section[style*="100vw"],
+div[style*="100vw"] {
+  width: 85% !important;
+  max-width: 1400px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  position: static !important;
+  left: auto !important;
+  right: auto !important;
 }
 
 @media (min-width: 1024px) and (max-width: 1600px) {
@@ -129,8 +153,18 @@ main {
   }
 
   main {
+    padding-left: 32px;
+    padding-right: 32px;
     max-width: 100%;
     overflow-x: hidden;
+  }
+
+  main > div[class*="max-w-"],
+  main > section > div[class*="max-w-"],
+  main > div > div[class*="max-w-"],
+  main > section > div > div[class*="max-w-"] {
+    width: 85% !important;
+    max-width: 1400px !important;
   }
 
   /* Fix full-bleed sections that use 100vw (causes horizontal scroll on Windows) */
@@ -249,6 +283,59 @@ main {
 .lina-light .bg-gradient-to-r {
   background-image: none !important;
   background-color: #ffffff !important;
+}
+
+/* Specific fixes for common Windows laptop resolutions with scaling */
+/* 1366x768 at 100% - Very common Windows laptop resolution */
+@media (min-width: 1300px) and (max-width: 1400px) {
+  section h2 {
+    font-size: 1.875rem;
+  }
+}
+
+/* 1536x864 - Windows 125% scaling from 1920x1080 */
+@media (min-width: 1500px) and (max-width: 1560px) {
+  main {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+}
+
+
+/* 1280x720/800 - Windows 150% scaling from 1920x1080 */
+@media (min-width: 1200px) and (max-width: 1300px) {
+  main {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  section h2 {
+    font-size: 1.75rem;
+  }
+
+  .text-4xl {
+    font-size: 1.875rem !important;
+  }
+}
+
+/* 1024-1100px - Smaller laptops or heavily scaled */
+@media (min-width: 1024px) and (max-width: 1100px) {
+  main {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  section h2 {
+    font-size: 1.5rem;
+  }
+
+  .text-4xl {
+    font-size: 1.5rem !important;
+  }
+
+  .text-3xl {
+    font-size: 1.25rem !important;
+  }
 }
 
 @media (max-width: 768px) {
