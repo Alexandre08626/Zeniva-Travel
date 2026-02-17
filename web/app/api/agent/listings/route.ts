@@ -6,6 +6,7 @@ import { getSessionCookieName, verifySession } from "../../../../src/lib/server/
 import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
 import { resortPartners } from "../../../../src/data/partners/resorts";
 import ycnData from "../../../../src/data/ycn_packages.json";
+import airbnbsData from "../../../../src/data/airbnbs.json";
 
 type ListingType = "yacht" | "hotel" | "home";
 type ListingStatus = "published" | "draft" | "archived";
@@ -162,6 +163,31 @@ export async function GET(request: Request) {
       updatedAt: null,
     }));
 
+    const airbnbListings = (Array.isArray(airbnbsData) ? airbnbsData : []).map((item: any, index: number) => ({
+      id: `airbnb-${item?.id || index}`,
+      type: "home",
+      title: item?.title || "Residence",
+      status: "published",
+      workflowStatus: "in_progress",
+      createdByAgent: false,
+      thumbnail: item?.thumbnail || (item?.images && item.images[0]) || "",
+      location: item?.location || "",
+      data: {
+        title: item?.title || "Residence",
+        location: item?.location || "",
+        destination: item?.location || "",
+        description: item?.description || "",
+        images: item?.images || (item?.thumbnail ? [item.thumbnail] : []),
+        thumbnail: item?.thumbnail || (item?.images && item.images[0]) || "",
+        url: item?.url,
+      },
+      source: "airbnb",
+      editable: false,
+      isReadOnly: true,
+      createdAt: null,
+      updatedAt: null,
+    }));
+
     let supabaseYachts: any[] = [];
     let supabaseAgentListings: any[] = [];
     if (hasSupabaseEnv()) {
@@ -210,7 +236,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({
-      data: [...catalogListings, ...resortListings, ...ycnListings, ...supabaseYachts, ...supabaseAgentListings],
+      data: [...catalogListings, ...resortListings, ...ycnListings, ...airbnbListings, ...supabaseYachts, ...supabaseAgentListings],
     });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to load listings" }, { status: 500 });
