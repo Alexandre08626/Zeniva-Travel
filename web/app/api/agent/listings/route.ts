@@ -6,6 +6,8 @@ import { getSessionCookieName, verifySession } from "../../../../src/lib/server/
 import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
 
 type ListingType = "yacht" | "hotel" | "home";
+type ListingStatus = "published" | "draft" | "archived";
+type WorkflowStatus = "in_progress" | "completed" | "paused";
 
 const hasSupabaseEnv = () =>
   Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL) &&
@@ -39,6 +41,18 @@ function normalizeType(value: unknown): ListingType | null {
   const type = String(value || "").toLowerCase().trim();
   if (type === "yacht" || type === "hotel" || type === "home") return type;
   return null;
+}
+
+function normalizeStatus(value: unknown): ListingStatus {
+  const status = String(value || "published").toLowerCase().trim();
+  if (status === "published" || status === "draft" || status === "archived") return status;
+  return "published";
+}
+
+function normalizeWorkflowStatus(value: unknown): WorkflowStatus {
+  const status = String(value || "in_progress").toLowerCase().trim();
+  if (status === "completed" || status === "paused") return status;
+  return "in_progress";
 }
 
 async function getAccountIdByEmail(email: string) {
@@ -90,8 +104,10 @@ export async function POST(request: Request) {
     const bedrooms = Number(payload.bedrooms || 0) || 0;
     const bathrooms = Number(payload.bathrooms || 0) || 0;
     const partnerId = String(payload.partnerId || "").trim() || undefined;
-    const images = normalizeImages(payload.images);
+    const images = normalizeImages(payload.images || payload.photos);
     const thumbnail = String(payload.thumbnail || images[0] || "").trim();
+    const status = normalizeStatus(payload.status);
+    const workflowStatus = normalizeWorkflowStatus(payload.workflowStatus);
     const now = new Date().toISOString();
 
     if (type === "yacht") {
@@ -119,6 +135,8 @@ export async function POST(request: Request) {
         bedrooms: bedrooms || undefined,
         bathrooms: bathrooms || undefined,
         partnerId,
+        status,
+        workflowStatus,
         createdByAgent: true,
         createdByAgentEmail: session.email,
         createdByAgentAt: now,
@@ -132,10 +150,10 @@ export async function POST(request: Request) {
           broker_email: session.email,
           type: "yacht",
           title,
-          status: "published",
+          status,
           data,
           updated_at: now,
-          published_at: now,
+          published_at: status === "published" ? now : null,
         })
         .select("id, broker_user_id, broker_email, type, title, status, data, created_at, updated_at")
         .single();
@@ -152,7 +170,7 @@ export async function POST(request: Request) {
       partnerId,
       title,
       type,
-      status: "published",
+      status,
       thumbnail,
       images,
       location,
@@ -163,6 +181,7 @@ export async function POST(request: Request) {
       capacity: capacity || undefined,
       bedrooms: bedrooms || undefined,
       bathrooms: bathrooms || undefined,
+      workflowStatus,
       createdAt: now,
       updatedAt: now,
       createdByAgent: true,

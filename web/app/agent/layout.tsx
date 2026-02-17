@@ -129,7 +129,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
       return;
     }
     if (isYachtBroker) {
-      const allowed = ["/agent", "/agent/yachts", "/agent/clients", "/agent/proposals", "/agent/chat", "/agent/settings", "/agent/listings"].some((path) => pathname === path || pathname.startsWith(`${path}/`));
+      const allowed = ["/agent", "/agent/yachts", "/agent/clients", "/agent/proposals", "/agent/chat", "/agent/settings", "/agent/listings", "/agent/inventory"].some((path) => pathname === path || pathname.startsWith(`${path}/`));
       if (!allowed) {
         router.replace("/agent/yachts");
       }
@@ -264,6 +264,11 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
             {canCreateListings && (
               <Link href="/agent/listings/new" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
                 <span>+ Create listing</span>
+              </Link>
+            )}
+            {canCreateListings && (
+              <Link href="/agent/inventory" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
+                <span>Inventory</span>
               </Link>
             )}
             <div className="relative">

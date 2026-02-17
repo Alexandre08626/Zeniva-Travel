@@ -61,6 +61,7 @@ type PartnerListing = {
   rating?: number;
   reviews?: number;
   createdByAgent?: boolean;
+  workflowStatus?: string;
 };
 
 const TYPE_LABELS: Record<ListingType, string> = {
@@ -275,6 +276,7 @@ export default function PartnerAccountsPage() {
           price: (item?.data?.prices && item.data.prices[0]) || item?.data?.price || "Request",
           currency: item?.data?.currency,
           createdByAgent: Boolean(item?.createdByAgent || item?.data?.createdByAgent),
+          workflowStatus: item?.data?.workflowStatus || "in_progress",
         }));
 
         const airbnbListings: PartnerListing[] = (airbnbData || [])
@@ -311,6 +313,7 @@ export default function PartnerAccountsPage() {
               location: payload.location || payload.destination || "",
               description: payload.description || "",
               createdByAgent: Boolean(item?.createdByAgent || payload.createdByAgent),
+              workflowStatus: payload.workflowStatus || "in_progress",
             } as PartnerListing;
           });
 
@@ -330,6 +333,7 @@ export default function PartnerAccountsPage() {
             price: payload.price,
             currency: payload.currency,
             createdByAgent: Boolean(item?.createdByAgent || payload.createdByAgent),
+            workflowStatus: payload.workflowStatus || "in_progress",
           } as PartnerListing;
         });
 
@@ -371,6 +375,7 @@ export default function PartnerAccountsPage() {
         rating: listing.rating,
         reviews: listing.reviews,
         createdByAgent: Boolean((listing as any).createdByAgent),
+        workflowStatus: String((listing as any).workflowStatus || "in_progress"),
       }));
 
     const dedupe = new Map<string, PartnerListing>();
@@ -916,6 +921,7 @@ export default function PartnerAccountsPage() {
                         <p className="text-xs text-slate-500">
                           {TYPE_LABELS[selectedListing.type]} · {selectedListing.status || "published"}
                           {selectedListing.createdByAgent ? " · Created by agent" : ""}
+                          {selectedListing.workflowStatus === "completed" ? " · Terminée" : " · En cours"}
                         </p>
                       </div>
                       <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
@@ -1041,6 +1047,9 @@ export default function PartnerAccountsPage() {
                             {listing.createdByAgent && (
                               <p className="text-[11px] font-semibold text-emerald-700">Created by agent</p>
                             )}
+                            <p className="text-[11px] font-semibold text-slate-600">
+                              {listing.workflowStatus === "completed" ? "Terminée" : "En cours"}
+                            </p>
                           </div>
                         </div>
                       </button>

@@ -11,6 +11,8 @@ type ListingType = "yacht" | "hotel" | "home";
 
 type FormState = {
   type: ListingType;
+  status: "published" | "draft" | "archived";
+  workflowStatus: "in_progress" | "completed" | "paused";
   title: string;
   description: string;
   location: string;
@@ -19,12 +21,15 @@ type FormState = {
   capacity: string;
   bedrooms: string;
   bathrooms: string;
-  images: string;
+  images: string[];
+  coverIndex: number;
   partnerId: string;
 };
 
 const initialState: FormState = {
   type: "yacht",
+  status: "published",
+  workflowStatus: "in_progress",
   title: "",
   description: "",
   location: "",
@@ -33,7 +38,8 @@ const initialState: FormState = {
   capacity: "",
   bedrooms: "",
   bathrooms: "",
-  images: "",
+  images: [],
+  coverIndex: 0,
   partnerId: "",
 };
 
@@ -44,6 +50,7 @@ export default function AgentCreateListingPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [photoInput, setPhotoInput] = useState("");
 
   const roles = user?.roles && user.roles.length ? user.roles : user?.role ? [user.role] : [];
   const effectiveRole = normalizeRbacRole(user?.effectiveRole) || normalizeRbacRole(roles[0]);
@@ -57,6 +64,7 @@ export default function AgentCreateListingPage() {
   }, [isAdmin]);
 
   const publishTarget = form.type === "yacht" ? "/yachts" : form.type === "hotel" ? "/hotels" : "/residences";
+  const coverImage = form.images[form.coverIndex] || form.images[0] || "";
 
   if (!canCreate) {
     return (
@@ -82,6 +90,11 @@ export default function AgentCreateListingPage() {
       return;
     }
 
+    if (!form.images.length) {
+      setError("Add at least one photo URL.");
+      return;
+    }
+
     if (!isAdmin && form.type !== "yacht") {
       setError("Broker mode can only create yacht listings.");
       return;
@@ -91,6 +104,8 @@ export default function AgentCreateListingPage() {
     try {
       const payload = {
         ...form,
+        thumbnail: coverImage,
+        images: form.images,
         price: form.price ? Number(form.price) : undefined,
         capacity: form.capacity ? Number(form.capacity) : undefined,
         bedrooms: form.bedrooms ? Number(form.bedrooms) : undefined,
@@ -120,6 +135,21 @@ export default function AgentCreateListingPage() {
     }
   };
 
+  const addPhoto = () => {
+    const value = photoInput.trim();
+    if (!value) return;
+    setForm((prev) => ({ ...prev, images: [...prev.images, value] }));
+    setPhotoInput("");
+  };
+
+  const removePhoto = (index: number) => {
+    setForm((prev) => {
+      const next = prev.images.filter((_, idx) => idx !== index);
+      const nextCover = Math.max(0, Math.min(prev.coverIndex, next.length - 1));
+      return { ...prev, images: next, coverIndex: nextCover };
+    });
+  };
+
   return (
     <main className="mx-auto max-w-4xl px-6 py-10">
       <div className="mb-6 flex items-center justify-between">
@@ -128,9 +158,14 @@ export default function AgentCreateListingPage() {
           <h1 className="mt-2 text-3xl font-black text-slate-900">Create listing</h1>
           <p className="mt-2 text-sm text-slate-600">Publish inventory directly to public pages and the agent partner console.</p>
         </div>
-        <Link href="/agent" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-slate-300">
-          Back
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/agent/inventory" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-slate-300">
+            Inventory
+          </Link>
+          <Link href="/agent" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-slate-300">
+            Back
+          </Link>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -152,6 +187,25 @@ export default function AgentCreateListingPage() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Publication status</label>
+            <select value={form.status} onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value as any }))} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm">
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Workflow status</label>
+            <select value={form.workflowStatus} onChange={(event) => setForm((prev) => ({ ...prev, workflowStatus: event.target.value as any }))} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm">
+              <option value="in_progress">En cours</option>
+              <option value="completed">Terminée</option>
+              <option value="paused">En pause</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
             <label className="mb-2 block text-sm font-semibold text-slate-700">Title</label>
             <input value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Listing title" />
@@ -164,9 +218,32 @@ export default function AgentCreateListingPage() {
             <label className="mb-2 block text-sm font-semibold text-slate-700">Location</label>
             <input value={form.location} onChange={(event) => setForm((prev) => ({ ...prev, location: event.target.value }))} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="City, country" />
           </div>
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">Image URLs</label>
-            <input value={form.images} onChange={(event) => setForm((prev) => ({ ...prev, images: event.target.value }))} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Comma-separated URLs" />
+          <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Photos manager</label>
+            <div className="flex gap-2">
+              <input value={photoInput} onChange={(event) => setPhotoInput(event.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="https://..." />
+              <button type="button" onClick={addPhoto} className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Add</button>
+            </div>
+            <p className="mt-2 text-xs text-slate-500">Ajoute les URLs photos une à une, choisis la cover, supprime celles en trop.</p>
+            {form.images.length > 0 && (
+              <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {form.images.map((img, index) => (
+                  <div key={`${img}-${index}`} className="rounded-xl border border-slate-200 bg-white p-2">
+                    <img src={img} alt={`Photo ${index + 1}`} className="h-28 w-full rounded-lg object-cover" />
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setForm((prev) => ({ ...prev, coverIndex: index }))}
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${form.coverIndex === index ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-700"}`}
+                      >
+                        {form.coverIndex === index ? "Cover" : "Set cover"}
+                      </button>
+                      <button type="button" onClick={() => removePhoto(index)} className="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700">Remove</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <div>
             <label className="mb-2 block text-sm font-semibold text-slate-700">Price</label>
@@ -195,7 +272,7 @@ export default function AgentCreateListingPage() {
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-          Publish target: <span className="font-semibold text-slate-900">{publishTarget}</span>
+          Publish target: <span className="font-semibold text-slate-900">{publishTarget}</span> · Workflow: <span className="font-semibold text-slate-900">{form.workflowStatus === "completed" ? "Terminée" : form.workflowStatus === "paused" ? "En pause" : "En cours"}</span>
         </div>
 
         {error && <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</div>}
