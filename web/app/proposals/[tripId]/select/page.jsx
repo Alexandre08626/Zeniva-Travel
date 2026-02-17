@@ -220,46 +220,46 @@ export default function ProposalSelectPage() {
     return { depart, ret };
   }, [tripDraft]);
 
-  // Fallback helpers to pull origin/destination from an existing selection route like "YUL → CUN"
-  const parsedRoute = useMemo(() => {
-    const route = selection?.flight?.route || "";
-    if (!route.includes("→")) return { origin: "", destination: "" };
-    const [o, d] = route.split("→").map((s) => s.trim());
-    return { origin: o, destination: d };
-  }, [selection?.flight?.route]);
+  const flightSearchContext = useMemo(() => {
+    const origin =
+      resolveIATA(tripDraft?.departureCity) ||
+      resolveIATA(snapshot?.departure?.split(" - ")[0]) ||
+      "";
+    const destination =
+      resolveIATA(tripDraft?.destination) ||
+      resolveIATA(snapshot?.destination?.split(" - ")[0]) ||
+      "";
+    const date =
+      tripDraft?.checkIn ||
+      parsedDates.depart ||
+      (snapshot?.dates?.split(" → ")[0]) ||
+      selection?.flight?.date ||
+      "";
+
+    return {
+      origin: String(origin || "").toUpperCase(),
+      destination: String(destination || "").toUpperCase(),
+      date: String(date || "").trim(),
+    };
+  }, [tripDraft?.departureCity, tripDraft?.destination, tripDraft?.checkIn, snapshot?.departure, snapshot?.destination, snapshot?.dates, parsedDates.depart, selection?.flight?.date]);
 
   useEffect(() => {
-    let origin = resolveIATA(tripDraft?.departureCity) || 
-                 resolveIATA(snapshot?.departure?.split(' - ')[0]) || 
-                 parsedRoute.origin || "";
-    let destination = resolveIATA(tripDraft?.destination) || 
-                     resolveIATA(snapshot?.destination?.split(' - ')[0]) || 
-                     parsedRoute.destination || "";
-    let date = tripDraft?.checkIn || 
-              parsedDates.depart || 
-              (snapshot?.dates?.split(' → ')[0]) || 
-              selection?.flight?.date || "";
+    const origin = flightSearchContext.origin;
+    const destination = flightSearchContext.destination;
+    const date = flightSearchContext.date;
 
     if (!origin || !destination || !date) {
-      // Try to use default values for testing
-      const defaultOrigin = "CDG"; // Paris Charles de Gaulle
-      const defaultDestination = "JFK"; // New York JFK
-      const defaultDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // 30 days from now
-
-      console.log("Missing flight data:", { origin, destination, date });
-      console.log("Using defaults for testing:", { defaultOrigin, defaultDestination, defaultDate });
-
-      // Use defaults for testing
-      origin = origin || defaultOrigin;
-      destination = destination || defaultDestination;
-      date = date || defaultDate;
+      setFlights([]);
+      setErrorFlights("Missing origin, destination, or departure date in trip data");
+      setLoadingFlights(false);
+      return;
     }
 
     const run = async () => {
       setLoadingFlights(true);
       setErrorFlights(null);
       try {
-        const qs = new URLSearchParams({ origin: origin.toUpperCase(), destination: destination.toUpperCase(), date });
+        const qs = new URLSearchParams({ origin, destination, date });
         const res = await fetch(`/api/partners/duffel?${qs.toString()}`);
         const json = await res.json();
         if (!res.ok || !json?.ok) throw new Error(json?.error || res.statusText);
@@ -276,13 +276,15 @@ export default function ProposalSelectPage() {
           const duration = durationMs > 0 ? `${durationHours}h ${durationMinutes}m` : "";
           const date = departureTime ? departureTime.toLocaleDateString() : "";
           const flightNumber = firstSeg?.marketing_carrier_flight_number || firstSeg?.operating_carrier_flight_number || "";
-          const originName = firstSeg?.origin?.iata_city_name || firstSeg?.origin?.name || origin;
-          const destinationName = lastSeg?.destination?.iata_city_name || lastSeg?.destination?.name || destination;
+          const originCode = String(firstSeg?.origin?.iata_code || origin || "").toUpperCase();
+          const destinationCode = String(lastSeg?.destination?.iata_code || destination || "").toUpperCase();
+          const originName = firstSeg?.origin?.iata_city_name || firstSeg?.origin?.name || originCode;
+          const destinationName = lastSeg?.destination?.iata_city_name || lastSeg?.destination?.name || destinationCode;
           return {
             id: o?.id || `offer-${idx}`,
             airline: firstSeg?.marketing_carrier?.name || firstSeg?.operating_carrier?.name || "Airline",
             carrierCode: firstSeg?.marketing_carrier?.iata_code || firstSeg?.operating_carrier?.iata_code || "",
-            route: `${origin.toUpperCase()} → ${destination.toUpperCase()}`,
+            route: `${originCode} → ${destinationCode}`,
             times: `${firstSeg?.departing_at?.slice(11, 16) || ""} – ${lastSeg?.arriving_at?.slice(11, 16) || ""}`,
             fare: o?.cabin_class || o?.cabin || "",
             price: o?.total_currency && o?.total_amount ? `${o.total_currency} ${o.total_amount}` : "Price on request",
@@ -309,7 +311,17 @@ export default function ProposalSelectPage() {
     };
 
     run();
-  }, [tripDraft?.departureCity, tripDraft?.destination, tripDraft?.checkIn, selection?.flight?.route, selection?.flight?.date]);
+  }, [flightSearchContext.origin, flightSearchContext.destination, flightSearchContext.date]);
+
+  useEffect(() => {
+    if (!flights.length) return;
+    const expectedRoute = `${flightSearchContext.origin} → ${flightSearchContext.destination}`;
+    const selectedRoute = String(selection?.flight?.route || "").trim();
+
+    if (!selection?.flight || selectedRoute !== expectedRoute) {
+      setProposalSelection(tripId, { flight: flights[0] });
+    }
+  }, [flights, selection?.flight, tripId, flightSearchContext.origin, flightSearchContext.destination]);
 
   useEffect(() => {
     const accommodationType = tripDraft?.accommodationType;
