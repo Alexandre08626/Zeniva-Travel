@@ -19,6 +19,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
   const isHQorAdmin = effectiveRole === "hq" || effectiveRole === "admin";
   const isInfluencer = effectiveRole === "influencer";
   const isYachtBroker = effectiveRole === "yacht_broker";
+  const canCreateListings = isHQorAdmin || isYachtBroker;
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<
     { id: string; title: string; subtitle: string; href: string; ts: string; read?: boolean }[]
@@ -128,7 +129,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
       return;
     }
     if (isYachtBroker) {
-      const allowed = ["/agent", "/agent/yachts", "/agent/clients", "/agent/proposals", "/agent/chat", "/agent/settings"].some((path) => pathname === path || pathname.startsWith(`${path}/`));
+      const allowed = ["/agent", "/agent/yachts", "/agent/clients", "/agent/proposals", "/agent/chat", "/agent/settings", "/agent/listings"].some((path) => pathname === path || pathname.startsWith(`${path}/`));
       if (!allowed) {
         router.replace("/agent/yachts");
       }
@@ -258,6 +259,11 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 <span>Agent Chat</span>
+              </Link>
+            )}
+            {canCreateListings && (
+              <Link href="/agent/listings/new" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
+                <span>+ Create listing</span>
               </Link>
             )}
             <div className="relative">

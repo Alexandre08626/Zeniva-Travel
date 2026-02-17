@@ -60,6 +60,7 @@ type PartnerListing = {
   bathrooms?: number;
   rating?: number;
   reviews?: number;
+  createdByAgent?: boolean;
 };
 
 const TYPE_LABELS: Record<ListingType, string> = {
@@ -241,9 +242,13 @@ export default function PartnerAccountsPage() {
       .then((r) => r.json())
       .then((res) => (res && res.data) || [])
       .catch(() => []);
+    const hotelReq = fetch("/api/public/listings?type=hotel")
+      .then((r) => r.json())
+      .then((res) => (res && res.data) || [])
+      .catch(() => []);
 
-    Promise.all([ycnReq, yachtReq, airbnbReq, homeReq])
-      .then(([ycnData, yachtData, airbnbData, homeData]) => {
+    Promise.all([ycnReq, yachtReq, airbnbReq, homeReq, hotelReq])
+      .then(([ycnData, yachtData, airbnbData, homeData, hotelData]) => {
         if (!active) return;
         const ycnListings: PartnerListing[] = (ycnData || []).map((item: any, idx: number) => ({
           id: item?.id || `ycn-${idx}`,
@@ -260,7 +265,7 @@ export default function PartnerAccountsPage() {
 
         const yachtListings: PartnerListing[] = (yachtData || []).map((item: any, idx: number) => ({
           id: item?.id || `yacht-${idx}`,
-          partnerId: item?.partnerId || "partner-yacht-01",
+          partnerId: item?.partnerId || item?.data?.partnerId || "partner-yacht-01",
           title: item?.title || "Yacht Charter",
           type: "yacht",
           status: item?.status || "published",
@@ -269,6 +274,7 @@ export default function PartnerAccountsPage() {
           location: item?.data?.location || item?.data?.destination || "",
           price: (item?.data?.prices && item.data.prices[0]) || item?.data?.price || "Request",
           currency: item?.data?.currency,
+          createdByAgent: Boolean(item?.createdByAgent || item?.data?.createdByAgent),
         }));
 
         const airbnbListings: PartnerListing[] = (airbnbData || [])
@@ -292,23 +298,42 @@ export default function PartnerAccountsPage() {
 
         const homeListings: PartnerListing[] = (homeData || [])
           .map((item: any, idx: number) => {
-            const partnerId = mapPartnerForHome(item?.data?.location || item?.data?.destination, item?.data?.description);
-            if (!partnerId) return null;
+            const payload = item?.data || item || {};
+            const partnerId = item?.partnerId || payload.partnerId || mapPartnerForHome(payload.location || payload.destination, payload.description);
             return {
-              id: item?.id || `home-${idx}`,
+              id: item?.id || payload.id || `home-${idx}`,
               partnerId,
-              title: item?.title || "Residence",
+              title: item?.title || payload.title || "Residence",
               type: "home",
               status: item?.status || "published",
-              thumbnail: item?.data?.thumbnail || (item?.data?.images && item.data.images[0]),
-              images: item?.data?.images || [],
-              location: item?.data?.location || item?.data?.destination || "",
-              description: item?.data?.description || "",
+              thumbnail: payload.thumbnail || (payload.images && payload.images[0]),
+              images: payload.images || [],
+              location: payload.location || payload.destination || "",
+              description: payload.description || "",
+              createdByAgent: Boolean(item?.createdByAgent || payload.createdByAgent),
             } as PartnerListing;
-          })
-          .filter(Boolean) as PartnerListing[];
+          });
 
-        setRemoteListings([...resortListings, ...ycnListings, ...yachtListings, ...airbnbListings, ...homeListings]);
+        const hotelListings: PartnerListing[] = (hotelData || []).map((item: any, idx: number) => {
+          const payload = item?.data || item || {};
+          const partnerId = item?.partnerId || payload.partnerId || mapPartnerForResort(payload.location || payload.destination, payload.contactEmail);
+          return {
+            id: item?.id || payload.id || `hotel-${idx}`,
+            partnerId,
+            title: item?.title || payload.title || "Hotel",
+            type: "hotel",
+            status: item?.status || "published",
+            thumbnail: payload.thumbnail || (payload.images && payload.images[0]),
+            images: payload.images || [],
+            location: payload.location || payload.destination || "",
+            description: payload.description || "",
+            price: payload.price,
+            currency: payload.currency,
+            createdByAgent: Boolean(item?.createdByAgent || payload.createdByAgent),
+          } as PartnerListing;
+        });
+
+        setRemoteListings([...resortListings, ...ycnListings, ...yachtListings, ...airbnbListings, ...homeListings, ...hotelListings]);
       })
       .catch(() => {
         if (!active) return;
@@ -345,6 +370,7 @@ export default function PartnerAccountsPage() {
         bathrooms: listing.bathrooms,
         rating: listing.rating,
         reviews: listing.reviews,
+        createdByAgent: Boolean((listing as any).createdByAgent),
       }));
 
     const dedupe = new Map<string, PartnerListing>();
@@ -887,7 +913,10 @@ export default function PartnerAccountsPage() {
                       <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
                         <p className="text-xs font-semibold text-slate-500">Location</p>
                         <p className="font-semibold" style={{ color: TITLE_TEXT }}>{selectedListing.location || "—"}</p>
-                        <p className="text-xs text-slate-500">{TYPE_LABELS[selectedListing.type]} · {selectedListing.status || "published"}</p>
+                        <p className="text-xs text-slate-500">
+                          {TYPE_LABELS[selectedListing.type]} · {selectedListing.status || "published"}
+                          {selectedListing.createdByAgent ? " · Created by agent" : ""}
+                        </p>
                       </div>
                       <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
                         <p className="text-xs font-semibold text-slate-500">Price</p>
@@ -1009,6 +1038,9 @@ export default function PartnerAccountsPage() {
                             <p className="text-xs text-slate-500">
                               {TYPE_LABELS[listing.type as ListingType]} · {listing.price ? `${listing.currency ? `${listing.currency} ` : ""}${listing.price}` : "Price on request"}
                             </p>
+                            {listing.createdByAgent && (
+                              <p className="text-[11px] font-semibold text-emerald-700">Created by agent</p>
+                            )}
                           </div>
                         </div>
                       </button>
