@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Send, Search } from "lucide-react";
 import { getSupabaseClient } from "../../../src/lib/supabase/client";
 import { useAuthStore } from "../../../src/lib/authStore";
+import { normalizeRbacRole } from "../../../src/lib/rbac";
 
 const ADMIN_CHANNEL_ID = "hq";
 
@@ -31,9 +32,19 @@ export default function TravelerAgentChatClient() {
   const searchParams = useSearchParams();
   const listing = searchParams?.get("listing") || "Help Center";
   const sourcePath = searchParams?.get("source") || "/";
-  const channelId = searchParams?.get("channel") || "agent-alexandre";
+  const rawChannelId = searchParams?.get("channel") || "agent-alexandre";
   const hasExplicitAgentChannel = Boolean(searchParams?.get("channel"));
   const user = useAuthStore((s) => s.user);
+  const roles = useMemo(() => (user?.roles && user.roles.length ? user.roles : user?.role ? [user.role] : []), [user]);
+  const effectiveRole = useMemo(() => normalizeRbacRole(user?.effectiveRole) || normalizeRbacRole(roles[0]), [user?.effectiveRole, roles]);
+  const isYachtBroker = effectiveRole === "yacht_broker";
+  const brokerChannelId = useMemo(() => {
+    if (!isYachtBroker || !user?.email) return null;
+    const local = String(user.email).split("@")[0] || "";
+    const slug = local.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    return slug ? `agent-${slug}` : null;
+  }, [isYachtBroker, user?.email]);
+  const channelId = brokerChannelId || rawChannelId;
   const linaChannelId = "lina-help";
   const [threads, setThreads] = useState<ChatThread[]>([
     {
@@ -184,6 +195,10 @@ export default function TravelerAgentChatClient() {
       // Continue with direct Supabase read below
     }
 
+    // If an authenticated yacht broker is using this page, never fall back to a
+    // broad Supabase read (RLS for this table is intentionally permissive for public chat).
+    if (isYachtBroker) return;
+
     try {
       const client = getSupabaseClient();
       const { data, error } = await client
@@ -198,10 +213,11 @@ export default function TravelerAgentChatClient() {
     } catch {
       // ignore
     }
-  }, [channelId, linaChannelId, upsertThreadMessages]);
+  }, [channelId, linaChannelId, upsertThreadMessages, isYachtBroker]);
 
   const deleteMessagesByIds = useCallback(async (ids: string[]) => {
     if (!ids.length) return;
+    if (isYachtBroker) return;
     try {
       const client = getSupabaseClient();
       const chunkSize = 100;
@@ -226,22 +242,24 @@ export default function TravelerAgentChatClient() {
     source: string;
     message: string;
   }) => {
-    try {
-      const client = getSupabaseClient();
-      const { error } = await client.from("agent_inbox_messages").insert({
-        id: payload.id,
-        created_at: payload.createdAt,
-        channel_ids: payload.channelIds,
-        message: payload.message,
-        source_path: payload.sourcePath,
-        property_name: payload.propertyName,
-        author: payload.author,
-        sender_role: payload.senderRole,
-        source: payload.source,
-      });
-      if (!error) return;
-    } catch {
-      // fall through to API fallback
+    if (!isYachtBroker) {
+      try {
+        const client = getSupabaseClient();
+        const { error } = await client.from("agent_inbox_messages").insert({
+          id: payload.id,
+          created_at: payload.createdAt,
+          channel_ids: payload.channelIds,
+          message: payload.message,
+          source_path: payload.sourcePath,
+          property_name: payload.propertyName,
+          author: payload.author,
+          sender_role: payload.senderRole,
+          source: payload.source,
+        });
+        if (!error) return;
+      } catch {
+        // fall through to API fallback
+      }
     }
 
     try {

@@ -83,11 +83,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
         { label: "Yacht Desk", href: "/agent/yachts" },
         { label: "Listings", href: "/agent/listings" },
         { label: "Create Listing", href: "/agent/listings/new" },
-        { label: "Inventory", href: "/agent/inventory" },
-        { label: "Clients", href: "/agent/clients" },
-        { label: "Yacht Proposals", href: "/agent/proposals" },
-        { label: "Client & Partner Chat", href: "/agent/chat" },
-        { label: "Lina AI Desk", href: "/agent/lina" },
+        { label: "Yacht chat", href: "/chat/agent?channel=agent-jason" },
         { label: "Settings", href: "/agent/settings" },
       ];
     }

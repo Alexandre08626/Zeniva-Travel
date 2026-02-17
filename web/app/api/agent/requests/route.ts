@@ -256,6 +256,12 @@ export async function POST(request: Request) {
     if (senderRole && senderRole !== "client") {
       const gate = requireAgentSession(request);
       if (!gate.ok) return gate.error;
+
+      // Yacht brokers are locked to their own channel (plus HQ)
+      if (gate.isYachtBroker) {
+        const brokerChannel = toAgentChannelIdFromEmail(gate.session.email);
+        body.channelIds = [brokerChannel, "hq"];
+      }
     }
 
     const author = body?.author || body?.fullName || body?.email || "Client";

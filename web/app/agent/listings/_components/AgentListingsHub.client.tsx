@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import AgentListingCreateForm from "./AgentListingCreateForm";
+import { useAuthStore } from "../../../../src/lib/authStore";
+import { normalizeRbacRole } from "../../../../src/lib/rbac";
 
 type ListingSource = "partner" | "catalog" | "resort" | "ycn" | "agent" | "airbnb";
 type ListingType = "yacht" | "hotel" | "home";
@@ -50,7 +52,14 @@ export default function AgentListingsHubClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const view = searchParams.get("view") || "list";
-  const typeFilter = (searchParams.get("type") || "all") as "all" | ListingType;
+  const rawTypeFilter = (searchParams.get("type") || "all") as "all" | ListingType;
+
+  const user = useAuthStore((s) => s.user);
+  const roles = useMemo(() => (user?.roles && user.roles.length ? user.roles : user?.role ? [user.role] : []), [user]);
+  const effectiveRole = useMemo(() => normalizeRbacRole(user?.effectiveRole) || normalizeRbacRole(roles[0]), [user?.effectiveRole, roles]);
+  const isYachtBroker = effectiveRole === "yacht_broker";
+
+  const typeFilter: "all" | ListingType = isYachtBroker ? "yacht" : rawTypeFilter;
 
   const [items, setItems] = useState<AgentListingSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -158,24 +167,28 @@ export default function AgentListingsHubClient() {
             >
               Yacht
             </button>
-            <button
-              type="button"
-              onClick={() => setParam("type", "hotel")}
-              className={`rounded-full px-4 py-2 text-sm font-semibold ring-1 ring-inset ${
-                typeFilter === "hotel" ? "bg-slate-900 text-white ring-slate-900" : "bg-white text-slate-900 ring-slate-300"
-              }`}
-            >
-              Hotel
-            </button>
-            <button
-              type="button"
-              onClick={() => setParam("type", "home")}
-              className={`rounded-full px-4 py-2 text-sm font-semibold ring-1 ring-inset ${
-                typeFilter === "home" ? "bg-slate-900 text-white ring-slate-900" : "bg-white text-slate-900 ring-slate-300"
-              }`}
-            >
-              Short-term
-            </button>
+            {!isYachtBroker && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setParam("type", "hotel")}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold ring-1 ring-inset ${
+                    typeFilter === "hotel" ? "bg-slate-900 text-white ring-slate-900" : "bg-white text-slate-900 ring-slate-300"
+                  }`}
+                >
+                  Hotel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setParam("type", "home")}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold ring-1 ring-inset ${
+                    typeFilter === "home" ? "bg-slate-900 text-white ring-slate-900" : "bg-white text-slate-900 ring-slate-300"
+                  }`}
+                >
+                  Short-term
+                </button>
+              </>
+            )}
           </div>
 
           {loading ? (

@@ -129,7 +129,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
       return;
     }
     if (isYachtBroker) {
-      const allowed = ["/agent", "/agent/yachts", "/agent/clients", "/agent/proposals", "/agent/chat", "/agent/settings", "/agent/listings", "/agent/inventory"].some((path) => pathname === path || pathname.startsWith(`${path}/`));
+      const allowed = ["/agent/yachts", "/agent/listings", "/agent/settings"].some((path) => pathname === path || pathname.startsWith(`${path}/`));
       if (!allowed) {
         router.replace("/agent/yachts");
       }
@@ -177,7 +177,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
             id: `request-${item.id}`,
             title: resolveAgentTitle(item),
             subtitle: resolveAgentSubtitle(item),
-            href: `/agent/chat?channel=${encodeURIComponent(preferredChannel)}`,
+            href: brokerChannelId ? `/chat/agent?channel=${encodeURIComponent(brokerChannelId)}` : `/agent/chat?channel=${encodeURIComponent(preferredChannel)}`,
             ts: item.createdAt || new Date().toISOString(),
             read: readIds.has(`request-${item.id}`),
           };
@@ -257,12 +257,23 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
             <span>Back to main site</span>
           </a>
           <div className="flex items-center gap-4">
-            {showChat && (
+            {showChat && !isYachtBroker && (
               <Link href="/agent/chat" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 <span>Agent Chat</span>
+              </Link>
+            )}
+            {showChat && isYachtBroker && user?.email && (
+              <Link
+                href={`/chat/agent?channel=${encodeURIComponent(`agent-${String(user.email).split("@")[0].toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`)}`}
+                className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span>Yacht chat</span>
               </Link>
             )}
             {canCreateListings && (
@@ -276,9 +287,11 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
               </Link>
             )}
             {canCreateListings && (
-              <Link href="/agent/inventory" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
-                <span>Inventory</span>
-              </Link>
+              !isYachtBroker ? (
+                <Link href="/agent/inventory" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
+                  <span>Inventory</span>
+                </Link>
+              ) : null
             )}
             <div className="relative">
               <button
