@@ -9,6 +9,14 @@ import { buildChatChannelId, buildContactChannelId, fetchChatMessages, saveChatM
 import { useTripsStore, createTrip } from "../../lib/store/tripsStore";
 import { useDocumentsStore, seedDocuments, DocumentRecord } from "../../src/lib/documentsStore";
 
+type DocumentsChatMessage = {
+  id: string;
+  role: "lina" | "agent" | "partner" | "specialist" | "traveler";
+  author: string;
+  text: string;
+  ts: string;
+};
+
 function TripCard({
   tripId,
   title,
@@ -297,10 +305,10 @@ export default function DocumentsPage() {
   const hasPartner = Boolean(partnerName);
 
   const [chatInput, setChatInput] = useState("");
-  const [chatMessages, setChatMessages] = useState([
+  const [chatMessages, setChatMessages] = useState<DocumentsChatMessage[]>([
     { id: "m1", role: "lina", author: "Lina (AI)", text: "I can confirm your flights and finalize your hotel. Want me to proceed?", ts: "09:02" },
     { id: "m2", role: "agent", author: "Zeniva Agent", text: "I can also call the hotel to confirm your late check-in.", ts: "09:04" },
-  ] as { id: string; role: "lina" | "agent" | "partner" | "specialist" | "traveler"; author: string; text: string; ts: string }[]);
+  ]);
   const chatChannelId = useMemo(() => buildChatChannelId(user?.email, "documents-chat"), [user?.email]);
   const contactChannelId = useMemo(() => buildContactChannelId(user?.email), [user?.email]);
 
@@ -368,10 +376,10 @@ export default function DocumentsPage() {
       if (!chatChannelId) return;
       const rows = await fetchChatMessages(chatChannelId);
       if (!active || !rows.length) return;
-      const mapped = rows.map((row: any) => {
+      const mapped: DocumentsChatMessage[] = rows.map((row: any): DocumentsChatMessage => {
         const createdAt = row?.createdAt || row?.created_at || new Date().toISOString();
         const sender = row?.senderRole || row?.sender_role;
-        const role = sender === "lina" ? "lina" : sender === "agent" || sender === "hq" ? "agent" : "traveler";
+        const role: DocumentsChatMessage["role"] = sender === "lina" ? "lina" : sender === "agent" || sender === "hq" ? "agent" : "traveler";
         return {
           id: String(row?.id || createdAt),
           role,

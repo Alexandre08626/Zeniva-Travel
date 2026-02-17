@@ -85,7 +85,7 @@ export async function fetchChatMessages(channelId: string) {
     const resp = await fetch(`/api/agent/requests?channelId=${encodeURIComponent(channelId)}`);
     const payload = await resp.json();
     const rows = Array.isArray(payload?.data) ? payload.data : [];
-    rows.forEach((row) => {
+    rows.forEach((row: any) => {
       const key = String(row?.id || "");
       if (key) mapById.set(key, row);
     });
@@ -102,7 +102,7 @@ export async function fetchChatMessages(channelId: string) {
       .order("created_at", { ascending: false });
     if (error) throw error;
     const rows = Array.isArray(data) ? data : [];
-    rows.forEach((row) => {
+    rows.forEach((row: any) => {
       const key = String(row?.id || "");
       if (key) mapById.set(key, row);
     });
