@@ -64,8 +64,8 @@ export default function AgentListingsHubClient() {
           const text = await res.text();
           throw new Error(text || `Failed to load listings (${res.status})`);
         }
-        const json = (await res.json()) as { items?: AgentListingSummary[] };
-        if (!cancelled) setItems(json.items || []);
+        const json = (await res.json()) as { data?: AgentListingSummary[] };
+        if (!cancelled) setItems(Array.isArray(json.data) ? json.data : []);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load listings");
       } finally {
@@ -142,9 +142,12 @@ export default function AgentListingsHubClient() {
 
               <div className="divide-y divide-slate-200">
                 {sorted.map((it) => {
+                  const data = (it as any).data || {};
                   const href = `/agent/listings/editor/${encodeURIComponent(it.id)}`;
                   const statusVariant = it.status === "published" ? "green" : it.status === "archived" ? "red" : "muted";
                   const workflowVariant = it.workflowStatus === "completed" ? "green" : it.workflowStatus === "paused" ? "amber" : "muted";
+                  const thumb = it.thumbnail ?? data.thumbnail ?? (Array.isArray(data.images) ? data.images[0] : null) ?? null;
+                  const location = it.location ?? data.location ?? data.destination ?? "";
 
                   return (
                     <Link
@@ -154,9 +157,9 @@ export default function AgentListingsHubClient() {
                     >
                       <div className="col-span-6 flex items-center gap-3">
                         <div className="h-12 w-16 shrink-0 overflow-hidden rounded-md bg-slate-100">
-                          {it.thumbnail ? (
+                          {thumb ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={it.thumbnail} alt="" className="h-full w-full object-cover" />
+                            <img src={thumb} alt="" className="h-full w-full object-cover" />
                           ) : null}
                         </div>
                         <div className="min-w-0">
@@ -166,7 +169,7 @@ export default function AgentListingsHubClient() {
                             {it.isReadOnly ? <Pill variant="muted">Read-only</Pill> : null}
                           </div>
                           <div className="mt-0.5 truncate text-xs text-slate-600">
-                            {it.kind ? `${it.kind}${it.location ? ` • ${it.location}` : ""}` : it.location || ""}
+                            {it.kind ? `${it.kind}${location ? ` • ${location}` : ""}` : location}
                           </div>
                         </div>
                       </div>

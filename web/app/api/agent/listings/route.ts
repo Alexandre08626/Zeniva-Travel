@@ -115,7 +115,8 @@ export async function GET(request: Request) {
         createdByAgent: Boolean(item.createdByAgent),
       },
       source: "catalog",
-      editable: true,
+      editable: false,
+      isReadOnly: true,
       createdAt: item.createdAt || null,
       updatedAt: item.updatedAt || null,
     }));
@@ -162,6 +163,7 @@ export async function GET(request: Request) {
     }));
 
     let supabaseYachts: any[] = [];
+    let supabaseAgentListings: any[] = [];
     if (hasSupabaseEnv()) {
       const { client } = getSupabaseAdminClient();
       const { data } = await client
@@ -175,8 +177,32 @@ export async function GET(request: Request) {
         title: item.title,
         status: item.status || "published",
         workflowStatus: item?.data?.workflowStatus || "in_progress",
+        createdByAgent: Boolean(item?.data?.createdByAgent),
+        thumbnail: item?.data?.thumbnail || (Array.isArray(item?.data?.images) ? item.data.images[0] : "") || "",
+        location: item?.data?.location || item?.data?.destination || "",
         data: item.data || {},
         source: "partner",
+        editable: true,
+        createdAt: item.created_at || null,
+        updatedAt: item.updated_at || null,
+      }));
+
+      const { data: agentRows } = await client
+        .from("agent_listings")
+        .select("id, type, title, status, data, created_at, updated_at")
+        .order("created_at", { ascending: false });
+
+      supabaseAgentListings = (agentRows || []).map((item: any) => ({
+        id: item.id,
+        type: item.type || "hotel",
+        title: item.title,
+        status: item.status || "draft",
+        workflowStatus: item?.data?.workflowStatus || "in_progress",
+        createdByAgent: Boolean(item?.data?.createdByAgent),
+        thumbnail: item?.data?.thumbnail || (Array.isArray(item?.data?.images) ? item.data.images[0] : "") || "",
+        location: item?.data?.location || item?.data?.destination || "",
+        data: item.data || {},
+        source: "agent",
         editable: true,
         createdAt: item.created_at || null,
         updatedAt: item.updated_at || null,
@@ -184,7 +210,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({
-      data: [...catalogListings, ...resortListings, ...ycnListings, ...supabaseYachts],
+      data: [...catalogListings, ...resortListings, ...ycnListings, ...supabaseYachts, ...supabaseAgentListings],
     });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to load listings" }, { status: 500 });
@@ -284,33 +310,52 @@ export async function POST(request: Request) {
       return NextResponse.json({ data: created }, { status: 201 });
     }
 
-    const createdListing = {
-      id: `agent-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
-      partnerId,
+    if (!hasSupabaseEnv()) {
+      return NextResponse.json({ error: "Supabase not configured for listings" }, { status: 500 });
+    }
+
+    const accountId = await getAccountIdByEmail(session.email);
+    const data = {
       title,
-      type,
-      status,
-      thumbnail,
-      images,
+      description,
       location,
+      destination: location,
       price: numericPrice || undefined,
       currency,
-      description,
-      amenities: normalizeImages(payload.amenities),
+      thumbnail,
+      images,
       capacity: capacity || undefined,
       bedrooms: bedrooms || undefined,
       bathrooms: bathrooms || undefined,
+      partnerId,
+      status,
       workflowStatus,
-      createdAt: now,
-      updatedAt: now,
       createdByAgent: true,
       createdByAgentEmail: session.email,
       createdByAgentAt: now,
     };
 
-    listings.unshift(createdListing);
+    const { client } = getSupabaseAdminClient();
+    const { data: created, error } = await client
+      .from("agent_listings")
+      .insert({
+        type,
+        title,
+        status,
+        data,
+        created_by_account_id: accountId,
+        created_by_email: session.email,
+        updated_at: now,
+        published_at: status === "published" ? now : null,
+      })
+      .select("id, type, title, status, data, created_at, updated_at")
+      .single();
 
-    return NextResponse.json({ data: createdListing }, { status: 201 });
+    if (error) {
+      return NextResponse.json({ error: error.message || "Failed to create listing" }, { status: 500 });
+    }
+
+    return NextResponse.json({ data: created }, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to create listing" }, { status: 500 });
   }
@@ -345,33 +390,10 @@ export async function PATCH(request: Request) {
 
     const localIndex = listings.findIndex((item: any) => String(item.id) === id);
     if (localIndex >= 0) {
-      const existing = listings[localIndex];
-      const localType = normalizeType(payload.type || existing.type);
-      if (localType !== "yacht" && !isAdmin) {
-        return NextResponse.json({ error: "Only admin can update hotel or short-term rental listings" }, { status: 403 });
-      }
-
-      const updated = {
-        ...existing,
-        title: title || existing.title,
-        type: localType || existing.type,
-        status,
-        workflowStatus,
-        location: location || existing.location || "",
-        description: description || existing.description || "",
-        price: price ?? existing.price,
-        currency,
-        images: images.length ? images : existing.images || [],
-        thumbnail: thumbnail || existing.thumbnail || (images.length ? images[0] : ""),
-        capacity: Number(payload.capacity || existing.capacity || 0) || undefined,
-        bedrooms: Number(payload.bedrooms || existing.bedrooms || 0) || undefined,
-        bathrooms: Number(payload.bathrooms || existing.bathrooms || 0) || undefined,
-        partnerId: String(payload.partnerId || existing.partnerId || "") || undefined,
-        updatedAt: new Date().toISOString(),
-      };
-
-      listings[localIndex] = updated;
-      return NextResponse.json({ data: updated });
+      return NextResponse.json(
+        { error: "This listing is not persisted. Duplicate as draft to edit and save to Supabase." },
+        { status: 400 },
+      );
     }
 
     if (!hasSupabaseEnv()) {
@@ -379,6 +401,59 @@ export async function PATCH(request: Request) {
     }
 
     const { client } = getSupabaseAdminClient();
+
+    // Try agent_listings first (hotels/homes persisted by agents)
+    const { data: existingAgent, error: agentLoadError } = await client
+      .from("agent_listings")
+      .select("id, type, title, status, data")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (agentLoadError) return NextResponse.json({ error: agentLoadError.message }, { status: 500 });
+    if (existingAgent) {
+      const agentType = normalizeType(payload.type || existingAgent.type);
+      if (!agentType) return NextResponse.json({ error: "Invalid listing type" }, { status: 400 });
+      if (agentType !== "yacht" && !isAdmin) {
+        return NextResponse.json({ error: "Only admin can update hotel or short-term rental listings" }, { status: 403 });
+      }
+
+      const currentData = typeof existingAgent.data === "object" && existingAgent.data ? existingAgent.data : {};
+      const merged = {
+        ...currentData,
+        title: title || existingAgent.title,
+        location: location || (currentData as any).location || "",
+        destination: location || (currentData as any).destination || (currentData as any).location || "",
+        description: description || (currentData as any).description || "",
+        currency,
+        price: price ?? (currentData as any).price,
+        images: images.length ? images : (currentData as any).images || [],
+        thumbnail: thumbnail || (currentData as any).thumbnail || (images.length ? images[0] : ""),
+        workflowStatus,
+        partnerId: String(payload.partnerId || (currentData as any).partnerId || "") || undefined,
+        capacity: Number(payload.capacity || (currentData as any).capacity || 0) || undefined,
+        bedrooms: Number(payload.bedrooms || (currentData as any).bedrooms || 0) || undefined,
+        bathrooms: Number(payload.bathrooms || (currentData as any).bathrooms || 0) || undefined,
+      };
+
+      const now = new Date().toISOString();
+      const { data: updatedAgent, error: updateError } = await client
+        .from("agent_listings")
+        .update({
+          type: agentType,
+          title: title || existingAgent.title,
+          status,
+          data: merged,
+          updated_at: now,
+          published_at: status === "published" ? now : null,
+        })
+        .eq("id", id)
+        .select("id, type, title, status, data, created_at, updated_at")
+        .single();
+
+      if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
+      return NextResponse.json({ data: updatedAgent });
+    }
+
     const { data: existingYacht, error: loadError } = await client
       .from("yacht_listings")
       .select("id, type, title, status, data")
