@@ -65,6 +65,58 @@ export default function AgentListingsHubClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+
+  const openEditor = (id: string) => {
+    router.push(`/agent/listings/editor/${encodeURIComponent(id)}`);
+  };
+
+  const duplicateToEdit = async (id: string) => {
+    setDuplicatingId(id);
+    setError(null);
+    try {
+      const detailRes = await fetch(`/api/agent/listings?id=${encodeURIComponent(id)}`, { cache: "no-store" });
+      const detailPayload = await detailRes.json().catch(() => ({}));
+      if (!detailRes.ok) throw new Error(detailPayload?.error || "Failed to load listing");
+      const record = detailPayload?.data || null;
+      const data = record?.data || {};
+      const images: string[] = Array.isArray(data.images) ? data.images : [];
+      const thumbnail = String(data.thumbnail || record?.thumbnail || images[0] || "").trim();
+      const location = String(data.location || data.destination || record?.location || "").trim();
+
+      const createPayload = {
+        type: record?.type,
+        title: String(record?.title || data.title || "").trim() || "Draft listing",
+        description: String(data.description || "").trim(),
+        location,
+        currency: String(data.currency || "USD").toUpperCase(),
+        price: data.price,
+        capacity: data.capacity,
+        bedrooms: data.bedrooms,
+        bathrooms: data.bathrooms,
+        partnerId: data.partnerId,
+        images: images.length ? images : (thumbnail ? [thumbnail] : []),
+        thumbnail,
+        status: "draft",
+        workflowStatus: "in_progress",
+      };
+
+      const resp = await fetch("/api/agent/listings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(createPayload),
+      });
+      const result = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(result?.error || "Duplicate failed");
+      const createdId = result?.data?.id ? String(result.data.id) : "";
+      if (!createdId) throw new Error("Duplicate failed");
+      openEditor(createdId);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Duplicate failed");
+    } finally {
+      setDuplicatingId(null);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -224,10 +276,11 @@ export default function AgentListingsHubClient() {
           ) : (
             <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
               <div className="grid grid-cols-12 gap-0 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-600">
-                <div className="col-span-6">Listing</div>
+                <div className="col-span-5">Listing</div>
                 <div className="col-span-2">Source</div>
                 <div className="col-span-2">Status</div>
                 <div className="col-span-2">Workflow</div>
+                <div className="col-span-1 text-right">Action</div>
               </div>
 
               <div className="divide-y divide-slate-200">
@@ -239,13 +292,22 @@ export default function AgentListingsHubClient() {
                   const thumb = it.thumbnail ?? data.thumbnail ?? (Array.isArray(data.images) ? data.images[0] : null) ?? null;
                   const location = it.location ?? data.location ?? data.destination ?? "";
 
+                  const isReadOnly = Boolean((it as any).isReadOnly);
+                  const actionLabel = isReadOnly ? "Duplicate" : "Edit";
+                  const actionBusy = duplicatingId === it.id;
+
                   return (
-                    <Link
+                    <div
                       key={`${it.source}:${it.id}`}
-                      href={href}
-                      className="grid grid-cols-12 items-center gap-0 px-4 py-3 hover:bg-slate-50"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => openEditor(it.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") openEditor(it.id);
+                      }}
+                      className="grid grid-cols-12 items-center gap-0 px-4 py-3 hover:bg-slate-50 cursor-pointer"
                     >
-                      <div className="col-span-6 flex items-center gap-3">
+                      <div className="col-span-5 flex items-center gap-3">
                         <div className="h-12 w-16 shrink-0 overflow-hidden rounded-md bg-slate-100">
                           {thumb ? (
                             // eslint-disable-next-line @next/next/no-img-element
@@ -256,7 +318,7 @@ export default function AgentListingsHubClient() {
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="truncate text-sm font-medium text-slate-900">{it.title || it.id}</span>
                             {it.createdByAgent ? <Pill variant="amber">Created by agent</Pill> : null}
-                            {it.isReadOnly ? <Pill variant="muted">Read-only</Pill> : null}
+                            {isReadOnly ? <Pill variant="muted">Read-only</Pill> : null}
                           </div>
                           <div className="mt-0.5 truncate text-xs text-slate-600">
                             {it.kind ? `${it.kind}${location ? ` • ${location}` : ""}` : location}
@@ -271,7 +333,22 @@ export default function AgentListingsHubClient() {
                       <div className="col-span-2">
                         <Pill variant={workflowVariant}>{it.workflowStatus || "in_progress"}</Pill>
                       </div>
-                    </Link>
+                      <div className="col-span-1 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (isReadOnly) void duplicateToEdit(it.id);
+                            else openEditor(it.id);
+                          }}
+                          disabled={actionBusy}
+                          className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:border-slate-300 disabled:opacity-60"
+                        >
+                          {actionBusy ? "Working…" : actionLabel}
+                        </button>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
