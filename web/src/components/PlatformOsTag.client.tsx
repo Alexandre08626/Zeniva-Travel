@@ -15,6 +15,7 @@ function detectOs() {
 export default function PlatformOsTag() {
   useEffect(() => {
     const os = detectOs();
+    document.documentElement.dataset.os = os;
     document.body.dataset.os = os;
   }, []);
 

@@ -144,11 +144,11 @@ body[data-os="windows"] div[style*="100vw"] {
 
 @media (min-width: 1024px) and (max-width: 1600px) {
   /* Windows laptop viewport and container fixes */
-  body[data-os="windows"] {
+  html[data-os="windows"] {
     --scrollbar-width: 17px; /* Standard Windows scrollbar width */
   }
 
-  body[data-os="windows"] html {
+  html[data-os="windows"] {
     overflow-x: hidden;
   }
 
