@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BRAND_BLUE, PREMIUM_BLUE, ACCENT_GOLD, LIGHT_BG, MUTED_TEXT, TITLE_TEXT } from "../../src/design/tokens";
-import { useTripsStore, addMessage, updateSnapshot, updateTrip, applyTripPatch, generateProposal, mergeTripMessages } from "../../lib/store/tripsStore";
+import { useTripsStore, addMessage, updateSnapshot, updateTrip, applyTripPatch, generateProposal, mergeTripMessages, setTripTitle } from "../../lib/store/tripsStore";
 import { sendMessageToLina } from "../../src/lib/linaClient";
 import Label from "../../src/components/Label";
 import { useAuthStore } from "../../src/lib/authStore";
@@ -101,7 +101,7 @@ function ChatThread({ tripId, proposalMode = "" }) {
   const [promptedForStayType, setPromptedForStayType] = useState(false);
   const containerRef = useRef(null);
   const inputRef = useRef(null);
-  const { messages, snapshots } = useTripsStore((s) => ({ messages: s.messages, snapshots: s.snapshots }));
+  const { messages, snapshots, trips } = useTripsStore((s) => ({ messages: s.messages, snapshots: s.snapshots, trips: s.trips }));
   const user = useAuthStore((s) => s.user);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -269,6 +269,14 @@ function ChatThread({ tripId, proposalMode = "" }) {
   };
 
   const onQuick = (label) => {
+    const currentTrip = (trips || []).find((t) => t.id === tripId);
+    const currentTitle = String(currentTrip?.title || "").trim();
+    if (tripId && (!currentTitle || currentTitle === "New Trip" || currentTitle === "Trip")) {
+      const destinationLabel = String(snapshot.destination || "").split(" - ").pop()?.trim() || "";
+      const nextTitle = destinationLabel ? `${label} · ${destinationLabel}` : `${label} Trip`;
+      setTripTitle(tripId, nextTitle);
+    }
+
     // Special handling for Flights - check if we have required data
     if (label === "Flights") {
       const hasOrigin = snapshot.departure || snapshot.origin;
