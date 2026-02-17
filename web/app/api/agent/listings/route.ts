@@ -58,6 +58,37 @@ function normalizeWorkflowStatus(value: unknown): WorkflowStatus {
   return "in_progress";
 }
 
+function toSummary(item: any) {
+  const data = item?.data && typeof item.data === "object" ? item.data : {};
+  const images = Array.isArray(data.images) ? data.images : [];
+  const thumbnail = String(item?.thumbnail || data.thumbnail || images[0] || "").trim();
+  const location = String(item?.location || data.location || data.destination || "").trim();
+
+  return {
+    id: item.id,
+    type: item.type,
+    title: item.title,
+    status: item.status,
+    workflowStatus: item.workflowStatus,
+    createdByAgent: Boolean(item?.createdByAgent || data.createdByAgent),
+    thumbnail,
+    location,
+    data: {
+      thumbnail,
+      images: thumbnail ? [thumbnail] : [],
+      location,
+      destination: location,
+      workflowStatus: item.workflowStatus || data.workflowStatus || "in_progress",
+      createdByAgent: Boolean(item?.createdByAgent || data.createdByAgent),
+    },
+    source: item.source,
+    editable: Boolean(item.editable),
+    isReadOnly: Boolean(item.isReadOnly || !item.editable),
+    createdAt: item.createdAt || null,
+    updatedAt: item.updatedAt || null,
+  };
+}
+
 async function getAccountIdByEmail(email: string) {
   const { client } = getSupabaseAdminClient();
   const { data, error } = await client
@@ -93,6 +124,200 @@ export async function GET(request: Request) {
   try {
     const gate = requireAgentSession(request);
     if (!gate.ok) return gate.error;
+
+    const url = new URL(request.url);
+    const requestedId = (url.searchParams.get("id") || "").trim();
+
+    if (requestedId) {
+      // Try Supabase first for persisted records (uuid ids)
+      if (hasSupabaseEnv()) {
+        const { client } = getSupabaseAdminClient();
+
+        const { data: agentRow, error: agentErr } = await client
+          .from("agent_listings")
+          .select("id, type, title, status, data, created_at, updated_at")
+          .eq("id", requestedId)
+          .maybeSingle();
+
+        if (agentErr) return NextResponse.json({ error: agentErr.message }, { status: 500 });
+        if (agentRow) {
+          return NextResponse.json({
+            data: {
+              id: agentRow.id,
+              type: agentRow.type || "hotel",
+              title: agentRow.title,
+              status: agentRow.status || "draft",
+              workflowStatus: (agentRow as any)?.data?.workflowStatus || "in_progress",
+              createdByAgent: Boolean((agentRow as any)?.data?.createdByAgent),
+              thumbnail: (agentRow as any)?.data?.thumbnail || ((agentRow as any)?.data?.images && (agentRow as any).data.images[0]) || "",
+              location: (agentRow as any)?.data?.location || (agentRow as any)?.data?.destination || "",
+              data: agentRow.data || {},
+              source: "agent",
+              editable: true,
+              createdAt: agentRow.created_at || null,
+              updatedAt: agentRow.updated_at || null,
+            },
+          });
+        }
+
+        const { data: yachtRow, error: yachtErr } = await client
+          .from("yacht_listings")
+          .select("id, type, title, status, data, created_at, updated_at")
+          .eq("id", requestedId)
+          .maybeSingle();
+
+        if (yachtErr) return NextResponse.json({ error: yachtErr.message }, { status: 500 });
+        if (yachtRow) {
+          return NextResponse.json({
+            data: {
+              id: yachtRow.id,
+              type: yachtRow.type || "yacht",
+              title: yachtRow.title,
+              status: yachtRow.status || "published",
+              workflowStatus: (yachtRow as any)?.data?.workflowStatus || "in_progress",
+              createdByAgent: Boolean((yachtRow as any)?.data?.createdByAgent),
+              thumbnail: (yachtRow as any)?.data?.thumbnail || ((yachtRow as any)?.data?.images && (yachtRow as any).data.images[0]) || "",
+              location: (yachtRow as any)?.data?.location || (yachtRow as any)?.data?.destination || "",
+              data: yachtRow.data || {},
+              source: "partner",
+              editable: true,
+              createdAt: yachtRow.created_at || null,
+              updatedAt: yachtRow.updated_at || null,
+            },
+          });
+        }
+      }
+
+      // Static sources by prefix
+      if (requestedId.startsWith("airbnb-")) {
+        const key = requestedId.slice("airbnb-".length);
+        const byId = (Array.isArray(airbnbsData) ? airbnbsData : []).find((x: any) => String(x?.id || "") === key);
+        const idx = Number.isFinite(Number(key)) ? Number(key) : -1;
+        const byIndex = idx >= 0 ? (Array.isArray(airbnbsData) ? airbnbsData : [])[idx] : undefined;
+        const item: any = byId || byIndex;
+        if (!item) return NextResponse.json({ error: "Listing not found" }, { status: 404 });
+        return NextResponse.json({
+          data: {
+            id: requestedId,
+            type: "home",
+            title: item?.title || "Residence",
+            status: "published",
+            workflowStatus: "in_progress",
+            createdByAgent: false,
+            thumbnail: item?.thumbnail || (item?.images && item.images[0]) || "",
+            location: item?.location || "",
+            data: {
+              title: item?.title || "Residence",
+              location: item?.location || "",
+              destination: item?.location || "",
+              description: item?.description || "",
+              images: item?.images || (item?.thumbnail ? [item.thumbnail] : []),
+              thumbnail: item?.thumbnail || (item?.images && item.images[0]) || "",
+              url: item?.url,
+            },
+            source: "airbnb",
+            editable: false,
+            isReadOnly: true,
+            createdAt: null,
+            updatedAt: null,
+          },
+        });
+      }
+
+      if (requestedId.startsWith("ycn-")) {
+        const key = requestedId.slice("ycn-".length);
+        const src = Array.isArray(ycnData) ? ycnData : [];
+        const byId = src.find((x: any) => String(x?.id || "") === key);
+        const idx = Number.isFinite(Number(key)) ? Number(key) : -1;
+        const byIndex = idx >= 0 ? src[idx] : undefined;
+        const item: any = byId || byIndex;
+        if (!item) return NextResponse.json({ error: "Listing not found" }, { status: 404 });
+        return NextResponse.json({
+          data: {
+            id: requestedId,
+            type: "yacht",
+            title: item?.title || "Yacht Charter",
+            status: "published",
+            workflowStatus: "in_progress",
+            data: {
+              title: item?.title || "Yacht Charter",
+              location: item?.destination || "",
+              destination: item?.destination || "",
+              description: "Curated YCN listing",
+              prices: item?.prices || [],
+              images: item?.images || [],
+              thumbnail: item?.thumbnail || (item?.images && item.images[0]) || "",
+            },
+            source: "ycn",
+            editable: false,
+            createdAt: null,
+            updatedAt: null,
+          },
+        });
+      }
+
+      if (requestedId.startsWith("resort-")) {
+        const key = requestedId.slice("resort-".length);
+        const resort = resortPartners.find((r: any) => String(r?.id || "") === key);
+        if (!resort) return NextResponse.json({ error: "Listing not found" }, { status: 404 });
+        return NextResponse.json({
+          data: {
+            id: requestedId,
+            type: "hotel",
+            title: resort.name,
+            status: resort.status || "published",
+            workflowStatus: "in_progress",
+            data: {
+              title: resort.name,
+              location: resort.destination,
+              destination: resort.destination,
+              description: resort.description || resort.positioning,
+              images: resort.media?.flatMap((group: any) => group.images) || [],
+              thumbnail: resort.media?.[0]?.images?.[0] || "",
+            },
+            source: "resort",
+            editable: false,
+            createdAt: null,
+            updatedAt: null,
+          },
+        });
+      }
+
+      const local = listings.find((x: any) => String(x?.id || "") === requestedId);
+      if (local) {
+        return NextResponse.json({
+          data: {
+            id: local.id,
+            type: local.type,
+            title: local.title,
+            status: local.status || "published",
+            workflowStatus: local.workflowStatus || "in_progress",
+            data: {
+              title: local.title,
+              location: local.location || "",
+              destination: local.location || "",
+              description: local.description || "",
+              price: local.price,
+              currency: local.currency,
+              images: Array.isArray(local.images) ? local.images : local.thumbnail ? [local.thumbnail] : [],
+              thumbnail: local.thumbnail || (Array.isArray(local.images) ? local.images[0] : "") || "",
+              capacity: local.capacity,
+              bedrooms: local.bedrooms,
+              bathrooms: local.bathrooms,
+              partnerId: local.partnerId,
+              createdByAgent: Boolean(local.createdByAgent),
+            },
+            source: "catalog",
+            editable: false,
+            isReadOnly: true,
+            createdAt: local.createdAt || null,
+            updatedAt: local.updatedAt || null,
+          },
+        });
+      }
+
+      return NextResponse.json({ error: "Listing not found" }, { status: 404 });
+    }
 
     const catalogListings = listings.map((item: any) => ({
       id: item.id,
@@ -176,10 +401,7 @@ export async function GET(request: Request) {
         title: item?.title || "Residence",
         location: item?.location || "",
         destination: item?.location || "",
-        description: item?.description || "",
-        images: item?.images || (item?.thumbnail ? [item.thumbnail] : []),
         thumbnail: item?.thumbnail || (item?.images && item.images[0]) || "",
-        url: item?.url,
       },
       source: "airbnb",
       editable: false,
@@ -235,9 +457,9 @@ export async function GET(request: Request) {
       }));
     }
 
-    return NextResponse.json({
-      data: [...catalogListings, ...resortListings, ...ycnListings, ...airbnbListings, ...supabaseYachts, ...supabaseAgentListings],
-    });
+    const all = [...catalogListings, ...resortListings, ...ycnListings, ...airbnbListings, ...supabaseYachts, ...supabaseAgentListings];
+
+    return NextResponse.json({ data: all.map(toSummary) });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to load listings" }, { status: 500 });
   }

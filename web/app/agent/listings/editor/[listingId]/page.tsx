@@ -72,12 +72,11 @@ export default function AgentListingEditorPage() {
     setLoading(true);
     setError(null);
 
-    fetch("/api/agent/listings", { cache: "no-store" })
-      .then((response) => (response.ok ? response.json() : { data: [] }))
+    fetch(`/api/agent/listings?id=${encodeURIComponent(listingId)}`, { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
       .then((payload) => {
         if (!active) return;
-        const list: ListingRecord[] = Array.isArray(payload?.data) ? payload.data : [];
-        const found = list.find((item) => String(item.id) === listingId) || null;
+        const found: ListingRecord | null = payload && payload.data ? payload.data : null;
         setRecord(found);
 
         const data = (found?.data || {}) as Record<string, any>;
