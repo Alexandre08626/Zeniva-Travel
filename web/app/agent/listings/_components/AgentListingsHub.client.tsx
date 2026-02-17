@@ -64,6 +64,7 @@ export default function AgentListingsHubClient() {
   const [items, setItems] = useState<AgentListingSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -103,6 +104,18 @@ export default function AgentListingsHubClient() {
     if (typeFilter === "all") return sorted;
     return sorted.filter((item) => (item as any).type === typeFilter);
   }, [sorted, typeFilter]);
+
+  const searched = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return filtered;
+    return filtered.filter((it) => {
+      const data = (it as any).data || {};
+      const title = String(it.title || "").toLowerCase();
+      const location = String(it.location || data.location || data.destination || "").toLowerCase();
+      const id = String(it.id || "").toLowerCase();
+      return title.includes(q) || location.includes(q) || id.includes(q);
+    });
+  }, [filtered, query]);
 
   const setParam = (key: string, value?: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -189,13 +202,22 @@ export default function AgentListingsHubClient() {
                 </button>
               </>
             )}
+
+            <div className="ml-auto w-full sm:ml-0 sm:w-64">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search listings…"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+              />
+            </div>
           </div>
 
           {loading ? (
             <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-600">Loading…</div>
           ) : error ? (
             <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{error}</div>
-          ) : filtered.length === 0 ? (
+          ) : searched.length === 0 ? (
             <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-700">
               No listings yet. <Link className="text-slate-900 underline" href="/agent/listings?view=create">Create one</Link>.
             </div>
@@ -209,7 +231,7 @@ export default function AgentListingsHubClient() {
               </div>
 
               <div className="divide-y divide-slate-200">
-                {filtered.map((it) => {
+                {searched.map((it) => {
                   const data = (it as any).data || {};
                   const href = `/agent/listings/editor/${encodeURIComponent(it.id)}`;
                   const statusVariant = it.status === "published" ? "green" : it.status === "archived" ? "red" : "muted";
