@@ -37,6 +37,25 @@ HOTELBEDS_API_SECRET=your_hotelbeds_api_secret_here
 HOTELBEDS_BASE_URL_TEST=https://api.test.hotelbeds.com
 HOTELBEDS_BASE_URL_PROD=https://api.hotelbeds.com
 HOTELBEDS_USE_MTLS=false
+
+# LiteAPI (Nuitee) (Hotels)
+# Keep keys server-side only; call via `/api/partners/liteapi`.
+LITEAPI_API_BASE_URL=https://api.liteapi.travel/v1
+LITEAPI_API_KEY=your_liteapi_api_key_here
+# Auth formatting (defaults: x-api-key: <key>)
+LITEAPI_API_KEY_HEADER=x-api-key
+LITEAPI_API_KEY_PREFIX=
+
+# Expedia Group (Hotels)
+# Keep keys server-side only; call via `/api/partners/expedia`.
+EXPEDIA_API_BASE_URL=https://example.expediagroup.com
+EXPEDIA_API_KEY=your_expedia_api_key_here
+# Optional, depending on your Expedia product
+EXPEDIA_API_SECRET=
+# How the key is sent to Expedia (defaults: x-api-key)
+EXPEDIA_API_KEY_HEADER=x-api-key
+# Optional prefix like "Bearer" (leave empty if not needed)
+EXPEDIA_API_KEY_PREFIX=
 ```
 
 ### Optional
@@ -130,5 +149,7 @@ If your Duffel account is not yet approved for Live mode, the server will automa
 - `/api/partners/amadeus` - Alternative flight search
 - `/api/partners/hotelbeds/activities` - Activity booking
 - `/api/partners/hotelbeds/transfers` - Transfer services
+- `/api/partners/liteapi` - LiteAPI (Nuitee) proxy (server-side)
+- `/api/partners/expedia` - Expedia Group proxy (server-side)
 - `/api/lina` - AI chat
 - `/api/health` - System health check

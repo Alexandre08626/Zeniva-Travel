@@ -80,11 +80,14 @@ function HotelsSearchContent() {
 
   const [options, setOptions] = useState<StayOption[]>([]);
   const [amadeusOptions, setAmadeusOptions] = useState<StayOption[]>([]);
+  const [liteApiOptions, setLiteApiOptions] = useState<StayOption[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [amadeusLoading, setAmadeusLoading] = useState(false);
+  const [liteApiLoading, setLiteApiLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [amadeusError, setAmadeusError] = useState<string | null>(null);
+  const [liteApiError, setLiteApiError] = useState<string | null>(null);
 
   // New state for multi-step booking flow
   const [selectedSearchResult, setSelectedSearchResult] = useState<StayOption | null>(null);
@@ -279,6 +282,82 @@ function HotelsSearchContent() {
     };
   };
 
+  const buildLiteApiQuote = (option: StayOption) => {
+    const rawPrice = String(option.price || "").trim();
+    const match = rawPrice.match(/^([A-Z]{3})\s*([0-9,.]+)(?:\s*\/\s*night)?/i);
+    const currency = match?.[1]?.toUpperCase() || "USD";
+    const amount = match?.[2] ? Number(match[2].replace(/,/g, "")) : 0;
+    const hasNight = /night/i.test(rawPrice);
+    const totalAmount = hasNight && nights ? (amount * nights).toFixed(2) : (Number.isFinite(amount) && amount > 0 ? amount.toFixed(2) : "0.00");
+
+    return {
+      id: `liteapi-quote-${option.id}-${Date.now()}`,
+      total_amount: totalAmount,
+      total_currency: currency,
+      refundable: false,
+      provider: "liteapi",
+    };
+  };
+
+  const handleSelectLiteApiAccommodation = (option: StayOption) => {
+    const syntheticQuote = buildLiteApiQuote(option);
+    const syntheticRate = {
+      id: `liteapi-rate-${option.id}`,
+      room_type: { name: option.room || "Room" },
+      refundable: false,
+      conditions: "LiteAPI sourced offer. Final supplier conditions apply at confirmation.",
+      cancellation_timeline: [],
+      total_amount: syntheticQuote.total_amount,
+      total_currency: syntheticQuote.total_currency,
+      provider: "liteapi",
+    };
+
+    setSelectedId(option.id);
+    setSelectedSearchResult(option);
+    setQuote(syntheticQuote);
+    setRates([syntheticRate]);
+    setSelectedRateId(syntheticRate.id);
+
+    if (typeof window !== "undefined") {
+      const draft = {
+        selectedSearchResult: { ...option, provider: "liteapi" },
+        selectedRateId: syntheticRate.id,
+        selectedRate: syntheticRate,
+        quote: syntheticQuote,
+        searchContext: {
+          destination,
+          checkIn,
+          checkOut,
+          guests,
+          rooms,
+          budget,
+          summary,
+          nights,
+          provider: "liteapi",
+          proposalTripId,
+          proposalMode,
+        },
+      };
+      window.sessionStorage.setItem(BOOKING_DRAFT_KEY, JSON.stringify(draft));
+    }
+
+    const reviewParams = new URLSearchParams({
+      destination,
+      checkIn,
+      checkOut,
+      guests,
+      rooms,
+      budget,
+    });
+    if (proposalTripId) {
+      reviewParams.set("proposalTripId", proposalTripId);
+    }
+    if (proposalMode) {
+      reviewParams.set("mode", proposalMode);
+    }
+    router.push(`/booking/hotels/review?${reviewParams.toString()}`);
+  };
+
   const handleSelectAmadeusAccommodation = (option: StayOption) => {
     const syntheticQuote = buildAmadeusQuote(option);
     const syntheticRate = {
@@ -427,9 +506,11 @@ function HotelsSearchContent() {
     if (!dest || !checkIn || !checkOut) {
       setOptions([]);
       setAmadeusOptions([]);
+      setLiteApiOptions([]);
       setSelectedId("");
       setError(null);
       setAmadeusError(null);
+      setLiteApiError(null);
       return;
     }
 
@@ -506,8 +587,30 @@ function HotelsSearchContent() {
       }
     };
 
+    // Load LiteAPI hotels search
+    const loadLiteApi = async () => {
+      setLiteApiLoading(true);
+      setLiteApiError(null);
+      try {
+        const qs = new URLSearchParams({ destination: dest, checkIn, checkOut, guests, rooms }).toString();
+        const res = await fetch(`/api/partners/liteapi/hotels/search?${qs}`);
+        const json = await res.json();
+        if (!res.ok || !json?.ok) {
+          throw new Error(json?.error || res.statusText);
+        }
+        const list: StayOption[] = json?.offers || [];
+        setLiteApiOptions(list);
+      } catch (e: any) {
+        setLiteApiOptions([]);
+        setLiteApiError(e?.message || "Failed to load LiteAPI hotels");
+      } finally {
+        setLiteApiLoading(false);
+      }
+    };
+
     loadDuffelStays();
     loadAmadeus();
+    loadLiteApi();
   }, [destination, checkIn, checkOut, guests, rooms, budget]);
 
   React.useEffect(() => {
@@ -562,13 +665,70 @@ function HotelsSearchContent() {
                 ← Back to search
               </button>
             )}
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">{options.length + amadeusOptions.length} total options</span>
+            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">{options.length + amadeusOptions.length + liteApiOptions.length} total options</span>
             {budget && <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-800">Budget cap {budget}</span>}
           </div>
         </header>
 
         {bookingStep === 'search' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* LiteAPI Section */}
+            <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-slate-800">🏨 LiteAPI Hotels</h2>
+                <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">{liteApiOptions.length} options</span>
+              </div>
+
+              {liteApiLoading && <div className="rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-sm text-slate-700">Loading LiteAPI hotels…</div>}
+              {liteApiError && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">{liteApiError}</div>}
+
+              <div className="space-y-3">
+                {liteApiOptions.map((h) => (
+                  <button
+                    key={h.id}
+                    onClick={() => handleSelectLiteApiAccommodation(h)}
+                    className={`w-full rounded-xl border bg-slate-50 p-3 shadow-sm flex flex-col gap-3 text-left md:flex-row md:items-center md:justify-between ${selectedId === h.id ? "border-blue-500 ring-2 ring-blue-100" : "border-slate-200"}`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="h-16 w-20 overflow-hidden rounded-lg bg-white border border-slate-200">
+                        <img src={h.image} alt={h.name} className="h-full w-full object-cover" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold text-slate-800">{h.name}</p>
+                        <p className="text-xs text-slate-600">{h.location}</p>
+                        <p className="text-xs text-slate-600">{h.room}</p>
+                        <div className="flex flex-wrap gap-1 text-[11px] text-slate-700">
+                          {(h.perks || []).map((p: any, idx: number) => {
+                            const label = typeof p === 'string' ? p : (p && (p.label || p.name)) || JSON.stringify(p);
+                            const key = `${label}-${idx}`;
+                            return (
+                              <span key={key} className="rounded-full bg-white border px-2 py-[3px]">{label}</span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      {(() => {
+                        const price = getPriceDisplay(h.price);
+                        return (
+                          <>
+                            <p className="text-lg font-bold text-slate-900">{price.primary}</p>
+                            {price.secondary && <p className="text-xs text-slate-600">{price.secondary}</p>}
+                          </>
+                        );
+                      })()}
+                      {h.badge && <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">{h.badge}</span>}
+                    </div>
+                  </button>
+                ))}
+
+                {!liteApiLoading && liteApiOptions.length === 0 && !liteApiError && (
+                  <div className="rounded-xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-600">No LiteAPI hotels found. Try adjusting dates or destination.</div>
+                )}
+              </div>
+            </section>
+
             {/* Duffel Stays Section */}
             {!USE_AMADEUS_ONLY && (
             <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
