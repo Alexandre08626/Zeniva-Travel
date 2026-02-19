@@ -5,8 +5,33 @@ type LiteApiConfig = {
   keyPrefix?: string;
 };
 
+function normalizeLiteApiBaseUrl(raw: string) {
+  const trimmed = (raw || "").trim();
+  if (!trimmed) return "";
+
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    return trimmed;
+  }
+
+  // LiteAPI docs are for v3.0. A common misconfig is setting base to the host only
+  // (https://api.liteapi.travel) or to /v1. Both cause 404s for v3 endpoints.
+  if (url.hostname.toLowerCase() === "api.liteapi.travel") {
+    const path = (url.pathname || "").replace(/\/+$/, "") || "/";
+    if (path === "/" || path === "") {
+      url.pathname = "/v3.0";
+    } else if (path === "/v1") {
+      url.pathname = "/v3.0";
+    }
+  }
+
+  return url.toString().replace(/\/+$/, "");
+}
+
 function getLiteApiConfig(): LiteApiConfig {
-  const baseUrl = (process.env.LITEAPI_API_BASE_URL || process.env.LITEAPI_BASE_URL || "").trim();
+  const baseUrl = normalizeLiteApiBaseUrl(process.env.LITEAPI_API_BASE_URL || process.env.LITEAPI_BASE_URL || "");
   const apiKey = (process.env.LITEAPI_API_KEY || "").trim();
   const keyHeader = (process.env.LITEAPI_API_KEY_HEADER || "X-API-Key").trim() || "X-API-Key";
   const keyPrefix = (process.env.LITEAPI_API_KEY_PREFIX || "").trim() || undefined;
@@ -19,7 +44,7 @@ function getLiteApiConfig(): LiteApiConfig {
 }
 
 export function liteApiIsConfigured() {
-  return Boolean((process.env.LITEAPI_API_BASE_URL || process.env.LITEAPI_BASE_URL || "").trim() && (process.env.LITEAPI_API_KEY || "").trim());
+  return Boolean(normalizeLiteApiBaseUrl(process.env.LITEAPI_API_BASE_URL || process.env.LITEAPI_BASE_URL || "") && (process.env.LITEAPI_API_KEY || "").trim());
 }
 
 function buildAuthValue(apiKey: string, prefix?: string) {
