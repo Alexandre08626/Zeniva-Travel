@@ -529,6 +529,10 @@ export default function ProposalSelectPage() {
       return;
     }
 
+    if (tripDraft?.accommodationType !== "Hotel") {
+      applyTripPatch(tripId, { accommodationType: "Hotel" });
+    }
+
     const run = async () => {
       setLoadingHotels(true);
       setErrorHotels(null);
@@ -950,8 +954,8 @@ export default function ProposalSelectPage() {
   const inferredStaysKind = useMemo(() => {
     const list = Array.isArray(hotels) ? hotels : [];
     if (list.some((item) => String(item?.type || "").toLowerCase() === "yacht")) return "yacht";
-    if (list.some((item) => ["residence", "villa", "airbnb"].includes(String(item?.type || "").toLowerCase()))) return "villa";
     if (list.some((item) => String(item?.type || "").toLowerCase() === "hotel")) return "hotel";
+    if (list.some((item) => ["residence", "villa", "airbnb"].includes(String(item?.type || "").toLowerCase()))) return "villa";
     return "";
   }, [hotels]);
 
@@ -1209,7 +1213,7 @@ export default function ProposalSelectPage() {
 
               {loadingFlights && <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700">Loading flights…</div>}
               {errorFlights && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">{errorFlights}</div>}
-              <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+              <div className="space-y-3 max-h-[420px] min-h-[420px] overflow-y-auto pr-1">
                 {filteredFlights.map((f) => {
                   const selectedFlightId = selection?.flight?.inbound?.id || selection?.flight?.outbound?.id || selection?.flight?.id;
                   const active = selectedFlightId === f.id;
