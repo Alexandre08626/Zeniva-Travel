@@ -20,6 +20,7 @@ export default function ProposalReviewPage() {
   const [shareStatus, setShareStatus] = useState("");
   const [liteApiHotelPhotosById, setLiteApiHotelPhotosById] = useState({});
   const [expandedStayPhotos, setExpandedStayPhotos] = useState({});
+  const [activePhoto, setActivePhoto] = useState(null);
   const [workflow, setWorkflow] = useState({
     passengersComplete: false,
     seatsComplete: false,
@@ -249,6 +250,15 @@ export default function ProposalReviewPage() {
     return () => window.removeEventListener("focus", onFocus);
   }, [tripId, tripDraft?.adults]);
 
+  useEffect(() => {
+    if (!activePhoto) return;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setActivePhoto(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [activePhoto]);
+
   const persistHotelChecklist = (patch) => {
     if (typeof window === "undefined") return;
     const key = `proposal_review_checklist_${tripId}`;
@@ -430,14 +440,28 @@ export default function ProposalReviewPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 lg:grid-rows-2 gap-2 rounded-3xl overflow-hidden">
           <div className="lg:col-span-2 lg:row-span-2 h-80 lg:h-full">
-            <img src={heroImage} alt="Destination" className="h-full w-full object-cover" />
+            <button
+              type="button"
+              onClick={() => setActivePhoto(heroImage)}
+              className="h-full w-full"
+              aria-label="Enlarge photo"
+            >
+              <img src={heroImage} alt="Destination" className="h-full w-full object-cover" />
+            </button>
           </div>
           {((uniqueHotels[0]
             ? getAccommodationImages(uniqueHotels[0], getAccommodationType(uniqueHotels[0]))
             : [heroImage, heroImage, heroImage, heroImage]
           ).slice(0, 4)).map((img, i) => (
             <div key={i} className="h-40 lg:h-full">
-              <img src={img} alt={`Trip ${i + 1}`} className="h-full w-full object-cover" />
+              <button
+                type="button"
+                onClick={() => setActivePhoto(img)}
+                className="h-full w-full"
+                aria-label={`Enlarge photo ${i + 1}`}
+              >
+                <img src={img} alt={`Trip ${i + 1}`} className="h-full w-full object-cover" />
+              </button>
             </div>
           ))}
         </div>
@@ -620,7 +644,14 @@ export default function ProposalReviewPage() {
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                         {visibleImages.map((src, i) => (
                           <div key={i} className="aspect-square overflow-hidden rounded-lg">
-                            <img src={src} alt={`${label} ${i + 1}`} className="h-full w-full object-cover hover:scale-105 transition-transform" />
+                            <button
+                              type="button"
+                              onClick={() => setActivePhoto(src)}
+                              className="h-full w-full"
+                              aria-label={`Enlarge ${label} photo ${i + 1}`}
+                            >
+                              <img src={src} alt={`${label} ${i + 1}`} className="h-full w-full object-cover hover:scale-105 transition-transform" />
+                            </button>
                           </div>
                         ))}
                       </div>
@@ -660,7 +691,14 @@ export default function ProposalReviewPage() {
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {act.images.slice(0, 6).map((src, i) => (
                         <div key={i} className="aspect-square overflow-hidden rounded-lg">
-                          <img src={src} alt={`Activity ${i + 1}`} className="h-full w-full object-cover hover:scale-105 transition-transform" />
+                          <button
+                            type="button"
+                            onClick={() => setActivePhoto(src)}
+                            className="h-full w-full"
+                            aria-label={`Enlarge activity photo ${i + 1}`}
+                          >
+                            <img src={src} alt={`Activity ${i + 1}`} className="h-full w-full object-cover hover:scale-105 transition-transform" />
+                          </button>
                         </div>
                       ))}
                     </div>
@@ -687,7 +725,14 @@ export default function ProposalReviewPage() {
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {item.images.slice(0, 6).map((src, i) => (
                         <div key={i} className="aspect-square overflow-hidden rounded-lg">
-                          <img src={src} alt={`Transfer ${i + 1}`} className="h-full w-full object-cover hover:scale-105 transition-transform" />
+                          <button
+                            type="button"
+                            onClick={() => setActivePhoto(src)}
+                            className="h-full w-full"
+                            aria-label={`Enlarge transfer photo ${i + 1}`}
+                          >
+                            <img src={src} alt={`Transfer ${i + 1}`} className="h-full w-full object-cover hover:scale-105 transition-transform" />
+                          </button>
                         </div>
                       ))}
                     </div>
@@ -773,6 +818,31 @@ export default function ProposalReviewPage() {
           </aside>
         </div>
       </div>
+
+      {activePhoto ? (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 p-4 flex items-center justify-center"
+          onClick={() => setActivePhoto(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="relative max-w-[92vw] max-h-[92vh]" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={activePhoto}
+              alt="Enlarged photo"
+              className="max-w-[92vw] max-h-[92vh] object-contain rounded-xl"
+            />
+            <button
+              type="button"
+              onClick={() => setActivePhoto(null)}
+              className="absolute -top-3 -right-3 h-9 w-9 rounded-full bg-white text-slate-900 border border-slate-200 font-black"
+              aria-label="Close"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
