@@ -947,12 +947,6 @@ export default function ProposalSelectPage() {
     router.push(`/proposals/${tripId}/review${modeSuffix}`);
   };
 
-  if (!tripId) return null;
-
-  return (
-    <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
-      <div className="w-full px-4 xl:px-6 2xl:px-8 py-6 space-y-6">
-        <header className="flex items-center justify-between">
   const normalizedAccommodationType = String(tripDraft?.accommodationType || "")
     .trim()
     .toLowerCase();
@@ -968,6 +962,13 @@ export default function ProposalSelectPage() {
         : "hotel";
   const staysTitle = staysKind === "yacht" ? "Yachts" : staysKind === "villa" ? "Villas" : "Hotels";
   const staysTitleLower = staysKind === "yacht" ? "yacht" : staysKind === "villa" ? "villa" : "hotel";
+
+  if (!tripId) return null;
+
+  return (
+    <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
+      <div className="w-full px-4 xl:px-6 2xl:px-8 py-6 space-y-6">
+        <header className="flex items-center justify-between">
           <div>
             <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
               Proposal {tripId}
