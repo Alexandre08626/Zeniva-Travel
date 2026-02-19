@@ -583,20 +583,144 @@ export default function ProposalSelectPage() {
     run();
   }, [tripDraft?.accommodationType, tripDraft?.destination, tripDraft?.checkIn, tripDraft?.checkOut, tripDraft?.adults, tripDraft?.budget, tripId, selection?.hotel?.location]);
 
-  // Activities/transfers provider integration removed (Hotelbeds).
+  // Load activities from Amadeus (Tours & Activities)
   useEffect(() => {
-    setActivities([]);
-    setLoadingActivities(false);
-    setErrorActivities(tripDraft?.includeActivities ? "Not available" : null);
-    if (selection?.activity) setProposalSelection(tripId, { activity: null });
-  }, [tripDraft?.includeActivities, tripId]);
+    const destination = String(tripDraft?.destination || selection?.hotel?.location || "").trim();
+    const checkIn = String(tripDraft?.checkIn || "").trim();
+    const checkOut = String(tripDraft?.checkOut || "").trim();
 
+    if (!tripDraft?.includeActivities) {
+      setActivities([]);
+      setLoadingActivities(false);
+      setErrorActivities(null);
+      if (selection?.activity) setProposalSelection(tripId, { activity: null });
+      return;
+    }
+
+    if (!destination || !checkIn || !checkOut) {
+      setActivities([]);
+      setLoadingActivities(false);
+      setErrorActivities("Missing destination or dates in trip draft");
+      return;
+    }
+
+    const run = async () => {
+      setLoadingActivities(true);
+      setErrorActivities(null);
+      try {
+        const qs = new URLSearchParams({
+          keyword: destination,
+          radius: "6",
+          limit: "20",
+        }).toString();
+
+        const res = await fetch(`/api/amadeus/activities/search?${qs}`);
+        const data = await res.json().catch(() => null);
+        if (!res.ok || !data?.ok) throw new Error(data?.message || data?.error || res.statusText);
+
+        const mapped = (data.activities || []).map((a) => ({
+          id: a.id,
+          name: a.name,
+          location: destination,
+          date: checkIn,
+          time: "10:00",
+          price: a?.price?.currency && Number.isFinite(Number(a?.price?.amount)) ? `${a.price.currency} ${a.price.amount}` : "Price on request",
+          supplier: "amadeus",
+          provider: "amadeus",
+          rating: 4.6,
+          category: "activity",
+          description: a.description || a.name,
+          image: a.pictures?.[0] || "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=80",
+          images: Array.isArray(a.pictures) ? a.pictures : [],
+          type: "activity",
+          bookingLink: a.bookingLink,
+          rawPayload: a.raw || a,
+        }));
+
+        setActivities(mapped);
+
+        if (mapped.length > 0 && !selection?.activity) {
+          setProposalSelection(tripId, { activity: mapped[0] });
+        }
+      } catch (e) {
+        setActivities([]);
+        setErrorActivities(e?.message || "Failed to load activities");
+      } finally {
+        setLoadingActivities(false);
+      }
+    };
+
+    run();
+  }, [tripDraft?.includeActivities, tripDraft?.destination, tripDraft?.checkIn, tripDraft?.checkOut, tripId, selection?.hotel?.location]);
+
+  // Load transfers from Amadeus
   useEffect(() => {
-    setTransfers([]);
-    setLoadingTransfers(false);
-    setErrorTransfers(tripDraft?.includeTransfers ? "Not available" : null);
-    if (selection?.transfer) setProposalSelection(tripId, { transfer: null });
-  }, [tripDraft?.includeTransfers, tripId]);
+    const destination = String(tripDraft?.destination || selection?.hotel?.location || "").trim();
+    const checkIn = String(tripDraft?.checkIn || "").trim();
+
+    if (!tripDraft?.includeTransfers) {
+      setTransfers([]);
+      setLoadingTransfers(false);
+      setErrorTransfers(null);
+      if (selection?.transfer) setProposalSelection(tripId, { transfer: null });
+      return;
+    }
+
+    if (!destination || !checkIn) {
+      setTransfers([]);
+      setLoadingTransfers(false);
+      setErrorTransfers("Missing destination or check-in date in trip draft");
+      return;
+    }
+
+    const run = async () => {
+      setLoadingTransfers(true);
+      setErrorTransfers(null);
+      try {
+        const dateTime = `${checkIn}T10:00:00`;
+        const qs = new URLSearchParams({
+          origin: destination,
+          destination: destination,
+          dateTime,
+          passengers: String(tripDraft?.adults || 2),
+        }).toString();
+
+        const res = await fetch(`/api/amadeus/transfers/search?${qs}`);
+        const data = await res.json().catch(() => null);
+        if (!res.ok || !data?.ok) throw new Error(data?.message || data?.error || res.statusText);
+
+        const mapped = (data.offers || []).map((t, idx) => ({
+          id: t.id || `transfer-${idx}`,
+          name: t.vehicle?.description || t.vehicle?.category || "Transfer",
+          route: `${t.origin} → ${t.destination}`,
+          date: checkIn,
+          price: t?.price?.currency && Number.isFinite(Number(t?.price?.amount)) ? `${t.price.currency} ${t.price.amount}` : "Price on request",
+          supplier: "amadeus",
+          provider: "amadeus",
+          vehicle: t.vehicle?.description || t.vehicle?.category,
+          shared: String(t.transferType || "").toUpperCase().includes("SHARED"),
+          image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=900&q=80",
+          images: [],
+          type: "transfer",
+          rawPayload: t.raw || t,
+        }));
+
+        setTransfers(mapped);
+
+        if (mapped.length > 0 && !selection?.transfer) {
+          setProposalSelection(tripId, { transfer: mapped[0] });
+          setSelectedTransferKey(mapped[0].id);
+        }
+      } catch (e) {
+        setTransfers([]);
+        setErrorTransfers(e?.message || "Failed to load transfers");
+      } finally {
+        setLoadingTransfers(false);
+      }
+    };
+
+    run();
+  }, [tripDraft?.includeTransfers, tripDraft?.destination, tripDraft?.checkIn, tripDraft?.adults, tripId, selection?.hotel?.location]);
 
   const onSelectFlight = (flight) => {
     const parsePrice = (raw) => {

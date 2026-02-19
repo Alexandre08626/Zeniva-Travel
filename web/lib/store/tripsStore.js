@@ -335,14 +335,14 @@ export async function generateProposal(tripId) {
   if (tripDraft.includeActivities) {
     sections.push({
       title: "Activities",
-      items: ["Not available"],
+      items: ["Optional experiences"],
     });
   }
 
   if (tripDraft.includeTransfers) {
     sections.push({
       title: "Transfers",
-      items: ["Not available"],
+      items: ["Ground transportation"],
     });
   }
 

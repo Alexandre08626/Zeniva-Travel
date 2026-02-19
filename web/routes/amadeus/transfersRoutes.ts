@@ -1,8 +1,45 @@
 import { z } from "zod";
 import { bookTransfer, cancelTransfer, searchTransfers } from "@/services/amadeus/transferService";
+import { searchLocations } from "@/services/amadeus/contentService";
 import { mapAmadeusError } from "@/services/amadeus/amadeusErrors";
 import { logError, logInfo, logWarn } from "@/routes/amadeus/routeUtils";
 import type { RouteResult } from "@/routes/amadeus/routeTypes";
+
+function isIataCode(value: string) {
+  return /^[A-Z]{3}$/i.test(String(value || "").trim());
+}
+
+async function resolveLocationCode(keyword: string, requestId: string, preferredSubType: "AIRPORT" | "CITY") {
+  const trimmed = String(keyword || "").trim();
+  if (!trimmed) return "";
+
+  const firstTry = await searchLocations(
+    {
+      keyword: trimmed,
+      subType: preferredSubType,
+      pageLimit: 10,
+    },
+    requestId
+  );
+
+  const pickFrom = (list: any[]) =>
+    list.find((l) => l?.iataCode) || list.find((l) => l?.cityCode) || list[0];
+
+  const pick1 = pickFrom(firstTry.locations);
+  const code1 = String(pick1?.iataCode || pick1?.cityCode || "").trim();
+  if (code1) return code1;
+
+  const fallback = await searchLocations(
+    {
+      keyword: trimmed,
+      subType: "CITY,AIRPORT",
+      pageLimit: 10,
+    },
+    requestId
+  );
+  const pick2 = pickFrom(fallback.locations);
+  return String(pick2?.iataCode || pick2?.cityCode || "").trim();
+}
 
 const searchSchema = z.object({
   origin: z.string().min(3),
@@ -41,8 +78,35 @@ export async function handleTransfersSearch(req: Request, requestId: string): Pr
   });
 
   try {
-    const { offers } = await searchTransfers(parsed.data, requestId);
-    return { status: 200, body: { ok: true, requestId, offers } };
+    let originCode = parsed.data.origin;
+    let destinationCode = parsed.data.destination;
+
+    if (!isIataCode(originCode)) {
+      originCode = await resolveLocationCode(originCode, requestId, "AIRPORT");
+    }
+
+    if (!isIataCode(destinationCode)) {
+      destinationCode = await resolveLocationCode(destinationCode, requestId, "CITY");
+    }
+
+    const { offers } = await searchTransfers(
+      {
+        ...parsed.data,
+        origin: originCode || parsed.data.origin,
+        destination: destinationCode || parsed.data.destination,
+      },
+      requestId
+    );
+
+    return {
+      status: 200,
+      body: {
+        ok: true,
+        requestId,
+        resolved: { originCode: originCode || null, destinationCode: destinationCode || null },
+        offers,
+      },
+    };
   } catch (err) {
     const mapped = mapAmadeusError(err, requestId);
     logError("amadeus:transfers", requestId, "search_failed", { status: mapped.status, code: mapped.code });
