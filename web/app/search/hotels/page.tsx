@@ -27,6 +27,8 @@ type HotelOption = {
   rating: number;
   badge?: string;
   image: string;
+  photos?: string[];
+  provider?: string;
 };
 type StayOption = HotelOption & {
   searchResultId?: string;
@@ -44,7 +46,7 @@ function HotelsSearchContent() {
   const router = useRouter();
   const params = useSearchParams();
   const BOOKING_DRAFT_KEY = "hotel_booking_draft_v1";
-  const USE_AMADEUS_ONLY = true;
+  const USE_AMADEUS_ONLY = false;
 
 
   const destination = params.get("destination") || "";
@@ -173,6 +175,86 @@ function HotelsSearchContent() {
     }
 
     return { primary: `${currency} ${amount.toFixed(2)}` };
+  };
+
+  const parsePriceAmount = (rawPrice?: string): { amount: number | null; hasPrice: boolean } => {
+    if (!rawPrice) return { amount: null, hasPrice: false };
+    const trimmed = String(rawPrice || "").trim();
+    if (!trimmed) return { amount: null, hasPrice: false };
+    if (/price\s+on\s+request/i.test(trimmed)) return { amount: null, hasPrice: false };
+    const match = trimmed.match(/^([A-Z]{3})\s*([0-9,.]+)/i);
+    const amount = match?.[2] ? Number(match[2].replace(/,/g, "")) : NaN;
+    if (Number.isFinite(amount)) return { amount, hasPrice: true };
+    return { amount: null, hasPrice: true };
+  };
+
+  const mergedOptions = useMemo(() => {
+    const all: StayOption[] = [];
+
+    for (const item of liteApiOptions || []) {
+      all.push({
+        ...(item as any),
+        perks: Array.isArray((item as any)?.perks) ? (item as any).perks : [],
+        photos: Array.isArray((item as any)?.photos) ? (item as any).photos : [],
+        provider: (item as any)?.provider || "liteapi",
+      });
+    }
+
+    for (const item of amadeusOptions || []) {
+      all.push({
+        ...(item as any),
+        perks: Array.isArray((item as any)?.perks)
+          ? (item as any).perks
+          : (Array.isArray((item as any)?.amenities) ? (item as any).amenities : []),
+        photos: Array.isArray((item as any)?.photos) ? (item as any).photos : [],
+        provider: (item as any)?.provider || "amadeus",
+      });
+    }
+
+    for (const item of options || []) {
+      all.push({
+        ...(item as any),
+        perks: Array.isArray((item as any)?.perks) ? (item as any).perks : [],
+        photos: Array.isArray((item as any)?.photos) ? (item as any).photos : [],
+        provider: (item as any)?.provider || "duffel",
+      });
+    }
+
+    // De-dupe by id, keep the first occurrence.
+    const byId = new Map<string, StayOption>();
+    for (const item of all) {
+      if (!item?.id) continue;
+      if (!byId.has(item.id)) byId.set(item.id, item);
+    }
+
+    const list = Array.from(byId.values());
+    // Prefer options with real prices; then sort by amount when parseable.
+    list.sort((a, b) => {
+      const pa = parsePriceAmount(a.price);
+      const pb = parsePriceAmount(b.price);
+      if (pa.hasPrice !== pb.hasPrice) return pa.hasPrice ? -1 : 1;
+      if (pa.amount !== null && pb.amount !== null) return pa.amount - pb.amount;
+      return 0;
+    });
+
+    return list;
+  }, [liteApiOptions, amadeusOptions, options]);
+
+  const anySearchLoading = bookingStep === "search" && (loading || amadeusLoading || liteApiLoading);
+  const anySearchError = bookingStep === "search" && Boolean(error || amadeusError || liteApiError);
+
+  const handleSelectPartnerAccommodation = (option: StayOption) => {
+    const provider = (option as any)?.provider;
+    if (provider === "liteapi") {
+      handleSelectLiteApiAccommodation(option);
+      return;
+    }
+    if (provider === "amadeus") {
+      handleSelectAmadeusAccommodation(option);
+      return;
+    }
+    // Default to Duffel flow when we have a searchResultId.
+    handleSelectAccommodation(option);
   };
 
   const askPrompt = `Shortlist hotels in ${destination || "this city"} for ${summary.guestLabel}${budget ? ` under ${budget}` : ""}. Dates ${summary.stay}. Highlight top perks and flexible cancel. Keep ${selectedId || "top pick"} selected.`;
@@ -518,7 +600,6 @@ function HotelsSearchContent() {
     const loadDuffelStays = async () => {
       if (USE_AMADEUS_ONLY) {
         setOptions([]);
-        setSelectedId("");
         setError(null);
         return;
       }
@@ -533,12 +614,11 @@ function HotelsSearchContent() {
           throw new Error(json?.error || res.statusText);
         }
         const list: StayOption[] = json?.offers || [];
-        setOptions(list);
-        setSelectedId(list[0]?.id || "");
+        setOptions(list.map((x: any) => ({ ...x, provider: x?.provider || "duffel" })));
       } catch (e: any) {
         setOptions([]);
-        setSelectedId("");
-        setError(e?.message || "Failed to load Duffel stays");
+        console.error("Hotel partner load failed:", e);
+        setError("Failed to load some hotel results");
       } finally {
         setLoading(false);
       }
@@ -577,11 +657,17 @@ function HotelsSearchContent() {
         if (!res.ok || !json?.ok) {
           throw new Error(json?.error || res.statusText);
         }
-        const list: StayOption[] = json?.offers || [];
+        const list: StayOption[] = (json?.offers || []).map((x: any) => ({
+          ...x,
+          perks: Array.isArray(x?.perks) ? x.perks : (Array.isArray(x?.amenities) ? x.amenities : []),
+          photos: Array.isArray(x?.photos) ? x.photos : [],
+          provider: x?.provider || "amadeus",
+        }));
         setAmadeusOptions(list);
       } catch (e: any) {
         setAmadeusOptions([]);
-        setAmadeusError(e?.message || "Failed to load Amadeus hotels");
+        console.error("Hotel partner load failed:", e);
+        setAmadeusError("Failed to load some hotel results");
       } finally {
         setAmadeusLoading(false);
       }
@@ -601,11 +687,17 @@ function HotelsSearchContent() {
           const attemptsLabel = attempts ? ` (tried: ${attempts.map((a: any) => `${a.path}:${a.status}`).join(", ")})` : "";
           throw new Error((json?.error || `LiteAPI request failed (HTTP ${status || res.status})`) + attemptsLabel);
         }
-        const list: StayOption[] = json?.offers || [];
+        const list: StayOption[] = (json?.offers || []).map((x: any) => ({
+          ...x,
+          perks: Array.isArray(x?.perks) ? x.perks : [],
+          photos: Array.isArray(x?.photos) ? x.photos : [],
+          provider: x?.provider || "liteapi",
+        }));
         setLiteApiOptions(list);
       } catch (e: any) {
         setLiteApiOptions([]);
-        setLiteApiError(e?.message || "Failed to load LiteAPI hotels");
+        console.error("Hotel partner load failed:", e);
+        setLiteApiError("Failed to load some hotel results");
       } finally {
         setLiteApiLoading(false);
       }
@@ -615,6 +707,14 @@ function HotelsSearchContent() {
     loadAmadeus();
     loadLiteApi();
   }, [destination, checkIn, checkOut, guests, rooms, budget]);
+
+  React.useEffect(() => {
+    if (bookingStep !== "search") return;
+    if (selectedId) return;
+    const first = mergedOptions[0];
+    if (!first?.id) return;
+    setSelectedId(first.id);
+  }, [bookingStep, mergedOptions, selectedId]);
 
   React.useEffect(() => {
     if (resume !== "payment") return;
@@ -668,186 +768,73 @@ function HotelsSearchContent() {
                 ← Back to search
               </button>
             )}
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">{options.length + amadeusOptions.length + liteApiOptions.length} total options</span>
+            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">{mergedOptions.length} options</span>
             {budget && <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-800">Budget cap {budget}</span>}
           </div>
         </header>
 
         {bookingStep === 'search' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* LiteAPI Section */}
-            <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-800">🏨 LiteAPI Hotels</h2>
-                <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">{liteApiOptions.length} options</span>
+          <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-slate-800">Hotels</h2>
+              <span className="text-xs bg-slate-100 text-slate-800 px-2 py-1 rounded-full">{mergedOptions.length} options</span>
+            </div>
+
+            {anySearchLoading && (
+              <div className="rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-sm text-slate-700">Loading hotel results…</div>
+            )}
+            {anySearchError && (
+              <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
+                Some results could not be loaded. Showing what’s available.
               </div>
-
-              {liteApiLoading && <div className="rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-sm text-slate-700">Loading LiteAPI hotels…</div>}
-              {liteApiError && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">{liteApiError}</div>}
-
-              <div className="space-y-3">
-                {liteApiOptions.map((h) => (
-                  <button
-                    key={h.id}
-                    onClick={() => handleSelectLiteApiAccommodation(h)}
-                    className={`w-full rounded-xl border bg-slate-50 p-3 shadow-sm flex flex-col gap-3 text-left md:flex-row md:items-center md:justify-between ${selectedId === h.id ? "border-blue-500 ring-2 ring-blue-100" : "border-slate-200"}`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="h-16 w-20 overflow-hidden rounded-lg bg-white border border-slate-200">
-                        <img src={h.image} alt={h.name} className="h-full w-full object-cover" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm font-semibold text-slate-800">{h.name}</p>
-                        <p className="text-xs text-slate-600">{h.location}</p>
-                        <p className="text-xs text-slate-600">{h.room}</p>
-                        <div className="flex flex-wrap gap-1 text-[11px] text-slate-700">
-                          {(h.perks || []).map((p: any, idx: number) => {
-                            const label = typeof p === 'string' ? p : (p && (p.label || p.name)) || JSON.stringify(p);
-                            const key = `${label}-${idx}`;
-                            return (
-                              <span key={key} className="rounded-full bg-white border px-2 py-[3px]">{label}</span>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-1">
-                      {(() => {
-                        const price = getPriceDisplay(h.price);
-                        return (
-                          <>
-                            <p className="text-lg font-bold text-slate-900">{price.primary}</p>
-                            {price.secondary && <p className="text-xs text-slate-600">{price.secondary}</p>}
-                          </>
-                        );
-                      })()}
-                      {h.badge && <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">{h.badge}</span>}
-                    </div>
-                  </button>
-                ))}
-
-                {!liteApiLoading && liteApiOptions.length === 0 && !liteApiError && (
-                  <div className="rounded-xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-600">No LiteAPI hotels found. Try adjusting dates or destination.</div>
-                )}
-              </div>
-            </section>
-
-            {/* Duffel Stays Section */}
-            {!USE_AMADEUS_ONLY && (
-            <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-800">🏨 Duffel Stays</h2>
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{options.length} options</span>
-              </div>
-
-              {loading && <div className="rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-sm text-slate-700">Loading Duffel stays…</div>}
-              {error && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">{error}</div>}
-
-              <div className="space-y-3">
-                {options.map((h) => (
-                  <button
-                    key={h.id}
-                    onClick={() => handleSelectAccommodation(h)}
-                    className={`w-full rounded-xl border bg-slate-50 p-3 shadow-sm flex flex-col gap-3 text-left md:flex-row md:items-center md:justify-between ${selectedId === h.id ? "border-blue-500 ring-2 ring-blue-100" : "border-slate-200"}`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="h-16 w-20 overflow-hidden rounded-lg bg-white border border-slate-200">
-                        <img src={h.image} alt={h.name} className="h-full w-full object-cover" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm font-semibold text-slate-800">{h.name}</p>
-                        <p className="text-xs text-slate-600">{h.location}</p>
-                        <p className="text-xs text-slate-600">{h.room}</p>
-                        <div className="flex flex-wrap gap-1 text-[11px] text-slate-700">
-                          {(h.perks || []).map((p: any, idx: number) => {
-                            const label = typeof p === 'string' ? p : (p && (p.label || p.name)) || JSON.stringify(p);
-                            const key = `${label}-${idx}`;
-                            return (
-                              <span key={key} className="rounded-full bg-white border px-2 py-[3px]">{label}</span>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-1">
-                      {(() => {
-                        const price = getPriceDisplay(h.price);
-                        return (
-                          <>
-                            <p className="text-lg font-bold text-slate-900">{price.primary}</p>
-                            {price.secondary && <p className="text-xs text-slate-600">{price.secondary}</p>}
-                          </>
-                        );
-                      })()}
-                      {h.badge && <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">{h.badge}</span>}
-                    </div>
-                  </button>
-                ))}
-
-                {!loading && options.length === 0 && !error && (
-                  <div className="rounded-xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-600">No Duffel stays found. Try adjusting dates or destination.</div>
-                )}
-              </div>
-            </section>
             )}
 
-            {/* Amadeus Section */}
-            <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-800">✈️ Amadeus Hotels</h2>
-                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">{amadeusOptions.length} options</span>
-              </div>
-
-              {amadeusLoading && <div className="rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-sm text-slate-700">Loading Amadeus hotels…</div>}
-              {amadeusError && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">{amadeusError}</div>}
-
-              <div className="space-y-3">
-                {amadeusOptions.map((h) => (
-                  <button
-                    key={h.id}
-                    onClick={() => handleSelectAmadeusAccommodation(h)}
-                    className={`w-full rounded-xl border bg-slate-50 p-3 shadow-sm flex flex-col gap-3 text-left md:flex-row md:items-center md:justify-between ${selectedId === h.id ? "border-blue-500 ring-2 ring-blue-100" : "border-slate-200"}`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="h-16 w-20 overflow-hidden rounded-lg bg-white border border-slate-200">
-                        <img src={h.image} alt={h.name} className="h-full w-full object-cover" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm font-semibold text-slate-800">{h.name}</p>
-                        <p className="text-xs text-slate-600">{h.location}</p>
-                        <p className="text-xs text-slate-600">{h.room}</p>
-                        <div className="flex flex-wrap gap-1 text-[11px] text-slate-700">
-                          {(h.perks || []).map((p: any, idx: number) => {
-                            const label = typeof p === 'string' ? p : (p && (p.label || p.name)) || JSON.stringify(p);
-                            const key = `${label}-${idx}`;
-                            return (
-                              <span key={key} className="rounded-full bg-white border px-2 py-[3px]">{label}</span>
-                            );
-                          })}
-                        </div>
+            <div className="space-y-3">
+              {mergedOptions.map((h) => (
+                <button
+                  key={h.id}
+                  onClick={() => handleSelectPartnerAccommodation(h)}
+                  className={`w-full rounded-xl border bg-slate-50 p-3 shadow-sm flex flex-col gap-3 text-left md:flex-row md:items-center md:justify-between ${selectedId === h.id ? "border-blue-500 ring-2 ring-blue-100" : "border-slate-200"}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="h-16 w-20 overflow-hidden rounded-lg bg-white border border-slate-200">
+                      <img src={h.image} alt={h.name} className="h-full w-full object-cover" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-slate-800">{h.name}</p>
+                      <p className="text-xs text-slate-600">{h.location}</p>
+                      <p className="text-xs text-slate-600">{h.room}</p>
+                      <div className="flex flex-wrap gap-1 text-[11px] text-slate-700">
+                        {(h.perks || []).map((p: any, idx: number) => {
+                          const label = typeof p === 'string' ? p : (p && (p.label || p.name)) || JSON.stringify(p);
+                          const key = `${label}-${idx}`;
+                          return (
+                            <span key={key} className="rounded-full bg-white border px-2 py-[3px]">{label}</span>
+                          );
+                        })}
                       </div>
                     </div>
-                    <div className="flex flex-col items-end gap-1">
-                      {(() => {
-                        const price = getPriceDisplay(h.price);
-                        return (
-                          <>
-                            <p className="text-lg font-bold text-slate-900">{price.primary}</p>
-                            {price.secondary && <p className="text-xs text-slate-600">{price.secondary}</p>}
-                          </>
-                        );
-                      })()}
-                      {h.badge && <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">{h.badge}</span>}
-                    </div>
-                  </button>
-                ))}
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    {(() => {
+                      const price = getPriceDisplay(h.price);
+                      return (
+                        <>
+                          <p className="text-lg font-bold text-slate-900">{price.primary}</p>
+                          {price.secondary && <p className="text-xs text-slate-600">{price.secondary}</p>}
+                        </>
+                      );
+                    })()}
+                    {h.badge && <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">{h.badge}</span>}
+                  </div>
+                </button>
+              ))}
 
-                {!amadeusLoading && amadeusOptions.length === 0 && !amadeusError && (
-                  <div className="rounded-xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-600">No Amadeus hotels found. Try adjusting dates or destination.</div>
-                )}
-              </div>
-            </section>
-          </div>
+              {!anySearchLoading && mergedOptions.length === 0 && !anySearchError && (
+                <div className="rounded-xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-600">No hotels found. Try adjusting dates or destination.</div>
+              )}
+            </div>
+          </section>
         )}
 
         {bookingStep === 'rates' && selectedSearchResult && (
