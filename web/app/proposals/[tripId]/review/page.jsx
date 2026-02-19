@@ -290,7 +290,7 @@ export default function ProposalReviewPage() {
           room: selectedStay?.room || "Room",
           image: selectedStay?.image || "",
           photos: Array.isArray(selectedStay?.images) ? selectedStay.images : [selectedStay?.image].filter(Boolean),
-          provider: selectedStay?.provider || "amadeus",
+          provider: selectedStay?.provider || "liteapi",
         },
         selectedRateId: `proposal-rate-${tripId}`,
         selectedRate: {

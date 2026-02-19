@@ -123,7 +123,6 @@ function getPartnerLogo(partner) {
   if (!key) return "";
   const map = {
     duffel: "https://logo.clearbit.com/duffel.com",
-    amadeus: "https://logo.clearbit.com/amadeus.com",
     hotelbeds: "https://logo.clearbit.com/hotelbeds.com",
     airbnb: "https://logo.clearbit.com/airbnb.com",
     ycn: "https://logo.clearbit.com/yachtcharternetwork.com",
@@ -435,7 +434,7 @@ export default function ProposalSelectPage() {
       return;
     }
 
-    // Default to Hotel: call Amadeus (temporary single provider)
+    // Default to Hotel: use LiteAPI (live)
     if (!destination || !checkIn || !checkOut) {
       setHotels([]);
       setErrorHotels("Missing destination or dates in trip draft");
@@ -446,47 +445,41 @@ export default function ProposalSelectPage() {
       setLoadingHotels(true);
       setErrorHotels(null);
       try {
-        const cityCode = resolveIATA(destination) || String(destination).trim().slice(0, 3).toUpperCase();
         const qs = new URLSearchParams({
-          cityCode,
+          destination: String(destination),
           checkIn,
           checkOut,
-          adults: String(tripDraft?.adults || 2),
-          radius: "10",
+          guests: String(tripDraft?.adults || 2),
+          rooms: "1",
         }).toString();
-        console.log("Fetching hotels from Amadeus with qs:", qs);
-        const res = await fetch(`/api/partners/amadeus?${qs}`);
-        const json = await res.json();
-        console.log("Amadeus Hotels API response:", json);
 
+        const res = await fetch(`/api/partners/liteapi/hotels/search?${qs}`);
+        const json = await res.json().catch(() => null);
         if (!res.ok || !json?.ok) throw new Error(json?.error || res.statusText);
-        const list = json?.offers || [];
-        console.log("Setting Amadeus hotels:", list);
-        if (list.length === 0) {
-          console.log("No Amadeus offers found, using mock hotels");
-          const mocks = getMockHotels(destination);
-          const normalizedMocks = mocks.map((h) => ({ ...h, provider: "Amadeus", rating: 4.5, type: "hotel" }));
-          setHotels(normalizedMocks);
-          setProposalSelection(tripId, { hotel: normalizedMocks[0] });
-        } else {
-          const normalizedHotels = list.map((h) => ({
-            ...h,
-            provider: "Amadeus",
-            rating: Number(h.rating || h.review_score || 4.5),
-            type: h.type || "hotel",
-            image: h.image || (Array.isArray(h.photos) ? h.photos[0] : "") || h.thumbnail,
-            images: Array.isArray(h.photos) && h.photos.length > 0 ? h.photos : [h.image].filter(Boolean),
-          }));
-          setHotels(normalizedHotels);
-          setProposalSelection(tripId, { hotel: normalizedHotels[0] || null });
-        }
+
+        const list = Array.isArray(json?.offers) ? json.offers : [];
+        const normalizedHotels = list.map((h) => ({
+          id: h.id,
+          name: h.name,
+          location: h.location,
+          price: h.price,
+          room: h.room || "Room",
+          rating: Number(h.rating || 0),
+          badge: h.badge,
+          image: h.image,
+          images: [h.image].filter(Boolean),
+          type: "hotel",
+          provider: "liteapi",
+          perks: Array.isArray(h.perks) ? h.perks : [],
+        }));
+
+        setHotels(normalizedHotels);
+        setProposalSelection(tripId, { hotel: normalizedHotels[0] || null });
       } catch (e) {
         console.error("Hotels fetch error:", e);
-        const mocks = getMockHotels(destination);
-        const normalizedMocks = mocks.map((h) => ({ ...h, provider: "Amadeus", rating: 4.5, type: "hotel" }));
-        setHotels(normalizedMocks);
-        setProposalSelection(tripId, { hotel: normalizedMocks[0] });
-        setErrorHotels(e?.message || "Failed to load Amadeus hotels (showing mock options)");
+        setHotels([]);
+        setProposalSelection(tripId, { hotel: null });
+        setErrorHotels(e?.message || "Failed to load hotels");
       } finally {
         setLoadingHotels(false);
       }
@@ -686,10 +679,7 @@ export default function ProposalSelectPage() {
     [flights]
   );
 
-  const hotelProviders = useMemo(
-    () => ["all", ...Array.from(new Set(hotels.map((hotel) => String(hotel?.provider || "").trim()).filter(Boolean)))],
-    [hotels]
-  );
+  const hotelProviders = useMemo(() => ["all"], []);
   const activitySuppliers = useMemo(
     () => ["all", ...Array.from(new Set(activities.map((activity) => String(activity?.supplier || activity?.provider || "").trim()).filter(Boolean)))],
     [activities]
@@ -735,7 +725,6 @@ export default function ProposalSelectPage() {
       const hay = `${hotel.name} ${hotel.location} ${hotel.room}`.toLowerCase();
       if (!hay.includes(query)) return false;
     }
-    if (filters.hotelProvider !== "all" && String(hotel?.provider || "").toLowerCase() !== String(filters.hotelProvider).toLowerCase()) return false;
 
     const hotelType = String(hotel?.type || (hotel?.room === "Yacht" ? "yacht" : "hotel")).toLowerCase();
     if (filters.hotelType !== "all" && hotelType !== filters.hotelType) return false;
@@ -923,10 +912,7 @@ export default function ProposalSelectPage() {
             <section className="space-y-2">
               <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">Hotels / Stays</p>
               <input value={filters.hotelQuery} onChange={(e) => setFilters((prev) => ({ ...prev, hotelQuery: e.target.value }))} placeholder="Hotel, location, room" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-              <div className="grid grid-cols-2 gap-2">
-                <select value={filters.hotelProvider} onChange={(e) => setFilters((prev) => ({ ...prev, hotelProvider: e.target.value }))} className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
-                  {hotelProviders.map((provider) => <option key={provider} value={provider}>{provider === "all" ? "All providers" : provider}</option>)}
-                </select>
+              <div className="grid grid-cols-1 gap-2">
                 <select value={filters.hotelType} onChange={(e) => setFilters((prev) => ({ ...prev, hotelType: e.target.value }))} className="rounded-lg border border-slate-200 px-3 py-2 text-sm">
                   <option value="all">All types</option>
                   <option value="hotel">Hotel</option>
@@ -1107,7 +1093,7 @@ export default function ProposalSelectPage() {
                   const image = h.image || hotelImages[0];
                   const isYacht = h.room === "Yacht";
                   const images = isYacht ? (h.images || [image]) : [image];
-                  const providerLogo = getPartnerLogo(h.provider);
+                  const ratingLabel = h.rating ? `${Number(h.rating).toFixed(1)}★` : "";
                   
                   return (
                     <button
@@ -1118,11 +1104,6 @@ export default function ProposalSelectPage() {
                       }`}
                     >
                       <div className="h-32 w-full overflow-hidden relative">
-                        {providerLogo ? (
-                          <div className="absolute top-2 left-2 z-10 rounded-full border border-white bg-white/95 p-1">
-                            <img src={providerLogo} alt={h.provider || "Partner"} className="h-5 w-5 object-contain" loading="lazy" />
-                          </div>
-                        ) : null}
                         {images.length > 1 ? (
                           <div className="flex h-full">
                             <img src={images[0]} alt={h.name} className="h-full w-2/3 object-cover" />
@@ -1144,7 +1125,7 @@ export default function ProposalSelectPage() {
                       <div className="p-3 space-y-1">
                         <div className="text-sm font-bold" style={{ color: TITLE_TEXT }}>{h.name}</div>
                         <div className="text-xs" style={{ color: MUTED_TEXT }}>{h.room} • {h.location}</div>
-                        <div className="text-xs" style={{ color: MUTED_TEXT }}>Partner: {h.provider || "Local partner"}{h.rating ? ` • ${Number(h.rating).toFixed(1)}★` : ""}</div>
+                        {ratingLabel ? <div className="text-xs" style={{ color: MUTED_TEXT }}>{ratingLabel}</div> : null}
                         <div className="text-sm font-extrabold" style={{ color: PREMIUM_BLUE }}>{h.price}</div>
                       </div>
                     </button>
