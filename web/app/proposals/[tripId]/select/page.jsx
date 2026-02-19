@@ -164,6 +164,10 @@ export default function ProposalSelectPage() {
   const modeSuffix = isAgentMode ? "?mode=agent" : "";
 
   const [flights, setFlights] = useState([]);
+  const [outboundFlights, setOutboundFlights] = useState([]);
+  const [returnFlights, setReturnFlights] = useState([]);
+  const [flightLeg, setFlightLeg] = useState("outbound");
+  const [selectedOutbound, setSelectedOutbound] = useState(null);
   const [hotels, setHotels] = useState([]);
   const [activities, setActivities] = useState([]);
   const [transfers, setTransfers] = useState([]);
@@ -253,6 +257,8 @@ export default function ProposalSelectPage() {
     return { depart, ret };
   }, [tripDraft]);
 
+  const hasReturnLeg = Boolean(String(tripDraft?.checkOut || parsedDates.ret || "").trim());
+
   const flightSearchContext = useMemo(() => {
     const origin =
       resolveIATA(tripDraft?.departureCity) ||
@@ -266,99 +272,145 @@ export default function ProposalSelectPage() {
       tripDraft?.checkIn ||
       parsedDates.depart ||
       (snapshot?.dates?.split(" → ")[0]) ||
+      selection?.flight?.outbound?.date ||
       selection?.flight?.date ||
+      "";
+
+    const returnDate =
+      tripDraft?.checkOut ||
+      parsedDates.ret ||
+      (snapshot?.dates?.split(" → ")[1]) ||
+      selection?.flight?.inbound?.date ||
       "";
 
     return {
       origin: String(origin || "").toUpperCase(),
       destination: String(destination || "").toUpperCase(),
       date: String(date || "").trim(),
+      returnDate: String(returnDate || "").trim(),
     };
-  }, [tripDraft?.departureCity, tripDraft?.destination, tripDraft?.checkIn, snapshot?.departure, snapshot?.destination, snapshot?.dates, parsedDates.depart, selection?.flight?.date]);
+  }, [
+    tripDraft?.departureCity,
+    tripDraft?.destination,
+    tripDraft?.checkIn,
+    tripDraft?.checkOut,
+    snapshot?.departure,
+    snapshot?.destination,
+    snapshot?.dates,
+    parsedDates.depart,
+    parsedDates.ret,
+    selection?.flight?.date,
+    selection?.flight?.outbound?.date,
+    selection?.flight?.inbound?.date,
+  ]);
 
   useEffect(() => {
     const origin = flightSearchContext.origin;
     const destination = flightSearchContext.destination;
     const date = flightSearchContext.date;
+    const returnDate = flightSearchContext.returnDate;
 
     if (!origin || !destination || !date) {
       setFlights([]);
+      setOutboundFlights([]);
+      setReturnFlights([]);
+      setSelectedOutbound(null);
       setErrorFlights("Missing origin, destination, or departure date in trip data");
       setLoadingFlights(false);
       return;
     }
 
+    const mapOffer = (o, idx, originFallback, destinationFallback) => {
+      const slice = o?.slices?.[0];
+      const firstSeg = slice?.segments?.[0];
+      const lastSeg = slice?.segments?.[slice?.segments?.length - 1];
+      const segments = Array.isArray(slice?.segments)
+        ? slice.segments.map((seg) => ({
+            marketingCarrier: seg?.marketing_carrier?.name,
+            operatingCarrier: seg?.operating_carrier?.name,
+            marketingFlightNumber: seg?.marketing_carrier_flight_number,
+            operatingFlightNumber: seg?.operating_carrier_flight_number,
+            departingAt: seg?.departing_at,
+            arrivingAt: seg?.arriving_at,
+            origin: {
+              code: seg?.origin?.iata_code,
+              name: seg?.origin?.iata_city_name || seg?.origin?.name || seg?.origin?.iata_code,
+              airport: seg?.origin?.name,
+            },
+            destination: {
+              code: seg?.destination?.iata_code,
+              name: seg?.destination?.iata_city_name || seg?.destination?.name || seg?.destination?.iata_code,
+              airport: seg?.destination?.name,
+            },
+            aircraft: seg?.aircraft?.name || seg?.aircraft?.iata_code,
+          }))
+        : [];
+
+      const departureTime = firstSeg?.departing_at ? new Date(firstSeg.departing_at) : null;
+      const arrivalTime = lastSeg?.arriving_at ? new Date(lastSeg.arriving_at) : null;
+      const durationMs = departureTime && arrivalTime ? arrivalTime - departureTime : 0;
+      const durationHours = Math.floor(durationMs / (1000 * 60 * 60));
+      const durationMinutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+      const duration = durationMs > 0 ? `${durationHours}h ${durationMinutes}m` : "";
+      const dateLabel = departureTime ? departureTime.toLocaleDateString() : "";
+
+      const flightNumber = firstSeg?.marketing_carrier_flight_number || firstSeg?.operating_carrier_flight_number || "";
+      const originCode = String(firstSeg?.origin?.iata_code || originFallback || "").toUpperCase();
+      const destinationCode = String(lastSeg?.destination?.iata_code || destinationFallback || "").toUpperCase();
+      const originName = firstSeg?.origin?.iata_city_name || firstSeg?.origin?.name || originCode;
+      const destinationName = lastSeg?.destination?.iata_city_name || lastSeg?.destination?.name || destinationCode;
+
+      return {
+        id: o?.id || `offer-${idx}`,
+        airline: firstSeg?.marketing_carrier?.name || firstSeg?.operating_carrier?.name || "Airline",
+        carrierCode: firstSeg?.marketing_carrier?.iata_code || firstSeg?.operating_carrier?.iata_code || "",
+        route: `${originCode} → ${destinationCode}`,
+        times: `${firstSeg?.departing_at?.slice(11, 16) || ""} – ${lastSeg?.arriving_at?.slice(11, 16) || ""}`,
+        fare: o?.cabin_class || o?.cabin || "",
+        price: o?.total_currency && o?.total_amount ? `${o.total_currency} ${o.total_amount}` : "Price on request",
+        bags: o?.baggage?.included || "",
+        flightNumber,
+        duration,
+        date: dateLabel,
+        originName,
+        destinationName,
+        layovers: (slice?.segments?.length || 1) - 1,
+        carrierLogo: getAirlineLogoFromFlight({
+          carrierCode: firstSeg?.marketing_carrier?.iata_code || firstSeg?.operating_carrier?.iata_code || "",
+          flightNumber,
+        }),
+        segments,
+      };
+    };
+
     const run = async () => {
       setLoadingFlights(true);
       setErrorFlights(null);
       try {
-        const qs = new URLSearchParams({ origin, destination, date });
-        const res = await fetch(`/api/partners/duffel?${qs.toString()}`);
-        const json = await res.json();
-        if (!res.ok || !json?.ok) throw new Error(json?.error || res.statusText);
-        const offers = json?.result?.data?.offers || json?.result?.offers || json?.offers || [];
-        const mapped = offers.map((o, idx) => {
-          const slice = o?.slices?.[0];
-          const firstSeg = slice?.segments?.[0];
-          const lastSeg = slice?.segments?.[slice?.segments?.length - 1];
-          const segments = Array.isArray(slice?.segments)
-            ? slice.segments.map((seg) => ({
-                marketingCarrier: seg?.marketing_carrier?.name,
-                operatingCarrier: seg?.operating_carrier?.name,
-                marketingFlightNumber: seg?.marketing_carrier_flight_number,
-                operatingFlightNumber: seg?.operating_carrier_flight_number,
-                departingAt: seg?.departing_at,
-                arrivingAt: seg?.arriving_at,
-                origin: {
-                  code: seg?.origin?.iata_code,
-                  name: seg?.origin?.iata_city_name || seg?.origin?.name || seg?.origin?.iata_code,
-                  airport: seg?.origin?.name,
-                },
-                destination: {
-                  code: seg?.destination?.iata_code,
-                  name: seg?.destination?.iata_city_name || seg?.destination?.name || seg?.destination?.iata_code,
-                  airport: seg?.destination?.name,
-                },
-                aircraft: seg?.aircraft?.name || seg?.aircraft?.iata_code,
-              }))
-            : [];
-          const departureTime = firstSeg?.departing_at ? new Date(firstSeg.departing_at) : null;
-          const arrivalTime = lastSeg?.arriving_at ? new Date(lastSeg.arriving_at) : null;
-          const durationMs = departureTime && arrivalTime ? arrivalTime - departureTime : 0;
-          const durationHours = Math.floor(durationMs / (1000 * 60 * 60));
-          const durationMinutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
-          const duration = durationMs > 0 ? `${durationHours}h ${durationMinutes}m` : "";
-          const date = departureTime ? departureTime.toLocaleDateString() : "";
-          const flightNumber = firstSeg?.marketing_carrier_flight_number || firstSeg?.operating_carrier_flight_number || "";
-          const originCode = String(firstSeg?.origin?.iata_code || origin || "").toUpperCase();
-          const destinationCode = String(lastSeg?.destination?.iata_code || destination || "").toUpperCase();
-          const originName = firstSeg?.origin?.iata_city_name || firstSeg?.origin?.name || originCode;
-          const destinationName = lastSeg?.destination?.iata_city_name || lastSeg?.destination?.name || destinationCode;
-          return {
-            id: o?.id || `offer-${idx}`,
-            airline: firstSeg?.marketing_carrier?.name || firstSeg?.operating_carrier?.name || "Airline",
-            carrierCode: firstSeg?.marketing_carrier?.iata_code || firstSeg?.operating_carrier?.iata_code || "",
-            route: `${originCode} → ${destinationCode}`,
-            times: `${firstSeg?.departing_at?.slice(11, 16) || ""} – ${lastSeg?.arriving_at?.slice(11, 16) || ""}`,
-            fare: o?.cabin_class || o?.cabin || "",
-            price: o?.total_currency && o?.total_amount ? `${o.total_currency} ${o.total_amount}` : "Price on request",
-            bags: o?.baggage?.included || "",
-            flightNumber,
-            duration,
-            date,
-            originName,
-            destinationName,
-            layovers: slice?.segments?.length - 1 || 0,
-            carrierLogo: getAirlineLogoFromFlight({
-              carrierCode: firstSeg?.marketing_carrier?.iata_code || firstSeg?.operating_carrier?.iata_code || "",
-              flightNumber,
-            }),
-            segments,
-          };
-        });
-        setFlights(mapped);
+        const outQs = new URLSearchParams({ origin, destination, date });
+        const outRes = await fetch(`/api/partners/duffel?${outQs.toString()}`);
+        const outJson = await outRes.json();
+        if (!outRes.ok || !outJson?.ok) throw new Error(outJson?.error || outRes.statusText);
+        const outOffers = outJson?.result?.data?.offers || outJson?.result?.offers || outJson?.offers || [];
+        const outMapped = outOffers.map((o, idx) => mapOffer(o, idx, origin, destination));
+        setOutboundFlights(outMapped);
+
+        let inMapped = [];
+        if (returnDate) {
+          const inQs = new URLSearchParams({ origin: destination, destination: origin, date: returnDate });
+          const inRes = await fetch(`/api/partners/duffel?${inQs.toString()}`);
+          const inJson = await inRes.json();
+          if (inRes.ok && inJson?.ok) {
+            const inOffers = inJson?.result?.data?.offers || inJson?.result?.offers || inJson?.offers || [];
+            inMapped = inOffers.map((o, idx) => mapOffer(o, idx, destination, origin));
+          }
+        }
+        setReturnFlights(inMapped);
       } catch (e) {
         setFlights([]);
+        setOutboundFlights([]);
+        setReturnFlights([]);
+        setSelectedOutbound(null);
         setErrorFlights(e?.message || "Failed to load flights");
       } finally {
         setLoadingFlights(false);
@@ -366,17 +418,21 @@ export default function ProposalSelectPage() {
     };
 
     run();
-  }, [flightSearchContext.origin, flightSearchContext.destination, flightSearchContext.date]);
+  }, [flightSearchContext.origin, flightSearchContext.destination, flightSearchContext.date, flightSearchContext.returnDate]);
 
   useEffect(() => {
-    if (!flights.length) return;
-    const expectedRoute = `${flightSearchContext.origin} → ${flightSearchContext.destination}`;
-    const selectedRoute = String(selection?.flight?.route || "").trim();
+    const next = flightLeg === "return" ? returnFlights : outboundFlights;
+    setFlights(Array.isArray(next) ? next : []);
+    setExpandedFlightId("");
+  }, [flightLeg, outboundFlights, returnFlights]);
 
-    if (!selection?.flight || selectedRoute !== expectedRoute) {
-      setProposalSelection(tripId, { flight: flights[0] });
-    }
-  }, [flights, selection?.flight, tripId, flightSearchContext.origin, flightSearchContext.destination]);
+  // Auto-select first outbound option for the user.
+  useEffect(() => {
+    if (selection?.flight) return;
+    if (outboundFlights.length === 0) return;
+    setSelectedOutbound(outboundFlights[0]);
+    setProposalSelection(tripId, { flight: outboundFlights[0] });
+  }, [outboundFlights, selection?.flight, tripId]);
 
   useEffect(() => {
     const accommodationType = tripDraft?.accommodationType;
@@ -655,6 +711,47 @@ export default function ProposalSelectPage() {
   }, [tripDraft?.destination, tripDraft?.checkIn, tripDraft?.adults, tripDraft?.includeTransfers, tripId, selection?.hotel?.location]);
 
   const onSelectFlight = (flight) => {
+    const parsePrice = (raw) => {
+      const s = String(raw || "").trim();
+      const m = s.match(/^([A-Z]{3})\s*([0-9,.]+)/i);
+      if (!m) return null;
+      const currency = m[1].toUpperCase();
+      const amount = Number(String(m[2]).replace(/,/g, ""));
+      if (!Number.isFinite(amount)) return null;
+      return { currency, amount };
+    };
+
+    const buildRoundTripFlight = (outbound, inbound) => {
+      const outPrice = parsePrice(outbound?.price);
+      const inPrice = parsePrice(inbound?.price);
+      const canSum = outPrice && inPrice && outPrice.currency === inPrice.currency;
+      const totalPrice = canSum ? `${outPrice.currency} ${(outPrice.amount + inPrice.amount).toFixed(2)}` : "Price on request";
+
+      return {
+        id: `${outbound?.id || "out"}__${inbound?.id || "in"}`,
+        outbound,
+        inbound,
+        airline: outbound?.airline || "Airline",
+        route: `${outbound?.route || ""}${inbound?.route ? ` / ${inbound.route}` : ""}`.trim(),
+        times: `${outbound?.times || ""}${inbound?.times ? ` / ${inbound.times}` : ""}`.trim(),
+        fare: outbound?.fare || inbound?.fare || "",
+        bags: outbound?.bags || "",
+        price: totalPrice,
+      };
+    };
+
+    if (hasReturnLeg && flightLeg === "outbound") {
+      setSelectedOutbound(flight);
+      setProposalSelection(tripId, { flight });
+      setFlightLeg("return");
+      return;
+    }
+
+    if (hasReturnLeg && flightLeg === "return" && selectedOutbound) {
+      setProposalSelection(tripId, { flight: buildRoundTripFlight(selectedOutbound, flight) });
+      return;
+    }
+
     setProposalSelection(tripId, { flight });
   };
 
@@ -1068,11 +1165,31 @@ export default function ProposalSelectPage() {
                 </div>
               </div>
 
+              {hasReturnLeg ? (
+                <div className="mb-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFlightLeg("outbound")}
+                    className={`rounded-full border px-3 py-1 text-xs font-semibold ${flightLeg === "outbound" ? "border-blue-500 bg-blue-50 text-blue-700" : "border-slate-200 bg-white text-slate-700"}`}
+                  >
+                    Outbound
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFlightLeg("return")}
+                    className={`rounded-full border px-3 py-1 text-xs font-semibold ${flightLeg === "return" ? "border-blue-500 bg-blue-50 text-blue-700" : "border-slate-200 bg-white text-slate-700"}`}
+                  >
+                    Return
+                  </button>
+                </div>
+              ) : null}
+
               {loadingFlights && <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700">Loading flights…</div>}
               {errorFlights && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">{errorFlights}</div>}
               <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
                 {filteredFlights.map((f) => {
-                  const active = selection?.flight?.id === f.id;
+                  const selectedFlightId = selection?.flight?.inbound?.id || selection?.flight?.outbound?.id || selection?.flight?.id;
+                  const active = selectedFlightId === f.id;
                   const airlineLogo = f.carrierLogo || getAirlineLogoFromFlight(f);
                   const isExpanded = expandedFlightId === f.id;
                   return (

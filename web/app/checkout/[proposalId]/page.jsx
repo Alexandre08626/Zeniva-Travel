@@ -51,7 +51,12 @@ export default function CheckoutPage() {
   const extraActivities = tripDraft?.extraActivities || [];
   const extraTransfers = tripDraft?.extraTransfers || [];
 
-  const flight = selection?.flight || { airline: "Airline", route: "YUL → CUN", times: "19:20 – 08:45", fare: "Business", bags: "2 checked" };
+  const flightSelection = selection?.flight;
+  const flightOutbound = flightSelection?.outbound || flightSelection;
+  const flightInbound = flightSelection?.inbound || null;
+  const flight = flightOutbound || { airline: "Airline", route: "YUL → CUN", times: "19:20 – 08:45", fare: "Business", bags: "2 checked" };
+  const flightRouteLabel = flightInbound?.route ? `${flight.route} / ${flightInbound.route}` : flight.route;
+  const flightTimesLabel = flightInbound?.times ? `${flight.times} / ${flightInbound.times}` : flight.times;
   const hotel = selection?.hotel || extraHotels[0] || { name: "Hotel Playa", room: "Junior Suite", location: "Beachfront", rating: 4.6 };
   const activity = selection?.activity || null;
   const transfer = selection?.transfer || null;
@@ -414,8 +419,8 @@ export default function CheckoutPage() {
 
             <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">
               <div className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>Flight</div>
-              <div className="text-sm" style={{ color: TITLE_TEXT }}>{flight.airline} • {flight.route}</div>
-              <div className="text-xs" style={{ color: MUTED_TEXT }}>{flight.times} • {flight.fare} • {flight.bags}</div>
+              <div className="text-sm" style={{ color: TITLE_TEXT }}>{flight.airline} • {flightRouteLabel}</div>
+              <div className="text-xs" style={{ color: MUTED_TEXT }}>{flightTimesLabel} • {flight.fare} • {flight.bags}</div>
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">

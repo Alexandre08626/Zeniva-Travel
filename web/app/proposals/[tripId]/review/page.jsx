@@ -125,7 +125,10 @@ export default function ProposalReviewPage() {
     return () => abort.abort();
   }, [uniqueHotels]);
 
-  const flight = selection?.flight || { airline: "Airline", route: "YUL → CUN", times: "19:20 – 08:45", fare: "Business", bags: "2 checked", flightNumber: "AC 456", duration: "4h 30m", date: "Dec 15, 2025", layovers: 0 };
+  const flightSelection = selection?.flight;
+  const flightOutbound = flightSelection?.outbound || flightSelection;
+  const flightInbound = flightSelection?.inbound || null;
+  const flight = flightOutbound || { airline: "Airline", route: "YUL → CUN", times: "19:20 – 08:45", fare: "Business", bags: "2 checked", flightNumber: "AC 456", duration: "4h 30m", date: "Dec 15, 2025", layovers: 0 };
   const hotel = selection?.hotel || { name: "Hotel Playa", room: "Junior Suite", location: "Beachfront", rating: 4.6 };
   const activity = selection?.activity;
   const transfer = selection?.transfer;
@@ -270,32 +273,37 @@ export default function ProposalReviewPage() {
 
   const openFlightStep = (path) => {
     if (typeof window !== "undefined") {
-      const routeParts = String(selection?.flight?.route || "")
+      const selected = selection?.flight;
+      const out = selected?.outbound || selected;
+      const inn = selected?.inbound || null;
+
+      const routeParts = String(out?.route || "")
         .split("→")
         .map((item) => item.trim());
-      const flightNumber = String(selection?.flight?.flightNumber || "").trim();
+      const flightNumber = String(out?.flightNumber || "").trim();
       const inferredCarrierCode = flightNumber.match(/^([A-Z0-9]{2})/)?.[1] || "";
       const fromCode = routeParts[0] || (tripDraft?.departureCity || "").toUpperCase();
       const toCode = routeParts[1] || (tripDraft?.destination || "").toUpperCase();
       const cabinRaw = String(selection?.flight?.fare || tripDraft?.travelClass || "Economy").toLowerCase();
       const cabin = cabinRaw.includes("business") ? "Business" : cabinRaw.includes("first") ? "First" : cabinRaw.includes("premium") ? "Premium Economy" : "Economy";
 
+      const makeOffer = (item, fallbackId) => ({
+        id: item?.id || fallbackId,
+        carrier: item?.airline || "Airline",
+        code: String(item?.flightNumber || "").trim() || String(item?.code || "").trim() || flightNumber,
+        carrierCode: inferredCarrierCode,
+        depart: String(item?.times || "").split("–")[0]?.trim() || "",
+        arrive: String(item?.times || "").split("–")[1]?.trim() || "",
+        duration: item?.duration || "",
+        stops: item?.layovers ? `${item.layovers} stop` : "Nonstop",
+        cabin,
+        price: item?.price || "Price on request",
+        bags: item?.bags || "",
+        slices: item?.slices,
+      });
+
       const flightSelectionDraft = {
-        offers: [
-          {
-            id: selection?.flight?.id || `proposal-flight-${tripId}`,
-            carrier: selection?.flight?.airline || "Airline",
-            code: flightNumber,
-            carrierCode: inferredCarrierCode,
-            depart: String(selection?.flight?.times || "").split("–")[0]?.trim() || "",
-            arrive: String(selection?.flight?.times || "").split("–")[1]?.trim() || "",
-            duration: selection?.flight?.duration || "",
-            stops: selection?.flight?.layovers ? `${selection.flight.layovers} stop` : "Nonstop",
-            cabin,
-            price: selection?.flight?.price || "Price on request",
-            bags: selection?.flight?.bags || "",
-          },
-        ],
+        offers: [makeOffer(out, `proposal-flight-out-${tripId}`), ...(inn ? [makeOffer(inn, `proposal-flight-in-${tripId}`)] : [])],
         searchContext: {
           from: fromCode,
           to: toCode,
