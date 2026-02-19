@@ -32,16 +32,16 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
     return `agent:notifications:read:${identifier}`;
   }, [user?.email, user?.name]);
 
-  const persistReadIds = (ids: string[]) => {
+  const persistReadIds = useCallback((ids: string[]) => {
     if (typeof window === "undefined") return;
     try {
       window.localStorage.setItem(notificationsKey, JSON.stringify(ids));
     } catch {
       // ignore storage errors
     }
-  };
+  }, [notificationsKey]);
 
-  const loadReadIds = () => {
+  const loadReadIds = useCallback(() => {
     if (typeof window === "undefined") return new Set<string>();
     try {
       const stored = window.localStorage.getItem(notificationsKey);
@@ -50,7 +50,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
     } catch {
       return new Set<string>();
     }
-  };
+  }, [notificationsKey]);
 
   const resolveAgentTitle = useCallback((item: any) => {
     const message = normalizeText(item?.message);
@@ -129,10 +129,10 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
       return;
     }
     if (isYachtBroker) {
-      const allowed = ["/agent/yachts", "/agent/listings", "/agent/settings"].some((path) => pathname === path || pathname.startsWith(`${path}/`));
-      if (!allowed) {
-        router.replace("/agent/yachts");
-      }
+      const allowedExact = new Set(["/agent", "/agent/yachts", "/agent/listings", "/agent/settings"]);
+      const allowedPrefixes = ["/agent/yachts/", "/agent/listings/", "/agent/settings/", "/agent/agent-"];
+      const allowed = allowedExact.has(pathname) || allowedPrefixes.some((prefix) => pathname.startsWith(prefix));
+      if (!allowed) router.replace("/agent/yachts");
     }
   }, [user, roles, isHQorAdmin, isInfluencer, isYachtBroker, pathname, router]);
 
@@ -188,7 +188,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
     } catch {
       setNotifications([]);
     }
-  }, [notificationsKey, resolveAgentSubtitle, resolveAgentTitle]);
+  }, [isYachtBroker, loadReadIds, resolveAgentSubtitle, resolveAgentTitle, user?.email]);
 
   useEffect(() => {
     let active = true;
@@ -274,6 +274,11 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 <span>Yacht chat</span>
+              </Link>
+            )}
+            {isYachtBroker && (
+              <Link href="/agent" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
+                <span>Dashboard</span>
               </Link>
             )}
             {canCreateListings && (

@@ -57,6 +57,83 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   const resolvedAgentId = agentId || toAgentWorkspaceId(user);
   const [searchOpen, setSearchOpen] = useState(false);
 
+  const brokerChannelId = useMemo(() => {
+    if (!isYachtBroker || !user?.email) return null;
+    return `agent-${String(user.email)
+      .split("@")[0]
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "")}`;
+  }, [isYachtBroker, user?.email]);
+
+  const yachtBrokerDashboardHref = resolvedAgentId ? `/agent/${resolvedAgentId}` : "/agent";
+
+  const showYachtBrokerDashboard = isYachtBroker && !isHQorAdmin && !isInfluencer;
+  const yachtBrokerDashboard = (
+    <main className="min-h-screen bg-slate-50">
+      <div className="mx-auto max-w-6xl px-5 py-10 space-y-6">
+        <header className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Yacht Broker</p>
+          <h1 className="text-3xl font-black" style={{ color: TITLE_TEXT }}>Dashboard</h1>
+          <p className="text-sm" style={{ color: MUTED_TEXT }}>
+            Accès limité: catalogue yachts, gestion des annonces, chat et paramètres.
+          </p>
+        </header>
+
+        <section className="grid gap-4 md:grid-cols-2">
+          <Link href="/agent/yachts" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:border-slate-300">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Yachts</p>
+            <p className="mt-1 text-lg font-bold" style={{ color: TITLE_TEXT }}>Yacht Desk</p>
+            <p className="mt-1 text-sm" style={{ color: MUTED_TEXT }}>Consulter le catalogue et préparer les dossiers.</p>
+            <p className="mt-3 text-sm font-bold" style={{ color: PREMIUM_BLUE }}>Open →</p>
+          </Link>
+
+          <Link href="/agent/listings" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:border-slate-300">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Listings</p>
+            <p className="mt-1 text-lg font-bold" style={{ color: TITLE_TEXT }}>Manage listings</p>
+            <p className="mt-1 text-sm" style={{ color: MUTED_TEXT }}>Créer, éditer et publier des annonces.</p>
+            <p className="mt-3 text-sm font-bold" style={{ color: PREMIUM_BLUE }}>Open →</p>
+          </Link>
+
+          <Link href="/agent/listings/new" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:border-slate-300">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Create</p>
+            <p className="mt-1 text-lg font-bold" style={{ color: TITLE_TEXT }}>Create listing</p>
+            <p className="mt-1 text-sm" style={{ color: MUTED_TEXT }}>Ajouter un nouveau yacht et le publier.</p>
+            <p className="mt-3 text-sm font-bold" style={{ color: PREMIUM_BLUE }}>Open →</p>
+          </Link>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Chat</p>
+            <p className="mt-1 text-lg font-bold" style={{ color: TITLE_TEXT }}>Yacht chat</p>
+            <p className="mt-1 text-sm" style={{ color: MUTED_TEXT }}>Messages liés aux demandes yacht.</p>
+            {brokerChannelId ? (
+              <Link
+                href={`/chat/agent?channel=${encodeURIComponent(brokerChannelId)}`}
+                className="mt-3 inline-flex text-sm font-bold"
+                style={{ color: PREMIUM_BLUE }}
+              >
+                Open →
+              </Link>
+            ) : (
+              <p className="mt-3 text-sm" style={{ color: MUTED_TEXT }}>Connectez-vous pour ouvrir le chat.</p>
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Workspace</p>
+            <p className="text-lg font-bold" style={{ color: TITLE_TEXT }}>Your dashboard link</p>
+            <p className="text-sm" style={{ color: MUTED_TEXT }}>{yachtBrokerDashboardHref}</p>
+          </div>
+          <Link href="/agent/settings" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold hover:border-slate-300">
+            Settings
+          </Link>
+        </section>
+      </div>
+    </main>
+  );
+
   useEffect(() => {
     if (!resolvedAgentId) return;
     try {
@@ -80,10 +157,11 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
     }
     if (isYachtBroker && !isHQorAdmin) {
       return [
+        { label: "Dashboard", href: yachtBrokerDashboardHref },
         { label: "Yacht Desk", href: "/agent/yachts" },
         { label: "Listings", href: "/agent/listings" },
         { label: "Create Listing", href: "/agent/listings/new" },
-        { label: "Yacht chat", href: "/chat/agent?channel=agent-jason" },
+        ...(brokerChannelId ? [{ label: "Yacht chat", href: `/chat/agent?channel=${encodeURIComponent(brokerChannelId)}` }] : []),
         { label: "Settings", href: "/agent/settings" },
       ];
     }
@@ -112,7 +190,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
         : []),
       { label: "Settings", href: "/agent/settings" },
     ];
-  }, [isInfluencer, isYachtBroker, isHQorAdmin]);
+  }, [brokerChannelId, isInfluencer, isYachtBroker, isHQorAdmin, yachtBrokerDashboardHref]);
 
   const kpiCards = [
     { label: "Active clients", value: "18", delta: "+4 this week" },
@@ -301,6 +379,10 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
     event.preventDefault();
     submitHybrid();
   };
+
+  if (showYachtBrokerDashboard) {
+    return yachtBrokerDashboard;
+  }
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: "#F3F6FB" }}>
