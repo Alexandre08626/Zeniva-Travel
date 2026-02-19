@@ -62,6 +62,8 @@ export default function HotelReviewClient() {
   const [draft, setDraft] = useState<DraftData | null>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [detailsPhotos, setDetailsPhotos] = useState<string[] | null>(null);
+  const [showAllPhotos, setShowAllPhotos] = useState(false);
+  const [activePhoto, setActivePhoto] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -137,6 +139,21 @@ export default function HotelReviewClient() {
     return [];
   }, [detailsPhotos, selectedSearchResult]);
 
+  const visibleHotelPhotos = useMemo(() => {
+    if (showAllPhotos) return hotelPhotos;
+    return hotelPhotos.slice(0, 12);
+  }, [hotelPhotos, showAllPhotos]);
+
+  useEffect(() => {
+    // Keep preview photo consistent when the photo list changes.
+    if (!hotelPhotos.length) {
+      Promise.resolve().then(() => setActivePhoto(null));
+      return;
+    }
+    if (activePhoto && hotelPhotos.includes(activePhoto)) return;
+    Promise.resolve().then(() => setActivePhoto(hotelPhotos[0]));
+  }, [hotelPhotos, activePhoto]);
+
   const formatAmount = (value: any, currency?: string) => {
     if (value === null || value === undefined || value === "") return "N/A";
     if (typeof value === "string" || typeof value === "number") {
@@ -189,17 +206,50 @@ export default function HotelReviewClient() {
           <div className="border rounded-lg p-4 space-y-2">
             <h3 className="font-semibold text-lg">Hotel photos</h3>
             {hotelPhotos.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {hotelPhotos.map((photo, idx) => (
-                  <div key={`${photo}-${idx}`} className="h-28 md:h-32 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+              <div className="space-y-3">
+                {activePhoto ? (
+                  <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
                     <img
-                      src={photo}
-                      alt={`${selectedSearchResult?.name || "Hotel"} photo ${idx + 1}`}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
+                      src={activePhoto}
+                      alt={`${selectedSearchResult?.name || "Hotel"} photo preview`}
+                      className="w-full max-h-[420px] object-cover"
+                      loading="eager"
                     />
                   </div>
-                ))}
+                ) : null}
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {visibleHotelPhotos.map((photo, idx) => (
+                    <button
+                      type="button"
+                      key={`${photo}-${idx}`}
+                      onClick={() => setActivePhoto(photo)}
+                      className={`h-28 md:h-32 overflow-hidden rounded-lg border bg-slate-100 text-left ${
+                        activePhoto === photo ? "border-slate-900" : "border-slate-200"
+                      }`}
+                      aria-label={`View photo ${idx + 1}`}
+                    >
+                      <img
+                        src={photo}
+                        alt={`${selectedSearchResult?.name || "Hotel"} photo ${idx + 1}`}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    </button>
+                  ))}
+                </div>
+
+                {!showAllPhotos && hotelPhotos.length > 12 ? (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setShowAllPhotos(true)}
+                      className="rounded-full border px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                    >
+                      Voir plus
+                    </button>
+                  </div>
+                ) : null}
               </div>
             ) : (
               <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-4 text-sm text-slate-600">
