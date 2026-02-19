@@ -254,7 +254,7 @@ async function getSemanticHotels(destination: string) {
     const res = await liteApiFetchJson<any>({
       path,
       method: "GET",
-      query: { query: destination, limit: 40, min_rating: 0 },
+      query: { query: destination, limit: 100, min_rating: 0 },
       timeoutMs: 20000,
     });
     attempts.push({ path, status: res.status, ok: res.ok });
@@ -310,7 +310,7 @@ export async function GET(req: Request) {
       maxRatesPerHotel: 1,
       includeHotelData: true,
       roomMapping: true,
-      limit: 30,
+      limit: 100,
     };
 
     const aiSearchCandidates = [
