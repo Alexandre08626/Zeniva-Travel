@@ -19,6 +19,7 @@ export default function ProposalReviewPage() {
   const modeSuffix = isAgentMode ? "?mode=agent" : "";
   const [shareStatus, setShareStatus] = useState("");
   const [liteApiHotelPhotosById, setLiteApiHotelPhotosById] = useState({});
+  const [expandedStayPhotos, setExpandedStayPhotos] = useState({});
   const [workflow, setWorkflow] = useState({
     passengersComplete: false,
     seatsComplete: false,
@@ -584,6 +585,9 @@ export default function ProposalReviewPage() {
               const type = getAccommodationType(stay);
               const label = type === 'Yacht' ? 'Yacht' : type === 'Residence' ? 'Short-term rental' : 'Hotel';
               const stayImages = getAccommodationImages(stay, type);
+              const stayKey = String(stay?.id || stay?.name || idx);
+              const isExpanded = Boolean(expandedStayPhotos?.[stayKey]);
+              const visibleImages = isExpanded ? stayImages : stayImages.slice(0, 10);
               return (
                 <section key={`${stay?.id || stay?.name || idx}`} className="rounded-2xl border border-blue-100 bg-white shadow-sm p-6 space-y-2">
                   <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>{label}</div>
@@ -606,12 +610,24 @@ export default function ProposalReviewPage() {
                     <div className="pt-4">
                       <div className="text-xs font-semibold mb-2" style={{ color: MUTED_TEXT }}>Photo gallery</div>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {stayImages.map((src, i) => (
+                        {visibleImages.map((src, i) => (
                           <div key={i} className="aspect-square overflow-hidden rounded-lg">
                             <img src={src} alt={`${label} ${i + 1}`} className="h-full w-full object-cover hover:scale-105 transition-transform" />
                           </div>
                         ))}
                       </div>
+
+                      {!isExpanded && stayImages.length > 10 ? (
+                        <div className="mt-3">
+                          <button
+                            type="button"
+                            onClick={() => setExpandedStayPhotos((prev) => ({ ...prev, [stayKey]: true }))}
+                            className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+                          >
+                            See more
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
                   )}
                 </section>
