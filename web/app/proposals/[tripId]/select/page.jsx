@@ -465,7 +465,11 @@ export default function ProposalSelectPage() {
         amenities: y.amenities,
       }));
       setHotels(mappedYachts);
-      setProposalSelection(tripId, { hotel: mappedYachts[0] || null });
+      const currentId = String(selection?.hotel?.id || "").trim();
+      const stillExists = currentId ? mappedYachts.some((h) => String(h?.id || "").trim() === currentId) : false;
+      if (!selection?.hotel || !stillExists) {
+        setProposalSelection(tripId, { hotel: mappedYachts[0] || null });
+      }
       // Ensure accommodationType is set to "Yacht" in trip draft
       if (tripDraft?.accommodationType !== "Yacht") {
         applyTripPatch(tripId, { accommodationType: "Yacht" });
@@ -499,7 +503,11 @@ export default function ProposalSelectPage() {
         };
       });
       setHotels(mappedResidences);
-      setProposalSelection(tripId, { hotel: mappedResidences[0] || null });
+      const currentId = String(selection?.hotel?.id || "").trim();
+      const stillExists = currentId ? mappedResidences.some((h) => String(h?.id || "").trim() === currentId) : false;
+      if (!selection?.hotel || !stillExists) {
+        setProposalSelection(tripId, { hotel: mappedResidences[0] || null });
+      }
       // Ensure accommodationType is set to "Residence" in trip draft
       if (tripDraft?.accommodationType !== "Residence") {
         applyTripPatch(tripId, { accommodationType: "Residence" });
@@ -553,7 +561,11 @@ export default function ProposalSelectPage() {
         }));
 
         setHotels(normalizedHotels);
-        setProposalSelection(tripId, { hotel: normalizedHotels[0] || null });
+        const currentId = String(selection?.hotel?.id || "").trim();
+        const stillExists = currentId ? normalizedHotels.some((h) => String(h?.id || "").trim() === currentId) : false;
+        if (!selection?.hotel || !stillExists) {
+          setProposalSelection(tripId, { hotel: normalizedHotels[0] || null });
+        }
       } catch (e) {
         console.error("Hotels fetch error:", e);
         setHotels([]);
