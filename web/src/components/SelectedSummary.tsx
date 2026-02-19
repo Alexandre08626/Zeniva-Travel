@@ -55,7 +55,7 @@ export default function SelectedSummary({ flight, hotel, activity, transfer, tri
       </div>
 
       <div className="mt-4 flex items-center justify-between text-sm">
-        <div className="text-slate-500">Fees & services</div>
+        <div className="text-slate-500">Service fee (6%)</div>
         <div className="font-semibold">{pricing.hasAnyPrice ? formatCurrency(pricing.fees) : "Included"}</div>
       </div>
 

@@ -1,5 +1,5 @@
-const HOTEL_MARKUP = 0.15;
-const FLIGHT_MARKUP = 0.08;
+const HOTEL_MARKUP = 0.12;
+const FLIGHT_MARKUP = 0.05;
 
 type ParsedLabel = {
   currency: string;

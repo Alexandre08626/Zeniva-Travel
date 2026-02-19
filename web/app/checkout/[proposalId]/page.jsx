@@ -405,7 +405,7 @@ export default function CheckoutPage() {
                   <span className="font-semibold">{pricing.hasTransferPrice ? formatCurrency(pricing.transferTotal) : "Included"}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs" style={{ color: MUTED_TEXT }}>
-                  <span>Fees & services</span>
+                  <span>Service fee (6%)</span>
                   <span>{pricing.hasAnyPrice ? formatCurrency(pricing.fees) : "Included"}</span>
                 </div>
                 <div className="border-t border-slate-200 pt-2 flex items-center justify-between">

@@ -207,7 +207,7 @@ function generateProposalHTML(proposal: ProposalData): string {
           <div class="price-row"><span>Accommodation</span><span>${hasHotelPrice ? formatCurrency(pricing.hotelTotal) : "On request"}</span></div>
           ${activities.length ? `<div class="price-row"><span>Activities</span><span>${hasActivityPrice ? formatCurrency(pricing.activityTotal) : "Included"}</span></div>` : ""}
           ${transfers.length ? `<div class="price-row"><span>Transfers</span><span>${hasTransferPrice ? formatCurrency(pricing.transferTotal) : "Included"}</span></div>` : ""}
-          <div class="price-row"><span>Fees & services</span><span>Included</span></div>
+          <div class="price-row"><span>Service fee (6%)</span><span>${hasAnyPrice ? formatCurrency(pricing.fees) : "Included"}</span></div>
           <div class="price-total"><span>Total</span><span>${hasAnyPrice ? formatCurrency(pricing.total) : priceFallback}</span></div>
           <div class="card-sub">Based on ${pricing.travelers} traveler(s). Final pricing is confirmed at payment with live availability.</div>
         </section>

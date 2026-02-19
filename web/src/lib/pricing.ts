@@ -69,6 +69,7 @@ export function formatCurrency(amount: number): string {
 
 export function computePrice(selection: any, tripDraft: any, options?: { strict?: boolean }) {
   const strict = options?.strict ?? true;
+  const serviceFeePct = 0.06;
   const travelers = parseTravelers(tripDraft?.adults ?? tripDraft?.travelers ?? tripDraft?.guests);
   const nights = parseNights(
     tripDraft?.dates || (tripDraft?.checkIn && tripDraft?.checkOut ? `${tripDraft.checkIn} - ${tripDraft.checkOut}` : undefined)
@@ -100,8 +101,9 @@ export function computePrice(selection: any, tripDraft: any, options?: { strict?
   const hasAnyPrice = hasFlightPrice || hasHotelPrice || hasActivityPrice || hasTransferPrice;
 
   const flightTotal = flightBase * travelers;
-  const fees = hasAnyPrice || !strict ? 180 : 0;
-  const total = flightTotal + hotelTotal + activityTotal + transferTotal + fees;
+  const subtotal = flightTotal + hotelTotal + activityTotal + transferTotal;
+  const fees = hasAnyPrice || !strict ? Math.round(subtotal * serviceFeePct * 100) / 100 : 0;
+  const total = subtotal + fees;
 
   return {
     travelers,
@@ -112,7 +114,9 @@ export function computePrice(selection: any, tripDraft: any, options?: { strict?
     hotelTotal,
     activityTotal,
     transferTotal,
+    subtotal,
     fees,
+    serviceFeePct,
     total,
     hasFlightPrice,
     hasHotelPrice,

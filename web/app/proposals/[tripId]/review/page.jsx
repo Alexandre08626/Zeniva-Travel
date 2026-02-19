@@ -146,7 +146,7 @@ export default function ProposalReviewPage() {
     { label: "Accommodation", value: pricing.hasHotelPrice ? formatCurrency(pricing.hotelTotal) : "On request" },
     ...(activityList.length ? [{ label: "Activities", value: pricing.hasActivityPrice ? formatCurrency(pricing.activityTotal) : "Included" }] : []),
     ...(transferList.length ? [{ label: "Transfers", value: pricing.hasTransferPrice ? formatCurrency(pricing.transferTotal) : "Included" }] : []),
-    { label: "Fees & services", value: pricing.hasAnyPrice ? formatCurrency(pricing.fees) : "Included" },
+    { label: "Service fee (6%)", value: pricing.hasAnyPrice ? formatCurrency(pricing.fees) : "Included" },
   ];
 
   const onPay = () => router.push(`/checkout/${tripId}`);
