@@ -189,27 +189,25 @@ export default function LinaCommandCenter() {
         url = `${endpoint}?origin=YUL&destination=${encodeURIComponent(destination)}&date=${travelStart}`;
         method = 'GET';
       } else if (searchCategory === 'hotels') {
-        endpoint = '/api/partners/hotelbeds';
-        url = `${endpoint}?destination=${encodeURIComponent(destination)}&checkIn=${travelStart}&checkOut=${travelEnd}&guests=${pax}`;
+        endpoint = '/api/partners/liteapi/hotels/search';
+        url = `${endpoint}?destination=${encodeURIComponent(destination)}&checkIn=${travelStart}&checkOut=${travelEnd}&guests=${pax}&rooms=1`;
         method = 'GET';
       } else if (searchCategory === 'excursions') {
-        endpoint = '/api/partners/hotelbeds/activities';
-        url = endpoint;
-        method = 'POST';
-        body = JSON.stringify({ destination, from: travelStart, to: travelEnd, adults: pax });
+        alert('Excursions provider removed (Hotelbeds). Not available.');
+        setSearchLoading(false);
+        return;
       } else if (searchCategory === 'transfers') {
-        endpoint = '/api/partners/hotelbeds/transfers';
-        url = endpoint;
-        method = 'POST';
-        body = JSON.stringify({ pickupLocation: destination, dropoffLocation: destination, pickupDate: travelStart, pickupTime: '10:00', adults: pax });
+        alert('Transfers provider removed (Hotelbeds). Not available.');
+        setSearchLoading(false);
+        return;
       } else {
         setSearchLoading(false);
         return;
       }
       const res = await fetch(url, {
         method,
-        headers: method === 'POST' ? { 'Content-Type': 'application/json' } : undefined,
-        body: body,
+        headers: body ? { 'Content-Type': 'application/json' } : undefined,
+        body,
       });
       const data = await res.json();
       // Transform API response to Proposal type (simplified for demo)
@@ -233,9 +231,9 @@ export default function LinaCommandCenter() {
           createdAt: new Date().toISOString(),
           status: 'draft',
         };
-      } else if (searchCategory === 'hotels' && data?.hotels?.length) {
-        const hotel = data.hotels[0];
-        const rawTotalPrice = hotel?.minRate?.currency && hotel?.minRate?.price ? `${hotel.minRate.currency} ${hotel.minRate.price}` : "Price on request";
+      } else if (searchCategory === 'hotels' && data?.ok && data?.offers?.length) {
+        const hotel = data.offers[0];
+        const rawTotalPrice = hotel?.price || "Price on request";
         proposal = {
           id: uid(),
           dossierId: selected.id,
@@ -245,45 +243,10 @@ export default function LinaCommandCenter() {
           pax: selected.pax,
           budget: selected.budget,
           itinerary: [
-            `Hotel: ${hotel.name} (${hotel.categoryName})`,
-            `Address: ${hotel.address?.content}`
+            `Hotel: ${hotel.name}`,
+            `Location: ${hotel.location || destination}`
           ],
           totalPrice: rawTotalPrice === "Price on request" ? rawTotalPrice : applyHotelMarkupLabel(rawTotalPrice),
-          createdAt: new Date().toISOString(),
-          status: 'draft',
-        };
-      } else if (searchCategory === 'excursions' && data?.activities?.length) {
-        const act = data.activities[0];
-        proposal = {
-          id: uid(),
-          dossierId: selected.id,
-          clientName: selected.client,
-          destination: selected.destination,
-          travelDates: `${selected.travelStart} - ${selected.travelEnd}`,
-          pax: selected.pax,
-          budget: selected.budget,
-          itinerary: [
-            `Excursion: ${act.name}`,
-            `Location: ${act.destination?.name}`
-          ],
-          totalPrice: act.minRate?.price + ' ' + act.minRate?.currency,
-          createdAt: new Date().toISOString(),
-          status: 'draft',
-        };
-      } else if (searchCategory === 'transfers' && data?.transfers?.length) {
-        const tr = data.transfers[0];
-        proposal = {
-          id: uid(),
-          dossierId: selected.id,
-          clientName: selected.client,
-          destination: selected.destination,
-          travelDates: `${selected.travelStart} - ${selected.travelEnd}`,
-          pax: selected.pax,
-          budget: selected.budget,
-          itinerary: [
-            `Transfer: ${tr.type} ${tr.vehicle?.name}`
-          ],
-          totalPrice: tr.price?.amount + ' ' + tr.price?.currency,
           createdAt: new Date().toISOString(),
           status: 'draft',
         };

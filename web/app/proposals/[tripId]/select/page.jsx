@@ -124,7 +124,6 @@ function getPartnerLogo(partner) {
   if (!key) return "";
   const map = {
     duffel: "https://logo.clearbit.com/duffel.com",
-    hotelbeds: "https://logo.clearbit.com/hotelbeds.com",
     airbnb: "https://logo.clearbit.com/airbnb.com",
     ycn: "https://logo.clearbit.com/yachtcharternetwork.com",
     zeniva: "https://logo.clearbit.com/zenivatravel.com",
@@ -584,148 +583,20 @@ export default function ProposalSelectPage() {
     run();
   }, [tripDraft?.accommodationType, tripDraft?.destination, tripDraft?.checkIn, tripDraft?.checkOut, tripDraft?.adults, tripDraft?.budget, tripId, selection?.hotel?.location]);
 
-  // Load activities from Hotelbeds API
+  // Activities/transfers provider integration removed (Hotelbeds).
   useEffect(() => {
-    const destination = tripDraft?.destination || selection?.hotel?.location || "";
-    const checkIn = tripDraft?.checkIn || "";
-    const checkOut = tripDraft?.checkOut || "";
+    setActivities([]);
+    setLoadingActivities(false);
+    setErrorActivities(tripDraft?.includeActivities ? "Not available" : null);
+    if (selection?.activity) setProposalSelection(tripId, { activity: null });
+  }, [tripDraft?.includeActivities, tripId]);
 
-    if (!destination || !checkIn || !checkOut) {
-      setActivities([]);
-      setErrorActivities("Missing destination or dates in trip draft");
-      return;
-    }
-
-    const run = async () => {
-      setLoadingActivities(true);
-      setErrorActivities(null);
-      try {
-        console.log(`🔄 Loading activities for ${destination}`);
-        const response = await fetch('/api/partners/hotelbeds/activities', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            destination: destination,
-            from: checkIn,
-            to: checkOut,
-            adults: tripDraft?.adults || 2,
-            children: 0,
-            language: "en"
-          })
-        });
-
-        const data = await response.json();
-        if (!response.ok || !data?.ok) {
-          throw new Error(data?.error || `API returned ${response.status}`);
-        }
-
-        const mappedActivities = (data.activities || []).map(a => ({
-          id: a.id,
-          name: a.title,
-          location: a.location,
-          date: a.startDateTime ? new Date(a.startDateTime).toLocaleDateString() : "",
-          time: a.startDateTime ? new Date(a.startDateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "",
-          price: a.price,
-          supplier: a.supplierRef,
-          provider: "Hotelbeds",
-          rating: Number(a?.content?.rating || 4.6),
-          category: a?.type || "activity",
-          description: a.description || a.title,
-          image: a.images?.[0] || "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=80",
-          images: a.images || [],
-          type: 'activity',
-          rawPayload: a
-        }));
-
-        setActivities(mappedActivities);
-        console.log(`✅ Loaded ${mappedActivities.length} activities`);
-
-        // Auto-select first activity if none selected and activities were requested
-        if (mappedActivities.length > 0 && !selection?.activity && tripDraft?.includeActivities) {
-          setProposalSelection(tripId, { activity: mappedActivities[0] });
-        }
-      } catch (e) {
-        console.error('Failed to load activities:', e);
-        setActivities([]);
-        setErrorActivities(e?.message || "Failed to load activities");
-      } finally {
-        setLoadingActivities(false);
-      }
-    };
-
-    run();
-  }, [tripDraft?.destination, tripDraft?.checkIn, tripDraft?.checkOut, tripDraft?.adults, tripDraft?.includeActivities, tripId, selection?.hotel?.location, selection?.activity]);
-
-  // Load transfers from Hotelbeds API
   useEffect(() => {
-    const destination = tripDraft?.destination || selection?.hotel?.location || "";
-    const checkIn = tripDraft?.checkIn || "";
-
-    if (!destination || !checkIn) {
-      setTransfers([]);
-      setErrorTransfers("Missing destination or check-in date in trip draft");
-      return;
-    }
-
-    const run = async () => {
-      setLoadingTransfers(true);
-      setErrorTransfers(null);
-      try {
-        console.log(`🔄 Loading transfers for ${destination}`);
-        const response = await fetch('/api/partners/hotelbeds/transfers', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            pickupLocation: `${destination} Airport`,
-            dropoffLocation: `${destination} City Center`,
-            pickupDate: checkIn,
-            pickupTime: "10:00",
-            adults: tripDraft?.adults || 2,
-            children: 0,
-            transferType: "PRIVATE",
-            direction: "ONE_WAY"
-          })
-        });
-
-        const data = await response.json();
-        if (!response.ok || !data?.ok) {
-          throw new Error(data?.error || `API returned ${response.status}`);
-        }
-
-        const mappedTransfers = (data.transfers || []).map((t, idx) => ({
-          id: t.id || `${t.supplierRef || "transfer"}-${t.title || "item"}-${t.startDateTime || idx}`,
-          name: t.title,
-          route: t.location,
-          date: t.startDateTime ? new Date(t.startDateTime).toLocaleDateString() : "",
-          price: t.price,
-          supplier: t.supplierRef,
-          provider: "Hotelbeds",
-          vehicle: t.vehicle?.name || t.transferType,
-          shared: t.transferType === "SHARED",
-          image: t.images?.[0] || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=900&q=80",
-          images: t.images || [],
-          type: 'transfer',
-          rawPayload: t
-        }));
-
-        setTransfers(mappedTransfers);
-        console.log(`✅ Loaded ${mappedTransfers.length} transfers`);
-
-        // Auto-select first transfer if none selected and transfers were requested
-        if (mappedTransfers.length > 0 && !selection?.transfer && tripDraft?.includeTransfers) {
-          setProposalSelection(tripId, { transfer: mappedTransfers[0] });
-        }
-      } catch (e) {
-        console.error('Failed to load transfers:', e);
-        setTransfers([]);
-        setErrorTransfers(e?.message || "Failed to load transfers");
-      } finally {
-        setLoadingTransfers(false);
-      }
-    };
-
-    run();
-  }, [tripDraft?.destination, tripDraft?.checkIn, tripDraft?.adults, tripDraft?.includeTransfers, tripId, selection?.hotel?.location]);
+    setTransfers([]);
+    setLoadingTransfers(false);
+    setErrorTransfers(tripDraft?.includeTransfers ? "Not available" : null);
+    if (selection?.transfer) setProposalSelection(tripId, { transfer: null });
+  }, [tripDraft?.includeTransfers, tripId]);
 
   const onSelectFlight = (flight) => {
     const parsePrice = (raw) => {

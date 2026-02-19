@@ -335,14 +335,14 @@ export async function generateProposal(tripId) {
   if (tripDraft.includeActivities) {
     sections.push({
       title: "Activities",
-      items: ["Loading activities..."],
+      items: ["Not available"],
     });
   }
 
   if (tripDraft.includeTransfers) {
     sections.push({
       title: "Transfers",
-      items: ["Loading transfers..."],
+      items: ["Not available"],
     });
   }
 
@@ -371,78 +371,7 @@ export async function generateProposal(tripId) {
     selections: { ...s.selections, [ensuredId]: s.selections[ensuredId] || { flight: null, hotel: null, activities: [], transfers: [] } },
   }));
 
-  // Trigger automatic searches for activities and transfers
-  if (tripDraft.includeActivities && tripDraft.destination && tripDraft.checkIn && tripDraft.checkOut) {
-    try {
-      console.log(`🔄 Auto-searching activities for ${tripDraft.destination}`);
-      const activitiesResponse = await fetch('/api/partners/hotelbeds/activities', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          destination: tripDraft.destination,
-          from: tripDraft.checkIn,
-          to: tripDraft.checkOut,
-          adults: tripDraft.adults || 2,
-          children: 0,
-          language: "en"
-        })
-      });
-
-      if (activitiesResponse.ok) {
-        const activitiesData = await activitiesResponse.json();
-        setState((s) => ({
-          ...s,
-          selections: {
-            ...s.selections,
-            [ensuredId]: {
-              ...s.selections[ensuredId],
-              activities: activitiesData.activities || []
-            }
-          }
-        }));
-        console.log(`✅ Found ${activitiesData.activities?.length || 0} activities`);
-      }
-    } catch (error) {
-      console.error('Failed to auto-search activities:', error);
-    }
-  }
-
-  if (tripDraft.includeTransfers && tripDraft.destination && tripDraft.checkIn) {
-    try {
-      console.log(`🔄 Auto-searching transfers for ${tripDraft.destination}`);
-      const transfersResponse = await fetch('/api/partners/hotelbeds/transfers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pickupLocation: `${tripDraft.destination} Airport`,
-          dropoffLocation: `${tripDraft.destination} City Center`,
-          pickupDate: tripDraft.checkIn,
-          pickupTime: "10:00",
-          adults: tripDraft.adults || 2,
-          children: 0,
-          transferType: "PRIVATE",
-          direction: "ONE_WAY"
-        })
-      });
-
-      if (transfersResponse.ok) {
-        const transfersData = await transfersResponse.json();
-        setState((s) => ({
-          ...s,
-          selections: {
-            ...s.selections,
-            [ensuredId]: {
-              ...s.selections[ensuredId],
-              transfers: transfersData.transfers || []
-            }
-          }
-        }));
-        console.log(`✅ Found ${transfersData.transfers?.length || 0} transfers`);
-      }
-    } catch (error) {
-      console.error('Failed to auto-search transfers:', error);
-    }
-  }
+  // Activities/transfers provider integration removed (Hotelbeds).
 
   return proposal;
 }

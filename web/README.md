@@ -31,13 +31,6 @@ OPENAI_API_BASE=https://api.openai.com/v1
 AMADEUS_API_KEY=your_amadeus_api_key_here
 AMADEUS_API_SECRET=your_amadeus_api_secret_here
 
-# Hotelbeds API (Activities & Transfers)
-HOTELBEDS_API_KEY=your_hotelbeds_api_key_here
-HOTELBEDS_API_SECRET=your_hotelbeds_api_secret_here
-HOTELBEDS_BASE_URL_TEST=https://api.test.hotelbeds.com
-HOTELBEDS_BASE_URL_PROD=https://api.hotelbeds.com
-HOTELBEDS_USE_MTLS=false
-
 # LiteAPI (Nuitee) (Hotels)
 # Keep keys server-side only; call via `/api/partners/liteapi`.
 LITEAPI_API_BASE_URL=https://api.liteapi.travel/v3.0
@@ -79,7 +72,6 @@ STRIPE_SECRET_KEY=your_stripe_secret_key_here
 - **Duffel**: Sign up at [duffel.com](https://duffel.com) for flight and hotel APIs
 - **OpenAI**: Get key at [platform.openai.com](https://platform.openai.com)
 - **Amadeus**: Register at [developers.amadeus.com](https://developers.amadeus.com)
-- **Hotelbeds**: Contact Hotelbeds for API access
 
 ### 2. Configure Environment Variables
 
@@ -150,8 +142,6 @@ If your Duffel account is not yet approved for Live mode, the server will automa
 - `/api/partners/duffel` - Flight search
 - `/api/partners/duffel-stays` - Hotel search
 - `/api/partners/amadeus` - Alternative flight search
-- `/api/partners/hotelbeds/activities` - Activity booking
-- `/api/partners/hotelbeds/transfers` - Transfer services
 - `/api/partners/liteapi` - LiteAPI (Nuitee) proxy (server-side)
 - `/api/partners/expedia` - Expedia Group proxy (server-side)
 - `/api/lina` - AI chat
