@@ -107,3 +107,16 @@ export async function bookTransfer(payload: unknown, requestId: string) {
     raw: upstream,
   };
 }
+
+export async function cancelTransfer(orderId: string, payload: unknown, requestId: string) {
+  const upstream: any = await amadeusJson({
+    requestId,
+    method: "POST",
+    path: `/v1/ordering/transfer-orders/${encodeURIComponent(orderId)}/transfers/cancellation`,
+    body: payload,
+  });
+
+  return {
+    raw: upstream,
+  };
+}

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { bookTransfer, searchTransfers } from "@/services/amadeus/transferService";
+import { bookTransfer, cancelTransfer, searchTransfers } from "@/services/amadeus/transferService";
 import { mapAmadeusError } from "@/services/amadeus/amadeusErrors";
 import { logError, logInfo, logWarn } from "@/routes/amadeus/routeUtils";
 import type { RouteResult } from "@/routes/amadeus/routeTypes";
@@ -85,6 +85,48 @@ export async function handleTransfersBook(req: Request, requestId: string): Prom
 
   try {
     const result = await bookTransfer(parsed.data.data, requestId);
+    return { status: 200, body: { ok: true, requestId, ...result } };
+  } catch (err) {
+    const mapped = mapAmadeusError(err, requestId);
+    return { status: mapped.status, body: mapped };
+  }
+}
+
+const cancelSchema = z.object({
+  orderId: z.string().min(1),
+  data: z.unknown().optional(),
+});
+
+export async function handleTransfersCancel(req: Request, requestId: string): Promise<RouteResult> {
+  let json: any = null;
+  try {
+    json = await req.json();
+  } catch {
+    return {
+      status: 400,
+      body: { ok: false, code: "INVALID_REQUEST", message: "Invalid JSON body", requestId, status: 400 },
+    };
+  }
+
+  const parsed = cancelSchema.safeParse(json);
+  if (!parsed.success) {
+    return {
+      status: 400,
+      body: {
+        ok: false,
+        code: "INVALID_REQUEST",
+        message: "Invalid cancellation payload",
+        issues: parsed.error.issues,
+        requestId,
+        status: 400,
+      },
+    };
+  }
+
+  logInfo("amadeus:transfers", requestId, "cancel", { orderId: parsed.data.orderId });
+
+  try {
+    const result = await cancelTransfer(parsed.data.orderId, parsed.data.data || {}, requestId);
     return { status: 200, body: { ok: true, requestId, ...result } };
   } catch (err) {
     const mapped = mapAmadeusError(err, requestId);

@@ -168,6 +168,7 @@ Note: Some capabilities depend on your Amadeus plan/access. When not enabled, th
 
 - `GET /api/amadeus/transfers/search?origin=CDG&destination=PAR&dateTime=2026-03-10T10:30:00`
 - `POST /api/amadeus/transfers/book`
+- `POST /api/amadeus/transfers/cancel`
 
 - `GET /api/amadeus/seatmaps?flightOffer=<JSON_STRINGIFIED_FLIGHT_OFFER>`
 
