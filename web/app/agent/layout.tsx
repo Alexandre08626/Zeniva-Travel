@@ -257,28 +257,12 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
             <span>Back to main site</span>
           </a>
           <div className="flex items-center gap-4">
-            {showChat && !isYachtBroker && (
+            {showChat && (
               <Link href="/agent/chat" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 <span>Agent Chat</span>
-              </Link>
-            )}
-            {showChat && isYachtBroker && user?.email && (
-              <Link
-                href={`/chat/agent?channel=${encodeURIComponent(`agent-${String(user.email).split("@")[0].toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`)}`}
-                className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                <span>Yacht chat</span>
-              </Link>
-            )}
-            {isYachtBroker && (
-              <Link href="/agent" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
-                <span>Dashboard</span>
               </Link>
             )}
             {canCreateListings && (
@@ -292,11 +276,9 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
               </Link>
             )}
             {canCreateListings && (
-              !isYachtBroker ? (
-                <Link href="/agent/inventory" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
-                  <span>Inventory</span>
-                </Link>
-              ) : null
+              <Link href="/agent/inventory" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
+                <span>Inventory</span>
+              </Link>
             )}
             <div className="relative">
               <button
