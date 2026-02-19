@@ -47,6 +47,7 @@ function HotelsSearchContent() {
   const params = useSearchParams();
   const BOOKING_DRAFT_KEY = "hotel_booking_draft_v1";
   const USE_AMADEUS_ONLY = false;
+  const ENABLE_AMADEUS = false;
 
 
   const destination = params.get("destination") || "";
@@ -200,15 +201,17 @@ function HotelsSearchContent() {
       });
     }
 
-    for (const item of amadeusOptions || []) {
-      all.push({
-        ...(item as any),
-        perks: Array.isArray((item as any)?.perks)
-          ? (item as any).perks
-          : (Array.isArray((item as any)?.amenities) ? (item as any).amenities : []),
-        photos: Array.isArray((item as any)?.photos) ? (item as any).photos : [],
-        provider: (item as any)?.provider || "amadeus",
-      });
+    if (ENABLE_AMADEUS) {
+      for (const item of amadeusOptions || []) {
+        all.push({
+          ...(item as any),
+          perks: Array.isArray((item as any)?.perks)
+            ? (item as any).perks
+            : (Array.isArray((item as any)?.amenities) ? (item as any).amenities : []),
+          photos: Array.isArray((item as any)?.photos) ? (item as any).photos : [],
+          provider: (item as any)?.provider || "amadeus",
+        });
+      }
     }
 
     for (const item of options || []) {
@@ -238,10 +241,12 @@ function HotelsSearchContent() {
     });
 
     return list;
-  }, [liteApiOptions, amadeusOptions, options]);
+  }, [liteApiOptions, amadeusOptions, options, ENABLE_AMADEUS]);
 
-  const anySearchLoading = bookingStep === "search" && (loading || amadeusLoading || liteApiLoading);
-  const anySearchError = bookingStep === "search" && Boolean(error || amadeusError || liteApiError);
+  const anySearchLoading = bookingStep === "search" && (loading || (ENABLE_AMADEUS ? amadeusLoading : false) || liteApiLoading);
+  const anySearchError =
+    bookingStep === "search" &&
+    Boolean(error || (ENABLE_AMADEUS ? amadeusError : null) || liteApiError);
 
   const handleSelectPartnerAccommodation = (option: StayOption) => {
     const provider = (option as any)?.provider;
@@ -596,6 +601,11 @@ function HotelsSearchContent() {
       return;
     }
 
+    if (!ENABLE_AMADEUS) {
+      setAmadeusOptions([]);
+      setAmadeusError(null);
+    }
+
     // Load Duffel Stays (disabled in Amadeus-only mode)
     const loadDuffelStays = async () => {
       if (USE_AMADEUS_ONLY) {
@@ -704,9 +714,11 @@ function HotelsSearchContent() {
     };
 
     loadDuffelStays();
-    loadAmadeus();
+    if (ENABLE_AMADEUS) {
+      loadAmadeus();
+    }
     loadLiteApi();
-  }, [destination, checkIn, checkOut, guests, rooms, budget]);
+  }, [destination, checkIn, checkOut, guests, rooms, budget, ENABLE_AMADEUS]);
 
   React.useEffect(() => {
     if (bookingStep !== "search") return;
