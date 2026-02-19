@@ -5,7 +5,12 @@ export type AmadeusConfig = {
 };
 
 export function getAmadeusConfig(): AmadeusConfig {
-  const baseUrl = (process.env.AMADEUS_BASE_URL || "https://test.api.amadeus.com").replace(/\/$/, "");
+  let baseUrl = (process.env.AMADEUS_BASE_URL || "https://test.api.amadeus.com").trim();
+  baseUrl = baseUrl.replace(/\/$/, "");
+
+  // Some setups mistakenly store a versioned base URL (e.g. https://.../v1).
+  // Our service paths include the version prefix already, so strip it here.
+  baseUrl = baseUrl.replace(/\/(v\d+(?:\.\d+)*)$/i, "");
 
   const clientId =
     process.env.AMADEUS_CLIENT_ID ||
