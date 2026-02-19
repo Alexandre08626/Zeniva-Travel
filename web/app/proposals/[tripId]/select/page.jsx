@@ -1163,18 +1163,6 @@ export default function ProposalSelectPage() {
                   <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Flights</div>
                   <h2 className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>Pick one</h2>
                 </div>
-
-                {/* Allow user to change ONLY the departure city here (destination/dates locked for this organized trip) */}
-                <div className="mt-3 mb-3 flex gap-3 items-center">
-                  <label className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Departure</label>
-                  <input
-                    value={tripDraft?.departureCity || ''}
-                    onChange={(e) => applyTripPatch(tripId, { departureCity: e.target.value })}
-                    placeholder="Enter departure city (e.g., YUL, New York)"
-                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm w-64"
-                  />
-                  <div className="text-xs text-slate-400">Only departure can be changed for this organized trip.</div>
-                </div>
               </div>
 
               {hasReturnLeg ? (
