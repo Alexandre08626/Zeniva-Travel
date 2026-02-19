@@ -18,6 +18,7 @@ export default function ProposalReviewPage() {
   const isAgentMode = mode === "agent";
   const modeSuffix = isAgentMode ? "?mode=agent" : "";
   const [shareStatus, setShareStatus] = useState("");
+  const [liteApiHotelPhotosById, setLiteApiHotelPhotosById] = useState({});
   const [workflow, setWorkflow] = useState({
     passengersComplete: false,
     seatsComplete: false,
@@ -65,6 +66,13 @@ export default function ProposalReviewPage() {
   };
 
   const getAccommodationImages = (item, type) => {
+    const provider = String(item?.provider || "").trim().toLowerCase();
+    if (provider === "liteapi") {
+      const id = String(item?.id || "").trim();
+      const photos = id ? liteApiHotelPhotosById?.[id] : null;
+      if (Array.isArray(photos) && photos.length > 0) return photos;
+    }
+
     if (item?.images && item.images.length) return item.images;
     if (type === 'Yacht') {
       const yacht = yachtsData.find((y) => y.id === item?.id || y.title === item?.name);
@@ -74,9 +82,47 @@ export default function ProposalReviewPage() {
       const airbnb = airbnbsData.find((a) => a.id === item?.id || a.title === item?.name);
       return airbnb?.images || [item?.image].filter(Boolean);
     }
-    const fallback = getPartnerHotelImages(tripDraft?.destination || item?.location || item?.name).slice(0, 6);
+    const fallback = getPartnerHotelImages(tripDraft?.destination || item?.location || item?.name);
     return fallback.length ? fallback : [item?.image].filter(Boolean);
   };
+
+  useEffect(() => {
+    const stays = Array.isArray(uniqueHotels) ? uniqueHotels : [];
+    const liteapiIds = stays
+      .map((stay) => ({
+        id: String(stay?.id || "").trim(),
+        provider: String(stay?.provider || "").trim().toLowerCase(),
+      }))
+      .filter((x) => x.provider === "liteapi" && x.id);
+
+    if (liteapiIds.length === 0) return;
+
+    const abort = new AbortController();
+
+    const run = async () => {
+      for (const { id } of liteapiIds) {
+        if (abort.signal.aborted) return;
+        if (Array.isArray(liteApiHotelPhotosById?.[id]) && liteApiHotelPhotosById[id].length > 0) continue;
+        try {
+          const res = await fetch(`/api/partners/liteapi/hotels/details?hotelId=${encodeURIComponent(id)}`, {
+            signal: abort.signal,
+          });
+          const json = await res.json().catch(() => null);
+          if (!res.ok || !json?.ok) continue;
+          const photos = Array.isArray(json?.photos)
+            ? json.photos.filter((p) => typeof p === "string" && p.trim().length > 0)
+            : [];
+          if (photos.length === 0) continue;
+          setLiteApiHotelPhotosById((prev) => ({ ...prev, [id]: photos }));
+        } catch {
+          // Non-blocking
+        }
+      }
+    };
+
+    void run();
+    return () => abort.abort();
+  }, [uniqueHotels]);
 
   const flight = selection?.flight || { airline: "Airline", route: "YUL → CUN", times: "19:20 – 08:45", fare: "Business", bags: "2 checked", flightNumber: "AC 456", duration: "4h 30m", date: "Dec 15, 2025", layovers: 0 };
   const hotel = selection?.hotel || { name: "Hotel Playa", room: "Junior Suite", location: "Beachfront", rating: 4.6 };
@@ -560,7 +606,7 @@ export default function ProposalReviewPage() {
                     <div className="pt-4">
                       <div className="text-xs font-semibold mb-2" style={{ color: MUTED_TEXT }}>Photo gallery</div>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {stayImages.slice(0, 6).map((src, i) => (
+                        {stayImages.map((src, i) => (
                           <div key={i} className="aspect-square overflow-hidden rounded-lg">
                             <img src={src} alt={`${label} ${i + 1}`} className="h-full w-full object-cover hover:scale-105 transition-transform" />
                           </div>
