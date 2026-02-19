@@ -176,6 +176,7 @@ export default function ProposalSelectPage() {
   const [errorActivities, setErrorActivities] = useState(null);
   const [errorTransfers, setErrorTransfers] = useState(null);
   const [selectedTransferKey, setSelectedTransferKey] = useState("");
+  const [expandedFlightId, setExpandedFlightId] = useState("");
   const [filters, setFilters] = useState({
     flightQuery: "",
     flightDirectOnly: false,
@@ -300,6 +301,27 @@ export default function ProposalSelectPage() {
           const slice = o?.slices?.[0];
           const firstSeg = slice?.segments?.[0];
           const lastSeg = slice?.segments?.[slice?.segments?.length - 1];
+          const segments = Array.isArray(slice?.segments)
+            ? slice.segments.map((seg) => ({
+                marketingCarrier: seg?.marketing_carrier?.name,
+                operatingCarrier: seg?.operating_carrier?.name,
+                marketingFlightNumber: seg?.marketing_carrier_flight_number,
+                operatingFlightNumber: seg?.operating_carrier_flight_number,
+                departingAt: seg?.departing_at,
+                arrivingAt: seg?.arriving_at,
+                origin: {
+                  code: seg?.origin?.iata_code,
+                  name: seg?.origin?.iata_city_name || seg?.origin?.name || seg?.origin?.iata_code,
+                  airport: seg?.origin?.name,
+                },
+                destination: {
+                  code: seg?.destination?.iata_code,
+                  name: seg?.destination?.iata_city_name || seg?.destination?.name || seg?.destination?.iata_code,
+                  airport: seg?.destination?.name,
+                },
+                aircraft: seg?.aircraft?.name || seg?.aircraft?.iata_code,
+              }))
+            : [];
           const departureTime = firstSeg?.departing_at ? new Date(firstSeg.departing_at) : null;
           const arrivalTime = lastSeg?.arriving_at ? new Date(lastSeg.arriving_at) : null;
           const durationMs = departureTime && arrivalTime ? arrivalTime - departureTime : 0;
@@ -331,6 +353,7 @@ export default function ProposalSelectPage() {
               carrierCode: firstSeg?.marketing_carrier?.iata_code || firstSeg?.operating_carrier?.iata_code || "",
               flightNumber,
             }),
+            segments,
           };
         });
         setFlights(mapped);
@@ -719,6 +742,36 @@ export default function ProposalSelectPage() {
     return list;
   }, [flights, filters]);
 
+  const fmtTime = (iso) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  };
+  const fmtDate = (iso) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+  };
+  const diffMinutes = (a, b) => {
+    if (!a || !b) return null;
+    const da = new Date(a);
+    const db = new Date(b);
+    if (Number.isNaN(da.getTime()) || Number.isNaN(db.getTime())) return null;
+    const ms = db.getTime() - da.getTime();
+    if (!Number.isFinite(ms) || ms <= 0) return null;
+    return Math.round(ms / 60000);
+  };
+  const fmtDuration = (minutes) => {
+    if (minutes === null || minutes === undefined) return "";
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (!h) return `${m}m`;
+    if (!m) return `${h}h`;
+    return `${h}h ${m}m`;
+  };
+
   const filteredHotels = useMemo(() => hotels.filter((hotel) => {
     const query = filters.hotelQuery.trim().toLowerCase();
     if (query) {
@@ -1021,6 +1074,7 @@ export default function ProposalSelectPage() {
                 {filteredFlights.map((f) => {
                   const active = selection?.flight?.id === f.id;
                   const airlineLogo = f.carrierLogo || getAirlineLogoFromFlight(f);
+                  const isExpanded = expandedFlightId === f.id;
                   return (
                     <button
                       key={f.id}
@@ -1045,6 +1099,66 @@ export default function ProposalSelectPage() {
                       <div className="mt-1 text-xs" style={{ color: MUTED_TEXT }}>
                         {f.times} • {f.fare} • {f.bags}
                       </div>
+
+                      <div className="mt-2">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setExpandedFlightId((prev) => (prev === f.id ? "" : f.id));
+                          }}
+                          className="text-xs font-semibold text-blue-700 hover:underline"
+                        >
+                          Flight details
+                        </button>
+                      </div>
+
+                      {isExpanded && Array.isArray(f.segments) && f.segments.length > 0 ? (
+                        <div className="mt-3 rounded-xl border border-slate-200 bg-white px-3 py-3 text-xs text-slate-700">
+                          {f.segments.map((seg, segIdx) => {
+                            const next = f.segments[segIdx + 1];
+                            const layoverMin = next ? diffMinutes(seg.arrivingAt, next.departingAt) : null;
+                            const operatedBy = seg.operatingCarrier && seg.marketingCarrier && seg.operatingCarrier !== seg.marketingCarrier
+                              ? seg.operatingCarrier
+                              : "";
+
+                            return (
+                              <div key={`${f.id}-seg-${segIdx}`} className={segIdx === 0 ? "" : "mt-3 pt-3 border-t border-slate-200"}>
+                                <div className="font-semibold text-slate-900">Flight {segIdx + 1} of {f.segments.length}</div>
+                                <div className="mt-1">
+                                  <span className="font-semibold">{seg.marketingCarrier || f.airline}</span>
+                                  {seg.marketingFlightNumber ? ` · ${seg.marketingFlightNumber}` : (f.flightNumber ? ` · ${f.flightNumber}` : "")}
+                                </div>
+                                {operatedBy ? <div className="text-slate-600">Operated by {operatedBy}</div> : null}
+
+                                <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                                  <div>
+                                    <div className="font-semibold text-slate-700">{seg.origin?.name || seg.origin?.code}</div>
+                                    <div className="text-slate-600">{seg.origin?.airport ? `${seg.origin.airport} ` : ""}{seg.origin?.code ? `(${seg.origin.code})` : ""}</div>
+                                    <div className="text-slate-600">{fmtTime(seg.departingAt)}{seg.departingAt ? ` · ${fmtDate(seg.departingAt)}` : ""}</div>
+                                  </div>
+                                  <div>
+                                    <div className="font-semibold text-slate-700">{seg.destination?.name || seg.destination?.code}</div>
+                                    <div className="text-slate-600">{seg.destination?.airport ? `${seg.destination.airport} ` : ""}{seg.destination?.code ? `(${seg.destination.code})` : ""}</div>
+                                    <div className="text-slate-600">{fmtTime(seg.arrivingAt)}{seg.arrivingAt ? ` · ${fmtDate(seg.arrivingAt)}` : ""}</div>
+                                  </div>
+                                </div>
+
+                                <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-2 text-slate-600">
+                                  {seg.aircraft ? <div>Aircraft: {seg.aircraft}</div> : null}
+                                  {f.fare ? <div>Cabin: {f.fare}</div> : null}
+                                  {f.duration ? <div>Travel time: {f.duration}</div> : null}
+                                </div>
+
+                                {layoverMin !== null ? (
+                                  <div className="mt-2 text-slate-600">{fmtDuration(layoverMin)} layover</div>
+                                ) : null}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : null}
                     </button>
                   );
                 })}

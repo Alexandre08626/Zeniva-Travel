@@ -37,6 +37,29 @@ type OfferCard = {
   carrierCode?: string;
   carrierLogo?: string;
   badge?: string;
+  slices?: Array<{
+    origin?: { code?: string; name?: string };
+    destination?: { code?: string; name?: string };
+    departingAt?: string;
+    arrivingAt?: string;
+    durationMinutes?: number;
+    segments: Array<{
+      marketingCarrier?: string;
+      operatingCarrier?: string;
+      marketingCarrierCode?: string;
+      operatingCarrierCode?: string;
+      marketingFlightNumber?: string;
+      operatingFlightNumber?: string;
+      departingAt?: string;
+      arrivingAt?: string;
+      origin?: { code?: string; name?: string };
+      destination?: { code?: string; name?: string };
+      aircraft?: string;
+      cabin?: string;
+      distanceKm?: number;
+      amenities?: string[];
+    }>;
+  }>;
 };
 
 function getAirlineLogo(code?: string) {
@@ -125,6 +148,53 @@ function mapDuffelOffers(result: any): OfferCard[] {
     const stops = (firstSlice?.segments?.length || 1) === 1 ? "Nonstop" : `${(firstSlice?.segments?.length || 2) - 1} stop`;
     const price = offer?.total_amount ? `USD ${offer.total_amount}` : "Price on request";
 
+    const slices = Array.isArray(offer?.slices)
+      ? offer.slices.map((slice: any) => {
+          const segmentsRaw = Array.isArray(slice?.segments) ? slice.segments : [];
+          const sliceFirstSeg = segmentsRaw[0];
+          const sliceLastSeg = segmentsRaw[segmentsRaw.length - 1];
+          return {
+            origin: {
+              code: sliceFirstSeg?.origin?.iata_code || slice?.origin?.iata_code,
+              name: sliceFirstSeg?.origin?.iata_city_name || sliceFirstSeg?.origin?.name || sliceFirstSeg?.origin?.iata_code,
+            },
+            destination: {
+              code: sliceLastSeg?.destination?.iata_code || slice?.destination?.iata_code,
+              name: sliceLastSeg?.destination?.iata_city_name || sliceLastSeg?.destination?.name || sliceLastSeg?.destination?.iata_code,
+            },
+            departingAt: sliceFirstSeg?.departing_at,
+            arrivingAt: sliceLastSeg?.arriving_at,
+            durationMinutes: typeof slice?.duration_in_minutes === "number" ? slice.duration_in_minutes : undefined,
+            segments: segmentsRaw.map((seg: any) => ({
+              marketingCarrier: seg?.marketing_carrier?.name,
+              operatingCarrier: seg?.operating_carrier?.name,
+              marketingCarrierCode: seg?.marketing_carrier?.iata_code,
+              operatingCarrierCode: seg?.operating_carrier?.iata_code,
+              marketingFlightNumber: seg?.marketing_carrier_flight_number,
+              operatingFlightNumber: seg?.operating_carrier_flight_number,
+              departingAt: seg?.departing_at,
+              arrivingAt: seg?.arriving_at,
+              origin: {
+                code: seg?.origin?.iata_code,
+                name: seg?.origin?.iata_city_name || seg?.origin?.name || seg?.origin?.iata_code,
+              },
+              destination: {
+                code: seg?.destination?.iata_code,
+                name: seg?.destination?.iata_city_name || seg?.destination?.name || seg?.destination?.iata_code,
+              },
+              aircraft: seg?.aircraft?.name || seg?.aircraft?.iata_code,
+              cabin: offer?.cabin || offer?.cabin_class || seg?.cabin_class,
+              distanceKm: typeof seg?.distance_in_kilometers === "number" ? seg.distance_in_kilometers : undefined,
+              amenities: Array.isArray(seg?.passenger_amenities)
+                ? seg.passenger_amenities
+                    .map((a: any) => a?.type || a?.name)
+                    .filter((x: any) => typeof x === "string" && x.trim())
+                : undefined,
+            })),
+          };
+        })
+      : undefined;
+
     return {
       id: offer?.id || `offer-${idx}`,
       carrier,
@@ -138,6 +208,7 @@ function mapDuffelOffers(result: any): OfferCard[] {
       carrierCode,
       carrierLogo: getAirlineLogo(carrierCode),
       badge: offer?.owner_booking_allowed === false ? "Request" : undefined,
+      slices,
     } as OfferCard;
   });
 }
