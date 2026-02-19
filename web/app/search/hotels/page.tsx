@@ -594,9 +594,12 @@ function HotelsSearchContent() {
       try {
         const qs = new URLSearchParams({ destination: dest, checkIn, checkOut, guests, rooms }).toString();
         const res = await fetch(`/api/partners/liteapi/hotels/search?${qs}`);
-        const json = await res.json();
+        const json = await res.json().catch(() => null as any);
         if (!res.ok || !json?.ok) {
-          throw new Error(json?.error || res.statusText);
+          const status = (json && (json.status || json.upstreamStatus)) || res.status;
+          const attempts = Array.isArray(json?.attempts) ? json.attempts : null;
+          const attemptsLabel = attempts ? ` (tried: ${attempts.map((a: any) => `${a.path}:${a.status}`).join(", ")})` : "";
+          throw new Error((json?.error || `LiteAPI request failed (HTTP ${status || res.status})`) + attemptsLabel);
         }
         const list: StayOption[] = json?.offers || [];
         setLiteApiOptions(list);

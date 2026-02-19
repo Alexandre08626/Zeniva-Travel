@@ -40,11 +40,14 @@ HOTELBEDS_USE_MTLS=false
 
 # LiteAPI (Nuitee) (Hotels)
 # Keep keys server-side only; call via `/api/partners/liteapi`.
-LITEAPI_API_BASE_URL=https://api.liteapi.travel/v1
+LITEAPI_API_BASE_URL=https://api.liteapi.travel/v3.0
 LITEAPI_API_KEY=your_liteapi_api_key_here
-# Auth formatting (defaults: x-api-key: <key>)
-LITEAPI_API_KEY_HEADER=x-api-key
+# Auth formatting (LiteAPI v3 docs): X-API-Key: <key>
+LITEAPI_API_KEY_HEADER=X-API-Key
 LITEAPI_API_KEY_PREFIX=
+
+# LiteAPI booking host (PREBOOK/BOOK). Optional override.
+LITEAPI_BOOK_BASE_URL=https://book.liteapi.travel/v3.0
 
 # Expedia Group (Hotels)
 # Keep keys server-side only; call via `/api/partners/expedia`.

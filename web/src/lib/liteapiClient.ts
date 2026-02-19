@@ -8,7 +8,7 @@ type LiteApiConfig = {
 function getLiteApiConfig(): LiteApiConfig {
   const baseUrl = (process.env.LITEAPI_API_BASE_URL || process.env.LITEAPI_BASE_URL || "").trim();
   const apiKey = (process.env.LITEAPI_API_KEY || "").trim();
-  const keyHeader = (process.env.LITEAPI_API_KEY_HEADER || "x-api-key").trim() || "x-api-key";
+  const keyHeader = (process.env.LITEAPI_API_KEY_HEADER || "X-API-Key").trim() || "X-API-Key";
   const keyPrefix = (process.env.LITEAPI_API_KEY_PREFIX || "").trim() || undefined;
 
   if (!baseUrl) throw new Error("LITEAPI_API_BASE_URL not configured");
@@ -41,6 +41,7 @@ export async function liteApiFetchJson<T = any>(opts: {
   headers?: Record<string, string | undefined>;
   body?: any;
   timeoutMs?: number;
+  baseUrlOverride?: string;
 }): Promise<{ status: number; ok: boolean; data?: T; text?: string; headers: Headers }> {
   const cfg = getLiteApiConfig();
   assertSafePath(opts.path);
@@ -48,7 +49,8 @@ export async function liteApiFetchJson<T = any>(opts: {
   const method = opts.method || "GET";
   const timeoutMs = typeof opts.timeoutMs === "number" ? opts.timeoutMs : 15000;
 
-  const url = new URL(cfg.baseUrl + opts.path);
+  const baseUrl = (opts.baseUrlOverride || cfg.baseUrl).replace(/\/+$/, "");
+  const url = new URL(baseUrl + opts.path);
   for (const [key, value] of Object.entries(opts.query || {})) {
     if (value === undefined || value === null) continue;
     url.searchParams.set(key, String(value));
