@@ -98,7 +98,7 @@ export async function fetchChatMessages(channelId: string) {
     const { data, error } = await client
       .from("agent_inbox_messages")
       .select("id, created_at, channel_ids, message, author, sender_role, source, source_path, property_name")
-      .contains("channel_ids", [channelId])
+      .filter("channel_ids", "cs", JSON.stringify([channelId]))
       .order("created_at", { ascending: false });
     if (error) throw error;
     const rows = Array.isArray(data) ? data : [];

@@ -124,7 +124,7 @@ async function readRequestsFromSupabaseByContains(channelId: string): Promise<Ag
     .select(
       "id, created_at, channel_ids, message, yacht_name, desired_date, full_name, phone, email, source_path, property_name, author, sender_role, source"
     )
-    .contains("channel_ids", [channelId])
+    .filter("channel_ids", "cs", JSON.stringify([channelId]))
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);
