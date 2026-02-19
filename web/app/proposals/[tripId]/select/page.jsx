@@ -1184,7 +1184,7 @@ export default function ProposalSelectPage() {
           </aside>
 
           <div className="space-y-5">
-            <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+            <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 flex flex-col min-h-[520px]">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Flights</div>
@@ -1213,7 +1213,7 @@ export default function ProposalSelectPage() {
 
               {loadingFlights && <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700">Loading flights…</div>}
               {errorFlights && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">{errorFlights}</div>}
-              <div className="space-y-3 max-h-[420px] min-h-[420px] overflow-y-auto pr-1">
+              <div className="space-y-3 flex-1 min-h-0 overflow-y-auto pr-1">
                 {filteredFlights.map((f) => {
                   const selectedFlightId = selection?.flight?.inbound?.id || selection?.flight?.outbound?.id || selection?.flight?.id;
                   const active = selectedFlightId === f.id;
@@ -1346,16 +1346,16 @@ export default function ProposalSelectPage() {
               </div>
             </section>
 
-            <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+            <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 flex flex-col min-h-[520px]">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>{tripDraft?.accommodationType === 'Hotel' ? 'Hotels' : tripDraft?.accommodationType === 'Yacht' ? 'Yachts' : 'Villas'}</div>
+                  <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>{staysTitle}</div>
                   <h2 className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>Pick one</h2>
                 </div>
               </div>
               {loadingHotels && <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700">Loading stays…</div>}
               {errorHotels && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">{errorHotels}</div>}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[420px] overflow-y-auto pr-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1 min-h-0 overflow-y-auto pr-1">
                 {filteredHotels.map((h) => {
                   const active = selection?.hotel?.id === h.id;
                   const hotelImages = getPartnerHotelImages(tripDraft?.destination || h.location || h.name);
