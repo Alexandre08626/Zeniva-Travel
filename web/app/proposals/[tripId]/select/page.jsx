@@ -953,12 +953,27 @@ export default function ProposalSelectPage() {
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
       <div className="w-full px-4 xl:px-6 2xl:px-8 py-6 space-y-6">
         <header className="flex items-center justify-between">
+  const normalizedAccommodationType = String(tripDraft?.accommodationType || "")
+    .trim()
+    .toLowerCase();
+  const staysKind =
+    normalizedAccommodationType === "yacht" || normalizedAccommodationType.includes("yacht")
+      ? "yacht"
+      : normalizedAccommodationType === "airbnb" ||
+          normalizedAccommodationType === "residence" ||
+          normalizedAccommodationType.includes("villa") ||
+          normalizedAccommodationType.includes("residence") ||
+          normalizedAccommodationType.includes("airbnb")
+        ? "villa"
+        : "hotel";
+  const staysTitle = staysKind === "yacht" ? "Yachts" : staysKind === "villa" ? "Villas" : "Hotels";
+  const staysTitleLower = staysKind === "yacht" ? "yacht" : staysKind === "villa" ? "villa" : "hotel";
           <div>
             <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
               Proposal {tripId}
             </div>
             <h1 className="text-2xl font-black" style={{ color: TITLE_TEXT }}>
-              Select your flights and {tripDraft?.accommodationType?.toLowerCase() === 'hotel' ? 'hotel' : tripDraft?.accommodationType?.toLowerCase() === 'yacht' ? 'yacht' : 'villa'}
+              Select your flights and {staysTitleLower}
             </h1>
           </div>
           <button
@@ -1204,14 +1219,25 @@ export default function ProposalSelectPage() {
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3 min-w-0">
                           {airlineLogo ? (
-                            <img src={airlineLogo} alt={f.airline} className="h-10 w-10 rounded-full border border-slate-200 bg-white p-1 object-contain" loading="lazy" />
+                            <img
+                              src={airlineLogo}
+                              alt={f.airline}
+                              className="h-10 w-10 rounded-full border border-slate-200 bg-white p-1 object-contain"
+                              loading="lazy"
+                            />
                           ) : (
-                            <div className="h-10 w-10 rounded-full border border-slate-200 bg-white flex items-center justify-center text-xs font-bold text-slate-700">{String(f.airline || "A").slice(0, 1)}</div>
+                            <div className="h-10 w-10 rounded-full border border-slate-200 bg-white flex items-center justify-center text-xs font-bold text-slate-700">
+                              {String(f.airline || "A").slice(0, 1)}
+                            </div>
                           )}
-                          <div className="text-sm font-bold truncate" style={{ color: TITLE_TEXT }}>
-                            {f.airline} • {f.route}
+
+                          <div className="min-w-0">
+                            <div className="text-sm font-bold truncate" style={{ color: TITLE_TEXT }}>
+                              {f.airline} • {f.route}
+                            </div>
                           </div>
                         </div>
+
                         <div className="text-sm font-extrabold" style={{ color: PREMIUM_BLUE }}>{f.price}</div>
                       </div>
                       <div className="mt-1 text-xs" style={{ color: MUTED_TEXT }}>
