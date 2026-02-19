@@ -7,6 +7,8 @@ import { persistWorkflowStatePatch } from "../../../../src/lib/workflowPersisten
 
 type DraftData = {
   selectedSearchResult?: {
+    id?: string;
+    hotelId?: string;
     name?: string;
     location?: string;
     room?: string;
@@ -59,14 +61,16 @@ export default function HotelReviewClient() {
   const params = useSearchParams();
   const [draft, setDraft] = useState<DraftData | null>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [detailsPhotos, setDetailsPhotos] = useState<string[] | null>(null);
 
   useEffect(() => {
     try {
       const raw = window.sessionStorage.getItem(BOOKING_DRAFT_KEY);
       if (!raw) return;
-      setDraft(JSON.parse(raw));
+      const next = JSON.parse(raw);
+      Promise.resolve().then(() => setDraft(next));
     } catch {
-      setDraft(null);
+      Promise.resolve().then(() => setDraft(null));
     }
   }, []);
 
@@ -89,14 +93,49 @@ export default function HotelReviewClient() {
   const quote = draft?.quote;
   const selectedRate = draft?.selectedRate;
   const selectedSearchResult = draft?.selectedSearchResult;
+
+  useEffect(() => {
+    const provider = selectedSearchResult?.provider;
+    const hotelId = (selectedSearchResult?.id || selectedSearchResult?.hotelId || "").trim();
+    if (!provider || provider !== "liteapi") return;
+    if (!hotelId) return;
+
+    const abort = new AbortController();
+    Promise.resolve().then(() => setDetailsPhotos(null));
+
+    const run = async () => {
+      try {
+        const res = await fetch(`/api/partners/liteapi/hotels/details?hotelId=${encodeURIComponent(hotelId)}`,
+          { signal: abort.signal }
+        );
+        const json = await res.json();
+        if (!res.ok || !json?.ok) return;
+        const photos = Array.isArray(json.photos)
+          ? json.photos.filter((p: any): p is string => typeof p === "string" && p.trim().length > 0)
+          : [];
+        setDetailsPhotos(photos);
+      } catch {
+        // Non-blocking
+      }
+    };
+
+    void run();
+    return () => abort.abort();
+  }, [selectedSearchResult?.provider, selectedSearchResult?.id, selectedSearchResult?.hotelId]);
+
   const hotelPhotos = useMemo(() => {
+    const preferred = Array.isArray(detailsPhotos)
+      ? detailsPhotos.filter((photo): photo is string => typeof photo === "string" && photo.trim().length > 0)
+      : [];
+    if (preferred.length > 0) return preferred;
+
     const rawPhotos = Array.isArray(selectedSearchResult?.photos)
       ? selectedSearchResult.photos.filter((photo): photo is string => typeof photo === "string" && photo.trim().length > 0)
       : [];
-    if (rawPhotos.length > 0) return rawPhotos.slice(0, 8);
+    if (rawPhotos.length > 0) return rawPhotos;
     if (selectedSearchResult?.image) return [selectedSearchResult.image];
     return [];
-  }, [selectedSearchResult]);
+  }, [detailsPhotos, selectedSearchResult]);
 
   const formatAmount = (value: any, currency?: string) => {
     if (value === null || value === undefined || value === "") return "N/A";
