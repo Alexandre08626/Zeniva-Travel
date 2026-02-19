@@ -66,6 +66,8 @@ export default function HotelReviewClient() {
   const [showAllPhotos, setShowAllPhotos] = useState(false);
   const [activePhoto, setActivePhoto] = useState<string | null>(null);
 
+  const termsUrl = process.env.NEXT_PUBLIC_TERMS_URL || "/terms";
+
   useEffect(() => {
     try {
       const raw = window.sessionStorage.getItem(BOOKING_DRAFT_KEY);
@@ -288,7 +290,7 @@ export default function HotelReviewClient() {
               )}
             </div>
             {selectedRate?.conditions && <p className="text-xs text-slate-600">Rate conditions: {selectedRate.conditions}</p>}
-            <div className="text-xs text-slate-600">Booking.com terms: <a className="underline" href="https://www.booking.com/content/terms.html" target="_blank" rel="noreferrer">View terms</a></div>
+            <div className="text-xs text-slate-600">Zeniva Travel terms: <a className="underline" href={termsUrl} target="_blank" rel="noreferrer">View terms</a></div>
           </div>
 
           <form
@@ -407,8 +409,8 @@ export default function HotelReviewClient() {
                 required
               />
               <span>
-                I confirm that I reviewed all booking details and I accept the terms and cancellation policies.
-                {" "}<a className="underline" href="https://www.booking.com/content/terms.html" target="_blank" rel="noreferrer">View terms</a>
+                I confirm that I reviewed all booking details and I accept Zeniva Travel terms and the cancellation policies.
+                {" "}<a className="underline" href={termsUrl} target="_blank" rel="noreferrer">View terms</a>
               </span>
             </label>
 
