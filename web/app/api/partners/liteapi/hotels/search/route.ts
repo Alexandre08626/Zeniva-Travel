@@ -21,7 +21,7 @@ function pickArray(payload: any): any[] {
 function pickFirstObject(payload: any): any {
   const candidates = [payload?.data, payload];
   for (const c of candidates) {
-    if (c && typeof c === "object") return c;
+    if (c && typeof c === "object" && !Array.isArray(c)) return c;
   }
   return null;
 }
@@ -154,6 +154,89 @@ function extractUpstreamError(res: { status: number; data?: any; text?: string }
   return detail ? ` (upstream: ${detail})` : "";
 }
 
+function pickRatesPayload(payload: any) {
+  // LiteAPI v3 can return different shapes depending on query type.
+  // - When searching by filters (aiSearch/city/etc), the payload may be: { data: [ { hotelId, roomTypes } ], ... }
+  // - When searching by hotelIds (and/or includeHotelData=true), it may be: { data: { data: [...], hotels: [...] } }
+  // We return the most useful object root while avoiding arrays.
+  return pickFirstObject(payload);
+}
+
+function pickRatesList(ratesPayload: any): any[] {
+  const candidates = [ratesPayload?.data?.data, ratesPayload?.data, ratesPayload?.results];
+  for (const c of candidates) {
+    if (Array.isArray(c)) return c;
+  }
+  return [];
+}
+
+function pickHotelsMetaList(ratesPayload: any): any[] {
+  const candidates = [ratesPayload?.data?.hotels, ratesPayload?.hotels];
+  for (const c of candidates) {
+    if (Array.isArray(c)) return c;
+  }
+  return [];
+}
+
+function extractHotelIdsFromRatesPayload(ratesPayload: any): string[] {
+  const ids = new Set<string>();
+  for (const item of pickRatesList(ratesPayload)) {
+    const hotelId = getFirstString(item?.hotelId, item?.id);
+    if (hotelId) ids.add(hotelId);
+  }
+  return Array.from(ids);
+}
+
+function mapRatesPayloadToOffers(ratesPayload: any, input?: { fallbackMetaById?: Map<string, any> }) {
+  const hotelMetaList = pickHotelsMetaList(ratesPayload);
+  const hotelMetaById = new Map<string, any>();
+  for (const h of hotelMetaList) {
+    const id = getFirstString(h?.id, h?.hotelId, h?.hotel_id);
+    if (id) hotelMetaById.set(id, h);
+  }
+
+  const ratesList = pickRatesList(ratesPayload);
+  return ratesList
+    .map((item: any, idx: number) => {
+      const hotelId = getFirstString(item?.hotelId, item?.id);
+      if (!hotelId) return null;
+      return mapRatesToOffer({
+        idx,
+        hotelId,
+        ratesItem: item,
+        hotelMeta: hotelMetaById.get(hotelId),
+        semanticMeta: input?.fallbackMetaById?.get(hotelId),
+      });
+    })
+    .filter(Boolean);
+}
+
+async function getHotelsMetaByIds(hotelIds: string[]) {
+  const ids = (hotelIds || []).filter((x) => typeof x === "string" && x.trim());
+  if (ids.length === 0) return { ok: false as const, byId: new Map<string, any>() };
+
+  const res = await liteApiFetchJson<any>({
+    path: "/data/hotels",
+    method: "GET",
+    query: {
+      hotelIds: ids.join(","),
+      limit: Math.min(ids.length, 200),
+    },
+    timeoutMs: 20000,
+  });
+
+  const byId = new Map<string, any>();
+  if (res.ok) {
+    const items = pickArray(res.data);
+    for (const item of items) {
+      const id = getFirstString(item?.id, item?.hotelId, item?.hotel_id);
+      if (id) byId.set(id, item);
+    }
+  }
+
+  return { ok: res.ok as boolean, byId, res };
+}
+
 async function getSemanticHotels(destination: string) {
   // LiteAPI has had a few path variants across versions; try a short list.
   const paths = [
@@ -214,99 +297,64 @@ export async function GET(req: Request) {
   const roomsCount = Math.max(1, Number(rooms) || 1);
 
   try {
-    // v3 workflow: 1) semantic search to get hotel IDs
-    const { res: semantic, attempts } = await getSemanticHotels(destination);
-
-    if (!semantic?.ok) {
-      const status = semantic?.status || 502;
-      const detail = semantic ? extractUpstreamError(semantic) : "";
-      const msg = `LiteAPI semantic search failed (HTTP ${status})${detail}`;
-      return NextResponse.json(
-        {
-          ok: false,
-          error: msg,
-          status,
-          attempts,
-        },
-        { status },
-      );
-    }
-
-    const semanticResults = pickArray(semantic.data);
-    const semanticById = new Map<string, any>();
-    for (const item of semanticResults) {
-      const id = getFirstString(item?.id, item?.hotelId, item?.hotel_id, item?.code);
-      if (id) semanticById.set(id, item);
-    }
-
-    const baseOffers = semanticResults.map((item: any, idx: number) => mapSemanticToBaseOffer(item, idx));
-
-    if (baseOffers.length === 0) {
-      return NextResponse.json({ ok: true, offers: [], rawCount: 0, note: "No hotels from semantic-search" });
-    }
-
-    // 2) rates enrichment (cityName + countryCode tends to return bookable inventory)
+    // Primary strategy: use LiteAPI v3 rates endpoint for listing pages (returns pricing + hotel data).
     const occupancies = Array.from({ length: roomsCount }, () => ({ adults, children: [] }));
-    const countryCode = pickMostCommonCountryCode(semanticResults);
-    const ratesBody: Record<string, any> = {
+    const baseRatesBody: Record<string, any> = {
       occupancies,
       guestNationality: "US",
       currency: "USD",
       checkin: checkIn,
       checkout: checkOut,
       maxRatesPerHotel: 1,
+      includeHotelData: true,
       roomMapping: true,
-      limit: 40,
-      ...(countryCode ? { countryCode } : {}),
-      cityName: destination,
+      limit: 30,
     };
 
-    const enrichmentById = new Map<string, any>();
-    try {
-      const rates = await liteApiFetchJson<any>({ path: "/hotels/rates", method: "POST", query: { rm: true }, body: ratesBody });
-      if (rates.ok) {
-        const ratesPayload = pickFirstObject(rates.data);
+    const aiSearchCandidates = [
+      `hotels in ${destination}`,
+      destination,
+    ];
 
-        const hotelMetaList = pickArray(ratesPayload?.hotels);
-        const hotelMetaById = new Map<string, any>();
-        for (const h of hotelMetaList) {
-          const id = getFirstString(h?.id, h?.hotelId, h?.hotel_id);
-          if (id) hotelMetaById.set(id, h);
-        }
+    for (const aiSearch of aiSearchCandidates) {
+      const rates = await liteApiFetchJson<any>({
+        path: "/hotels/rates",
+        method: "POST",
+        query: { rm: true },
+        body: { ...baseRatesBody, aiSearch },
+        timeoutMs: 30000,
+      });
 
-        const ratesList = pickArray(ratesPayload?.data);
-        for (let idx = 0; idx < ratesList.length; idx++) {
-          const item = ratesList[idx];
-          const hotelId = getFirstString(item?.hotelId, item?.id);
-          if (!hotelId) continue;
-          enrichmentById.set(
-            hotelId,
-            mapRatesToOffer({
-              idx,
-              hotelId,
-              ratesItem: item,
-              hotelMeta: hotelMetaById.get(hotelId),
-              semanticMeta: semanticById.get(hotelId),
-            }),
-          );
-        }
+      if (!rates.ok) continue;
+
+      const ratesPayload = pickRatesPayload(rates.data);
+      const hotelIdsFromRates = extractHotelIdsFromRatesPayload(ratesPayload);
+
+      let fallbackMetaById: Map<string, any> | undefined = undefined;
+      const hotelsMetaPresent = pickHotelsMetaList(ratesPayload).length > 0;
+      if (!hotelsMetaPresent && hotelIdsFromRates.length > 0) {
+        const meta = await getHotelsMetaByIds(hotelIdsFromRates);
+        if (meta.byId.size > 0) fallbackMetaById = meta.byId;
       }
-    } catch {
-      // Non-blocking: still return semantic results without pricing
+
+      const offers = mapRatesPayloadToOffers(ratesPayload, { fallbackMetaById });
+      if (offers.length > 0) {
+        return NextResponse.json({ ok: true, offers, rawCount: offers.length, source: "rates" });
+      }
     }
 
-    const baseById = new Map<string, any>();
-    for (const base of baseOffers) baseById.set(base.id, base);
-
-    const mergedBase = baseOffers.map((base: any) => ({ ...base, ...(enrichmentById.get(base.id) || {}) }));
-    const extras: any[] = [];
-    for (const [id, enriched] of enrichmentById.entries()) {
-      if (baseById.has(id)) continue;
-      extras.push(enriched);
+    // Fallback: semantic-search (content-only) if rates returns no availability
+    const { res: semantic, attempts } = await getSemanticHotels(destination);
+    if (!semantic?.ok) {
+      const status = semantic?.status || 502;
+      const detail = semantic ? extractUpstreamError(semantic) : "";
+      const msg = `LiteAPI semantic search failed (HTTP ${status})${detail}`;
+      return NextResponse.json({ ok: false, error: msg, status, attempts }, { status });
     }
 
-    const offers = [...mergedBase, ...extras];
-    return NextResponse.json({ ok: true, offers, rawCount: offers.length, extrasCount: extras.length });
+    const semanticResults = pickArray(semantic.data);
+    const baseOffers = semanticResults.map((item: any, idx: number) => mapSemanticToBaseOffer(item, idx));
+    return NextResponse.json({ ok: true, offers: baseOffers, rawCount: baseOffers.length, source: "semantic" });
   } catch (err: any) {
     return NextResponse.json({ ok: false, error: err?.message || String(err) }, { status: 502 });
   }
