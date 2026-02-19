@@ -156,3 +156,23 @@ If your Duffel account is not yet approved for Live mode, the server will automa
 - `/api/partners/expedia` - Expedia Group proxy (server-side)
 - `/api/lina` - AI chat
 - `/api/health` - System health check
+
+### Amadeus (non-flight / non-hotel)
+
+These endpoints reuse the same server-side Amadeus OAuth2 credentials (`AMADEUS_CLIENT_ID` + `AMADEUS_CLIENT_SECRET`, or `AMADEUS_API_KEY` + `AMADEUS_API_SECRET`).
+
+Note: Some capabilities depend on your Amadeus plan/access. When not enabled, the API returns `{ ok: false, code: "NOT_AVAILABLE", ... }`.
+
+- `GET /api/amadeus/cars/search?pickup=MAD&dropoff=MAD&startDate=2026-03-10&endDate=2026-03-14&age=30`
+- `POST /api/amadeus/cars/book` (may be `NOT_AVAILABLE`)
+
+- `GET /api/amadeus/transfers/search?origin=CDG&destination=PAR&dateTime=2026-03-10T10:30:00`
+- `POST /api/amadeus/transfers/book`
+
+- `GET /api/amadeus/seatmaps?flightOffer=<JSON_STRINGIFIED_FLIGHT_OFFER>`
+
+- `POST /api/amadeus/emissions`
+
+- `GET /api/amadeus/locations/search?keyword=dub`
+- `GET /api/amadeus/pois?lat=48.8566&lng=2.3522&radius=2`
+- `GET /api/amadeus/recommendations?cityCode=PAR`
