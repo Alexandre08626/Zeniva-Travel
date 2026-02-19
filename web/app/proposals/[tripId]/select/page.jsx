@@ -947,11 +947,17 @@ export default function ProposalSelectPage() {
     router.push(`/proposals/${tripId}/review${modeSuffix}`);
   };
 
-  const normalizedAccommodationType = String(tripDraft?.accommodationType || "")
-    .trim()
-    .toLowerCase();
-  const staysKind =
-    normalizedAccommodationType === "yacht" || normalizedAccommodationType.includes("yacht")
+  const inferredStaysKind = useMemo(() => {
+    const list = Array.isArray(hotels) ? hotels : [];
+    if (list.some((item) => String(item?.type || "").toLowerCase() === "yacht")) return "yacht";
+    if (list.some((item) => ["residence", "villa", "airbnb"].includes(String(item?.type || "").toLowerCase()))) return "villa";
+    if (list.some((item) => String(item?.type || "").toLowerCase() === "hotel")) return "hotel";
+    return "";
+  }, [hotels]);
+
+  const normalizedAccommodationType = String(tripDraft?.accommodationType || "").trim().toLowerCase();
+  const staysKind = inferredStaysKind ||
+    (normalizedAccommodationType === "yacht" || normalizedAccommodationType.includes("yacht")
       ? "yacht"
       : normalizedAccommodationType === "airbnb" ||
           normalizedAccommodationType === "residence" ||
@@ -959,7 +965,7 @@ export default function ProposalSelectPage() {
           normalizedAccommodationType.includes("residence") ||
           normalizedAccommodationType.includes("airbnb")
         ? "villa"
-        : "hotel";
+        : "hotel");
   const staysTitle = staysKind === "yacht" ? "Yachts" : staysKind === "villa" ? "Villas" : "Hotels";
   const staysTitleLower = staysKind === "yacht" ? "yacht" : staysKind === "villa" ? "villa" : "hotel";
 
