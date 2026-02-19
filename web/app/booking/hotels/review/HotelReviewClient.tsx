@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { persistWorkflowStatePatch } from "../../../../src/lib/workflowPersistence";
+import { applyHotelMarkupLabel } from "../../../../src/lib/partnerMarkup";
 
 type DraftData = {
   selectedSearchResult?: {
@@ -156,14 +157,20 @@ export default function HotelReviewClient() {
 
   const formatAmount = (value: any, currency?: string) => {
     if (value === null || value === undefined || value === "") return "N/A";
-    if (typeof value === "string" || typeof value === "number") {
-      return currency ? `${value} ${currency}` : String(value);
+    if (typeof value === "string") {
+      const label = currency ? `${currency} ${value}` : value;
+      return currency ? applyHotelMarkupLabel(label) : applyHotelMarkupLabel(value);
+    }
+    if (typeof value === "number") {
+      const label = currency ? `${currency} ${value}` : String(value);
+      return currency ? applyHotelMarkupLabel(label) : String(value);
     }
     if (typeof value === "object") {
       const amount = value.amount ?? value.value ?? value.total ?? value.total_amount;
       const cur = value.currency ?? value.currency_code ?? currency;
       if (amount !== undefined && amount !== null) {
-        return cur ? `${amount} ${cur}` : String(amount);
+        const label = cur ? `${cur} ${amount}` : String(amount);
+        return cur ? applyHotelMarkupLabel(label) : String(amount);
       }
     }
     return String(value);

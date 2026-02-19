@@ -7,6 +7,7 @@ import { PREMIUM_BLUE, MUTED_TEXT, ACCENT_GOLD } from "../../../src/design/token
 import { sendMessageToLina } from "../../../src/lib/linaClient";
 import LinaAvatar from "../../../src/components/LinaAvatar";
 import { buildChatChannelId, fetchChatMessages, saveChatMessage } from "../../../src/lib/chatPersistence";
+import { applyFlightMarkupLabel, applyHotelMarkupLabel } from "../../../src/lib/partnerMarkup";
 
 import { Role } from "../../../src/lib/authStore";
 
@@ -215,6 +216,7 @@ export default function LinaCommandCenter() {
       let proposal: Proposal | null = null;
       if (searchCategory === 'flights' && data.result?.offers?.length) {
         const offer = data.result.offers[0];
+        const rawTotalPrice = offer?.total_currency && offer?.total_amount ? `${offer.total_currency} ${offer.total_amount}` : "Price on request";
         proposal = {
           id: uid(),
           dossierId: selected.id,
@@ -227,12 +229,13 @@ export default function LinaCommandCenter() {
             `Flight: ${offer.slices?.[0]?.origin} → ${offer.slices?.[0]?.destination} (${offer.slices?.[0]?.departure_date})`,
             `Airline: ${offer.owner?.name || offer.owner?.iata_code}`
           ],
-          totalPrice: offer.total_amount + ' ' + offer.total_currency,
+          totalPrice: rawTotalPrice === "Price on request" ? rawTotalPrice : applyFlightMarkupLabel(rawTotalPrice),
           createdAt: new Date().toISOString(),
           status: 'draft',
         };
       } else if (searchCategory === 'hotels' && data?.hotels?.length) {
         const hotel = data.hotels[0];
+        const rawTotalPrice = hotel?.minRate?.currency && hotel?.minRate?.price ? `${hotel.minRate.currency} ${hotel.minRate.price}` : "Price on request";
         proposal = {
           id: uid(),
           dossierId: selected.id,
@@ -245,7 +248,7 @@ export default function LinaCommandCenter() {
             `Hotel: ${hotel.name} (${hotel.categoryName})`,
             `Address: ${hotel.address?.content}`
           ],
-          totalPrice: hotel.minRate?.price + ' ' + hotel.minRate?.currency,
+          totalPrice: rawTotalPrice === "Price on request" ? rawTotalPrice : applyHotelMarkupLabel(rawTotalPrice),
           createdAt: new Date().toISOString(),
           status: 'draft',
         };

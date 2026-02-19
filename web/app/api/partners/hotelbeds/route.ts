@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
+import { applyHotelMarkupLabel } from "../../../../src/lib/partnerMarkup";
 
 // Hotelbeds credentials from environment variables
 const HOTELBEDS_API_KEY = process.env.HOTELBEDS_API_KEY || "REDACTED_HOTELBEDS_KEY";
@@ -77,7 +78,7 @@ export async function GET(req: Request) {
       id: hotel.code.toString(),
       name: hotel.name,
       location: hotel.destinationName || destination,
-      price: hotel.minRate ? `USD ${hotel.minRate}` : "Price on request",
+      price: hotel.minRate ? applyHotelMarkupLabel(`USD ${hotel.minRate}`) : "Price on request",
       room: hotel.rooms?.[0]?.name || "Standard Room",
       rating: hotel.categoryCode ? parseInt(hotel.categoryCode) : 0,
       image: hotel.images?.[0]?.url || "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80",
@@ -98,7 +99,7 @@ export async function GET(req: Request) {
         id: "mock-hotel-1",
         name: "Hotel " + destination,
         location: destination,
-        price: "USD 150/night",
+        price: applyHotelMarkupLabel("USD 150/night"),
         room: "Standard Room",
         rating: 4,
         image: "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80"
@@ -107,7 +108,7 @@ export async function GET(req: Request) {
         id: "mock-hotel-2",
         name: "Hotel " + destination,
         location: destination,
-        price: "USD 200/night",
+        price: applyHotelMarkupLabel("USD 200/night"),
         room: "Deluxe Room",
         rating: 4.5,
         image: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=900&q=80"

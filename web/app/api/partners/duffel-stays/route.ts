@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { searchStays } from "../../../../src/lib/duffelClient";
+import { applyHotelMarkupLabel } from "../../../../src/lib/partnerMarkup";
 
 const schema = z.object({
   destination: z.string().trim().min(1, "destination required"),
@@ -21,11 +22,13 @@ function normalizeSearchResults(result: any) {
     const accommodation = r?.accommodation || {};
     const cheapestRate = r?.cheapest_rate || {};
     const searchResultId = r?.search_result_id || r?.search_result?.id || r?.id;
+    const rawPrice = cheapestRate?.total_amount ? `${cheapestRate.total_currency} ${cheapestRate.total_amount}` : "Price on request";
+    const price = rawPrice === "Price on request" ? rawPrice : applyHotelMarkupLabel(rawPrice);
     return {
       id: r?.id || `result-${idx}`,
       name: accommodation?.name || "Hotel",
       location: accommodation?.location?.city || accommodation?.address?.city || "",
-      price: cheapestRate?.total_amount ? `${cheapestRate.total_currency} ${cheapestRate.total_amount}` : "Price on request",
+      price,
       room: accommodation?.room_types?.[0]?.name || "Room available",
       perks: accommodation?.amenities?.slice(0, 5) || [],
       rating: accommodation?.rating || 0,
@@ -127,7 +130,7 @@ export async function GET(req: Request) {
           id: `mock-stay-1-${destination}`,
           name: `Sample Hotel near ${destination}`,
           location: destination,
-          price: "USD 120/night",
+          price: applyHotelMarkupLabel("USD 120/night"),
           room: "Standard Room",
           perks: ["Free cancellation", "Breakfast included"],
           rating: 4,

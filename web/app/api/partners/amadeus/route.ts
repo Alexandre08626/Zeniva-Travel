@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
+import { applyHotelMarkupLabel } from "../../../../src/lib/partnerMarkup";
 
 // Amadeus test environment credentials
 const AMADEUS_API_KEY = "REDACTED_AMADEUS_KEY";
@@ -125,7 +126,8 @@ export async function GET(req: Request) {
       if (offerData?.offers && offerData.offers.length > 0) {
         const firstOffer = offerData.offers[0];
         if (firstOffer.price) {
-          price = `USD ${firstOffer.price.total}`;
+          const rawPrice = `USD ${firstOffer.price.total}`;
+          price = rawPrice === "Price on request" ? rawPrice : applyHotelMarkupLabel(rawPrice);
         }
         if (firstOffer.room) {
           room = firstOffer.room.typeEstimated?.category || firstOffer.room.description?.text || "Standard Room";
@@ -162,7 +164,7 @@ export async function GET(req: Request) {
         id: "mock-amadeus-1",
         name: "Hotel " + cityCode,
         location: cityCode,
-        price: "USD 150/night",
+        price: applyHotelMarkupLabel("USD 150/night"),
         room: "Standard Room",
         rating: 4,
         image: "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80"
@@ -171,7 +173,7 @@ export async function GET(req: Request) {
         id: "mock-amadeus-2",
         name: "Hotel " + cityCode,
         location: cityCode,
-        price: "USD 200/night",
+        price: applyHotelMarkupLabel("USD 200/night"),
         room: "Deluxe Room",
         rating: 4.5,
         image: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=900&q=80"

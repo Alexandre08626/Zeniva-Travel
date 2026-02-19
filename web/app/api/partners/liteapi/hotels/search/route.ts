@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { liteApiFetchJson, liteApiIsConfigured } from "../../../../../../src/lib/liteapiClient";
+import { applyHotelMarkupLabel } from "../../../../../../src/lib/partnerMarkup";
 
 const schema = z.object({
   destination: z.string().trim().min(1, "destination required"),
@@ -68,7 +69,8 @@ function mapRatesToOffer(input: {
   const priceObj = firstRoomType?.suggestedSellingPrice || firstRoomType?.offerRetailRate || firstRoomType?.offerInitialPrice || null;
   const priceAmount = priceObj ? getFirstNumber(priceObj?.amount) : null;
   const priceCurrency = priceObj ? getFirstString(priceObj?.currency) : "";
-  const price = priceAmount !== null ? `${priceCurrency || "USD"} ${priceAmount}` : "Price on request";
+  const rawPrice = priceAmount !== null ? `${priceCurrency || "USD"} ${priceAmount}` : "Price on request";
+  const price = rawPrice === "Price on request" ? rawPrice : applyHotelMarkupLabel(rawPrice);
 
   const perksFromTags = Array.isArray(semanticMeta?.tags)
     ? semanticMeta.tags.filter((t: any) => typeof t === "string" && t.trim()).slice(0, 5)

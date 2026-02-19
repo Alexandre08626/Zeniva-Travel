@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { searchDuffelOffers } from "../../../src/lib/duffelClient";
 import FlightOffers from '../../../src/components/FlightOffers.client';
+import { applyFlightMarkupLabel } from "../../../src/lib/partnerMarkup";
 
 type Params = {
   trip?: string;
@@ -146,7 +147,8 @@ function mapDuffelOffers(result: any): OfferCard[] {
 
     const duration = formatDuration(firstSlice?.duration_in_minutes) || formatDuration(offer?.total_duration?.minutes);
     const stops = (firstSlice?.segments?.length || 1) === 1 ? "Nonstop" : `${(firstSlice?.segments?.length || 2) - 1} stop`;
-    const price = offer?.total_amount ? `USD ${offer.total_amount}` : "Price on request";
+    const rawPrice = offer?.total_amount ? `USD ${offer.total_amount}` : "Price on request";
+    const price = rawPrice === "Price on request" ? rawPrice : applyFlightMarkupLabel(rawPrice);
 
     const slices = Array.isArray(offer?.slices)
       ? offer.slices.map((slice: any) => {
