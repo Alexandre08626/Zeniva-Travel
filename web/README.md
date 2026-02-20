@@ -149,7 +149,10 @@ If your Duffel account is not yet approved for Live mode, the server will automa
 
 ### Amadeus (non-flight / non-hotel)
 
-These endpoints reuse the same server-side Amadeus OAuth2 credentials (`AMADEUS_CLIENT_ID` + `AMADEUS_CLIENT_SECRET`, or `AMADEUS_API_KEY` + `AMADEUS_API_SECRET`).
+These endpoints reuse the same server-side Amadeus OAuth2 credentials.
+
+- Recommended: set `AMADEUS_ENV=test` (default) or `AMADEUS_ENV=prod`, and use `AMADEUS_TEST_CLIENT_ID` + `AMADEUS_TEST_CLIENT_SECRET` (then later `AMADEUS_PROD_CLIENT_ID` + `AMADEUS_PROD_CLIENT_SECRET`).
+- Back-compat: `AMADEUS_CLIENT_ID` + `AMADEUS_CLIENT_SECRET` (or `AMADEUS_API_KEY` + `AMADEUS_API_SECRET`).
 
 Note: Some capabilities depend on your Amadeus plan/access. When not enabled, the API returns `{ ok: false, code: "NOT_AVAILABLE", ... }`.
 
