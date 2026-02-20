@@ -42,16 +42,7 @@ LITEAPI_API_KEY_PREFIX=
 # LiteAPI booking host (PREBOOK/BOOK). Optional override.
 LITEAPI_BOOK_BASE_URL=https://book.liteapi.travel/v3.0
 
-# Expedia Group (Hotels)
-# Keep keys server-side only; call via `/api/partners/expedia`.
-EXPEDIA_API_BASE_URL=https://example.expediagroup.com
-EXPEDIA_API_KEY=your_expedia_api_key_here
-# Optional, depending on your Expedia product
-EXPEDIA_API_SECRET=
-# How the key is sent to Expedia (defaults: x-api-key)
-EXPEDIA_API_KEY_HEADER=x-api-key
-# Optional prefix like "Bearer" (leave empty if not needed)
-EXPEDIA_API_KEY_PREFIX=
+ 
 ```
 
 ### Optional
@@ -143,7 +134,6 @@ If your Duffel account is not yet approved for Live mode, the server will automa
 - `/api/partners/duffel-stays` - Hotel search
 - `/api/partners/amadeus` - Alternative flight search
 - `/api/partners/liteapi` - LiteAPI (Nuitee) proxy (server-side)
-- `/api/partners/expedia` - Expedia Group proxy (server-side)
 - `/api/lina` - AI chat
 - `/api/health` - System health check
 

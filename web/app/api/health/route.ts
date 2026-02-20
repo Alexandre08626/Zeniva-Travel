@@ -35,8 +35,6 @@ export async function GET() {
     OPENAI_MODEL: process.env.OPENAI_MODEL || "gpt-4o-mini",
     LITEAPI_API_BASE_URL: !!process.env.LITEAPI_API_BASE_URL,
     LITEAPI_API_KEY: !!process.env.LITEAPI_API_KEY,
-    EXPEDIA_API_BASE_URL: !!process.env.EXPEDIA_API_BASE_URL,
-    EXPEDIA_API_KEY: !!process.env.EXPEDIA_API_KEY,
     AMADEUS_ENV: process.env.AMADEUS_ENV || process.env.AMADEUS_MODE || "(default:test)",
     AMADEUS_BASE_URL: !!process.env.AMADEUS_BASE_URL,
     AMADEUS_CLIENT_ID: !!process.env.AMADEUS_CLIENT_ID || !!process.env.AMADEUS_API_KEY,
