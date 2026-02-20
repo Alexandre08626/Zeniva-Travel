@@ -658,6 +658,27 @@ export default function ProposalSelectPage() {
     const destination = String(tripDraft?.destination || selection?.hotel?.location || "").trim();
     const checkIn = String(tripDraft?.checkIn || "").trim();
 
+    const getArrivalAirport = () => {
+      const flight = selection?.flight;
+      const takeFrom = (f) => {
+        const segs = Array.isArray(f?.segments) ? f.segments : [];
+        const last = segs.length ? segs[segs.length - 1] : null;
+        const code = String(last?.destination?.code || "").trim();
+        return code;
+      };
+
+      // Round trip selection shape: { outbound, inbound, ... }
+      const fromOutbound = takeFrom(flight?.outbound);
+      if (fromOutbound) return fromOutbound;
+
+      // One-way selection shape: { segments, ... }
+      const fromFlat = takeFrom(flight);
+      if (fromFlat) return fromFlat;
+
+      // Fall back to flight search context destination IATA
+      return String(flightSearchContext?.destination || "").trim();
+    };
+
     if (!tripDraft?.includeTransfers) {
       setTransfers([]);
       setLoadingTransfers(false);
@@ -678,9 +699,10 @@ export default function ProposalSelectPage() {
       setErrorTransfers(null);
       try {
         const dateTime = `${checkIn}T10:00:00`;
+        const arrivalAirport = getArrivalAirport();
         const qs = new URLSearchParams({
-          origin: destination,
-          destination: destination,
+          origin: arrivalAirport || destination,
+          destination,
           dateTime,
           passengers: String(tripDraft?.adults || 2),
         }).toString();
@@ -707,6 +729,15 @@ export default function ProposalSelectPage() {
 
         setTransfers(mapped);
 
+        if (mapped.length === 0) {
+          const originCode = String(data?.resolved?.originCode || "").trim();
+          const destinationCode = String(data?.resolved?.destinationCode || "").trim();
+          const hint = originCode || destinationCode
+            ? `No transfers returned for ${originCode || arrivalAirport || destination} → ${destinationCode || destination}.`
+            : "No transfers returned for this route.";
+          setErrorTransfers(hint);
+        }
+
         if (mapped.length > 0 && !selection?.transfer) {
           setProposalSelection(tripId, { transfer: mapped[0] });
           setSelectedTransferKey(mapped[0].id);
@@ -720,7 +751,7 @@ export default function ProposalSelectPage() {
     };
 
     run();
-  }, [tripDraft?.includeTransfers, tripDraft?.destination, tripDraft?.checkIn, tripDraft?.adults, tripId, selection?.hotel?.location]);
+  }, [tripDraft?.includeTransfers, tripDraft?.destination, tripDraft?.checkIn, tripDraft?.adults, tripId, selection?.hotel?.location, selection?.flight, flightSearchContext?.destination]);
 
   const onSelectFlight = (flight) => {
     const parsePrice = (raw) => {
