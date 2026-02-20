@@ -1,8 +1,44 @@
 import { z } from "zod";
 import { searchCars, bookCar } from "@/services/amadeus/carService";
+import { searchLocations } from "@/services/amadeus/contentService";
 import { mapAmadeusError } from "@/services/amadeus/amadeusErrors";
 import { logError, logInfo, logWarn } from "@/routes/amadeus/routeUtils";
 import type { RouteResult } from "@/routes/amadeus/routeTypes";
+
+function isIataCode(value: string) {
+  return /^[A-Z]{3}$/i.test(String(value || "").trim());
+}
+
+async function resolveCarLocationCode(keyword: string, requestId: string) {
+  const trimmed = String(keyword || "").trim();
+  if (!trimmed) return "";
+
+  const firstTry = await searchLocations(
+    {
+      keyword: trimmed,
+      subType: "CITY",
+      pageLimit: 10,
+    },
+    requestId
+  );
+
+  const pickFrom = (list: any[]) => list.find((l) => l?.iataCode) || list.find((l) => l?.cityCode) || list[0];
+
+  const pick1 = pickFrom(firstTry.locations);
+  const code1 = String(pick1?.iataCode || pick1?.cityCode || "").trim();
+  if (code1) return code1;
+
+  const fallback = await searchLocations(
+    {
+      keyword: trimmed,
+      subType: "CITY,AIRPORT",
+      pageLimit: 10,
+    },
+    requestId
+  );
+  const pick2 = pickFrom(fallback.locations);
+  return String(pick2?.iataCode || pick2?.cityCode || "").trim();
+}
 
 const searchSchema = z.object({
   pickup: z.string().min(3),
@@ -40,10 +76,36 @@ export async function handleCarsSearch(req: Request, requestId: string): Promise
   logInfo("amadeus:cars", requestId, "search", { pickup: parsed.data.pickup, dropoff: parsed.data.dropoff });
 
   try {
-    const { offers } = await searchCars(parsed.data, requestId);
+    let pickupCode = parsed.data.pickup;
+    let dropoffCode = parsed.data.dropoff;
+
+    if (!isIataCode(pickupCode)) {
+      pickupCode = await resolveCarLocationCode(pickupCode, requestId);
+    }
+
+    if (dropoffCode && !isIataCode(dropoffCode)) {
+      dropoffCode = await resolveCarLocationCode(dropoffCode, requestId);
+    }
+
+    const { offers } = await searchCars(
+      {
+        ...parsed.data,
+        pickup: pickupCode || parsed.data.pickup,
+        dropoff: dropoffCode || parsed.data.dropoff,
+      },
+      requestId
+    );
     return {
       status: 200,
-      body: { ok: true, requestId, offers },
+      body: {
+        ok: true,
+        requestId,
+        resolved: {
+          pickupCode: pickupCode || null,
+          dropoffCode: dropoffCode || null,
+        },
+        offers,
+      },
     };
   } catch (err) {
     const mapped = mapAmadeusError(err, requestId);

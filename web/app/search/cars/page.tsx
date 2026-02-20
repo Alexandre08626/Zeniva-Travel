@@ -45,8 +45,8 @@ export default function CarsSearchPage({ searchParams }: { searchParams: Params 
 
   const today = useMemo(() => isoToday(), []);
 
-  const [pickup, setPickup] = useState(String(searchParams?.pickup || "").trim().toUpperCase());
-  const [dropoff, setDropoff] = useState(String(searchParams?.dropoff || "").trim().toUpperCase());
+  const [pickup, setPickup] = useState(String(searchParams?.pickup || "").trim());
+  const [dropoff, setDropoff] = useState(String(searchParams?.dropoff || "").trim());
   const [pickupDate, setPickupDate] = useState(String(searchParams?.pickupDate || "").trim());
   const [dropoffDate, setDropoffDate] = useState(String(searchParams?.dropoffDate || "").trim());
   const [age, setAge] = useState(String(searchParams?.age || "30").trim());
@@ -147,8 +147,8 @@ export default function CarsSearchPage({ searchParams }: { searchParams: Params 
 
         <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
           <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <input value={pickup} onChange={(e) => setPickup(e.target.value.toUpperCase())} placeholder="Pickup code (IATA/city)" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
-            <input value={dropoff} onChange={(e) => setDropoff(e.target.value.toUpperCase())} placeholder="Dropoff code (optional)" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
+            <input value={pickup} onChange={(e) => setPickup(e.target.value)} placeholder="Pickup (city/airport)" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
+            <input value={dropoff} onChange={(e) => setDropoff(e.target.value)} placeholder="Dropoff (optional)" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
             <input value={pickupDate} onChange={(e) => { setPickupDate(e.target.value); if (dropoffDate && e.target.value && dropoffDate < e.target.value) setDropoffDate(""); }} placeholder="Pickup date" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="date" min={today} />
             <input value={dropoffDate} onChange={(e) => setDropoffDate(e.target.value)} placeholder="Dropoff date" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="date" min={pickupDate || today} />
             <input value={age} onChange={(e) => setAge(e.target.value)} placeholder="Driver age" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="number" min={18} max={99} />
