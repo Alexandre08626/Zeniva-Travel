@@ -181,6 +181,7 @@ export default function ProposalSelectPage() {
   const [errorTransfers, setErrorTransfers] = useState(null);
   const [selectedTransferKey, setSelectedTransferKey] = useState("");
   const [expandedFlightId, setExpandedFlightId] = useState("");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [filters, setFilters] = useState({
     flightQuery: "",
     flightDirectOnly: false,
@@ -1024,7 +1025,7 @@ export default function ProposalSelectPage() {
           </button>
         </header>
 
-        <div className="relative h-56 w-full overflow-hidden rounded-2xl">
+        <div className="relative h-64 sm:h-72 w-full overflow-hidden rounded-2xl">
           <img src={heroImage} alt="Destination" className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/35 to-black/5" />
           <div className="absolute left-6 bottom-6 text-white">
@@ -1033,14 +1034,41 @@ export default function ProposalSelectPage() {
           </div>
         </div>
 
+        <div className="xl:hidden flex items-center justify-between gap-3">
+          <div className="text-xs text-slate-600">
+            Flights {filteredFlights.length} · Stays {filteredHotels.length} · Activities {filteredActivities.length} · Transfers {filteredTransfers.length}
+          </div>
+          <button
+            type="button"
+            onClick={() => setMobileFiltersOpen((prev) => !prev)}
+            aria-expanded={mobileFiltersOpen}
+            aria-controls="advanced-filters"
+            className="shrink-0 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+          >
+            {mobileFiltersOpen ? "Hide filters" : "Show filters"}
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)_320px] gap-4 items-start">
-          <aside className="xl:sticky xl:top-4 rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Zeniva Travel</p>
-              <h2 className="text-lg font-black text-slate-900">Advanced filters</h2>
-              <p className="text-xs text-slate-500 mt-1">
-                Flights {filteredFlights.length} · Stays {filteredHotels.length} · Activities {filteredActivities.length} · Transfers {filteredTransfers.length}
-              </p>
+          <aside
+            id="advanced-filters"
+            className={`${mobileFiltersOpen ? "block" : "hidden"} xl:block xl:sticky xl:top-4 rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-4`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Zeniva Travel</p>
+                <h2 className="text-lg font-black text-slate-900">Advanced filters</h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  Flights {filteredFlights.length} · Stays {filteredHotels.length} · Activities {filteredActivities.length} · Transfers {filteredTransfers.length}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen(false)}
+                className="xl:hidden rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+              >
+                Close
+              </button>
             </div>
 
             <section className="space-y-2">
@@ -1118,7 +1146,7 @@ export default function ProposalSelectPage() {
                           }));
                         }}
                       />
-                      {airline.logo ? <img src={airline.logo} alt={airline.name} className="h-5 w-5 rounded-full border border-slate-200 bg-white" loading="lazy" /> : null}
+                      {airline.logo ? <img src={airline.logo} alt={airline.name} className="h-6 w-6 sm:h-5 sm:w-5 rounded-full border border-slate-200 bg-white" loading="lazy" /> : null}
                       <span>{airline.name}</span>
                     </label>
                   ))}
@@ -1265,11 +1293,11 @@ export default function ProposalSelectPage() {
                             <img
                               src={airlineLogo}
                               alt={f.airline}
-                              className="h-10 w-10 rounded-full border border-slate-200 bg-white p-1 object-contain"
+                              className="h-12 w-12 sm:h-10 sm:w-10 rounded-full border border-slate-200 bg-white p-1 object-contain"
                               loading="lazy"
                             />
                           ) : (
-                            <div className="h-10 w-10 rounded-full border border-slate-200 bg-white flex items-center justify-center text-xs font-bold text-slate-700">
+                            <div className="h-12 w-12 sm:h-10 sm:w-10 rounded-full border border-slate-200 bg-white flex items-center justify-center text-xs font-bold text-slate-700">
                               {String(f.airline || "A").slice(0, 1)}
                             </div>
                           )}
@@ -1418,7 +1446,7 @@ export default function ProposalSelectPage() {
                         active ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white"
                       }`}
                     >
-                      <div className="h-32 w-full overflow-hidden relative">
+                      <div className="h-44 sm:h-40 md:h-32 w-full overflow-hidden relative">
                         {images.length > 1 ? (
                           <div className="flex h-full">
                             <img src={images[0]} alt={h.name} className="h-full w-2/3 object-cover" />
@@ -1475,7 +1503,7 @@ export default function ProposalSelectPage() {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="h-10 w-10 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+                          <div className="h-12 w-12 sm:h-10 sm:w-10 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
                             <img src={a.image} alt={a.name} className="h-full w-full object-cover" loading="lazy" />
                           </div>
                           <div className="text-sm font-bold truncate" style={{ color: TITLE_TEXT }}>
@@ -1529,7 +1557,7 @@ export default function ProposalSelectPage() {
                       )}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="h-10 w-10 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+                          <div className="h-12 w-12 sm:h-10 sm:w-10 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
                             <img src={t.image} alt={t.name} className="h-full w-full object-cover" loading="lazy" />
                           </div>
                           <div className="text-sm font-bold truncate" style={{ color: TITLE_TEXT }}>
