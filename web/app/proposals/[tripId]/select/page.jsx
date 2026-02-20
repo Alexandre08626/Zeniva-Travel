@@ -1214,6 +1214,10 @@ export default function ProposalSelectPage() {
                   const active = selectedFlightId === f.id;
                   const airlineLogo = f.carrierLogo || getAirlineLogoFromFlight(f);
                   const isExpanded = expandedFlightId === f.id;
+                  const routeLines = String(f.route || "")
+                    .split("/")
+                    .map((part) => part.trim())
+                    .filter(Boolean);
                   return (
                     <button
                       key={f.id}
@@ -1238,8 +1242,22 @@ export default function ProposalSelectPage() {
                           )}
 
                           <div className="min-w-0">
-                            <div className="text-sm font-bold truncate" style={{ color: TITLE_TEXT }}>
-                              {f.airline} • {f.route}
+                            <div className="text-sm font-bold leading-tight" style={{ color: TITLE_TEXT }}>
+                              <div className="truncate">
+                                {f.airline}
+                                {routeLines[0] ? (
+                                  <>
+                                    {" "}• {routeLines[0]}
+                                  </>
+                                ) : null}
+                              </div>
+                              {routeLines.length > 1
+                                ? routeLines.slice(1).map((line, idx) => (
+                                    <div key={`${f.id}-route-${idx}`} className="truncate">
+                                      {line}
+                                    </div>
+                                  ))
+                                : null}
                             </div>
                           </div>
                         </div>

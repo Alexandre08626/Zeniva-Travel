@@ -4,6 +4,11 @@ import { computePrice, formatCurrency } from "../lib/pricing";
 export default function SelectedSummary({ flight, hotel, activity, transfer, tripDraft, onProceed }: any) {
   const pricing = computePrice({ flight, hotel, activity, transfer }, tripDraft);
 
+  const flightRouteLines = String(flight?.route || "")
+    .split("/")
+    .map((part) => part.trim())
+    .filter(Boolean);
+
   const accommodationLabel = tripDraft?.accommodationType === "Yacht" ? "Yacht" :
                              (tripDraft?.accommodationType === "Airbnb" || tripDraft?.accommodationType === "Residence") ? "Short-term rental" :
                              "Hotel";
@@ -15,7 +20,13 @@ export default function SelectedSummary({ flight, hotel, activity, transfer, tri
       <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
         <div>
           <div className="text-sm text-slate-500">Flight</div>
-          <div className="font-bold">{flight?.route || "YUL → CUN"}</div>
+          <div className="font-bold leading-tight">
+            {flightRouteLines.length ? (
+              flightRouteLines.map((line, idx) => <div key={`flight-route-${idx}`}>{line}</div>)
+            ) : (
+              <div>YUL → CUN</div>
+            )}
+          </div>
           <div className="text-xs text-slate-500">{flight?.fare || "Premium"} • {flight?.bags || "1 checked"}</div>
           <div className="text-xs text-slate-500">
             {pricing.travelers} traveler(s) • {pricing.hasFlightPrice ? formatCurrency(pricing.flightTotal) : "On request"}
