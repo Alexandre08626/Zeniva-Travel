@@ -22,7 +22,14 @@ export async function sendMessageToLina(
     const body: any = {};
 
     // build message and history according to n8n webhook contract
-    const sessionId = (Array.isArray(historyOrPrompt) && (historyOrPrompt.sessionId || historyOrPrompt.sessionId === 0 && String(historyOrPrompt.sessionId))) ||
+    // historyOrPrompt is often an array, but we may attach a sessionId property
+    // at runtime.  Typescript doesn't know about that, so cast to `any` when
+    // accessing the field to keep the compiler happy.
+    const sessionId =
+      (Array.isArray(historyOrPrompt) &&
+        (((historyOrPrompt as any).sessionId ||
+          ((historyOrPrompt as any).sessionId === 0 &&
+            String((historyOrPrompt as any).sessionId))))) ||
       // generate simple random id if none provided
       `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
