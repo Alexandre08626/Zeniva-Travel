@@ -1,5 +1,5 @@
 // Lightweight Lina client for the web UI.
-// Always calls the local server route so secrets never leave the server.
+// Sends messages to an n8n webhook instead of calling OpenAI directly.
 export async function sendMessageToLina(
   historyOrPrompt: any
 ): Promise<{ reply: string; raw: string; tripPatch: any | null }> {
@@ -8,8 +8,8 @@ export async function sendMessageToLina(
 
     if (Array.isArray(historyOrPrompt)) {
       // prefer most recent user message
-      const lastUser = [...historyOrPrompt].reverse().find((m) => m?.role === "user" && m?.text);
-      if (lastUser) prompt = lastUser.text;
+      const lastUser = [...historyOrPrompt].reverse().find((m) => m?.role === "user" && (m?.text || m?.content));
+      if (lastUser) prompt = lastUser.text || lastUser.content || "";
     } else if (typeof historyOrPrompt === "string") {
       prompt = historyOrPrompt;
     }
@@ -19,35 +19,65 @@ export async function sendMessageToLina(
       prompt = "Hello, can you introduce yourself and ask departure city?";
     }
 
-    const body: any = { prompt };
+    const body: any = {};
 
-    // Pass a slimmed-down history only if present to keep payload light
+    // build message and history according to n8n webhook contract
+    const sessionId = (Array.isArray(historyOrPrompt) && (historyOrPrompt.sessionId || historyOrPrompt.sessionId === 0 && String(historyOrPrompt.sessionId))) ||
+      // generate simple random id if none provided
+      `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
+    body.message = prompt;
+    body.sessionId = sessionId;
+    body.source = "zenivatravel.com";
+    body.language = "fr";
+
     if (Array.isArray(historyOrPrompt)) {
       body.history = historyOrPrompt
-        .filter((m) => m?.role && m?.text)
-        .slice(-10)
-        .map((m) => ({ role: m.role === "lina" ? "assistant" : m.role, content: m.text }));
+        .filter((m) => m?.role && (m?.text || m?.content))
+        .slice(-20)
+        .map((m) => ({ role: m.role === "lina" ? "assistant" : m.role, text: m.text || m.content }));
+    } else {
+      body.history = [];
     }
 
-    const res = await fetch("/api/lina", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      const txt = await res.text();
-      throw new Error(`Lina API error: ${res.status} ${txt}`);
-    }
-    const json = await res.json();
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    let rawReply = "";
 
-    // typical shape: { reply: string }
-    const rawReply = String(json?.reply || json?.choices?.[0]?.message?.content || "");
+    try {
+      const res = await fetch("https://vmi3097009.contaboserver.net/webhook/zeniva-lina-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      if (!res.ok) {
+        // treat non-2xx as service unavailable for UI
+        console.error("n8n webhook error", res.status);
+        rawReply = "Lina est momentanément indisponible. Contactez-nous à info@zeniva.ca";
+      } else {
+        const json = await res.json();
+        rawReply = String(json?.response || json?.reply || "");
+      }
+    } catch (err: any) {
+      clearTimeout(timeout);
+      console.error("sendMessageToLina n8n error", err?.message || err);
+      rawReply = "Lina est momentanément indisponible. Contactez-nous à info@zeniva.ca";
+    }
+
     const tripPatch = extractTripPatch(rawReply);
     const reply = stripTripPatch(rawReply);
     return { reply, raw: rawReply, tripPatch };
   } catch (err: any) {
     console.error("sendMessageToLina error", err);
-    throw err;
+    // In case of unexpected error, return user-facing message
+    return {
+      reply: "Lina est momentanément indisponible. Contactez-nous à info@zeniva.ca",
+      raw: "",
+      tripPatch: null,
+    };
   }
 }
 
