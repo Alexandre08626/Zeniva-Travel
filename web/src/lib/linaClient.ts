@@ -3,89 +3,77 @@
 export async function sendMessageToLina(
   historyOrPrompt: any
 ): Promise<{ reply: string; raw: string; tripPatch: any | null }> {
-  try {
-    let prompt = "";
+  // contract requirements from Copilot-Fix-linaClient
+  const WEBHOOK_FALLBACK =
+    "https://vmi3097009.contaboserver.net/webhook/zeniva-lina-chat";
 
-    if (Array.isArray(historyOrPrompt)) {
-      // prefer most recent user message
-      const lastUser = [...historyOrPrompt].reverse().find((m) => m?.role === "user" && (m?.text || m?.content));
-      if (lastUser) prompt = lastUser.text || lastUser.content || "";
-    } else if (typeof historyOrPrompt === "string") {
-      prompt = historyOrPrompt;
-    }
-
-    // If no prompt available, send a short default to avoid server 400 errors
-    if (!prompt || String(prompt).trim().length === 0) {
-      prompt = "Hello, can you introduce yourself and ask departure city?";
-    }
-
-    const body: any = {};
-
-    // build message and history according to n8n webhook contract
-    // historyOrPrompt is often an array, but we may attach a sessionId property
-    // at runtime.  Typescript doesn't know about that, so cast to `any` when
-    // accessing the field to keep the compiler happy.
-    const sessionId =
-      (Array.isArray(historyOrPrompt) &&
-        (((historyOrPrompt as any).sessionId ||
-          ((historyOrPrompt as any).sessionId === 0 &&
-            String((historyOrPrompt as any).sessionId))))) ||
-      // generate simple random id if none provided
-      `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-
-    body.message = prompt;
-    body.sessionId = sessionId;
-    body.source = "zenivatravel.com";
-    body.language = "fr";
-
-    if (Array.isArray(historyOrPrompt)) {
-      body.history = historyOrPrompt
-        .filter((m) => m?.role && (m?.text || m?.content))
-        .slice(-20)
-        .map((m) => ({ role: m.role === "lina" ? "assistant" : m.role, text: m.text || m.content }));
-    } else {
-      body.history = [];
-    }
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
-    let rawReply = "";
-
-    try {
-      const res = await fetch("https://vmi3097009.contaboserver.net/webhook/zeniva-lina-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-        signal: controller.signal,
-      });
-      clearTimeout(timeout);
-
-      if (!res.ok) {
-        // treat non-2xx as service unavailable for UI
-        console.error("n8n webhook error", res.status);
-        rawReply = "Lina est momentanément indisponible. Contactez-nous à info@zeniva.ca";
-      } else {
-        const json = await res.json();
-        rawReply = String(json?.response || json?.reply || "");
-      }
-    } catch (err: any) {
-      clearTimeout(timeout);
-      console.error("sendMessageToLina n8n error", err?.message || err);
-      rawReply = "Lina est momentanément indisponible. Contactez-nous à info@zeniva.ca";
-    }
-
-    const tripPatch = extractTripPatch(rawReply);
-    const reply = stripTripPatch(rawReply);
-    return { reply, raw: rawReply, tripPatch };
-  } catch (err: any) {
-    console.error("sendMessageToLina error", err);
-    // In case of unexpected error, return user-facing message
-    return {
-      reply: "Lina est momentanément indisponible. Contactez-nous à info@zeniva.ca",
-      raw: "",
-      tripPatch: null,
-    };
+  // build prompt and optional history/session
+  let prompt = "";
+  if (Array.isArray(historyOrPrompt)) {
+    const lastUser = [...historyOrPrompt]
+      .reverse()
+      .find((m) => m?.role === "user" && (m?.text || m?.content));
+    if (lastUser) prompt = lastUser.text || lastUser.content || "";
+  } else if (typeof historyOrPrompt === "string") {
+    prompt = historyOrPrompt;
   }
+
+  if (!prompt || String(prompt).trim() === "") {
+    prompt = ""; // allow empty, webhook may handle it
+  }
+
+  const sessionId =
+    (Array.isArray(historyOrPrompt) &&
+      (((historyOrPrompt as any).sessionId ||
+        ((historyOrPrompt as any).sessionId === 0 &&
+          String((historyOrPrompt as any).sessionId))))) ||
+    `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
+  const body: any = {
+    message: prompt,
+    sessionId,
+    source: "zenivatravel.com",
+    language: "fr",
+    history: Array.isArray(historyOrPrompt)
+      ? historyOrPrompt
+          .filter((m) => m?.role && (m?.text || m?.content))
+          .slice(-20)
+          .map((m: any) => ({ role: m.role === "lina" ? "assistant" : m.role, text: m.text || m.content }))
+      : [],
+  };
+
+  const url = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || WEBHOOK_FALLBACK;
+  console.log("Lina webhook URL:", url);
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+  let rawReply = "";
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    console.log("Lina webhook status:", res.status);
+
+    if (!res.ok) {
+      rawReply = "Lina est momentanément indisponible. Contactez-nous à info@zeniva.ca";
+    } else {
+      const json = await res.json();
+      rawReply = String(json?.response || json?.reply || "");
+    }
+  } catch (err: any) {
+    clearTimeout(timeout);
+    console.log("Lina webhook error", err?.message || err);
+    rawReply = "Lina est momentanément indisponible. Contactez-nous à info@zeniva.ca";
+  }
+
+  const tripPatch = extractTripPatch(rawReply);
+  const reply = stripTripPatch(rawReply);
+  return { reply, raw: rawReply, tripPatch };
 }
 
 // Extract TRIP_PATCH block from assistant text
