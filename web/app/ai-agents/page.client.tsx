@@ -286,7 +286,7 @@ export default function AIAgentsPageClient() {
           { label: "Database", status: dbHealth },
           { label: "Lina", status: webhookHealth },
         ].map((s) => (
-          <div key={s.label} className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 flex items-center gap-2">
+          <div key={s.label} className="bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 flex items-center gap-2">
             <div className={`h-2 w-2 rounded-full ${svcDot(s.status)} ${s.status === "online" ? "animate-pulse" : ""}`} />
             <span className="text-xs text-slate-400">{s.label}</span>
             <span className={`text-xs font-bold ml-auto ${svcText(s.status)}`}>{s.status === "online" ? "ON" : s.status === "offline" ? "OFF" : "..."}</span>
@@ -307,7 +307,7 @@ export default function AIAgentsPageClient() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-white/5 rounded-xl p-1 border border-white/10">
+      <div className="flex gap-1 mb-6 bg-slate-100 rounded-xl p-1 border border-slate-200">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -326,11 +326,11 @@ export default function AIAgentsPageClient() {
         <div className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
             {/* Recent Activity */}
-            <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+            <div className="bg-slate-100 border border-slate-200 rounded-2xl p-5">
               <h2 className="text-sm font-bold text-white mb-3">⚡ Recent Activity</h2>
               <div className="space-y-2.5 max-h-[400px] overflow-y-auto">
                 {activity.slice(0, 8).map((a) => (
-                  <div key={a.id} className="flex items-start gap-3 bg-white/[0.02] rounded-xl px-3 py-2.5 border border-white/5">
+                  <div key={a.id} className="flex items-start gap-3 bg-slate-100 rounded-xl px-3 py-2.5 border border-slate-100">
                       <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-white">{a.agent}</span>
@@ -348,13 +348,13 @@ export default function AIAgentsPageClient() {
             </div>
 
             {/* Quick agent status */}
-            <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+            <div className="bg-slate-100 border border-slate-200 rounded-2xl p-5">
               <h2 className="text-sm font-bold text-white mb-3">🤖 Agent Status</h2>
               <div className="space-y-2">
                 {agents.map((agent) => {
                   const sc = STATUS_CONFIG[agent.status];
                   return (
-                    <div key={agent.id} className="flex items-center gap-3 bg-white/[0.02] rounded-xl px-3 py-2.5 border border-white/5">
+                    <div key={agent.id} className="flex items-center gap-3 bg-slate-100 rounded-xl px-3 py-2.5 border border-slate-100">
                       <div className="flex-1">
                         <div className="text-xs font-bold text-white">{agent.name}</div>
                         <div className="text-[10px] text-slate-500">{agent.schedule}</div>
@@ -387,7 +387,7 @@ export default function AIAgentsPageClient() {
               </div>
               <div className="grid md:grid-cols-3 gap-3">
                 {approvals.map((ap) => (
-                  <div key={ap.id} className="bg-white/[0.03] border border-white/10 rounded-xl p-3">
+                  <div key={ap.id} className="bg-slate-100 border border-slate-200 rounded-xl p-3">
                     <div className="text-xs font-bold text-white">{ap.title}</div>
                     <div className="text-[10px] text-slate-500 mt-0.5">{ap.agent} · {ap.platform || ap.type}</div>
                     <div className="flex gap-2 mt-2">
@@ -404,11 +404,11 @@ export default function AIAgentsPageClient() {
 
       {/* Tab: Activity Feed */}
       {tab === "activity" && (
-        <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+        <div className="bg-slate-100 border border-slate-200 rounded-2xl p-5">
           <h2 className="text-sm font-bold text-white mb-4">⚡ Full Activity Feed</h2>
           <div className="space-y-2">
             {activity.map((a) => (
-              <div key={a.id} className="flex items-start gap-3 bg-white/[0.02] rounded-xl px-4 py-3 border border-white/5">
+              <div key={a.id} className="flex items-start gap-3 bg-slate-100 rounded-xl px-4 py-3 border border-slate-100">
                 <span className="text-2xl mt-0.5">{a.emoji}</span>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
@@ -430,7 +430,7 @@ export default function AIAgentsPageClient() {
 
       {/* Tab: Leads */}
       {tab === "leads" && (
-        <div className="bg-white/[0.03] border border-white/10 rounded-2xl overflow-hidden">
+        <div className="bg-slate-100 border border-slate-200 rounded-2xl overflow-hidden">
           <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
             <h2 className="text-sm font-bold text-white">👥 All Captured Leads ({leads.length})</h2>
           </div>
@@ -448,7 +448,7 @@ export default function AIAgentsPageClient() {
                 </thead>
                 <tbody>
                   {leads.map((lead) => (
-                    <tr key={lead.id} className="border-b border-white/5 hover:bg-white/[0.02]">
+                    <tr key={lead.id} className="border-b border-white/5 hover:bg-slate-100">
                       <td className="px-4 py-3 text-xs text-slate-400">{new Date(lead.created_at).toLocaleDateString("en-CA")}</td>
                       <td className="px-4 py-3 text-xs font-bold text-white">{lead.name}</td>
                       <td className="px-4 py-3 text-xs text-blue-400">{lead.email}</td>
@@ -460,7 +460,7 @@ export default function AIAgentsPageClient() {
                           lead.status === "new" ? "bg-cyan-500/20 text-cyan-400" :
                           lead.status === "quoted" ? "bg-purple-500/20 text-purple-400" :
                           lead.status === "converted" ? "bg-emerald-500/20 text-emerald-400" :
-                          "bg-slate-500/20 text-slate-400"
+                          "bg-slate-1000/20 text-slate-400"
                         }`}>{lead.status}</span>
                       </td>
                     </tr>
@@ -476,13 +476,13 @@ export default function AIAgentsPageClient() {
       {tab === "approvals" && (
         <div className="space-y-4">
           {approvals.length === 0 ? (
-            <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-12 text-center">
+            <div className="bg-slate-100 border border-slate-200 rounded-2xl p-12 text-center">
               <span className="text-4xl">✅</span>
               <p className="text-slate-400 mt-3 text-sm">All clear! No pending approvals.</p>
             </div>
           ) : (
             approvals.map((ap) => (
-              <div key={ap.id} className="bg-white/[0.03] border border-white/10 rounded-2xl overflow-hidden">
+              <div key={ap.id} className="bg-slate-100 border border-slate-200 rounded-2xl overflow-hidden">
                 <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
                   <div>
                     <div className="text-sm font-bold text-white">{ap.title}</div>
@@ -511,7 +511,7 @@ export default function AIAgentsPageClient() {
           {agents.map((agent) => {
             const sc = STATUS_CONFIG[agent.status];
             return (
-              <div key={agent.id} className="bg-white/[0.03] border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all">
+              <div key={agent.id} className="bg-slate-100 border border-slate-200 rounded-2xl overflow-hidden hover:border-slate-300 transition-all">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
                   <div className="flex items-center gap-3">
                     <span className="text-3xl">{agent.emoji}</span>
@@ -529,7 +529,7 @@ export default function AIAgentsPageClient() {
                   <p className="text-sm text-slate-400">{agent.description}</p>
                   <div className="flex gap-3">
                     {agent.stats.map((s) => (
-                      <div key={s.label} className="bg-white/5 rounded-lg px-3 py-1.5 text-center">
+                      <div key={s.label} className="bg-slate-100 rounded-lg px-3 py-1.5 text-center">
                         <div className="text-sm font-black text-white">{s.value}</div>
                         <div className="text-[9px] text-slate-500">{s.label}</div>
                       </div>
@@ -537,7 +537,7 @@ export default function AIAgentsPageClient() {
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {agent.features.map((f) => (
-                      <span key={f} className="bg-white/5 text-slate-400 text-[10px] font-medium px-2 py-0.5 rounded-full border border-white/5">{f}</span>
+                      <span key={f} className="bg-slate-100 text-slate-400 text-[10px] font-medium px-2 py-0.5 rounded-full border border-slate-100">{f}</span>
                     ))}
                   </div>
                 </div>
