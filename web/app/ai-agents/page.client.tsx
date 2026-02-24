@@ -1,5 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import LinaAvatar from "../../src/components/LinaAvatar";
+import Image from "next/image";
 
 // metadata placed in server wrapper; this file contains client-side UI logic
 
@@ -246,11 +248,11 @@ export default function AIAgentsPageClient() {
   const svcText = (s: SvcStatus) => s === "online" ? "text-emerald-400" : s === "offline" ? "text-red-400" : "text-yellow-400";
 
   const TABS = [
-    { id: "overview", label: "Overview", emoji: "📊" },
-    { id: "activity", label: "Activity Feed", emoji: "⚡" },
-    { id: "leads", label: "Leads", emoji: "👥" },
-    { id: "approvals", label: `Approvals ${approvals.length > 0 ? `(${approvals.length})` : ""}`, emoji: "✋" },
-    { id: "agents", label: "All Agents", emoji: "🤖" },
+    { id: "overview", label: "Overview", emoji: "" },
+    { id: "activity", label: "Activity Feed", emoji: "" },
+    { id: "leads", label: "Leads", emoji: "" },
+    { id: "approvals", label: `Approvals ${approvals.length > 0 ? `(${approvals.length})` : ""}`, emoji: "" },
+    { id: "agents", label: "All Agents", emoji: "" },
   ] as const;
 
   return (
@@ -258,8 +260,10 @@ export default function AIAgentsPageClient() {
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-black bg-gradient-to-r from-white via-blue-200 to-indigo-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3">
+            <LinaAvatar size="sm" />
             AI Agents Command Center
+            <img src="/branding/lina.svg" alt="AI Agent" className="h-8 w-8" />
           </h1>
           <p className="text-slate-500 text-sm mt-1">
             Monitor, approve, and control all Zeniva automation
