@@ -265,6 +265,10 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
                 <span>Agent Chat</span>
               </Link>
             )}
+            <Link href="/ai-agents" className="flex items-center gap-2 rounded-full border border-indigo-300 bg-indigo-50 px-3 py-1.5 shadow-sm hover:border-indigo-400 hover:bg-indigo-100 transition-colors">
+              <span className="text-sm">🤖</span>
+              <span className="font-semibold text-indigo-700">Agent AI</span>
+            </Link>
             {canCreateListings && (
               <Link href="/agent/listings" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
                 <span>Listings</span>
