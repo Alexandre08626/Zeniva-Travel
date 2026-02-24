@@ -152,9 +152,23 @@ export default function TripSnapshotPanel({ tripId, proposalMode = "" }) {
       <div className="mb-4 space-y-2">
         <button
           onClick={onGenerate}
-          disabled={!effectiveSnapshot?.dates || !effectiveSnapshot?.destination || !effectiveSnapshot?.travelers}
-          className={`w-full rounded-xl px-4 py-3 text-sm font-extrabold text-white ${!effectiveSnapshot?.dates || !effectiveSnapshot?.destination || !effectiveSnapshot?.travelers ? 'opacity-50 cursor-not-allowed' : ''}`}
-          style={{ backgroundColor: BRAND_BLUE }}
+          disabled={
+            !effectiveSnapshot?.dates ||
+            !effectiveSnapshot?.destination ||
+            !effectiveSnapshot?.travelers ||
+            effectiveSnapshot?.accommodationType !== "Hotel" ||
+            effectiveSnapshot?.transportationType !== "Flights"
+          }
+          className={`w-full rounded-xl px-4 py-3 text-sm font-extrabold text-white ${
+            (!effectiveSnapshot?.dates ||
+              !effectiveSnapshot?.destination ||
+              !effectiveSnapshot?.travelers ||
+              effectiveSnapshot?.accommodationType !== "Hotel" ||
+              effectiveSnapshot?.transportationType !== "Flights")
+              ? 'opacity-50 cursor-not-allowed'
+              : ''
+          }`}
+          style={{ backgroundColor: PREMIUM_BLUE }}
         >
           Generate Proposal
         </button>
