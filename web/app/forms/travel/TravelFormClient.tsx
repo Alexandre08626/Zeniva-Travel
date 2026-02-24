@@ -100,9 +100,9 @@ export default function TravelFormClient() {
 
         <form onSubmit={onSubmit} className="rounded-2xl border border-slate-700 bg-slate-800/60 backdrop-blur p-6 shadow-2xl space-y-4">
           {form.fields.map((field) => (
-            <label key={field.id} className="flex flex-col gap-1 text-sm font-semibold text-slate-300">
+            <label key={field.id} className="flex flex-col gap-1 text-sm font-semibold text-white">
               {field.label}
-              {field.required && <span className="text-xs font-normal text-slate-500">(required)</span>}
+              {field.required && <span className="text-xs font-normal text-slate-400">(required)</span>}
               {field.type === "select" ? (
                 <select
                   value={fields[field.id] || ""}
