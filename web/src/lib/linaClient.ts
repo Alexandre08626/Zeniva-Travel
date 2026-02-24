@@ -1,9 +1,8 @@
 // Lightweight Lina client for the web UI.
-// Sends messages to an n8n webhook instead of calling OpenAI directly.
+// Routes messages through the Zeniva AI API (Claude) via VPS webhook.
 export async function sendMessageToLina(
   historyOrPrompt: any
 ): Promise<{ reply: string; raw: string; tripPatch: any | null }> {
-  // contract requirements from Copilot-Fix-linaClient
   const WEBHOOK_FALLBACK =
     "https://vmi3097009.contaboserver.net/webhook/zeniva-lina-chat";
 
