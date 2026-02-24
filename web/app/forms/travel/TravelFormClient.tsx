@@ -45,8 +45,8 @@ export default function TravelFormClient() {
     return (
       <main className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #0a1628 0%, #1e3a5f 50%, #0a1628 100%)" }}>
         <div className="mx-auto max-w-lg px-5 py-16 text-center">
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full" style={{ backgroundColor: "rgba(200,169,81,0.15)" }}>
-            <span className="text-4xl">✈️</span>
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full overflow-hidden" style={{ backgroundColor: "rgba(200,169,81,0.15)" }}>
+            <img src="/branding/lina-avatar.png" alt="Lina" className="h-full w-full object-cover" />
           </div>
           <h1 className="text-3xl font-black text-white mb-3">Your Account is Ready!</h1>
           <p className="text-lg text-slate-300 mb-2">
@@ -90,8 +90,8 @@ export default function TravelFormClient() {
     <main className="min-h-screen" style={{ background: "linear-gradient(135deg, #0a1628 0%, #1e3a5f 50%, #0a1628 100%)" }}>
       <div className="mx-auto max-w-xl px-5 py-10">
         <header className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full" style={{ backgroundColor: "rgba(200,169,81,0.15)" }}>
-            <span className="text-3xl">✈️</span>
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full overflow-hidden" style={{ backgroundColor: "rgba(200,169,81,0.15)" }}>
+            <img src="/branding/lina-avatar.png" alt="Lina" className="h-full w-full object-cover" />
           </div>
           <h1 className="text-3xl font-black text-white">{form.title}</h1>
           <p className="mt-2 text-sm text-slate-400">{form.description}</p>
