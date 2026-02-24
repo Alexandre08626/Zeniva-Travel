@@ -4,6 +4,31 @@ import { FORM_DEFINITIONS } from "../../../../src/lib/forms/catalog";
 import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../../src/lib/server/db";
 
 const DEFAULT_OWNER_EMAIL = "info@zenivatravel.com";
+const VPS_API_URL = process.env.LINA_API_URL || "https://vmi3097009.contaboserver.net";
+
+async function notifyVpsNewLead(clientData: any, formFields: Record<string, any>) {
+  try {
+    const msg = `New lead signup: ${clientData.name || "Client"} (${clientData.email || ""}, ${clientData.phone || ""}). Destination: ${formFields.destination || "N/A"}. Budget: ${formFields.budget || "N/A"}. Travelers: ${formFields.pax || "N/A"}. Trip type: ${formFields.tripType || "N/A"}. Dates: ${formFields.departureDate || "?"} to ${formFields.returnDate || "?"}.`;
+    await fetch(`${VPS_API_URL}/webhook/zeniva-lina-chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: msg, sessionId: `form-${clientData.id}` }),
+      signal: AbortSignal.timeout(8000),
+    }).catch(() => {});
+    // Also notify the VPS API directly for lead capture + email
+    await fetch("http://217.216.88.202:8000/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: msg,
+        sessionId: `form-${clientData.id}`,
+        extract_only: true,
+        ai_response: `Welcome ${clientData.name}! Your Zeniva Travel account has been created.`,
+      }),
+      signal: AbortSignal.timeout(8000),
+    }).catch(() => {});
+  } catch (_) {}
+}
 const TRAVEL_ALLOWED = (process.env.FORM_TRAVEL_ALLOWED_AGENTS || "")
   .split(",")
   .map((v) => v.trim().toLowerCase())
@@ -185,6 +210,7 @@ export async function POST(request: Request) {
       if (email) {
         await ensureTravelerAccount(email, name || saved.name || "Traveler", form.division);
       }
+      notifyVpsNewLead(saved, body).catch(() => {});
       return NextResponse.json({ data: saved, updated: true });
     }
 
@@ -222,6 +248,8 @@ export async function POST(request: Request) {
     if (email) {
       await ensureTravelerAccount(email, saved.name, form.division);
     }
+    // Notify VPS for lead capture + email notification
+    notifyVpsNewLead(saved, body).catch(() => {});
 
     return NextResponse.json({ data: saved, created: true }, { status: 201 });
   } catch (err: any) {
