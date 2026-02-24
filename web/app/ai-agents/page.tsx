@@ -1,5 +1,17 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Zeniva Travel AI Agents",
+  description: "Explore our AI agents—Lina and friends—on a clean white background.",
+  alternates: {
+    canonical: "https://zenivatravel.com/ai-agents",
+    languages: {
+      "en-CA": "https://zenivatravel.com/ai-agents",
+      "fr-CA": "https://zenivatravel.com/fr/ai-agents",
+    },
+  },
+};
 
 type AgentStatus = "live" | "active" | "pending" | "error";
 type SvcStatus = "online" | "offline" | "checking";
@@ -54,7 +66,7 @@ const STATUS_CONFIG: Record<AgentStatus, { label: string; bg: string; dot: strin
 };
 
 export default function AIAgentsPage() {
-  const [tab, setTab] = useState<"overview" | "activity" | "leads" | "approvals" | "agents">("overview");
+  return null;
   const [apiHealth, setApiHealth] = useState<SvcStatus>("checking");
   const [webhookHealth, setWebhookHealth] = useState<SvcStatus>("checking");
   const [dbHealth, setDbHealth] = useState<SvcStatus>("checking");
