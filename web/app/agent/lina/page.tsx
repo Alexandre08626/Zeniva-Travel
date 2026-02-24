@@ -422,7 +422,15 @@ export default function LinaCommandCenter() {
       }
     } catch {
       try {
-        const resp = await fetch(`/api/chat?prompt=${encodeURIComponent(text)}&mode=agent`);
+        const history = messages.slice(-20).map((m) => ({
+          role: m.role === "lina" ? "assistant" : "user",
+          content: m.text || "",
+        }));
+        const resp = await fetch("/api/lina", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: text, history }),
+        });
         const data = await resp.json();
         response = String(data?.reply || "").trim() || "[Lina error]";
       } catch {

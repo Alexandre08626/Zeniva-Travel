@@ -355,7 +355,16 @@ export default function TravelerAgentChatClient() {
 
     if (activeTab === "lina") {
       try {
-        const resp = await fetch(`/api/chat?prompt=${encodeURIComponent(text)}&mode=traveler`);
+        const currentThread = threads.find((t) => t.id === "lina-help");
+        const history = (currentThread?.messages || []).slice(-20).map((m) => ({
+          role: m.role === "lina" ? "assistant" : "user",
+          content: m.text || "",
+        }));
+        const resp = await fetch("/api/lina", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: text, history }),
+        });
         const data = await resp.json();
         const reply = data?.reply || "Lina is currently unavailable.";
         const linaMessage: ChatMessage = {

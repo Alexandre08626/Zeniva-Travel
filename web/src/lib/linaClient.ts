@@ -21,12 +21,24 @@ export async function sendMessageToLina(
     prompt = ""; // allow empty, webhook may handle it
   }
 
-  const sessionId =
+  // Persistent session ID per browser tab — keeps n8n memory across messages
+  let sessionId =
     (Array.isArray(historyOrPrompt) &&
       (((historyOrPrompt as any).sessionId ||
         ((historyOrPrompt as any).sessionId === 0 &&
-          String((historyOrPrompt as any).sessionId))))) ||
-    `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+          String((historyOrPrompt as any).sessionId))))) || "";
+  if (!sessionId && typeof window !== "undefined") {
+    const stored = sessionStorage.getItem("lina-session-id");
+    if (stored) {
+      sessionId = stored;
+    } else {
+      sessionId = `web-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      sessionStorage.setItem("lina-session-id", sessionId);
+    }
+  }
+  if (!sessionId) {
+    sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  }
 
   const body: any = {
     message: prompt,

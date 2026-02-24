@@ -48,6 +48,7 @@ Sign-off: "– Lina, Zeniva Travel AI"
 
 const requestSchema = z.object({
   prompt: z.string().trim().min(1).max(4000).optional(),
+  sessionId: z.string().optional(),
   history: z
     .array(
       z.object({
@@ -172,8 +173,10 @@ export async function POST(req: NextRequest) {
     content: m.content,
   }));
 
+  const sessionId = parsed.data.sessionId || requestId;
+
   // Primary: Zeniva VPS API (Claude)
-  const primary = await callZenivaAPI(prompt, history, requestId);
+  const primary = await callZenivaAPI(prompt, history, sessionId);
   if (primary?.reply) {
     return NextResponse.json({
       reply: primary.reply,
@@ -184,8 +187,8 @@ export async function POST(req: NextRequest) {
   }
 
   // Fallback: OpenAI direct
-  console.warn(`[lina] ${requestId} VPS unavailable, falling back to OpenAI`);
-  const fallbackReply = await callOpenAIFallback(prompt, history, requestId);
+  console.warn(`[lina] ${sessionId} VPS unavailable, falling back to OpenAI`);
+  const fallbackReply = await callOpenAIFallback(prompt, history, sessionId);
 
   return NextResponse.json({
     reply: fallbackReply,
