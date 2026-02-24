@@ -422,7 +422,9 @@ export default function LinaCommandCenter() {
       }
     } catch {
       try {
-        const history = messages.slice(-20).map((m) => ({
+        // messages is a record keyed by conversation id; pick current thread
+        const convo = selected ? messages[selected.id] || [] : messages['global'] || [];
+        const history = convo.slice(-20).map((m) => ({
           role: m.role === "lina" ? "assistant" : "user",
           content: m.text || "",
         }));
