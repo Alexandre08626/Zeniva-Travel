@@ -8,6 +8,81 @@ import { useAuthStore } from "../../src/lib/authStore";
 import { buildChatChannelId, fetchChatMessages, saveChatMessage } from "../../src/lib/chatPersistence";
 const quickPrompts = ["Flights", "Hotels", "All-Inclusive", "Cruise", "Excursions"];
 
+/**
+ * Extract trip details from conversation and build a patch for Trip Snapshot.
+ * Parses both user messages and Lina's summaries to auto-fill departure, destination, dates, etc.
+ */
+function extractTripInfoFromConversation(allMessages) {
+  const patch = {};
+  // Combine all text for scanning
+  const fullText = allMessages.map((m) => m.content || "").join("\n");
+
+  // Destination
+  const destMatch = fullText.match(/(?:destination|going to|travel(?:ling)? to|trip to|voyage (?:à|au|en|aux))\s*[:=]?\s*([A-Za-zÀ-ÿ\s-]+)/i)
+    || fullText.match(/•\s*Destination\s*[:=]?\s*([A-Za-zÀ-ÿ\s-]+)/i);
+  if (destMatch) {
+    const dest = destMatch[1].trim().replace(/\s+/g, " ").split(/[,\n•]/)[0].trim();
+    if (dest.length >= 2 && dest.length <= 50) patch.destination = dest;
+  }
+
+  // Departure / origin
+  const depMatch = fullText.match(/(?:departure|departing from|from|départ de|aéroport de départ|depar de)\s*[:=]?\s*([A-Za-zÀ-ÿ\s-]{2,30})/i)
+    || fullText.match(/(?:je suis (?:à|a))\s+([A-Z]{3})\b/i)
+    || fullText.match(/\b(YUL|YYZ|YVR|JFK|LAX|SFO|MIA|ORD|CDG|LHR)\b/i);
+  if (depMatch) {
+    const dep = depMatch[1].trim();
+    if (dep.length >= 2) patch.departure = dep.toUpperCase().length === 3 ? dep.toUpperCase() : dep;
+  }
+
+  // Dates (check-in / check-out)
+  const dateMatches = fullText.match(/\d{4}-\d{2}-\d{2}/g)
+    || fullText.match(/\d{1,2}\s+(?:janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre|december|january|february|march|april|may|june|july|august|september|october|november)\s*\d{0,4}/gi);
+  if (dateMatches && dateMatches.length >= 1) {
+    // Try to find "26 février" style and convert
+    const isoDate = (s) => {
+      if (/\d{4}-\d{2}-\d{2}/.test(s)) return s;
+      return s; // keep as-is for display
+    };
+    patch.dates = dateMatches.length >= 2 ? `${isoDate(dateMatches[0])} → ${isoDate(dateMatches[1])}` : isoDate(dateMatches[0]);
+  }
+  // Also detect "X semaine(s)" or "X weeks" for duration
+  const durationMatch = fullText.match(/(\d+)\s*semaine/i) || fullText.match(/(\d+)\s*week/i);
+  const startDateMatch = fullText.match(/(\d{1,2})\s*(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre)/i);
+  if (durationMatch && startDateMatch && !patch.dates) {
+    const months = { janvier: "01", février: "02", fevrier: "02", mars: "03", avril: "04", mai: "05", juin: "06", juillet: "07", août: "08", aout: "08", septembre: "09", octobre: "10", novembre: "11", décembre: "12" };
+    const day = startDateMatch[1].padStart(2, "0");
+    const month = months[startDateMatch[2].toLowerCase()] || "01";
+    const year = new Date().getFullYear();
+    const start = `${year}-${month}-${day}`;
+    const weeks = parseInt(durationMatch[1]);
+    const endDate = new Date(start);
+    endDate.setDate(endDate.getDate() + weeks * 7);
+    const end = endDate.toISOString().slice(0, 10);
+    patch.dates = `${start} → ${end}`;
+  }
+
+  // Travelers
+  const travMatch = fullText.match(/(\d+)\s*(?:personne|person|adult|voyageur|traveler|pax)/i)
+    || fullText.match(/(?:à|a)\s+(\d+)\b/i);
+  if (travMatch) {
+    const n = parseInt(travMatch[1]);
+    if (n > 0 && n <= 20) patch.travelers = `${n} adults`;
+  }
+
+  // Budget
+  const budgetMatch = fullText.match(/(?:budget|budg)\s*[:=]?\s*\$?\s*([\d,.\s]+)/i)
+    || fullText.match(/([\d,]+)\s*(?:\$|CAD|USD|dollars?)/i)
+    || fullText.match(/\$\s*([\d,]+)/i);
+  if (budgetMatch) {
+    const raw = budgetMatch[1].replace(/[,\s]/g, "");
+    const n = parseFloat(raw);
+    if (n > 0) patch.budget = `$${n.toLocaleString()} CAD`;
+  }
+
+  return Object.keys(patch).length > 0 ? patch : null;
+}
+
+
 function snapshotPatchFromTrip(trip) {
   if (!trip || typeof trip !== "object") return {};
   const patch = {};
@@ -140,21 +215,7 @@ function ChatThread({ tripId, proposalMode = "" }) {
     };
   }, [accountChannelId, tripId]);
 
-  // Demander destination/dates si manquantes
-  useEffect(() => {
-    if (!promptedForHotelInfo && (!snapshot.destination || !snapshot.dates)) {
-      addMessage(tripId, "assistant", "To find a hotel, I need the destination and stay dates. Please enter them in the chat.");
-      setPromptedForHotelInfo(true);
-    }
-  }, [snapshot.destination, snapshot.dates, promptedForHotelInfo, tripId]);
-
-  // Demander le type de séjour si manquant
-  useEffect(() => {
-    if (!promptedForStayType && snapshot.destination && snapshot.dates && !snapshot.style) {
-      addMessage(tripId, "assistant", "What type of stay do you want? (Hotel, Short-term rental, Boat/Yacht)");
-      setPromptedForStayType(true);
-    }
-  }, [snapshot.destination, snapshot.dates, snapshot.style, promptedForStayType, tripId]);
+  // Removed hardcoded auto-prompts — Lina handles all conversation naturally
 
   useEffect(() => {
     if (!inputRef.current) return;
@@ -241,10 +302,31 @@ function ChatThread({ tripId, proposalMode = "" }) {
       if (tripPatch?.patch) {
         applyTripPatch(tripId, tripPatch.patch);
       }
+      // Auto-extract trip info from full conversation and fill Trip Snapshot
+      const allMsgs = [...history, { role: "user", content: trimmed }, { role: "assistant", content: reply || "" }];
+      const extracted = extractTripInfoFromConversation(allMsgs);
+      if (extracted) {
+        applyTripPatch(tripId, extracted);
+        // Auto-set trip title from destination
+        if (extracted.destination) {
+          const currentTrip = (trips || []).find((t) => t.id === tripId);
+          const currentTitle = String(currentTrip?.title || "").trim();
+          if (!currentTitle || currentTitle === "New Trip" || currentTitle === "Trip") {
+            setTripTitle(tripId, extracted.destination);
+          }
+        }
+      }
     } catch (e) {
       try {
-        const mode = proposalMode === "agent" ? "agent" : "traveler";
-        const resp = await fetch(`/api/chat?prompt=${encodeURIComponent(trimmed)}&mode=${mode}`);
+        const fallbackHistory = history.slice(-20).map((m) => ({
+          role: m.role === "assistant" ? "assistant" : "user",
+          content: m.content || "",
+        }));
+        const resp = await fetch("/api/lina", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: trimmed, history: fallbackHistory }),
+        });
         const data = await resp.json();
         const reply = String(data?.reply || "").trim();
         addMessage(tripId, "assistant", reply || "Sorry, Lina is unavailable right now.");
