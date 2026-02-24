@@ -263,17 +263,17 @@ export default function AIAgentsPageClient() {
           <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3">
             <LinaAvatar size="sm" />
             AI Agents Command Center
-            <img src="/branding/lina.svg" alt="AI Agent" className="h-8 w-8" />
+            <Image src="/branding/logo.svg" alt="Zeniva AI Agent" width={32} height={32} />
           </h1>
           <p className="text-slate-500 text-sm mt-1">
             Monitor, approve, and control all Zeniva automation
-            <button onClick={fetchData} className="ml-3 text-indigo-400 font-semibold hover:text-indigo-300">↻ Refresh</button>
+            <button onClick={fetchData} className="ml-3 text-indigo-400 font-semibold hover:text-indigo-300">Refresh</button>
             {lastRefresh && <span className="text-slate-600 ml-2">· {lastRefresh}</span>}
           </p>
         </div>
         {approvals.length > 0 && (
           <div className="bg-amber-500/20 border border-amber-500/30 rounded-xl px-4 py-2 flex items-center gap-2 animate-pulse">
-            <span className="text-amber-400 font-bold text-sm">✋ {approvals.length} items need your approval</span>
+            <span className="text-amber-400 font-bold text-sm">{approvals.length} items need your approval</span>
             <button onClick={() => setTab("approvals")} className="text-xs bg-amber-500 text-white px-3 py-1 rounded-full font-bold hover:bg-amber-600">Review</button>
           </div>
         )}
