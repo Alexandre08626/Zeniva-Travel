@@ -316,7 +316,7 @@ export default function AIAgentsPageClient() {
               tab === t.id ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" : "text-slate-500 hover:text-slate-300 border border-transparent"
             }`}
           >
-            {t.emoji} {t.label}
+            {t.label}
           </button>
         ))}
       </div>
@@ -331,8 +331,7 @@ export default function AIAgentsPageClient() {
               <div className="space-y-2.5 max-h-[400px] overflow-y-auto">
                 {activity.slice(0, 8).map((a) => (
                   <div key={a.id} className="flex items-start gap-3 bg-white/[0.02] rounded-xl px-3 py-2.5 border border-white/5">
-                    <span className="text-lg mt-0.5">{a.emoji}</span>
-                    <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-white">{a.agent}</span>
                         {a.status === "needs_approval" && <span className="text-[9px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full font-bold">NEEDS APPROVAL</span>}
@@ -356,7 +355,6 @@ export default function AIAgentsPageClient() {
                   const sc = STATUS_CONFIG[agent.status];
                   return (
                     <div key={agent.id} className="flex items-center gap-3 bg-white/[0.02] rounded-xl px-3 py-2.5 border border-white/5">
-                      <span className="text-xl">{agent.emoji}</span>
                       <div className="flex-1">
                         <div className="text-xs font-bold text-white">{agent.name}</div>
                         <div className="text-[10px] text-slate-500">{agent.schedule}</div>
