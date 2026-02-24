@@ -78,7 +78,25 @@ function extractTripInfoFromConversation(allMessages) {
     const n = parseFloat(raw);
     if (n > 0) patch.budget = `$${n.toLocaleString()} CAD`;
   }
+  // Accommodation / hotel detection
+  if (/hôtel|hotel|resort|résidence|yacht/i.test(fullText)) {
+    if (/hôtel|hotel/i.test(fullText)) {
+      patch.accommodationType = "Hotel";
+    } else if (/resort/i.test(fullText)) {
+      patch.accommodationType = "Resort";
+    } else if (/résidence|residence|airbnb/i.test(fullText)) {
+      patch.accommodationType = "Residence";
+    } else if (/yacht/i.test(fullText)) {
+      patch.accommodationType = "Yacht";
+    }
+  }
 
+  // Transportation detection (flights vs other)
+  if (/vol|flight|fly|flying|plane/i.test(fullText)) {
+    patch.transportationType = "Flights";
+  } else if (/no flights|pas de vol/i.test(fullText)) {
+    patch.transportationType = "No Flights";
+  }
   return Object.keys(patch).length > 0 ? patch : null;
 }
 
