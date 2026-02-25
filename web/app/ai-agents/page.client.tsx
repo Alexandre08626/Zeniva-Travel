@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
 import LinaAvatar from "../../src/components/LinaAvatar";
-import Image from "next/image";
+// import Image from "next/image";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type AgentStatus = "live" | "active" | "pending" | "error" | "disabled";
@@ -543,7 +543,6 @@ export default function AIAgentsPageClient() {
             <h1 className="text-2xl font-black text-gray-900 flex items-center gap-3">
               <LinaAvatar size="sm" />
               <span>AI Command Center</span>
-              <Image src="/branding/logo.svg" alt="Zeniva" width={28} height={28} className="opacity-80" />
             </h1>
             <p className="text-gray-400 text-xs mt-1 flex items-center gap-3">
               <span className="font-mono text-gray-500">{clock}</span>
