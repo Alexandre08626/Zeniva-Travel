@@ -1,6 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+// Track conversions
+function trackEvent(event: string, data?: Record<string, string>) {
+  // Google Ads conversion
+  if (typeof window !== 'undefined' && (window as any).gtag) {
+    (window as any).gtag('event', event, data);
+  }
+  // Meta Pixel
+  if (typeof window !== 'undefined' && (window as any).fbq) {
+    (window as any).fbq('track', event === 'lead_capture' ? 'Lead' : 'PageView', data);
+  }
+}
 
 const destinations = [
   { name: 'Cancun', emoji: '🇲🇽', tag: 'All-Inclusive from $899', img: 'https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=400&h=300&fit=crop' },
@@ -41,6 +53,7 @@ export default function DealsPage() {
       const data = await res.json();
       if (data.success || data.existing) {
         setSubmitted(true);
+        trackEvent('lead_capture', { destination: selectedDest, source: 'deals_page' });
       } else {
         setError(data.error || 'Something went wrong');
       }
