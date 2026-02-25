@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const VPS_BASE = "http://217.216.88.202:8000";
 const VPS_WEBHOOK = "https://vmi3097009.contaboserver.net/webhook/zeniva-lina-chat";
-const AUTH = "Bearer zeniva-2025-secret";
+const AUTH = "Bearer zeniva-secret-2025";
 
 export async function GET(req: NextRequest) {
   const endpoint = req.nextUrl.searchParams.get("endpoint") || "health";
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (endpoint === "leads") {
-      const r = await fetch(`${VPS_BASE}/admin/leads?limit=20`, {
+      const r = await fetch(`${VPS_BASE}/admin/leads?limit=100`, {
         headers: { Authorization: AUTH },
         next: { revalidate: 0 },
       });
