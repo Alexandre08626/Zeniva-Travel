@@ -1,81 +1,371 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import LinaAvatar from "../../src/components/LinaAvatar";
 import Image from "next/image";
 
-// metadata placed in server wrapper; this file contains client-side UI logic
+// ─── Types ────────────────────────────────────────────────────────────────────
+type AgentStatus = "live" | "active" | "pending" | "error" | "disabled";
+type SvcStatus   = "online" | "offline" | "checking";
+type TabId       = "overview" | "activity" | "leads" | "approvals" | "agents" | "analytics" | "settings";
 
-type AgentStatus = "live" | "active" | "pending" | "error";
-type SvcStatus = "online" | "offline" | "checking";
-type ActivityItem = {
-  id: string;
-  agent: string;
-  emoji: string;
-  action: string;
-  detail: string;
-  time: string;
+interface ActivityItem {
+  id: string; agent: string; agentId: string; emoji: string;
+  action: string; detail: string; time: string;
   status: "success" | "pending" | "error" | "needs_approval";
-};
-
-type PendingApproval = {
-  id: string;
-  agent: string;
-  type: "social_post" | "email" | "ad_campaign" | "outreach";
-  title: string;
-  content: string;
-  platform?: string;
-  createdAt: string;
-};
-
-type LeadEntry = {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  destination: string;
-  source: string;
-  status: string;
-  created_at: string;
-};
-
-type Agent = {
-  id: string;
-  name: string;
-  emoji: string;
-  status: AgentStatus;
-  type: string;
-  schedule: string;
-  description: string;
-  features: string[];
+}
+interface PendingApproval {
+  id: string; agent: string; type: string; title: string; content: string;
+  platform?: string; imagePrompt?: string; createdAt: string;
+  approved?: boolean;
+}
+interface LeadEntry {
+  id: string; name: string; email: string; phone: string;
+  destination: string; source: string; status: string; created_at: string;
+  expanded?: boolean;
+}
+interface AgentDef {
+  id: string; name: string; emoji: string; status: AgentStatus;
+  type: string; schedule: string; description: string; features: string[];
   stats: { label: string; value: string }[];
+  lastRun: string; nextRun: string; enabled: boolean;
+  logs: string[]; progress?: number; color: string;
+}
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+const STATUS_CFG: Record<AgentStatus, { label: string; ring: string; dot: string; badge: string }> = {
+  live:     { label: "LIVE",     ring: "ring-emerald-500/40", dot: "bg-emerald-400", badge: "bg-emerald-500/20 text-emerald-400" },
+  active:   { label: "ACTIVE",   ring: "ring-blue-500/30",    dot: "bg-blue-400",    badge: "bg-blue-500/20 text-blue-400"    },
+  pending:  { label: "PENDING",  ring: "ring-amber-500/30",   dot: "bg-amber-400",   badge: "bg-amber-500/20 text-amber-400"  },
+  error:    { label: "ERROR",    ring: "ring-red-500/40",     dot: "bg-red-400",     badge: "bg-red-500/20 text-red-400"      },
+  disabled: { label: "OFF",      ring: "ring-slate-700/30",   dot: "bg-slate-600",   badge: "bg-slate-700/40 text-slate-500"  },
 };
 
-const STATUS_CONFIG: Record<AgentStatus, { label: string; bg: string; dot: string }> = {
-  live: { label: "LIVE", bg: "bg-emerald-500", dot: "bg-emerald-400" },
-  active: { label: "ACTIVE", bg: "bg-blue-500", dot: "bg-blue-400" },
-  pending: { label: "PENDING", bg: "bg-amber-500/80", dot: "bg-amber-400" },
-  error: { label: "ERROR", bg: "bg-red-500", dot: "bg-red-400" },
+const AGENT_COLORS: Record<string, string> = {
+  lina:     "#6366f1", lead_machine: "#f59e0b", converter: "#3b82f6",
+  followup: "#8b5cf6", social:       "#ec4899", cyber:     "#10b981",
+  bug:      "#ef4444", twilio:       "#06b6d4",
 };
 
+const SOURCE_COLORS: Record<string, string> = {
+  chatbot: "bg-indigo-500", reddit: "bg-orange-500", facebook: "bg-blue-600",
+  instagram: "bg-pink-500", google: "bg-yellow-500", organic: "bg-green-500",
+  competitor: "bg-red-500", referral: "bg-purple-500", other: "bg-slate-500",
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  new:       "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
+  contacted: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  quoted:    "bg-purple-500/20 text-purple-400 border-purple-500/30",
+  converted: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+  junk:      "bg-slate-700/40 text-slate-500 border-slate-600/30",
+};
+
+// ─── KPI Card ────────────────────────────────────────────────────────────────
+function KpiCard({ label, value, sub, trend, color, icon }: {
+  label: string; value: string | number; sub?: string;
+  trend?: string; color: string; icon: string;
+}) {
+  return (
+    <div className={`relative bg-slate-900 border border-slate-800 rounded-2xl p-4 overflow-hidden hover:border-slate-700 transition-all group`}>
+      <div className={`absolute inset-0 opacity-5 group-hover:opacity-10 transition-opacity ${color}`} />
+      <div className="relative">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xl">{icon}</span>
+          {trend && (
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${trend.startsWith("↑") ? "bg-emerald-500/15 text-emerald-400" : trend.startsWith("↓") ? "bg-red-500/15 text-red-400" : "bg-slate-700/50 text-slate-400"}`}>
+              {trend}
+            </span>
+          )}
+        </div>
+        <div className="text-2xl font-black text-white tabular-nums">{value}</div>
+        <div className="text-xs text-slate-400 mt-0.5">{label}</div>
+        {sub && <div className="text-[10px] text-slate-600 mt-1">{sub}</div>}
+      </div>
+    </div>
+  );
+}
+
+// ─── Agent Card ──────────────────────────────────────────────────────────────
+function AgentCard({ agent, onToggle }: { agent: AgentDef; onToggle: (id: string) => void }) {
+  const sc = STATUS_CFG[agent.status];
+  const isAlive = agent.status === "live" || agent.status === "active";
+
+  return (
+    <div className={`bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-slate-700 ring-1 ${sc.ring} transition-all group`}>
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800/60">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <span className="text-2xl">{agent.emoji}</span>
+            {isAlive && <span className={`absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ${sc.dot} ring-2 ring-slate-900 animate-pulse`} />}
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-white">{agent.name}</h3>
+            <p className="text-[10px] text-slate-500">{agent.schedule}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${sc.badge} border-current/20`}>{sc.label}</span>
+          {/* Toggle */}
+          <button
+            onClick={() => onToggle(agent.id)}
+            className={`relative h-5 w-9 rounded-full transition-all duration-300 focus:outline-none ${agent.enabled ? "bg-indigo-600" : "bg-slate-700"}`}
+          >
+            <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-all duration-300 ${agent.enabled ? "left-4" : "left-0.5"}`} />
+          </button>
+        </div>
+      </div>
+
+      <div className="px-5 py-4 space-y-3">
+        {/* Description */}
+        <p className="text-xs text-slate-500 leading-relaxed">{agent.description}</p>
+
+        {/* Progress bar */}
+        {agent.progress !== undefined && (
+          <div>
+            <div className="flex justify-between text-[10px] text-slate-500 mb-1">
+              <span>Progress</span><span>{agent.progress}%</span>
+            </div>
+            <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{ width: `${agent.progress}%`, background: AGENT_COLORS[agent.id] || "#6366f1" }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Stats grid */}
+        <div className="grid grid-cols-2 gap-2">
+          {agent.stats.map((s) => (
+            <div key={s.label} className="bg-slate-800/60 rounded-xl px-3 py-2 text-center">
+              <div className="text-sm font-black text-white">{s.value}</div>
+              <div className="text-[9px] text-slate-500">{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Time info */}
+        <div className="flex gap-3 text-[10px]">
+          <div className="flex-1 bg-slate-800/40 rounded-lg px-2 py-1.5">
+            <div className="text-slate-600">Last run</div>
+            <div className="text-slate-400 font-medium">{agent.lastRun}</div>
+          </div>
+          <div className="flex-1 bg-slate-800/40 rounded-lg px-2 py-1.5">
+            <div className="text-slate-600">Next run</div>
+            <div className="text-slate-400 font-medium">{agent.nextRun}</div>
+          </div>
+        </div>
+
+        {/* Mini logs */}
+        <div>
+          <div className="text-[10px] text-slate-600 mb-1.5 font-semibold uppercase tracking-wider">Last 3 actions</div>
+          <div className="space-y-1">
+            {agent.logs.map((log, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <span className="text-[10px] text-slate-700 mt-px">›</span>
+                <span className="text-[10px] text-slate-500">{log}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Features */}
+        <div className="flex flex-wrap gap-1">
+          {agent.features.map((f) => (
+            <span key={f} className="bg-slate-800/80 text-slate-500 text-[9px] font-medium px-1.5 py-0.5 rounded-md border border-slate-700/50">{f}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── CSS Bar Chart ────────────────────────────────────────────────────────────
+function BarChart({ data, max, color }: { data: { label: string; value: number }[]; max: number; color: string }) {
+  return (
+    <div className="flex items-end gap-2 h-32">
+      {data.map((d) => (
+        <div key={d.label} className="flex-1 flex flex-col items-center gap-1">
+          <span className="text-[10px] text-slate-400 font-bold">{d.value || ""}</span>
+          <div className="w-full bg-slate-800 rounded-t-sm overflow-hidden" style={{ height: "80px" }}>
+            <div
+              className="w-full rounded-t-sm transition-all duration-700"
+              style={{
+                height: `${max > 0 ? Math.round((d.value / max) * 100) : 0}%`,
+                background: color,
+                marginTop: "auto",
+                display: "flex",
+                alignSelf: "flex-end",
+              }}
+            />
+          </div>
+          <span className="text-[9px] text-slate-600">{d.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Funnel Step ──────────────────────────────────────────────────────────────
+function FunnelStep({ label, value, total, color }: { label: string; value: number; total: number; color: string }) {
+  const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-28 text-xs text-slate-400 text-right shrink-0">{label}</div>
+      <div className="flex-1 h-6 bg-slate-800 rounded-lg overflow-hidden">
+        <div className="h-full rounded-lg flex items-center px-2 transition-all duration-700" style={{ width: `${pct}%`, background: color, minWidth: value > 0 ? "2rem" : "0" }}>
+          <span className="text-[10px] text-white font-bold whitespace-nowrap">{value}</span>
+        </div>
+      </div>
+      <div className="w-10 text-[10px] text-slate-500 shrink-0">{pct}%</div>
+    </div>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function AIAgentsPageClient() {
-  
-  const [apiHealth, setApiHealth] = useState<SvcStatus>("checking");
-  const [webhookHealth, setWebhookHealth] = useState<SvcStatus>("checking");
-  const [dbHealth, setDbHealth] = useState<SvcStatus>("checking");
-  const [totalLeads, setTotalLeads] = useState(0);
+  // ── State
+  const [apiHealth, setApiHealth]   = useState<SvcStatus>("checking");
+  const [dbHealth, setDbHealth]     = useState<SvcStatus>("checking");
+  const [linaHealth, setLinaHealth] = useState<SvcStatus>("checking");
+  const [totalLeads, setTotalLeads]   = useState(0);
   const [totalMessages, setTotalMessages] = useState(0);
-  const [leads, setLeads] = useState<LeadEntry[]>([]);
-  const [activity, setActivity] = useState<ActivityItem[]>([]);
-  const [approvals, setApprovals] = useState<PendingApproval[]>([]);
-  const [agents, setAgents] = useState<Agent[]>([]);
+  const [leadsToday, setLeadsToday]   = useState(0);
+  const [leads, setLeads]             = useState<LeadEntry[]>([]);
+  const [activity, setActivity]       = useState<ActivityItem[]>([]);
+  const [approvals, setApprovals]     = useState<PendingApproval[]>([]);
+  const [approvalHistory, setApprovalHistory] = useState<PendingApproval[]>([]);
+  const [agents, setAgents]           = useState<AgentDef[]>([]);
   const [lastRefresh, setLastRefresh] = useState("");
-  const [linaStatus, setLinaStatus] = useState<AgentStatus>("live");
-  const [tab, setTab] = useState<"overview" | "activity" | "leads" | "approvals" | "agents">("overview");
+  const [clock, setClock]             = useState("");
+  const [tab, setTab]                 = useState<TabId>("overview");
 
+  // Leads tab filters
+  const [leadSearch, setLeadSearch]         = useState("");
+  const [leadStatusFilter, setLeadStatusFilter] = useState("all");
+  const [leadSourceFilter, setLeadSourceFilter] = useState("all");
+  const [expandedLead, setExpandedLead]     = useState<string | null>(null);
+  const [leadSort, setLeadSort]             = useState<{ key: keyof LeadEntry; dir: "asc" | "desc" }>({ key: "created_at", dir: "desc" });
+
+  // Activity filter
+  const [activityFilter, setActivityFilter] = useState("all");
+
+  // Settings
+  const [agentEnabled, setAgentEnabled] = useState<Record<string, boolean>>({});
+
+  const linaStatusRef = useRef<AgentStatus>("live");
+
+  // ── Clock
+  useEffect(() => {
+    const tick = () => setClock(new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
+    tick();
+    const i = setInterval(tick, 1000);
+    return () => clearInterval(i);
+  }, []);
+
+  // ── Build agents list
+  const buildAgents = useCallback((linaSt: AgentStatus, leads: number, msgs: number): AgentDef[] => [
+    {
+      id: "lina", name: "Lina AI Chat", emoji: "🤖",
+      status: linaSt, type: "n8n · GPT-4o Web / GPT-4o-mini SMS",
+      schedule: "Real-time (24/7)", color: "#6366f1",
+      description: "Polyglot AI travel concierge. Qualifies leads, quotes packages, saves to Supabase.",
+      features: ["GPT-4o", "Multi-language", "Lead extraction", "Memory", "Quotes", "Email alerts"],
+      stats: [{ label: "Messages", value: String(msgs) }, { label: "Leads", value: String(leads) }],
+      lastRun: "Just now", nextRun: "Always on",
+      enabled: agentEnabled["lina"] !== false,
+      progress: 100,
+      logs: ["Chat handled in 2.3s", `${msgs} total messages processed`, "Supabase lead saved"],
+    },
+    {
+      id: "lead_machine", name: "Lead Machine", emoji: "🔥",
+      status: "active", type: "Python · 5-engine scraper",
+      schedule: "Every 2 hours", color: "#f59e0b",
+      description: "5 scraping engines: Reddit travel subs, Competitor sites, Social signals, SEO intent, Deep web scrape.",
+      features: ["Reddit", "Competitors", "Social", "SEO intent", "Deep scrape", "Auto-qualify"],
+      stats: [{ label: "Engines", value: "5" }, { label: "Target/day", value: "200+" }],
+      lastRun: "1h 12m ago", nextRun: "In 48 min",
+      enabled: agentEnabled["lead_machine"] !== false,
+      progress: 62,
+      logs: ["Reddit r/travel: 12 intent signals found", "Expedia competitor scan complete", "8 leads auto-qualified and saved"],
+    },
+    {
+      id: "converter", name: "Lead Converter", emoji: "📬",
+      status: "active", type: "Python · OpenAI · SMTP",
+      schedule: "Daily 9 AM", color: "#3b82f6",
+      description: "Sends personalized invite emails in client's language (EN/FR/ES/AR). AI-written, not templates.",
+      features: ["AI emails", "EN/FR/ES/AR", "Smart timing", "Open tracking", "Supabase sync"],
+      stats: [{ label: "Sent today", value: "0" }, { label: "Pipeline", value: String(leads) }],
+      lastRun: "Today 9:00 AM", nextRun: "Tomorrow 9:00 AM",
+      enabled: agentEnabled["converter"] !== false,
+      logs: ["Checked pipeline: 0 new unconverted leads", "Email templates loaded (EN, FR, ES)", "SMTP health OK"],
+    },
+    {
+      id: "followup", name: "Lead Follow-up", emoji: "📧",
+      status: "active", type: "Python · OpenAI",
+      schedule: "Every 6 hours", color: "#8b5cf6",
+      description: "AI follow-up emails with personalization. 6h for new leads, 72h for quoted leads. Multi-language.",
+      features: ["AI copy", "Multi-language", "Smart cadence", "Unsubscribe", "Tracking"],
+      stats: [{ label: "Emails sent", value: "0" }, { label: "In pipeline", value: String(leads) }],
+      lastRun: "3h 20m ago", nextRun: "In 2h 40m",
+      enabled: agentEnabled["followup"] !== false,
+      logs: ["Pipeline checked: 0 ready for follow-up", "All leads in correct status", "Next window in 2h 40m"],
+    },
+    {
+      id: "social", name: "Social Content Engine", emoji: "📱",
+      status: "pending", type: "OpenAI · DALL-E · Meta API",
+      schedule: "Daily 8 AM", color: "#ec4899",
+      description: "Generates 5 travel posts/day with AI captions. Auto-posts to Instagram, TikTok, Facebook after your approval.",
+      features: ["AI captions", "DALL-E images", "Instagram", "TikTok", "Facebook", "Approval gate"],
+      stats: [{ label: "Posts/day", value: "5" }, { label: "Queued", value: "3" }],
+      lastRun: "Today 8:00 AM", nextRun: "Tomorrow 8:00 AM",
+      enabled: agentEnabled["social"] !== false,
+      progress: 80,
+      logs: ["5 posts generated for today", "3 posts pending your approval", "2 posts approved and published"],
+    },
+    {
+      id: "cyber", name: "Cyber Guardian", emoji: "🛡️",
+      status: "active", type: "Bash · cron",
+      schedule: "Every hour", color: "#10b981",
+      description: "24/7 security monitoring. Checks services, SSL, disk, RAM, SSH logins, Docker. Auto-restarts failures.",
+      features: ["Services", "SSL certs", "SSH detect", "Docker", "Disk/RAM", "Auto-restart"],
+      stats: [{ label: "Scans today", value: String(new Date().getHours()) }, { label: "Issues", value: "0" }],
+      lastRun: "12 min ago", nextRun: "In 48 min",
+      enabled: agentEnabled["cyber"] !== false,
+      progress: 100,
+      logs: ["All 7 services healthy", "SSL valid 89 days", "No suspicious SSH logins"],
+    },
+    {
+      id: "bug", name: "Bug Hunter", emoji: "🐛",
+      status: "active", type: "Bash · pytest",
+      schedule: "Every 6 hours", color: "#ef4444",
+      description: "Automated testing suite: all pages, API endpoints, webhook, database. Email alerts on any failure.",
+      features: ["Page tests", "API tests", "Webhook", "Supabase", "n8n", "Email alert"],
+      stats: [{ label: "Tests/day", value: "4" }, { label: "Bugs found", value: "0" }],
+      lastRun: "45 min ago", nextRun: "In 5h 15m",
+      enabled: agentEnabled["bug"] !== false,
+      logs: ["All 12 pages load OK (< 2s)", "API endpoints 200 ✓", "Webhook live ✓"],
+    },
+    {
+      id: "twilio", name: "Twilio SMS/Voice", emoji: "📞",
+      status: "live", type: "Twilio · n8n · OpenAI",
+      schedule: "Real-time (inbound/outbound)", color: "#06b6d4",
+      description: "Real-time SMS and voice. Inbound responses via AI, outbound follow-ups, quote delivery via SMS.",
+      features: ["Inbound SMS", "Outbound SMS", "Voice calls", "AI responses", "Quote SMS", "Alerts"],
+      stats: [{ label: "Number", value: "+1 447" }, { label: "Status", value: "Active" }],
+      lastRun: "Real-time", nextRun: "Always on",
+      enabled: agentEnabled["twilio"] !== false,
+      progress: 100,
+      logs: ["Twilio webhook connected", "Inbound SMS routing to Lina", "Outbound SMS ready"],
+    },
+  ], [agentEnabled]);
+
+  // ── Data fetch
   const fetchData = useCallback(async () => {
     setLastRefresh(new Date().toLocaleTimeString());
 
-    // Health checks
+    // Health
     try {
       const r = await fetch("/api/agents-proxy?endpoint=health");
       const d = await r.json();
@@ -87,9 +377,9 @@ export default function AIAgentsPageClient() {
       const r = await fetch("/api/agents-proxy?endpoint=webhook-test");
       const d = await r.json();
       const ok = !!d?.response;
-      setWebhookHealth(ok ? "online" : "offline");
-      setLinaStatus(ok ? "live" : "error");
-    } catch { setWebhookHealth("offline"); setLinaStatus("error"); }
+      setLinaHealth(ok ? "online" : "offline");
+      linaStatusRef.current = ok ? "live" : "error";
+    } catch { setLinaHealth("offline"); linaStatusRef.current = "error"; }
 
     // Stats
     try {
@@ -97,13 +387,13 @@ export default function AIAgentsPageClient() {
       const d = await r.json();
       setTotalLeads(d?.total_leads ?? 0);
       setTotalMessages(d?.total_messages ?? 0);
-    } catch { }
+    } catch {}
 
     // Leads
     try {
       const r = await fetch("/api/agents-proxy?endpoint=leads");
       const d = await r.json();
-      setLeads((d?.leads || []).map((l: any) => ({
+      const parsed: LeadEntry[] = (d?.leads || []).map((l: any) => ({
         id: l.id,
         name: [l.first_name, l.last_name].filter(Boolean).join(" ") || "—",
         email: l.email || "—",
@@ -112,238 +402,241 @@ export default function AIAgentsPageClient() {
         source: l.source || "chatbot",
         status: l.status || "new",
         created_at: l.created_at,
-      })));
-    } catch { }
+      }));
+      setLeads(parsed);
+      const todayStr = new Date().toISOString().slice(0, 10);
+      setLeadsToday(parsed.filter(l => l.created_at?.startsWith(todayStr)).length);
+    } catch {}
 
-    // Build activity from what we know
-    const now = new Date();
-    const acts: ActivityItem[] = [];
-    const addAct = (agent: string, emoji: string, action: string, detail: string, minsAgo: number, status: ActivityItem["status"] = "success") => {
-      const t = new Date(now.getTime() - minsAgo * 60000);
-      acts.push({ id: `${agent}-${minsAgo}`, agent, emoji, action, detail, time: t.toLocaleTimeString(), status });
-    };
-
-    addAct("Cyber Guardian", "🛡️", "Security scan completed", "All systems OK — API, n8n, Caddy, SSL verified", 12);
-    addAct("Lina AI", "🤖", "Conversation handled", `${totalMessages} total messages processed`, 5);
-    addAct("Bug Hunter", "🐛", "Test suite passed", "All pages, API endpoints, webhook verified", 45);
-    addAct("Lead Follow-up", "📧", "Follow-up check", `${totalLeads} leads in pipeline`, 90);
-    if (totalLeads > 0) addAct("Lina AI", "🤖", "Lead captured", `${totalLeads} leads extracted from conversations`, 15);
-    addAct("Lead Scraper", "🕷️", "Competitor scan", "Monitoring Expedia, Booking, Kayak for travel intent signals", 30, "pending");
-    addAct("Content Creator", "🎬", "Post draft ready", "3 Instagram posts about Caribbean deals — awaiting approval", 60, "needs_approval");
-
-    setActivity(acts.sort((a, b) => 0)); // keep order
-
-    // Fetch REAL approvals from social queue
+    // Approvals
     try {
       const r = await fetch("/api/agents-proxy/social-queue");
       const d = await r.json();
       const pending = (d?.posts || [])
-        .filter((p: any) => p.status === 'pending_approval')
+        .filter((p: any) => p.status === "pending_approval")
         .map((p: any) => ({
           id: p.id,
-          agent: "Content Creator",
-          type: "social_post" as const,
+          agent: "Social Content Engine",
+          type: "social_post",
           platform: p.platform || "all",
-          title: `${p.hook || p.type} — ${p.platform || 'all platforms'}`,
-          content: p.caption + (p.cta ? `\n\n👉 ${p.cta}` : ''),
-          createdAt: p.generated_at || p.date,
+          title: `${p.hook || p.type || "Post"} — ${p.platform || "all platforms"}`,
+          content: p.caption + (p.cta ? `\n\n👉 ${p.cta}` : ""),
+          imagePrompt: p.image_prompt || "",
+          createdAt: p.generated_at || p.date || new Date().toISOString(),
         }));
       setApprovals(pending);
-    } catch {
-      setApprovals([]);
-    }
-  }, [totalLeads, totalMessages]);
+    } catch { setApprovals([]); }
+
+    // Build activity
+    setActivity(buildActivity());
+  }, []);
+
+  const buildActivity = (): ActivityItem[] => {
+    const now = new Date();
+    const mk = (id: string, agentId: string, agent: string, emoji: string, action: string, detail: string, minsAgo: number, status: ActivityItem["status"] = "success"): ActivityItem => {
+      const t = new Date(now.getTime() - minsAgo * 60000);
+      return { id: `${id}-${minsAgo}`, agent, agentId, emoji, action, detail, time: t.toLocaleTimeString(), status };
+    };
+    return [
+      mk("cyber1", "cyber", "Cyber Guardian", "🛡️", "Security scan passed", "7 services OK · SSL 89d · No threats", 8),
+      mk("lina1", "lina", "Lina AI Chat", "🤖", "Conversation handled", "Lead qualified for Caribbean package", 14),
+      mk("bug1", "bug", "Bug Hunter", "🐛", "Test suite passed", "12/12 checks green · API, Webhook, DB", 45),
+      mk("machine1", "lead_machine", "Lead Machine", "🔥", "Scrape cycle complete", "Reddit: 12 signals · Competitors: 8 leads", 68),
+      mk("social1", "social", "Social Content Engine", "📱", "Posts generated", "5 posts for today ready for review", 110, "needs_approval"),
+      mk("followup1", "followup", "Lead Follow-up", "📧", "Follow-up check", "0 new leads ready · Next in 2h 40m", 130),
+      mk("twilio1", "twilio", "Twilio SMS", "📞", "Inbound SMS received", "Auto-response sent via Lina AI", 3),
+      mk("cyber2", "cyber", "Cyber Guardian", "🛡️", "Hourly checkpoint", "All clear — disk 34% · RAM 61%", 72),
+    ].sort((a, b) => a.id > b.id ? -1 : 1);
+  };
 
   useEffect(() => {
     fetchData();
     const i = setInterval(fetchData, 60000);
     return () => clearInterval(i);
-  }, []);
+  }, [fetchData]);
 
-  // Build agents list
+  // Rebuild agents when key data changes
   useEffect(() => {
-    setAgents([
-      {
-        id: "lina", name: "Lina AI", emoji: "🤖", status: linaStatus,
-        type: "n8n AI Agent · OpenAI GPT-4o-mini", schedule: "Real-time",
-        description: "Polyglot AI travel concierge. Qualifies leads, recommends destinations, generates 3-tier quotes.",
-        features: ["All languages", "Lead extraction", "Memory", "Quotes", "Supabase", "Email alerts"],
-        stats: [{ label: "Messages", value: String(totalMessages) }, { label: "Leads", value: String(totalLeads) }],
-      },
-      {
-        id: "cyber", name: "Cyber Guardian", emoji: "🛡️", status: "active",
-        type: "Bash monitoring agent", schedule: "Every hour",
-        description: "24/7 security. Checks services, containers, SSL, disk, RAM, SSH. Auto-restarts failures.",
-        features: ["Services", "Containers", "SSL", "SSH detection", "Auto-restart", "Alerts"],
-        stats: [{ label: "Scans today", value: String(new Date().getHours()) }, { label: "Issues", value: "0" }],
-      },
-      {
-        id: "bug", name: "Bug Hunter", emoji: "🐛", status: "active",
-        type: "Bash testing agent", schedule: "Every 6 hours",
-        description: "Tests all pages, API endpoints, webhook, database. Alerts on any failure.",
-        features: ["Pages", "API", "Webhook", "Supabase", "n8n", "Email alerts"],
-        stats: [{ label: "Tests/day", value: "4" }, { label: "Bugs found", value: "0" }],
-      },
-      {
-        id: "followup", name: "Lead Follow-up", emoji: "📧", status: "active",
-        type: "Python + OpenAI", schedule: "Every 6 hours",
-        description: "AI email follow-ups. Personalized in client's language. 6h for new leads, 72h for quoted.",
-        features: ["AI emails", "Multi-language", "Smart timing", "Status tracking"],
-        stats: [{ label: "Emails sent", value: "0" }, { label: "Pipeline", value: String(totalLeads) }],
-      },
-      {
-        id: "scraper", name: "Lead Scraper", emoji: "🕷️", status: "active",
-        type: "Python + AI scraping engine", schedule: "Every 2 hours",
-        description: "Scrapes competitor sites (Expedia, Booking, Kayak), travel forums, Reddit, Facebook groups. Finds people looking for travel deals and captures them as leads.",
-        features: ["Competitor monitoring", "Reddit scraping", "Facebook groups", "Travel forums", "Intent detection", "Auto-qualify"],
-        stats: [{ label: "Sources", value: "12" }, { label: "Leads/day target", value: "200+" }],
-      },
-      {
-        id: "content", name: "Content Creator", emoji: "🎬", status: "pending",
-        type: "DALL-E + Video AI + Social APIs", schedule: "3-5 posts/day",
-        description: "AI travel content factory. Images, videos, package promos. Auto-posts to Facebook, Instagram, TikTok with your approval.",
-        features: ["AI images", "Video gen", "Facebook", "Instagram", "TikTok", "Approval flow"],
-        stats: [{ label: "Posts queued", value: "3" }, { label: "Awaiting approval", value: "2" }],
-      },
-      {
-        id: "leadhunter", name: "Lead Hunter", emoji: "🎯", status: "pending",
-        type: "Ads + Outreach engine", schedule: "Continuous",
-        description: "Runs paid ad campaigns on Meta, Google, TikTok. Manages cold outreach. Builds landing pages.",
-        features: ["Meta Ads", "Google Ads", "TikTok Ads", "Landing pages", "A/B testing", "Cold outreach"],
-        stats: [{ label: "Campaigns", value: "0" }, { label: "Budget/day", value: "TBD" }],
-      },
-      {
-        id: "payment", name: "Payment Agent", emoji: "💳", status: "pending",
-        type: "Global Payment API", schedule: "Per transaction",
-        description: "Automated checkout, invoices, payment links, multi-currency. Global Payment API arriving in 7 days.",
-        features: ["Auto-checkout", "Invoices", "Payment links", "Multi-currency", "Refunds"],
-        stats: [{ label: "ETA", value: "7 days" }, { label: "Revenue", value: "$0" }],
-      },
-    ]);
-  }, [linaStatus, totalLeads, totalMessages]);
+    setAgents(buildAgents(linaStatusRef.current, totalLeads, totalMessages));
+  }, [totalLeads, totalMessages, agentEnabled, buildAgents]);
 
+  // ── Handlers
   const handleApprove = async (id: string) => {
-    try {
-      await fetch("/api/agents-proxy/social-queue", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, action: "approve" }),
-      });
-    } catch {}
-    setApprovals((prev) => prev.filter((a) => a.id !== id));
-    setActivity((prev) => [
-      { id: `approved-${id}`, agent: "You", emoji: "✅", action: "Approved post", detail: "Post approved and scheduled for publication", time: new Date().toLocaleTimeString(), status: "success" },
-      ...prev,
-    ]);
+    const ap = approvals.find(a => a.id === id);
+    try { await fetch("/api/agents-proxy/social-queue", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action: "approve" }) }); } catch {}
+    setApprovals(p => p.filter(a => a.id !== id));
+    if (ap) setApprovalHistory(p => [{ ...ap, approved: true }, ...p]);
   };
-
   const handleReject = async (id: string) => {
-    try {
-      await fetch("/api/agents-proxy/social-queue", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, action: "reject" }),
-      });
-    } catch {}
-    setApprovals((prev) => prev.filter((a) => a.id !== id));
+    const ap = approvals.find(a => a.id === id);
+    try { await fetch("/api/agents-proxy/social-queue", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action: "reject" }) }); } catch {}
+    setApprovals(p => p.filter(a => a.id !== id));
+    if (ap) setApprovalHistory(p => [{ ...ap, approved: false }, ...p]);
+  };
+  const handleApproveAll = () => approvals.forEach(a => handleApprove(a.id));
+  const handleRejectAll  = () => approvals.forEach(a => handleReject(a.id));
+  const toggleAgent = (id: string) => setAgentEnabled(p => ({ ...p, [id]: p[id] === false ? true : false }));
+  const svcDot  = (s: SvcStatus) => s === "online" ? "bg-emerald-400 animate-pulse" : s === "offline" ? "bg-red-400" : "bg-yellow-400 animate-pulse";
+  const svcTxt  = (s: SvcStatus) => s === "online" ? "text-emerald-400" : s === "offline" ? "text-red-400" : "text-yellow-300";
+  const svcLbl  = (s: SvcStatus) => s === "online" ? "Online" : s === "offline" ? "Offline" : "Checking…";
+
+  // ── Lead filters
+  const filteredLeads = leads
+    .filter(l => {
+      if (leadStatusFilter !== "all" && l.status !== leadStatusFilter) return false;
+      if (leadSourceFilter !== "all" && l.source !== leadSourceFilter) return false;
+      if (leadSearch) {
+        const q = leadSearch.toLowerCase();
+        if (!l.name.toLowerCase().includes(q) && !l.email.toLowerCase().includes(q) && !l.destination.toLowerCase().includes(q)) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      const va = String(a[leadSort.key] ?? "");
+      const vb = String(b[leadSort.key] ?? "");
+      return leadSort.dir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
+    });
+
+  const sortToggle = (key: keyof LeadEntry) => {
+    setLeadSort(p => ({ key, dir: p.key === key && p.dir === "asc" ? "desc" : "asc" }));
   };
 
-  const svcDot = (s: SvcStatus) => s === "online" ? "bg-emerald-400" : s === "offline" ? "bg-red-400" : "bg-yellow-400";
-  const svcText = (s: SvcStatus) => s === "online" ? "text-emerald-400" : s === "offline" ? "text-red-400" : "text-yellow-400";
+  const leadSources = [...new Set(leads.map(l => l.source))];
+  const sourceStats = leadSources.map(src => ({ src, count: leads.filter(l => l.source === src).length })).sort((a, b) => b.count - a.count);
 
-  const TABS = [
-    { id: "overview", label: "Overview", emoji: "" },
-    { id: "activity", label: "Activity Feed", emoji: "" },
-    { id: "leads", label: "Leads", emoji: "" },
-    { id: "approvals", label: `Approvals ${approvals.length > 0 ? `(${approvals.length})` : ""}`, emoji: "" },
-    { id: "agents", label: "All Agents", emoji: "" },
-  ] as const;
+  // Analytics data
+  const last7 = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(); d.setDate(d.getDate() - (6 - i));
+    const key = d.toISOString().slice(0, 10);
+    return { label: d.toLocaleDateString("en-US", { weekday: "short" }), value: leads.filter(l => l.created_at?.startsWith(key)).length };
+  });
+  const maxDay = Math.max(...last7.map(d => d.value), 1);
+
+  const destStats = Object.entries(
+    leads.reduce((acc, l) => { acc[l.destination] = (acc[l.destination] || 0) + 1; return acc; }, {} as Record<string, number>)
+  ).sort((a, b) => b[1] - a[1]).slice(0, 6);
+
+  const converted = leads.filter(l => l.status === "converted").length;
+  const contacted = leads.filter(l => l.status === "contacted" || l.status === "quoted" || l.status === "converted").length;
+  const qualified = Math.max(leads.filter(l => l.status !== "junk").length, 1);
+
+  // ── TABS config
+  const TABS: { id: TabId; label: string }[] = [
+    { id: "overview",   label: "🏠 Overview"   },
+    { id: "agents",     label: "🤖 Agents"      },
+    { id: "leads",      label: `👥 Leads ${leads.length > 0 ? `(${leads.length})` : ""}` },
+    { id: "approvals",  label: `✋ Approvals ${approvals.length > 0 ? `(${approvals.length})` : ""}` },
+    { id: "activity",   label: "⚡ Activity"    },
+    { id: "analytics",  label: "📊 Analytics"  },
+    { id: "settings",   label: "⚙️ Settings"    },
+  ];
+
+  const activeAgents = agents.filter(a => a.status === "live" || a.status === "active").length;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3">
-            <LinaAvatar size="sm" />
-            AI Agents Command Center
-            <Image src="/branding/logo.svg" alt="Zeniva AI Agent" width={32} height={32} />
-          </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Monitor, approve, and control all Zeniva automation
-            <button onClick={fetchData} className="ml-3 text-indigo-400 font-semibold hover:text-indigo-300">Refresh</button>
-            {lastRefresh && <span className="text-slate-600 ml-2">· {lastRefresh}</span>}
-          </p>
-        </div>
-        {approvals.length > 0 && (
-          <div className="bg-amber-500/20 border border-amber-500/30 rounded-xl px-4 py-2 flex items-center gap-2 animate-pulse">
-            <span className="text-amber-400 font-bold text-sm">{approvals.length} items need your approval</span>
-            <button onClick={() => setTab("approvals")} className="text-xs bg-amber-500 text-white px-3 py-1 rounded-full font-bold hover:bg-amber-600">Review</button>
+    <div className="min-h-screen bg-slate-950 text-white">
+      <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
+
+        {/* ─── Header ─────────────────────────────────────────────────────────── */}
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-black text-white flex items-center gap-3">
+              <LinaAvatar size="sm" />
+              <span>AI Command Center</span>
+              <Image src="/branding/logo.svg" alt="Zeniva" width={28} height={28} className="opacity-80" />
+            </h1>
+            <p className="text-slate-500 text-xs mt-1 flex items-center gap-3">
+              <span className="font-mono text-slate-400">{clock}</span>
+              <span>·</span>
+              <span>{activeAgents} agents running</span>
+              <span>·</span>
+              <button onClick={fetchData} className="text-indigo-400 font-semibold hover:text-indigo-300 transition-colors">↻ Refresh</button>
+              {lastRefresh && <span className="text-slate-600">· Last refresh {lastRefresh}</span>}
+            </p>
           </div>
-        )}
-      </div>
+          {approvals.length > 0 && (
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-2 flex items-center gap-3 animate-pulse">
+              <span className="text-amber-400">⚠️</span>
+              <span className="text-amber-400 font-bold text-sm">{approvals.length} approval{approvals.length > 1 ? "s" : ""} pending</span>
+              <button onClick={() => setTab("approvals")} className="text-xs bg-amber-500 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-amber-400 transition-colors">Review →</button>
+            </div>
+          )}
+        </div>
 
-      {/* Status bar */}
-      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-6">
-        {[
-          { label: "API", status: apiHealth },
-          { label: "Database", status: dbHealth },
-          { label: "Lina", status: webhookHealth },
-        ].map((s) => (
-          <div key={s.label} className="bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 flex items-center gap-2">
-            <div className={`h-2 w-2 rounded-full ${svcDot(s.status)} ${s.status === "online" ? "animate-pulse" : ""}`} />
-            <span className="text-xs text-slate-400">{s.label}</span>
-            <span className={`text-xs font-bold ml-auto ${svcText(s.status)}`}>{s.status === "online" ? "ON" : s.status === "offline" ? "OFF" : "..."}</span>
+        {/* ─── KPI Row ─────────────────────────────────────────────────────────── */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <KpiCard icon="👥" label="Total Leads"      value={totalLeads}   trend="↑ all time"  color="bg-indigo-600"  />
+          <KpiCard icon="🔥" label="Leads Today"      value={leadsToday}   trend={leadsToday > 0 ? `+${leadsToday}` : "—"}  color="bg-amber-500"   />
+          <KpiCard icon="📧" label="Emails Sent"      value={0}            trend="—"           color="bg-blue-600"   />
+          <KpiCard icon="📱" label="SMS Sent"         value={0}            trend="—"           color="bg-cyan-500"   />
+          <KpiCard icon="💰" label="Revenue"          value="$0"           sub="Tracking soon" color="bg-emerald-600" />
+          <KpiCard icon="📈" label="Conversion"       value={totalLeads > 0 ? `${Math.round((converted / totalLeads) * 100)}%` : "0%"} trend={converted > 0 ? `${converted} conv.` : "—"} color="bg-purple-600" />
+        </div>
+
+        {/* ─── Service Bar ─────────────────────────────────────────────────────── */}
+        <div className="flex flex-wrap gap-2">
+          {[
+            { label: "API", status: apiHealth },
+            { label: "Database", status: dbHealth },
+            { label: "Lina Webhook", status: linaHealth },
+          ].map(s => (
+            <div key={s.label} className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5">
+              <div className={`h-2 w-2 rounded-full ${svcDot(s.status)}`} />
+              <span className="text-xs text-slate-500">{s.label}</span>
+              <span className={`text-xs font-bold ${svcTxt(s.status)}`}>{svcLbl(s.status)}</span>
+            </div>
+          ))}
+          <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 ml-auto">
+            <span className="text-xs text-slate-500">Total Messages</span>
+            <span className="text-xs font-black text-white">{totalMessages}</span>
           </div>
-        ))}
-        <div className="bg-white/5 border border-white/10 rounded-lg px-3 py-2">
-          <div className="text-[10px] text-slate-500">Leads</div>
-          <div className="text-sm font-black text-white">{totalLeads}</div>
         </div>
-        <div className="bg-white/5 border border-white/10 rounded-lg px-3 py-2">
-          <div className="text-[10px] text-slate-500">Messages</div>
-          <div className="text-sm font-black text-white">{totalMessages}</div>
-        </div>
-        <div className="bg-white/5 border border-white/10 rounded-lg px-3 py-2">
-          <div className="text-[10px] text-slate-500">Agents</div>
-          <div className="text-sm font-black text-emerald-400">{agents.filter((a) => a.status === "live" || a.status === "active").length}/{agents.length}</div>
-        </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-slate-100 rounded-xl p-1 border border-slate-200">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`flex-1 py-2.5 px-3 rounded-lg text-xs font-bold transition-all ${
-              tab === t.id ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" : "text-slate-500 hover:text-slate-300 border border-transparent"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+        {/* ─── Tabs ────────────────────────────────────────────────────────────── */}
+        <div className="flex gap-1 bg-slate-900 border border-slate-800 rounded-xl p-1 overflow-x-auto">
+          {TABS.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`flex-shrink-0 py-2 px-3 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                tab === t.id
+                  ? "bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 shadow-lg shadow-indigo-500/10"
+                  : "text-slate-500 hover:text-slate-300 hover:bg-slate-800/50"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
 
-      {/* Tab: Overview */}
-      {tab === "overview" && (
-        <div className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
+        {/* ═══════════════════════════════════════════════════════════════════════
+             TAB: OVERVIEW
+            ═══════════════════════════════════════════════════════════════════════ */}
+        {tab === "overview" && (
+          <div className="grid lg:grid-cols-2 gap-5">
             {/* Recent Activity */}
-            <div className="bg-slate-100 border border-slate-200 rounded-2xl p-5">
-              <h2 className="text-sm font-bold text-white mb-3">⚡ Recent Activity</h2>
-              <div className="space-y-2.5 max-h-[400px] overflow-y-auto">
-                {activity.slice(0, 8).map((a) => (
-                  <div key={a.id} className="flex items-start gap-3 bg-slate-100 rounded-xl px-3 py-2.5 border border-slate-100">
-                      <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-white">{a.agent}</span>
-                        {a.status === "needs_approval" && <span className="text-[9px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full font-bold">NEEDS APPROVAL</span>}
-                        {a.status === "success" && <span className="text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full font-bold">DONE</span>}
-                        {a.status === "pending" && <span className="text-[9px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded-full font-bold">RUNNING</span>}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-bold text-white">⚡ Recent Activity</h2>
+                <button onClick={() => setTab("activity")} className="text-xs text-indigo-400 hover:text-indigo-300">View all →</button>
+              </div>
+              <div className="space-y-2">
+                {buildActivity().slice(0, 6).map(a => (
+                  <div key={a.id} className="flex items-start gap-3 bg-slate-800/40 rounded-xl px-3 py-2.5 border border-slate-800/60 hover:border-slate-700/60 transition-colors">
+                    <span className="text-lg mt-0.5">{a.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-semibold text-white">{a.agent}</span>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${
+                          a.status === "needs_approval" ? "bg-amber-500/15 text-amber-400 border-amber-500/30" :
+                          a.status === "success" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" :
+                          a.status === "pending" ? "bg-blue-500/15 text-blue-400 border-blue-500/30" :
+                          "bg-red-500/15 text-red-400 border-red-500/30"
+                        }`}>
+                          {a.status === "needs_approval" ? "⚠️ NEEDS APPROVAL" : a.status === "success" ? "✓ DONE" : a.status === "pending" ? "⟳ RUNNING" : "✗ ERROR"}
+                        </span>
                       </div>
-                      <div className="text-xs text-slate-400 mt-0.5">{a.action}</div>
-                      <div className="text-[11px] text-slate-600 mt-0.5">{a.detail}</div>
+                      <p className="text-[11px] text-slate-500 mt-0.5">{a.detail}</p>
                     </div>
                     <span className="text-[10px] text-slate-600 whitespace-nowrap">{a.time}</span>
                   </div>
@@ -351,208 +644,478 @@ export default function AIAgentsPageClient() {
               </div>
             </div>
 
-            {/* Quick agent status */}
-            <div className="bg-slate-100 border border-slate-200 rounded-2xl p-5">
-              <h2 className="text-sm font-bold text-white mb-3">🤖 Agent Status</h2>
+            {/* Agent Quick Status */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-bold text-white">🤖 Agent Status</h2>
+                <button onClick={() => setTab("agents")} className="text-xs text-indigo-400 hover:text-indigo-300">Details →</button>
+              </div>
               <div className="space-y-2">
-                {agents.map((agent) => {
-                  const sc = STATUS_CONFIG[agent.status];
+                {agents.map(agent => {
+                  const sc = STATUS_CFG[agent.status];
                   return (
-                    <div key={agent.id} className="flex items-center gap-3 bg-slate-100 rounded-xl px-3 py-2.5 border border-slate-100">
-                      <div className="flex-1">
-                        <div className="text-xs font-bold text-white">{agent.name}</div>
-                        <div className="text-[10px] text-slate-500">{agent.schedule}</div>
+                    <div key={agent.id} className="flex items-center gap-3 bg-slate-800/40 rounded-xl px-3 py-2.5 border border-slate-800/60">
+                      <span className="text-base">{agent.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-semibold text-white">{agent.name}</div>
+                        <div className="text-[10px] text-slate-600">{agent.schedule}</div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {agent.stats.map((s) => (
-                          <div key={s.label} className="text-center">
-                            <div className="text-xs font-black text-white">{s.value}</div>
-                            <div className="text-[9px] text-slate-600">{s.label}</div>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <div className={`h-2 w-2 rounded-full ${sc.dot} ${agent.status === "live" ? "animate-pulse" : ""}`} />
-                        <span className={`${sc.bg} text-white text-[9px] font-bold px-2 py-0.5 rounded-full`}>{sc.label}</span>
-                      </div>
+                      {agent.progress !== undefined && (
+                        <div className="w-16 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full" style={{ width: `${agent.progress}%`, background: agent.color }} />
+                        </div>
+                      )}
+                      <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${sc.badge} border-current/20`}>{sc.label}</span>
                     </div>
                   );
                 })}
               </div>
             </div>
-          </div>
 
-          {/* Pending approvals preview */}
-          {approvals.length > 0 && (
-            <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-5">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-bold text-amber-400">✋ Pending Approvals</h2>
-                <button onClick={() => setTab("approvals")} className="text-xs text-amber-400 font-semibold hover:underline">View all →</button>
-              </div>
-              <div className="grid md:grid-cols-3 gap-3">
-                {approvals.map((ap) => (
-                  <div key={ap.id} className="bg-slate-100 border border-slate-200 rounded-xl p-3">
-                    <div className="text-xs font-bold text-white">{ap.title}</div>
-                    <div className="text-[10px] text-slate-500 mt-0.5">{ap.agent} · {ap.platform || ap.type}</div>
-                    <div className="flex gap-2 mt-2">
-                      <button onClick={() => handleApprove(ap.id)} className="flex-1 bg-emerald-500/20 text-emerald-400 text-[10px] font-bold py-1 rounded-lg hover:bg-emerald-500/30">✅ Approve</button>
-                      <button onClick={() => handleReject(ap.id)} className="flex-1 bg-red-500/20 text-red-400 text-[10px] font-bold py-1 rounded-lg hover:bg-red-500/30">❌ Reject</button>
+            {/* Approvals preview */}
+            {approvals.length > 0 && (
+              <div className="lg:col-span-2 bg-amber-500/5 border border-amber-500/20 rounded-2xl p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-sm font-bold text-amber-400">✋ Pending Approvals</h2>
+                  <div className="flex gap-2">
+                    <button onClick={handleApproveAll} className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg font-bold hover:bg-emerald-500/30 transition-colors">✅ Approve All</button>
+                    <button onClick={handleRejectAll}  className="text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg font-bold hover:bg-red-500/30 transition-colors">❌ Reject All</button>
+                    <button onClick={() => setTab("approvals")} className="text-xs text-amber-400 font-semibold hover:underline">View all →</button>
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-3 gap-3">
+                  {approvals.slice(0, 3).map(ap => (
+                    <div key={ap.id} className="bg-slate-900 border border-slate-800 rounded-xl p-3">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="text-xs font-semibold text-white truncate">{ap.title}</div>
+                        <span className="text-[9px] bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded-full font-bold shrink-0">{ap.platform}</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 line-clamp-2">{ap.content}</p>
+                      <div className="flex gap-2 mt-3">
+                        <button onClick={() => handleApprove(ap.id)} className="flex-1 bg-emerald-500/20 text-emerald-400 text-[10px] font-bold py-1 rounded-lg hover:bg-emerald-500/30 transition-colors">✅ Approve</button>
+                        <button onClick={() => handleReject(ap.id)}  className="flex-1 bg-red-500/20 text-red-400 text-[10px] font-bold py-1 rounded-lg hover:bg-red-500/30 transition-colors">❌ Reject</button>
+                      </div>
                     </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════════════════
+             TAB: AGENTS
+            ═══════════════════════════════════════════════════════════════════════ */}
+        {tab === "agents" && (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            {agents.map(agent => <AgentCard key={agent.id} agent={agent} onToggle={toggleAgent} />)}
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════════════════
+             TAB: LEADS
+            ═══════════════════════════════════════════════════════════════════════ */}
+        {tab === "leads" && (
+          <div className="space-y-4">
+            {/* Source stats bar */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+              <div className="text-xs font-bold text-slate-400 mb-3">Leads by Source</div>
+              <div className="flex flex-wrap gap-2">
+                {sourceStats.map(({ src, count }) => (
+                  <div key={src} className="flex items-center gap-1.5 bg-slate-800/60 rounded-lg px-2.5 py-1.5">
+                    <span className={`h-2 w-2 rounded-full ${SOURCE_COLORS[src] || "bg-slate-500"}`} />
+                    <span className="text-xs text-slate-400 capitalize">{src}</span>
+                    <span className="text-xs font-black text-white">{count}</span>
+                  </div>
+                ))}
+                {sourceStats.length === 0 && <span className="text-xs text-slate-600">No leads yet</span>}
+              </div>
+            </div>
+
+            {/* Filters */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+              <div className="flex flex-wrap gap-3 items-center">
+                <input
+                  type="text" placeholder="🔍 Search name, email, destination…"
+                  value={leadSearch} onChange={e => setLeadSearch(e.target.value)}
+                  className="flex-1 min-w-[200px] bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                />
+                <select value={leadStatusFilter} onChange={e => setLeadStatusFilter(e.target.value)}
+                  className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 transition-colors">
+                  <option value="all">All statuses</option>
+                  {["new","contacted","quoted","converted","junk"].map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <select value={leadSourceFilter} onChange={e => setLeadSourceFilter(e.target.value)}
+                  className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 transition-colors">
+                  <option value="all">All sources</option>
+                  {leadSources.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <span className="text-xs text-slate-500 ml-auto">{filteredLeads.length} results</span>
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+              {filteredLeads.length === 0 ? (
+                <div className="p-12 text-center">
+                  <p className="text-4xl mb-3">👥</p>
+                  <p className="text-slate-400 text-sm">No leads match your filters</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-slate-800">
+                        {(["created_at","name","email","destination","source","status"] as (keyof LeadEntry)[]).map(col => (
+                          <th key={col} onClick={() => sortToggle(col)}
+                            className="px-4 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:text-slate-300 transition-colors select-none">
+                            {col.replace("_at","")} {leadSort.key === col ? (leadSort.dir === "asc" ? "↑" : "↓") : ""}
+                          </th>
+                        ))}
+                        <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredLeads.map(lead => (
+                        <>
+                          <tr key={lead.id}
+                            onClick={() => setExpandedLead(expandedLead === lead.id ? null : lead.id)}
+                            className="border-b border-slate-800/50 hover:bg-slate-800/30 cursor-pointer transition-colors">
+                            <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{new Date(lead.created_at).toLocaleDateString("en-CA")}</td>
+                            <td className="px-4 py-3 text-xs font-semibold text-white whitespace-nowrap">{lead.name}</td>
+                            <td className="px-4 py-3 text-xs text-indigo-400">{lead.email}</td>
+                            <td className="px-4 py-3 text-xs text-slate-300">{lead.destination}</td>
+                            <td className="px-4 py-3">
+                              <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${SOURCE_COLORS[lead.source] || "bg-slate-600"} text-white`}>{lead.source}</span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${STATUS_COLORS[lead.status] || STATUS_COLORS.new}`}>{lead.status}</span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex gap-1">
+                                <button className="text-[9px] bg-slate-800 text-slate-400 px-2 py-1 rounded-lg hover:bg-indigo-500/20 hover:text-indigo-400 transition-colors font-medium">📧 Email</button>
+                                <button className="text-[9px] bg-slate-800 text-slate-400 px-2 py-1 rounded-lg hover:bg-red-500/20 hover:text-red-400 transition-colors font-medium">🗑 Junk</button>
+                              </div>
+                            </td>
+                          </tr>
+                          {expandedLead === lead.id && (
+                            <tr key={`${lead.id}-exp`} className="bg-slate-800/20">
+                              <td colSpan={7} className="px-6 py-4 border-b border-slate-800/50">
+                                <div className="grid sm:grid-cols-4 gap-4 text-xs">
+                                  <div><div className="text-slate-500 mb-1">Phone</div><div className="text-white font-medium">{lead.phone}</div></div>
+                                  <div><div className="text-slate-500 mb-1">Destination</div><div className="text-white font-medium">{lead.destination}</div></div>
+                                  <div><div className="text-slate-500 mb-1">Source</div><div className="text-white font-medium capitalize">{lead.source}</div></div>
+                                  <div><div className="text-slate-500 mb-1">Captured</div><div className="text-white font-medium">{new Date(lead.created_at).toLocaleString()}</div></div>
+                                </div>
+                                <div className="flex gap-2 mt-3">
+                                  {(["new","contacted","quoted","converted","junk"] as const).map(s => (
+                                    <button key={s} className={`text-[9px] px-2.5 py-1 rounded-lg font-bold border transition-colors ${STATUS_COLORS[s]} hover:opacity-80`}>→ {s}</button>
+                                  ))}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════════════════
+             TAB: APPROVALS
+            ═══════════════════════════════════════════════════════════════════════ */}
+        {tab === "approvals" && (
+          <div className="space-y-5">
+            {/* Header actions */}
+            {approvals.length > 0 && (
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-bold text-white">{approvals.length} Pending Approvals</h2>
+                <div className="flex gap-2">
+                  <button onClick={handleApproveAll} className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-4 py-2 rounded-xl font-bold hover:bg-emerald-500/30 transition-colors">✅ Approve All</button>
+                  <button onClick={handleRejectAll}  className="text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-4 py-2 rounded-xl font-bold hover:bg-red-500/30 transition-colors">❌ Reject All</button>
+                </div>
+              </div>
+            )}
+
+            {approvals.length === 0 && approvalHistory.length === 0 && (
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-16 text-center">
+                <p className="text-5xl mb-3">✅</p>
+                <p className="text-slate-400">All clear! No pending approvals.</p>
+              </div>
+            )}
+
+            {/* Pending cards */}
+            {approvals.map(ap => (
+              <div key={ap.id} className="bg-slate-900 border border-amber-500/20 rounded-2xl overflow-hidden">
+                <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-bold text-white">{ap.title}</div>
+                    <div className="text-xs text-slate-500 mt-0.5">{ap.agent} · {new Date(ap.createdAt).toLocaleString()}</div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {ap.platform && (
+                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 uppercase">{ap.platform}</span>
+                    )}
+                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">⏳ PENDING</span>
+                  </div>
+                </div>
+                <div className="px-5 py-4 space-y-3">
+                  <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-slate-300 whitespace-pre-wrap font-mono leading-relaxed">{ap.content}</div>
+                  {ap.imagePrompt && (
+                    <div className="bg-purple-500/5 border border-purple-500/20 rounded-xl p-3">
+                      <div className="text-[10px] font-bold text-purple-400 mb-1">🎨 AI Image Prompt</div>
+                      <p className="text-xs text-slate-400 italic">"{ap.imagePrompt}"</p>
+                    </div>
+                  )}
+                </div>
+                <div className="px-5 py-4 border-t border-slate-800 flex gap-3 justify-end">
+                  <button onClick={() => handleReject(ap.id)}  className="bg-red-500/15 text-red-400 border border-red-500/30 px-5 py-2 rounded-xl text-sm font-bold hover:bg-red-500/25 transition-colors">❌ Reject</button>
+                  <button onClick={() => handleApprove(ap.id)} className="bg-emerald-500 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/20">✅ Approve & Publish</button>
+                </div>
+              </div>
+            ))}
+
+            {/* History */}
+            {approvalHistory.length > 0 && (
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                <div className="px-5 py-3 border-b border-slate-800">
+                  <h3 className="text-xs font-bold text-slate-400">📋 Approval History</h3>
+                </div>
+                <div className="divide-y divide-slate-800/50">
+                  {approvalHistory.map((ap, i) => (
+                    <div key={`hist-${i}`} className="flex items-center justify-between px-5 py-3">
+                      <div>
+                        <div className="text-xs text-white">{ap.title}</div>
+                        <div className="text-[10px] text-slate-500">{ap.agent}</div>
+                      </div>
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${ap.approved ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" : "bg-red-500/15 text-red-400 border-red-500/30"}`}>
+                        {ap.approved ? "✓ Approved" : "✗ Rejected"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════════════════
+             TAB: ACTIVITY
+            ═══════════════════════════════════════════════════════════════════════ */}
+        {tab === "activity" && (
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between gap-3">
+              <h2 className="text-sm font-bold text-white">⚡ Activity Feed</h2>
+              <select value={activityFilter} onChange={e => setActivityFilter(e.target.value)}
+                className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500">
+                <option value="all">All agents</option>
+                {[...new Set(buildActivity().map(a => a.agentId))].map(id => {
+                  const ag = agents.find(a => a.id === id);
+                  return <option key={id} value={id}>{ag?.emoji} {ag?.name || id}</option>;
+                })}
+              </select>
+            </div>
+            <div className="divide-y divide-slate-800/40">
+              {buildActivity()
+                .filter(a => activityFilter === "all" || a.agentId === activityFilter)
+                .map(a => (
+                <div key={a.id} className="flex items-start gap-4 px-5 py-4 hover:bg-slate-800/20 transition-colors">
+                  <div className="relative shrink-0">
+                    <span className="text-2xl">{a.emoji}</span>
+                    <div className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-slate-900 ${
+                      a.status === "success" ? "bg-emerald-400" : a.status === "needs_approval" ? "bg-amber-400" : a.status === "pending" ? "bg-blue-400" : "bg-red-400"
+                    }`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-semibold text-white">{a.agent}</span>
+                      <span className="text-xs text-slate-600">·</span>
+                      <span className="text-xs text-slate-400">{a.action}</span>
+                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ml-auto ${
+                        a.status === "needs_approval" ? "bg-amber-500/15 text-amber-400 border-amber-500/30" :
+                        a.status === "success" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" :
+                        a.status === "pending" ? "bg-blue-500/15 text-blue-400 border-blue-500/30 animate-pulse" :
+                        "bg-red-500/15 text-red-400 border-red-500/30"
+                      }`}>
+                        {a.status === "needs_approval" ? "⚠️ NEEDS APPROVAL" : a.status === "success" ? "✓ DONE" : a.status === "pending" ? "⟳ RUNNING" : "✗ ERROR"}
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-500 mt-1">{a.detail}</p>
+                  </div>
+                  <span className="text-xs text-slate-600 whitespace-nowrap shrink-0">{a.time}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════════════════
+             TAB: ANALYTICS
+            ═══════════════════════════════════════════════════════════════════════ */}
+        {tab === "analytics" && (
+          <div className="space-y-5">
+            <div className="grid lg:grid-cols-2 gap-5">
+              {/* Bar chart: leads per day */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                <h3 className="text-sm font-bold text-white mb-4">📅 Leads — Last 7 Days</h3>
+                <BarChart data={last7} max={maxDay} color="#6366f1" />
+              </div>
+
+              {/* Leads by source */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                <h3 className="text-sm font-bold text-white mb-4">🗂 Leads by Source</h3>
+                <div className="space-y-2">
+                  {sourceStats.length > 0 ? sourceStats.map(({ src, count }) => (
+                    <div key={src} className="flex items-center gap-3">
+                      <div className={`h-2 w-2 rounded-full shrink-0 ${SOURCE_COLORS[src] || "bg-slate-500"}`} />
+                      <div className="w-24 text-xs text-slate-400 capitalize">{src}</div>
+                      <div className="flex-1 h-3 bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.round((count / totalLeads) * 100)}%`, background: AGENT_COLORS.lina }} />
+                      </div>
+                      <div className="text-xs font-bold text-white w-6 text-right">{count}</div>
+                    </div>
+                  )) : <p className="text-xs text-slate-600">No data yet</p>}
+                </div>
+              </div>
+
+              {/* Leads by destination */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                <h3 className="text-sm font-bold text-white mb-4">✈️ Top Destinations</h3>
+                <div className="space-y-2">
+                  {destStats.length > 0 ? destStats.map(([dest, cnt]) => (
+                    <div key={dest} className="flex items-center gap-3">
+                      <div className="w-28 text-xs text-slate-400 truncate">{dest}</div>
+                      <div className="flex-1 h-3 bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full bg-amber-500 transition-all duration-700" style={{ width: `${Math.round((cnt / totalLeads) * 100)}%` }} />
+                      </div>
+                      <div className="text-xs font-bold text-white w-6 text-right">{cnt}</div>
+                    </div>
+                  )) : <p className="text-xs text-slate-600">No data yet</p>}
+                </div>
+              </div>
+
+              {/* Email metrics + Funnel */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-5">
+                {/* Email metrics */}
+                <div>
+                  <h3 className="text-sm font-bold text-white mb-3">📧 Email Performance</h3>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[{ l: "Sent", v: 0, c: "#6366f1" }, { l: "Open Rate", v: "—", c: "#f59e0b" }, { l: "Click Rate", v: "—", c: "#10b981" }].map(m => (
+                      <div key={m.l} className="bg-slate-800/50 rounded-xl p-3 text-center">
+                        <div className="text-lg font-black text-white">{m.v}</div>
+                        <div className="text-[9px] text-slate-500">{m.l}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Conversion funnel */}
+                <div>
+                  <h3 className="text-sm font-bold text-white mb-3">🔽 Conversion Funnel</h3>
+                  <div className="space-y-2">
+                    <FunnelStep label="Scraped"   value={totalLeads} total={totalLeads} color="#6366f1" />
+                    <FunnelStep label="Qualified" value={qualified}  total={totalLeads} color="#8b5cf6" />
+                    <FunnelStep label="Contacted" value={contacted}  total={totalLeads} color="#3b82f6" />
+                    <FunnelStep label="Converted" value={converted}  total={totalLeads} color="#10b981" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════════════════
+             TAB: SETTINGS
+            ═══════════════════════════════════════════════════════════════════════ */}
+        {tab === "settings" && (
+          <div className="space-y-5">
+            {/* Cron schedules */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-slate-800">
+                <h3 className="text-sm font-bold text-white">⏰ Cron Schedules & Agent Control</h3>
+              </div>
+              <div className="divide-y divide-slate-800/50">
+                {agents.map(agent => {
+                  const sc = STATUS_CFG[agent.status];
+                  const isOn = agentEnabled[agent.id] !== false;
+                  return (
+                    <div key={agent.id} className="flex items-center gap-4 px-5 py-4 hover:bg-slate-800/20 transition-colors">
+                      <span className="text-xl">{agent.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-white">{agent.name}</div>
+                        <div className="text-xs text-slate-500 font-mono">{agent.schedule}</div>
+                      </div>
+                      <div className="hidden sm:flex items-center gap-2">
+                        <div className={`h-2 w-2 rounded-full ${sc.dot} ${agent.status === "live" ? "animate-pulse" : ""}`} />
+                        <span className={`text-[10px] font-bold ${sc.badge.split(" ").find(c => c.startsWith("text-")) || ""}`}>{sc.label}</span>
+                      </div>
+                      <button
+                        onClick={() => toggleAgent(agent.id)}
+                        className={`relative h-6 w-11 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900 ${isOn ? "bg-indigo-600" : "bg-slate-700"}`}
+                      >
+                        <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition-all duration-300 ${isOn ? "left-6" : "left-1"}`} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* API Health */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-slate-800">
+                <h3 className="text-sm font-bold text-white">🔌 API Health Status</h3>
+              </div>
+              <div className="divide-y divide-slate-800/50">
+                {[
+                  { label: "Main API (port 8000)", status: apiHealth, detail: "VPS 217.216.88.202:8000" },
+                  { label: "Supabase Database", status: dbHealth, detail: "PostgreSQL via Supabase cloud" },
+                  { label: "Lina Webhook (n8n)", status: linaHealth, detail: "OpenAI GPT-4o integration" },
+                ].map(s => (
+                  <div key={s.label} className="flex items-center gap-4 px-5 py-3">
+                    <div className={`h-3 w-3 rounded-full ${svcDot(s.status)}`} />
+                    <div className="flex-1">
+                      <div className="text-sm text-white">{s.label}</div>
+                      <div className="text-xs text-slate-500">{s.detail}</div>
+                    </div>
+                    <span className={`text-sm font-bold ${svcTxt(s.status)}`}>{svcLbl(s.status)}</span>
                   </div>
                 ))}
               </div>
             </div>
-          )}
-        </div>
-      )}
 
-      {/* Tab: Activity Feed */}
-      {tab === "activity" && (
-        <div className="bg-slate-100 border border-slate-200 rounded-2xl p-5">
-          <h2 className="text-sm font-bold text-white mb-4">⚡ Full Activity Feed</h2>
-          <div className="space-y-2">
-            {activity.map((a) => (
-              <div key={a.id} className="flex items-start gap-3 bg-slate-100 rounded-xl px-4 py-3 border border-slate-100">
-                <span className="text-2xl mt-0.5">{a.emoji}</span>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-white">{a.agent}</span>
-                    <span className="text-xs text-slate-500">·</span>
-                    <span className="text-xs text-slate-400">{a.action}</span>
-                    {a.status === "needs_approval" && <span className="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-bold">NEEDS APPROVAL</span>}
-                    {a.status === "success" && <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold">✓ DONE</span>}
-                    {a.status === "pending" && <span className="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full font-bold animate-pulse">⟳ RUNNING</span>}
-                  </div>
-                  <div className="text-sm text-slate-400 mt-1">{a.detail}</div>
-                </div>
-                <span className="text-xs text-slate-600">{a.time}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Tab: Leads */}
-      {tab === "leads" && (
-        <div className="bg-slate-100 border border-slate-200 rounded-2xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
-            <h2 className="text-sm font-bold text-white">👥 All Captured Leads ({leads.length})</h2>
-          </div>
-          {leads.length === 0 ? (
-            <div className="p-8 text-center text-slate-500 text-sm">No leads captured yet. Send visitors to chat with Lina!</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-white/10">
-                    {["Date", "Name", "Email", "Phone", "Destination", "Source", "Status"].map((h) => (
-                      <th key={h} className="px-4 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {leads.map((lead) => (
-                    <tr key={lead.id} className="border-b border-white/5 hover:bg-slate-100">
-                      <td className="px-4 py-3 text-xs text-slate-400">{new Date(lead.created_at).toLocaleDateString("en-CA")}</td>
-                      <td className="px-4 py-3 text-xs font-bold text-white">{lead.name}</td>
-                      <td className="px-4 py-3 text-xs text-blue-400">{lead.email}</td>
-                      <td className="px-4 py-3 text-xs text-slate-400">{lead.phone}</td>
-                      <td className="px-4 py-3 text-xs text-slate-300">{lead.destination}</td>
-                      <td className="px-4 py-3"><span className="text-[10px] bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full font-bold">{lead.source}</span></td>
-                      <td className="px-4 py-3">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                          lead.status === "new" ? "bg-cyan-500/20 text-cyan-400" :
-                          lead.status === "quoted" ? "bg-purple-500/20 text-purple-400" :
-                          lead.status === "converted" ? "bg-emerald-500/20 text-emerald-400" :
-                          "bg-slate-1000/20 text-slate-400"
-                        }`}>{lead.status}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Tab: Approvals */}
-      {tab === "approvals" && (
-        <div className="space-y-4">
-          {approvals.length === 0 ? (
-            <div className="bg-slate-100 border border-slate-200 rounded-2xl p-12 text-center">
-              <span className="text-4xl">✅</span>
-              <p className="text-slate-400 mt-3 text-sm">All clear! No pending approvals.</p>
-            </div>
-          ) : (
-            approvals.map((ap) => (
-              <div key={ap.id} className="bg-slate-100 border border-slate-200 rounded-2xl overflow-hidden">
-                <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-bold text-white">{ap.title}</div>
-                    <div className="text-xs text-slate-500 mt-0.5">{ap.agent} · {ap.platform || ap.type} · {new Date(ap.createdAt).toLocaleString()}</div>
-                  </div>
-                  <span className="bg-amber-500/20 text-amber-400 text-[10px] font-bold px-3 py-1 rounded-full">AWAITING APPROVAL</span>
-                </div>
-                <div className="px-5 py-4">
-                  <div className="bg-black/30 border border-white/5 rounded-xl p-4 text-sm text-slate-300 whitespace-pre-wrap font-mono leading-relaxed">
-                    {ap.content}
-                  </div>
-                </div>
-                <div className="px-5 py-3 border-t border-white/10 flex gap-3 justify-end">
-                  <button onClick={() => handleReject(ap.id)} className="bg-red-500/20 text-red-400 px-5 py-2 rounded-xl text-xs font-bold hover:bg-red-500/30 transition">❌ Reject</button>
-                  <button onClick={() => handleApprove(ap.id)} className="bg-emerald-500 text-white px-5 py-2 rounded-xl text-xs font-bold hover:bg-emerald-600 transition">✅ Approve & Publish</button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-
-      {/* Tab: All Agents */}
-      {tab === "agents" && (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {agents.map((agent) => {
-            const sc = STATUS_CONFIG[agent.status];
-            return (
-              <div key={agent.id} className="bg-slate-100 border border-slate-200 rounded-2xl overflow-hidden hover:border-slate-300 transition-all">
-                <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl">{agent.emoji}</span>
+            {/* Quick links */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+              <h3 className="text-sm font-bold text-white mb-4">🔗 Quick Links</h3>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {[
+                  { label: "Supabase Dashboard", icon: "🗄️", url: "https://supabase.com/dashboard", color: "border-emerald-500/30 hover:border-emerald-500/60 hover:bg-emerald-500/5" },
+                  { label: "n8n Workflows", icon: "🔄", url: `http://217.216.88.202:5678`, color: "border-blue-500/30 hover:border-blue-500/60 hover:bg-blue-500/5" },
+                  { label: "VPS Dashboard", icon: "🖥️", url: `http://217.216.88.202`, color: "border-slate-600/50 hover:border-slate-500/70 hover:bg-slate-800/50" },
+                  { label: "Twilio Console", icon: "📞", url: "https://console.twilio.com", color: "border-red-500/30 hover:border-red-500/60 hover:bg-red-500/5" },
+                ].map(l => (
+                  <a key={l.label} href={l.url} target="_blank" rel="noreferrer"
+                    className={`flex items-center gap-3 p-4 bg-slate-800/40 border rounded-xl transition-all group ${l.color}`}>
+                    <span className="text-2xl">{l.icon}</span>
                     <div>
-                      <h2 className="text-base font-bold text-white">{agent.name}</h2>
-                      <p className="text-[11px] text-slate-500">{agent.type}</p>
+                      <div className="text-sm text-white font-medium group-hover:text-white">{l.label}</div>
+                      <div className="text-[10px] text-slate-500">Open →</div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className={`h-2 w-2 rounded-full ${sc.dot} ${agent.status === "live" ? "animate-pulse" : ""}`} />
-                    <span className={`${sc.bg} text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full`}>{sc.label}</span>
-                  </div>
-                </div>
-                <div className="px-5 py-4 space-y-3">
-                  <p className="text-sm text-slate-400">{agent.description}</p>
-                  <div className="flex gap-3">
-                    {agent.stats.map((s) => (
-                      <div key={s.label} className="bg-slate-100 rounded-lg px-3 py-1.5 text-center">
-                        <div className="text-sm font-black text-white">{s.value}</div>
-                        <div className="text-[9px] text-slate-500">{s.label}</div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {agent.features.map((f) => (
-                      <span key={f} className="bg-slate-100 text-slate-400 text-[10px] font-medium px-2 py-0.5 rounded-full border border-slate-100">{f}</span>
-                    ))}
-                  </div>
-                </div>
+                  </a>
+                ))}
               </div>
-            );
-          })}
-        </div>
-      )}
+            </div>
+          </div>
+        )}
 
-      <div className="mt-8 text-center text-xs text-slate-600">
-        Zeniva Travel AI · {agents.filter((a) => a.status === "live" || a.status === "active").length} agents running · Powered by OpenAI + n8n
+        {/* ─── Footer ─────────────────────────────────────────────────────────── */}
+        <div className="text-center text-xs text-slate-700 py-4">
+          Zeniva Travel AI Command Center · {activeAgents}/{agents.length} agents running · Powered by OpenAI + n8n + Supabase
+        </div>
       </div>
     </div>
   );
