@@ -133,35 +133,25 @@ export default function AIAgentsPageClient() {
 
     setActivity(acts.sort((a, b) => 0)); // keep order
 
-    // Mock approvals
-    setApprovals([
-      {
-        id: "ap-1",
-        agent: "Content Creator",
-        type: "social_post",
-        platform: "Instagram",
-        title: "🌴 Cancun All-Inclusive Deal",
-        content: "Escape to paradise! 🌊 7 nights all-inclusive in Cancun from $899/person. Direct flights from Montreal. Book with Lina AI at zenivatravel.com\n\n#ZenivaTravel #Cancun #AllInclusive #TravelDeals #Mexico",
-        createdAt: new Date(now.getTime() - 3600000).toISOString(),
-      },
-      {
-        id: "ap-2",
-        agent: "Content Creator",
-        type: "social_post",
-        platform: "TikTok",
-        title: "✈️ Top 5 Destinations March 2026",
-        content: "POV: You asked Lina AI for the best March getaways 🤖✈️\n\n1. 🇲🇽 Riviera Maya\n2. 🇩🇴 Punta Cana\n3. 🇬🇷 Santorini\n4. 🇹🇭 Thailand\n5. 🇵🇹 Algarve\n\nAll bookable at zenivatravel.com 🔥",
-        createdAt: new Date(now.getTime() - 7200000).toISOString(),
-      },
-      {
-        id: "ap-3",
-        agent: "Lead Scraper",
-        type: "outreach",
-        title: "Outreach: 47 travel-intent leads from Reddit",
-        content: "Found 47 people asking for travel advice on r/travel, r/solotravel, r/honeymoonplanning. Personalized DM draft ready for each. Topics: Greece honeymoon (12), Caribbean family (18), Japan solo (9), Europe backpack (8).",
-        createdAt: new Date(now.getTime() - 1800000).toISOString(),
-      },
-    ]);
+    // Fetch REAL approvals from social queue
+    try {
+      const r = await fetch("/api/agents-proxy/social-queue");
+      const d = await r.json();
+      const pending = (d?.posts || [])
+        .filter((p: any) => p.status === 'pending_approval')
+        .map((p: any) => ({
+          id: p.id,
+          agent: "Content Creator",
+          type: "social_post" as const,
+          platform: p.platform || "all",
+          title: `${p.hook || p.type} — ${p.platform || 'all platforms'}`,
+          content: p.caption + (p.cta ? `\n\n👉 ${p.cta}` : ''),
+          createdAt: p.generated_at || p.date,
+        }));
+      setApprovals(pending);
+    } catch {
+      setApprovals([]);
+    }
   }, [totalLeads, totalMessages]);
 
   useEffect(() => {
@@ -232,7 +222,14 @@ export default function AIAgentsPageClient() {
     ]);
   }, [linaStatus, totalLeads, totalMessages]);
 
-  const handleApprove = (id: string) => {
+  const handleApprove = async (id: string) => {
+    try {
+      await fetch("/api/agents-proxy/social-queue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, action: "approve" }),
+      });
+    } catch {}
     setApprovals((prev) => prev.filter((a) => a.id !== id));
     setActivity((prev) => [
       { id: `approved-${id}`, agent: "You", emoji: "✅", action: "Approved post", detail: "Post approved and scheduled for publication", time: new Date().toLocaleTimeString(), status: "success" },
@@ -240,7 +237,14 @@ export default function AIAgentsPageClient() {
     ]);
   };
 
-  const handleReject = (id: string) => {
+  const handleReject = async (id: string) => {
+    try {
+      await fetch("/api/agents-proxy/social-queue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, action: "reject" }),
+      });
+    } catch {}
     setApprovals((prev) => prev.filter((a) => a.id !== id));
   };
 
