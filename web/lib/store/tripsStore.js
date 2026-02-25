@@ -319,7 +319,15 @@ export async function generateProposal(tripId) {
       items: [
         `${tripDraft.departureCity || "Origin"} → ${tripDraft.destination || "Destination"}`,
         tripDraft.checkIn && tripDraft.checkOut ? `${tripDraft.checkIn} → ${tripDraft.checkOut}` : "Flexible dates",
+        tripDraft.airline ? `Preferred airline: ${tripDraft.airline}` : "Airline: to be advised",
+        tripDraft.cabinClass ? `Class: ${tripDraft.cabinClass}` : "Economy",
       ],
+    });
+  } else if (tripDraft.transportationType) {
+    // when not flights, describe other transport
+    sections.push({
+      title: "Transportation",
+      items: [tripDraft.transportationType],
     });
   }
 
@@ -328,24 +336,35 @@ export async function generateProposal(tripId) {
                              tripDraft.accommodationType === "Resort" ? "Resorts" : "Hotels";
   sections.push({
     title: accommodationTitle,
-    items: [tripDraft.style || "Curated stays", tripDraft.budget ? `Budget: ${tripDraft.currency || 'USD'} ${tripDraft.budget}` : "Mid-luxury"],
+    items: [
+      tripDraft.hotelName || tripDraft.style || "Curated stays",
+      tripDraft.budget ? `Budget: ${tripDraft.currency || 'USD'} ${tripDraft.budget}` : "Mid-luxury",
+      tripDraft.roomType ? `Room type: ${tripDraft.roomType}` : "Standard room",
+    ],
   });
 
-  // Add Activities and Transfers sections if requested
-  if (tripDraft.includeActivities) {
+  // Add excursions/activities section
+  if (tripDraft.includeActivities || tripDraft.excursions) {
+    const actItems = [];
+    if (tripDraft.excursions && tripDraft.excursions.length) {
+      actItems.push(...tripDraft.excursions);
+    } else {
+      actItems.push("Custom excursions & tours available");
+    }
     sections.push({
-      title: "Activities",
-      items: ["Optional experiences"],
+      title: "Excursions & Activities",
+      items: actItems,
     });
   }
 
   if (tripDraft.includeTransfers) {
     sections.push({
       title: "Transfers",
-      items: ["Ground transportation"],
+      items: ["Ground transportation (private or shared)"] ,
     });
   }
 
+  // always show some experiences ideas
   sections.push({
     title: "Experiences",
     items: ["Guided city highlights", "Local food tour", "Free day for leisure"],
