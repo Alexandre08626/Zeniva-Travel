@@ -4,7 +4,7 @@ export async function sendMessageToLina(
   historyOrPrompt: any
 ): Promise<{ reply: string; raw: string; tripPatch: any | null }> {
   const WEBHOOK_FALLBACK =
-    "https://vmi3097009.contaboserver.net/webhook/zeniva-lina-chat";
+    "https://vmi3097009.contaboserver.net/chat";
 
   // build prompt and optional history/session
   let prompt = "";
@@ -53,7 +53,7 @@ export async function sendMessageToLina(
       : [],
   };
 
-  const url = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || WEBHOOK_FALLBACK;
+  const url = process.env.NEXT_PUBLIC_LINA_API_URL || process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || WEBHOOK_FALLBACK;
   console.log("Lina webhook URL:", url);
 
   const controller = new AbortController();
