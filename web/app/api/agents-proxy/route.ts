@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (endpoint === "webhook-test") {
-      const r = await fetch(VPS_WEBHOOK, {
+      const r = await fetch(`${VPS_BASE}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: "health-check", sessionId: "dashboard-monitor" }),
