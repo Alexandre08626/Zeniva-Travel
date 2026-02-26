@@ -166,15 +166,15 @@ export default function MessagesPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-black text-gray-900">💬 Messagerie</h1>
-          <p className="text-sm text-gray-500">{unread > 0 ? `${unread} non lu${unread > 1 ? "s" : ""}` : "Aucun nouveau message"}</p>
+          <h1 className="text-2xl font-black text-gray-900">💬 Messages</h1>
+          <p className="text-sm text-gray-500">{unread > 0 ? `${unread} unread` : "No new messages"}</p>
         </div>
         <div className="flex gap-2">
           <button onClick={fetchClientChats} className="px-4 py-2 text-sm font-semibold rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700">
-            👥 Conversations clients
+            👥 Client Conversations
           </button>
           <button onClick={() => { setView("compose"); setToId(isAdmin ? "" : "admin"); setToType(isAdmin ? "agent" : "admin"); }} className="px-4 py-2 text-sm font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-700">
-            ✏️ Nouveau message
+            ✏️ New Message
           </button>
         </div>
       </div>
@@ -185,15 +185,15 @@ export default function MessagesPage() {
           📥 Inbox {unread > 0 && <span className="ml-1 px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">{unread}</span>}
         </button>
         <button onClick={fetchClientChats} className={`flex-1 py-2 text-sm font-semibold rounded-lg ${view === "clients" ? "bg-white shadow text-gray-900" : "text-gray-500"}`}>
-          👥 Clients Lina
+          👥 Client Chats
         </button>
       </div>
 
       {/* Thread list */}
       {view === "threads" && (
         <div className="space-y-2">
-          {loading ? <p className="text-gray-400 text-center py-8">Chargement...</p> :
-           threads.length === 0 ? <p className="text-gray-400 text-center py-8">Aucun message</p> :
+          {loading ? <p className="text-gray-400 text-center py-8">Loading...</p> :
+           threads.length === 0 ? <p className="text-gray-400 text-center py-8">No messages</p> :
            threads.map(t => (
             <button key={t.thread_id} onClick={() => openThread(t.thread_id)}
               className={`w-full text-left p-4 rounded-xl border transition hover:shadow-md ${t.unread > 0 ? "bg-blue-50 border-blue-200" : "bg-white border-gray-200"}`}>
@@ -205,7 +205,7 @@ export default function MessagesPage() {
                       {t.other_name || t.other_party || "—"}
                     </span>
                   </div>
-                  <div className="text-xs text-gray-500 mt-0.5">{t.subject || "Sans objet"}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{t.subject || "No subject"}</div>
                   <div className="text-xs text-gray-400 mt-1 truncate">{t.last_message}</div>
                 </div>
                 <div className="text-[10px] text-gray-400 whitespace-nowrap ml-2">{fmtDate(t.last_at)}</div>
@@ -218,7 +218,7 @@ export default function MessagesPage() {
       {/* Thread view */}
       {view === "thread" && (
         <div>
-          <button onClick={() => { setView("threads"); fetchThreads(); }} className="text-sm text-blue-600 hover:underline mb-3">← Retour</button>
+          <button onClick={() => { setView("threads"); fetchThreads(); }} className="text-sm text-blue-600 hover:underline mb-3">← Back</button>
           <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
             <div className="p-4 border-b border-gray-100 bg-gray-50">
               <h2 className="font-bold text-gray-900">{threadMsgs[0]?.subject || "Conversation"}</h2>
@@ -240,10 +240,10 @@ export default function MessagesPage() {
             <div className="p-3 border-t border-gray-100 flex gap-2">
               <input value={replyBody} onChange={e => setReplyBody(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleReply()}
-                placeholder="Répondre..." className="flex-1 px-4 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                placeholder="Reply..." className="flex-1 px-4 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               <button onClick={handleReply} disabled={sending || !replyBody.trim()}
                 className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-50">
-                {sending ? "..." : "Envoyer"}
+                {sending ? "..." : "Send"}
               </button>
             </div>
           </div>
@@ -253,36 +253,36 @@ export default function MessagesPage() {
       {/* Compose */}
       {view === "compose" && (
         <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <button onClick={() => setView("threads")} className="text-sm text-blue-600 hover:underline mb-3">← Retour</button>
-          <h2 className="font-bold text-gray-900 mb-4">Nouveau message</h2>
+          <button onClick={() => setView("threads")} className="text-sm text-blue-600 hover:underline mb-3">← Back</button>
+          <h2 className="font-bold text-gray-900 mb-4">New Message</h2>
           <div className="space-y-3">
             {isAdmin ? (
               <div>
-                <label className="text-xs font-semibold text-gray-500 mb-1 block">Destinataire</label>
+                <label className="text-xs font-semibold text-gray-500 mb-1 block">Recipient</label>
                 <select value={toId} onChange={e => setToId(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm">
-                  <option value="">— Choisir un agent —</option>
+                  <option value="">— Select an agent —</option>
                   {agents.map(a => <option key={a.email} value={a.email}>{a.name} ({a.email})</option>)}
                 </select>
               </div>
             ) : (
               <div className="text-sm text-gray-600 bg-gray-50 px-4 py-2 rounded-xl">
-                📤 Message au <strong>Boss (Admin)</strong>
+                📤 Message to <strong>Boss (Admin)</strong>
               </div>
             )}
             <div>
-              <label className="text-xs font-semibold text-gray-500 mb-1 block">Sujet</label>
-              <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Objet du message"
+              <label className="text-xs font-semibold text-gray-500 mb-1 block">Subject</label>
+              <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Message subject"
                 className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm" />
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-500 mb-1 block">Message</label>
-              <textarea value={body} onChange={e => setBody(e.target.value)} rows={5} placeholder="Votre message..."
+              <textarea value={body} onChange={e => setBody(e.target.value)} rows={5} placeholder="Your message..."
                 className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm resize-none" />
             </div>
             <button onClick={handleCompose} disabled={sending || !body.trim() || !toId}
               className="px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-50">
-              {sending ? "Envoi..." : "📤 Envoyer"}
+              {sending ? "Sending..." : "📤 Send"}
             </button>
           </div>
         </div>
@@ -291,7 +291,7 @@ export default function MessagesPage() {
       {/* Client Lina chats */}
       {view === "clients" && (
         <div className="space-y-2">
-          {clientChats.length === 0 ? <p className="text-gray-400 text-center py-8">Aucune conversation client</p> :
+          {clientChats.length === 0 ? <p className="text-gray-400 text-center py-8">No client conversations</p> :
            clientChats.map(c => (
             <div key={c.lead_id} className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition">
               <div className="flex justify-between items-start">

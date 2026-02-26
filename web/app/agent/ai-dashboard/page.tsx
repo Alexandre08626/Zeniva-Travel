@@ -93,7 +93,7 @@ export default function AgentAIDashboard() {
       });
       const data = await res.json();
       setMsgs(prev => [...prev, { role: "assistant", content: data.response || data.reply || "..." }]);
-    } catch { setMsgs(prev => [...prev, { role: "assistant", content: "❌ Erreur de connexion" }]); }
+    } catch { setMsgs(prev => [...prev, { role: "assistant", content: "❌ Connection error" }]); }
     finally { setChatLoading(false); }
   };
 
@@ -105,7 +105,7 @@ export default function AgentAIDashboard() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: `Génère du contenu marketing de type "${mktType}". Détails: ${mktDetails || "contenu général pour mon activité"}. Génère le contenu directement, pas de questions.`,
+          message: `Generate marketing content of type "${mktType}". Details: ${mktDetails || "general content for my business"}. Generate the content directly, no questions.`,
           sessionId: `agent-mkt-${agentEmail}`, agentEmail, agentRole, source: "zenivatravel.com",
         }),
       });
@@ -170,7 +170,7 @@ export default function AgentAIDashboard() {
             {/* KPIs */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <Kpi icon="👥" label="Mes Clients" value={leads.length} sub={`${openLeads} actifs`} color="bg-indigo-600" />
-              <Kpi icon="🎯" label="Deals Fermés" value={closedDeals} sub={`$${revenue.toLocaleString()} revenus`} color="bg-emerald-600" />
+              <Kpi icon="🎯" label="Closed Deals" value={closedDeals} sub={`$${revenue.toLocaleString()} revenue`} color="bg-emerald-600" />
               <Kpi icon="💰" label="Commissions" value={`$${totalComm.toLocaleString()}`} sub={`$${pendingComm.toLocaleString()} en attente`} color="bg-amber-500" />
               {isYacht ? (
                 <Kpi icon="⛵" label="Mes Yachts" value={yachts.length} sub={`${yachts.filter(y => y.available).length} disponibles`} color="bg-sky-600" />
@@ -184,8 +184,8 @@ export default function AgentAIDashboard() {
               <h3 className="text-sm font-bold mb-4" style={{ color: TITLE_TEXT }}>⚡ Actions Rapides</h3>
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {[
-                  { label: "Parler à Lina", icon: "💬", action: () => setTab("chat"), desc: "Assistant IA personnalisé" },
-                  { label: "Créer du contenu", icon: "📣", action: () => setTab("marketing"), desc: "Posts, emails, captions" },
+                  { label: "Talk to Lina", icon: "💬", action: () => setTab("chat"), desc: "Personalized AI assistant" },
+                  { label: "Create content", icon: "📣", action: () => setTab("marketing"), desc: "Posts, emails, captions" },
                   { label: "Voir mes clients", icon: "👥", action: () => setTab("leads"), desc: `${leads.length} clients` },
                   { label: "Mes commissions", icon: "💰", action: () => setTab("commissions"), desc: `$${totalComm.toLocaleString()} total` },
                 ].map(a => (
@@ -208,7 +208,7 @@ export default function AgentAIDashboard() {
                 <button onClick={() => setTab("leads")} className="text-xs font-semibold text-indigo-600">Voir tout →</button>
               </div>
               <div className="divide-y divide-slate-100">
-                {leads.length === 0 && <div className="px-5 py-8 text-center text-sm text-slate-400">Aucun client pour le moment</div>}
+                {leads.length === 0 && <div className="px-5 py-8 text-center text-sm text-slate-400">No clients yet</div>}
                 {leads.slice(0, 5).map(l => (
                   <div key={l.id} className="px-5 py-3 flex items-center gap-3">
                     <div className="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-bold text-indigo-700">
@@ -249,7 +249,7 @@ export default function AgentAIDashboard() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {leads.length === 0 && (
-                    <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-400">Aucun client assigné</td></tr>
+                    <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-400">No assigned clients</td></tr>
                   )}
                   {leads.map(l => (
                     <tr key={l.id} className="hover:bg-slate-50">
@@ -289,7 +289,7 @@ export default function AgentAIDashboard() {
               <div className="h-9 w-9 rounded-full bg-indigo-500 flex items-center justify-center text-lg">✈️</div>
               <div className="flex-1">
                 <div className="font-bold text-sm">Lina — {isYacht ? "Mode Yacht & Influenceur" : "Mode Agent Voyage"}</div>
-                <div className="text-xs text-indigo-200">Factures, marketing, itinéraires, relance clients, scoring leads...</div>
+                <div className="text-xs text-indigo-200">Invoices, marketing, itineraries, client follow-up, lead scoring...</div>
               </div>
               <div className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
             </div>
@@ -298,18 +298,18 @@ export default function AgentAIDashboard() {
                 <div className="text-center text-slate-400 mt-12 space-y-3">
                   <div className="text-4xl">💬</div>
                   <div className="text-sm font-medium">Salut {agentName.split(" ")[0]}! Je suis Lina, ton assistante IA.</div>
-                  <div className="text-xs">Demande-moi de créer une facture, un post marketing, un itinéraire, scorer un lead...</div>
+                  <div className="text-xs">Ask me to create an invoice, marketing post, itinerary, score a lead...</div>
                   <div className="flex flex-wrap gap-2 justify-center mt-4">
                     {(isYacht ? [
-                      "Crée un post Instagram pour un yacht aux Bahamas",
+                      "Create an Instagram post for a yacht in the Bahamas",
                       "Fais-moi une facture charter yacht",
-                      "Stratégie pour trouver des leads yacht",
+                      "Strategy to find yacht leads",
                       "Caption TikTok virale pour yacht",
                     ] : [
-                      "Crée un itinéraire 7 jours au Japon",
+                      "Create a 7-day Japan itinerary",
                       "Fais-moi une facture voyage all-inclusive",
-                      "Email de relance pour un client",
-                      "Post Facebook pour promo été",
+                      "Follow-up email for a client",
+                      "Facebook post for summer promo",
                     ]).map(s => (
                       <button key={s} onClick={() => { setChatInput(s); }}
                         className="px-3 py-1.5 bg-white border border-slate-200 rounded-full text-xs text-slate-600 hover:border-indigo-300 hover:bg-indigo-50 transition-all">
@@ -344,7 +344,7 @@ export default function AgentAIDashboard() {
               <div className="flex gap-3">
                 <input ref={inputRef} value={chatInput} onChange={e => setChatInput(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendChat()}
-                  placeholder="Écris ton message à Lina..." disabled={chatLoading}
+                  placeholder="Type your message to Lina..." disabled={chatLoading}
                   className="flex-1 px-4 py-3 bg-slate-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all" />
                 <button onClick={sendChat} disabled={chatLoading || !chatInput.trim()}
                   className="h-11 w-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-700 disabled:opacity-40 transition-all">
@@ -358,24 +358,24 @@ export default function AgentAIDashboard() {
         {/* ═══ MARKETING ═══ */}
         {tab === "marketing" && (
           <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-5">
-            <h2 className="text-lg font-bold" style={{ color: TITLE_TEXT }}>📣 Générateur de Contenu</h2>
-            <p className="text-sm" style={{ color: MUTED_TEXT }}>Lina génère du contenu marketing adapté à ton domaine. Choisis le type et décris ce que tu veux.</p>
+            <h2 className="text-lg font-bold" style={{ color: TITLE_TEXT }}>📣 Content Generator</h2>
+            <p className="text-sm" style={{ color: MUTED_TEXT }}>Lina generates marketing content tailored to your domain. Choose the type and describe what you want.</p>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-semibold text-slate-500 uppercase">Type</label>
                 <select value={mktType} onChange={e => setMktType(e.target.value)}
                   className="mt-1 w-full px-4 py-3 border border-slate-200 rounded-xl text-sm">
-                  <option value="social_post">📱 Post réseaux sociaux</option>
+                  <option value="social_post">📱 Social media post</option>
                   <option value="email_campaign">📧 Email marketing</option>
                   <option value="listing_description">📝 Description de listing</option>
                   <option value="follow_up">🔄 Email de relance</option>
                   {(isYacht || isInfluencer) && <option value="influencer_caption">🎬 Caption influenceur (IG/TikTok)</option>}
-                  <option value="itinerary">🗺️ Itinéraire voyage</option>
+                  <option value="itinerary">🗺️ Travel itinerary</option>
                   <option value="invoice">🧾 Facture</option>
                 </select>
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-500 uppercase">Détails</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase">Details</label>
                 <input value={mktDetails} onChange={e => setMktDetails(e.target.value)}
                   placeholder={isYacht ? "Catamaran 50ft, Bahamas, 8 personnes..." : "All-inclusive Cancun, famille 4, budget $5000..."}
                   className="mt-1 w-full px-4 py-3 border border-slate-200 rounded-xl text-sm" />
@@ -383,14 +383,14 @@ export default function AgentAIDashboard() {
             </div>
             <button onClick={genMarketing} disabled={mktLoading}
               className="px-6 py-3 rounded-xl text-white font-bold text-sm disabled:opacity-40" style={{ backgroundColor: PREMIUM_BLUE }}>
-              {mktLoading ? "⏳ Lina travaille..." : "🚀 Générer"}
+              {mktLoading ? "⏳ Lina is working..." : "🚀 Generate"}
             </button>
             {mktResult && (
               <div className="relative">
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 whitespace-pre-wrap text-sm leading-relaxed">{mktResult}</div>
                 <button onClick={() => { navigator.clipboard.writeText(mktResult); }}
                   className="absolute top-3 right-3 px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-indigo-50">
-                  📋 Copier
+                  📋 Copy
                 </button>
               </div>
             )}
@@ -403,7 +403,7 @@ export default function AgentAIDashboard() {
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
               <Kpi icon="💰" label="Total Commissions" value={`$${totalComm.toLocaleString()}`} color="bg-emerald-600" />
               <Kpi icon="⏳" label="En Attente" value={`$${pendingComm.toLocaleString()}`} color="bg-amber-500" />
-              <Kpi icon="✅" label="Payées" value={`$${(totalComm - pendingComm).toLocaleString()}`} color="bg-indigo-600" />
+              <Kpi icon="✅" label="Paid" value={`$${(totalComm - pendingComm).toLocaleString()}`} color="bg-indigo-600" />
             </div>
             <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
               <div className="px-5 py-4 border-b border-slate-200">
@@ -417,13 +417,13 @@ export default function AgentAIDashboard() {
                       <th className="px-5 py-3">Montant Deal</th>
                       <th className="px-5 py-3">Taux</th>
                       <th className="px-5 py-3">Commission</th>
-                      <th className="px-5 py-3">Fermé par</th>
+                      <th className="px-5 py-3">Closed by</th>
                       <th className="px-5 py-3">Statut</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {commissions.length === 0 && (
-                      <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-400">Aucune commission pour le moment</td></tr>
+                      <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-400">No commissions yet</td></tr>
                     )}
                     {commissions.map(c => (
                       <tr key={c.id} className="hover:bg-slate-50">
@@ -454,7 +454,7 @@ export default function AgentAIDashboard() {
               <h3 className="text-sm font-bold" style={{ color: TITLE_TEXT }}>⛵ Mes Yachts ({yachts.length})</h3>
             </div>
             {yachts.length === 0 ? (
-              <div className="px-5 py-8 text-center text-slate-400 text-sm">Aucun yacht listé</div>
+              <div className="px-5 py-8 text-center text-slate-400 text-sm">No yachts listed</div>
             ) : (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 p-5">
                 {yachts.map(y => (
