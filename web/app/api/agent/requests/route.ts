@@ -206,13 +206,15 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const channelId = url.searchParams.get("channelId") || undefined;
 
-    // Yacht brokers must only see their own direct channel (never "hq" or others)
-    const brokerChannelId = isYachtBroker ? toAgentChannelIdFromEmail(session.email) : null;
-    const effectiveChannelId = brokerChannelId || channelId;
+    // Non-admin agents only see their own direct channel (never "hq" or others' messages)
+    const isAgent = !isAdmin;
+    const agentChannelId = isAgent ? toAgentChannelIdFromEmail(session.email) : null;
+    const effectiveChannelId = agentChannelId || channelId;
 
     if (hasSupabaseEnv()) {
-      if (effectiveChannelId && (!isAdmin || brokerChannelId)) {
-        const requests = await readRequestsFromSupabaseByContains(effectiveChannelId);
+      if (isAgent && agentChannelId) {
+        // Agent sees only messages that include their channel
+        const requests = await readRequestsFromSupabaseByContains(agentChannelId);
         return NextResponse.json({ data: requests });
       }
 
@@ -257,10 +259,10 @@ export async function POST(request: Request) {
       const gate = requireAgentSession(request);
       if (!gate.ok) return gate.error;
 
-      // Yacht brokers are locked to their own channel (plus HQ)
-      if (gate.isYachtBroker) {
-        const brokerChannel = toAgentChannelIdFromEmail(gate.session.email);
-        body.channelIds = [brokerChannel, "hq"];
+      // Non-admin agents are locked to their own channel (plus HQ)
+      if (!gate.isAdmin) {
+        const agentChannel = toAgentChannelIdFromEmail(gate.session.email);
+        body.channelIds = [agentChannel, "hq"];
       }
     }
 
