@@ -122,15 +122,15 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!user || isHQorAdmin) return;
     if (isInfluencer) {
-      const allowed = ["/agent/influencer", "/agent/settings", "/agent/chat", "/agent/ai-dashboard"].some((path) => pathname === path || pathname.startsWith(`${path}/`));
+      const allowed = ["/agent/influencer", "/agent/settings", "/agent/chat", "/agent/ai-dashboard", "/agent/messages"].some((path) => pathname === path || pathname.startsWith(`${path}/`));
       if (!allowed) {
         router.replace("/agent/influencer");
       }
       return;
     }
     if (isYachtBroker) {
-      const allowedExact = new Set(["/agent", "/agent/yachts", "/agent/listings", "/agent/settings", "/agent/ai-dashboard"]);
-      const allowedPrefixes = ["/agent/yachts/", "/agent/listings/", "/agent/settings/", "/agent/agent-", "/agent/ai-dashboard/"];
+      const allowedExact = new Set(["/agent", "/agent/yachts", "/agent/listings", "/agent/settings", "/agent/ai-dashboard", "/agent/messages"]);
+      const allowedPrefixes = ["/agent/yachts/", "/agent/listings/", "/agent/settings/", "/agent/agent-", "/agent/ai-dashboard/", "/agent/messages/"];
       const allowed = allowedExact.has(pathname) || allowedPrefixes.some((prefix) => pathname.startsWith(prefix));
       if (!allowed) router.replace("/agent/yachts");
     }
@@ -268,6 +268,10 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
             <Link href={isHQorAdmin ? "/ai-agents" : "/agent/ai-dashboard"} className="flex items-center gap-2 rounded-full border border-indigo-300 bg-indigo-50 px-3 py-1.5 shadow-sm hover:border-indigo-400 hover:bg-indigo-100 transition-colors">
               <span className="text-sm">🤖</span>
               <span className="font-semibold text-indigo-700">Agent AI</span>
+            </Link>
+            <Link href="/agent/messages" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300 hover:bg-slate-50 transition-colors">
+              <span className="text-sm">💬</span>
+              <span>Messages</span>
             </Link>
             {canCreateListings && (
               <Link href="/agent/listings" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
