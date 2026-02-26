@@ -13,7 +13,6 @@ export default function AgentAIDashboard() {
   const user = useAuthStore((s) => s.user);
   const [agentToken, setAgentToken] = useState<string | null>(null);
   const [agentInfo, setAgentInfo] = useState<any>(null);
-  const [loginError, setLoginError] = useState("");
   const [tab, setTab] = useState<"chat" | "marketing" | "leads" | "invoicing">("chat");
 
   // Chat
@@ -49,48 +48,25 @@ export default function AgentAIDashboard() {
     if (tab === "chat") inputRef.current?.focus();
   }, [tab]);
 
-  // Auto-login with user email
+  // Auto-detect agent from auth store - no password needed
   useEffect(() => {
-    if (!user?.email || agentToken) return;
-    // Try login with stored password or skip
-    const stored = localStorage.getItem(`zeniva_agent_token_${user.email}`);
-    if (stored) {
-      setAgentToken(stored);
-      fetchProfile(stored);
-    }
-  }, [user?.email, agentToken]);
+    if (!user?.email) return;
+    const roles = user.roles || (user.role ? [user.role] : []);
+    let role = "travel_agent";
+    if (roles.includes("yacht_broker")) role = "yacht_broker";
+    else if (roles.includes("influencer")) role = "influencer";
+    else if (roles.includes("admin") || roles.includes("hq")) role = "admin";
+    setAgentToken("zeniva-secret-2025"); // Use admin token - agents are already authenticated via the site
+    setAgentInfo({
+      first_name: user.name?.split(" ")[0] || "Agent",
+      last_name: user.name?.split(" ").slice(1).join(" ") || "",
+      email: user.email,
+      agent_type: role,
+      commission_rate: 5.0,
+    });
+  }, [user?.email, user?.name, user?.roles, user?.role]);
 
-  const fetchProfile = async (token: string) => {
-    try {
-      const res = await fetch(`${VPS_API}/agents/me`, { headers: { Authorization: `Bearer ${token}` } });
-      if (res.ok) {
-        const data = await res.json();
-        setAgentInfo(data.agent);
-      }
-    } catch {}
-  };
-
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = new FormData(e.currentTarget);
-    const email = (form.get("email") as string) || user?.email || "";
-    const password = form.get("password") as string;
-    setLoginError("");
-    try {
-      const res = await fetch(`${VPS_API}/agents/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setLoginError(data.detail || "Erreur de connexion"); return; }
-      setAgentToken(data.token);
-      setAgentInfo(data.agent);
-      localStorage.setItem(`zeniva_agent_token_${email}`, data.token);
-    } catch { setLoginError("Serveur non disponible"); }
-  };
-
-  const authHeaders = () => ({ Authorization: `Bearer ${agentToken}`, "Content-Type": "application/json" });
+  const authHeaders = () => ({ Authorization: `Bearer zeniva-secret-2025`, "Content-Type": "application/json" });
 
   // ─── Chat ────
   const sendChat = async () => {
@@ -101,12 +77,19 @@ export default function AgentAIDashboard() {
     setChatInput("");
     setChatLoading(true);
     try {
-      const res = await fetch(`${VPS_API}/agents/ai/chat`, {
-        method: "POST", headers: authHeaders(),
-        body: JSON.stringify({ message: text, history: newMsgs.slice(-20).map(m => ({ role: m.role, content: m.content })) }),
+      const res = await fetch(`${VPS_API}/chat`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: text,
+          sessionId: `agent-${agentInfo?.email || "unknown"}`,
+          agentEmail: agentInfo?.email,
+          agentRole: agentInfo?.agent_type,
+          source: "zenivatravel.com",
+          history: newMsgs.slice(-20).map(m => ({ role: m.role === "assistant" ? "assistant" : "user", text: m.content })),
+        }),
       });
       const data = await res.json();
-      setMsgs(prev => [...prev, { role: "assistant", content: data.reply || "..." }]);
+      setMsgs(prev => [...prev, { role: "assistant", content: data.response || data.reply || "..." }]);
     } catch {
       setMsgs(prev => [...prev, { role: "assistant", content: "❌ Erreur de connexion" }]);
     } finally { setChatLoading(false); }
@@ -153,30 +136,7 @@ export default function AgentAIDashboard() {
     finally { setInvLoading(false); }
   };
 
-  // ─── Login Screen ────
-  if (!agentToken) {
-    return (
-      <main className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#F3F6FB" }}>
-        <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-lg p-8">
-          <div className="text-center mb-6">
-            <div className="text-4xl mb-2">🤖</div>
-            <h1 className="text-2xl font-black" style={{ color: TITLE_TEXT }}>Agent AI Dashboard</h1>
-            <p className="text-sm mt-1" style={{ color: MUTED_TEXT }}>Connecte-toi pour accéder à tes agents IA</p>
-          </div>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <input name="email" type="email" defaultValue={user?.email || ""} placeholder="Email" required
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
-            <input name="password" type="password" placeholder="Mot de passe" required
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
-            {loginError && <p className="text-red-500 text-sm">{loginError}</p>}
-            <button type="submit" className="w-full py-3 rounded-xl text-white font-bold text-sm" style={{ backgroundColor: PREMIUM_BLUE }}>
-              Se connecter
-            </button>
-          </form>
-        </div>
-      </main>
-    );
-  }
+  // No login screen - agents are already authenticated via the site
 
   // ─── Dashboard ────
   const tabs = [
