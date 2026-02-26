@@ -18,6 +18,10 @@ interface PendingApproval {
   platform?: string; imagePrompt?: string; createdAt: string;
   approved?: boolean;
 }
+interface TikTokVideo {
+  id: string; filename: string; account: string; caption: string;
+  script: any; created: string; status: string; videoUrl: string; size: number;
+}
 interface LeadEntry {
   id: string; name: string; email: string; phone: string;
   destination: string; source: string; status: string; created_at: string;
@@ -236,6 +240,7 @@ export default function AIAgentsPageClient() {
   const [activity, setActivity]       = useState<ActivityItem[]>([]);
   const [approvals, setApprovals]     = useState<PendingApproval[]>([]);
   const [approvalHistory, setApprovalHistory] = useState<PendingApproval[]>([]);
+  const [tiktokVideos, setTiktokVideos] = useState<TikTokVideo[]>([]);
   const [agents, setAgents]           = useState<AgentDef[]>([]);
   const [lastRefresh, setLastRefresh] = useState("");
   const [clock, setClock]             = useState("");
@@ -427,6 +432,13 @@ export default function AIAgentsPageClient() {
       setApprovals(pending);
     } catch { setApprovals([]); }
 
+    // TikTok videos
+    try {
+      const r = await fetch("/api/agents-proxy/tiktok");
+      const d = await r.json();
+      setTiktokVideos(d?.videos || []);
+    } catch { setTiktokVideos([]); }
+
     // Build activity
     setActivity(buildActivity());
   }, []);
@@ -472,6 +484,14 @@ export default function AIAgentsPageClient() {
     try { await fetch("/api/agents-proxy/social-queue", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action: "reject" }) }); } catch {}
     setApprovals(p => p.filter(a => a.id !== id));
     if (ap) setApprovalHistory(p => [{ ...ap, approved: false }, ...p]);
+  };
+  const handleTikTokApprove = async (id: string) => {
+    try { await fetch("/api/agents-proxy/tiktok", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action: "approve" }) }); } catch {}
+    setTiktokVideos(p => p.map(v => v.id === id ? { ...v, status: "approved" } : v));
+  };
+  const handleTikTokReject = async (id: string) => {
+    try { await fetch("/api/agents-proxy/tiktok", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action: "reject" }) }); } catch {}
+    setTiktokVideos(p => p.filter(v => v.id !== id));
   };
   const handleApproveAll = () => approvals.forEach(a => handleApprove(a.id));
   const handleRejectAll  = () => approvals.forEach(a => handleReject(a.id));
@@ -525,7 +545,7 @@ export default function AIAgentsPageClient() {
     { id: "overview",   label: "🏠 Overview"   },
     { id: "agents",     label: "🤖 Agents"      },
     { id: "leads",      label: `👥 Leads ${leads.length > 0 ? `(${leads.length})` : ""}` },
-    { id: "approvals",  label: `✋ Approvals ${approvals.length > 0 ? `(${approvals.length})` : ""}` },
+    { id: "approvals",  label: `✋ Approvals ${(approvals.length + tiktokVideos.filter(v => v.status === "pending").length) > 0 ? `(${approvals.length + tiktokVideos.filter(v => v.status === "pending").length})` : ""}` },
     { id: "activity",   label: "⚡ Activity"    },
     { id: "analytics",  label: "📊 Analytics"  },
     { id: "settings",   label: "⚙️ Settings"    },
@@ -877,6 +897,88 @@ export default function AIAgentsPageClient() {
                 </div>
               </div>
             ))}
+
+            {/* TikTok Videos */}
+            {tiktokVideos.length > 0 && (
+              <div>
+                <h2 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  🎬 TikTok Videos
+                  <span className="text-xs font-normal text-gray-400">
+                    ({tiktokVideos.filter(v => v.status === "pending").length} pending)
+                  </span>
+                </h2>
+                <div className="space-y-4">
+                  {tiktokVideos.map(video => {
+                    const isPending = video.status === "pending";
+                    const scenes = video.script?.SCENES || video.script?.scenes || [];
+                    return (
+                      <div key={video.id} className={`bg-gray-50 border rounded-2xl overflow-hidden ${isPending ? "border-amber-500/20" : video.status === "approved" ? "border-emerald-500/20" : "border-gray-200"}`}>
+                        <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${video.account === "zeniva" ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : "bg-pink-500/20 text-pink-400 border-pink-500/30"}`}>
+                              {video.account === "zeniva" ? "🌍 Zeniva Travel" : "👩 Lina"}
+                            </span>
+                            <span className="text-xs text-gray-400">{video.created}</span>
+                          </div>
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${
+                            video.status === "pending" ? "bg-amber-500/15 text-amber-400 border-amber-500/30" :
+                            video.status === "approved" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" :
+                            "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                          }`}>
+                            {video.status === "pending" ? "⏳ PENDING" : video.status === "approved" ? "✅ APPROVED" : "✅ POSTED"}
+                          </span>
+                        </div>
+                        <div className="px-5 py-4">
+                          <div className="flex flex-col md:flex-row gap-5">
+                            {/* Video Player */}
+                            <div className="flex-shrink-0">
+                              <video
+                                controls
+                                className="rounded-xl bg-black"
+                                style={{ width: "280px", maxHeight: "500px" }}
+                                preload="metadata"
+                              >
+                                <source src={`/api/agents-proxy/tiktok/video/${video.filename}`} type="video/mp4" />
+                              </video>
+                              <div className="text-[10px] text-gray-400 mt-1 text-center">
+                                {(video.size / 1024 / 1024).toFixed(1)} MB
+                              </div>
+                            </div>
+                            {/* Details */}
+                            <div className="flex-1 space-y-3">
+                              <div>
+                                <div className="text-xs font-bold text-gray-500 mb-1">📝 Caption</div>
+                                <div className="bg-white border border-gray-200 rounded-xl p-3 text-sm text-gray-600 whitespace-pre-wrap">{video.caption}</div>
+                              </div>
+                              {scenes.length > 0 && (
+                                <div>
+                                  <div className="text-xs font-bold text-gray-500 mb-2">🎬 Scenes ({scenes.length})</div>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {scenes.map((scene: any, i: number) => (
+                                      <div key={i} className="bg-white border border-gray-200 rounded-lg p-2.5">
+                                        <div className="text-[10px] font-bold text-indigo-400 mb-1">Scene {i + 1}</div>
+                                        <div className="text-xs font-semibold text-gray-900">{scene.text_overlay}</div>
+                                        <div className="text-[11px] text-gray-400 mt-1 line-clamp-2">{scene.voiceover}</div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        {isPending && (
+                          <div className="px-5 py-4 border-t border-gray-200 flex gap-3 justify-end">
+                            <button onClick={() => handleTikTokReject(video.id)} className="bg-red-500/15 text-red-400 border border-red-500/30 px-5 py-2 rounded-xl text-sm font-bold hover:bg-red-500/25 transition-colors">❌ Reject</button>
+                            <button onClick={() => handleTikTokApprove(video.id)} className="bg-emerald-500 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/20">✅ Approve & Post</button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* History */}
             {approvalHistory.length > 0 && (
