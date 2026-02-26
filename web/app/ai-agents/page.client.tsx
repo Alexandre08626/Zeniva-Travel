@@ -234,6 +234,8 @@ export default function AIAgentsPageClient() {
   const [dbHealth, setDbHealth]     = useState<SvcStatus>("checking");
   const [linaHealth, setLinaHealth] = useState<SvcStatus>("checking");
   const [totalLeads, setTotalLeads]   = useState(0);
+  const [emailsSent, setEmailsSent]   = useState(0);
+  const [smsSent, setSmsSent]         = useState(0);
   const [totalMessages, setTotalMessages] = useState(0);
   const [leadsToday, setLeadsToday]   = useState(0);
   const [leads, setLeads]             = useState<LeadEntry[]>([]);
@@ -432,6 +434,8 @@ export default function AIAgentsPageClient() {
       const d = await r.json();
       setTotalLeads(d?.total_leads ?? 0);
       setTotalMessages(d?.total_messages ?? 0);
+      setEmailsSent(d?.emails_sent ?? 0);
+      setSmsSent(d?.sms_sent ?? 0);
     } catch {}
 
     // Leads
@@ -627,8 +631,8 @@ export default function AIAgentsPageClient() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <KpiCard icon="👥" label="Total Leads"      value={totalLeads}   trend="↑ all time"  color="bg-indigo-600"  />
           <KpiCard icon="🔥" label="Leads Today"      value={leadsToday}   trend={leadsToday > 0 ? `+${leadsToday}` : "—"}  color="bg-amber-500"   />
-          <KpiCard icon="📧" label="Emails Sent"      value={0}            trend="—"           color="bg-blue-600"   />
-          <KpiCard icon="📱" label="SMS Sent"         value={0}            trend="—"           color="bg-cyan-500"   />
+          <KpiCard icon="📧" label="Emails Sent"      value={emailsSent}   trend={emailsSent > 0 ? `${emailsSent} total` : "—"}  color="bg-blue-600"   />
+          <KpiCard icon="📱" label="SMS Sent"         value={smsSent}      trend={smsSent > 0 ? `${smsSent} total` : "—"}    color="bg-cyan-500"   />
           <KpiCard icon="💰" label="Revenue"          value="$0"           sub="Tracking soon" color="bg-emerald-600" />
           <KpiCard icon="📈" label="Conversion"       value={totalLeads > 0 ? `${Math.round((converted / totalLeads) * 100)}%` : "0%"} trend={converted > 0 ? `${converted} conv.` : "—"} color="bg-purple-600" />
         </div>
