@@ -38,9 +38,45 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(await r.json());
     }
 
+    if (endpoint === "tiktok") {
+      const r = await fetch(`${VPS_BASE}/tiktok/content`, {
+        headers: { Authorization: AUTH },
+        next: { revalidate: 0 },
+      });
+      return NextResponse.json(await r.json());
+    }
+
+    if (endpoint === "tiktok-video") {
+      const filename = req.nextUrl.searchParams.get("file") || "";
+      const r = await fetch(`${VPS_BASE}/tiktok/video/${filename}`);
+      if (!r.ok) return NextResponse.json({ error: "Not found" }, { status: 404 });
+      const buffer = await r.arrayBuffer();
+      return new NextResponse(buffer, {
+        headers: { "Content-Type": "video/mp4", "Content-Length": String(buffer.byteLength), "Cache-Control": "public, max-age=3600" },
+      });
+    }
+
     return NextResponse.json({ error: "Unknown endpoint" }, { status: 400 });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "VPS unreachable" }, { status: 502 });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  const endpoint = req.nextUrl.searchParams.get("endpoint") || "";
+  try {
+    if (endpoint === "tiktok-action") {
+      const body = await req.json();
+      const r = await fetch(`${VPS_BASE}/tiktok/action`, {
+        method: "POST",
+        headers: { Authorization: AUTH, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      return NextResponse.json(await r.json());
+    }
+    return NextResponse.json({ error: "Unknown endpoint" }, { status: 400 });
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message }, { status: 502 });
   }
 }
 

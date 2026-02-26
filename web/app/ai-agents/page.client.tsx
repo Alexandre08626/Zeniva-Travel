@@ -434,7 +434,7 @@ export default function AIAgentsPageClient() {
 
     // TikTok videos
     try {
-      const r = await fetch("/api/agents-proxy/tiktok");
+      const r = await fetch("/api/agents-proxy?endpoint=tiktok");
       const d = await r.json();
       setTiktokVideos(d?.videos || []);
     } catch { setTiktokVideos([]); }
@@ -486,11 +486,11 @@ export default function AIAgentsPageClient() {
     if (ap) setApprovalHistory(p => [{ ...ap, approved: false }, ...p]);
   };
   const handleTikTokApprove = async (id: string) => {
-    try { await fetch("/api/agents-proxy/tiktok", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action: "approve" }) }); } catch {}
+    try { await fetch("/api/agents-proxy?endpoint=tiktok-action", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action: "approve" }) }); } catch {}
     setTiktokVideos(p => p.map(v => v.id === id ? { ...v, status: "approved" } : v));
   };
   const handleTikTokReject = async (id: string) => {
-    try { await fetch("/api/agents-proxy/tiktok", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action: "reject" }) }); } catch {}
+    try { await fetch("/api/agents-proxy?endpoint=tiktok-action", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action: "reject" }) }); } catch {}
     setTiktokVideos(p => p.filter(v => v.id !== id));
   };
   const handleApproveAll = () => approvals.forEach(a => handleApprove(a.id));
@@ -938,7 +938,7 @@ export default function AIAgentsPageClient() {
                                 style={{ width: "280px", maxHeight: "500px" }}
                                 preload="metadata"
                               >
-                                <source src={`/api/agents-proxy/tiktok/video/${video.filename}`} type="video/mp4" />
+                                <source src={`/api/agents-proxy?endpoint=tiktok-video&file=${video.filename}`} type="video/mp4" />
                               </video>
                               <div className="text-[10px] text-gray-400 mt-1 text-center">
                                 {(video.size / 1024 / 1024).toFixed(1)} MB
