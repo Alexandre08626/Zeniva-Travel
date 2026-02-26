@@ -89,6 +89,34 @@ export default function proxy(req: NextRequest) {
   });
   const isPartner = roles.includes("partner_owner") || roles.includes("partner_staff") || roles.includes("hq");
 
+  // Restrict /ai-agents to info@zeniva.ca only
+  if (pathname === "/ai-agents" || pathname.startsWith("/ai-agents/")) {
+    const sessionToken = req.cookies.get("zeniva_session")?.value;
+    if (!sessionToken) {
+      const loginUrl = new URL("/login", req.url);
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    try {
+      const [data] = sessionToken.split(".");
+      if (!data) throw new Error("Invalid token");
+      const payload = JSON.parse(Buffer.from(data, "base64url").toString("utf-8"));
+      const email = (payload?.email || "").trim().toLowerCase();
+      if (payload?.exp && payload.exp * 1000 < Date.now()) {
+        const loginUrl = new URL("/login", req.url);
+        loginUrl.searchParams.set("redirect", pathname);
+        return NextResponse.redirect(loginUrl);
+      }
+      if (email !== "info@zeniva.ca") {
+        return NextResponse.redirect(new URL("/", req.url));
+      }
+    } catch {
+      const loginUrl = new URL("/login", req.url);
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   // Protect agent routes and agent API
   if ((hasPrefixSegment(pathname, "/agent") || hasPrefixSegment(pathname, "/api/agent")) && !isPublicAgentRequestsApi) {
     if (!isAgent) {
@@ -162,5 +190,5 @@ export default function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/traveler/:path*", "/app/:path*", "/agent/:path*", "/partner/:path*", "/api/:path*", "/switch-space"],
+  matcher: ["/ai-agents", "/ai-agents/:path*", "/traveler/:path*", "/app/:path*", "/agent/:path*", "/partner/:path*", "/api/:path*", "/switch-space"],
 };
