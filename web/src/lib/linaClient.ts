@@ -40,11 +40,32 @@ export async function sendMessageToLina(
     sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
   }
 
+  // Check if an agent is logged in
+  let agentEmail: string | undefined;
+  let agentRole: string | undefined;
+  if (typeof window !== "undefined") {
+    try {
+      const authRaw = window.localStorage.getItem("zeniva_auth_store_v1");
+      if (authRaw) {
+        const authState = JSON.parse(authRaw);
+        const user = authState?.user;
+        if (user?.email && user.email !== "info@zenivatravel.com") {
+          agentEmail = user.email;
+          const roles = user.roles || (user.role ? [user.role] : []);
+          if (roles.includes("yacht_broker")) agentRole = "yacht_broker";
+          else if (roles.includes("travel_agent")) agentRole = "travel_agent";
+          else if (roles.includes("influencer")) agentRole = "influencer";
+        }
+      }
+    } catch {}
+  }
+
   const body: any = {
     message: prompt,
     sessionId,
     source: "zenivatravel.com",
     language: "fr",
+    ...(agentEmail && { agentEmail, agentRole }),
     history: Array.isArray(historyOrPrompt)
       ? historyOrPrompt
           .filter((m) => m?.role && (m?.text || m?.content))
