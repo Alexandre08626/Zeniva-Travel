@@ -105,6 +105,18 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: "/tiktokT6qzksZRDhq8epwtEK902HQOgOKb0ffn.txt",
+        destination: "/api/tiktok-verify?file=tiktokT6qzksZRDhq8epwtEK902HQOgOKb0ffn.txt",
+      },
+      {
+        source: "/tiktoky9rJttREqSiVX7eEdqRtUX1QH98JhMd5.txt",
+        destination: "/api/tiktok-verify?file=tiktoky9rJttREqSiVX7eEdqRtUX1QH98JhMd5.txt",
+      },
+    ];
+  },
   async redirects() {
     return [
       {
