@@ -101,7 +101,7 @@ function KpiCard({ label, value, sub, trend, color, icon }: {
   );
 }
 
-// ─── Limova-style Agent Card (Tom style) ──────────────────────────────────────
+// ─── Limova-style Agent Card ──────────────────────────────────────────────────
 function AgentCard({ agent, onSelect }: { agent: AgentDef; onSelect: (id: string) => void }) {
   const sc = STATUS_CFG[agent.status];
   const isAlive = agent.status === "live" || agent.status === "active";
@@ -110,11 +110,10 @@ function AgentCard({ agent, onSelect }: { agent: AgentDef; onSelect: (id: string
   return (
     <div
       onClick={() => onSelect(agent.id)}
-      className="group relative bg-[#0a0a0a] rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 hover:shadow-2xl hover:-translate-y-2"
-      style={{ boxShadow: `0 0 0 1px ${accentColor}20` }}
+      className="group relative bg-white rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-gray-300/50 hover:-translate-y-2 border border-gray-200"
     >
-      {/* Character Image — Big, centered, like Tom on Limova */}
-      <div className="relative w-full aspect-square overflow-hidden bg-black flex items-end justify-center">
+      {/* Character Image — Big, centered */}
+      <div className="relative w-full aspect-square overflow-hidden flex items-end justify-center" style={{ background: `linear-gradient(135deg, ${accentColor}08, ${accentColor}15)` }}>
         {agent.avatar ? (
           <img
             src={agent.avatar}
@@ -122,33 +121,33 @@ function AgentCard({ agent, onSelect }: { agent: AgentDef; onSelect: (id: string
             className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-8xl bg-gradient-to-b from-gray-900 to-black">
+          <div className="w-full h-full flex items-center justify-center text-8xl" style={{ background: `linear-gradient(135deg, ${accentColor}10, ${accentColor}05)` }}>
             {agent.emoji}
           </div>
         )}
 
         {/* Status badge overlay */}
         <div className="absolute top-4 right-4">
-          <span className={`text-[10px] font-black px-3 py-1.5 rounded-full ${sc.badge} backdrop-blur-md border border-white/10 tracking-wider shadow-lg`}>
+          <span className={`text-[10px] font-black px-3 py-1.5 rounded-full backdrop-blur-md tracking-wider shadow-lg bg-white/90 border border-gray-200 ${sc.badge}`}>
             {isAlive && <span className={`inline-block h-1.5 w-1.5 rounded-full ${sc.dot} mr-1.5 animate-pulse`} />}
             {sc.label}
           </span>
         </div>
 
         {/* Gradient overlay at bottom */}
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white via-white/80 to-transparent" />
       </div>
 
       {/* Info section */}
       <div className="px-5 pb-5 -mt-8 relative z-10">
         {/* Name + Role */}
         <div className="mb-3">
-          <h3 className="text-xl font-black text-white tracking-tight">{agent.name}</h3>
-          <p className="text-xs font-medium mt-0.5" style={{ color: accentColor }}>{agent.type}</p>
+          <h3 className="text-xl font-black text-gray-900 tracking-tight">{agent.name}</h3>
+          <p className="text-xs font-semibold mt-0.5" style={{ color: accentColor }}>{agent.type}</p>
         </div>
 
         {/* Short description */}
-        <p className="text-xs text-gray-400 leading-relaxed mb-4 line-clamp-2">
+        <p className="text-xs text-gray-500 leading-relaxed mb-4 line-clamp-2">
           {agent.description}
         </p>
 
@@ -157,13 +156,14 @@ function AgentCard({ agent, onSelect }: { agent: AgentDef; onSelect: (id: string
           {agent.features.slice(0, 3).map((f) => (
             <span
               key={f}
-              className="text-[9px] font-semibold px-2 py-1 rounded-lg bg-white/5 text-gray-300 border border-white/10"
+              className="text-[9px] font-semibold px-2 py-1 rounded-lg border"
+              style={{ background: `${accentColor}08`, borderColor: `${accentColor}25`, color: accentColor }}
             >
               {f}
             </span>
           ))}
           {agent.features.length > 3 && (
-            <span className="text-[9px] font-semibold px-2 py-1 rounded-lg bg-white/5 text-gray-500 border border-white/10">
+            <span className="text-[9px] font-semibold px-2 py-1 rounded-lg bg-gray-50 text-gray-400 border border-gray-200">
               +{agent.features.length - 3} more
             </span>
           )}
@@ -172,7 +172,7 @@ function AgentCard({ agent, onSelect }: { agent: AgentDef; onSelect: (id: string
         {/* Discover button */}
         <div
           className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 group-hover:gap-3"
-          style={{ background: `${accentColor}15`, color: accentColor, border: `1px solid ${accentColor}30` }}
+          style={{ background: `${accentColor}10`, color: accentColor, border: `1px solid ${accentColor}25` }}
         >
           Discover {agent.name}
           <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
