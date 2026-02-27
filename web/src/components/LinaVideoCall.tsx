@@ -32,19 +32,6 @@ function resampleTo24k(input: Float32Array, fromRate: number): Int16Array {
   return out;
 }
 
-// Inline AudioWorklet processor (no separate file needed)
-const WORKLET_CODE = `
-class MicProcessor extends AudioWorkletProcessor {
-  process(inputs) {
-    const input = inputs[0];
-    if (input && input[0] && input[0].length > 0) {
-      this.port.postMessage(new Float32Array(input[0]));
-    }
-    return true;
-  }
-}
-registerProcessor('mic-processor', MicProcessor);
-`;
 
 export default function LinaVideoCall({ tripId }: { tripId: string }) {
   const [state, setState] = useState<CallState>("idle");
@@ -196,10 +183,10 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
 
           // Try AudioWorklet first (modern, reliable on desktop Chrome)
           try {
-            const blob = new Blob([WORKLET_CODE], { type: "application/javascript" });
-            const blobUrl = URL.createObjectURL(blob);
-            await actx.audioWorklet.addModule(blobUrl);
-            URL.revokeObjectURL(blobUrl);
+            
+            
+            await actx.audioWorklet.addModule("/mic-processor.js");
+            
 
             const msrc = actx.createMediaStreamSource(micStream);
             const worklet = new AudioWorkletNode(actx, "mic-processor");
