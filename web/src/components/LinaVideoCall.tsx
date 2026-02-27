@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { applyTripPatch, generateProposal } from "../../../lib/store/tripsStore";
+import { applyTripPatch, generateProposal } from "../../lib/store/tripsStore";
 
 type CallState = "idle" | "connecting" | "connected" | "speaking" | "listening" | "thinking" | "error";
 
