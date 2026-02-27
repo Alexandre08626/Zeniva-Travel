@@ -33,21 +33,94 @@ const getMockHotels = (destination) => {
 };
 
 const iataMap = {
-  "Quebec": "YQB",
-  "Québec": "YQB",
-  "Montreal": "YUL",
-  "Montréal": "YUL",
-  "Toronto": "YYZ",
-  "Vancouver": "YVR",
-  "Miami": "MIA",
-  "Paris": "CDG",
-  "New York": "JFK",
-  "London": "LHR",
-  "Cancun": "CUN",
+  // Canada
+  "Quebec": "YQB", "Québec": "YQB", "Quebec City": "YQB",
+  "Montreal": "YUL", "Montréal": "YUL",
+  "Toronto": "YYZ", "Ottawa": "YOW", "Calgary": "YYC",
+  "Vancouver": "YVR", "Edmonton": "YEG", "Winnipeg": "YWG",
+  "Halifax": "YHZ", "Victoria": "YYJ", "Saskatoon": "YXE",
+  // USA
+  "New York": "JFK", "NYC": "JFK", "Manhattan": "JFK",
+  "Los Angeles": "LAX", "LA": "LAX",
+  "Miami": "MIA", "Fort Lauderdale": "FLL",
+  "Chicago": "ORD", "San Francisco": "SFO",
+  "Las Vegas": "LAS", "Orlando": "MCO", "Dallas": "DFW",
+  "Houston": "IAH", "Atlanta": "ATL", "Boston": "BOS",
+  "Seattle": "SEA", "Denver": "DEN", "Phoenix": "PHX",
+  "San Diego": "SAN", "Tampa": "TPA", "Honolulu": "HNL",
+  "Washington": "IAD", "Philadelphia": "PHL", "Nashville": "BNA",
+  "Austin": "AUS", "New Orleans": "MSY", "Portland": "PDX",
+  "Salt Lake City": "SLC", "Minneapolis": "MSP", "Charlotte": "CLT",
+  "Maui": "OGG", "Kona": "KOA",
+  // Mexico & Caribbean
+  "Cancun": "CUN", "Cancún": "CUN",
+  "Mexico City": "MEX", "Ciudad de Mexico": "MEX", "CDMX": "MEX",
+  "Cabo": "SJD", "Cabo San Lucas": "SJD", "Los Cabos": "SJD",
+  "Playa del Carmen": "CUN", "Riviera Maya": "CUN", "Tulum": "CUN",
+  "Puerto Vallarta": "PVR", "Cozumel": "CZM",
+  "Punta Cana": "PUJ", "Santo Domingo": "SDQ",
+  "Jamaica": "MBJ", "Montego Bay": "MBJ", "Kingston": "KIN",
+  "Nassau": "NAS", "Bahamas": "NAS",
+  "Havana": "HAV", "Cuba": "HAV", "La Havane": "HAV",
+  "Aruba": "AUA", "Curacao": "CUR", "Curaçao": "CUR",
+  "Barbados": "BGI", "St Lucia": "UVF", "Saint Lucia": "UVF",
+  "Turks and Caicos": "PLS", "St Maarten": "SXM",
+  "Puerto Rico": "SJU", "San Juan": "SJU",
+  "Trinidad": "POS", "Antigua": "ANU", "Bermuda": "BDA",
+  "Cayman Islands": "GCM", "Grand Cayman": "GCM",
+  // Central & South America
+  "Costa Rica": "SJO", "San Jose Costa Rica": "SJO",
+  "Panama": "PTY", "Panama City": "PTY",
+  "Bogota": "BOG", "Bogotá": "BOG", "Medellin": "MDE", "Medellín": "MDE", "Cartagena": "CTG",
+  "Lima": "LIM", "Buenos Aires": "EZE", "Santiago": "SCL",
+  "Rio de Janeiro": "GIG", "Rio": "GIG", "Sao Paulo": "GRU", "São Paulo": "GRU",
+  "Quito": "UIO", "Guayaquil": "GYE",
+  // Europe
+  "Paris": "CDG", "London": "LHR",
+  "Barcelona": "BCN", "Madrid": "MAD",
+  "Rome": "FCO", "Roma": "FCO", "Milan": "MXP", "Milano": "MXP",
+  "Amsterdam": "AMS", "Berlin": "BER", "Munich": "MUC", "Frankfurt": "FRA",
+  "Lisbon": "LIS", "Lisbonne": "LIS", "Porto": "OPO",
+  "Dublin": "DUB", "Edinburgh": "EDI",
+  "Vienna": "VIE", "Vienne": "VIE", "Prague": "PRG",
+  "Athens": "ATH", "Athènes": "ATH",
+  "Istanbul": "IST", "Zurich": "ZRH", "Geneva": "GVA", "Genève": "GVA",
+  "Brussels": "BRU", "Bruxelles": "BRU",
+  "Copenhagen": "CPH", "Stockholm": "ARN", "Oslo": "OSL", "Helsinki": "HEL",
+  "Budapest": "BUD", "Warsaw": "WAW", "Cracow": "KRK", "Krakow": "KRK",
+  "Nice": "NCE", "Lyon": "LYS", "Marseille": "MRS",
+  "Dubrovnik": "DBV", "Split": "SPU",
+  "Santorini": "JTR", "Mykonos": "JMK",
+  "Reykjavik": "KEF", "Iceland": "KEF",
+  // Africa & Middle East
+  "Dubai": "DXB", "Abu Dhabi": "AUH", "Doha": "DOH",
+  "Marrakech": "RAK", "Marrakesh": "RAK", "Casablanca": "CMN",
+  "Cairo": "CAI", "Le Caire": "CAI",
+  "Cape Town": "CPT", "Johannesburg": "JNB",
+  "Nairobi": "NBO", "Zanzibar": "ZNZ", "Dar es Salaam": "DAR",
+  "Mauritius": "MRU", "Madagascar": "TNR",
+  "Dakar": "DSS", "Lagos": "LOS", "Accra": "ACC",
+  // Asia & Pacific
+  "Tokyo": "NRT", "Osaka": "KIX", "Kyoto": "KIX",
+  "Bangkok": "BKK", "Phuket": "HKT", "Bali": "DPS", "Denpasar": "DPS",
+  "Singapore": "SIN", "Singapour": "SIN",
+  "Hong Kong": "HKG", "Seoul": "ICN", "Séoul": "ICN",
+  "Taipei": "TPE", "Shanghai": "PVG", "Beijing": "PEK", "Pékin": "PEK",
+  "Delhi": "DEL", "New Delhi": "DEL", "Mumbai": "BOM", "Goa": "GOI",
+  "Hanoi": "HAN", "Ho Chi Minh": "SGN", "Saigon": "SGN",
+  "Kuala Lumpur": "KUL", "Manila": "MNL",
+  "Sydney": "SYD", "Melbourne": "MEL", "Auckland": "AKL",
+  "Fiji": "NAN", "Tahiti": "PPT", "Bora Bora": "BOB",
+  "Maldives": "MLE", "Malé": "MLE",
+  // Misc popular
+  "Hawaii": "HNL", "Alaska": "ANC",
 };
 
 function resolveIATA(city) {
   if (!city) return "";
+  // Check for IATA code in parentheses: "Montreal (YUL)" → YUL
+  const parenMatch = city.match(/\(([A-Z]{3})\)/);
+  if (parenMatch) return parenMatch[1];
   const normalized = city.trim().toLowerCase();
   // Case-insensitive lookup in iataMap
   for (const [k, v] of Object.entries(iataMap)) {
