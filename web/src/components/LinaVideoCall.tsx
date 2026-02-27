@@ -326,7 +326,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
             {isSpeaking && (
               <svg
                 className="absolute left-1/2 -translate-x-1/2"
-                style={{ bottom: "29%", width: "50px", height: "30px", pointerEvents: "none" }}
+                style={{ top: "58%", width: "50px", height: "30px", pointerEvents: "none" }}
                 viewBox="0 0 50 30"
               >
                 {/* Dark mouth interior */}
