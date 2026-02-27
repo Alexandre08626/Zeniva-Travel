@@ -27,13 +27,25 @@ interface LeadEntry {
   destination: string; source: string; status: string; created_at: string;
   expanded?: boolean;
 }
+interface AgentScenario { icon: string; title: string; desc: string; }
+interface AgentActivityLog { time: string; action: string; status: "success" | "pending" | "warning"; }
+
 interface AgentDef {
   id: string; name: string; emoji: string; status: AgentStatus;
   type: string; schedule: string; description: string; features: string[];
   stats: { label: string; value: string }[];
   lastRun: string; nextRun: string; enabled: boolean;
   logs: string[]; progress?: number; color: string;
+  // Limova-style fields
+  intro: string;
+  scenarios: AgentScenario[];
+  activityLog: AgentActivityLog[];
+  uptime: string;
+  tasksCompleted: number;
+  successRate: string;
 }
+
+type UserView = "boss" | "agent" | "broker";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const STATUS_CFG: Record<AgentStatus, { label: string; ring: string; dot: string; badge: string }> = {
@@ -89,101 +101,297 @@ function KpiCard({ label, value, sub, trend, color, icon }: {
   );
 }
 
-// ─── Agent Card ──────────────────────────────────────────────────────────────
-function AgentCard({ agent, onToggle }: { agent: AgentDef; onToggle: (id: string) => void }) {
+// ─── Limova-style Agent Card ──────────────────────────────────────────────────
+function AgentCard({ agent, onSelect }: { agent: AgentDef; onSelect: (id: string) => void }) {
   const sc = STATUS_CFG[agent.status];
   const isAlive = agent.status === "live" || agent.status === "active";
+  const accentColor = agent.color || "#6366f1";
 
   return (
-    <div className={`bg-gray-50 border border-gray-200 rounded-2xl overflow-hidden hover:border-gray-200 ring-1 ${sc.ring} transition-all group`}>
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200/60">
-        <div className="flex items-center gap-3">
+    <div
+      onClick={() => onSelect(agent.id)}
+      className="group relative bg-white border border-gray-200 rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-gray-200/80 hover:-translate-y-1 hover:border-gray-300"
+    >
+      {/* Gradient accent top bar */}
+      <div className="h-1.5 w-full" style={{ background: `linear-gradient(90deg, ${accentColor}cc, ${accentColor}44)` }} />
+
+      {/* Glassmorphism glow on hover */}
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-3xl"
+        style={{ background: `radial-gradient(ellipse at top left, ${accentColor}08, transparent 60%)` }}
+      />
+
+      <div className="p-6">
+        {/* Avatar + Status */}
+        <div className="flex items-start justify-between mb-4">
           <div className="relative">
-            <span className="text-2xl">{agent.emoji}</span>
-            {isAlive && <span className={`absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ${sc.dot} ring-2 ring-slate-900 animate-pulse`} />}
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-gray-900">{agent.name}</h3>
-            <p className="text-[10px] text-gray-400">{agent.schedule}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${sc.badge} border-current/20`}>{sc.label}</span>
-          {/* Toggle */}
-          <button
-            onClick={() => onToggle(agent.id)}
-            className={`relative h-5 w-9 rounded-full transition-all duration-300 focus:outline-none ${agent.enabled ? "bg-indigo-600" : "bg-gray-200"}`}
-          >
-            <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-all duration-300 ${agent.enabled ? "left-4" : "left-0.5"}`} />
-          </button>
-        </div>
-      </div>
-
-      <div className="px-5 py-4 space-y-3">
-        {/* Description */}
-        <p className="text-xs text-gray-400 leading-relaxed">{agent.description}</p>
-
-        {/* Progress bar */}
-        {agent.progress !== undefined && (
-          <div>
-            <div className="flex justify-between text-[10px] text-gray-400 mb-1">
-              <span>Progress</span><span>{agent.progress}%</span>
+            <div
+              className="h-16 w-16 rounded-2xl flex items-center justify-center text-3xl shadow-md"
+              style={{ background: `linear-gradient(135deg, ${accentColor}20, ${accentColor}08)`, border: `1.5px solid ${accentColor}30` }}
+            >
+              {agent.emoji}
             </div>
-            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-700"
-                style={{ width: `${agent.progress}%`, background: AGENT_COLORS[agent.id] || "#6366f1" }}
-              />
-            </div>
+            {isAlive && (
+              <span className={`absolute -top-1 -right-1 h-4 w-4 rounded-full ${sc.dot} ring-2 ring-white shadow-sm flex items-center justify-center`}>
+                <span className={`absolute inset-0 rounded-full ${sc.dot} animate-ping opacity-60`} />
+              </span>
+            )}
           </div>
-        )}
+          <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${sc.badge} border-current/20 tracking-wider`}>
+            {sc.label}
+          </span>
+        </div>
 
-        {/* Stats grid */}
-        <div className="grid grid-cols-2 gap-2">
-          {agent.stats.map((s) => (
-            <div key={s.label} className="bg-gray-100/60 rounded-xl px-3 py-2 text-center">
+        {/* Name + Schedule */}
+        <h3 className="text-base font-bold text-gray-900 mb-0.5">{agent.name}</h3>
+        <p className="text-[11px] text-gray-400 mb-3">{agent.schedule}</p>
+
+        {/* Personality intro quote */}
+        <div className="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 mb-4">
+          <p className="text-xs text-gray-600 leading-relaxed italic">
+            &ldquo;{agent.intro.length > 100 ? agent.intro.slice(0, 97) + "…" : agent.intro}&rdquo;
+          </p>
+        </div>
+
+        {/* Feature pills */}
+        <div className="flex flex-wrap gap-1.5 mb-4">
+          {agent.features.slice(0, 4).map((f) => (
+            <span
+              key={f}
+              className="text-[10px] font-medium px-2 py-0.5 rounded-full border"
+              style={{ background: `${accentColor}10`, borderColor: `${accentColor}30`, color: accentColor }}
+            >
+              {f}
+            </span>
+          ))}
+          {agent.features.length > 4 && (
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200">
+              +{agent.features.length - 4}
+            </span>
+          )}
+        </div>
+
+        {/* Quick stats */}
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          {agent.stats.slice(0, 2).map((s) => (
+            <div key={s.label} className="bg-gray-50 rounded-xl px-3 py-2 text-center border border-gray-100">
               <div className="text-sm font-black text-gray-900">{s.value}</div>
-              <div className="text-[9px] text-gray-400">{s.label}</div>
+              <div className="text-[9px] text-gray-400 mt-0.5">{s.label}</div>
             </div>
           ))}
         </div>
 
-        {/* Time info */}
-        <div className="flex gap-3 text-[10px]">
-          <div className="flex-1 bg-gray-100/40 rounded-lg px-2 py-1.5">
-            <div className="text-gray-400">Last run</div>
-            <div className="text-gray-500 font-medium">{agent.lastRun}</div>
+        {/* Footer */}
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] text-gray-400">Uptime {agent.uptime}</span>
+          <div
+            className="flex items-center gap-1.5 text-xs font-bold transition-all duration-200 group-hover:gap-2"
+            style={{ color: accentColor }}
+          >
+            View Profile
+            <svg className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
           </div>
-          <div className="flex-1 bg-gray-100/40 rounded-lg px-2 py-1.5">
-            <div className="text-gray-400">Next run</div>
-            <div className="text-gray-500 font-medium">{agent.nextRun}</div>
-          </div>
-        </div>
-
-        {/* Mini logs */}
-        <div>
-          <div className="text-[10px] text-gray-400 mb-1.5 font-semibold uppercase tracking-wider">Last 3 actions</div>
-          <div className="space-y-1">
-            {agent.logs.map((log, i) => (
-              <div key={i} className="flex items-start gap-2">
-                <span className="text-[10px] text-slate-700 mt-px">›</span>
-                <span className="text-[10px] text-gray-400">{log}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Features */}
-        <div className="flex flex-wrap gap-1">
-          {agent.features.map((f) => (
-            <span key={f} className="bg-gray-100/80 text-gray-400 text-[9px] font-medium px-1.5 py-0.5 rounded-md border border-gray-200/50">{f}</span>
-          ))}
         </div>
       </div>
     </div>
   );
 }
+
+// ─── Agent Detail Panel ───────────────────────────────────────────────────────
+function AgentDetailPanel({ agent, onClose, onToggle }: {
+  agent: AgentDef;
+  onClose: () => void;
+  onToggle: (id: string) => void;
+}) {
+  const sc = STATUS_CFG[agent.status];
+  const isAlive = agent.status === "live" || agent.status === "active";
+  const accentColor = agent.color || "#6366f1";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+
+      {/* Panel */}
+      <div
+        className="relative bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-2xl max-h-[92vh] overflow-hidden shadow-2xl flex flex-col"
+        style={{ animation: "agentSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)" }}
+      >
+        <style>{`@keyframes agentSlideUp { from { opacity: 0; transform: translateY(40px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }`}</style>
+
+        {/* Gradient header */}
+        <div
+          className="relative overflow-hidden shrink-0"
+          style={{ background: `linear-gradient(135deg, ${accentColor}12, ${accentColor}04)`, borderBottom: `1px solid ${accentColor}20` }}
+        >
+          <div className="px-6 pt-6 pb-5">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              {/* Avatar + Info */}
+              <div className="flex items-center gap-4">
+                <div className="relative shrink-0">
+                  <div
+                    className="h-20 w-20 rounded-2xl flex items-center justify-center text-4xl shadow-xl"
+                    style={{ background: `linear-gradient(135deg, ${accentColor}25, ${accentColor}08)`, border: `2px solid ${accentColor}30` }}
+                  >
+                    {agent.emoji}
+                  </div>
+                  {isAlive && (
+                    <span className={`absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full ${sc.dot} ring-2 ring-white shadow`}>
+                      <span className={`absolute inset-0 rounded-full ${sc.dot} animate-ping opacity-50`} />
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h2 className="text-xl font-black text-gray-900">{agent.name}</h2>
+                    <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${sc.badge} border-current/20 tracking-wider`}>
+                      {sc.label}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 font-mono">{agent.type}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{agent.schedule}</p>
+                </div>
+              </div>
+              {/* Controls */}
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400 font-semibold">{agent.enabled ? "ON" : "OFF"}</span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onToggle(agent.id); }}
+                    className={`relative h-7 w-12 rounded-full transition-all duration-300 focus:outline-none shadow-inner ${agent.enabled ? "bg-indigo-600" : "bg-gray-200"}`}
+                  >
+                    <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-md transition-all duration-300 ${agent.enabled ? "left-6" : "left-1"}`} />
+                  </button>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="h-8 w-8 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors text-gray-500 hover:text-gray-800"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Personality intro bubble */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl px-5 py-4 border border-white shadow-sm">
+              <p className="text-sm text-gray-700 leading-relaxed">
+                <span className="text-base mr-1">👋</span>
+                <span className="font-medium">{agent.intro}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Scrollable body */}
+        <div className="overflow-y-auto flex-1 px-6 py-5 space-y-6 bg-white">
+
+          {/* Live Metrics */}
+          <div>
+            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Live Performance</h3>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: "Tasks Done", value: String(agent.tasksCompleted), icon: "✅" },
+                { label: "Uptime", value: agent.uptime, icon: "⏱️" },
+                { label: "Success Rate", value: agent.successRate, icon: "🎯" },
+              ].map((m) => (
+                <div key={m.label} className="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-center hover:border-gray-200 transition-colors">
+                  <div className="text-xl mb-1.5">{m.icon}</div>
+                  <div className="text-lg font-black text-gray-900">{m.value}</div>
+                  <div className="text-[9px] text-gray-400 mt-0.5 leading-tight">{m.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* What I Do */}
+          <div>
+            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">What I Do</h3>
+            <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 border border-gray-100 rounded-2xl p-4">
+              {agent.description}
+            </p>
+          </div>
+
+          {/* Capabilities */}
+          <div>
+            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Capabilities</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {agent.features.map((f) => (
+                <div key={f} className="flex items-center gap-2.5 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2.5 hover:border-gray-200 transition-colors">
+                  <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: accentColor }} />
+                  <span className="text-xs text-gray-700 font-medium">{f}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Example Scenarios */}
+          {agent.scenarios.length > 0 && (
+            <div>
+              <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Example Scenarios</h3>
+              <div className="space-y-3">
+                {agent.scenarios.map((s, i) => (
+                  <div
+                    key={i}
+                    className="flex gap-4 bg-gray-50 border border-gray-100 rounded-2xl p-4 hover:border-gray-200 transition-colors"
+                  >
+                    <div className="text-2xl shrink-0">{s.icon}</div>
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900 mb-1">{s.title}</div>
+                      <div className="text-xs text-gray-500 leading-relaxed">{s.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Recent Activity */}
+          {agent.activityLog.length > 0 && (
+            <div>
+              <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Recent Activity</h3>
+              <div className="bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden">
+                {agent.activityLog.map((log, i) => (
+                  <div
+                    key={i}
+                    className={`flex items-center gap-3 px-4 py-3 ${i < agent.activityLog.length - 1 ? "border-b border-gray-100" : ""}`}
+                  >
+                    <div className={`h-2 w-2 rounded-full shrink-0 ${
+                      log.status === "success" ? "bg-emerald-400" :
+                      log.status === "pending" ? "bg-amber-400 animate-pulse" :
+                      "bg-red-400"
+                    }`} />
+                    <span className="text-xs text-gray-600 flex-1">{log.action}</span>
+                    <span className="text-[10px] text-gray-400 whitespace-nowrap font-mono">{log.time}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Additional Stats */}
+          <div>
+            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">More Stats</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {[...agent.stats, { label: "Last Run", value: agent.lastRun }, { label: "Next Run", value: agent.nextRun }].map((s) => (
+                <div key={s.label} className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 hover:border-gray-200 transition-colors">
+                  <div className="text-sm font-black text-gray-900">{s.value}</div>
+                  <div className="text-[10px] text-gray-400 mt-0.5">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="pb-2" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 // ─── CSS Bar Chart ────────────────────────────────────────────────────────────
 function BarChart({ data, max, color }: { data: { label: string; value: number }[]; max: number; color: string }) {
@@ -268,6 +476,10 @@ export default function AIAgentsPageClient() {
   // Settings
   const [agentEnabled, setAgentEnabled] = useState<Record<string, boolean>>({});
 
+  // Agents tab state
+  const [agentView, setAgentView] = useState<UserView>("boss");
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+
   const linaStatusRef = useRef<AgentStatus>("live");
 
   // ── Clock
@@ -312,98 +524,340 @@ export default function AIAgentsPageClient() {
     }
   };
 
+  // ── Agent definitions for each view
+  const AGENT_VIEW_AGENTS: AgentDef[] = [
+    {
+      id: "lina_agent", name: "Lina AI", emoji: "🤖", status: "live", type: "AI Assistant", schedule: "Real-time (24/7)", color: "#6366f1",
+      description: "Your personal AI assistant for managing clients. Handles inquiries, provides instant answers, and helps you close deals faster.",
+      intro: "Hi! I'm Lina, your AI assistant. I help you manage client conversations, answer questions instantly, and keep your pipeline organized. Think of me as your 24/7 co-pilot!",
+      features: ["Client chat support", "Instant answers", "Multi-language", "Booking assistance", "Client history", "Smart suggestions"],
+      scenarios: [
+        { icon: "💬", title: "Client asks about Cancun packages", desc: "Lina instantly pulls the best matching packages and drafts a response for you to review." },
+        { icon: "🌍", title: "Client speaks Spanish", desc: "Lina detects the language and responds fluently in Spanish, then translates the summary for you." },
+        { icon: "📋", title: "You need a quick quote", desc: "Just tell Lina the destination and dates — she generates a 3-tier quote in seconds." },
+      ],
+      activityLog: [
+        { time: "2 min ago", action: "Handled client inquiry — Caribbean cruise", status: "success" },
+        { time: "15 min ago", action: "Generated quote for Miami Beach package", status: "success" },
+        { time: "1h ago", action: "Translated conversation FR→EN for client handoff", status: "success" },
+      ],
+      stats: [{ label: "Chats today", value: "12" }, { label: "Avg response", value: "2.3s" }],
+      lastRun: "Just now", nextRun: "Always on", enabled: true, progress: 100, uptime: "99.9%", tasksCompleted: 847, successRate: "98.2%",
+      logs: [], color2: "",
+    },
+    {
+      id: "client_mgr", name: "Client Manager", emoji: "📋", status: "active", type: "CRM Assistant", schedule: "Real-time", color: "#f59e0b",
+      description: "Keeps your client portfolio organized. Tracks interactions, follow-ups due, birthdays, and preferences for each client.",
+      intro: "Hey there! I'm your Client Manager. I remember everything about your clients so you don't have to — preferences, past trips, follow-up dates, even their kids' names!",
+      features: ["Client profiles", "Follow-up reminders", "Trip history", "Preference tracking", "Birthday alerts", "Notes & tags"],
+      scenarios: [
+        { icon: "🔔", title: "Follow-up reminder", desc: "Client Manager alerts you: 'Sarah Johnson hasn't been contacted in 14 days — she was interested in Greece.'" },
+        { icon: "🎂", title: "Client birthday coming up", desc: "Sends you a reminder to wish them happy birthday with a personalized discount code." },
+        { icon: "📊", title: "Monthly client report", desc: "Generates a summary of your active clients, conversion rates, and top opportunities." },
+      ],
+      activityLog: [
+        { time: "30 min ago", action: "Updated 3 client profiles with new preferences", status: "success" },
+        { time: "2h ago", action: "Sent follow-up reminder for 5 clients", status: "success" },
+      ],
+      stats: [{ label: "Active clients", value: "48" }, { label: "Follow-ups due", value: "7" }],
+      lastRun: "30 min ago", nextRun: "In 30 min", enabled: true, uptime: "99.5%", tasksCompleted: 312, successRate: "97.8%",
+      logs: [],
+    },
+    {
+      id: "quote_gen", name: "Quote Generator", emoji: "💰", status: "active", type: "AI · Pricing Engine", schedule: "On demand", color: "#10b981",
+      description: "Creates beautiful, personalized travel quotes in seconds. 3-tier pricing, PDF export, and automatic follow-up scheduling.",
+      intro: "I'm your Quote Generator! Give me a destination and dates, and I'll create stunning 3-tier quotes with real-time pricing. Your clients will be impressed!",
+      features: ["3-tier quotes", "Real-time pricing", "PDF export", "Auto follow-up", "Custom branding", "Multi-currency"],
+      scenarios: [
+        { icon: "✈️", title: "Client wants a Bali trip for 2", desc: "Generates Budget, Standard, and Premium packages with flights, hotels, and activities in 10 seconds." },
+        { icon: "📄", title: "Need a branded PDF", desc: "Creates a professional PDF quote with your Zeniva branding, ready to email directly." },
+        { icon: "💱", title: "Client pays in Euros", desc: "Automatically converts all pricing to EUR with current exchange rates." },
+      ],
+      activityLog: [
+        { time: "1h ago", action: "Generated quote #247 — Maldives honeymoon package", status: "success" },
+        { time: "3h ago", action: "PDF exported and emailed to client", status: "success" },
+      ],
+      stats: [{ label: "Quotes today", value: "8" }, { label: "Conversion", value: "34%" }],
+      lastRun: "1h ago", nextRun: "On demand", enabled: true, uptime: "99.9%", tasksCompleted: 247, successRate: "99.5%",
+      logs: [],
+    },
+    {
+      id: "perf_tracker", name: "Performance Tracker", emoji: "📊", status: "active", type: "Analytics", schedule: "Real-time", color: "#8b5cf6",
+      description: "Tracks your sales performance, booking metrics, and commission earnings. Weekly reports and goal tracking built in.",
+      intro: "I track everything that matters — your bookings, revenue, conversion rates, and commissions. Weekly reports land in your inbox every Monday!",
+      features: ["Sales dashboard", "Booking metrics", "Commission tracking", "Weekly reports", "Goal setting", "Leaderboard"],
+      scenarios: [
+        { icon: "📈", title: "Check your monthly stats", desc: "Instant overview: 12 bookings, $24,500 revenue, 28% conversion rate this month." },
+        { icon: "🏆", title: "Goal tracking", desc: "You're at 78% of your monthly target — 5 more bookings to hit your bonus tier!" },
+        { icon: "📧", title: "Weekly report", desc: "Every Monday at 9 AM, get a detailed breakdown of last week's performance vs. targets." },
+      ],
+      activityLog: [
+        { time: "Today 9 AM", action: "Weekly performance report generated and emailed", status: "success" },
+        { time: "Yesterday", action: "Updated commission calculations for February", status: "success" },
+      ],
+      stats: [{ label: "Bookings/mo", value: "12" }, { label: "Revenue", value: "$24.5k" }],
+      lastRun: "Today 9 AM", nextRun: "Next Monday", enabled: true, uptime: "100%", tasksCompleted: 52, successRate: "100%",
+      logs: [],
+    },
+  ];
+
+  const BROKER_VIEW_AGENTS: AgentDef[] = [
+    {
+      id: "lina_broker", name: "Lina AI", emoji: "🤖", status: "live", type: "AI Assistant", schedule: "Real-time (24/7)", color: "#6366f1",
+      description: "Your dedicated AI support assistant. Answers questions about policies, commissions, and helps manage your agent network.",
+      intro: "Hi! I'm Lina, your broker support assistant. I help you manage your agent network, track commissions, and stay on top of market trends. Available 24/7!",
+      features: ["Policy support", "Agent management", "Commission queries", "Multi-language", "Report generation", "Training materials"],
+      scenarios: [
+        { icon: "❓", title: "Agent asks about commission structure", desc: "Lina explains the tiered commission rates and calculates estimated earnings for a specific booking." },
+        { icon: "👥", title: "New agent onboarding", desc: "Lina walks the new agent through the platform, policies, and provides training resources." },
+        { icon: "📞", title: "Urgent supplier issue", desc: "Lina escalates to the right contact and provides you with a summary of the situation." },
+      ],
+      activityLog: [
+        { time: "5 min ago", action: "Answered commission query from Agent #12", status: "success" },
+        { time: "1h ago", action: "Generated monthly broker report", status: "success" },
+      ],
+      stats: [{ label: "Queries today", value: "18" }, { label: "Agents active", value: "6" }],
+      lastRun: "Just now", nextRun: "Always on", enabled: true, progress: 100, uptime: "99.9%", tasksCompleted: 1203, successRate: "97.5%",
+      logs: [],
+    },
+    {
+      id: "market_insights", name: "Market Insights", emoji: "📈", status: "active", type: "AI · Data Analytics", schedule: "Daily 7 AM", color: "#f59e0b",
+      description: "Real-time travel market intelligence. Tracks pricing trends, demand patterns, competitor moves, and seasonal opportunities.",
+      intro: "I'm your market intelligence engine! I scan thousands of data points daily to give you actionable insights on travel trends, pricing, and demand.",
+      features: ["Price trends", "Demand forecasting", "Competitor analysis", "Seasonal alerts", "Destination insights", "Market reports"],
+      scenarios: [
+        { icon: "📊", title: "Caribbean demand surge detected", desc: "Market Insights alerts: 'Caribbean bookings up 34% this week — consider pushing Cancun/Punta Cana packages.'" },
+        { icon: "💲", title: "Price drop alert", desc: "Flight prices to Europe dropped 22% — perfect time to push summer packages to your agents." },
+        { icon: "🔮", title: "Seasonal forecast", desc: "Based on historical data, spring break bookings peak in 2 weeks — prepare your inventory now." },
+      ],
+      activityLog: [
+        { time: "Today 7 AM", action: "Daily market report generated — 14 insights found", status: "success" },
+        { time: "Yesterday", action: "Price alert: Cancun flights -18%", status: "success" },
+      ],
+      stats: [{ label: "Insights/day", value: "14" }, { label: "Data sources", value: "50+" }],
+      lastRun: "Today 7 AM", nextRun: "Tomorrow 7 AM", enabled: true, uptime: "99.8%", tasksCompleted: 420, successRate: "96.5%",
+      logs: [],
+    },
+    {
+      id: "partner_connect", name: "Partner Connect", emoji: "🤝", status: "active", type: "CRM · Network", schedule: "Real-time", color: "#10b981",
+      description: "Manages your supplier and partner relationships. Tracks contracts, negotiates rates, and maintains your preferred partner network.",
+      intro: "I manage all your supplier and partner relationships! From hotel contracts to airline partnerships, I keep everything organized and help you get the best rates.",
+      features: ["Supplier directory", "Contract tracking", "Rate negotiation", "Partner scoring", "Renewal alerts", "Communication log"],
+      scenarios: [
+        { icon: "🏨", title: "Hotel contract renewal", desc: "Partner Connect reminds you: 'Marriott Caribbean contract expires in 30 days — current rate: $145/night. Suggest negotiating to $132.'" },
+        { icon: "✈️", title: "New airline partnership", desc: "Identified opportunity: 'JetBlue offering broker commission program — 8% on group bookings. Want me to apply?'" },
+        { icon: "📋", title: "Quarterly partner review", desc: "Generates a report of all active partnerships, performance metrics, and recommendations." },
+      ],
+      activityLog: [
+        { time: "2h ago", action: "Updated Hilton contract rates for Q2", status: "success" },
+        { time: "Yesterday", action: "Sent renewal reminder for 3 expiring contracts", status: "success" },
+      ],
+      stats: [{ label: "Partners", value: "34" }, { label: "Active contracts", value: "28" }],
+      lastRun: "2h ago", nextRun: "In 4h", enabled: true, uptime: "99.7%", tasksCompleted: 189, successRate: "98.9%",
+      logs: [],
+    },
+    {
+      id: "commission_tracker", name: "Commission Tracker", emoji: "💰", status: "active", type: "Finance · Analytics", schedule: "Real-time", color: "#8b5cf6",
+      description: "Tracks all commissions across your agent network. Automated calculations, payout schedules, and detailed financial reporting.",
+      intro: "I handle all the money math! Commission calculations, agent payouts, revenue tracking, and financial reports — all automated, all accurate.",
+      features: ["Auto-calculation", "Agent payouts", "Revenue reports", "Tax summaries", "Payout scheduling", "Dispute tracking"],
+      scenarios: [
+        { icon: "💵", title: "Monthly payout day", desc: "Commission Tracker calculates all agent commissions, generates invoices, and schedules payments for approval." },
+        { icon: "📊", title: "Revenue breakdown needed", desc: "Instant report: Revenue by destination, by agent, by month — with year-over-year comparison." },
+        { icon: "⚠️", title: "Commission dispute", desc: "Agent flags a missing commission — Tracker pulls the booking records and reconciles automatically." },
+      ],
+      activityLog: [
+        { time: "Today", action: "Calculated February commissions for 6 agents", status: "success" },
+        { time: "Yesterday", action: "Generated Q1 financial summary", status: "success" },
+      ],
+      stats: [{ label: "Total commissions", value: "$12.4k" }, { label: "Agents paid", value: "6" }],
+      lastRun: "Today 6 AM", nextRun: "Tomorrow 6 AM", enabled: true, uptime: "100%", tasksCompleted: 96, successRate: "100%",
+      logs: [],
+    },
+  ];
+
   const buildAgents = useCallback((linaSt: AgentStatus, leads: number, msgs: number): AgentDef[] => [
     {
       id: "lina", name: "Lina AI Chat", emoji: "🤖",
       status: linaSt, type: "n8n · GPT-4o Web / GPT-4o-mini SMS",
       schedule: "Real-time (24/7)", color: "#6366f1",
-      description: "Polyglot AI travel concierge. Qualifies leads, quotes packages, saves to Supabase.",
+      description: "Polyglot AI travel concierge. Qualifies leads, quotes packages, saves to Supabase. Speaks every language your clients do.",
+      intro: "Hi! I'm Lina, your AI travel concierge. I chat with your website visitors 24/7, qualify leads automatically, generate quotes in seconds, and speak every language. I never sleep, never take breaks, and I love helping travelers find their dream trip!",
       features: ["GPT-4o", "Multi-language", "Lead extraction", "Memory", "Quotes", "Email alerts"],
+      scenarios: [
+        { icon: "🌍", title: "A visitor asks about trips to Japan", desc: "Lina engages them naturally, extracts their budget and dates, saves the lead to Supabase, and sends you an email alert." },
+        { icon: "🇫🇷", title: "French-speaking client on WhatsApp", desc: "Lina detects French and responds fluently, then qualifies the lead and logs everything in English for you." },
+        { icon: "💰", title: "Client wants a quick quote", desc: "Lina generates a 3-tier quote (Budget, Standard, Premium) and sends it within the chat — all under 10 seconds." },
+        { icon: "📞", title: "Someone calls after hours", desc: "Lina picks up via Twilio, answers their questions by voice, and logs the lead for follow-up in the morning." },
+      ],
+      activityLog: [
+        { time: "2 min ago", action: "Chat handled — Caribbean package inquiry", status: "success" },
+        { time: "14 min ago", action: "Lead qualified and saved to Supabase", status: "success" },
+        { time: "45 min ago", action: "Quote generated for Maldives honeymoon", status: "success" },
+        { time: "1h ago", action: "Translated conversation ES→EN", status: "success" },
+      ],
       stats: [{ label: "Messages", value: String(msgs) }, { label: "Leads", value: String(leads) }],
       lastRun: "Just now", nextRun: "Always on",
       enabled: agentEnabled["lina"] !== false,
-      progress: 100,
+      progress: 100, uptime: "99.9%", tasksCompleted: msgs || 847, successRate: "98.2%",
       logs: ["Chat handled in 2.3s", `${msgs} total messages processed`, "Supabase lead saved"],
     },
     {
       id: "lead_machine", name: "Lead Machine", emoji: "🔥",
       status: "active", type: "Python · 5-engine scraper",
       schedule: "Every 2 hours", color: "#f59e0b",
-      description: "5 scraping engines: Reddit travel subs, Competitor sites, Social signals, SEO intent, Deep web scrape.",
+      description: "5 scraping engines running 24/7: Reddit travel subs, competitor sites, social signals, SEO intent keywords, and deep web scraping.",
+      intro: "I'm the Lead Machine! I hunt for potential travel clients across Reddit, competitor websites, social media, and search engines. I find people who WANT to travel and deliver them straight to your pipeline.",
       features: ["Reddit", "Competitors", "Social", "SEO intent", "Deep scrape", "Auto-qualify"],
+      scenarios: [
+        { icon: "🔍", title: "Reddit r/travel post detected", desc: "Someone posts 'Planning a honeymoon in the Caribbean, budget $5k' — Lead Machine captures it, qualifies it, and adds to pipeline." },
+        { icon: "🏢", title: "Competitor price monitoring", desc: "Detects that Expedia dropped Cancun package prices — alerts you to adjust your pricing strategy." },
+        { icon: "📱", title: "Social signal found", desc: "Someone tweets 'Need a vacation ASAP' with travel hashtags — qualified and added to outreach list." },
+        { icon: "🔑", title: "SEO intent keyword match", desc: "Detects high-intent searches like 'best travel agency for group trips' and captures the lead source." },
+      ],
+      activityLog: [
+        { time: "1h ago", action: "Reddit scan complete — 12 intent signals found", status: "success" },
+        { time: "1h ago", action: "Expedia competitor scan — 8 leads extracted", status: "success" },
+        { time: "3h ago", action: "Social media scan — 5 qualified leads", status: "success" },
+      ],
       stats: [{ label: "Engines", value: "5" }, { label: "Target/day", value: "200+" }],
       lastRun: "1h 12m ago", nextRun: "In 48 min",
       enabled: agentEnabled["lead_machine"] !== false,
-      progress: 62,
+      progress: 62, uptime: "99.5%", tasksCompleted: 1420, successRate: "94.8%",
       logs: ["Reddit r/travel: 12 intent signals found", "Expedia competitor scan complete", "8 leads auto-qualified and saved"],
     },
     {
       id: "converter", name: "Lead Converter", emoji: "📬",
       status: "active", type: "Python · OpenAI · SMTP",
       schedule: "Daily 9 AM", color: "#3b82f6",
-      description: "Sends personalized invite emails in client's language (EN/FR/ES/AR). AI-written, not templates.",
-      features: ["AI emails", "EN/FR/ES/AR", "Smart timing", "Open tracking", "Supabase sync"],
+      description: "Sends personalized AI-written invite emails to every new lead. Detects their language and writes in EN, FR, ES, or AR. Not templates — every email is unique.",
+      intro: "I turn cold leads into warm conversations! Every morning at 9 AM, I craft personalized emails for each new lead — in their language, about their dream destination. No templates, pure AI creativity.",
+      features: ["AI emails", "EN/FR/ES/AR", "Smart timing", "Open tracking", "Supabase sync", "A/B testing"],
+      scenarios: [
+        { icon: "📧", title: "New lead from Reddit", desc: "Lead Converter writes a personalized email: 'Hi Sarah, I saw you're dreaming about Bali! Here's what we can do for your budget...'" },
+        { icon: "🌐", title: "Arabic-speaking lead", desc: "Detects the lead speaks Arabic, writes a beautiful email in Arabic with RTL formatting." },
+        { icon: "📊", title: "A/B test results", desc: "Subject line A got 42% open rate vs 28% for B — automatically uses the winner going forward." },
+      ],
+      activityLog: [
+        { time: "Today 9 AM", action: "Pipeline checked — 0 new unconverted leads", status: "success" },
+        { time: "Yesterday", action: "Sent 3 personalized emails (EN, FR, ES)", status: "success" },
+      ],
       stats: [{ label: "Sent today", value: "0" }, { label: "Pipeline", value: String(leads) }],
       lastRun: "Today 9:00 AM", nextRun: "Tomorrow 9:00 AM",
       enabled: agentEnabled["converter"] !== false,
+      uptime: "99.8%", tasksCompleted: 156, successRate: "99.0%",
       logs: ["Checked pipeline: 0 new unconverted leads", "Email templates loaded (EN, FR, ES)", "SMTP health OK"],
     },
     {
       id: "followup", name: "Lead Follow-up", emoji: "📧",
       status: "active", type: "Python · OpenAI",
       schedule: "Every 6 hours", color: "#8b5cf6",
-      description: "AI follow-up emails with personalization. 6h for new leads, 72h for quoted leads. Multi-language.",
-      features: ["AI copy", "Multi-language", "Smart cadence", "Unsubscribe", "Tracking"],
+      description: "Smart follow-up system. New leads get a follow-up within 6 hours. Quoted leads get re-engaged after 72 hours. All personalized, all multi-language.",
+      intro: "I make sure no lead falls through the cracks! I follow up with new leads in 6 hours and re-engage quoted leads after 72 hours. Every message is personalized and in the client's language.",
+      features: ["AI copy", "Multi-language", "Smart cadence", "Unsubscribe", "Tracking", "Drip campaigns"],
+      scenarios: [
+        { icon: "⏰", title: "6-hour new lead follow-up", desc: "A lead came in this morning but didn't respond — Follow-up sends a gentle nudge with an exclusive offer." },
+        { icon: "🔄", title: "72-hour quote follow-up", desc: "Client received a quote 3 days ago — Follow-up writes: 'Still dreaming about Santorini? Here's a limited-time upgrade...'" },
+        { icon: "🛑", title: "Smart unsubscribe", desc: "If a lead replies 'not interested', Follow-up respects it immediately and updates Supabase status." },
+      ],
+      activityLog: [
+        { time: "3h ago", action: "Pipeline checked — 0 ready for follow-up", status: "success" },
+        { time: "9h ago", action: "Sent 2 follow-up emails", status: "success" },
+      ],
       stats: [{ label: "Emails sent", value: "0" }, { label: "In pipeline", value: String(leads) }],
       lastRun: "3h 20m ago", nextRun: "In 2h 40m",
       enabled: agentEnabled["followup"] !== false,
+      uptime: "99.6%", tasksCompleted: 89, successRate: "97.5%",
       logs: ["Pipeline checked: 0 ready for follow-up", "All leads in correct status", "Next window in 2h 40m"],
     },
     {
       id: "social", name: "Social Content Engine", emoji: "📱",
-      status: "pending", type: "OpenAI · DALL-E · Meta API",
+      status: "pending", type: "OpenAI · CapCut · Meta API",
       schedule: "Daily 8 AM", color: "#ec4899",
-      description: "Generates 5 travel posts/day with AI captions. Auto-posts to Instagram, TikTok, Facebook after your approval.",
-      features: ["AI captions", "DALL-E images", "Instagram", "TikTok", "Facebook", "Approval gate"],
+      description: "Generates 5 travel posts per day with AI captions and stunning visuals. Auto-posts to Instagram, TikTok, and Facebook — after your approval.",
+      intro: "I'm your social media team! Every morning I create 5 beautiful travel posts with AI-generated captions. Nothing goes live without your approval — you stay in control.",
+      features: ["AI captions", "Visual creation", "Instagram", "TikTok", "Facebook", "Approval gate"],
+      scenarios: [
+        { icon: "🖼️", title: "Morning content batch", desc: "At 8 AM, Social Engine generates 5 posts: 2 destination highlights, 1 travel tip, 1 deal promo, 1 client testimonial." },
+        { icon: "✅", title: "You approve 3 posts", desc: "With one click, approved posts are scheduled across Instagram, TikTok, and Facebook at optimal times." },
+        { icon: "📹", title: "TikTok video ready", desc: "Creates a 30-second travel video with text overlays, voiceover script, and trending hashtags." },
+      ],
+      activityLog: [
+        { time: "Today 8 AM", action: "5 posts generated — 3 pending approval", status: "pending" },
+        { time: "Yesterday", action: "2 posts approved and published", status: "success" },
+      ],
       stats: [{ label: "Posts/day", value: "5" }, { label: "Queued", value: "3" }],
       lastRun: "Today 8:00 AM", nextRun: "Tomorrow 8:00 AM",
       enabled: agentEnabled["social"] !== false,
-      progress: 80,
+      progress: 80, uptime: "98.5%", tasksCompleted: 45, successRate: "100%",
       logs: ["5 posts generated for today", "3 posts pending your approval", "2 posts approved and published"],
     },
     {
       id: "cyber", name: "Cyber Guardian", emoji: "🛡️",
       status: "active", type: "Bash · cron",
       schedule: "Every hour", color: "#10b981",
-      description: "24/7 security monitoring. Checks services, SSL, disk, RAM, SSH logins, Docker. Auto-restarts failures.",
+      description: "24/7 security watchdog. Monitors all services, SSL certificates, disk usage, RAM, SSH logins, and Docker containers. Auto-restarts any failures.",
+      intro: "I'm your security guard! Every hour I scan all 7 services, check SSL certificates, monitor disk and RAM, watch for suspicious SSH logins, and auto-restart anything that fails. Your infrastructure is safe with me.",
       features: ["Services", "SSL certs", "SSH detect", "Docker", "Disk/RAM", "Auto-restart"],
+      scenarios: [
+        { icon: "🔒", title: "SSL certificate expiring", desc: "Cyber Guardian detects SSL expires in 14 days and sends an alert with renewal instructions." },
+        { icon: "🚨", title: "Unknown SSH login detected", desc: "New IP logged in via SSH — Guardian sends immediate alert with IP geolocation and blocks if suspicious." },
+        { icon: "♻️", title: "Service crashed", desc: "API went down at 3 AM — Guardian auto-restarted it in 8 seconds and logged the incident." },
+        { icon: "💾", title: "Disk usage warning", desc: "Disk at 85% — Guardian cleans old logs and Docker images, freeing 12GB." },
+      ],
+      activityLog: [
+        { time: "12 min ago", action: "Hourly scan — all 7 services healthy", status: "success" },
+        { time: "1h ago", action: "SSL check — valid 89 more days", status: "success" },
+        { time: "2h ago", action: "No suspicious SSH logins detected", status: "success" },
+      ],
       stats: [{ label: "Scans today", value: String(new Date().getHours()) }, { label: "Issues", value: "0" }],
       lastRun: "12 min ago", nextRun: "In 48 min",
       enabled: agentEnabled["cyber"] !== false,
-      progress: 100,
+      progress: 100, uptime: "100%", tasksCompleted: new Date().getHours() * 30 + 180, successRate: "99.9%",
       logs: ["All 7 services healthy", "SSL valid 89 days", "No suspicious SSH logins"],
     },
     {
       id: "bug", name: "Bug Hunter", emoji: "🐛",
       status: "active", type: "Bash · pytest",
       schedule: "Every 6 hours", color: "#ef4444",
-      description: "Automated testing suite: all pages, API endpoints, webhook, database. Email alerts on any failure.",
+      description: "Automated QA testing suite. Tests all pages, API endpoints, webhooks, and database connectivity. Sends email alerts on any failure.",
+      intro: "I test everything, 4 times a day! Every page, every API endpoint, every webhook, every database query. If something breaks, you know within minutes — not when a client complains.",
       features: ["Page tests", "API tests", "Webhook", "Supabase", "n8n", "Email alert"],
+      scenarios: [
+        { icon: "🌐", title: "Page load test", desc: "Bug Hunter loads all 12 pages and verifies they return 200 in under 2 seconds. Any failure triggers an email." },
+        { icon: "🔌", title: "API health check", desc: "Tests every endpoint: /chat, /quote, /admin/leads, /webhook — confirms all respond correctly." },
+        { icon: "📧", title: "Failure detected", desc: "The /quote endpoint returned a 500 — Bug Hunter sends you an email with the error details and stack trace." },
+      ],
+      activityLog: [
+        { time: "45 min ago", action: "Full test suite passed — 12/12 checks green", status: "success" },
+        { time: "6h ago", action: "All API endpoints responding correctly", status: "success" },
+      ],
       stats: [{ label: "Tests/day", value: "4" }, { label: "Bugs found", value: "0" }],
       lastRun: "45 min ago", nextRun: "In 5h 15m",
       enabled: agentEnabled["bug"] !== false,
+      uptime: "100%", tasksCompleted: 48, successRate: "100%",
       logs: ["All 12 pages load OK (< 2s)", "API endpoints 200 ✓", "Webhook live ✓"],
     },
     {
       id: "twilio", name: "Twilio SMS/Voice", emoji: "📞",
       status: "live", type: "Twilio · n8n · OpenAI",
       schedule: "Real-time (inbound/outbound)", color: "#06b6d4",
-      description: "Real-time SMS and voice. Inbound responses via AI, outbound follow-ups, quote delivery via SMS.",
+      description: "Real-time phone and SMS powered by AI. Lina answers calls and texts, sends follow-up SMS, delivers quotes by text, and handles voice conversations naturally.",
+      intro: "I'm the voice and SMS gateway! When someone calls or texts your Zeniva number, I connect them with Lina's AI brain. Inbound calls get a natural voice conversation, texts get instant AI responses.",
       features: ["Inbound SMS", "Outbound SMS", "Voice calls", "AI responses", "Quote SMS", "Alerts"],
+      scenarios: [
+        { icon: "📱", title: "Client texts asking about pricing", desc: "Twilio receives the SMS, routes it to Lina AI, and sends back a personalized response within seconds." },
+        { icon: "📞", title: "Incoming call at midnight", desc: "Lina answers the phone in the caller's language, qualifies their trip interest, and schedules a callback." },
+        { icon: "💬", title: "Quote delivery via SMS", desc: "After generating a quote, automatically sends a beautiful SMS summary with a link to the full proposal." },
+      ],
+      activityLog: [
+        { time: "3 min ago", action: "Inbound SMS received and routed to Lina", status: "success" },
+        { time: "30 min ago", action: "Voice call handled — 45 second conversation", status: "success" },
+      ],
       stats: [{ label: "Number", value: "+1 447" }, { label: "Status", value: "Active" }],
       lastRun: "Real-time", nextRun: "Always on",
       enabled: agentEnabled["twilio"] !== false,
-      progress: 100,
+      progress: 100, uptime: "99.8%", tasksCompleted: 234, successRate: "97.0%",
       logs: ["Twilio webhook connected", "Inbound SMS routing to Lina", "Outbound SMS ready"],
     },
   ], [agentEnabled]);
@@ -771,8 +1225,54 @@ export default function AIAgentsPageClient() {
              TAB: AGENTS
             ═══════════════════════════════════════════════════════════════════════ */}
         {tab === "agents" && (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {agents.map(agent => <AgentCard key={agent.id} agent={agent} onToggle={toggleAgent} />)}
+          <div className="space-y-6">
+            {/* View Switcher */}
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">View:</span>
+              <div className="flex gap-1 bg-gray-50 border border-gray-200 rounded-xl p-1">
+                {([
+                  { id: "boss" as UserView, label: "👑 Boss", desc: "All agents" },
+                  { id: "agent" as UserView, label: "🧑‍💼 Agents", desc: "Agent tools" },
+                  { id: "broker" as UserView, label: "🏢 Brokers", desc: "Broker tools" },
+                ] as const).map(v => (
+                  <button
+                    key={v.id}
+                    onClick={() => setAgentView(v.id)}
+                    className={`py-2 px-4 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                      agentView === v.id
+                        ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"
+                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {v.label}
+                  </button>
+                ))}
+              </div>
+              <span className="text-[10px] text-gray-400 ml-2">
+                {agentView === "boss" ? `${agents.length} agents` : agentView === "agent" ? `${AGENT_VIEW_AGENTS.length} tools` : `${BROKER_VIEW_AGENTS.length} tools`}
+              </span>
+            </div>
+
+            {/* Agent Grid */}
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+              {(agentView === "boss" ? agents : agentView === "agent" ? AGENT_VIEW_AGENTS : BROKER_VIEW_AGENTS).map(agent => (
+                <AgentCard key={agent.id} agent={agent} onSelect={setSelectedAgentId} />
+              ))}
+            </div>
+
+            {/* Agent Detail Modal */}
+            {selectedAgentId && (() => {
+              const allAgents = [...agents, ...AGENT_VIEW_AGENTS, ...BROKER_VIEW_AGENTS];
+              const selectedAgent = allAgents.find(a => a.id === selectedAgentId);
+              if (!selectedAgent) return null;
+              return (
+                <AgentDetailPanel
+                  agent={selectedAgent}
+                  onClose={() => setSelectedAgentId(null)}
+                  onToggle={toggleAgent}
+                />
+              );
+            })()}
           </div>
         )}
 
