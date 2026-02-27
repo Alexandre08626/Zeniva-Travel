@@ -31,7 +31,7 @@ interface AgentScenario { icon: string; title: string; desc: string; }
 interface AgentActivityLog { time: string; action: string; status: "success" | "pending" | "warning"; }
 
 interface AgentDef {
-  id: string; name: string; emoji: string; status: AgentStatus;
+  id: string; name: string; emoji: string; avatar?: string; status: AgentStatus;
   type: string; schedule: string; description: string; features: string[];
   stats: { label: string; value: string }[];
   lastRun: string; nextRun: string; enabled: boolean;
@@ -125,12 +125,21 @@ function AgentCard({ agent, onSelect }: { agent: AgentDef; onSelect: (id: string
         {/* Avatar + Status */}
         <div className="flex items-start justify-between mb-4">
           <div className="relative">
-            <div
-              className="h-16 w-16 rounded-2xl flex items-center justify-center text-3xl shadow-md"
-              style={{ background: `linear-gradient(135deg, ${accentColor}20, ${accentColor}08)`, border: `1.5px solid ${accentColor}30` }}
-            >
-              {agent.emoji}
-            </div>
+            {agent.avatar ? (
+              <img
+                src={agent.avatar}
+                alt={agent.name}
+                className="h-16 w-16 rounded-2xl object-cover shadow-md"
+                style={{ border: `1.5px solid ${accentColor}30` }}
+              />
+            ) : (
+              <div
+                className="h-16 w-16 rounded-2xl flex items-center justify-center text-3xl shadow-md"
+                style={{ background: `linear-gradient(135deg, ${accentColor}20, ${accentColor}08)`, border: `1.5px solid ${accentColor}30` }}
+              >
+                {agent.emoji}
+              </div>
+            )}
             {isAlive && (
               <span className={`absolute -top-1 -right-1 h-4 w-4 rounded-full ${sc.dot} ring-2 ring-white shadow-sm flex items-center justify-center`}>
                 <span className={`absolute inset-0 rounded-full ${sc.dot} animate-ping opacity-60`} />
@@ -231,12 +240,21 @@ function AgentDetailPanel({ agent, onClose, onToggle }: {
               {/* Avatar + Info */}
               <div className="flex items-center gap-4">
                 <div className="relative shrink-0">
-                  <div
-                    className="h-20 w-20 rounded-2xl flex items-center justify-center text-4xl shadow-xl"
-                    style={{ background: `linear-gradient(135deg, ${accentColor}25, ${accentColor}08)`, border: `2px solid ${accentColor}30` }}
-                  >
-                    {agent.emoji}
-                  </div>
+                  {agent.avatar ? (
+                    <img
+                      src={agent.avatar}
+                      alt={agent.name}
+                      className="h-20 w-20 rounded-2xl object-cover shadow-xl"
+                      style={{ border: `2px solid ${accentColor}30` }}
+                    />
+                  ) : (
+                    <div
+                      className="h-20 w-20 rounded-2xl flex items-center justify-center text-4xl shadow-xl"
+                      style={{ background: `linear-gradient(135deg, ${accentColor}25, ${accentColor}08)`, border: `2px solid ${accentColor}30` }}
+                    >
+                      {agent.emoji}
+                    </div>
+                  )}
                   {isAlive && (
                     <span className={`absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full ${sc.dot} ring-2 ring-white shadow`}>
                       <span className={`absolute inset-0 rounded-full ${sc.dot} animate-ping opacity-50`} />
@@ -527,7 +545,7 @@ export default function AIAgentsPageClient() {
   // ── Agent definitions for each view
   const AGENT_VIEW_AGENTS: AgentDef[] = [
     {
-      id: "lina_agent", name: "Lina AI", emoji: "🤖", status: "live", type: "AI Assistant", schedule: "Real-time (24/7)", color: "#6366f1",
+      id: "lina_agent", name: "Lina", emoji: "🤖", avatar: "/agents/lina.png", status: "live", type: "AI Travel Concierge", schedule: "Real-time (24/7)", color: "#6366f1",
       description: "Your personal AI assistant for managing clients. Handles inquiries, provides instant answers, and helps you close deals faster.",
       intro: "Hi! I'm Lina, your AI assistant. I help you manage client conversations, answer questions instantly, and keep your pipeline organized. Think of me as your 24/7 co-pilot!",
       features: ["Client chat support", "Instant answers", "Multi-language", "Booking assistance", "Client history", "Smart suggestions"],
@@ -546,7 +564,7 @@ export default function AIAgentsPageClient() {
       logs: [],
     },
     {
-      id: "client_mgr", name: "Client Manager", emoji: "📋", status: "active", type: "CRM Assistant", schedule: "Real-time", color: "#f59e0b",
+      id: "client_mgr", name: "Max", emoji: "📋", avatar: "/agents/max.png", status: "active", type: "Client Manager · CRM", schedule: "Real-time", color: "#f59e0b",
       description: "Keeps your client portfolio organized. Tracks interactions, follow-ups due, birthdays, and preferences for each client.",
       intro: "Hey there! I'm your Client Manager. I remember everything about your clients so you don't have to — preferences, past trips, follow-up dates, even their kids' names!",
       features: ["Client profiles", "Follow-up reminders", "Trip history", "Preference tracking", "Birthday alerts", "Notes & tags"],
@@ -564,7 +582,7 @@ export default function AIAgentsPageClient() {
       logs: [],
     },
     {
-      id: "quote_gen", name: "Quote Generator", emoji: "💰", status: "active", type: "AI · Pricing Engine", schedule: "On demand", color: "#10b981",
+      id: "quote_gen", name: "Jade", emoji: "💰", avatar: "/agents/jade.png", status: "active", type: "Quote Generator · AI", schedule: "On demand", color: "#10b981",
       description: "Creates beautiful, personalized travel quotes in seconds. 3-tier pricing, PDF export, and automatic follow-up scheduling.",
       intro: "I'm your Quote Generator! Give me a destination and dates, and I'll create stunning 3-tier quotes with real-time pricing. Your clients will be impressed!",
       features: ["3-tier quotes", "Real-time pricing", "PDF export", "Auto follow-up", "Custom branding", "Multi-currency"],
@@ -582,7 +600,7 @@ export default function AIAgentsPageClient() {
       logs: [],
     },
     {
-      id: "perf_tracker", name: "Performance Tracker", emoji: "📊", status: "active", type: "Analytics", schedule: "Real-time", color: "#8b5cf6",
+      id: "perf_tracker", name: "Leo", emoji: "📊", avatar: "/agents/leo.png", status: "active", type: "Performance Analytics", schedule: "Real-time", color: "#8b5cf6",
       description: "Tracks your sales performance, booking metrics, and commission earnings. Weekly reports and goal tracking built in.",
       intro: "I track everything that matters — your bookings, revenue, conversion rates, and commissions. Weekly reports land in your inbox every Monday!",
       features: ["Sales dashboard", "Booking metrics", "Commission tracking", "Weekly reports", "Goal setting", "Leaderboard"],
@@ -603,7 +621,7 @@ export default function AIAgentsPageClient() {
 
   const BROKER_VIEW_AGENTS: AgentDef[] = [
     {
-      id: "lina_broker", name: "Lina AI", emoji: "🤖", status: "live", type: "AI Assistant", schedule: "Real-time (24/7)", color: "#6366f1",
+      id: "lina_broker", name: "Lina", emoji: "🤖", avatar: "/agents/lina.png", status: "live", type: "Broker Support · AI", schedule: "Real-time (24/7)", color: "#6366f1",
       description: "Your dedicated AI support assistant. Answers questions about policies, commissions, and helps manage your agent network.",
       intro: "Hi! I'm Lina, your broker support assistant. I help you manage your agent network, track commissions, and stay on top of market trends. Available 24/7!",
       features: ["Policy support", "Agent management", "Commission queries", "Multi-language", "Report generation", "Training materials"],
@@ -621,7 +639,7 @@ export default function AIAgentsPageClient() {
       logs: [],
     },
     {
-      id: "market_insights", name: "Market Insights", emoji: "📈", status: "active", type: "AI · Data Analytics", schedule: "Daily 7 AM", color: "#f59e0b",
+      id: "market_insights", name: "Victor", emoji: "📈", avatar: "/agents/victor.png", status: "active", type: "Market Intelligence · AI", schedule: "Daily 7 AM", color: "#f59e0b",
       description: "Real-time travel market intelligence. Tracks pricing trends, demand patterns, competitor moves, and seasonal opportunities.",
       intro: "I'm your market intelligence engine! I scan thousands of data points daily to give you actionable insights on travel trends, pricing, and demand.",
       features: ["Price trends", "Demand forecasting", "Competitor analysis", "Seasonal alerts", "Destination insights", "Market reports"],
@@ -639,7 +657,7 @@ export default function AIAgentsPageClient() {
       logs: [],
     },
     {
-      id: "partner_connect", name: "Partner Connect", emoji: "🤝", status: "active", type: "CRM · Network", schedule: "Real-time", color: "#10b981",
+      id: "partner_connect", name: "Emma", emoji: "🤝", avatar: "/agents/emma.png", status: "active", type: "Partner Manager · CRM", schedule: "Real-time", color: "#10b981",
       description: "Manages your supplier and partner relationships. Tracks contracts, negotiates rates, and maintains your preferred partner network.",
       intro: "I manage all your supplier and partner relationships! From hotel contracts to airline partnerships, I keep everything organized and help you get the best rates.",
       features: ["Supplier directory", "Contract tracking", "Rate negotiation", "Partner scoring", "Renewal alerts", "Communication log"],
@@ -657,7 +675,7 @@ export default function AIAgentsPageClient() {
       logs: [],
     },
     {
-      id: "commission_tracker", name: "Commission Tracker", emoji: "💰", status: "active", type: "Finance · Analytics", schedule: "Real-time", color: "#8b5cf6",
+      id: "commission_tracker", name: "Kai", emoji: "💰", avatar: "/agents/kai.png", status: "active", type: "Finance · Commissions", schedule: "Real-time", color: "#8b5cf6",
       description: "Tracks all commissions across your agent network. Automated calculations, payout schedules, and detailed financial reporting.",
       intro: "I handle all the money math! Commission calculations, agent payouts, revenue tracking, and financial reports — all automated, all accurate.",
       features: ["Auto-calculation", "Agent payouts", "Revenue reports", "Tax summaries", "Payout scheduling", "Dispute tracking"],
@@ -678,8 +696,8 @@ export default function AIAgentsPageClient() {
 
   const buildAgents = useCallback((linaSt: AgentStatus, leads: number, msgs: number): AgentDef[] => [
     {
-      id: "lina", name: "Lina AI Chat", emoji: "🤖",
-      status: linaSt, type: "n8n · GPT-4o Web / GPT-4o-mini SMS",
+      id: "lina", name: "Lina", emoji: "🤖", avatar: "/agents/lina.png",
+      status: linaSt, type: "AI Travel Concierge · GPT-4o",
       schedule: "Real-time (24/7)", color: "#6366f1",
       description: "Polyglot AI travel concierge. Qualifies leads, quotes packages, saves to Supabase. Speaks every language your clients do.",
       intro: "Hi! I'm Lina, your AI travel concierge. I chat with your website visitors 24/7, qualify leads automatically, generate quotes in seconds, and speak every language. I never sleep, never take breaks, and I love helping travelers find their dream trip!",
@@ -703,8 +721,8 @@ export default function AIAgentsPageClient() {
       logs: ["Chat handled in 2.3s", `${msgs} total messages processed`, "Supabase lead saved"],
     },
     {
-      id: "lead_machine", name: "Lead Machine", emoji: "🔥",
-      status: "active", type: "Python · 5-engine scraper",
+      id: "lead_machine", name: "Marco", emoji: "🔥", avatar: "/agents/marco.png",
+      status: "active", type: "Lead Hunter · 5-Engine Scraper",
       schedule: "Every 2 hours", color: "#f59e0b",
       description: "5 scraping engines running 24/7: Reddit travel subs, competitor sites, social signals, SEO intent keywords, and deep web scraping.",
       intro: "I'm the Lead Machine! I hunt for potential travel clients across Reddit, competitor websites, social media, and search engines. I find people who WANT to travel and deliver them straight to your pipeline.",
@@ -727,8 +745,8 @@ export default function AIAgentsPageClient() {
       logs: ["Reddit r/travel: 12 intent signals found", "Expedia competitor scan complete", "8 leads auto-qualified and saved"],
     },
     {
-      id: "converter", name: "Lead Converter", emoji: "📬",
-      status: "active", type: "Python · OpenAI · SMTP",
+      id: "converter", name: "Sofia", emoji: "📬", avatar: "/agents/sofia.png",
+      status: "active", type: "Email Marketing · AI Writer",
       schedule: "Daily 9 AM", color: "#3b82f6",
       description: "Sends personalized AI-written invite emails to every new lead. Detects their language and writes in EN, FR, ES, or AR. Not templates — every email is unique.",
       intro: "I turn cold leads into warm conversations! Every morning at 9 AM, I craft personalized emails for each new lead — in their language, about their dream destination. No templates, pure AI creativity.",
@@ -749,8 +767,8 @@ export default function AIAgentsPageClient() {
       logs: ["Checked pipeline: 0 new unconverted leads", "Email templates loaded (EN, FR, ES)", "SMTP health OK"],
     },
     {
-      id: "followup", name: "Lead Follow-up", emoji: "📧",
-      status: "active", type: "Python · OpenAI",
+      id: "followup", name: "Noah", emoji: "📧", avatar: "/agents/noah.png",
+      status: "active", type: "Follow-up Specialist · AI",
       schedule: "Every 6 hours", color: "#8b5cf6",
       description: "Smart follow-up system. New leads get a follow-up within 6 hours. Quoted leads get re-engaged after 72 hours. All personalized, all multi-language.",
       intro: "I make sure no lead falls through the cracks! I follow up with new leads in 6 hours and re-engage quoted leads after 72 hours. Every message is personalized and in the client's language.",
@@ -771,8 +789,8 @@ export default function AIAgentsPageClient() {
       logs: ["Pipeline checked: 0 ready for follow-up", "All leads in correct status", "Next window in 2h 40m"],
     },
     {
-      id: "social", name: "Social Content Engine", emoji: "📱",
-      status: "pending", type: "OpenAI · CapCut · Meta API",
+      id: "social", name: "Mia", emoji: "📱", avatar: "/agents/mia.png",
+      status: "pending", type: "Social Media Manager · AI",
       schedule: "Daily 8 AM", color: "#ec4899",
       description: "Generates 5 travel posts per day with AI captions and stunning visuals. Auto-posts to Instagram, TikTok, and Facebook — after your approval.",
       intro: "I'm your social media team! Every morning I create 5 beautiful travel posts with AI-generated captions. Nothing goes live without your approval — you stay in control.",
@@ -793,8 +811,8 @@ export default function AIAgentsPageClient() {
       logs: ["5 posts generated for today", "3 posts pending your approval", "2 posts approved and published"],
     },
     {
-      id: "cyber", name: "Cyber Guardian", emoji: "🛡️",
-      status: "active", type: "Bash · cron",
+      id: "cyber", name: "Atlas", emoji: "🛡️", avatar: "/agents/atlas.png",
+      status: "active", type: "Security Guardian · 24/7",
       schedule: "Every hour", color: "#10b981",
       description: "24/7 security watchdog. Monitors all services, SSL certificates, disk usage, RAM, SSH logins, and Docker containers. Auto-restarts any failures.",
       intro: "I'm your security guard! Every hour I scan all 7 services, check SSL certificates, monitor disk and RAM, watch for suspicious SSH logins, and auto-restart anything that fails. Your infrastructure is safe with me.",
@@ -817,8 +835,8 @@ export default function AIAgentsPageClient() {
       logs: ["All 7 services healthy", "SSL valid 89 days", "No suspicious SSH logins"],
     },
     {
-      id: "bug", name: "Bug Hunter", emoji: "🐛",
-      status: "active", type: "Bash · pytest",
+      id: "bug", name: "Rex", emoji: "🐛", avatar: "/agents/rex.png",
+      status: "active", type: "QA Tester · Automated",
       schedule: "Every 6 hours", color: "#ef4444",
       description: "Automated QA testing suite. Tests all pages, API endpoints, webhooks, and database connectivity. Sends email alerts on any failure.",
       intro: "I test everything, 4 times a day! Every page, every API endpoint, every webhook, every database query. If something breaks, you know within minutes — not when a client complains.",
@@ -839,8 +857,8 @@ export default function AIAgentsPageClient() {
       logs: ["All 12 pages load OK (< 2s)", "API endpoints 200 ✓", "Webhook live ✓"],
     },
     {
-      id: "twilio", name: "Twilio SMS/Voice", emoji: "📞",
-      status: "live", type: "Twilio · n8n · OpenAI",
+      id: "twilio", name: "Luna", emoji: "📞", avatar: "/agents/luna.png",
+      status: "live", type: "Voice & SMS · Real-time",
       schedule: "Real-time (inbound/outbound)", color: "#06b6d4",
       description: "Real-time phone and SMS powered by AI. Lina answers calls and texts, sends follow-up SMS, delivers quotes by text, and handles voice conversations naturally.",
       intro: "I'm the voice and SMS gateway! When someone calls or texts your Zeniva number, I connect them with Lina's AI brain. Inbound calls get a natural voice conversation, texts get instant AI responses.",
