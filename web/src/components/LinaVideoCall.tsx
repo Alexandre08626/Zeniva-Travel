@@ -15,6 +15,37 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(binary);
 }
 
+function resampleTo24k(input: Float32Array, fromRate: number): Int16Array {
+  const ratio = 24000 / fromRate;
+  const newLen = Math.round(input.length * ratio);
+  const out = new Int16Array(newLen);
+  for (let i = 0; i < newLen; i++) {
+    const srcIdx = i / ratio;
+    const idx = Math.floor(srcIdx);
+    const frac = srcIdx - idx;
+    const sample = idx + 1 < input.length
+      ? input[idx] * (1 - frac) + input[idx + 1] * frac
+      : input[idx] || 0;
+    const s = Math.max(-1, Math.min(1, sample));
+    out[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+  }
+  return out;
+}
+
+// Inline AudioWorklet processor (no separate file needed)
+const WORKLET_CODE = `
+class MicProcessor extends AudioWorkletProcessor {
+  process(inputs) {
+    const input = inputs[0];
+    if (input && input[0] && input[0].length > 0) {
+      this.port.postMessage(new Float32Array(input[0]));
+    }
+    return true;
+  }
+}
+registerProcessor('mic-processor', MicProcessor);
+`;
+
 export default function LinaVideoCall({ tripId }: { tripId: string }) {
   const [state, setState] = useState<CallState>("idle");
   const [transcript, setTranscript] = useState<{ role: string; text: string }[]>([]);
@@ -22,13 +53,13 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
   const [userText, setUserText] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState("");
-  const [hasMicState, setHasMicState] = useState(false);
+  const [micStatus, setMicStatus] = useState<"none" | "denied" | "ok">("none");
   const [snapshot, setSnapshot] = useState<Record<string, any>>({});
 
   const wsRef = useRef<WebSocket | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const workletRef = useRef<AudioWorkletNode | null>(null);
   const playCtxRef = useRef<AudioContext | null>(null);
   const queueRef = useRef<ArrayBuffer[]>([]);
   const playingRef = useRef(false);
@@ -97,7 +128,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
   }, [tripId]);
 
   const startCall = useCallback(async () => {
-    setState("connecting"); setError(""); setTranscript([]); setElapsed(0); setSnapshot({});
+    setState("connecting"); setError(""); setTranscript([]); setElapsed(0); setSnapshot({}); setMicStatus("none");
     try {
       // 1. Request microphone FIRST — must be in direct click handler
       let micStream: MediaStream | null = null;
@@ -110,22 +141,22 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
           }
         });
         streamRef.current = micStream;
+        setMicStatus("ok");
       } catch (micErr: any) {
-        console.warn("Microphone denied or unavailable:", micErr);
-        // Continue without mic (listen-only mode)
+        console.warn("Microphone error:", micErr.name, micErr.message);
+        setMicStatus(micErr.name === "NotAllowedError" || micErr.name === "PermissionDeniedError" ? "denied" : "none");
       }
 
-      // 2. Create AudioContext NOW in click handler (mobile requires user gesture)
+      // 2. Create AudioContext in click handler (user gesture required)
       if (micStream) {
         try {
           const actx = new AudioContext();
           audioCtxRef.current = actx;
           if (actx.state === "suspended") await actx.resume();
         } catch (e) {
-          console.warn("Early AudioContext creation failed:", e);
+          console.warn("AudioContext creation failed:", e);
         }
       }
-      // Pre-create playback context in user gesture for mobile
       if (!playCtxRef.current) {
         try {
           playCtxRef.current = new AudioContext({ sampleRate: 24000 });
@@ -135,18 +166,17 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
         }
       }
 
-      // 3. Get session token from server
+      // 3. Get session token
       const res = await fetch("/api/realtime-session", { method: "POST" });
       if (!res.ok) throw new Error("Session failed");
       const data = await res.json();
       const key = data.client_secret?.value;
       if (!key) throw new Error(data.error || "No token");
 
-      const wsUrl = `wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2025-06-03`;
-      const ws = new WebSocket(wsUrl, ["realtime", `openai-insecure-api-key.${key}`, "openai-beta.realtime-v1"]);
+      const wsUrl = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2025-06-03";
+      const ws = new WebSocket(wsUrl, ["realtime", "openai-insecure-api-key." + key, "openai-beta.realtime-v1"]);
       wsRef.current = ws;
 
-      // Timeout if WS doesn't connect in 10s
       const wsTimeout = setTimeout(() => {
         if (ws.readyState !== WebSocket.OPEN) {
           ws.close();
@@ -159,51 +189,70 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
         clearTimeout(wsTimeout);
         let hasMic = false;
 
-        // 3. Set up audio pipeline with pre-created AudioContext
         if (micStream && audioCtxRef.current) {
+          const actx = audioCtxRef.current;
+          if (actx.state === "suspended") await actx.resume();
+          const nativeSR = actx.sampleRate;
+
+          // Try AudioWorklet first (modern, reliable on desktop Chrome)
           try {
-            const actx = audioCtxRef.current;
-            if (actx.state === "suspended") await actx.resume();
-            const nativeSR = actx.sampleRate;
+            const blob = new Blob([WORKLET_CODE], { type: "application/javascript" });
+            const blobUrl = URL.createObjectURL(blob);
+            await actx.audioWorklet.addModule(blobUrl);
+            URL.revokeObjectURL(blobUrl);
+
             const msrc = actx.createMediaStreamSource(micStream);
-            const proc = actx.createScriptProcessor(4096, 1, 1);
-            processorRef.current = proc;
-            // Silent gain prevents mic→speaker feedback that kills VAD on desktop
-            const silentGain = actx.createGain();
-            silentGain.gain.value = 0;
-            msrc.connect(proc);
-            proc.connect(silentGain);
-            silentGain.connect(actx.destination);
-            proc.onaudioprocess = (e) => {
+            const worklet = new AudioWorkletNode(actx, "mic-processor");
+            workletRef.current = worklet;
+            msrc.connect(worklet);
+            // NOT connected to destination — no mic playback through speakers
+
+            worklet.port.onmessage = (e: MessageEvent) => {
               if (ws.readyState !== WebSocket.OPEN) return;
-              const input = e.inputBuffer.getChannelData(0);
-              let ch: Float32Array;
-              if (nativeSR === 24000) {
-                ch = input;
-              } else {
-                const ratio = 24000 / nativeSR;
-                const newLen = Math.round(input.length * ratio);
-                ch = new Float32Array(newLen);
-                for (let i = 0; i < newLen; i++) {
-                  const srcIdx = i / ratio;
-                  const idx = Math.floor(srcIdx);
-                  const frac = srcIdx - idx;
-                  ch[i] = idx + 1 < input.length
-                    ? input[idx] * (1 - frac) + input[idx + 1] * frac
-                    : input[idx] || 0;
-                }
-              }
-              const i16 = new Int16Array(ch.length);
-              for (let i = 0; i < ch.length; i++) {
-                const s = Math.max(-1, Math.min(1, ch[i]));
-                i16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-              }
+              const float32: Float32Array = e.data;
+              const i16 = nativeSR === 24000
+                ? (() => {
+                    const o = new Int16Array(float32.length);
+                    for (let i = 0; i < float32.length; i++) {
+                      const s = Math.max(-1, Math.min(1, float32[i]));
+                      o[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+                    }
+                    return o;
+                  })()
+                : resampleTo24k(float32, nativeSR);
               ws.send(JSON.stringify({ type: "input_audio_buffer.append", audio: arrayBufferToBase64(i16.buffer) }));
             };
             hasMic = true;
-            setHasMicState(true);
-          } catch (audioErr) {
-            console.warn("Audio pipeline setup failed:", audioErr);
+          } catch (workletErr) {
+            console.warn("AudioWorklet failed, trying ScriptProcessor fallback:", workletErr);
+            // Fallback: ScriptProcessorNode with silent gain
+            try {
+              const msrc = actx.createMediaStreamSource(micStream);
+              const proc = actx.createScriptProcessor(4096, 1, 1);
+              const silentGain = actx.createGain();
+              silentGain.gain.value = 0;
+              msrc.connect(proc);
+              proc.connect(silentGain);
+              silentGain.connect(actx.destination);
+              proc.onaudioprocess = (ev) => {
+                if (ws.readyState !== WebSocket.OPEN) return;
+                const input = ev.inputBuffer.getChannelData(0);
+                const i16 = nativeSR === 24000
+                  ? (() => {
+                      const o = new Int16Array(input.length);
+                      for (let i = 0; i < input.length; i++) {
+                        const s = Math.max(-1, Math.min(1, input[i]));
+                        o[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+                      }
+                      return o;
+                    })()
+                  : resampleTo24k(input, nativeSR);
+                ws.send(JSON.stringify({ type: "input_audio_buffer.append", audio: arrayBufferToBase64(i16.buffer) }));
+              };
+              hasMic = true;
+            } catch (fallbackErr) {
+              console.warn("ScriptProcessor fallback also failed:", fallbackErr);
+            }
           }
         }
 
@@ -257,11 +306,12 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
   const endCall = useCallback(() => {
     wsRef.current?.close(); wsRef.current = null;
     streamRef.current?.getTracks().forEach(t => t.stop()); streamRef.current = null;
-    processorRef.current?.disconnect(); processorRef.current = null;
+    workletRef.current?.disconnect(); workletRef.current = null;
     audioCtxRef.current?.close().catch(() => {}); audioCtxRef.current = null;
     playCtxRef.current?.close().catch(() => {}); playCtxRef.current = null;
     if (timerRef.current) clearInterval(timerRef.current);
     queueRef.current = []; playingRef.current = false;
+    setMicStatus("none");
     setState("idle");
   }, []);
 
@@ -280,7 +330,6 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       `}</style>
 
       <div className="relative z-10 flex flex-col items-center justify-center px-6 py-8" style={{minHeight:"80vh"}}>
-        {/* Top bar */}
         <div className="absolute top-6 left-6 right-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={`h-2.5 w-2.5 rounded-full ${active?"bg-emerald-400 animate-pulse":"bg-slate-500"}`}/>
@@ -291,7 +340,6 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
           {active&&<button onClick={endCall} className="bg-red-500/90 hover:bg-red-400 text-white px-5 py-2 rounded-full text-sm font-bold transition-all">End Call</button>}
         </div>
 
-        {/* LINA — clean, no mouth overlay */}
         <div className="relative mb-6">
           {speaking&&<div className="absolute inset-0 rounded-full" style={{margin:"-18px",animation:"gp 2s ease-in-out infinite"}}/>}
           <div className="lina-alive relative overflow-hidden rounded-full shadow-2xl"
@@ -307,15 +355,14 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
           </div>
         </div>
 
-        {/* State */}
-        <div className="h-5 mb-4">
-          {listening&&<p className="text-emerald-300/70 text-xs font-medium flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"/>Listening...</p>}
-          {speaking&&<p className="text-indigo-300/70 text-xs font-medium flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse"/>Speaking...</p>}
-          {state==="thinking"&&<p className="text-amber-300/70 text-xs font-medium flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse"/>Processing...</p>}
-          {active&&!hasMicState&&<p className="text-orange-300/70 text-xs font-medium mt-1">🔇 Microphone not detected — listen-only mode</p>}
+        <div className="min-h-[20px] mb-4 text-center">
+          {listening&&<p className="text-emerald-300/70 text-xs font-medium flex items-center justify-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"/>Listening...</p>}
+          {speaking&&<p className="text-indigo-300/70 text-xs font-medium flex items-center justify-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse"/>Speaking...</p>}
+          {state==="thinking"&&<p className="text-amber-300/70 text-xs font-medium flex items-center justify-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse"/>Processing...</p>}
+          {active && micStatus === "denied" && <p className="text-red-300/80 text-xs font-medium mt-1">🔇 Microphone blocked — allow mic access in your browser settings and reload</p>}
+          {active && micStatus === "none" && state !== "connecting" && <p className="text-orange-300/70 text-xs font-medium mt-1">🔇 No microphone detected — listen-only mode</p>}
         </div>
 
-        {/* Transcript */}
         {active&&(
           <div ref={scrollRef} className="w-full max-w-xl bg-black/20 backdrop-blur rounded-2xl border border-white/8 p-4 max-h-40 overflow-y-auto">
             {transcript.length===0&&!currentText&&!userText&&<p className="text-white/25 text-sm text-center">Conversation will appear here...</p>}
@@ -331,7 +378,6 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
           </div>
         )}
 
-        {/* Snapshot */}
         {active&&Object.keys(snapshot).length>0&&(
           <div className="w-full max-w-xl mt-3 bg-white/6 backdrop-blur rounded-2xl border border-white/8 p-4">
             <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">📋 Trip Snapshot</div>
@@ -349,7 +395,6 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
           </div>
         )}
 
-        {/* Start */}
         {state==="idle"&&(
           <button onClick={startCall} className="mt-8 bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-400 hover:to-blue-400 text-white px-10 py-4 rounded-full text-lg font-bold shadow-2xl shadow-indigo-500/25 transition-all duration-300 hover:scale-105">
             <span className="flex items-center gap-3">
