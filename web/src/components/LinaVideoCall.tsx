@@ -220,7 +220,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
                     return o;
                   })()
                 : resampleTo24k(float32, nativeSR);
-              ws.send(JSON.stringify({ type: "input_audio_buffer.append", audio: arrayBufferToBase64(i16.buffer) }));
+              ws.send(JSON.stringify({ type: "input_audio_buffer.append", audio: arrayBufferToBase64(i16.buffer as ArrayBuffer) }));
             };
             hasMic = true;
           } catch (workletErr) {
@@ -247,7 +247,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
                       return o;
                     })()
                   : resampleTo24k(input, nativeSR);
-                ws.send(JSON.stringify({ type: "input_audio_buffer.append", audio: arrayBufferToBase64(i16.buffer) }));
+                ws.send(JSON.stringify({ type: "input_audio_buffer.append", audio: arrayBufferToBase64(i16.buffer as ArrayBuffer) }));
               };
               hasMic = true;
             } catch (fallbackErr) {
