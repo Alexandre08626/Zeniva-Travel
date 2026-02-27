@@ -98,6 +98,17 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
   const startCall = useCallback(async () => {
     setState("connecting"); setError(""); setTranscript([]); setElapsed(0); setSnapshot({});
     try {
+      // 1. Request microphone FIRST — must be in direct click handler for desktop browsers
+      let micStream: MediaStream | null = null;
+      try {
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        streamRef.current = micStream;
+      } catch (micErr: any) {
+        console.warn("Microphone denied or unavailable:", micErr);
+        // Continue without mic (listen-only mode)
+      }
+
+      // 2. Get session token from server
       const res = await fetch("/api/realtime-session", { method: "POST" });
       if (!res.ok) throw new Error("Session failed");
       const data = await res.json();
@@ -120,49 +131,50 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       ws.onopen = async () => {
         clearTimeout(wsTimeout);
         let hasMic = false;
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          streamRef.current = stream;
-          // Use native sample rate then resample to 24000
-          const actx = new AudioContext();
-          audioCtxRef.current = actx;
-          if (actx.state === "suspended") await actx.resume();
-          const nativeSR = actx.sampleRate;
-          const msrc = actx.createMediaStreamSource(stream);
-          const proc = actx.createScriptProcessor(4096, 1, 1);
-          processorRef.current = proc;
-          msrc.connect(proc).connect(actx.destination);
-          proc.onaudioprocess = (e) => {
-            if (ws.readyState !== WebSocket.OPEN) return;
-            const input = e.inputBuffer.getChannelData(0);
-            // Resample from native rate to 24000
-            let ch: Float32Array;
-            if (nativeSR === 24000) {
-              ch = input;
-            } else {
-              const ratio = 24000 / nativeSR;
-              const newLen = Math.round(input.length * ratio);
-              ch = new Float32Array(newLen);
-              for (let i = 0; i < newLen; i++) {
-                const srcIdx = i / ratio;
-                const idx = Math.floor(srcIdx);
-                const frac = srcIdx - idx;
-                ch[i] = idx + 1 < input.length
-                  ? input[idx] * (1 - frac) + input[idx + 1] * frac
-                  : input[idx] || 0;
+
+        // 3. Set up audio pipeline with the mic stream we already have
+        if (micStream) {
+          try {
+            const actx = new AudioContext();
+            audioCtxRef.current = actx;
+            if (actx.state === "suspended") await actx.resume();
+            const nativeSR = actx.sampleRate;
+            const msrc = actx.createMediaStreamSource(micStream);
+            const proc = actx.createScriptProcessor(4096, 1, 1);
+            processorRef.current = proc;
+            msrc.connect(proc).connect(actx.destination);
+            proc.onaudioprocess = (e) => {
+              if (ws.readyState !== WebSocket.OPEN) return;
+              const input = e.inputBuffer.getChannelData(0);
+              let ch: Float32Array;
+              if (nativeSR === 24000) {
+                ch = input;
+              } else {
+                const ratio = 24000 / nativeSR;
+                const newLen = Math.round(input.length * ratio);
+                ch = new Float32Array(newLen);
+                for (let i = 0; i < newLen; i++) {
+                  const srcIdx = i / ratio;
+                  const idx = Math.floor(srcIdx);
+                  const frac = srcIdx - idx;
+                  ch[i] = idx + 1 < input.length
+                    ? input[idx] * (1 - frac) + input[idx + 1] * frac
+                    : input[idx] || 0;
+                }
               }
-            }
-            const i16 = new Int16Array(ch.length);
-            for (let i = 0; i < ch.length; i++) {
-              const s = Math.max(-1, Math.min(1, ch[i]));
-              i16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-            }
-            ws.send(JSON.stringify({ type: "input_audio_buffer.append", audio: arrayBufferToBase64(i16.buffer) }));
-          };
-          hasMic = true;
-        } catch (micErr) {
-          console.log("No mic — listen-only mode", micErr);
+              const i16 = new Int16Array(ch.length);
+              for (let i = 0; i < ch.length; i++) {
+                const s = Math.max(-1, Math.min(1, ch[i]));
+                i16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+              }
+              ws.send(JSON.stringify({ type: "input_audio_buffer.append", audio: arrayBufferToBase64(i16.buffer) }));
+            };
+            hasMic = true;
+          } catch (audioErr) {
+            console.warn("Audio pipeline setup failed:", audioErr);
+          }
         }
+
         setState(hasMic ? "listening" : "speaking");
         ws.send(JSON.stringify({ type: "response.create", response: { modalities: ["audio", "text"] } }));
       };
