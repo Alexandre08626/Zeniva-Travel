@@ -110,7 +110,7 @@ function AgentCard({ agent, onSelect }: { agent: AgentDef; onSelect: (id: string
   return (
     <div
       onClick={() => onSelect(agent.id)}
-      className="group relative bg-white rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-gray-300/50 hover:-translate-y-2 border border-gray-200"
+      className="group relative bg-gray-950 rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-black/50 hover:-translate-y-2 border border-gray-800"
     >
       {/* Character Image — Big, centered */}
       <div className="relative w-full aspect-square overflow-hidden flex items-end justify-center" style={{ background: `linear-gradient(135deg, ${accentColor}08, ${accentColor}15)` }}>
@@ -128,26 +128,26 @@ function AgentCard({ agent, onSelect }: { agent: AgentDef; onSelect: (id: string
 
         {/* Status badge overlay */}
         <div className="absolute top-4 right-4">
-          <span className={`text-[10px] font-black px-3 py-1.5 rounded-full backdrop-blur-md tracking-wider shadow-lg bg-white/90 border border-gray-200 ${sc.badge}`}>
+          <span className={`text-[10px] font-black px-3 py-1.5 rounded-full backdrop-blur-md tracking-wider shadow-lg bg-black/70 border border-gray-700 ${sc.badge}`}>
             {isAlive && <span className={`inline-block h-1.5 w-1.5 rounded-full ${sc.dot} mr-1.5 animate-pulse`} />}
             {sc.label}
           </span>
         </div>
 
         {/* Gradient overlay at bottom */}
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white via-white/80 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-gray-950 via-gray-950/80 to-transparent" />
       </div>
 
       {/* Info section */}
       <div className="px-5 pb-5 -mt-8 relative z-10">
         {/* Name + Role */}
         <div className="mb-3">
-          <h3 className="text-xl font-black text-gray-900 tracking-tight">{agent.name}</h3>
+          <h3 className="text-xl font-black text-white tracking-tight">{agent.name}</h3>
           <p className="text-xs font-semibold mt-0.5" style={{ color: accentColor }}>{agent.type}</p>
         </div>
 
         {/* Short description */}
-        <p className="text-xs text-gray-500 leading-relaxed mb-4 line-clamp-2">
+        <p className="text-xs text-gray-400 leading-relaxed mb-4 line-clamp-2">
           {agent.description}
         </p>
 
@@ -163,7 +163,7 @@ function AgentCard({ agent, onSelect }: { agent: AgentDef; onSelect: (id: string
             </span>
           ))}
           {agent.features.length > 3 && (
-            <span className="text-[9px] font-semibold px-2 py-1 rounded-lg bg-gray-50 text-gray-400 border border-gray-200">
+            <span className="text-[9px] font-semibold px-2 py-1 rounded-lg bg-gray-800 text-gray-400 border border-gray-700">
               +{agent.features.length - 3} more
             </span>
           )}
@@ -172,7 +172,7 @@ function AgentCard({ agent, onSelect }: { agent: AgentDef; onSelect: (id: string
         {/* Discover button */}
         <div
           className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 group-hover:gap-3"
-          style={{ background: `${accentColor}10`, color: accentColor, border: `1px solid ${accentColor}25` }}
+          style={{ background: `${accentColor}20`, color: accentColor, border: `1px solid ${accentColor}40` }}
         >
           Discover {agent.name}
           <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -1219,11 +1219,11 @@ export default function AIAgentsPageClient() {
              TAB: AGENTS
             ═══════════════════════════════════════════════════════════════════════ */}
         {tab === "agents" && (
-          <div className="space-y-6">
+          <div className="space-y-6 bg-black rounded-3xl p-6 -mx-1">
             {/* View Switcher */}
             <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">View:</span>
-              <div className="flex gap-1 bg-gray-50 border border-gray-200 rounded-xl p-1">
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">View:</span>
+              <div className="flex gap-1 bg-gray-900 border border-gray-800 rounded-xl p-1">
                 {([
                   { id: "boss" as UserView, label: "👑 Boss", desc: "All agents" },
                   { id: "agent" as UserView, label: "🧑‍💼 Agents", desc: "Agent tools" },
@@ -1235,7 +1235,7 @@ export default function AIAgentsPageClient() {
                     className={`py-2 px-4 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
                       agentView === v.id
                         ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"
-                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                        : "text-gray-400 hover:text-gray-200 hover:bg-gray-800"
                     }`}
                   >
                     {v.label}
