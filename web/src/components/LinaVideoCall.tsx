@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { applyTripPatch, generateProposal } from "../../../lib/store/tripsStore";
 
 type CallState = "idle" | "connecting" | "connected" | "speaking" | "listening" | "thinking" | "error";
 
@@ -11,6 +12,8 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
   const [amplitude, setAmplitude] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState("");
+  const [snapshot, setSnapshot] = useState<Record<string, any>>({});
+  const fnArgsRef = useRef<Record<string, string>>({});
 
   const wsRef = useRef<WebSocket | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -148,6 +151,47 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
           case "input_audio_buffer.speech_stopped":
             setUserText("");
             break;
+          // Function call handling
+          case "response.function_call_arguments.delta":
+            if (msg.call_id) {
+              fnArgsRef.current[msg.call_id] = (fnArgsRef.current[msg.call_id] || "") + (msg.delta || "");
+            }
+            break;
+          case "response.function_call_arguments.done": {
+            const callId = msg.call_id;
+            const fnName = msg.name;
+            const argsStr = fnArgsRef.current[callId] || msg.arguments || "{}";
+            delete fnArgsRef.current[callId];
+            try {
+              const args = JSON.parse(argsStr);
+              if (fnName === "update_trip") {
+                // Update local snapshot display
+                setSnapshot(prev => ({ ...prev, ...args }));
+                // Update trip store
+                applyTripPatch(tripId, args);
+                // Send function result back
+                ws.send(JSON.stringify({
+                  type: "conversation.item.create",
+                  item: { type: "function_call_output", call_id: callId, output: JSON.stringify({ success: true, updated: Object.keys(args) }) }
+                }));
+              } else if (fnName === "generate_proposal") {
+                if (args.confirmed) {
+                  generateProposal(tripId);
+                  ws.send(JSON.stringify({
+                    type: "conversation.item.create",
+                    item: { type: "function_call_output", call_id: callId, output: JSON.stringify({ success: true, proposalUrl: `/proposals/${tripId}/select` }) }
+                  }));
+                  // Redirect after Lina confirms
+                  setTimeout(() => {
+                    window.location.href = `/proposals/${tripId}/select`;
+                  }, 3000);
+                }
+              }
+              // Trigger next response after function call
+              ws.send(JSON.stringify({ type: "response.create" }));
+            } catch (e) { console.error("Function call error:", e); }
+            break;
+          }
           case "error": console.error("Realtime error:", msg.error); break;
         }
       };
@@ -364,6 +408,26 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
             ))}
             {currentText && <div className="mb-2"><span className="inline-block px-3 py-1.5 rounded-2xl rounded-bl-sm text-sm bg-indigo-500/25 text-white/75"><span className="text-indigo-300 font-bold mr-1">Lina:</span>{currentText}</span></div>}
             {userText && <div className="mb-2 text-right"><span className="inline-block px-3 py-1.5 rounded-2xl rounded-br-sm text-sm bg-white/12 text-white/50 italic">{userText}</span></div>}
+          </div>
+        )}
+
+        {/* Trip Snapshot — fills in live */}
+        {isActive && Object.keys(snapshot).length > 0 && (
+          <div className="w-full max-w-xl mt-4 bg-white/8 backdrop-blur-md rounded-2xl border border-white/10 p-4">
+            <div className="text-xs font-bold text-white/50 uppercase tracking-widest mb-3">📋 Trip Snapshot</div>
+            <div className="grid grid-cols-2 gap-2">
+              {snapshot.destination && <div className="text-sm"><span className="text-white/40">Destination:</span> <span className="text-white font-semibold">{snapshot.destination}</span></div>}
+              {snapshot.departureCity && <div className="text-sm"><span className="text-white/40">From:</span> <span className="text-white font-semibold">{snapshot.departureCity}</span></div>}
+              {snapshot.checkIn && <div className="text-sm"><span className="text-white/40">Check-in:</span> <span className="text-white font-semibold">{snapshot.checkIn}</span></div>}
+              {snapshot.checkOut && <div className="text-sm"><span className="text-white/40">Check-out:</span> <span className="text-white font-semibold">{snapshot.checkOut}</span></div>}
+              {snapshot.adults && <div className="text-sm"><span className="text-white/40">Adults:</span> <span className="text-white font-semibold">{snapshot.adults}</span></div>}
+              {snapshot.children && <div className="text-sm"><span className="text-white/40">Children:</span> <span className="text-white font-semibold">{snapshot.children}</span></div>}
+              {snapshot.budget && <div className="text-sm"><span className="text-white/40">Budget:</span> <span className="text-white font-semibold">{snapshot.currency || "USD"} {snapshot.budget}</span></div>}
+              {snapshot.style && <div className="text-sm"><span className="text-white/40">Style:</span> <span className="text-white font-semibold">{snapshot.style}</span></div>}
+              {snapshot.accommodationType && <div className="text-sm"><span className="text-white/40">Stay:</span> <span className="text-white font-semibold">{snapshot.accommodationType}</span></div>}
+              {snapshot.transportationType && <div className="text-sm"><span className="text-white/40">Transport:</span> <span className="text-white font-semibold">{snapshot.transportationType}</span></div>}
+              {snapshot.notes && <div className="text-sm col-span-2"><span className="text-white/40">Notes:</span> <span className="text-white font-semibold">{snapshot.notes}</span></div>}
+            </div>
           </div>
         )}
 

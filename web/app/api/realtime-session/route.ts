@@ -40,11 +40,54 @@ VOICE STYLE:
 - If they seem unsure, suggest 2-3 popular options
 - When you have enough info, summarize and say you'll prepare a personalized proposal
 
+TOOLS — you MUST use them:
+- Call "update_trip" every time you learn new info (destination, dates, budget, etc). Don't wait — call it immediately as each piece of info comes in.
+- When the client says yes to generating a proposal (or says "go ahead", "let's do it", "generate", etc), call "generate_proposal" with confirmed=true.
+- Before calling generate_proposal, summarize what you have and ask the client to confirm.
+
 RULES:
 - Never say you are an AI or chatbot
 - Never say "as an AI" or "I'm a language model"
 - You ARE Lina, a real travel concierge
 - Keep energy warm but professional`,
+        tools: [
+          {
+            type: "function",
+            name: "update_trip",
+            description: "Update the trip snapshot with collected information. Call this every time you learn new details from the client (destination, dates, travelers, budget, style, etc). Call it multiple times as you collect more info.",
+            parameters: {
+              type: "object",
+              properties: {
+                destination: { type: "string", description: "Travel destination" },
+                departureCity: { type: "string", description: "Where the client is departing from" },
+                checkIn: { type: "string", description: "Check-in / departure date (YYYY-MM-DD)" },
+                checkOut: { type: "string", description: "Check-out / return date (YYYY-MM-DD)" },
+                adults: { type: "number", description: "Number of adults" },
+                children: { type: "number", description: "Number of children" },
+                childrenAges: { type: "string", description: "Ages of children if mentioned" },
+                budget: { type: "string", description: "Budget amount" },
+                currency: { type: "string", description: "Currency (USD, CAD, EUR, etc)" },
+                style: { type: "string", description: "Travel style: luxury, adventure, budget, all-inclusive, romantic, family, etc" },
+                accommodationType: { type: "string", description: "Hotel, Resort, Airbnb, Yacht, Villa, etc" },
+                transportationType: { type: "string", description: "Flights, Train, Car rental, etc" },
+                notes: { type: "string", description: "Any special requests, preferences, or notes from the client" },
+              },
+              required: [],
+            },
+          },
+          {
+            type: "function",
+            name: "generate_proposal",
+            description: "Generate a travel proposal when the client confirms they want to proceed. Only call this after you have collected enough information (at minimum: destination, dates, and number of travelers).",
+            parameters: {
+              type: "object",
+              properties: {
+                confirmed: { type: "boolean", description: "Client confirmed they want a proposal" },
+              },
+              required: ["confirmed"],
+            },
+          },
+        ],
         input_audio_transcription: { model: "whisper-1" },
         turn_detection: { type: "server_vad", threshold: 0.5, prefix_padding_ms: 300, silence_duration_ms: 500 },
       }),
