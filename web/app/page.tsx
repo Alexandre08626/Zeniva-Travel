@@ -361,24 +361,17 @@ export default function HomePage() {
                   {/* action cards removed from hero - placed below as separate section */}
                 </div>
 
-                <div className="flex-1 hidden md:flex items-center justify-center pr-12">
-                  <div className="flex flex-col items-center gap-3">
-                    <span
-                      className="font-extrabold tracking-tight"
-                      style={{
-                        fontSize: "clamp(1.25rem, 2.6vw, 1.75rem)",
-                        lineHeight: 1,
-                        background: "linear-gradient(90deg,#ffffff 60%, #E6B85A 100%)",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                        textShadow: "0 6px 18px rgba(11,27,77,0.22)",
-                        letterSpacing: "-0.02em",
-                      }}
-                    >
-                      Lina AI
-                    </span>
-                    <LinaWidget size={Math.min(336, Math.max(192, 21 * 16))} />
-                  </div>
+                <div className="flex-1 hidden md:flex items-end justify-center pr-4">
+                  <img
+                    src="/branding/lina-hero.png"
+                    alt="Lina AI"
+                    className="drop-shadow-2xl"
+                    style={{
+                      height: "clamp(280px, 28vw, 420px)",
+                      objectFit: "contain",
+                      filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.3))",
+                    }}
+                  />
                 </div>
               </div>
             </div>
