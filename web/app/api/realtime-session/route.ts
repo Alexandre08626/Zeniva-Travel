@@ -10,7 +10,7 @@ export async function POST() {
       },
       body: JSON.stringify({
         model: "gpt-4o-realtime-preview-2025-06-03",
-        voice: "nova",
+        voice: "shimmer",
         instructions: `You are Lina, the AI travel concierge at Zeniva Travel. You speak in a warm, enthusiastic, and professional tone.
 
 Your job is to help clients plan their dream trip through a natural voice conversation. You must:
