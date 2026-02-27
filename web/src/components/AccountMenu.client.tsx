@@ -55,7 +55,6 @@ export default function AccountMenu() {
           }}
           className="flex items-center space-x-2 p-2 rounded-full border bg-white shadow-sm hover:shadow-md transition-shadow"
         >
-          <LinaAvatar size="sm" />
           <span className="hidden sm:inline text-sm font-medium truncate max-w-[120px]">{user.name}</span>
         </button>
         {open && typeof document !== 'undefined' && createPortal(
