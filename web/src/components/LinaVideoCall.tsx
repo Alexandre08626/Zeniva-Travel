@@ -75,6 +75,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
 
     if (!playCtxRef.current) playCtxRef.current = new AudioContext({ sampleRate: 24000 });
     const ctx = playCtxRef.current;
+    if (ctx.state === "suspended") await ctx.resume();
 
     while (queueRef.current.length > 0) {
       const chunk = queueRef.current.shift()!;
@@ -148,10 +149,11 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       );
       wsRef.current = ws;
 
-      ws.onopen = () => {
+      ws.onopen = async () => {
 
         const actx = new AudioContext({ sampleRate: 24000 });
         audioCtxRef.current = actx;
+        if (actx.state === "suspended") await actx.resume();
         const msrc = actx.createMediaStreamSource(stream);
         const proc = actx.createScriptProcessor(4096, 1, 1);
         processorRef.current = proc;
@@ -289,7 +291,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
 
             {/* Mouth — only when speaking, driven by amplitude */}
             {speaking&&(
-              <svg className="absolute left-1/2 -translate-x-1/2" style={{top:"58%",width:"44px",height:"26px",pointerEvents:"none"}} viewBox="0 0 44 26">
+              <svg className="absolute left-1/2 -translate-x-1/2" style={{top:"66%",width:"44px",height:"26px",pointerEvents:"none"}} viewBox="0 0 44 26">
                 <ellipse cx="22" cy="13" rx={6+mo*9} ry={1+mo*9}
                   fill="rgba(15,5,5,.7)" style={{transition:"all .06s ease-out"}}/>
                 {mo>.5&&<rect x={22-(6+mo*9)*.6} y={13-(1+mo*9)*.35} width={(6+mo*9)*1.2} height="2" rx="1"
