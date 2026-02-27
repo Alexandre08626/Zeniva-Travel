@@ -35,10 +35,13 @@ export default function LinaHero() {
     if (!started) return;
     let cancelled = false;
 
+    let loopCount = 0;
+    const MAX_LOOPS = 2;
+
     const playMsg = (index: number) => {
       if (cancelled || index >= MESSAGES.length) {
-        // Loop back after a pause
-        if (!cancelled) {
+        loopCount++;
+        if (!cancelled && loopCount < MAX_LOOPS) {
           setTimeout(() => { if (!cancelled) playMsg(0); }, 3000);
         }
         return;
