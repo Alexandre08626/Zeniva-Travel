@@ -306,7 +306,7 @@ export default function AIAgentsPageClient() {
       const reply = data.choices?.[0]?.message?.content || "…";
       setChatMsgs(prev => [...prev, { role: "assistant", content: reply }]);
     } catch {
-      setChatMsgs(prev => [...prev, { role: "assistant", content: "❌ Erreur de connexion au serveur" }]);
+      setChatMsgs(prev => [...prev, { role: "assistant", content: "❌ Server connection error" }]);
     } finally {
       setChatLoading(false);
     }
@@ -1266,11 +1266,11 @@ export default function AIAgentsPageClient() {
               <div className="h-10 w-10 rounded-full bg-indigo-500 flex items-center justify-center text-xl">✈️</div>
               <div className="flex-1">
                 <div className="font-bold">Zeniva AI</div>
-                <div className="text-xs text-indigo-200">Assistant IA · OpenClaw</div>
+                <div className="text-xs text-indigo-200">AI Assistant · OpenClaw</div>
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-xs text-indigo-200">En ligne</span>
+                <span className="text-xs text-indigo-200">Online</span>
               </div>
             </div>
 
@@ -1279,8 +1279,8 @@ export default function AIAgentsPageClient() {
               {chatMsgs.length === 0 && (
                 <div className="text-center text-gray-400 mt-20 space-y-3">
                   <div className="text-5xl">💬</div>
-                  <div className="text-base font-medium">Salut Boss!</div>
-                  <div className="text-sm">Envoie un message pour commencer à travailler avec moi.</div>
+                  <div className="text-base font-medium">Hey Boss!</div>
+                  <div className="text-sm">Send a message to start working with me.</div>
                 </div>
               )}
               {chatMsgs.map((m, i) => (
@@ -1319,7 +1319,7 @@ export default function AIAgentsPageClient() {
                   value={chatInput}
                   onChange={e => setChatInput(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendChat()}
-                  placeholder="Écris ton message..."
+                  placeholder="Type your message..."
                   className="flex-1 px-4 py-3 bg-gray-100 rounded-xl text-sm text-gray-800 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
                   disabled={chatLoading}
                 />
