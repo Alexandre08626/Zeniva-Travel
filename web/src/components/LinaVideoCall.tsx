@@ -22,6 +22,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
   const [userText, setUserText] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState("");
+  const [hasMicState, setHasMicState] = useState(false);
   const [snapshot, setSnapshot] = useState<Record<string, any>>({});
 
   const wsRef = useRef<WebSocket | null>(null);
@@ -167,7 +168,12 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
             const msrc = actx.createMediaStreamSource(micStream);
             const proc = actx.createScriptProcessor(4096, 1, 1);
             processorRef.current = proc;
-            msrc.connect(proc).connect(actx.destination);
+            // Silent gain prevents mic→speaker feedback that kills VAD on desktop
+            const silentGain = actx.createGain();
+            silentGain.gain.value = 0;
+            msrc.connect(proc);
+            proc.connect(silentGain);
+            silentGain.connect(actx.destination);
             proc.onaudioprocess = (e) => {
               if (ws.readyState !== WebSocket.OPEN) return;
               const input = e.inputBuffer.getChannelData(0);
@@ -195,6 +201,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
               ws.send(JSON.stringify({ type: "input_audio_buffer.append", audio: arrayBufferToBase64(i16.buffer) }));
             };
             hasMic = true;
+            setHasMicState(true);
           } catch (audioErr) {
             console.warn("Audio pipeline setup failed:", audioErr);
           }
@@ -305,6 +312,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
           {listening&&<p className="text-emerald-300/70 text-xs font-medium flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"/>Listening...</p>}
           {speaking&&<p className="text-indigo-300/70 text-xs font-medium flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse"/>Speaking...</p>}
           {state==="thinking"&&<p className="text-amber-300/70 text-xs font-medium flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse"/>Processing...</p>}
+          {active&&!hasMicState&&<p className="text-orange-300/70 text-xs font-medium mt-1">🔇 Microphone not detected — listen-only mode</p>}
         </div>
 
         {/* Transcript */}
