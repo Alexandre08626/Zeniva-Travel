@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BRAND_BLUE, PREMIUM_BLUE, ACCENT_GOLD, LIGHT_BG, MUTED_TEXT, TITLE_TEXT } from "../../src/design/tokens";
-import { useTripsStore, addMessage, updateSnapshot, updateTrip, applyTripPatch, generateProposal, mergeTripMessages, setTripTitle } from "../../lib/store/tripsStore";
+import { useTripsStore, addMessage, updateSnapshot, updateTrip, applyTripPatch, generateProposal, mergeTripMessages, setTripTitle, createTrip } from "../../lib/store/tripsStore";
 import { sendMessageToLina } from "../../src/lib/linaClient";
 import Label from "../../src/components/Label";
 import { useAuthStore } from "../../src/lib/authStore";
@@ -142,41 +142,51 @@ function snapshotPatchFromTrip(trip) {
 
 function createTripFromMergedTrip(mergedTrip, proposalSuffix = "") {
   if (typeof window === 'undefined') return;
-  const key = 'zeniva_trips_store_v1__guest';
-  let store = {};
-  try {
-    store = JSON.parse(window.localStorage.getItem(key)) || {};
-  } catch (e) {}
-  if (!store.trips) store.trips = [];
-  if (!store.snapshots) store.snapshots = {};
-  if (!store.proposals) store.proposals = {};
-  if (!store.selections) store.selections = {};
 
-  const newTripId = 'trip-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-  const now = new Date().toISOString();
+  const destination = mergedTrip.destination || mergedTrip.destinationCode || 'New Trip';
+  const departure = mergedTrip.origin || mergedTrip.departure || '';
+  const dates = mergedTrip.checkIn && mergedTrip.checkOut ? `${mergedTrip.checkIn} → ${mergedTrip.checkOut}` : (mergedTrip.dates || '');
+  const travelers = mergedTrip.adults ? `${mergedTrip.adults} adults` : (mergedTrip.travelers || '');
 
-  // Save a normalized snapshot from mergedTrip
-  store.trips.unshift({ id: newTripId, title: mergedTrip.destination || mergedTrip.destinationCode || 'New Trip', status: 'Ready', lastMessage: '', updatedAt: now, createdAt: now });
-  store.snapshots[newTripId] = {
-    departure: mergedTrip.origin || mergedTrip.departure || '',
-    destination: mergedTrip.destination || mergedTrip.destinationCode || '',
-    dates: mergedTrip.checkIn && mergedTrip.checkOut ? `${mergedTrip.checkIn} → ${mergedTrip.checkOut}` : (mergedTrip.dates || ''),
+  // Use Zustand store actions (persists properly to localStorage)
+  const newTripId = createTrip({
+    title: destination,
+    destination,
+    departure,
+    dates,
+    travelers,
+    budget: mergedTrip.budget || '',
+    style: mergedTrip.style || mergedTrip.accommodation || '',
+    status: 'Ready',
+  });
+
+  updateSnapshot(newTripId, {
+    departure,
+    destination,
+    dates,
     checkIn: mergedTrip.checkIn || '',
     checkOut: mergedTrip.checkOut || '',
     adults: mergedTrip.adults || mergedTrip.adultsCount || 0,
-    travelers: mergedTrip.adults ? `${mergedTrip.adults} adults` : (mergedTrip.travelers || ''),
+    travelers,
     budget: mergedTrip.budget || '',
     style: mergedTrip.style || mergedTrip.accommodation || '',
     accommodationType: mergedTrip.accommodationType || '',
     transportationType: mergedTrip.transportationType || '',
-  };
+  });
 
-  store.proposals[newTripId] = { tripId: newTripId, title: store.snapshots[newTripId].destination, sections: [{ title: 'Flights', items: [] }, { title: 'Hotels', items: [] }], priceEstimate: mergedTrip.budget || '', images: [], notes: '', updatedAt: now };
-  store.selections[newTripId] = { flight: null, hotel: null };
+  applyTripPatch(newTripId, {
+    departureCity: departure,
+    destination,
+    checkIn: mergedTrip.checkIn || '',
+    checkOut: mergedTrip.checkOut || '',
+    adults: mergedTrip.adults || mergedTrip.adultsCount || 2,
+    budget: mergedTrip.budget || '',
+    style: mergedTrip.style || mergedTrip.accommodation || '',
+    accommodationType: mergedTrip.accommodationType || '',
+    transportationType: mergedTrip.transportationType || '',
+  });
 
-  try {
-    window.localStorage.setItem(key, JSON.stringify(store));
-  } catch (e) {}
+  generateProposal(newTripId);
 
   // Redirect depending on style
   const styleLower = (mergedTrip.style || (mergedTrip.accommodation || '')).toString().toLowerCase();
@@ -263,25 +273,45 @@ function ChatThread({ tripId, proposalMode = "" }) {
       snapshot.budget &&
       snapshot.style
     ) {
+      // Use Zustand store actions (which persist to localStorage properly)
+      const newTripId = createTrip({
+        title: snapshot.destination,
+        destination: snapshot.destination,
+        departure: snapshot.departure,
+        dates: snapshot.dates,
+        travelers: snapshot.travelers,
+        budget: snapshot.budget,
+        style: snapshot.style,
+        status: "Ready",
+      });
+
+      // Copy full snapshot to new trip
+      updateSnapshot(newTripId, { ...snapshot });
+
+      // Build tripDraft from snapshot so the select page APIs can fire
+      const draftPatch = {};
+      if (snapshot.departure) draftPatch.departureCity = snapshot.departure.split(' - ')[0] || snapshot.departure;
+      if (snapshot.destination) draftPatch.destination = snapshot.destination.split(' - ')[0] || snapshot.destination;
+      if (snapshot.dates) {
+        const parts = snapshot.dates.split(' → ');
+        if (parts[0]) draftPatch.checkIn = parts[0].trim();
+        if (parts[1]) draftPatch.checkOut = parts[1].trim();
+      }
+      if (snapshot.travelers) {
+        const adultsMatch = snapshot.travelers.match(/(\d+)/);
+        if (adultsMatch) draftPatch.adults = parseInt(adultsMatch[1]);
+      }
+      if (snapshot.budget) draftPatch.budget = snapshot.budget;
+      if (snapshot.style) draftPatch.style = snapshot.style;
+      if (snapshot.accommodationType) draftPatch.accommodationType = snapshot.accommodationType;
+      if (snapshot.transportationType) draftPatch.transportationType = snapshot.transportationType;
+
+      applyTripPatch(newTripId, draftPatch);
+      generateProposal(newTripId);
+
+      // Navigate to proposal selection page
       if (typeof window !== 'undefined') {
-        const key = 'zeniva_trips_store_v1__guest';
-        let store = {};
-        try {
-          store = JSON.parse(window.localStorage.getItem(key)) || {};
-        } catch (e) {}
-        if (!store.trips) store.trips = [];
-        if (!store.snapshots) store.snapshots = {};
-        if (!store.proposals) store.proposals = {};
-        if (!store.selections) store.selections = {};
-        const tripId = 'trip-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-        const now = new Date().toISOString();
-        store.trips.unshift({ id: tripId, title: snapshot.destination, status: 'Ready', lastMessage: '', updatedAt: now, createdAt: now });
-        store.snapshots[tripId] = { ...snapshot };
-        store.proposals[tripId] = { tripId, title: snapshot.destination, sections: [{ title: 'Flights', items: [] }, { title: 'Hotels', items: [] }], priceEstimate: snapshot.budget, images: [], notes: '', updatedAt: now };
-        store.selections[tripId] = { flight: null, hotel: null };
-        window.localStorage.setItem(key, JSON.stringify(store));
-        generateProposal(tripId);
-        window.location.href = `/proposals/${tripId}/select${proposalSuffix}`;
+        window.location.href = `/proposals/${newTripId}/select${proposalSuffix}`;
       }
     }
   }, [userHasInteracted, snapshot.departure, snapshot.destination, snapshot.dates, snapshot.travelers, snapshot.budget, snapshot.style]);
