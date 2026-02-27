@@ -122,19 +122,18 @@ export default function Header({
     <>
       <div className="mb-6 flex items-center justify-between header-main" style={{ paddingTop: '6px' }}>
         <div className="flex items-center gap-4 header-left">
-          {/* Mobile: logo et titre centrés, rien d'autre */}
+          {/* Mobile: Lina avatar et titre centrés */}
           <div className="w-full flex flex-col items-center justify-center sm:hidden">
-            <Image src="/branding/logo.png" alt="Zeniva logo" width={56} height={56} className="mx-auto mb-1" />
+            <Image src="/agents/lina.png" alt="Lina AI" width={56} height={56} className="mx-auto mb-1 rounded-full" />
             <span className="text-lg font-extrabold text-center" style={{ color: TITLE_TEXT }}>{process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva Travel'}</span>
           </div>
-          {/* Desktop: logo et titre comme avant */}
+          {/* Desktop: Lina avatar et titre */}
           <Link href="/" className="items-center gap-3 hidden sm:flex">
-            <Image src="/branding/logo.png" alt="Zeniva logo" width={56} height={56} />
+            <Image src="/agents/lina.png" alt="Lina AI" width={56} height={56} className="rounded-full" />
             <div>
               <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>{process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva Travel'}</div>
-              <div className="text-xs flex items-center gap-1" style={{ color: MUTED_TEXT }}>
+              <div className="text-xs" style={{ color: MUTED_TEXT }}>
                 <AutoTranslate text="Powered by Lina AI" className="inline" />
-                <LinaAvatar size="sm" />
               </div>
             </div>
           </Link>
