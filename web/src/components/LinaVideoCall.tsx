@@ -291,7 +291,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
 
             {/* Mouth — only when speaking, driven by amplitude */}
             {speaking&&(
-              <svg className="absolute left-1/2 -translate-x-1/2" style={{top:"66%",width:"44px",height:"26px",pointerEvents:"none"}} viewBox="0 0 44 26">
+              <svg className="absolute left-1/2 -translate-x-1/2" style={{top:"52%",width:"44px",height:"26px",pointerEvents:"none"}} viewBox="0 0 44 26">
                 <ellipse cx="22" cy="13" rx={6+mo*9} ry={1+mo*9}
                   fill="rgba(15,5,5,.7)" style={{transition:"all .06s ease-out"}}/>
                 {mo>.5&&<rect x={22-(6+mo*9)*.6} y={13-(1+mo*9)*.35} width={(6+mo*9)*1.2} height="2" rx="1"
