@@ -378,13 +378,105 @@ export default function HomePage() {
         </div>
       </section>
 
-      <div className="mx-auto w-full max-w-none px-6 pb-16">
+      {/* ========== MOBILE SECTIONS (below hero) ========== */}
+      <div className="sm:hidden px-5 pb-12" style={{ background: `linear-gradient(180deg, ${GRADIENT_END} 0%, #0A1628 8%, #0A1628 100%)` }}>
 
-        {/* 3 large tiles BELOW the hero (aligned with page content) */}
+        {/* How Lina works */}
+        <section className="pt-10 pb-8">
+          <h2 className="text-xl font-black text-white mb-5 text-center">How it works</h2>
+          <div className="flex gap-3">
+            {[
+              { step: "1", icon: "💬", title: "Tell Lina", desc: "Your dream trip" },
+              { step: "2", icon: "✨", title: "She Plans", desc: "Flights + Hotels" },
+              { step: "3", icon: "✅", title: "You Book", desc: "Ready to go" },
+            ].map((s) => (
+              <div key={s.step} className="flex-1 bg-white/8 rounded-2xl p-3 border border-white/8 text-center">
+                <div className="text-2xl mb-1">{s.icon}</div>
+                <div className="text-xs font-bold text-white">{s.title}</div>
+                <div className="text-[10px] text-white/45">{s.desc}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Quick actions grid */}
+        <section className="pb-8">
+          <h2 className="text-xl font-black text-white mb-4">Quick access</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <Link href="/proposals" className="bg-white/8 border border-white/8 rounded-2xl p-4 active:bg-white/12 transition-colors">
+              <div className="text-2xl mb-2">📋</div>
+              <div className="text-sm font-bold text-white">My Proposals</div>
+              <div className="text-[11px] text-white/45 mt-1">View your trips</div>
+            </Link>
+            <Link href="/yachts" className="bg-white/8 border border-white/8 rounded-2xl p-4 active:bg-white/12 transition-colors">
+              <div className="text-2xl mb-2">🛥️</div>
+              <div className="text-sm font-bold text-white">Yachts</div>
+              <div className="text-[11px] text-white/45 mt-1">Luxury charters</div>
+            </Link>
+            <Link href="/partners/resorts" className="bg-white/8 border border-white/8 rounded-2xl p-4 active:bg-white/12 transition-colors">
+              <div className="text-2xl mb-2">🏨</div>
+              <div className="text-sm font-bold text-white">Resorts</div>
+              <div className="text-[11px] text-white/45 mt-1">Partner stays</div>
+            </Link>
+            <Link href="/residences" className="bg-white/8 border border-white/8 rounded-2xl p-4 active:bg-white/12 transition-colors">
+              <div className="text-2xl mb-2">🏠</div>
+              <div className="text-sm font-bold text-white">Rentals</div>
+              <div className="text-[11px] text-white/45 mt-1">Short-term stays</div>
+            </Link>
+            <Link href="/collections/group" className="bg-white/8 border border-white/8 rounded-2xl p-4 active:bg-white/12 transition-colors">
+              <div className="text-2xl mb-2">👥</div>
+              <div className="text-sm font-bold text-white">Group Trips</div>
+              <div className="text-[11px] text-white/45 mt-1">Travel together</div>
+            </Link>
+            <Link href="/packages" className="bg-white/8 border border-white/8 rounded-2xl p-4 active:bg-white/12 transition-colors">
+              <div className="text-2xl mb-2">🔥</div>
+              <div className="text-sm font-bold text-white">Deals</div>
+              <div className="text-[11px] text-white/45 mt-1">Hot packages</div>
+            </Link>
+          </div>
+        </section>
+
+        {/* Featured Trips */}
+        <section className="pb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-black text-white">Featured Trips</h2>
+            <Link href="/packages" className="text-xs font-bold text-indigo-400">View all →</Link>
+          </div>
+          <FeaturedTripsSection />
+        </section>
+
+        {/* Lina CTA */}
+        <section className="pb-8">
+          <div className="rounded-2xl overflow-hidden" style={{ background: `linear-gradient(135deg, ${GRADIENT_START}, ${GRADIENT_END})` }}>
+            <div className="p-5 flex items-center gap-4">
+              <img src="/branding/lina-hero.png" alt="Lina" className="h-16 w-16 rounded-full object-cover object-top border-2 border-white/20 flex-shrink-0" />
+              <div className="flex-1">
+                <div className="text-white font-bold text-base">Ready to plan?</div>
+                <div className="text-white/60 text-xs mt-0.5">Lina is available 24/7</div>
+              </div>
+              <Link href="/chat" className="bg-white rounded-full px-4 py-2 text-xs font-bold flex-shrink-0" style={{ color: PREMIUM_BLUE }}>
+                Start →
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Footer mini */}
+        <div className="pt-6 border-t border-white/8 flex items-center justify-center gap-4 text-white/25 text-[10px]">
+          <span>© Zeniva Travel</span>
+          <Link href="/privacy" className="hover:text-white/40">Privacy</Link>
+          <Link href="/terms" className="hover:text-white/40">Terms</Link>
+        </div>
+      </div>
+
+      {/* ========== DESKTOP SECTIONS ========== */}
+      <div className="hidden sm:block mx-auto w-full max-w-none px-6 pb-16">
+
+        {/* 3 large tiles */}
         <section className="mt-6 mb-12">
           <div className="w-full">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Link href="/chat" className="hidden sm:block rounded-2xl overflow-hidden shadow-xl group">
+            <div className="grid grid-cols-3 gap-4">
+              <Link href="/chat" className="rounded-2xl overflow-hidden shadow-xl group">
                 <div className="relative h-44 md:h-56 lg:h-64 bg-slate-50 flex flex-col items-center justify-center gap-3 p-4">
                   <div className="w-16 h-16 rounded-full bg-slate-900/5 flex items-center justify-center">
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -395,26 +487,19 @@ export default function HomePage() {
                   <div className="text-sm text-slate-500"><AutoTranslate text="Start a conversation" className="inline" /></div>
                 </div>
               </Link>
-
-              <Link href="/call" className="hidden sm:block rounded-2xl overflow-hidden shadow-xl group">
+              <Link href="/call" className="rounded-2xl overflow-hidden shadow-xl group">
                 <div className="relative h-44 md:h-56 lg:h-64 bg-slate-50 flex flex-col items-center justify-center gap-3 p-4">
                   <div className="w-16 h-16 rounded-full bg-slate-900/5 flex items-center justify-center">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#0F172A" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M22 16.92V20a1 1 0 0 1-1 1 19 19 0 0 1-8.63-2.21A19 19 0 0 1 3 8a1 1 0 0 1 1-1h3.09a1 1 0 0 1 1 .75c.14.7.48 1.9 1.2 3.04a1 1 0 0 1-.24 1.26l-1.2 1.2a12 12 0 0 0 6.6 6.6l1.2-1.2a1 1 0 0 1 1.26-.24c1.14.72 2.34 1.06 3.04 1.2a1 1 0 0 1 .75 1V20z" />
-                    </svg>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#0F172A" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92V20a1 1 0 0 1-1 1 19 19 0 0 1-8.63-2.21A19 19 0 0 1 3 8a1 1 0 0 1 1-1h3.09a1 1 0 0 1 1 .75c.14.7.48 1.9 1.2 3.04a1 1 0 0 1-.24 1.26l-1.2 1.2a12 12 0 0 0 6.6 6.6l1.2-1.2a1 1 0 0 1 1.26-.24c1.14.72 2.34 1.06 3.04 1.2a1 1 0 0 1 .75 1V20z"/></svg>
                   </div>
                   <div className="text-lg font-extrabold text-slate-900"><AutoTranslate text="Call Lina" className="inline" /></div>
                   <div className="text-sm text-slate-500"><AutoTranslate text="Speak with concierge" className="inline" /></div>
                 </div>
               </Link>
-
-              <Link href="/proposals" className="block rounded-2xl overflow-hidden shadow-xl group">
+              <Link href="/proposals" className="rounded-2xl overflow-hidden shadow-xl group">
                 <div className="relative h-44 md:h-56 lg:h-64 bg-slate-50 flex flex-col items-center justify-center gap-3 p-4">
                   <div className="w-16 h-16 rounded-full bg-slate-900/5 flex items-center justify-center">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M6 5h12v14H6z" stroke="#0F172A" strokeWidth="1.5" strokeLinejoin="round" />
-                      <path d="M9 9h6M9 12h6M9 15h4" stroke="#0F172A" strokeWidth="1.5" strokeLinecap="round" />
-                    </svg>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 5h12v14H6z" stroke="#0F172A" strokeWidth="1.5" strokeLinejoin="round"/><path d="M9 9h6M9 12h6M9 15h4" stroke="#0F172A" strokeWidth="1.5" strokeLinecap="round"/></svg>
                   </div>
                   <div className="text-lg font-extrabold text-slate-900"><AutoTranslate text="Proposals" className="inline" /></div>
                   <div className="text-sm text-slate-500"><AutoTranslate text="View curated proposals" className="inline" /></div>
@@ -424,24 +509,16 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* COLLECTIONS CAROUSEL */}
+        {/* COLLECTIONS */}
         <section className="mt-20 mb-20">
           <div className="mb-8 flex flex-col items-center text-center gap-2">
-            <h2 className="text-4xl font-black" style={{ color: TITLE_TEXT }}>
-              <AutoTranslate text="Collection & Themes" className="inline" />
-            </h2>
+            <h2 className="text-4xl font-black" style={{ color: TITLE_TEXT }}><AutoTranslate text="Collection & Themes" className="inline" /></h2>
             <p className="text-slate-600"><AutoTranslate text="Browse curated travel collections tailored by Lina." className="inline" /></p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {COLLECTIONS.map((c) => (
-              <Link
-                key={c.id}
-                href={c.href || `/collections/${c.title.toLowerCase().replace(/\s+/g,'-')}`}
-                className="rounded-2xl border border-slate-200 bg-white p-6 hover:shadow-lg transition w-full cursor-pointer"
-              >
-                <div className="text-4xl mb-3">
-                  <Icon name={c.icon} />
-                </div>
+              <Link key={c.id} href={c.href || `/collections/${c.title.toLowerCase().replace(/\s+/g,'-')}`} className="rounded-2xl border border-slate-200 bg-white p-6 hover:shadow-lg transition w-full cursor-pointer">
+                <div className="text-4xl mb-3"><Icon name={c.icon} /></div>
                 <h3 className="text-lg font-bold" style={{ color: TITLE_TEXT }}><AutoTranslate text={c.title} className="inline" /></h3>
                 <p className="text-sm text-slate-500 mt-1"><AutoTranslate text={c.description} className="inline" /></p>
               </Link>
@@ -453,73 +530,32 @@ export default function HomePage() {
         <section className="mt-20 mb-20">
           <div className="relative mb-8">
             <div className="flex flex-col items-center text-center gap-2">
-              <h2 className="text-4xl font-black" style={{ color: TITLE_TEXT }}>
-                <AutoTranslate text="Featured Trips by Lina" className="inline" />
-              </h2>
+              <h2 className="text-4xl font-black" style={{ color: TITLE_TEXT }}><AutoTranslate text="Featured Trips by Lina" className="inline" /></h2>
               <p className="text-slate-600"><AutoTranslate text="Hand-picked proposals ready to book." className="inline" /></p>
             </div>
-            <Link
-              href="/packages"
-              className="text-sm font-bold underline hidden md:block absolute right-0 top-1/2 -translate-y-1/2"
-              style={{ color: PREMIUM_BLUE }}
-            >
-              View all →
-            </Link>
+            <Link href="/packages" className="text-sm font-bold underline hidden md:block absolute right-0 top-1/2 -translate-y-1/2" style={{ color: PREMIUM_BLUE }}>View all →</Link>
           </div>
           <FeaturedTripsSection />
         </section>
 
-        {/* WHY LINA SECTION */}
-        <section className="mt-20 mb-20 rounded-3xl p-10 md:p-16 text-white relative overflow-hidden hidden sm:block" style={{ backgroundColor: PREMIUM_BLUE }}>
+        {/* WHY LINA */}
+        <section className="mt-20 mb-20 rounded-3xl p-10 md:p-16 text-white relative overflow-hidden" style={{ backgroundColor: PREMIUM_BLUE }}>
           <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none rounded-3xl"></div>
           <div className="relative z-10 max-w-3xl">
             <div className="flex items-center gap-4 mb-6">
-              <div className="h-16 w-16 rounded-full bg-white/10 flex items-center justify-center overflow-hidden">
-                <LinaAvatar size="md" className="h-full w-full" />
-              </div>
+              <div className="h-16 w-16 rounded-full bg-white/10 flex items-center justify-center overflow-hidden"><LinaAvatar size="md" className="h-full w-full" /></div>
               <div>
                 <h3 className="text-2xl font-black"><AutoTranslate text="Lina AI, Your Travel Genius" className="inline" /></h3>
                 <p className="text-sm text-white/80 mt-1"><AutoTranslate text="Powered by Zeniva Intelligence" className="inline" /></p>
               </div>
             </div>
-
-            <p className="text-lg font-semibold leading-8 mb-8">
-              <AutoTranslate text="Lina asks clarifying questions about your preferences, budget, and dates — then generates hand-picked proposals combining flights, hotels, and experiences. No cookie-cutter packages. Just travel tailored to you." className="inline" />
-            </p>
-
+            <p className="text-lg font-semibold leading-8 mb-8"><AutoTranslate text="Lina asks clarifying questions about your preferences, budget, and dates — then generates hand-picked proposals combining flights, hotels, and experiences. No cookie-cutter packages. Just travel tailored to you." className="inline" /></p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <div className="mb-2">
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 14h-2v-2h2v2zm0-4h-2V6h2v6z" fill="#FFF"/></svg>
-                </div>
-                <h4 className="font-bold mb-2"><AutoTranslate text="She Asks" className="inline" /></h4>
-                <p className="text-sm text-white/80"><AutoTranslate text="Departure city, dates, budget & vibe" className="inline" /></p>
-              </div>
-              <div>
-                <div className="mb-2">
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3l2 5 5 .5-4 3 1.2 5L12 15l-4.2 2.5L9 11 5 8l5-.5L12 3z" fill="#FFF"/></svg>
-                </div>
-                <h4 className="font-bold mb-2"><AutoTranslate text="She Curates" className="inline" /></h4>
-                <p className="text-sm text-white/80"><AutoTranslate text="Optimized flight + hotel combos" className="inline" /></p>
-              </div>
-              <div>
-                <div className="mb-2">
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4" stroke="#FFF" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </div>
-                <h4 className="font-bold mb-2"><AutoTranslate text="You Book" className="inline" /></h4>
-                <p className="text-sm text-white/80"><AutoTranslate text="Ready-to-checkout itineraries" className="inline" /></p>
-              </div>
+              <div><div className="mb-2"><svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 14h-2v-2h2v2zm0-4h-2V6h2v6z" fill="#FFF"/></svg></div><h4 className="font-bold mb-2"><AutoTranslate text="She Asks" className="inline"/></h4><p className="text-sm text-white/80"><AutoTranslate text="Departure city, dates, budget & vibe" className="inline"/></p></div>
+              <div><div className="mb-2"><svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M12 3l2 5 5 .5-4 3 1.2 5L12 15l-4.2 2.5L9 11 5 8l5-.5L12 3z" fill="#FFF"/></svg></div><h4 className="font-bold mb-2"><AutoTranslate text="She Curates" className="inline"/></h4><p className="text-sm text-white/80"><AutoTranslate text="Optimized flight + hotel combos" className="inline"/></p></div>
+              <div><div className="mb-2"><svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#FFF" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg></div><h4 className="font-bold mb-2"><AutoTranslate text="You Book" className="inline"/></h4><p className="text-sm text-white/80"><AutoTranslate text="Ready-to-checkout itineraries" className="inline"/></p></div>
             </div>
-
-            <div className="mt-10">
-              <Link
-                href="/chat"
-                className="inline-block rounded-full px-8 py-3 text-sm font-extrabold bg-white"
-                style={{ color: PREMIUM_BLUE }}
-              >
-                <AutoTranslate text="Start Planning Now →" className="inline" />
-              </Link>
-            </div>
+            <div className="mt-10"><Link href="/chat" className="inline-block rounded-full px-8 py-3 text-sm font-extrabold bg-white" style={{ color: PREMIUM_BLUE }}><AutoTranslate text="Start Planning Now →" className="inline" /></Link></div>
           </div>
         </section>
 
