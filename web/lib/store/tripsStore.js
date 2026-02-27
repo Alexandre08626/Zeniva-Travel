@@ -313,7 +313,10 @@ export async function generateProposal(tripId) {
   const trip = state.trips.find((t) => t.id === ensuredId) || { title: "Trip" };
   const sections = [];
 
-  if (tripDraft.transportationType === "Flights") {
+  const transport = (tripDraft.transportationType || "").toLowerCase();
+  // Default: include flights when we have a destination (unless explicitly train/car/etc)
+  const showFlights = transport === "flights" || transport === "" || !tripDraft.transportationType;
+  if (showFlights && (tripDraft.destination || tripDraft.departureCity)) {
     sections.push({
       title: "Flights",
       items: [
@@ -323,7 +326,7 @@ export async function generateProposal(tripId) {
         tripDraft.cabinClass ? `Class: ${tripDraft.cabinClass}` : "Economy",
       ],
     });
-  } else if (tripDraft.transportationType) {
+  } else if (tripDraft.transportationType && !showFlights) {
     // when not flights, describe other transport
     sections.push({
       title: "Transportation",
