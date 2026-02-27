@@ -104,13 +104,21 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       const key = data.client_secret?.value;
       if (!key) throw new Error(data.error || "No token");
 
-      const ws = new WebSocket(
-        "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2025-06-03",
-        ["realtime", `openai-insecure-api-key.${key}`, "openai-beta.realtime-v1"]
-      );
+      const wsUrl = `wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2025-06-03`;
+      const ws = new WebSocket(wsUrl, ["realtime", `openai-insecure-api-key.${key}`, "openai-beta.realtime-v1"]);
       wsRef.current = ws;
 
+      // Timeout if WS doesn't connect in 10s
+      const wsTimeout = setTimeout(() => {
+        if (ws.readyState !== WebSocket.OPEN) {
+          ws.close();
+          setError("Connection timeout. Please try again.");
+          setState("error");
+        }
+      }, 10000);
+
       ws.onopen = async () => {
+        clearTimeout(wsTimeout);
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         streamRef.current = stream;
         const actx = new AudioContext({ sampleRate: 24000 });
@@ -174,8 +182,8 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
         }
       };
 
-      ws.onerror = () => { setError("Connection lost"); setState("error"); };
-      ws.onclose = () => { if (stateRef.current !== "error") setState("idle"); };
+      ws.onerror = (e) => { clearTimeout(wsTimeout); console.error("WS error", e); setError("Connection error. Please try again."); setState("error"); };
+      ws.onclose = (e) => { clearTimeout(wsTimeout); console.log("WS closed", e.code, e.reason); if (stateRef.current !== "error") setState("idle"); };
     } catch (e: any) { setError(e.message); setState("error"); }
   }, [drainQueue, handleFnCall]);
 
