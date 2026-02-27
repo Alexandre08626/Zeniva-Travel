@@ -367,18 +367,47 @@ export default function HomePage() {
                     @keyframes lina-glow { 0% { filter: drop-shadow(0 20px 40px rgba(43,107,255,0.25)); } 50% { filter: drop-shadow(0 28px 55px rgba(43,107,255,0.45)); } 100% { filter: drop-shadow(0 20px 40px rgba(43,107,255,0.25)); } }
                     .lina-hero-animated { animation: lina-float 4.5s ease-in-out infinite, lina-glow 4.5s ease-in-out infinite; }
                     .lina-hero-animated:hover { animation-play-state: paused; transform: scale(1.06); filter: drop-shadow(0 30px 60px rgba(43,107,255,0.5)); transition: transform 0.3s ease, filter 0.3s ease; }
+                    @keyframes bubble-appear { 0% { opacity: 0; transform: translateY(10px) scale(0.95); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+                    .lina-bubble-1 { animation: bubble-appear 0.5s ease-out 0.8s both; }
+                    .lina-bubble-2 { animation: bubble-appear 0.5s ease-out 2.5s both; }
+                    .lina-bubble-3 { animation: bubble-appear 0.5s ease-out 4.2s both; }
+                    .lina-typing { display: inline-flex; gap: 3px; align-items: center; }
+                    .lina-typing span { width: 5px; height: 5px; background: rgba(255,255,255,0.6); border-radius: 50%; animation: typing-dot 1.2s infinite; }
+                    .lina-typing span:nth-child(2) { animation-delay: 0.2s; }
+                    .lina-typing span:nth-child(3) { animation-delay: 0.4s; }
+                    @keyframes typing-dot { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-4px); opacity: 1; } }
                   `}</style>
-                  <Link href="/chat">
-                    <img
-                      src="/branding/lina-hero.png"
-                      alt="Lina AI"
-                      className="lina-hero-animated cursor-pointer"
-                      style={{
-                        height: "clamp(340px, 34vw, 500px)",
-                        objectFit: "contain",
-                      }}
-                    />
-                  </Link>
+                  <div className="relative flex flex-col items-center">
+                    {/* Speech bubbles */}
+                    <div className="absolute -top-4 right-0 w-72 flex flex-col gap-2 z-20" style={{ transform: "translateX(20px) translateY(-100%)" }}>
+                      <div className="lina-bubble-1 bg-white/95 backdrop-blur-sm rounded-2xl rounded-br-sm px-4 py-3 shadow-xl border border-white/20">
+                        <p className="text-sm text-slate-800 font-medium">Hey! 👋 I&apos;m <span className="text-indigo-600 font-bold">Lina</span>, your AI travel concierge.</p>
+                      </div>
+                      <div className="lina-bubble-2 bg-white/95 backdrop-blur-sm rounded-2xl rounded-br-sm px-4 py-3 shadow-xl border border-white/20">
+                        <p className="text-sm text-slate-800 font-medium">Tell me your dream destination and I&apos;ll plan everything for you ✈️</p>
+                      </div>
+                      <Link href="/chat" className="lina-bubble-3 group">
+                        <div className="bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-400 hover:to-blue-400 rounded-2xl rounded-br-sm px-4 py-3 shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02]">
+                          <p className="text-sm text-white font-bold flex items-center gap-2">
+                            Click on me to start! 🌍
+                            <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+                          </p>
+                        </div>
+                      </Link>
+                    </div>
+                    {/* Lina */}
+                    <Link href="/chat">
+                      <img
+                        src="/branding/lina-hero.png"
+                        alt="Lina AI"
+                        className="lina-hero-animated cursor-pointer"
+                        style={{
+                          height: "clamp(340px, 34vw, 500px)",
+                          objectFit: "contain",
+                        }}
+                      />
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
