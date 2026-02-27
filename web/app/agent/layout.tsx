@@ -257,37 +257,10 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
             <span>Back to main site</span>
           </a>
           <div className="flex items-center gap-4">
-            {showChat && (
-              <Link href="/agent/chat" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                <span>Agent Chat</span>
-              </Link>
-            )}
             <Link href={isHQorAdmin ? "/ai-agents" : "/agent/ai-dashboard"} className="flex items-center gap-2 rounded-full border border-indigo-300 bg-indigo-50 px-3 py-1.5 shadow-sm hover:border-indigo-400 hover:bg-indigo-100 transition-colors">
               <span className="text-sm">🤖</span>
               <span className="font-semibold text-indigo-700">Agent AI</span>
             </Link>
-            <Link href="/agent/messages" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300 hover:bg-slate-50 transition-colors">
-              <span className="text-sm">💬</span>
-              <span>Messages</span>
-            </Link>
-            {canCreateListings && (
-              <Link href="/agent/listings" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
-                <span>Listings</span>
-              </Link>
-            )}
-            {canCreateListings && (
-              <Link href="/agent/listings/new" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
-                <span>+ Create listing</span>
-              </Link>
-            )}
-            {canCreateListings && (
-              <Link href="/agent/inventory" className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300">
-                <span>Inventory</span>
-              </Link>
-            )}
             <div className="relative">
               <button
                 type="button"

@@ -124,12 +124,12 @@ export default function Header({
         <div className="flex items-center gap-4 header-left">
           {/* Mobile: Lina avatar et titre centrés */}
           <div className="w-full flex flex-col items-center justify-center sm:hidden">
-            <Image src="/agents/lina.png" alt="Lina AI" width={56} height={56} className="mx-auto mb-1 rounded-full" />
+            <Image src="/branding/lina-hero.png" alt="Lina AI" width={56} height={56} className="mx-auto mb-1 rounded-full" />
             <span className="text-lg font-extrabold text-center" style={{ color: TITLE_TEXT }}>{process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva Travel'}</span>
           </div>
           {/* Desktop: Lina avatar et titre */}
           <Link href="/" className="items-center gap-3 hidden sm:flex">
-            <Image src="/agents/lina.png" alt="Lina AI" width={56} height={56} className="rounded-full" />
+            <Image src="/branding/lina-hero.png" alt="Lina AI" width={56} height={56} className="rounded-full" />
             <div>
               <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>{process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva Travel'}</div>
               <div className="text-xs" style={{ color: MUTED_TEXT }}>
