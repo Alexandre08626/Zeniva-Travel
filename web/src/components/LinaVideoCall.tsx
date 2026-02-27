@@ -98,24 +98,12 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
   const startCall = useCallback(async () => {
     setState("connecting"); setError(""); setTranscript([]); setElapsed(0); setSnapshot({});
     try {
-      // Mic first
-      let stream: MediaStream;
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
-      } catch {
-        try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-        catch { throw new Error("Microphone not found or blocked."); }
-      }
-      streamRef.current = stream;
-
-      // Session token
       const res = await fetch("/api/realtime-session", { method: "POST" });
       if (!res.ok) throw new Error("Session failed");
       const data = await res.json();
       const key = data.client_secret?.value;
       if (!key) throw new Error(data.error || "No token");
 
-      // WebSocket
       const ws = new WebSocket(
         "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2025-06-03",
         ["realtime", `openai-insecure-api-key.${key}`, "openai-beta.realtime-v1"]
@@ -123,6 +111,8 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       wsRef.current = ws;
 
       ws.onopen = async () => {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        streamRef.current = stream;
         const actx = new AudioContext({ sampleRate: 24000 });
         audioCtxRef.current = actx;
         if (actx.state === "suspended") await actx.resume();
