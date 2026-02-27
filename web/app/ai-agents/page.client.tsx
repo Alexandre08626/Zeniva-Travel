@@ -543,7 +543,7 @@ export default function AIAgentsPageClient() {
       ],
       stats: [{ label: "Chats today", value: "12" }, { label: "Avg response", value: "2.3s" }],
       lastRun: "Just now", nextRun: "Always on", enabled: true, progress: 100, uptime: "99.9%", tasksCompleted: 847, successRate: "98.2%",
-      logs: [], color2: "",
+      logs: [],
     },
     {
       id: "client_mgr", name: "Client Manager", emoji: "📋", status: "active", type: "CRM Assistant", schedule: "Real-time", color: "#f59e0b",
