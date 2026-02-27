@@ -132,6 +132,10 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
   const startCall = useCallback(async () => {
     setState("connecting"); setError(""); setTranscript([]); setElapsed(0); setSnapshot({});
     try {
+      // Request mic FIRST (before anything else) so permission popup shows immediately
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+      streamRef.current = stream;
+
       const res = await fetch("/api/realtime-session", { method: "POST" });
       if (!res.ok) throw new Error("Session failed");
       const data = await res.json();
@@ -144,9 +148,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       );
       wsRef.current = ws;
 
-      ws.onopen = async () => {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
-        streamRef.current = stream;
+      ws.onopen = () => {
 
         const actx = new AudioContext({ sampleRate: 24000 });
         audioCtxRef.current = actx;
