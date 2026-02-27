@@ -98,17 +98,43 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
   const startCall = useCallback(async () => {
     setState("connecting"); setError(""); setTranscript([]); setElapsed(0); setSnapshot({});
     try {
-      // 1. Request microphone FIRST — must be in direct click handler for desktop browsers
+      // 1. Request microphone FIRST — must be in direct click handler
       let micStream: MediaStream | null = null;
       try {
-        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        micStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          }
+        });
         streamRef.current = micStream;
       } catch (micErr: any) {
         console.warn("Microphone denied or unavailable:", micErr);
         // Continue without mic (listen-only mode)
       }
 
-      // 2. Get session token from server
+      // 2. Create AudioContext NOW in click handler (mobile requires user gesture)
+      if (micStream) {
+        try {
+          const actx = new AudioContext();
+          audioCtxRef.current = actx;
+          if (actx.state === "suspended") await actx.resume();
+        } catch (e) {
+          console.warn("Early AudioContext creation failed:", e);
+        }
+      }
+      // Pre-create playback context in user gesture for mobile
+      if (!playCtxRef.current) {
+        try {
+          playCtxRef.current = new AudioContext({ sampleRate: 24000 });
+          if (playCtxRef.current.state === "suspended") await playCtxRef.current.resume();
+        } catch (e) {
+          console.warn("Playback AudioContext creation failed:", e);
+        }
+      }
+
+      // 3. Get session token from server
       const res = await fetch("/api/realtime-session", { method: "POST" });
       if (!res.ok) throw new Error("Session failed");
       const data = await res.json();
@@ -132,11 +158,10 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
         clearTimeout(wsTimeout);
         let hasMic = false;
 
-        // 3. Set up audio pipeline with the mic stream we already have
-        if (micStream) {
+        // 3. Set up audio pipeline with pre-created AudioContext
+        if (micStream && audioCtxRef.current) {
           try {
-            const actx = new AudioContext();
-            audioCtxRef.current = actx;
+            const actx = audioCtxRef.current;
             if (actx.state === "suspended") await actx.resume();
             const nativeSR = actx.sampleRate;
             const msrc = actx.createMediaStreamSource(micStream);
