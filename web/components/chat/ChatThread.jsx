@@ -200,6 +200,8 @@ function ChatThread({ tripId, proposalMode = "" }) {
   const [loading, setLoading] = useState(false);
   const [userHasInteracted, setUserHasInteracted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
 
   const history = useMemo(() => messages[tripId] || [], [messages, tripId]);
   const snapshot = snapshots[tripId] || {};
@@ -366,6 +368,62 @@ function ChatThread({ tripId, proposalMode = "" }) {
       e.preventDefault();
       handleSend(input);
     }
+  };
+
+  // Speech Recognition (microphone)
+  const toggleMic = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+    const SpeechRecognition = typeof window !== "undefined" && (window.SpeechRecognition || window.webkitSpeechRecognition);
+    if (!SpeechRecognition) {
+      alert("Speech recognition is not supported in this browser. Try Chrome or Edge.");
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = "fr-CA"; // Default French-Canadian, adapts to user
+    recognition.maxAlternatives = 1;
+    recognitionRef.current = recognition;
+
+    let finalTranscript = "";
+    recognition.onresult = (event) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interim += transcript;
+        }
+      }
+      setInput((prev) => {
+        // Replace interim text: keep what was there before mic started + new text
+        const base = prev.replace(/\u200B.*$/, "").trimEnd();
+        const display = finalTranscript + interim;
+        return display || base;
+      });
+    };
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+      if (event.error === "not-allowed") {
+        alert("Microphone access denied. Please allow microphone permission in your browser settings.");
+      }
+      setIsListening(false);
+    };
+    recognition.onend = () => {
+      setIsListening(false);
+      if (finalTranscript.trim()) {
+        setInput(finalTranscript.trim());
+      }
+    };
+
+    recognition.start();
+    setIsListening(true);
+    finalTranscript = "";
   };
 
   const onQuick = (label) => {
@@ -572,6 +630,20 @@ function ChatThread({ tripId, proposalMode = "" }) {
             className={`flex-1 min-w-0 w-full resize-none rounded-2xl px-4 py-3 text-sm font-semibold outline-none ${isMobile ? "border border-slate-300 bg-white focus:border-slate-400" : "border border-slate-200 focus:border-slate-300"}`}
             style={{ maxHeight: "200px" }}
           />
+          <button
+            type="button"
+            onClick={toggleMic}
+            title={isListening ? "Stop recording" : "Voice input"}
+            className={`rounded-2xl px-3 py-3 text-sm font-extrabold transition-all ${isListening ? "bg-red-500 text-white animate-pulse" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+              {isListening ? (
+                <path d="M12 1a4 4 0 0 0-4 4v7a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4ZM6 11a1 1 0 1 0-2 0 8 8 0 0 0 7 7.93V21H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-2.07A8 8 0 0 0 20 11a1 1 0 1 0-2 0 6 6 0 0 1-12 0Z"/>
+              ) : (
+                <path d="M12 1a4 4 0 0 0-4 4v7a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4ZM6 11a1 1 0 1 0-2 0 8 8 0 0 0 7 7.93V21H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-2.07A8 8 0 0 0 20 11a1 1 0 1 0-2 0 6 6 0 0 1-12 0Z"/>
+              )}
+            </svg>
+          </button>
           <button
             type="submit"
             disabled={loading}
