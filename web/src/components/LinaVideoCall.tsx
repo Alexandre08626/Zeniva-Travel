@@ -377,6 +377,10 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
               {snapshot.children&&<p className="text-xs"><span className="text-white/35">Children:</span> <span className="text-white/80 font-medium">{snapshot.children}</span></p>}
               {snapshot.budget&&<p className="text-xs"><span className="text-white/35">Budget:</span> <span className="text-white/80 font-medium">{snapshot.currency||"USD"} {snapshot.budget}</span></p>}
               {snapshot.style&&<p className="text-xs"><span className="text-white/35">Style:</span> <span className="text-white/80 font-medium">{snapshot.style}</span></p>}
+              {snapshot.transportationType&&<p className="text-xs"><span className="text-white/35">✈️ Transport:</span> <span className="text-white/80 font-medium">{snapshot.transportationType}</span></p>}
+              {snapshot.accommodationType&&<p className="text-xs"><span className="text-white/35">🏨 Lodging:</span> <span className="text-white/80 font-medium">{snapshot.accommodationType}</span></p>}
+              {snapshot.includeActivities&&<p className="text-xs"><span className="text-white/35">🎯 Activities:</span> <span className="text-emerald-400/80 font-medium">Included</span></p>}
+              {snapshot.includeTransfers&&<p className="text-xs"><span className="text-white/35">🚗 Transfers:</span> <span className="text-emerald-400/80 font-medium">Included</span></p>}
               {snapshot.notes&&<p className="text-xs col-span-2"><span className="text-white/35">Notes:</span> <span className="text-white/80 font-medium">{snapshot.notes}</span></p>}
             </div>
           </div>

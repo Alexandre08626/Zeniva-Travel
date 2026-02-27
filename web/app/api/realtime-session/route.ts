@@ -47,6 +47,10 @@ VOICE STYLE:
 
 TOOLS — you MUST use them:
 - Call "update_trip" every time you learn new info (destination, dates, budget, etc). Don't wait — call it immediately as each piece of info comes in.
+- IMPORTANT: When you first learn the destination, ALWAYS include transportationType: "Flights" and accommodationType: "Hotel" in your update_trip call (unless the client specifically says otherwise like "road trip" or "we have our own place").
+- If the client mentions a resort, set accommodationType: "Resort". If villa, set "Villa". If yacht, set "Yacht". Default is "Hotel".
+- If the client says they're driving or taking a train, set transportationType accordingly. Default is "Flights".
+- Also set includeActivities: true and includeTransfers: true by default — most travelers want these.
 - When the client says yes to generating a proposal (or says "go ahead", "let's do it", "generate", etc), call "generate_proposal" with confirmed=true.
 - Before calling generate_proposal, summarize what you have and ask the client to confirm.
 
@@ -77,6 +81,8 @@ RULES:
                 accommodationType: { type: "string", description: "Hotel, Resort, Airbnb, Yacht, Villa, etc" },
                 transportationType: { type: "string", description: "Flights, Train, Car rental, etc" },
                 notes: { type: "string", description: "Any special requests, preferences, or notes from the client" },
+                includeActivities: { type: "boolean", description: "Whether to include excursions/activities in the proposal. Default true." },
+                includeTransfers: { type: "boolean", description: "Whether to include airport/ground transfers in the proposal. Default true." },
               },
               required: [],
             },
