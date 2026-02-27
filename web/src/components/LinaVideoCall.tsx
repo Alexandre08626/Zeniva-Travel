@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { applyTripPatch, generateProposal } from "../../lib/store/tripsStore";
+import { applyTripPatch, generateProposal, updateSnapshot } from "../../lib/store/tripsStore";
 
 type CallState = "idle" | "connecting" | "speaking" | "listening" | "thinking" | "error";
 
@@ -103,6 +103,17 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       if (name === "update_trip") {
         setSnapshot(prev => ({ ...prev, ...args }));
         applyTripPatch(tripId, args);
+        // Also sync to snapshots so /proposals/select page can find the data
+        const snapPatch: Record<string,string> = {};
+        if (args.departureCity) snapPatch.departure = args.departureCity;
+        if (args.destination) snapPatch.destination = args.destination;
+        if (args.checkIn && args.checkOut) snapPatch.dates = `${args.checkIn} → ${args.checkOut}`;
+        if (args.adults) snapPatch.travelers = `${args.adults} adult${args.adults > 1 ? "s" : ""}${args.children ? `, ${args.children} child${args.children > 1 ? "ren" : ""}` : ""}`;
+        if (args.budget) snapPatch.budget = `${args.currency || "USD"} ${args.budget}`;
+        if (args.style) snapPatch.style = args.style;
+        if (args.accommodationType) snapPatch.accommodationType = args.accommodationType;
+        if (args.transportationType) snapPatch.transportationType = args.transportationType;
+        if (Object.keys(snapPatch).length > 0) updateSnapshot(tripId, snapPatch);
         output = JSON.stringify({ success: true, fields: Object.keys(args) });
       } else if (name === "generate_proposal" && args.confirmed) {
         generateProposal(tripId);
