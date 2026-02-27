@@ -362,15 +362,20 @@ export default function HomePage() {
                 </div>
 
                 <div className="flex-1 hidden md:flex items-end justify-center pr-4">
+                  <style>{`
+                    @keyframes lina-float { 0% { transform: translateY(0px) scale(1); } 50% { transform: translateY(-10px) scale(1.015); } 100% { transform: translateY(0px) scale(1); } }
+                    @keyframes lina-glow { 0% { filter: drop-shadow(0 20px 40px rgba(43,107,255,0.25)); } 50% { filter: drop-shadow(0 28px 55px rgba(43,107,255,0.45)); } 100% { filter: drop-shadow(0 20px 40px rgba(43,107,255,0.25)); } }
+                    .lina-hero-animated { animation: lina-float 4.5s ease-in-out infinite, lina-glow 4.5s ease-in-out infinite; }
+                    .lina-hero-animated:hover { animation-play-state: paused; transform: scale(1.06); filter: drop-shadow(0 30px 60px rgba(43,107,255,0.5)); transition: transform 0.3s ease, filter 0.3s ease; }
+                  `}</style>
                   <Link href="/chat">
                     <img
                       src="/branding/lina-hero.png"
                       alt="Lina AI"
-                      className="drop-shadow-2xl cursor-pointer transition-transform duration-300 hover:scale-105"
+                      className="lina-hero-animated cursor-pointer"
                       style={{
                         height: "clamp(280px, 28vw, 420px)",
                         objectFit: "contain",
-                        filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.3))",
                       }}
                     />
                   </Link>
