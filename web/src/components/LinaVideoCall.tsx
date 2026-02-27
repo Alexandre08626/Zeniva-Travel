@@ -123,70 +123,27 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       wsRef.current = ws;
 
       ws.onopen = async () => {
-        try {
-          const actx = new AudioContext({ sampleRate: 24000 });
-          audioCtxRef.current = actx;
-          if (actx.state === "suspended") await actx.resume();
+        const actx = new AudioContext({ sampleRate: 24000 });
+        audioCtxRef.current = actx;
+        if (actx.state === "suspended") await actx.resume();
+        const msrc = actx.createMediaStreamSource(stream);
+        const proc = actx.createScriptProcessor(4096, 1, 1);
+        processorRef.current = proc;
+        msrc.connect(proc).connect(actx.destination);
 
-          // Try AudioWorklet first (modern browsers), fallback to ScriptProcessor
-          let micConnected = false;
-          const msrc = actx.createMediaStreamSource(stream);
-
-          try {
-            const workletCode = `
-              class PCMProcessor extends AudioWorkletProcessor {
-                process(inputs) {
-                  const ch = inputs[0]?.[0];
-                  if (ch) this.port.postMessage(ch);
-                  return true;
-                }
-              }
-              registerProcessor('pcm-proc', PCMProcessor);
-            `;
-            const blob = new Blob([workletCode], { type: "application/javascript" });
-            const url = URL.createObjectURL(blob);
-            await actx.audioWorklet.addModule(url);
-            URL.revokeObjectURL(url);
-            const workletNode = new AudioWorkletNode(actx, "pcm-proc");
-            msrc.connect(workletNode).connect(actx.destination);
-            workletNode.port.onmessage = (e) => {
-              if (ws.readyState !== WebSocket.OPEN) return;
-              const ch = e.data as Float32Array;
-              const i16 = new Int16Array(ch.length);
-              for (let i = 0; i < ch.length; i++) {
-                const s = Math.max(-1, Math.min(1, ch[i]));
-                i16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-              }
-              ws.send(JSON.stringify({ type: "input_audio_buffer.append", audio: arrayBufferToBase64(i16.buffer) }));
-            };
-            micConnected = true;
-          } catch {
-            // AudioWorklet not supported, fallback to ScriptProcessor
+        proc.onaudioprocess = (e) => {
+          if (ws.readyState !== WebSocket.OPEN) return;
+          const ch = e.inputBuffer.getChannelData(0);
+          const i16 = new Int16Array(ch.length);
+          for (let i = 0; i < ch.length; i++) {
+            const s = Math.max(-1, Math.min(1, ch[i]));
+            i16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
           }
+          ws.send(JSON.stringify({ type: "input_audio_buffer.append", audio: arrayBufferToBase64(i16.buffer) }));
+        };
 
-          if (!micConnected) {
-            const proc = actx.createScriptProcessor(4096, 1, 1);
-            processorRef.current = proc;
-            msrc.connect(proc).connect(actx.destination);
-            proc.onaudioprocess = (e) => {
-              if (ws.readyState !== WebSocket.OPEN) return;
-              const ch = e.inputBuffer.getChannelData(0);
-              const i16 = new Int16Array(ch.length);
-              for (let i = 0; i < ch.length; i++) {
-                const s = Math.max(-1, Math.min(1, ch[i]));
-                i16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-              }
-              ws.send(JSON.stringify({ type: "input_audio_buffer.append", audio: arrayBufferToBase64(i16.buffer) }));
-            };
-          }
-
-          setState("listening");
-          ws.send(JSON.stringify({ type: "response.create", response: { modalities: ["audio", "text"] } }));
-        } catch (err: any) {
-          console.error("Audio setup error:", err);
-          setError("Audio setup failed: " + err.message);
-          setState("error");
-        }
+        setState("listening");
+        ws.send(JSON.stringify({ type: "response.create", response: { modalities: ["audio", "text"] } }));
       };
 
       ws.onmessage = (ev) => {
