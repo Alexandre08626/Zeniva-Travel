@@ -362,16 +362,18 @@ export default function HomePage() {
                 </div>
 
                 <div className="flex-1 hidden md:flex items-end justify-center pr-4">
-                  <img
-                    src="/branding/lina-hero.png"
-                    alt="Lina AI"
-                    className="drop-shadow-2xl"
-                    style={{
-                      height: "clamp(280px, 28vw, 420px)",
-                      objectFit: "contain",
-                      filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.3))",
-                    }}
-                  />
+                  <Link href="/chat">
+                    <img
+                      src="/branding/lina-hero.png"
+                      alt="Lina AI"
+                      className="drop-shadow-2xl cursor-pointer transition-transform duration-300 hover:scale-105"
+                      style={{
+                        height: "clamp(280px, 28vw, 420px)",
+                        objectFit: "contain",
+                        filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.3))",
+                      }}
+                    />
+                  </Link>
                 </div>
               </div>
             </div>
