@@ -185,6 +185,8 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
+      {/* Mobile: override bg to dark */}
+      <style>{`@media(max-width:639px){main{background:#0A1628!important}}`}</style>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <div className="w-screen left-1/2 right-1/2 -translate-x-1/2 relative">
         <div className="mx-auto w-full px-6 pt-5 hidden sm:block">
