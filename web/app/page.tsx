@@ -370,7 +370,7 @@ export default function HomePage() {
                   `}</style>
                   <Link href="/chat">
                     <img
-                      src="/agents/lina.png"
+                      src="/branding/lina-hero.png"
                       alt="Lina AI"
                       className="lina-hero-animated cursor-pointer"
                       style={{
