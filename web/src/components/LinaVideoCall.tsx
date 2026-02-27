@@ -133,8 +133,18 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
   const startCall = useCallback(async () => {
     setState("connecting"); setError(""); setTranscript([]); setElapsed(0); setSnapshot({});
     try {
-      // Request mic FIRST (before anything else) so permission popup shows immediately
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+      // Request mic FIRST
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+      } catch (micErr: any) {
+        // Try with basic audio constraints as fallback
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch {
+          throw new Error("Microphone not found or blocked. Please check your browser permissions and make sure a microphone is connected.");
+        }
+      }
       streamRef.current = stream;
 
       const res = await fetch("/api/realtime-session", { method: "POST" });
