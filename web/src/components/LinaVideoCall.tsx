@@ -123,16 +123,35 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
           streamRef.current = stream;
-          const actx = new AudioContext({ sampleRate: 24000 });
+          // Use native sample rate then resample to 24000
+          const actx = new AudioContext();
           audioCtxRef.current = actx;
           if (actx.state === "suspended") await actx.resume();
+          const nativeSR = actx.sampleRate;
           const msrc = actx.createMediaStreamSource(stream);
           const proc = actx.createScriptProcessor(4096, 1, 1);
           processorRef.current = proc;
           msrc.connect(proc).connect(actx.destination);
           proc.onaudioprocess = (e) => {
             if (ws.readyState !== WebSocket.OPEN) return;
-            const ch = e.inputBuffer.getChannelData(0);
+            const input = e.inputBuffer.getChannelData(0);
+            // Resample from native rate to 24000
+            let ch: Float32Array;
+            if (nativeSR === 24000) {
+              ch = input;
+            } else {
+              const ratio = 24000 / nativeSR;
+              const newLen = Math.round(input.length * ratio);
+              ch = new Float32Array(newLen);
+              for (let i = 0; i < newLen; i++) {
+                const srcIdx = i / ratio;
+                const idx = Math.floor(srcIdx);
+                const frac = srcIdx - idx;
+                ch[i] = idx + 1 < input.length
+                  ? input[idx] * (1 - frac) + input[idx + 1] * frac
+                  : input[idx] || 0;
+              }
+            }
             const i16 = new Int16Array(ch.length);
             for (let i = 0; i < ch.length; i++) {
               const s = Math.max(-1, Math.min(1, ch[i]));
@@ -141,8 +160,8 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
             ws.send(JSON.stringify({ type: "input_audio_buffer.append", audio: arrayBufferToBase64(i16.buffer) }));
           };
           hasMic = true;
-        } catch {
-          console.log("No mic — listen-only mode");
+        } catch (micErr) {
+          console.log("No mic — listen-only mode", micErr);
         }
         setState(hasMic ? "listening" : "speaking");
         ws.send(JSON.stringify({ type: "response.create", response: { modalities: ["audio", "text"] } }));
