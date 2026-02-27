@@ -101,7 +101,7 @@ function KpiCard({ label, value, sub, trend, color, icon }: {
   );
 }
 
-// ─── Limova-style Agent Card ──────────────────────────────────────────────────
+// ─── Limova-style Agent Card (Tom style) ──────────────────────────────────────
 function AgentCard({ agent, onSelect }: { agent: AgentDef; onSelect: (id: string) => void }) {
   const sc = STATUS_CFG[agent.status];
   const isAlive = agent.status === "live" || agent.status === "active";
@@ -110,98 +110,74 @@ function AgentCard({ agent, onSelect }: { agent: AgentDef; onSelect: (id: string
   return (
     <div
       onClick={() => onSelect(agent.id)}
-      className="group relative bg-white border border-gray-200 rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-gray-200/80 hover:-translate-y-1 hover:border-gray-300"
+      className="group relative bg-[#0a0a0a] rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 hover:shadow-2xl hover:-translate-y-2"
+      style={{ boxShadow: `0 0 0 1px ${accentColor}20` }}
     >
-      {/* Gradient accent top bar */}
-      <div className="h-1.5 w-full" style={{ background: `linear-gradient(90deg, ${accentColor}cc, ${accentColor}44)` }} />
-
-      {/* Glassmorphism glow on hover */}
-      <div
-        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-3xl"
-        style={{ background: `radial-gradient(ellipse at top left, ${accentColor}08, transparent 60%)` }}
-      />
-
-      <div className="p-6">
-        {/* Avatar + Status */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="relative">
-            {agent.avatar ? (
-              <img
-                src={agent.avatar}
-                alt={agent.name}
-                className="h-16 w-16 rounded-2xl object-cover shadow-md"
-                style={{ border: `1.5px solid ${accentColor}30` }}
-              />
-            ) : (
-              <div
-                className="h-16 w-16 rounded-2xl flex items-center justify-center text-3xl shadow-md"
-                style={{ background: `linear-gradient(135deg, ${accentColor}20, ${accentColor}08)`, border: `1.5px solid ${accentColor}30` }}
-              >
-                {agent.emoji}
-              </div>
-            )}
-            {isAlive && (
-              <span className={`absolute -top-1 -right-1 h-4 w-4 rounded-full ${sc.dot} ring-2 ring-white shadow-sm flex items-center justify-center`}>
-                <span className={`absolute inset-0 rounded-full ${sc.dot} animate-ping opacity-60`} />
-              </span>
-            )}
+      {/* Character Image — Big, centered, like Tom on Limova */}
+      <div className="relative w-full aspect-square overflow-hidden bg-black flex items-end justify-center">
+        {agent.avatar ? (
+          <img
+            src={agent.avatar}
+            alt={agent.name}
+            className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-8xl bg-gradient-to-b from-gray-900 to-black">
+            {agent.emoji}
           </div>
-          <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${sc.badge} border-current/20 tracking-wider`}>
+        )}
+
+        {/* Status badge overlay */}
+        <div className="absolute top-4 right-4">
+          <span className={`text-[10px] font-black px-3 py-1.5 rounded-full ${sc.badge} backdrop-blur-md border border-white/10 tracking-wider shadow-lg`}>
+            {isAlive && <span className={`inline-block h-1.5 w-1.5 rounded-full ${sc.dot} mr-1.5 animate-pulse`} />}
             {sc.label}
           </span>
         </div>
 
-        {/* Name + Schedule */}
-        <h3 className="text-base font-bold text-gray-900 mb-0.5">{agent.name}</h3>
-        <p className="text-[11px] text-gray-400 mb-3">{agent.schedule}</p>
+        {/* Gradient overlay at bottom */}
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent" />
+      </div>
 
-        {/* Personality intro quote */}
-        <div className="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 mb-4">
-          <p className="text-xs text-gray-600 leading-relaxed italic">
-            &ldquo;{agent.intro.length > 100 ? agent.intro.slice(0, 97) + "…" : agent.intro}&rdquo;
-          </p>
+      {/* Info section */}
+      <div className="px-5 pb-5 -mt-8 relative z-10">
+        {/* Name + Role */}
+        <div className="mb-3">
+          <h3 className="text-xl font-black text-white tracking-tight">{agent.name}</h3>
+          <p className="text-xs font-medium mt-0.5" style={{ color: accentColor }}>{agent.type}</p>
         </div>
+
+        {/* Short description */}
+        <p className="text-xs text-gray-400 leading-relaxed mb-4 line-clamp-2">
+          {agent.description}
+        </p>
 
         {/* Feature pills */}
         <div className="flex flex-wrap gap-1.5 mb-4">
-          {agent.features.slice(0, 4).map((f) => (
+          {agent.features.slice(0, 3).map((f) => (
             <span
               key={f}
-              className="text-[10px] font-medium px-2 py-0.5 rounded-full border"
-              style={{ background: `${accentColor}10`, borderColor: `${accentColor}30`, color: accentColor }}
+              className="text-[9px] font-semibold px-2 py-1 rounded-lg bg-white/5 text-gray-300 border border-white/10"
             >
               {f}
             </span>
           ))}
-          {agent.features.length > 4 && (
-            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200">
-              +{agent.features.length - 4}
+          {agent.features.length > 3 && (
+            <span className="text-[9px] font-semibold px-2 py-1 rounded-lg bg-white/5 text-gray-500 border border-white/10">
+              +{agent.features.length - 3} more
             </span>
           )}
         </div>
 
-        {/* Quick stats */}
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          {agent.stats.slice(0, 2).map((s) => (
-            <div key={s.label} className="bg-gray-50 rounded-xl px-3 py-2 text-center border border-gray-100">
-              <div className="text-sm font-black text-gray-900">{s.value}</div>
-              <div className="text-[9px] text-gray-400 mt-0.5">{s.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] text-gray-400">Uptime {agent.uptime}</span>
-          <div
-            className="flex items-center gap-1.5 text-xs font-bold transition-all duration-200 group-hover:gap-2"
-            style={{ color: accentColor }}
-          >
-            View Profile
-            <svg className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-            </svg>
-          </div>
+        {/* Discover button */}
+        <div
+          className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 group-hover:gap-3"
+          style={{ background: `${accentColor}15`, color: accentColor, border: `1px solid ${accentColor}30` }}
+        >
+          Discover {agent.name}
+          <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
         </div>
       </div>
     </div>
