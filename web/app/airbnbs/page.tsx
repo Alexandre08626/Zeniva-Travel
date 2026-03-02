@@ -333,15 +333,18 @@ export default function AirbnbsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filtered.slice(0, visible).map((p) => (
                 <div key={p.slug} className="bg-white rounded-2xl shadow p-4 flex flex-col">
-                  <div className="h-44 w-full overflow-hidden rounded-lg mb-4">
+                  <div className="relative h-44 w-full overflow-hidden rounded-lg mb-4">
                     <img src={p.image} alt={p.title} className="w-full h-full object-cover" />
                     {(p as any).price_per_night && (
-                      <div className="absolute bottom-2 right-2 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      <div className="absolute bottom-2 right-2 bg-blue-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow-lg">
                         ${(p as any).price_per_night}/night
                       </div>
                     )}
                   </div>
                   <h2 className="text-xl font-bold mb-1">{p.title}</h2>
+                  {(p as any).price_per_night && (
+                    <div className="text-blue-700 font-bold text-lg mb-1">${(p as any).price_per_night} <span className="text-sm font-normal text-slate-500">/ night</span></div>
+                  )}
                   <div className="text-sm text-slate-500 mb-3">{p.location}</div>
                   <p className="text-sm text-slate-600 line-clamp-2 mb-4">{p.description}</p>
                   <div className="mt-auto flex items-center justify-between">
