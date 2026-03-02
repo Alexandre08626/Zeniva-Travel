@@ -18,7 +18,7 @@ type DatesState = {
 
 const CLEANING_FEE = 285;
 const CONCIERGE_FEE = 120;
-const TAX_RATE = 0.12;
+const TAX_RATE = 0.06;
 
 function parseDate(value: string | null) {
   if (!value) return null;
@@ -75,7 +75,7 @@ export default function AirbnbBookingSummary({ pricePerNight, storageKey, proper
         <div className="flex items-end justify-between">
           <div>
             <p className="text-2xl font-black text-slate-900">{formatMoney(pricePerNight)}</p>
-            <p className="text-xs text-blue-700">per night · taxes included</p>
+            <p className="text-xs text-blue-700">per night</p>
           </div>
           <div className="text-xs text-blue-700 font-semibold">4.94 · 87</div>
         </div>
@@ -94,7 +94,7 @@ export default function AirbnbBookingSummary({ pricePerNight, storageKey, proper
             <span>{formatMoney(CONCIERGE_FEE)}</span>
           </div>
           <div className="flex items-center justify-between text-xs font-semibold text-blue-700">
-            <span>Taxes (12%)</span>
+            <span>Taxes (6%)</span>
             <span>{formatMoney(taxes)}</span>
           </div>
           <div className="border-t border-blue-200 pt-3 flex items-center justify-between text-sm font-bold text-slate-900">
