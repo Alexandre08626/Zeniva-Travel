@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://rvlcgtlcjylozbihtpkr.supabase.co',
-  process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://rvlcgtlcjylozbihtpkr.supabase.co',
+    process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
+  );
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,7 +34,7 @@ export async function POST(req: NextRequest) {
     const lastName = parts.slice(1).join(' ') || '';
 
     // Insert new lead
-    const { data, error } = await supabase.from('leads').insert({
+    const { data, error } = await getSupabase().from('leads').insert({
       first_name: firstName,
       last_name: lastName,
       email,
