@@ -1112,6 +1112,80 @@ export default function ProposalSelectPage() {
           </div>
         </div>
 
+        {/* Trip parameters — editable inline so flights/hotels always have data */}
+        {(!flightSearchContext.origin || !flightSearchContext.destination || !flightSearchContext.date) && (
+          <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 shadow-sm p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">⚠️</span>
+              <p className="text-sm font-bold text-amber-900">Complete your trip details to search flights</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Departure city</label>
+                <input
+                  type="text"
+                  defaultValue={tripDraft?.departureCity || ""}
+                  placeholder="e.g. Montreal, New York"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                  onBlur={(e) => {
+                    const val = e.target.value.trim();
+                    if (val) applyTripPatch(tripId, { departureCity: val, transportationType: "Flights" });
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const val = e.target.value.trim();
+                      if (val) applyTripPatch(tripId, { departureCity: val, transportationType: "Flights" });
+                    }
+                  }}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Destination</label>
+                <input
+                  type="text"
+                  defaultValue={tripDraft?.destination || ""}
+                  placeholder="e.g. Cancun, Paris"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                  onBlur={(e) => {
+                    const val = e.target.value.trim();
+                    if (val) applyTripPatch(tripId, { destination: val });
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const val = e.target.value.trim();
+                      if (val) applyTripPatch(tripId, { destination: val });
+                    }
+                  }}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Departure date</label>
+                <input
+                  type="date"
+                  defaultValue={tripDraft?.checkIn || ""}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val) applyTripPatch(tripId, { checkIn: val });
+                  }}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Return date</label>
+                <input
+                  type="date"
+                  defaultValue={tripDraft?.checkOut || ""}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val) applyTripPatch(tripId, { checkOut: val });
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="xl:hidden flex items-center justify-between gap-3">
           <div className="text-xs text-slate-600">
             Flights {filteredFlights.length} · Stays {filteredHotels.length} · Activities {filteredActivities.length} · Transfers {filteredTransfers.length}
