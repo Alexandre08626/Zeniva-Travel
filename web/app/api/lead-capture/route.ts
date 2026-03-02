@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if lead already exists
-    const { data: existing } = await supabase
+    const { data: existing } = await getSupabase()
       .from('leads')
       .select('id')
       .eq('email', email)
