@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { BRAND_BLUE, LIGHT_BG, MUTED_TEXT, PREMIUM_BLUE, TITLE_TEXT } from "../../../../src/design/tokens";
-import { useTripsStore, generateProposal, setProposalSelection, applyTripPatch } from "../../../../lib/store/tripsStore";
+import { useTripsStore, generateProposal, setProposalSelection, applyTripPatch, updateSnapshot } from "../../../../lib/store/tripsStore";
 import SelectedSummary from "../../../../src/components/SelectedSummary";
 import { getImagesForDestination, getPartnerHotelImages } from "../../../../src/lib/images";
 import { applyFlightMarkupLabel, applyHotelMarkupLabel } from "../../../../src/lib/partnerMarkup";
@@ -285,6 +285,31 @@ export default function ProposalSelectPage() {
     tripDraft: s.tripDrafts[tripId] || {},
     snapshot: s.snapshots[tripId] || {},
   }));
+
+  // Recover trip data from server if localStorage is empty
+  useEffect(() => {
+    if (!tripId) return;
+    const draft = tripDraft || {};
+    const hasLocalData = draft.destination || draft.departureCity || draft.checkIn;
+    if (hasLocalData) return; // Already have data locally
+    
+    fetch(`/api/proposals?ownerEmail=voice-call@zenivatravel.com`)
+      .then(r => r.json())
+      .then(d => {
+        const proposals = d?.data || [];
+        const match = proposals.find(p => p.id === tripId);
+        if (!match?.payload) return;
+        const { tripDraft: serverDraft, snapshot: serverSnap } = match.payload;
+        if (serverDraft && Object.keys(serverDraft).length > 0) {
+          applyTripPatch(tripId, serverDraft);
+        }
+        if (serverSnap && Object.keys(serverSnap).length > 0) {
+          // We need updateSnapshot imported already
+          updateSnapshot(tripId, serverSnap);
+        }
+      })
+      .catch(() => {});
+  }, [tripId]);
 
   useEffect(() => {
     if (tripId && !proposal) {

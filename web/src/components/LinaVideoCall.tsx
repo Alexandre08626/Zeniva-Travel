@@ -108,12 +108,48 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
         if (args.departureCity) snapPatch.departure = args.departureCity;
         if (args.destination) snapPatch.destination = args.destination;
         if (args.checkIn && args.checkOut) snapPatch.dates = `${args.checkIn} → ${args.checkOut}`;
+        else if (args.checkIn) snapPatch.dates = args.checkIn;
         if (args.adults) snapPatch.travelers = `${args.adults} adult${args.adults > 1 ? "s" : ""}${args.children ? `, ${args.children} child${args.children > 1 ? "ren" : ""}` : ""}`;
         if (args.budget) snapPatch.budget = `${args.currency || "USD"} ${args.budget}`;
         if (args.style) snapPatch.style = args.style;
         if (args.accommodationType) snapPatch.accommodationType = args.accommodationType;
         if (args.transportationType) snapPatch.transportationType = args.transportationType;
         if (Object.keys(snapPatch).length > 0) updateSnapshot(tripId, snapPatch);
+        // Persist to server so proposal page works even without localStorage
+        // Fetch existing then merge to accumulate all patches
+        fetch(`/api/proposals?ownerEmail=voice-call@zenivatravel.com`)
+          .then(r => r.json())
+          .then(d => {
+            const existing = (d?.data || []).find((p: any) => p.id === tripId);
+            const prevDraft = existing?.payload?.tripDraft || {};
+            const prevSnap = existing?.payload?.snapshot || {};
+            return fetch("/api/proposals", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                id: tripId,
+                ownerEmail: "voice-call@zenivatravel.com",
+                status: "Draft",
+                payload: {
+                  tripDraft: { ...prevDraft, ...args },
+                  snapshot: { ...prevSnap, ...snapPatch },
+                },
+              }),
+            });
+          })
+          .catch(() => {
+            // Fallback: save without merging
+            fetch("/api/proposals", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                id: tripId,
+                ownerEmail: "voice-call@zenivatravel.com",
+                status: "Draft",
+                payload: { tripDraft: args, snapshot: snapPatch },
+              }),
+            }).catch(() => {});
+          });
         output = JSON.stringify({ success: true, fields: Object.keys(args) });
       } else if (name === "generate_proposal" && args.confirmed) {
         generateProposal(tripId);
