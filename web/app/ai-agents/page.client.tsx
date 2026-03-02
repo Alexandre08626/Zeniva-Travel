@@ -1436,8 +1436,8 @@ export default function AIAgentsPageClient() {
               <div className="px-5 py-4 border-b border-gray-700 flex items-center gap-3">
                 <span className="text-lg">📤</span>
                 <div>
-                  <div className="text-sm font-bold text-white">Uploader votre vidéo</div>
-                  <div className="text-xs text-gray-400">Ajoutez vos propres vidéos pour les partager sur TikTok / YouTube / Instagram</div>
+                  <div className="text-sm font-bold text-white">Upload Your Video</div>
+                  <div className="text-xs text-gray-400">Add your own videos to share on TikTok / YouTube / Instagram</div>
                 </div>
               </div>
               <div className="px-5 py-5">
@@ -1446,7 +1446,7 @@ export default function AIAgentsPageClient() {
                     const file = e.target.files?.[0];
                     if (!file) return;
                     const statusEl = document.getElementById("upload-status");
-                    if (statusEl) statusEl.textContent = "⏳ Upload en cours...";
+                    if (statusEl) statusEl.textContent = "⏳ Uploading...";
                     const form = new FormData();
                     form.append("file", file);
                     form.append("title", file.name.replace(/\.[^.]+$/, ""));
@@ -1459,10 +1459,10 @@ export default function AIAgentsPageClient() {
                       } else {
                         if (statusEl) statusEl.textContent = "❌ Erreur lors de l'upload";
                       }
-                    } catch { if (statusEl) statusEl.textContent = "❌ Erreur réseau"; }
+                    } catch { if (statusEl) statusEl.textContent = "❌ Network error"; }
                   }} />
                   <span className="text-4xl mb-3 group-hover:scale-110 transition-transform">🎬</span>
-                  <span className="text-sm font-bold text-white">Cliquez pour choisir une vidéo</span>
+                  <span className="text-sm font-bold text-white">Click to choose a video</span>
                   <span className="text-xs text-gray-400 mt-1">MP4, MOV — max 500MB</span>
                 </label>
                 <p id="upload-status" className="text-center text-sm mt-3 text-emerald-400 font-semibold min-h-[20px]"></p>
@@ -1472,7 +1472,7 @@ export default function AIAgentsPageClient() {
             {approvals.length === 0 && approvalHistory.length === 0 && (
               <div className="bg-gray-50 border border-gray-200 rounded-2xl p-12 text-center">
                 <p className="text-5xl mb-3">✅</p>
-                <p className="text-gray-500">Aucune approbation en attente. Vos vidéos uploadées apparaîtront ici.</p>
+                <p className="text-gray-500">No pending approvals. Your uploaded videos will appear here.</p>
               </div>
             )}
 
