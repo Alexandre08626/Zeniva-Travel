@@ -21,6 +21,8 @@ interface AirbnbItem {
   thumbnail?: string;
   images?: string[];
   url?: string;
+  price_per_night?: number;
+  price_currency?: string;
 }
 
 function extractField(description: string | undefined, label: string) {
@@ -134,6 +136,7 @@ export default function AirbnbsPage() {
     description: cleanDescription(p.description || ""),
     image: p.thumbnail || (p.images && p.images[0]) || "/branding/icon-proposals.svg",
     images: p.images || (p.thumbnail ? [p.thumbnail] : []),
+    price_per_night: (p as any).price_per_night,
   };
   });
 
@@ -332,6 +335,11 @@ export default function AirbnbsPage() {
                 <div key={p.slug} className="bg-white rounded-2xl shadow p-4 flex flex-col">
                   <div className="h-44 w-full overflow-hidden rounded-lg mb-4">
                     <img src={p.image} alt={p.title} className="w-full h-full object-cover" />
+                    {(p as any).price_per_night && (
+                      <div className="absolute bottom-2 right-2 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                        ${(p as any).price_per_night}/night
+                      </div>
+                    )}
                   </div>
                   <h2 className="text-xl font-bold mb-1">{p.title}</h2>
                   <div className="text-sm text-slate-500 mb-3">{p.location}</div>
