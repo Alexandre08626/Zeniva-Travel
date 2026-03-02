@@ -472,6 +472,8 @@ export default function AIAgentsPageClient() {
   // Activity filter
   const [activityFilter, setActivityFilter] = useState("all");
 
+  const buildActivity = () => activity;
+
   // Settings
   const [agentEnabled, setAgentEnabled] = useState<Record<string, boolean>>({});
 
