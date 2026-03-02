@@ -17,6 +17,7 @@ interface PendingApproval {
   id: string; agent: string; type: string; title: string; content: string;
   platform?: string; imagePrompt?: string; createdAt: string;
   approved?: boolean;
+  videoUrl?: string; resolution?: string; duration?: number;
 }
 interface TikTokVideo {
   id: string; filename: string; account: string; caption: string;
@@ -919,9 +920,14 @@ export default function AIAgentsPageClient() {
 
     // Approvals
     try {
-      const r = await fetch("/api/agents-proxy/social-queue");
-      const d = await r.json();
-      const pending = (d?.posts || [])
+      const [socialRes, videoRes] = await Promise.all([
+        fetch("/api/agents-proxy/social-queue"),
+        fetch("/api/agents-proxy?endpoint=video-queue"),
+      ]);
+      const socialData = await socialRes.json();
+      const videoData = await videoRes.json().catch(() => ({}));
+
+      const socialPending = (socialData?.posts || [])
         .filter((p: any) => p.status === "pending_approval")
         .map((p: any) => ({
           id: p.id,
@@ -933,7 +939,23 @@ export default function AIAgentsPageClient() {
           imagePrompt: p.image_prompt || "",
           createdAt: p.generated_at || p.date || new Date().toISOString(),
         }));
-      setApprovals(pending);
+
+      const videoPending = (videoData?.videos || [])
+        .filter((v: any) => v.status === "pending_approval")
+        .map((v: any) => ({
+          id: v.id,
+          agent: "Video Creator",
+          type: "video_ad",
+          platform: (v.platforms_target || ["all"]).join(", "),
+          title: v.title || "Video Ad",
+          content: v.description || "",
+          videoUrl: v.video_url,
+          resolution: v.resolution,
+          duration: v.duration,
+          createdAt: v.generated_at || new Date().toISOString(),
+        }));
+
+      setApprovals([...videoPending, ...socialPending]);
     } catch { setApprovals([]); }
 
     // TikTok videos
@@ -975,13 +997,15 @@ export default function AIAgentsPageClient() {
   // ── Handlers
   const handleApprove = async (id: string) => {
     const ap = approvals.find(a => a.id === id);
-    try { await fetch("/api/agents-proxy/social-queue", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action: "approve" }) }); } catch {}
+    const endpoint = ap?.type === "video_ad" ? "/api/agents-proxy?endpoint=video-queue-action" : "/api/agents-proxy/social-queue";
+    try { await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action: "approve" }) }); } catch {}
     setApprovals(p => p.filter(a => a.id !== id));
     if (ap) setApprovalHistory(p => [{ ...ap, approved: true }, ...p]);
   };
   const handleReject = async (id: string) => {
     const ap = approvals.find(a => a.id === id);
-    try { await fetch("/api/agents-proxy/social-queue", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action: "reject" }) }); } catch {}
+    const endpoint = ap?.type === "video_ad" ? "/api/agents-proxy?endpoint=video-queue-action" : "/api/agents-proxy/social-queue";
+    try { await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action: "reject" }) }); } catch {}
     setApprovals(p => p.filter(a => a.id !== id));
     if (ap) setApprovalHistory(p => [{ ...ap, approved: false }, ...p]);
   };
@@ -1430,12 +1454,30 @@ export default function AIAgentsPageClient() {
                   </div>
                 </div>
                 <div className="px-5 py-4 space-y-3">
-                  <div className="bg-white border border-gray-200 rounded-xl p-4 text-sm text-gray-600 whitespace-pre-wrap font-mono leading-relaxed">{ap.content}</div>
-                  {ap.imagePrompt && (
-                    <div className="bg-purple-500/5 border border-purple-500/20 rounded-xl p-3">
-                      <div className="text-[10px] font-bold text-purple-400 mb-1">🎨 AI Image Prompt</div>
-                      <p className="text-xs text-gray-500 italic">"{ap.imagePrompt}"</p>
+                  {ap.type === "video_ad" && ap.videoUrl ? (
+                    <div className="flex flex-col md:flex-row gap-5 items-start">
+                      <div className="flex-shrink-0">
+                        <video controls className="rounded-xl bg-black" style={{ width: "220px", maxHeight: "390px" }} preload="metadata">
+                          <source src={ap.videoUrl} type="video/mp4" />
+                        </video>
+                        <div className="text-[10px] text-gray-400 mt-1 text-center">{ap.resolution} · {ap.duration}s</div>
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-xs font-bold text-gray-500 mb-1">📋 Description</div>
+                        <div className="bg-white border border-gray-200 rounded-xl p-3 text-sm text-gray-600 whitespace-pre-wrap">{ap.content}</div>
+                        <div className="mt-3 text-xs text-gray-400">🎯 Platforms: {ap.platform}</div>
+                      </div>
                     </div>
+                  ) : (
+                    <>
+                      <div className="bg-white border border-gray-200 rounded-xl p-4 text-sm text-gray-600 whitespace-pre-wrap font-mono leading-relaxed">{ap.content}</div>
+                      {ap.imagePrompt && (
+                        <div className="bg-purple-500/5 border border-purple-500/20 rounded-xl p-3">
+                          <div className="text-[10px] font-bold text-purple-400 mb-1">🎨 AI Image Prompt</div>
+                          <p className="text-xs text-gray-500 italic">"{ap.imagePrompt}"</p>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
                 <div className="px-5 py-4 border-t border-gray-200 flex gap-3 justify-end">

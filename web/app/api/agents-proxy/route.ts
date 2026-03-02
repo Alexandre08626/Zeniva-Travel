@@ -82,6 +82,19 @@ export async function POST(req: NextRequest) {
       });
       return NextResponse.json(await r.json());
     }
+    if (endpoint === "video-queue") {
+      const r = await fetch(`${VPS_BASE}/video-queue`, { headers: { Authorization: AUTH } });
+      return NextResponse.json(await r.json());
+    }
+    if (endpoint === "video-queue-action") {
+      const body = await req.json();
+      const r = await fetch(`${VPS_BASE}/video-queue/action`, {
+        method: "POST",
+        headers: { Authorization: AUTH, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      return NextResponse.json(await r.json());
+    }
     return NextResponse.json({ error: "Unknown endpoint" }, { status: 400 });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message }, { status: 502 });
