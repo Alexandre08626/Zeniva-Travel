@@ -438,6 +438,8 @@ export default function AIAgentsPageClient() {
   const [totalLeads, setTotalLeads]   = useState(0);
   const [emailsSent, setEmailsSent]   = useState(0);
   const [smsSent, setSmsSent]         = useState(0);
+  const [emailsToday, setEmailsToday] = useState(0);
+  const [smsToday, setSmsToday]       = useState(0);
   const [totalMessages, setTotalMessages] = useState(0);
   const [leadsToday, setLeadsToday]   = useState(0);
   const [leads, setLeads]             = useState<LeadEntry[]>([]);
@@ -884,6 +886,9 @@ export default function AIAgentsPageClient() {
       setTotalMessages(d?.total_messages ?? 0);
       setEmailsSent(d?.emails_sent ?? 0);
       setSmsSent(d?.sms_sent ?? 0);
+      setLeadsToday(d?.leads_today ?? 0);
+      setEmailsToday(d?.emails_today ?? 0);
+      setSmsToday(d?.sms_today ?? 0);
     } catch {}
 
     // Leads
@@ -901,8 +906,7 @@ export default function AIAgentsPageClient() {
         created_at: l.created_at,
       }));
       setLeads(parsed);
-      const todayStr = new Date().toISOString().slice(0, 10);
-      setLeadsToday(parsed.filter(l => l.created_at?.startsWith(todayStr)).length);
+      // leadsToday now comes from stats API
     } catch {}
 
     // Approvals
@@ -931,27 +935,23 @@ export default function AIAgentsPageClient() {
       setTiktokVideos(d?.videos || []);
     } catch { setTiktokVideos([]); }
 
-    // Build activity
-    setActivity(buildActivity());
+    // Real activity from API
+    try {
+      const r = await fetch("/api/agents-proxy?endpoint=activity");
+      const d = await r.json();
+      const items: ActivityItem[] = (d?.activities || []).map((a: any, i: number) => ({
+        id: `act-${i}`,
+        agent: a.agent || "System",
+        agentId: a.agentId || "system",
+        emoji: a.emoji || "⚡",
+        action: a.action || "",
+        detail: a.detail || "",
+        time: a.time ? new Date(a.time).toLocaleTimeString() : "",
+        status: (a.status || "success") as ActivityItem["status"],
+      }));
+      setActivity(items);
+    } catch { setActivity([]); }
   }, []);
-
-  const buildActivity = (): ActivityItem[] => {
-    const now = new Date();
-    const mk = (id: string, agentId: string, agent: string, emoji: string, action: string, detail: string, minsAgo: number, status: ActivityItem["status"] = "success"): ActivityItem => {
-      const t = new Date(now.getTime() - minsAgo * 60000);
-      return { id: `${id}-${minsAgo}`, agent, agentId, emoji, action, detail, time: t.toLocaleTimeString(), status };
-    };
-    return [
-      mk("cyber1", "cyber", "Cyber Guardian", "🛡️", "Security scan passed", "7 services OK · SSL 89d · No threats", 8),
-      mk("lina1", "lina", "Lina AI Chat", "🤖", "Conversation handled", "Lead qualified for Caribbean package", 14),
-      mk("bug1", "bug", "Bug Hunter", "🐛", "Test suite passed", "12/12 checks green · API, Webhook, DB", 45),
-      mk("machine1", "lead_machine", "Lead Machine", "🔥", "Scrape cycle complete", "Reddit: 12 signals · Competitors: 8 leads", 68),
-      mk("social1", "social", "Social Content Engine", "📱", "Posts generated", "5 posts for today ready for review", 110, "needs_approval"),
-      mk("followup1", "followup", "Lead Follow-up", "📧", "Follow-up check", "0 new leads ready · Next in 2h 40m", 130),
-      mk("twilio1", "twilio", "Twilio SMS", "📞", "Inbound SMS received", "Auto-response sent via Lina AI", 3),
-      mk("cyber2", "cyber", "Cyber Guardian", "🛡️", "Hourly checkpoint", "All clear — disk 34% · RAM 61%", 72),
-    ].sort((a, b) => a.id > b.id ? -1 : 1);
-  };
 
   useEffect(() => {
     fetchData();
@@ -1077,10 +1077,10 @@ export default function AIAgentsPageClient() {
 
         {/* ─── KPI Row ─────────────────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <KpiCard icon="👥" label="Total Leads"      value={totalLeads}   trend="↑ all time"  color="bg-indigo-600"  />
+          <KpiCard icon="👥" label="Total Leads"      value={totalLeads}   trend={leadsToday > 0 ? `↑ ${leadsToday} today` : "—"}  color="bg-indigo-600"  />
           <KpiCard icon="🔥" label="Leads Today"      value={leadsToday}   trend={leadsToday > 0 ? `+${leadsToday}` : "—"}  color="bg-amber-500"   />
-          <KpiCard icon="📧" label="Emails Sent"      value={emailsSent}   trend={emailsSent > 0 ? `${emailsSent} total` : "—"}  color="bg-blue-600"   />
-          <KpiCard icon="📱" label="SMS Sent"         value={smsSent}      trend={smsSent > 0 ? `${smsSent} total` : "—"}    color="bg-cyan-500"   />
+          <KpiCard icon="📧" label="Emails Sent"      value={emailsSent}   trend={emailsToday > 0 ? `↑ ${emailsToday} today` : "—"}  color="bg-blue-600"   sub={`${emailsSent} total`} />
+          <KpiCard icon="📱" label="SMS Sent"         value={smsSent}      trend={smsToday > 0 ? `↑ ${smsToday} today` : "—"}    color="bg-cyan-500"   sub={`${smsSent} total`} />
           <KpiCard icon="💰" label="Revenue"          value="$0"           sub="Tracking soon" color="bg-emerald-600" />
           <KpiCard icon="📈" label="Conversion"       value={totalLeads > 0 ? `${Math.round((converted / totalLeads) * 100)}%` : "0%"} trend={converted > 0 ? `${converted} conv.` : "—"} color="bg-purple-600" />
         </div>

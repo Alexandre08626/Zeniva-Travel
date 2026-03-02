@@ -38,6 +38,14 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(await r.json());
     }
 
+    if (endpoint === "activity") {
+      const r = await fetch(`${VPS_BASE}/admin/activity`, {
+        headers: { Authorization: AUTH },
+        next: { revalidate: 0 },
+      });
+      return NextResponse.json(await r.json());
+    }
+
     if (endpoint === "tiktok") {
       const r = await fetch(`${VPS_BASE}/tiktok/content`, {
         headers: { Authorization: AUTH },
