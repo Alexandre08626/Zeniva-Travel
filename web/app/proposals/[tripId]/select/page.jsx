@@ -254,6 +254,7 @@ export default function ProposalSelectPage() {
   const [errorTransfers, setErrorTransfers] = useState(null);
   const [selectedTransferKey, setSelectedTransferKey] = useState("");
   const [expandedFlightId, setExpandedFlightId] = useState("");
+  const [departureCityInput, setDepartureCityInput] = useState("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [filters, setFilters] = useState({
     flightQuery: "",
@@ -389,7 +390,11 @@ export default function ProposalSelectPage() {
       setOutboundFlights([]);
       setReturnFlights([]);
       setSelectedOutbound(null);
-      setErrorFlights("Missing origin, destination, or departure date in trip data");
+      const missing = [];
+      if (!origin) missing.push("departure city");
+      if (!destination) missing.push("destination");
+      if (!date) missing.push("departure date");
+      setErrorFlights("Missing: " + missing.join(", ") + ". Please fill in below.");
       setLoadingFlights(false);
       return;
     }
@@ -1341,7 +1346,39 @@ export default function ProposalSelectPage() {
               ) : null}
 
               {loadingFlights && <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700">Loading flights…</div>}
-              {errorFlights && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">{errorFlights}</div>}
+              {errorFlights && (
+                <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-3 text-xs text-amber-800 space-y-2">
+                  <div>{errorFlights}</div>
+                  {!flightSearchContext.origin && (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={departureCityInput}
+                        onChange={(e) => setDepartureCityInput(e.target.value)}
+                        placeholder="Enter departure city (e.g. Montreal, New York)"
+                        className="flex-1 rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-blue-500"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && departureCityInput.trim()) {
+                            applyTripPatch(tripId, { departureCity: departureCityInput.trim(), transportationType: "Flights" });
+                            setDepartureCityInput("");
+                          }
+                        }}
+                      />
+                      <button
+                        onClick={() => {
+                          if (departureCityInput.trim()) {
+                            applyTripPatch(tripId, { departureCity: departureCityInput.trim(), transportationType: "Flights" });
+                            setDepartureCityInput("");
+                          }
+                        }}
+                        className="rounded-full bg-blue-600 text-white px-4 py-2 text-xs font-bold hover:bg-blue-500 transition"
+                      >
+                        Search flights
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
                 {filteredFlights.map((f) => {
                   const selectedFlightId = selection?.flight?.inbound?.id || selection?.flight?.outbound?.id || selection?.flight?.id;
