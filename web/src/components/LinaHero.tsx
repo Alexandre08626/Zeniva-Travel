@@ -96,7 +96,7 @@ export default function LinaHero() {
         {currentMsg >= 0 && (
           <div className="absolute right-0 z-20" style={{ top: "20px", transform: "translateX(30px) translateY(-100%)", width: "280px" }}>
             {isLastMsg ? (
-              <Link href="/chat" className="group">
+              <Link href="/call" className="group">
                 <div key={currentMsg} className="lina-speech-bubble bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-400 hover:to-blue-400 rounded-2xl rounded-br-sm px-4 py-3 shadow-xl cursor-pointer hover:scale-[1.02] transition-all">
                   <p className="text-sm text-white font-bold flex items-center gap-2">
                     {MESSAGES[currentMsg].text}
@@ -114,7 +114,7 @@ export default function LinaHero() {
         )}
 
         {/* Lina */}
-        <Link href="/chat">
+        <Link href="/call">
           <img
             src="/branding/lina-hero.png"
             alt="Lina AI"
