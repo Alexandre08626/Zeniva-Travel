@@ -1431,10 +1431,48 @@ export default function AIAgentsPageClient() {
               </div>
             )}
 
+            {/* Upload your own video */}
+            <div className="bg-gray-900 border border-blue-500/30 rounded-2xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-700 flex items-center gap-3">
+                <span className="text-lg">📤</span>
+                <div>
+                  <div className="text-sm font-bold text-white">Uploader votre vidéo</div>
+                  <div className="text-xs text-gray-400">Ajoutez vos propres vidéos pour les partager sur TikTok / YouTube / Instagram</div>
+                </div>
+              </div>
+              <div className="px-5 py-5">
+                <label className="flex flex-col items-center justify-center border-2 border-dashed border-blue-500/40 rounded-2xl p-10 cursor-pointer hover:border-blue-400 hover:bg-blue-500/5 transition-all group">
+                  <input type="file" accept="video/*" className="hidden" onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const statusEl = document.getElementById("upload-status");
+                    if (statusEl) statusEl.textContent = "⏳ Upload en cours...";
+                    const form = new FormData();
+                    form.append("file", file);
+                    form.append("title", file.name.replace(/\.[^.]+$/, ""));
+                    form.append("platforms", "tiktok,youtube,instagram");
+                    try {
+                      const r = await fetch("/api/agents-proxy?endpoint=upload-video", { method: "POST", body: form });
+                      if (r.ok) {
+                        if (statusEl) statusEl.textContent = "✅ Vidéo ajoutée à la queue d'approbation!";
+                        setTimeout(() => { if (statusEl) statusEl.textContent = ""; window.location.reload(); }, 2000);
+                      } else {
+                        if (statusEl) statusEl.textContent = "❌ Erreur lors de l'upload";
+                      }
+                    } catch { if (statusEl) statusEl.textContent = "❌ Erreur réseau"; }
+                  }} />
+                  <span className="text-4xl mb-3 group-hover:scale-110 transition-transform">🎬</span>
+                  <span className="text-sm font-bold text-white">Cliquez pour choisir une vidéo</span>
+                  <span className="text-xs text-gray-400 mt-1">MP4, MOV — max 500MB</span>
+                </label>
+                <p id="upload-status" className="text-center text-sm mt-3 text-emerald-400 font-semibold min-h-[20px]"></p>
+              </div>
+            </div>
+
             {approvals.length === 0 && approvalHistory.length === 0 && (
-              <div className="bg-gray-50 border border-gray-200 rounded-2xl p-16 text-center">
+              <div className="bg-gray-50 border border-gray-200 rounded-2xl p-12 text-center">
                 <p className="text-5xl mb-3">✅</p>
-                <p className="text-gray-500">All clear! No pending approvals.</p>
+                <p className="text-gray-500">Aucune approbation en attente. Vos vidéos uploadées apparaîtront ici.</p>
               </div>
             )}
 

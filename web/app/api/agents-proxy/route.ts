@@ -64,6 +64,16 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    if (endpoint === "upload-video") {
+      // Forward multipart upload to VPS
+      const formData = await req.formData();
+      const r = await fetch(`${VPS_BASE}/video-queue/upload`, {
+        method: "POST",
+        headers: { Authorization: AUTH },
+        body: formData,
+      });
+      return NextResponse.json(await r.json());
+    }
     return NextResponse.json({ error: "Unknown endpoint" }, { status: 400 });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "VPS unreachable" }, { status: 502 });
@@ -92,6 +102,16 @@ export async function POST(req: NextRequest) {
         method: "POST",
         headers: { Authorization: AUTH, "Content-Type": "application/json" },
         body: JSON.stringify(body),
+      });
+      return NextResponse.json(await r.json());
+    }
+    if (endpoint === "upload-video") {
+      // Forward multipart upload to VPS
+      const formData = await req.formData();
+      const r = await fetch(`${VPS_BASE}/video-queue/upload`, {
+        method: "POST",
+        headers: { Authorization: AUTH },
+        body: formData,
       });
       return NextResponse.json(await r.json());
     }
