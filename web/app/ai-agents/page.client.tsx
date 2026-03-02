@@ -440,6 +440,9 @@ export default function AIAgentsPageClient() {
   const [smsSent, setSmsSent]         = useState(0);
   const [emailsToday, setEmailsToday] = useState(0);
   const [smsToday, setSmsToday]       = useState(0);
+  const [leadsWeek, setLeadsWeek]     = useState(0);
+  const [emailsWeek, setEmailsWeek]   = useState(0);
+  const [smsWeek, setSmsWeek]         = useState(0);
   const [totalMessages, setTotalMessages] = useState(0);
   const [leadsToday, setLeadsToday]   = useState(0);
   const [leads, setLeads]             = useState<LeadEntry[]>([]);
@@ -889,6 +892,9 @@ export default function AIAgentsPageClient() {
       setLeadsToday(d?.leads_today ?? 0);
       setEmailsToday(d?.emails_today ?? 0);
       setSmsToday(d?.sms_today ?? 0);
+      setLeadsWeek(d?.leads_week ?? 0);
+      setEmailsWeek(d?.emails_week ?? 0);
+      setSmsWeek(d?.sms_week ?? 0);
     } catch {}
 
     // Leads
@@ -1077,10 +1083,10 @@ export default function AIAgentsPageClient() {
 
         {/* ─── KPI Row ─────────────────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <KpiCard icon="👥" label="Total Leads"      value={totalLeads}   trend={leadsToday > 0 ? `↑ ${leadsToday} today` : "—"}  color="bg-indigo-600"  />
+          <KpiCard icon="👥" label="Leads This Week"  value={leadsWeek}    trend={leadsToday > 0 ? `↑ ${leadsToday} today` : "—"}  color="bg-indigo-600" sub={`${totalLeads} all time`} />
           <KpiCard icon="🔥" label="Leads Today"      value={leadsToday}   trend={leadsToday > 0 ? `+${leadsToday}` : "—"}  color="bg-amber-500"   />
-          <KpiCard icon="📧" label="Emails Sent"      value={emailsSent}   trend={emailsToday > 0 ? `↑ ${emailsToday} today` : "—"}  color="bg-blue-600"   sub={`${emailsSent} total`} />
-          <KpiCard icon="📱" label="SMS Sent"         value={smsSent}      trend={smsToday > 0 ? `↑ ${smsToday} today` : "—"}    color="bg-cyan-500"   sub={`${smsSent} total`} />
+          <KpiCard icon="📧" label="Emails This Week" value={emailsWeek}   trend={emailsToday > 0 ? `↑ ${emailsToday} today` : "—"}  color="bg-blue-600"   sub={`${emailsSent} all time`} />
+          <KpiCard icon="📱" label="SMS This Week"    value={smsWeek}      trend={smsToday > 0 ? `↑ ${smsToday} today` : "—"}    color="bg-cyan-500"   sub={`${smsSent} all time`} />
           <KpiCard icon="💰" label="Revenue"          value="$0"           sub="Tracking soon" color="bg-emerald-600" />
           <KpiCard icon="📈" label="Conversion"       value={totalLeads > 0 ? `${Math.round((converted / totalLeads) * 100)}%` : "0%"} trend={converted > 0 ? `${converted} conv.` : "—"} color="bg-purple-600" />
         </div>
