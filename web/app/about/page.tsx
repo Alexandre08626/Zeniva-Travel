@@ -95,7 +95,7 @@ export default function AboutPage() {
                     <div className="text-sm text-blue-600 font-semibold">Williamsburg, Virginia</div>
                   </div>
                 </div>
-                <p className="text-gray-600 text-sm">114 Arden Dr, Williamsburg, VA 23185<br />📞 757-940-7276</p>
+                <p className="text-gray-600 text-sm">114 Arden Dr, Williamsburg, VA 23185<br />📞 (332) 290-0021</p>
               </div>
 
               <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5">

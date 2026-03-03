@@ -13,7 +13,7 @@ const COMPANY_INFO = {
   name: process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva Travel',
   address: process.env.NEXT_PUBLIC_BUSINESS_ADDRESS || '780 Lynnhaven Parkway, Virginia Beach, 23452',
   headquarters: process.env.NEXT_PUBLIC_BUSINESS_HEADQUARTERS || '8 The Green, Dover, Delaware',
-  phone: process.env.NEXT_PUBLIC_SUPPORT_PHONE || '757-940-7276',
+  phone: process.env.NEXT_PUBLIC_SUPPORT_PHONE || '(332) 290-0021',
   email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'info@zenivatravel.com'
 };
 
