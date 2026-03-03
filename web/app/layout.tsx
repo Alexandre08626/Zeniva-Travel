@@ -159,26 +159,31 @@ export default function RootLayout({
                 "address": [
                   {
                     "@type": "PostalAddress",
-                    "addressRegion": "DE",
+                    "streetAddress": "114 Arden Dr",
+                    "addressLocality": "Williamsburg",
+                    "addressRegion": "VA",
+                    "postalCode": "23185",
                     "addressCountry": "US",
-                    "addressLocality": "Wilmington",
-                    "description": "Registered in Delaware, USA"
+                    "name": "Main Office — Williamsburg, Virginia"
+                  },
+                  {
+                    "@type": "PostalAddress",
+                    "streetAddress": "8 The Green STE A",
+                    "addressLocality": "Dover",
+                    "addressRegion": "DE",
+                    "postalCode": "19901",
+                    "addressCountry": "US",
+                    "name": "Registered Office — Delaware"
                   },
                   {
                     "@type": "PostalAddress",
                     "addressRegion": "NY",
                     "addressCountry": "US",
                     "addressLocality": "New York",
-                    "description": "New York office"
-                  },
-                  {
-                    "@type": "PostalAddress",
-                    "addressRegion": "VA",
-                    "addressCountry": "US",
-                    "addressLocality": "Virginia",
-                    "description": "Virginia office"
+                    "name": "New York office"
                   }
                 ],
+                "telephone": "+1-757-940-7276",
                 "areaServed": [
                   { "@type": "Country", "name": "United States" },
                   { "@type": "Country", "name": "Canada" }

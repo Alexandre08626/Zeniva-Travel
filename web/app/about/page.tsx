@@ -33,27 +33,32 @@ const schemaOrg = {
   "logo": "https://zenivatravel.com/branding/logo.png",
   "description": "AI-powered travel agency incorporated in Delaware, USA. Offices in New York and Virginia. Serving all 50 US states and Canada.",
   "foundingDate": "2024",
+  "telephone": "+1-757-940-7276",
   "address": [
     {
       "@type": "PostalAddress",
-      "addressRegion": "DE",
+      "streetAddress": "114 Arden Dr",
+      "addressLocality": "Williamsburg",
+      "addressRegion": "VA",
+      "postalCode": "23185",
       "addressCountry": "US",
-      "addressLocality": "Wilmington",
+      "name": "Main Office — Williamsburg, Virginia"
+    },
+    {
+      "@type": "PostalAddress",
+      "streetAddress": "8 The Green STE A",
+      "addressLocality": "Dover",
+      "addressRegion": "DE",
+      "postalCode": "19901",
+      "addressCountry": "US",
       "name": "Registered Office — Delaware"
     },
     {
       "@type": "PostalAddress",
+      "addressLocality": "New York",
       "addressRegion": "NY",
       "addressCountry": "US",
-      "addressLocality": "New York",
       "name": "New York Office"
-    },
-    {
-      "@type": "PostalAddress",
-      "addressRegion": "VA",
-      "addressCountry": "US",
-      "addressLocality": "Virginia",
-      "name": "Virginia Office"
     }
   ],
   "areaServed": [
@@ -107,13 +112,24 @@ export default function AboutPage() {
 
               <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5">
                 <div className="flex items-center gap-3 mb-2">
+                  <span className="text-2xl">🏢</span>
+                  <div>
+                    <div className="font-bold text-gray-900">Main Office</div>
+                    <div className="text-sm text-blue-600 font-semibold">Williamsburg, Virginia</div>
+                  </div>
+                </div>
+                <p className="text-gray-600 text-sm">114 Arden Dr, Williamsburg, VA 23185<br />📞 757-940-7276</p>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5">
+                <div className="flex items-center gap-3 mb-2">
                   <span className="text-2xl">🏛️</span>
                   <div>
                     <div className="font-bold text-gray-900">Registered Office</div>
-                    <div className="text-sm text-blue-600 font-semibold">Delaware, USA</div>
+                    <div className="text-sm text-blue-600 font-semibold">Dover, Delaware</div>
                   </div>
                 </div>
-                <p className="text-gray-600 text-sm">Incorporated in the State of Delaware — the leading state for US business incorporation.</p>
+                <p className="text-gray-600 text-sm">8 The Green STE A, Dover, DE 19901<br />Incorporated in the State of Delaware.</p>
               </div>
 
               <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5">
@@ -125,17 +141,6 @@ export default function AboutPage() {
                   </div>
                 </div>
                 <p className="text-gray-600 text-sm">Operations and partnerships hub in New York — the world's travel capital.</p>
-              </div>
-
-              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-2xl">🏢</span>
-                  <div>
-                    <div className="font-bold text-gray-900">Virginia Office</div>
-                    <div className="text-sm text-blue-600 font-semibold">Virginia, USA</div>
-                  </div>
-                </div>
-                <p className="text-gray-600 text-sm">Technology and AI development center in Virginia.</p>
               </div>
             </div>
           </div>
