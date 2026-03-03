@@ -124,9 +124,8 @@ export async function POST(request: Request) {
     }
 
     // Track referring agent even for fixed-policy forms (commission tracking)
-    const referringAgent = body?.agentEmail || body?.referredBy
-      ? normalizeEmail(String(body.agentEmail || body.referredBy))
-      : "";
+    const rawReferrer = (body?.agentEmail || body?.referredBy) as string | undefined;
+    const referringAgent = rawReferrer ? normalizeEmail(String(rawReferrer)) : "";
 
     let ownerEmail = "";
     if (form.ownerPolicy === "fixed") {
