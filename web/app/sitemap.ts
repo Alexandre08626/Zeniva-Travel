@@ -9,12 +9,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${BASE_URL}/`,
       lastModified,
-      changeFrequency: "weekly",
+      changeFrequency: "daily",
       priority: 1,
       alternates: {
         languages: {
+          "en-US": `${BASE_URL}/`,
           "en-CA": `${BASE_URL}/`,
           "fr-CA": `${BASE_URL}/fr`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/about`,
+      lastModified,
+      changeFrequency: "monthly",
+      priority: 0.9,
+      alternates: {
+        languages: {
+          "en-US": `${BASE_URL}/about`,
+          "en-CA": `${BASE_URL}/about`,
         },
       },
     },

@@ -20,37 +20,39 @@ const COLLECTIONS = [
 ];
 
 export const metadata: Metadata = {
-  title: "AI Travel Concierge",
+  title: "Zeniva Travel | #1 AI Travel Concierge USA — Luxury Trips, Custom Vacations & Group Travel",
   description:
-    "Zeniva Travel is an AI travel company. Lina AI discovers intent, builds intelligent proposals, and concierge experts finalize the trip.",
+    "Zeniva Travel — America's AI travel agency. Plan luxury vacations, custom trips & group travel with Lina AI, available 24/7. Incorporated in Delaware, serving all 50 US states and Canada. Start planning in seconds.",
   alternates: {
     canonical: "https://zenivatravel.com",
     languages: {
+      "en-US": "https://zenivatravel.com",
       "en-CA": "https://zenivatravel.com",
       "fr-CA": "https://zenivatravel.com/fr",
     },
   },
   openGraph: {
-    title: "Zeniva Travel AI | AI Travel Concierge",
+    title: "Zeniva Travel | AI Travel Concierge USA — Luxury Trips & Custom Vacations",
     description:
-      "AI trip planning with Lina AI: intent discovery, intelligent proposals, and concierge validation.",
+      "America's AI travel agency. Luxury vacations, custom trips, yacht charters — all planned by Lina AI in seconds. US company (Delaware, NY, Virginia). Serving all 50 states & Canada.",
     url: "https://zenivatravel.com",
     siteName: "Zeniva Travel",
     type: "website",
+    locale: "en_US",
     images: [
       {
         url: "/branding/lina-avatar.png",
         width: 1200,
         height: 630,
-        alt: "Lina AI",
+        alt: "Zeniva Travel — AI Travel Concierge USA",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zeniva Travel AI | AI Travel Concierge",
+    title: "Zeniva Travel | AI Travel Concierge USA",
     description:
-      "AI trip planning with Lina AI: intent discovery, intelligent proposals, and concierge validation.",
+      "America's AI travel agency — luxury vacations, custom trips, group travel. US company (Delaware, NY, Virginia). Start planning now.",
     images: ["/branding/lina-avatar.png"],
   },
 };
