@@ -114,7 +114,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Google Ads Tag - Replace G-XXXXXXX with your actual ID */}
+        {/* Google Ads Tag */}
         {process.env.NEXT_PUBLIC_GOOGLE_ADS_ID && (
           <>
             <script async src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GOOGLE_ADS_ID}`} />
@@ -126,7 +126,7 @@ export default function RootLayout({
             `}} />
           </>
         )}
-        {/* Meta Pixel - Replace PIXEL_ID with your actual ID */}
+        {/* Meta Pixel */}
         {process.env.NEXT_PUBLIC_META_PIXEL_ID && (
           <script dangerouslySetInnerHTML={{ __html: `
             !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -138,8 +138,6 @@ export default function RootLayout({
             fbq('track', 'PageView');
           `}} />
         )}
-      </head>
-      <head>
         {/* JSON-LD Structured Data — Organization + TravelAgency */}
         <script
           type="application/ld+json"
