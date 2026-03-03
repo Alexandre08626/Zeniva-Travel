@@ -8,22 +8,33 @@ const VPS_API_URL = process.env.LINA_API_URL || "https://vmi3097009.contaboserve
 
 async function notifyVpsNewLead(clientData: any, formFields: Record<string, any>) {
   try {
-    const msg = `New lead signup: ${clientData.name || "Client"} (${clientData.email || ""}, ${clientData.phone || ""}). Destination: ${formFields.destination || "N/A"}. Budget: ${formFields.budget || "N/A"}. Travelers: ${formFields.pax || "N/A"}. Trip type: ${formFields.tripType || "N/A"}. Dates: ${formFields.departureDate || "?"} to ${formFields.returnDate || "?"}.`;
+    const referredBy = formFields.agentEmail || formFields.referredBy || "";
+    const msg = `🆕 NEW LEAD from form: ${clientData.name || "Client"} (${clientData.email || ""}, ${clientData.phone || ""}). Destination: ${formFields.destination || "N/A"}. Budget: ${formFields.budget || "N/A"}. Travelers: ${formFields.pax || "N/A"}. Trip: ${formFields.tripType || "N/A"}. Dates: ${formFields.departureDate || "?"} → ${formFields.returnDate || "?"}${referredBy ? `. Referred by: ${referredBy}` : ""}.`;
+
+    // Notify VPS webhook (for n8n / chat)
     await fetch(`${VPS_API_URL}/webhook/zeniva-lina-chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: msg, sessionId: `form-${clientData.id}` }),
       signal: AbortSignal.timeout(8000),
     }).catch(() => {});
-    // Also notify the VPS API directly for lead capture + email
-    await fetch("http://217.216.88.202:8000/chat", {
+
+    // Send email notification to boss
+    await fetch(`${VPS_API_URL}/notify-lead`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer zeniva-secret-2025" },
       body: JSON.stringify({
-        message: msg,
-        sessionId: `form-${clientData.id}`,
-        extract_only: true,
-        ai_response: `Welcome ${clientData.name}! Your Zeniva Travel account has been created.`,
+        to: "info@zeniva.ca",
+        name: clientData.name,
+        email: clientData.email,
+        phone: clientData.phone,
+        destination: formFields.destination,
+        budget: formFields.budget,
+        pax: formFields.pax,
+        tripType: formFields.tripType,
+        departureDate: formFields.departureDate,
+        returnDate: formFields.returnDate,
+        referredBy,
       }),
       signal: AbortSignal.timeout(8000),
     }).catch(() => {});
@@ -203,7 +214,7 @@ export async function POST(request: Request) {
           updated.email || null,
           updated.phone || null,
           updated.ownerEmail,
-          updated.assignedAgents || [],
+          JSON.stringify(updated.assignedAgents || []),
           updated.primaryDivision || null,
           updated.origin,
           updated.leadSource || null,
@@ -252,7 +263,7 @@ export async function POST(request: Request) {
         record.ownerEmail,
         record.phone || null,
         record.origin,
-        record.assignedAgents || [],
+        JSON.stringify(record.assignedAgents || []),
         record.primaryDivision || null,
         record.leadSource || null,
         record.notes || null,
