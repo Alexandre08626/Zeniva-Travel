@@ -1,6 +1,21 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
 import LinaAvatar from "../../src/components/LinaAvatar";
+
+// Persist tab in URL hash so page refresh / uploads don't reset it
+function useTabWithHash(defaultTab: TabId): [TabId, (t: TabId) => void] {
+  const [tab, setTabState] = useState<TabId>(defaultTab);
+  useEffect(() => {
+    const hash = window.location.hash.replace("#", "") as TabId;
+    const valid: TabId[] = ["overview","activity","leads","approvals","agents","analytics","settings","chat"];
+    if (valid.includes(hash)) setTabState(hash);
+  }, []);
+  const setTab = (t: TabId) => {
+    setTabState(t);
+    window.location.hash = t;
+  };
+  return [tab, setTab];
+}
 // import Image from "next/image";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -459,7 +474,7 @@ export default function AIAgentsPageClient() {
   const [agents, setAgents]           = useState<AgentDef[]>([]);
   const [lastRefresh, setLastRefresh] = useState("");
   const [clock, setClock]             = useState("");
-  const [tab, setTab]                 = useState<TabId>("overview");
+  const [tab, setTab]                 = useTabWithHash("overview");
 
   // Chat tab state
   const [chatMsgs, setChatMsgs]       = useState<{role:string;content:string}[]>([]);
@@ -1468,7 +1483,11 @@ export default function AIAgentsPageClient() {
                             const d = JSON.parse(xhr.responseText);
                             if (d.ok) {
                               setUploadStatus("✅ Video uploaded! Add Lina\'s voice below.");
-                              fetchData();
+                              // Refresh video list AND stay on approvals tab
+                              fetch("/api/agents-proxy?endpoint=video-queue", { cache: "no-store" })
+                                .then(r => r.json())
+                                .then(data => setUploadedVideos(data?.videos || []))
+                                .catch(() => {});
                               resolve();
                             } else {
                               reject(new Error(d.error || "Upload failed"));
@@ -1483,7 +1502,7 @@ export default function AIAgentsPageClient() {
                         xhr.send(form);
                       });
                     } catch (err: any) {
-                      setUploadStatus("❌ " + (err?.message || "Upload failed"));
+                      setUploadStatus("❌ " + (err?.message || "Upload failed - check network"));
                     } finally {
                       setUploadLoading(false);
                     }
@@ -1514,7 +1533,7 @@ export default function AIAgentsPageClient() {
                   🎬 Your Videos
                   <span className="text-xs font-normal text-gray-400">({uploadedVideos.length} video{uploadedVideos.length > 1 ? "s" : ""})</span>
                 </h2>
-                {uploadedVideos.map((video: any) => {
+                {uploadedVideos.filter((v: any) => v.uploaded_by === "boss" || v.status === "pending_approval" || v.status === "voiced").map((video: any) => {
                   const proxyUrl = `/api/agents-proxy?endpoint=video-serve&file=${video.filename || video.id}`;
                   const hasVoice = !!video.voiced_url || video.status === "voiced";
                   const finalUrl = video.voiced_filename
