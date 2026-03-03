@@ -104,6 +104,9 @@ export const metadata: Metadata = {
   authors: [{ name: "Zeniva Travel", url: "https://zenivatravel.com" }],
   creator: "Zeniva Travel",
   publisher: "Zeniva Travel",
+  verification: {
+    google: "9jSvDefvtj_0Fc0IsCwsdOz1Qdmw71P8qF1ekQfCgjQ",
+  },
 };
 
 export default function RootLayout({
