@@ -123,6 +123,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email or phone is required." }, { status: 400 });
     }
 
+    // Track referring agent even for fixed-policy forms (commission tracking)
+    const referringAgent = body?.agentEmail || body?.referredBy
+      ? normalizeEmail(String(body.agentEmail || body.referredBy))
+      : "";
+
     let ownerEmail = "";
     if (form.ownerPolicy === "fixed") {
       ownerEmail = (form as any).fixedOwnerEmail ? normalizeEmail(String((form as any).fixedOwnerEmail)) : DEFAULT_OWNER_EMAIL;
@@ -214,6 +219,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ data: saved, updated: true });
     }
 
+    // Build assigned agents list: always include Zeniva owner + referring agent if present
+    const assignedAgentsList = [ownerEmail];
+    if (referringAgent && referringAgent !== ownerEmail) {
+      assignedAgentsList.push(referringAgent);
+    }
+
+    // Add commission note if referred by agent
+    const commissionNote = referringAgent && referringAgent !== ownerEmail
+      ? `[REFERRAL] Referred by agent: ${referringAgent} | Commission: 5% of net profit`
+      : "";
+
     const record: ClientRecord = {
       id: body?.id || `C-${crypto.randomUUID()}`,
       name: name || email || phone || "Client",
@@ -221,10 +237,10 @@ export async function POST(request: Request) {
       phone: phone || undefined,
       ownerEmail,
       origin: form.origin,
-      assignedAgents: [ownerEmail],
+      assignedAgents: assignedAgentsList,
       primaryDivision: form.division,
-      leadSource: form.leadSource,
-      notes: [body?.notes ? String(body.notes).trim() : "", extraNotes].filter(Boolean).join("\n") || undefined,
+      leadSource: referringAgent ? `agent-referral:${referringAgent}` : form.leadSource,
+      notes: [body?.notes ? String(body.notes).trim() : "", extraNotes, commissionNote].filter(Boolean).join("\n") || undefined,
       createdAt: new Date().toISOString(),
     };
 

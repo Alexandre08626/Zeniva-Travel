@@ -12,7 +12,10 @@ function buildFormLink(form: FormDefinition, agentEmail?: string) {
     const param = agentEmail ? `?agent=${encodeURIComponent(agentEmail)}` : "";
     return `/forms/yacht${param}`;
   }
-  if (form.id === "travel-agent") return "/forms/travel";
+  if (form.id === "travel-agent") {
+    const param = agentEmail ? `?agent=${encodeURIComponent(agentEmail)}` : "";
+    return `/forms/travel${param}`;
+  }
   return "/agent/forms";
 }
 
