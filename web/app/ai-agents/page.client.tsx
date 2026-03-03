@@ -1448,22 +1448,42 @@ export default function AIAgentsPageClient() {
                     const file = e.target.files?.[0];
                     if (!file) return;
                     setUploadLoading(true);
-                    setUploadStatus("⏳ Uploading...");
+                    setUploadStatus("⏳ Uploading... 0%");
                     const form = new FormData();
                     form.append("file", file);
                     form.append("title", file.name.replace(/\.[^.]+$/, ""));
                     form.append("platforms", "tiktok,youtube,instagram");
                     try {
-                      const r = await fetch("/api/agents-proxy?endpoint=upload-video", { method: "POST", body: form });
-                      const d = await r.json();
-                      if (r.ok && d.ok) {
-                        setUploadStatus("✅ Video uploaded! Add Lina\'s voice below.");
-                        await fetchData();
-                      } else {
-                        setUploadStatus("❌ Upload failed: " + (d.error || "Unknown error"));
-                      }
+                      // Upload DIRECT to VPS — bypass Vercel 4.5MB limit
+                      await new Promise<void>((resolve, reject) => {
+                        const xhr = new XMLHttpRequest();
+                        xhr.upload.onprogress = (ev) => {
+                          if (ev.lengthComputable) {
+                            const pct = Math.round((ev.loaded / ev.total) * 100);
+                            setUploadStatus(`⏳ Uploading... ${pct}%`);
+                          }
+                        };
+                        xhr.onload = () => {
+                          if (xhr.status >= 200 && xhr.status < 300) {
+                            const d = JSON.parse(xhr.responseText);
+                            if (d.ok) {
+                              setUploadStatus("✅ Video uploaded! Add Lina\'s voice below.");
+                              fetchData();
+                              resolve();
+                            } else {
+                              reject(new Error(d.error || "Upload failed"));
+                            }
+                          } else {
+                            reject(new Error(`HTTP ${xhr.status}`));
+                          }
+                        };
+                        xhr.onerror = () => reject(new Error("Network error"));
+                        xhr.open("POST", "http://217.216.88.202:8000/video-queue/upload");
+                        xhr.setRequestHeader("Authorization", "Bearer zeniva-secret-2025");
+                        xhr.send(form);
+                      });
                     } catch (err: any) {
-                      setUploadStatus("❌ Network error: " + err?.message);
+                      setUploadStatus("❌ " + (err?.message || "Upload failed"));
                     } finally {
                       setUploadLoading(false);
                     }
