@@ -452,6 +452,9 @@ export default function AIAgentsPageClient() {
   const [dbHealth, setDbHealth]     = useState<SvcStatus>("checking");
   const [linaHealth, setLinaHealth] = useState<SvcStatus>("checking");
   const [totalLeads, setTotalLeads]   = useState(0);
+  const [totalClients, setTotalClients] = useState(0);
+  const [clientsToday, setClientsToday] = useState(0);
+  const [clientsWeek, setClientsWeek]   = useState(0);
   const [emailsSent, setEmailsSent]   = useState(0);
   const [smsSent, setSmsSent]         = useState(0);
   const [emailsToday, setEmailsToday] = useState(0);
@@ -909,6 +912,9 @@ export default function AIAgentsPageClient() {
       const r = await fetch("/api/agents-proxy?endpoint=stats");
       const d = await r.json();
       setTotalLeads(d?.total_leads ?? 0);
+      setTotalClients(d?.total_clients ?? 0);
+      setClientsToday(d?.clients_today ?? 0);
+      setClientsWeek(d?.clients_week ?? 0);
       setTotalMessages(d?.total_messages ?? 0);
       setEmailsSent(d?.emails_sent ?? 0);
       setSmsSent(d?.sms_sent ?? 0);
@@ -1012,7 +1018,7 @@ export default function AIAgentsPageClient() {
 
   useEffect(() => {
     fetchData();
-    const i = setInterval(fetchData, 60000);
+    const i = setInterval(fetchData, 30000);
     return () => clearInterval(i);
   }, [fetchData]);
 
@@ -1194,6 +1200,7 @@ export default function AIAgentsPageClient() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <KpiCard icon="👥" label="Leads This Week"  value={leadsWeek}    trend={leadsToday > 0 ? `↑ ${leadsToday} today` : "—"}  color="bg-indigo-600" sub={`${totalLeads} all time`} />
           <KpiCard icon="🔥" label="Leads Today"      value={leadsToday}   trend={leadsToday > 0 ? `+${leadsToday}` : "—"}  color="bg-amber-500"   />
+          <KpiCard icon="🏆" label="Clients"          value={totalClients} trend={clientsToday > 0 ? `↑ ${clientsToday} today` : clientsWeek > 0 ? `↑ ${clientsWeek} this week` : "—"} color="bg-green-600" sub="converted" />
           <KpiCard icon="📧" label="Emails This Week" value={emailsWeek}   trend={emailsToday > 0 ? `↑ ${emailsToday} today` : "—"}  color="bg-blue-600"   sub={`${emailsSent} all time`} />
           <KpiCard icon="📱" label="SMS This Week"    value={smsWeek}      trend={smsToday > 0 ? `↑ ${smsToday} today` : "—"}    color="bg-cyan-500"   sub={`${smsSent} all time`} />
           <KpiCard icon="💰" label="Revenue"          value="$0"           sub="Tracking soon" color="bg-emerald-600" />
