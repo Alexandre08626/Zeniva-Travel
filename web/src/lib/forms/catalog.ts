@@ -54,7 +54,7 @@ export const FORM_DEFINITIONS: FormDefinition[] = [
       { id: "departureDate", label: "Departure date", type: "date" },
       { id: "returnDate", label: "Return date", type: "date" },
       { id: "pax", label: "Number of travelers", type: "number", placeholder: "2" },
-      { id: "budget", label: "Budget per person (CAD)", type: "select", options: ["Under $2,000", "$2,000 - $5,000", "$5,000 - $10,000", "$10,000+", "Flexible"] },
+      { id: "budget", label: "Budget per person (USD)", type: "select", options: ["Under $2,000", "$2,000 - $5,000", "$5,000 - $10,000", "$10,000+", "Flexible"] },
       { id: "tripType", label: "Trip type", type: "select", options: ["Leisure", "Honeymoon", "Business", "Family", "Adventure", "Luxury", "All-Inclusive"] },
     ],
   },
