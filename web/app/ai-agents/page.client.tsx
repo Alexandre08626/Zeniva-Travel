@@ -1497,7 +1497,7 @@ export default function AIAgentsPageClient() {
                           }
                         };
                         xhr.onerror = () => reject(new Error("Network error"));
-                        xhr.open("POST", "http://217.216.88.202:8000/video-queue/upload");
+                        xhr.open("POST", "https://vmi3097009.contaboserver.net/video-queue/upload");
                         xhr.setRequestHeader("Authorization", "Bearer zeniva-secret-2025");
                         xhr.send(form);
                       });
