@@ -1093,6 +1093,12 @@ export default function AIAgentsPageClient() {
 
   // ── Video upload handler (shared between file picker + drag & drop)
   const handleVideoUpload = async (file: File) => {
+    // Warn if not a video file
+    const isVideo = file.type.startsWith("video/") || /\.(mp4|mov|avi|mkv|m4v|webm|hevc|3gp|wmv|flv)$/i.test(file.name);
+    if (!isVideo) {
+      setUploadStatus("❌ This is not a video file. Please upload an MP4, MOV, or other video format.");
+      return;
+    }
     setUploadLoading(true);
     setUploadStatus("⏳ Uploading... 0%");
     const form = new FormData();
@@ -1713,7 +1719,7 @@ export default function AIAgentsPageClient() {
                       <div className="px-5 py-4 border-t border-gray-100 flex gap-3 justify-between items-center bg-gray-50">
                         <button
                           onClick={async () => {
-                            if (!confirm("Supprimer cette vidéo?")) return;
+                            if (!confirm("Delete this video?")) return;
                             try {
                               await fetch("/api/agents-proxy?endpoint=video-queue-action", {
                                 method: "POST",
@@ -1728,7 +1734,7 @@ export default function AIAgentsPageClient() {
                             } catch {}
                           }}
                           className="bg-red-500/10 text-red-500 border border-red-200 px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-500/20 transition-colors"
-                        >🗑️ Supprimer</button>
+                        >🗑️ Delete</button>
                         <button
                           onClick={async () => {
                             try {
