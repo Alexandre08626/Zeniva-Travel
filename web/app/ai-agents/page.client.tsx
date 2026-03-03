@@ -1459,7 +1459,7 @@ export default function AIAgentsPageClient() {
               </div>
               <div className="px-5 py-5">
                 <label className={`flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-10 cursor-pointer transition-all group ${uploadLoading ? "border-blue-400/60 bg-blue-500/5" : "border-blue-500/40 hover:border-blue-400 hover:bg-blue-500/5"}`}>
-                  <input type="file" accept="video/*" className="hidden" disabled={uploadLoading} onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
+                  <input type="file" accept="video/*,.mov,.mp4,.m4v,.avi,.mkv,.hevc,.webm" className="hidden" disabled={uploadLoading} onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
                     setUploadLoading(true);
@@ -1493,7 +1493,9 @@ export default function AIAgentsPageClient() {
                               reject(new Error(d.error || "Upload failed"));
                             }
                           } else {
-                            reject(new Error(`HTTP ${xhr.status}`));
+                            let errMsg = `HTTP ${xhr.status}`;
+                            try { const ed = JSON.parse(xhr.responseText); errMsg = ed.detail || ed.error || errMsg; } catch {}
+                            reject(new Error(errMsg));
                           }
                         };
                         xhr.onerror = () => reject(new Error("Network error"));
@@ -1516,7 +1518,7 @@ export default function AIAgentsPageClient() {
                     <>
                       <span className="text-4xl mb-3 group-hover:scale-110 transition-transform">🎬</span>
                       <span className="text-sm font-bold text-white">Click to choose a video</span>
-                      <span className="text-xs text-gray-400 mt-1">MP4, MOV — max 500MB</span>
+                      <span className="text-xs text-gray-400 mt-1">MP4, MOV, HEVC — max 500MB · Tip: si blanc dans Finder, sélecte quand même</span>
                     </>
                   )}
                 </label>
