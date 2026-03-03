@@ -1551,10 +1551,18 @@ export default function AIAgentsPageClient() {
                   <span className="text-xs font-normal text-gray-400">({uploadedVideos.length} video{uploadedVideos.length > 1 ? "s" : ""})</span>
                 </h2>
                 {uploadedVideos.filter((v: any) => v.uploaded_by === "boss" || v.status === "pending_approval" || v.status === "voiced").map((video: any) => {
-                  const proxyUrl = `/api/agents-proxy?endpoint=video-serve&file=${video.filename || video.id}`;
-                  const hasVoice = !!video.voiced_url || video.status === "voiced";
-                  const finalUrl = video.voiced_filename
-                    ? `/api/agents-proxy?endpoint=video-serve&file=${video.voiced_filename}`
+                  // Extract filename from proxy_url or video_url
+                  const extractFilename = (v: any) => {
+                    if (v.proxy_url) return v.proxy_url.replace("/video-serve/", "");
+                    if (v.video_url) return v.video_url.split("/").pop() || v.id;
+                    return v.id;
+                  };
+                  const filename = extractFilename(video);
+                  const proxyUrl = `https://vmi3097009.contaboserver.net/video-serve/${filename}`;
+                  const hasVoice = !!video.voiced_url || video.status === "voiced" || !!video.voiced_filename;
+                  const voicedFilename = video.voiced_filename || (video.proxy_url?.includes("_voiced") ? extractFilename(video) : null);
+                  const finalUrl = voicedFilename
+                    ? `https://vmi3097009.contaboserver.net/video-serve/${voicedFilename}`
                     : proxyUrl;
                   const isGenerating = voiceLoading[video.id];
                   const script = videoScripts[video.id] ?? (video.script_text || "");
@@ -1610,6 +1618,8 @@ export default function AIAgentsPageClient() {
                               <a
                                 href={finalUrl}
                                 download
+                                target="_blank"
+                                rel="noreferrer"
                                 className="mt-2 flex items-center justify-center gap-1.5 text-[11px] font-bold text-indigo-500 bg-indigo-50 border border-indigo-200 rounded-lg py-1.5 hover:bg-indigo-100 transition-colors"
                               >
                                 ⬇️ Download
@@ -1703,17 +1713,22 @@ export default function AIAgentsPageClient() {
                       <div className="px-5 py-4 border-t border-gray-100 flex gap-3 justify-between items-center bg-gray-50">
                         <button
                           onClick={async () => {
+                            if (!confirm("Supprimer cette vidéo?")) return;
                             try {
                               await fetch("/api/agents-proxy?endpoint=video-queue-action", {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ id: video.id, action: "reject" }),
+                                body: JSON.stringify({ id: video.id, action: "delete" }),
                               });
-                              await fetchData();
+                              // Refresh list
+                              fetch("/api/agents-proxy?endpoint=video-queue", { cache: "no-store" })
+                                .then(r => r.json())
+                                .then(data => setUploadedVideos(data?.videos || []))
+                                .catch(() => {});
                             } catch {}
                           }}
                           className="bg-red-500/10 text-red-500 border border-red-200 px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-500/20 transition-colors"
-                        >❌ Delete</button>
+                        >🗑️ Supprimer</button>
                         <button
                           onClick={async () => {
                             try {
