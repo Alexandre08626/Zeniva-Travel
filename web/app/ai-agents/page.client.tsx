@@ -1091,6 +1091,56 @@ export default function AIAgentsPageClient() {
   const contacted = leads.filter(l => l.status === "contacted" || l.status === "quoted" || l.status === "converted").length;
   const qualified = Math.max(leads.filter(l => l.status !== "junk").length, 1);
 
+  // ── Video upload handler (shared between file picker + drag & drop)
+  const handleVideoUpload = async (file: File) => {
+    setUploadLoading(true);
+    setUploadStatus("⏳ Uploading... 0%");
+    const form = new FormData();
+    form.append("file", file);
+    form.append("title", file.name.replace(/\.[^.]+$/, "") || "My Video");
+    form.append("platforms", "tiktok,youtube,instagram");
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.upload.onprogress = (ev) => {
+          if (ev.lengthComputable) {
+            const pct = Math.round((ev.loaded / ev.total) * 100);
+            setUploadStatus(`⏳ Uploading... ${pct}%`);
+          }
+        };
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const d = JSON.parse(xhr.responseText);
+              if (d.ok) {
+                setUploadStatus("✅ Video uploaded! Add Lina\'s voice below.");
+                fetch("/api/agents-proxy?endpoint=video-queue", { cache: "no-store" })
+                  .then(r => r.json())
+                  .then(data => setUploadedVideos(data?.videos || []))
+                  .catch(() => {});
+                resolve();
+              } else {
+                reject(new Error(d.detail || d.error || "Upload failed"));
+              }
+            } catch { reject(new Error("Invalid server response")); }
+          } else {
+            let errMsg = `Server error ${xhr.status}`;
+            try { const ed = JSON.parse(xhr.responseText); errMsg = ed.detail || ed.error || errMsg; } catch {}
+            reject(new Error(errMsg));
+          }
+        };
+        xhr.onerror = () => reject(new Error("Network error — check connection"));
+        xhr.open("POST", "https://vmi3097009.contaboserver.net/video-queue/upload");
+        xhr.setRequestHeader("Authorization", "Bearer zeniva-secret-2025");
+        xhr.send(form);
+      });
+    } catch (err: any) {
+      setUploadStatus("❌ " + (err?.message || "Upload failed"));
+    } finally {
+      setUploadLoading(false);
+    }
+  };
+
   // ── TABS config
   const TABS: { id: TabId; label: string }[] = [
     { id: "overview",   label: "🏠 Overview"   },
@@ -1458,56 +1508,21 @@ export default function AIAgentsPageClient() {
                 </div>
               </div>
               <div className="px-5 py-5">
-                <label className={`flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-10 cursor-pointer transition-all group ${uploadLoading ? "border-blue-400/60 bg-blue-500/5" : "border-blue-500/40 hover:border-blue-400 hover:bg-blue-500/5"}`}>
-                  <input type="file" accept="video/*,.mov,.mp4,.m4v,.avi,.mkv,.hevc,.webm" className="hidden" disabled={uploadLoading} onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
+                <label
+                  className={`flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-10 cursor-pointer transition-all group ${uploadLoading ? "border-blue-400/60 bg-blue-500/5 cursor-not-allowed" : "border-blue-500/40 hover:border-blue-400 hover:bg-blue-500/5"}`}
+                  onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                  onDrop={async (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    if (uploadLoading) return;
+                    const file = e.dataTransfer.files?.[0];
+                    if (!file) return;
+                    await handleVideoUpload(file);
+                  }}
+                >
+                  <input type="file" accept="*" className="hidden" disabled={uploadLoading} onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
-                    setUploadLoading(true);
-                    setUploadStatus("⏳ Uploading... 0%");
-                    const form = new FormData();
-                    form.append("file", file);
-                    form.append("title", file.name.replace(/\.[^.]+$/, ""));
-                    form.append("platforms", "tiktok,youtube,instagram");
-                    try {
-                      // Upload DIRECT to VPS — bypass Vercel 4.5MB limit
-                      await new Promise<void>((resolve, reject) => {
-                        const xhr = new XMLHttpRequest();
-                        xhr.upload.onprogress = (ev) => {
-                          if (ev.lengthComputable) {
-                            const pct = Math.round((ev.loaded / ev.total) * 100);
-                            setUploadStatus(`⏳ Uploading... ${pct}%`);
-                          }
-                        };
-                        xhr.onload = () => {
-                          if (xhr.status >= 200 && xhr.status < 300) {
-                            const d = JSON.parse(xhr.responseText);
-                            if (d.ok) {
-                              setUploadStatus("✅ Video uploaded! Add Lina\'s voice below.");
-                              // Refresh video list AND stay on approvals tab
-                              fetch("/api/agents-proxy?endpoint=video-queue", { cache: "no-store" })
-                                .then(r => r.json())
-                                .then(data => setUploadedVideos(data?.videos || []))
-                                .catch(() => {});
-                              resolve();
-                            } else {
-                              reject(new Error(d.error || "Upload failed"));
-                            }
-                          } else {
-                            let errMsg = `HTTP ${xhr.status}`;
-                            try { const ed = JSON.parse(xhr.responseText); errMsg = ed.detail || ed.error || errMsg; } catch {}
-                            reject(new Error(errMsg));
-                          }
-                        };
-                        xhr.onerror = () => reject(new Error("Network error"));
-                        xhr.open("POST", "https://vmi3097009.contaboserver.net/video-queue/upload");
-                        xhr.setRequestHeader("Authorization", "Bearer zeniva-secret-2025");
-                        xhr.send(form);
-                      });
-                    } catch (err: any) {
-                      setUploadStatus("❌ " + (err?.message || "Upload failed - check network"));
-                    } finally {
-                      setUploadLoading(false);
-                    }
+                    await handleVideoUpload(file);
                   }} />
                   {uploadLoading ? (
                     <>
