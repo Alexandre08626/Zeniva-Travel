@@ -1,202 +1,168 @@
-"use client";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { useMemo, useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import PACKAGES from "@/src/data/packages";
-import { createTrip, applyTripPatch } from "@/lib/store/tripsStore";
-import { GRADIENT_END, GRADIENT_START, LIGHT_BG } from "@/src/design/tokens";
-import Header from "@/src/components/Header";
-import TravelSearchWidget from "@/src/components/TravelSearchWidget";
-import LinaWidget from "@/src/components/LinaWidget";
-import AutoTranslate from "@/src/components/AutoTranslate";
+import Header from "../../src/components/Header";
+import Footer from "../../src/components/Footer";
 
-type Package = {
-  slug: string;
-  title: string;
-  price: string;
-  duration: string;
-  destination: string;
-  collections: string[];
-  image: string;
+export const metadata: Metadata = {
+  title: "Travel Packages 2025 — Luxury Vacations, All-Inclusive Deals | Zeniva Travel USA",
+  description:
+    "Discover the best travel packages for 2025. Luxury vacations, all-inclusive deals, Caribbean getaways, Europe tours, and more — planned by Lina AI in seconds. Serving USA & Canada.",
+  alternates: {
+    canonical: "https://zenivatravel.com/packages",
+    languages: { "en-US": "https://zenivatravel.com/packages" },
+  },
+  keywords: [
+    "travel packages 2025", "vacation packages USA", "all-inclusive vacation deals",
+    "luxury vacation packages", "Caribbean vacation packages", "Cancun vacation packages",
+    "Europe vacation packages", "cheap vacation packages", "best travel deals",
+    "group vacation packages", "honeymoon packages", "beach vacation packages"
+  ],
+  openGraph: {
+    title: "Best Travel Packages 2025 | Zeniva Travel — AI Concierge USA",
+    description: "Luxury vacations, all-inclusive deals, Caribbean & Europe packages. Planned by Lina AI — America's #1 AI travel concierge.",
+    url: "https://zenivatravel.com/packages",
+    type: "website",
+    locale: "en_US",
+  },
 };
 
-function PackagesContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const country = searchParams?.get("country") || "";
-  const [visible, setVisible] = useState(12);
-  const isLoggedIn = false;
-  const userEmail = "user@email.com";
-  const items = useMemo(() => {
-    if (!country) return PACKAGES;
-    const target = country.toLowerCase();
-    return PACKAGES.filter((p) => p.destination.toLowerCase().includes(target));
-  }, [country]);
+const packages = [
+  {
+    href: "/packages/cancun",
+    emoji: "🌴",
+    title: "Cancun All-Inclusive",
+    subtitle: "7 nights from $799/person",
+    desc: "Pristine beaches, unlimited food & drinks, and non-stop entertainment. Lina finds the best Cancun resort deals in seconds.",
+    tags: ["All-Inclusive", "Beach", "Popular"],
+    img: "🏖️",
+  },
+  {
+    href: "/packages/caribbean",
+    emoji: "🏝️",
+    title: "Caribbean Getaways",
+    subtitle: "5 nights from $1,199/person",
+    desc: "From the Bahamas to Turks & Caicos, Jamaica to St. Lucia — Lina AI picks the perfect island for your vibe.",
+    tags: ["Beach", "Luxury", "Couples"],
+    img: "🌊",
+  },
+  {
+    href: "/packages/europe",
+    emoji: "🗼",
+    title: "Europe Vacation Packages",
+    subtitle: "8 nights from $1,899/person",
+    desc: "Paris, Rome, Barcelona, Santorini — full packages with flights, hotels, and curated experiences. Let Lina plan it all.",
+    tags: ["Culture", "Adventure", "Luxury"],
+    img: "✈️",
+  },
+  {
+    href: "/packages/all-inclusive",
+    emoji: "🍹",
+    title: "All-Inclusive Deals",
+    subtitle: "From $599/person",
+    desc: "The best all-inclusive resorts in Mexico, Dominican Republic, Jamaica and more. Zero stress, unlimited everything.",
+    tags: ["All-Inclusive", "Family", "Couples"],
+    img: "🥂",
+  },
+  {
+    href: "/chat",
+    emoji: "🛥️",
+    title: "Yacht Charter",
+    subtitle: "Custom pricing",
+    desc: "Private yacht for groups, honeymoons, or special events. Mediterranean, Caribbean, or anywhere in the world.",
+    tags: ["Luxury", "Groups", "Premium"],
+    img: "⛵",
+  },
+  {
+    href: "/chat",
+    emoji: "👥",
+    title: "Group Travel",
+    subtitle: "10+ people — best rates",
+    desc: "Corporate retreats, wedding groups, family reunions. Lina AI negotiates group rates and handles all logistics.",
+    tags: ["Groups", "Corporate", "Family"],
+    img: "🎉",
+  },
+];
 
-  const handleBook = (pkg: Package) => {
-    const tripId = createTrip({ title: pkg.title, destination: pkg.destination });
-    // Parse duration, assume 5 days if not specified
-    const days = parseInt(pkg.duration) || 5;
-    const checkIn = new Date('2026-06-01'); // Default start
-    const checkOut = new Date(checkIn);
-    checkOut.setDate(checkOut.getDate() + days);
-
-    applyTripPatch(tripId, {
-      destination: pkg.destination,
-      checkIn: checkIn.toISOString().split('T')[0],
-      checkOut: checkOut.toISOString().split('T')[0],
-      adults: 2,
-      children: 0,
-      currency: 'USD',
-      budget: parseInt(pkg.price.replace(/[^0-9]/g, '')) || 5000,
-      departureCity: "New York",
-      accommodationType: "Hotel", // Assume hotel
-    });
-
-    router.push(`/proposals/${tripId}/select`);
+export default function PackagesPage() {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "Zeniva Travel — Best Travel Packages 2025",
+    "description": "Luxury vacation packages, all-inclusive deals, and custom trips planned by Lina AI for travelers in USA and Canada",
+    "url": "https://zenivatravel.com/packages",
+    "numberOfItems": packages.length,
+    "itemListElement": packages.map((p, i) => ({
+      "@type": "ListItem",
+      "position": i + 1,
+      "name": p.title,
+      "description": p.desc,
+      "url": `https://zenivatravel.com${p.href}`,
+    }))
   };
 
   return (
-    <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
-      <div className="w-screen left-1/2 right-1/2 -translate-x-1/2 relative">
-        <div className="mx-auto w-full px-6 pt-5">
-          <Header isLoggedIn={isLoggedIn} userEmail={userEmail} />
-        </div>
-      </div>
+    <>
+      <Header />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
+      <main className="min-h-screen bg-white">
+        {/* Hero */}
+        <section className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 text-white py-20 px-6 text-center">
+          <div className="max-w-3xl mx-auto">
+            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-2 text-sm font-semibold mb-6">
+              ✨ Powered by Lina AI — Your 24/7 Travel Concierge
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Best Travel Packages 2025</h1>
+            <p className="text-xl text-blue-100 mb-8">Tell Lina where you want to go — she'll build the perfect trip proposal in under 60 seconds. All-inclusive deals, luxury vacations, group trips & more.</p>
+            <Link href="/chat" className="inline-flex items-center gap-2 bg-white text-blue-700 font-bold px-8 py-4 rounded-2xl hover:bg-blue-50 transition-colors text-lg shadow-lg">
+              💬 Ask Lina for a Custom Package
+            </Link>
+          </div>
+        </section>
 
-      {/* HERO SECTION (Lina Search) */}
-      <section className="mt-4 mb-8 sm:mt-8 sm:mb-12">
-        <div className="relative w-screen left-1/2 right-1/2 -translate-x-1/2">
-          <div className="relative rounded-3xl overflow-hidden">
-            <div
-              className="absolute inset-0"
-              style={{
-                background: `linear-gradient(110deg, ${GRADIENT_START} 0%, ${GRADIENT_END} 60%)`,
-                opacity: 0.98,
-              }}
-            />
-
-            <div className="relative z-10 w-full mx-auto px-6 py-8 sm:py-12">
-              <div className="flex flex-col md:flex-row items-center gap-6 sm:gap-8">
-                <div className="flex-1 text-center md:text-left">
-                  <div className="mb-3 flex items-center justify-center md:justify-start gap-4">
-                    <img
-                      src="/branding/logo.png"
-                      alt="Zeniva logo"
-                      className="w-auto rounded-lg shadow-sm"
-                      style={{ height: "clamp(2.5rem, 6.5vw, 4.25rem)" }}
-                    />
-                    <div>
-                      <div
-                        className="font-extrabold tracking-tight text-white"
-                        style={{
-                          fontSize: "clamp(2.5rem, 6.5vw, 4.25rem)",
-                          lineHeight: 0.95,
-                          background: "linear-gradient(90deg,#ffffff 60%, #E6B85A 100%)",
-                          WebkitBackgroundClip: "text",
-                          WebkitTextFillColor: "transparent",
-                          textShadow: "0 8px 24px rgba(11,27,77,0.28)",
-                          letterSpacing: "-0.02em",
-                        }}
-                      >
-                        Zeniva Travel AI
-                      </div>
+        {/* Packages Grid */}
+        <section className="py-16 px-6">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-3xl font-bold text-gray-900 text-center mb-3">Popular Travel Packages</h2>
+            <p className="text-gray-500 text-center mb-12">All packages can be 100% customized by Lina AI — just tell her your dates, budget, and preferences.</p>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {packages.map((pkg) => (
+                <Link key={pkg.title} href={pkg.href} className="group bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 h-32 flex items-center justify-center text-6xl">
+                    {pkg.img}
+                  </div>
+                  <div className="p-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xl">{pkg.emoji}</span>
+                      <h3 className="font-bold text-gray-900 text-lg">{pkg.title}</h3>
+                    </div>
+                    <div className="text-blue-600 font-semibold text-sm mb-3">{pkg.subtitle}</div>
+                    <p className="text-gray-600 text-sm leading-relaxed mb-4">{pkg.desc}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {pkg.tags.map(t => (
+                        <span key={t} className="bg-blue-50 text-blue-600 text-xs font-semibold px-2.5 py-1 rounded-full border border-blue-100">{t}</span>
+                      ))}
                     </div>
                   </div>
-
-                  <p className="mt-3 text-md text-white/90 max-w-xl md:max-w-2xl">
-                    <AutoTranslate
-                      text="Tailor-made journeys, expert recommendations, and ready-to-book itineraries."
-                      className="inline"
-                    />
-                  </p>
-
-                  <div className="mt-6 mx-auto md:mx-0" style={{ width: "min(820px, 100%)" }}>
-                    <div className="bg-white rounded-2xl shadow-lg p-4">
-                      <TravelSearchWidget />
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {[
-                          { id: "q1", label: "Family trip", prompt: "Family beach trip, 7 nights" },
-                          { id: "q2", label: "Romantic", prompt: "Honeymoon Santorini, 5 nights" },
-                          { id: "q3", label: "Budget", prompt: "Sunny destinations under $1500" },
-                        ].map((q) => (
-                          <Link
-                            key={q.id}
-                            href={`/chat?prompt=${encodeURIComponent(q.prompt)}`}
-                            className="inline-block rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 transition"
-                          >
-                            {q.label}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex-1 hidden md:flex items-center justify-center pr-12">
-                  <div className="flex flex-col items-center gap-3">
-                    <span
-                      className="font-extrabold tracking-tight"
-                      style={{
-                        fontSize: "clamp(1.25rem, 2.6vw, 1.75rem)",
-                        lineHeight: 1,
-                        background: "linear-gradient(90deg,#ffffff 60%, #E6B85A 100%)",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                        textShadow: "0 6px 18px rgba(11,27,77,0.22)",
-                        letterSpacing: "-0.02em",
-                      }}
-                    >
-                      Lina AI
-                    </span>
-                    <LinaWidget size={Math.min(336, Math.max(192, 21 * 16))} />
-                  </div>
-                </div>
-              </div>
+                </Link>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <div className="mx-auto w-full max-w-none px-6 pb-16">
-
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-black">All Packages</h1>
-            {country && <div className="text-sm text-slate-500">Filtered by destination: {country}</div>}
+        {/* Lina CTA */}
+        <section className="py-16 px-6 bg-gradient-to-br from-blue-700 to-blue-900 text-white text-center">
+          <div className="max-w-2xl mx-auto">
+            <div className="text-6xl mb-4">🤖</div>
+            <h2 className="text-3xl font-bold mb-4">Don't See Your Destination?</h2>
+            <p className="text-blue-100 text-lg mb-8">Lina AI plans trips to <strong>any destination worldwide</strong>. Just tell her where you want to go, your budget, and she'll build the perfect proposal — in seconds.</p>
+            <Link href="/chat" className="inline-flex items-center gap-2 bg-white text-blue-700 font-bold px-8 py-4 rounded-2xl hover:bg-blue-50 transition-colors text-lg">
+              Start Planning for Free →
+            </Link>
+            <p className="text-blue-200 text-sm mt-4">No credit card. No commitment. Just your dream trip.</p>
           </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.slice(0, visible).map((p) => (
-            <div key={p.slug} className="bg-white rounded-2xl shadow p-4">
-              <div className="h-44 w-full overflow-hidden rounded-lg mb-4">
-                <img src={p.image} alt={p.title} className="w-full h-full object-cover" />
-              </div>
-              <h2 className="text-xl font-bold mb-1">{p.title}</h2>
-              <div className="text-sm text-slate-500 mb-3">{p.duration} • {p.destination}</div>
-              <div className="flex items-center justify-between">
-                <div className="text-2xl font-black">{p.price}</div>
-                <button onClick={() => handleBook(p)} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold">Book</button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {visible < items.length && (
-          <div className="flex justify-center mt-8">
-            <button onClick={() => setVisible((v) => v + 12)} className="px-6 py-3 rounded-full bg-white border shadow">Load more</button>
-          </div>
-        )}
-        </div>
-      </div>
-    </main>
-  );
-}
-
-export default function PackagesPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <PackagesContent />
-    </Suspense>
+        </section>
+      </main>
+      <Footer />
+    </>
   );
 }

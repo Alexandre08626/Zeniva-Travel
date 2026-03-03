@@ -33,34 +33,11 @@ const schemaOrg = {
   "logo": "https://zenivatravel.com/branding/logo.png",
   "description": "AI-powered travel agency incorporated in Delaware, USA. Offices in New York and Virginia. Serving all 50 US states and Canada.",
   "foundingDate": "2024",
-  "telephone": "+1-757-940-7276",
-  "address": [
-    {
-      "@type": "PostalAddress",
-      "streetAddress": "114 Arden Dr",
-      "addressLocality": "Williamsburg",
-      "addressRegion": "VA",
-      "postalCode": "23185",
-      "addressCountry": "US",
-      "name": "Main Office — Williamsburg, Virginia"
-    },
-    {
-      "@type": "PostalAddress",
-      "streetAddress": "8 The Green STE A",
-      "addressLocality": "Dover",
-      "addressRegion": "DE",
-      "postalCode": "19901",
-      "addressCountry": "US",
-      "name": "Registered Office — Delaware"
-    },
-    {
-      "@type": "PostalAddress",
-      "addressLocality": "New York",
-      "addressRegion": "NY",
-      "addressCountry": "US",
-      "name": "New York Office"
-    }
-  ],
+  "address": {
+    "@type": "PostalAddress",
+    "addressCountry": "US",
+    "addressRegion": "DE"
+  },
   "areaServed": [
     { "@type": "Country", "name": "United States" },
     { "@type": "Country", "name": "Canada" }

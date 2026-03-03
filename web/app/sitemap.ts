@@ -24,12 +24,36 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified,
       changeFrequency: "monthly",
       priority: 0.9,
-      alternates: {
-        languages: {
-          "en-US": `${BASE_URL}/about`,
-          "en-CA": `${BASE_URL}/about`,
-        },
-      },
+    },
+    {
+      url: `${BASE_URL}/packages`,
+      lastModified,
+      changeFrequency: "weekly",
+      priority: 0.95,
+    },
+    {
+      url: `${BASE_URL}/packages/cancun`,
+      lastModified,
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    {
+      url: `${BASE_URL}/packages/all-inclusive`,
+      lastModified,
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    {
+      url: `${BASE_URL}/packages/caribbean`,
+      lastModified,
+      changeFrequency: "weekly",
+      priority: 0.85,
+    },
+    {
+      url: `${BASE_URL}/packages/europe`,
+      lastModified,
+      changeFrequency: "weekly",
+      priority: 0.85,
     },
     {
       url: `${BASE_URL}/ai-travel-concierge`,

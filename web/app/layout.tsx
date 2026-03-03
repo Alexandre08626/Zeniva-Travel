@@ -156,34 +156,11 @@ export default function RootLayout({
                 "description": "Zeniva Travel is a US-based AI travel company offering luxury trip planning, custom vacations, group travel, and yacht charters. Powered by Lina AI, our 24/7 AI concierge serves all 50 states and Canada.",
                 "foundingDate": "2024",
                 "foundingLocation": "Delaware, USA",
-                "address": [
-                  {
-                    "@type": "PostalAddress",
-                    "streetAddress": "114 Arden Dr",
-                    "addressLocality": "Williamsburg",
-                    "addressRegion": "VA",
-                    "postalCode": "23185",
-                    "addressCountry": "US",
-                    "name": "Main Office — Williamsburg, Virginia"
-                  },
-                  {
-                    "@type": "PostalAddress",
-                    "streetAddress": "8 The Green STE A",
-                    "addressLocality": "Dover",
-                    "addressRegion": "DE",
-                    "postalCode": "19901",
-                    "addressCountry": "US",
-                    "name": "Registered Office — Delaware"
-                  },
-                  {
-                    "@type": "PostalAddress",
-                    "addressRegion": "NY",
-                    "addressCountry": "US",
-                    "addressLocality": "New York",
-                    "name": "New York office"
-                  }
-                ],
-                "telephone": "+1-757-940-7276",
+                "address": {
+                  "@type": "PostalAddress",
+                  "addressCountry": "US",
+                  "addressRegion": "DE"
+                },
                 "areaServed": [
                   { "@type": "Country", "name": "United States" },
                   { "@type": "Country", "name": "Canada" }
