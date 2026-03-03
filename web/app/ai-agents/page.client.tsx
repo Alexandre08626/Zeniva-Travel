@@ -1719,19 +1719,21 @@ export default function AIAgentsPageClient() {
                       <div className="px-5 py-4 border-t border-gray-100 flex gap-3 justify-between items-center bg-gray-50">
                         <button
                           onClick={async () => {
-                            if (!confirm("Delete this video?")) return;
+                            // Optimistic remove immediately
+                            setUploadedVideos(prev => prev.filter((v: any) => v.id !== video.id));
                             try {
                               await fetch("/api/agents-proxy?endpoint=video-queue-action", {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ id: video.id, action: "delete" }),
                               });
-                              // Refresh list
+                            } catch {
+                              // Restore on error
                               fetch("/api/agents-proxy?endpoint=video-queue", { cache: "no-store" })
                                 .then(r => r.json())
                                 .then(data => setUploadedVideos(data?.videos || []))
                                 .catch(() => {});
-                            } catch {}
+                            }
                           }}
                           className="bg-red-500/10 text-red-500 border border-red-200 px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-500/20 transition-colors"
                         >🗑️ Delete</button>
