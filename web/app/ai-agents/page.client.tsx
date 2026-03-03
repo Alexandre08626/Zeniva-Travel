@@ -1564,11 +1564,11 @@ export default function AIAgentsPageClient() {
                     return v.id;
                   };
                   const filename = extractFilename(video);
-                  const proxyUrl = `https://vmi3097009.contaboserver.net/video-serve/${filename}`;
+                  const proxyUrl = `/api/agents-proxy?endpoint=video-serve&file=${encodeURIComponent(filename)}`;
                   const hasVoice = !!video.voiced_url || video.status === "voiced" || !!video.voiced_filename;
                   const voicedFilename = video.voiced_filename || (video.proxy_url?.includes("_voiced") ? extractFilename(video) : null);
                   const finalUrl = voicedFilename
-                    ? `https://vmi3097009.contaboserver.net/video-serve/${voicedFilename}`
+                    ? `/api/agents-proxy?endpoint=video-serve&file=${encodeURIComponent(voicedFilename)}`
                     : proxyUrl;
                   const isGenerating = voiceLoading[video.id];
                   const script = videoScripts[video.id] ?? (video.script_text || "");
