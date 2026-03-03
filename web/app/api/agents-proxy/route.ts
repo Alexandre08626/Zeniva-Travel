@@ -12,15 +12,10 @@ export async function GET(req: NextRequest) {
       const r = await fetch(`${VPS_BASE}/health`, { next: { revalidate: 0 } });
       return NextResponse.json(await r.json());
     }
-
     if (endpoint === "stats") {
-      const r = await fetch(`${VPS_BASE}/admin/stats`, {
-        headers: { Authorization: AUTH },
-        next: { revalidate: 0 },
-      });
+      const r = await fetch(`${VPS_BASE}/admin/stats`, { headers: { Authorization: AUTH }, next: { revalidate: 0 } });
       return NextResponse.json(await r.json());
     }
-
     if (endpoint === "webhook-test") {
       const r = await fetch(`${VPS_BASE}/chat`, {
         method: "POST",
@@ -29,49 +24,37 @@ export async function GET(req: NextRequest) {
       });
       return NextResponse.json(await r.json());
     }
-
     if (endpoint === "leads") {
-      const r = await fetch(`${VPS_BASE}/admin/leads?limit=100`, {
-        headers: { Authorization: AUTH },
-        next: { revalidate: 0 },
-      });
+      const r = await fetch(`${VPS_BASE}/admin/leads?limit=100`, { headers: { Authorization: AUTH }, next: { revalidate: 0 } });
       return NextResponse.json(await r.json());
     }
-
     if (endpoint === "activity") {
-      const r = await fetch(`${VPS_BASE}/admin/activity`, {
-        headers: { Authorization: AUTH },
-        next: { revalidate: 0 },
-      });
+      const r = await fetch(`${VPS_BASE}/admin/activity`, { headers: { Authorization: AUTH }, next: { revalidate: 0 } });
       return NextResponse.json(await r.json());
     }
-
     if (endpoint === "tiktok") {
-      const r = await fetch(`${VPS_BASE}/tiktok/content`, {
-        headers: { Authorization: AUTH },
-        next: { revalidate: 0 },
-      });
+      const r = await fetch(`${VPS_BASE}/tiktok/content`, { headers: { Authorization: AUTH }, next: { revalidate: 0 } });
       return NextResponse.json(await r.json());
     }
-
     if (endpoint === "tiktok-video") {
       const filename = req.nextUrl.searchParams.get("file") || "";
       const r = await fetch(`${VPS_BASE}/tiktok/video/${filename}`);
       if (!r.ok) return NextResponse.json({ error: "Not found" }, { status: 404 });
       const buffer = await r.arrayBuffer();
-      return new NextResponse(buffer, {
-        headers: { "Content-Type": "video/mp4", "Content-Length": String(buffer.byteLength), "Cache-Control": "public, max-age=3600" },
-      });
+      return new NextResponse(buffer, { headers: { "Content-Type": "video/mp4", "Content-Length": String(buffer.byteLength), "Cache-Control": "public, max-age=3600" } });
     }
-
-    if (endpoint === "upload-video") {
-      // Forward multipart upload to VPS
-      const formData = await req.formData();
-      const r = await fetch(`${VPS_BASE}/video-queue/upload`, {
-        method: "POST",
-        headers: { Authorization: AUTH },
-        body: formData,
-      });
+    // Serve any video/audio from video-assets or video-queue
+    if (endpoint === "video-serve") {
+      const filename = req.nextUrl.searchParams.get("file") || "";
+      const r = await fetch(`${VPS_BASE}/video-serve/${filename}`, { headers: { Authorization: AUTH } });
+      if (!r.ok) return NextResponse.json({ error: "Not found" }, { status: 404 });
+      const buffer = await r.arrayBuffer();
+      const ct = filename.endsWith(".mp3") ? "audio/mpeg" : "video/mp4";
+      return new NextResponse(buffer, { headers: { "Content-Type": ct, "Content-Length": String(buffer.byteLength), "Cache-Control": "no-cache" } });
+    }
+    // Get video queue (uploaded videos pending approval)
+    if (endpoint === "video-queue") {
+      const r = await fetch(`${VPS_BASE}/video-queue`, { headers: { Authorization: AUTH }, next: { revalidate: 0 } });
       return NextResponse.json(await r.json());
     }
     return NextResponse.json({ error: "Unknown endpoint" }, { status: 400 });
@@ -85,34 +68,27 @@ export async function POST(req: NextRequest) {
   try {
     if (endpoint === "tiktok-action") {
       const body = await req.json();
-      const r = await fetch(`${VPS_BASE}/tiktok/action`, {
-        method: "POST",
-        headers: { Authorization: AUTH, "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      return NextResponse.json(await r.json());
-    }
-    if (endpoint === "video-queue") {
-      const r = await fetch(`${VPS_BASE}/video-queue`, { headers: { Authorization: AUTH } });
+      const r = await fetch(`${VPS_BASE}/tiktok/action`, { method: "POST", headers: { Authorization: AUTH, "Content-Type": "application/json" }, body: JSON.stringify(body) });
       return NextResponse.json(await r.json());
     }
     if (endpoint === "video-queue-action") {
       const body = await req.json();
-      const r = await fetch(`${VPS_BASE}/video-queue/action`, {
-        method: "POST",
-        headers: { Authorization: AUTH, "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const r = await fetch(`${VPS_BASE}/video-queue/action`, { method: "POST", headers: { Authorization: AUTH, "Content-Type": "application/json" }, body: JSON.stringify(body) });
       return NextResponse.json(await r.json());
     }
     if (endpoint === "upload-video") {
-      // Forward multipart upload to VPS
       const formData = await req.formData();
-      const r = await fetch(`${VPS_BASE}/video-queue/upload`, {
-        method: "POST",
-        headers: { Authorization: AUTH },
-        body: formData,
-      });
+      const r = await fetch(`${VPS_BASE}/video-queue/upload`, { method: "POST", headers: { Authorization: AUTH }, body: formData });
+      return NextResponse.json(await r.json());
+    }
+    if (endpoint === "add-voice") {
+      const body = await req.json();
+      const r = await fetch(`${VPS_BASE}/video-queue/add-voice`, { method: "POST", headers: { Authorization: AUTH, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      return NextResponse.json(await r.json());
+    }
+    if (endpoint === "social-queue") {
+      const body = await req.json();
+      const r = await fetch(`${VPS_BASE}/social-queue`, { method: "POST", headers: { Authorization: AUTH, "Content-Type": "application/json" }, body: JSON.stringify(body) });
       return NextResponse.json(await r.json());
     }
     return NextResponse.json({ error: "Unknown endpoint" }, { status: 400 });

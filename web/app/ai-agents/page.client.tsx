@@ -450,6 +450,11 @@ export default function AIAgentsPageClient() {
   const [activity, setActivity]       = useState<ActivityItem[]>([]);
   const [approvals, setApprovals]     = useState<PendingApproval[]>([]);
   const [approvalHistory, setApprovalHistory] = useState<PendingApproval[]>([]);
+  const [uploadedVideos, setUploadedVideos] = useState<any[]>([]);
+  const [videoScripts, setVideoScripts] = useState<Record<string, string>>({});
+  const [voiceLoading, setVoiceLoading] = useState<Record<string, boolean>>({});
+  const [uploadStatus, setUploadStatus] = useState("");
+  const [uploadLoading, setUploadLoading] = useState(false);
   const [tiktokVideos, setTiktokVideos] = useState<TikTokVideo[]>([]);
   const [agents, setAgents]           = useState<AgentDef[]>([]);
   const [lastRefresh, setLastRefresh] = useState("");
@@ -958,6 +963,13 @@ export default function AIAgentsPageClient() {
       setApprovals([...videoPending, ...socialPending]);
     } catch { setApprovals([]); }
 
+    // Uploaded video queue
+    try {
+      const r = await fetch("/api/agents-proxy?endpoint=video-queue", { cache: "no-store" });
+      const d = await r.json();
+      setUploadedVideos(d?.videos || []);
+    } catch { setUploadedVideos([]); }
+
     // TikTok videos
     try {
       const r = await fetch("/api/agents-proxy?endpoint=tiktok");
@@ -1419,191 +1431,370 @@ export default function AIAgentsPageClient() {
              TAB: APPROVALS
             ═══════════════════════════════════════════════════════════════════════ */}
         {tab === "approvals" && (
-          <div className="space-y-5">
-            {/* Header actions */}
-            {approvals.length > 0 && (
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-bold text-gray-900">{approvals.length} Pending Approvals</h2>
-                <div className="flex gap-2">
-                  <button onClick={handleApproveAll} className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-4 py-2 rounded-xl font-bold hover:bg-emerald-500/30 transition-colors">✅ Approve All</button>
-                  <button onClick={handleRejectAll}  className="text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-4 py-2 rounded-xl font-bold hover:bg-red-500/30 transition-colors">❌ Reject All</button>
-                </div>
-              </div>
-            )}
+          <div className="space-y-6">
 
-            {/* Upload your own video */}
-            <div className="bg-gray-900 border border-blue-500/30 rounded-2xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-700 flex items-center gap-3">
-                <span className="text-lg">📤</span>
+            {/* ── UPLOAD SECTION ────────────────────────────────────────────── */}
+            <div className="bg-gradient-to-br from-gray-900 to-gray-800 border border-blue-500/30 rounded-2xl overflow-hidden shadow-lg">
+              <div className="px-5 py-4 border-b border-gray-700/60 flex items-center gap-3">
+                <span className="text-2xl">📤</span>
                 <div>
-                  <div className="text-sm font-bold text-white">Upload Your Video</div>
-                  <div className="text-xs text-gray-400">Add your own videos to share on TikTok / YouTube / Instagram</div>
+                  <div className="text-sm font-bold text-white">Upload Your Base Video</div>
+                  <div className="text-xs text-gray-400 mt-0.5">Upload → Lina adds her voice → You approve → Agent publishes</div>
                 </div>
               </div>
               <div className="px-5 py-5">
-                <label className="flex flex-col items-center justify-center border-2 border-dashed border-blue-500/40 rounded-2xl p-10 cursor-pointer hover:border-blue-400 hover:bg-blue-500/5 transition-all group">
-                  <input type="file" accept="video/*" className="hidden" onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
+                <label className={`flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-10 cursor-pointer transition-all group ${uploadLoading ? "border-blue-400/60 bg-blue-500/5" : "border-blue-500/40 hover:border-blue-400 hover:bg-blue-500/5"}`}>
+                  <input type="file" accept="video/*" className="hidden" disabled={uploadLoading} onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
-                    const statusEl = document.getElementById("upload-status");
-                    if (statusEl) statusEl.textContent = "⏳ Uploading...";
+                    setUploadLoading(true);
+                    setUploadStatus("⏳ Uploading...");
                     const form = new FormData();
                     form.append("file", file);
                     form.append("title", file.name.replace(/\.[^.]+$/, ""));
                     form.append("platforms", "tiktok,youtube,instagram");
                     try {
                       const r = await fetch("/api/agents-proxy?endpoint=upload-video", { method: "POST", body: form });
-                      if (r.ok) {
-                        if (statusEl) statusEl.textContent = "✅ Vidéo ajoutée à la queue d'approbation!";
-                        setTimeout(() => { if (statusEl) statusEl.textContent = ""; window.location.reload(); }, 2000);
+                      const d = await r.json();
+                      if (r.ok && d.ok) {
+                        setUploadStatus("✅ Video uploaded! Add Lina\'s voice below.");
+                        await fetchData();
                       } else {
-                        if (statusEl) statusEl.textContent = "❌ Erreur lors de l'upload";
+                        setUploadStatus("❌ Upload failed: " + (d.error || "Unknown error"));
                       }
-                    } catch { if (statusEl) statusEl.textContent = "❌ Network error"; }
+                    } catch (err: any) {
+                      setUploadStatus("❌ Network error: " + err?.message);
+                    } finally {
+                      setUploadLoading(false);
+                    }
                   }} />
-                  <span className="text-4xl mb-3 group-hover:scale-110 transition-transform">🎬</span>
-                  <span className="text-sm font-bold text-white">Click to choose a video</span>
-                  <span className="text-xs text-gray-400 mt-1">MP4, MOV — max 500MB</span>
+                  {uploadLoading ? (
+                    <>
+                      <div className="w-12 h-12 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mb-3" />
+                      <span className="text-sm font-bold text-blue-300">Uploading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-4xl mb-3 group-hover:scale-110 transition-transform">🎬</span>
+                      <span className="text-sm font-bold text-white">Click to choose a video</span>
+                      <span className="text-xs text-gray-400 mt-1">MP4, MOV — max 500MB</span>
+                    </>
+                  )}
                 </label>
-                <p id="upload-status" className="text-center text-sm mt-3 text-emerald-400 font-semibold min-h-[20px]"></p>
+                {uploadStatus && (
+                  <p className={`text-center text-sm mt-3 font-semibold ${uploadStatus.startsWith("✅") ? "text-emerald-400" : uploadStatus.startsWith("❌") ? "text-red-400" : "text-blue-300"}`}>{uploadStatus}</p>
+                )}
               </div>
             </div>
 
-            {approvals.length === 0 && approvalHistory.length === 0 && (
-              <div className="bg-gray-50 border border-gray-200 rounded-2xl p-12 text-center">
-                <p className="text-5xl mb-3">✅</p>
-                <p className="text-gray-500">No pending approvals. Your uploaded videos will appear here.</p>
+            {/* ── YOUR UPLOADED VIDEOS ──────────────────────────────────────── */}
+            {uploadedVideos.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                  🎬 Your Videos
+                  <span className="text-xs font-normal text-gray-400">({uploadedVideos.length} video{uploadedVideos.length > 1 ? "s" : ""})</span>
+                </h2>
+                {uploadedVideos.map((video: any) => {
+                  const proxyUrl = `/api/agents-proxy?endpoint=video-serve&file=${video.filename || video.id}`;
+                  const hasVoice = !!video.voiced_url || video.status === "voiced";
+                  const finalUrl = video.voiced_filename
+                    ? `/api/agents-proxy?endpoint=video-serve&file=${video.voiced_filename}`
+                    : proxyUrl;
+                  const isGenerating = voiceLoading[video.id];
+                  const script = videoScripts[video.id] ?? (video.script_text || "");
+
+                  return (
+                    <div key={video.id} className="bg-white border border-indigo-500/20 rounded-2xl overflow-hidden shadow-sm">
+                      {/* Header */}
+                      <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3 bg-gradient-to-r from-indigo-50 to-white">
+                        <div>
+                          <div className="text-sm font-bold text-gray-900 truncate max-w-xs">{video.title || video.id}</div>
+                          <div className="text-xs text-gray-400 mt-0.5">
+                            {video.uploaded_by === "boss" ? "👑 Your upload" : "🤖 Agent"} · {video.generated_at ? new Date(video.generated_at).toLocaleString() : ""}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {hasVoice ? (
+                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-600 border border-emerald-500/30">🎤 VOICE ADDED</span>
+                          ) : (
+                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-600 border border-amber-500/30">⏳ NO VOICE YET</span>
+                          )}
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${
+                            video.status === "approved" ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30" :
+                            video.status === "voiced" ? "bg-blue-500/15 text-blue-600 border-blue-500/30" :
+                            "bg-gray-100 text-gray-500 border-gray-300"
+                          }`}>
+                            {video.status === "approved" ? "✅ APPROVED" : video.status === "voiced" ? "🎤 VOICED" : "📋 PENDING"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="px-5 py-5">
+                        <div className="flex flex-col lg:flex-row gap-6">
+                          {/* Video Player */}
+                          <div className="shrink-0">
+                            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                              {hasVoice ? "🎤 Final Video (with voice)" : "🎬 Base Video"}
+                            </div>
+                            <video
+                              key={finalUrl}
+                              controls
+                              className="rounded-xl bg-black shadow-md"
+                              style={{ width: "240px", maxHeight: "420px" }}
+                              preload="metadata"
+                            >
+                              <source src={finalUrl} type="video/mp4" />
+                            </video>
+                            {video.file_size && (
+                              <div className="text-[10px] text-gray-400 mt-1 text-center">
+                                {(video.file_size / 1024 / 1024).toFixed(1)} MB
+                              </div>
+                            )}
+                            {hasVoice && (
+                              <a
+                                href={finalUrl}
+                                download
+                                className="mt-2 flex items-center justify-center gap-1.5 text-[11px] font-bold text-indigo-500 bg-indigo-50 border border-indigo-200 rounded-lg py-1.5 hover:bg-indigo-100 transition-colors"
+                              >
+                                ⬇️ Download
+                              </a>
+                            )}
+                          </div>
+
+                          {/* Voice Script + Controls */}
+                          <div className="flex-1 space-y-4">
+                            <div>
+                              <label className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-2">
+                                🎤 Lina's Speech Script
+                                <span className="text-[10px] font-normal text-gray-400">(write exactly what Lina should say in English)</span>
+                              </label>
+                              <textarea
+                                value={script}
+                                onChange={e => setVideoScripts(p => ({ ...p, [video.id]: e.target.value }))}
+                                placeholder={"Hey guys! Looking for an amazing deal in Cancun? We have 7 nights all-inclusive starting at just $899 per person. Book now at ZenivaTravel.com — link in bio! 🌴"}
+                                rows={5}
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all resize-none"
+                              />
+                              <div className="text-[10px] text-gray-400 mt-1 text-right">{script.length} chars</div>
+                            </div>
+
+                            {/* Voice settings */}
+                            <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex items-center gap-3">
+                              <span className="text-xl">🎙️</span>
+                              <div className="flex-1">
+                                <div className="text-xs font-bold text-indigo-700">Lina's Voice — ElevenLabs</div>
+                                <div className="text-[10px] text-indigo-500 mt-0.5">Jessica · Playful, Bright, Warm · English</div>
+                              </div>
+                              <div className="text-[10px] text-indigo-400 font-mono">eleven_multilingual_v2</div>
+                            </div>
+
+                            {/* Generate button */}
+                            <div className="flex gap-3">
+                              <button
+                                disabled={isGenerating || !script.trim()}
+                                onClick={async () => {
+                                  if (!script.trim()) return;
+                                  setVoiceLoading(p => ({ ...p, [video.id]: true }));
+                                  try {
+                                    const r = await fetch("/api/agents-proxy?endpoint=add-voice", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ id: video.id, script: script.trim() }),
+                                    });
+                                    const d = await r.json();
+                                    if (d.ok) {
+                                      setUploadStatus("✅ Voice generated! Check the video player above.");
+                                      await fetchData();
+                                    } else {
+                                      setUploadStatus("❌ Voice error: " + (d.error || "Unknown"));
+                                    }
+                                  } catch (err: any) {
+                                    setUploadStatus("❌ " + err?.message);
+                                  } finally {
+                                    setVoiceLoading(p => ({ ...p, [video.id]: false }));
+                                  }
+                                }}
+                                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all shadow-sm ${
+                                  isGenerating
+                                    ? "bg-indigo-100 text-indigo-400 cursor-not-allowed"
+                                    : !script.trim()
+                                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                    : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200"
+                                }`}
+                              >
+                                {isGenerating ? (
+                                  <>
+                                    <div className="w-4 h-4 border-2 border-indigo-300 border-t-transparent rounded-full animate-spin" />
+                                    Generating voice...
+                                  </>
+                                ) : (
+                                  <>🎤 Generate Lina's Voice</>
+                                )}
+                              </button>
+                            </div>
+
+                            {/* Platforms */}
+                            <div className="flex flex-wrap gap-1.5">
+                              {(video.platforms_target || ["tiktok", "youtube", "instagram"]).map((p: string) => (
+                                <span key={p} className="text-[10px] font-bold px-2 py-1 rounded-lg bg-gray-100 text-gray-500 border border-gray-200 capitalize">{p}</span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="px-5 py-4 border-t border-gray-100 flex gap-3 justify-between items-center bg-gray-50">
+                        <button
+                          onClick={async () => {
+                            try {
+                              await fetch("/api/agents-proxy?endpoint=video-queue-action", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ id: video.id, action: "reject" }),
+                              });
+                              await fetchData();
+                            } catch {}
+                          }}
+                          className="bg-red-500/10 text-red-500 border border-red-200 px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-500/20 transition-colors"
+                        >❌ Delete</button>
+                        <button
+                          onClick={async () => {
+                            try {
+                              await fetch("/api/agents-proxy?endpoint=video-queue-action", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ id: video.id, action: "approve" }),
+                              });
+                              setUploadStatus("✅ Video approved & queued for publishing!");
+                              await fetchData();
+                            } catch {}
+                          }}
+                          className={`px-5 py-2 rounded-xl text-sm font-bold transition-all shadow-sm ${
+                            hasVoice
+                              ? "bg-emerald-500 text-white hover:bg-emerald-600 shadow-emerald-200"
+                              : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                          }`}
+                          disabled={!hasVoice}
+                          title={!hasVoice ? "Generate Lina\'s voice first" : "Approve & Publish"}
+                        >
+                          {hasVoice ? "✅ Approve & Publish" : "🔒 Add Voice First"}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
 
-            {/* Pending cards */}
-            {approvals.map(ap => (
-              <div key={ap.id} className="bg-gray-50 border border-amber-500/20 rounded-2xl overflow-hidden">
-                <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-sm font-bold text-gray-900">{ap.title}</div>
-                    <div className="text-xs text-gray-400 mt-0.5">{ap.agent} · {new Date(ap.createdAt).toLocaleString()}</div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {ap.platform && (
-                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 uppercase">{ap.platform}</span>
-                    )}
-                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">⏳ PENDING</span>
+            {uploadedVideos.length === 0 && approvals.length === 0 && tiktokVideos.length === 0 && (
+              <div className="bg-gray-50 border border-dashed border-gray-300 rounded-2xl p-16 text-center">
+                <p className="text-5xl mb-3">🎬</p>
+                <p className="text-gray-600 font-medium">No videos yet</p>
+                <p className="text-gray-400 text-sm mt-1">Upload your first video above to get started</p>
+              </div>
+            )}
+
+            {/* ── AI AGENT APPROVALS (social posts etc) ─────────────────────── */}
+            {approvals.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-bold text-gray-900">{approvals.length} Agent Approvals Pending</h2>
+                  <div className="flex gap-2">
+                    <button onClick={handleApproveAll} className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-4 py-2 rounded-xl font-bold hover:bg-emerald-500/30 transition-colors">✅ Approve All</button>
+                    <button onClick={handleRejectAll}  className="text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-4 py-2 rounded-xl font-bold hover:bg-red-500/30 transition-colors">❌ Reject All</button>
                   </div>
                 </div>
-                <div className="px-5 py-4 space-y-3">
-                  {ap.type === "video_ad" && ap.videoUrl ? (
-                    <div className="flex flex-col md:flex-row gap-5 items-start">
-                      <div className="flex-shrink-0">
-                        <video controls className="rounded-xl bg-black" style={{ width: "220px", maxHeight: "390px" }} preload="metadata">
-                          <source src={ap.videoUrl} type="video/mp4" />
-                        </video>
-                        <div className="text-[10px] text-gray-400 mt-1 text-center">{ap.resolution} · {ap.duration}s</div>
+                {approvals.map(ap => (
+                  <div key={ap.id} className="bg-white border border-amber-200 rounded-2xl overflow-hidden shadow-sm">
+                    <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3 bg-amber-50">
+                      <div>
+                        <div className="text-sm font-bold text-gray-900">{ap.title}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">{ap.agent} · {new Date(ap.createdAt).toLocaleString()}</div>
                       </div>
-                      <div className="flex-1">
-                        <div className="text-xs font-bold text-gray-500 mb-1">📋 Description</div>
-                        <div className="bg-white border border-gray-200 rounded-xl p-3 text-sm text-gray-600 whitespace-pre-wrap">{ap.content}</div>
-                        <div className="mt-3 text-xs text-gray-400">🎯 Platforms: {ap.platform}</div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {ap.platform && <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-500 border border-indigo-200 uppercase">{ap.platform}</span>}
+                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-600 border border-amber-200">⏳ PENDING</span>
                       </div>
                     </div>
-                  ) : (
-                    <>
-                      <div className="bg-white border border-gray-200 rounded-xl p-4 text-sm text-gray-600 whitespace-pre-wrap font-mono leading-relaxed">{ap.content}</div>
+                    <div className="px-5 py-4">
+                      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{ap.content}</div>
                       {ap.imagePrompt && (
-                        <div className="bg-purple-500/5 border border-purple-500/20 rounded-xl p-3">
-                          <div className="text-[10px] font-bold text-purple-400 mb-1">🎨 AI Image Prompt</div>
+                        <div className="mt-3 bg-purple-50 border border-purple-200 rounded-xl p-3">
+                          <div className="text-[10px] font-bold text-purple-500 mb-1">🎨 AI Image Prompt</div>
                           <p className="text-xs text-gray-500 italic">"{ap.imagePrompt}"</p>
                         </div>
                       )}
-                    </>
-                  )}
-                </div>
-                <div className="px-5 py-4 border-t border-gray-200 flex gap-3 justify-end">
-                  <button onClick={() => handleReject(ap.id)}  className="bg-red-500/15 text-red-400 border border-red-500/30 px-5 py-2 rounded-xl text-sm font-bold hover:bg-red-500/25 transition-colors">❌ Reject</button>
-                  <button onClick={() => handleApprove(ap.id)} className="bg-emerald-500 text-gray-900 px-5 py-2 rounded-xl text-sm font-bold hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/20">✅ Approve & Publish</button>
-                </div>
+                    </div>
+                    <div className="px-5 py-4 border-t border-gray-100 flex gap-3 justify-end bg-gray-50">
+                      <button onClick={() => handleReject(ap.id)}  className="bg-red-50 text-red-500 border border-red-200 px-5 py-2 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors">❌ Reject</button>
+                      <button onClick={() => handleApprove(ap.id)} className="bg-emerald-500 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-emerald-600 transition-colors shadow-sm">✅ Approve & Publish</button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
 
-            {/* TikTok Videos */}
+            {/* ── TIKTOK AGENT VIDEOS ───────────────────────────────────────── */}
             {tiktokVideos.length > 0 && (
-              <div>
-                <h2 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  🎬 TikTok Videos
-                  <span className="text-xs font-normal text-gray-400">
-                    ({tiktokVideos.filter(v => v.status === "pending").length} pending)
-                  </span>
+              <div className="space-y-4">
+                <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                  🤖 TikTok Agent Videos
+                  <span className="text-xs font-normal text-gray-400">({tiktokVideos.filter(v => v.status === "pending").length} pending)</span>
                 </h2>
-                <div className="space-y-4">
-                  {tiktokVideos.map(video => {
-                    const isPending = video.status === "pending";
-                    const scenes = video.script?.SCENES || video.script?.scenes || [];
-                    return (
-                      <div key={video.id} className={`bg-gray-50 border rounded-2xl overflow-hidden ${isPending ? "border-amber-500/20" : video.status === "approved" ? "border-emerald-500/20" : "border-gray-200"}`}>
-                        <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-3">
-                            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${video.account === "zeniva" ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : "bg-pink-500/20 text-pink-400 border-pink-500/30"}`}>
-                              {video.account === "zeniva" ? "🌍 Zeniva Travel" : "👩 Lina"}
-                            </span>
-                            <span className="text-xs text-gray-400">{video.created}</span>
-                          </div>
-                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${
-                            video.status === "pending" ? "bg-amber-500/15 text-amber-400 border-amber-500/30" :
-                            video.status === "approved" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" :
-                            "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
-                          }`}>
-                            {video.status === "pending" ? "⏳ PENDING" : video.status === "approved" ? "✅ APPROVED" : "✅ POSTED"}
+                {tiktokVideos.map(video => {
+                  const isPending = video.status === "pending";
+                  const scenes = video.script?.SCENES || video.script?.scenes || [];
+                  return (
+                    <div key={video.id} className={`bg-white border rounded-2xl overflow-hidden shadow-sm ${isPending ? "border-amber-200" : "border-emerald-200"}`}>
+                      <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3 bg-gray-50">
+                        <div className="flex items-center gap-3">
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${video.account === "zeniva" ? "bg-blue-100 text-blue-600 border-blue-200" : "bg-pink-100 text-pink-600 border-pink-200"}`}>
+                            {video.account === "zeniva" ? "🌍 Zeniva Travel" : "👩 Lina"}
                           </span>
+                          <span className="text-xs text-gray-400">{video.created}</span>
                         </div>
-                        <div className="px-5 py-4">
-                          <div className="flex flex-col md:flex-row gap-5">
-                            {/* Video Player */}
-                            <div className="flex-shrink-0">
-                              <video
-                                controls
-                                className="rounded-xl bg-black"
-                                style={{ width: "280px", maxHeight: "500px" }}
-                                preload="metadata"
-                              >
-                                <source src={`/api/agents-proxy?endpoint=tiktok-video&file=${video.filename}`} type="video/mp4" />
-                              </video>
-                              <div className="text-[10px] text-gray-400 mt-1 text-center">
-                                {(video.size / 1024 / 1024).toFixed(1)} MB
-                              </div>
-                            </div>
-                            {/* Details */}
-                            <div className="flex-1 space-y-3">
-                              <div>
-                                <div className="text-xs font-bold text-gray-500 mb-1">📝 Caption</div>
-                                <div className="bg-white border border-gray-200 rounded-xl p-3 text-sm text-gray-600 whitespace-pre-wrap">{video.caption}</div>
-                              </div>
-                              {scenes.length > 0 && (
-                                <div>
-                                  <div className="text-xs font-bold text-gray-500 mb-2">🎬 Scenes ({scenes.length})</div>
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                    {scenes.map((scene: any, i: number) => (
-                                      <div key={i} className="bg-white border border-gray-200 rounded-lg p-2.5">
-                                        <div className="text-[10px] font-bold text-indigo-400 mb-1">Scene {i + 1}</div>
-                                        <div className="text-xs font-semibold text-gray-900">{scene.text_overlay}</div>
-                                        <div className="text-[11px] text-gray-400 mt-1 line-clamp-2">{scene.voiceover}</div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        {isPending && (
-                          <div className="px-5 py-4 border-t border-gray-200 flex gap-3 justify-end">
-                            <button onClick={() => handleTikTokReject(video.id)} className="bg-red-500/15 text-red-400 border border-red-500/30 px-5 py-2 rounded-xl text-sm font-bold hover:bg-red-500/25 transition-colors">❌ Reject</button>
-                            <button onClick={() => handleTikTokApprove(video.id)} className="bg-emerald-500 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/20">✅ Approve & Post</button>
-                          </div>
-                        )}
+                        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${isPending ? "bg-amber-100 text-amber-600 border-amber-200" : "bg-emerald-100 text-emerald-600 border-emerald-200"}`}>
+                          {isPending ? "⏳ PENDING" : "✅ APPROVED"}
+                        </span>
                       </div>
-                    );
-                  })}
-                </div>
+                      <div className="px-5 py-4 flex flex-col md:flex-row gap-5">
+                        <div className="shrink-0">
+                          <video controls className="rounded-xl bg-black shadow" style={{ width: "240px", maxHeight: "420px" }} preload="metadata">
+                            <source src={`/api/agents-proxy?endpoint=tiktok-video&file=${video.filename}`} type="video/mp4" />
+                          </video>
+                          <div className="text-[10px] text-gray-400 mt-1 text-center">{(video.size / 1024 / 1024).toFixed(1)} MB</div>
+                        </div>
+                        <div className="flex-1 space-y-3">
+                          <div>
+                            <div className="text-xs font-bold text-gray-500 mb-1">📝 Caption</div>
+                            <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm text-gray-600 whitespace-pre-wrap">{video.caption}</div>
+                          </div>
+                          {scenes.length > 0 && (
+                            <div>
+                              <div className="text-xs font-bold text-gray-500 mb-2">🎬 Scenes</div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {scenes.map((scene: any, i: number) => (
+                                  <div key={i} className="bg-white border border-gray-200 rounded-lg p-2.5">
+                                    <div className="text-[10px] font-bold text-indigo-400 mb-1">Scene {i + 1}</div>
+                                    <div className="text-xs font-semibold text-gray-900">{scene.text_overlay}</div>
+                                    <div className="text-[11px] text-gray-400 mt-1 line-clamp-2">{scene.voiceover}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {isPending && (
+                        <div className="px-5 py-4 border-t border-gray-100 flex gap-3 justify-end bg-gray-50">
+                          <button onClick={() => handleTikTokReject(video.id)} className="bg-red-50 text-red-500 border border-red-200 px-5 py-2 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors">❌ Reject</button>
+                          <button onClick={() => handleTikTokApprove(video.id)} className="bg-emerald-500 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-emerald-600 transition-colors shadow-sm">✅ Approve & Post</button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -1620,7 +1811,7 @@ export default function AIAgentsPageClient() {
                         <div className="text-xs text-gray-900">{ap.title}</div>
                         <div className="text-[10px] text-gray-400">{ap.agent}</div>
                       </div>
-                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${ap.approved ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" : "bg-red-500/15 text-red-400 border-red-500/30"}`}>
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${ap.approved ? "bg-emerald-500/15 text-emerald-600 border-emerald-200" : "bg-red-500/15 text-red-500 border-red-200"}`}>
                         {ap.approved ? "✓ Approved" : "✗ Rejected"}
                       </span>
                     </div>
@@ -1631,7 +1822,7 @@ export default function AIAgentsPageClient() {
           </div>
         )}
 
-        {/* ═══════════════════════════════════════════════════════════════════════
+                {/* ═══════════════════════════════════════════════════════════════════════
              TAB: ACTIVITY
             ═══════════════════════════════════════════════════════════════════════ */}
         {tab === "activity" && (
