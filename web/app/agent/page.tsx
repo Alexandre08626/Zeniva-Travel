@@ -17,8 +17,7 @@ type AgentStatus = "live" | "active" | "idle" | "error";
 type AIAgent = {
   id: string; name: string; emoji: string; avatar?: string;
   status: AgentStatus; type: string; schedule: string; color: string;
-  description: string; features: string[];
-  desc: string; lastAction?: string;
+  description: string; features: string[]; lastAction?: string;
 };
 
 const AI_AGENTS: AIAgent[] = [
