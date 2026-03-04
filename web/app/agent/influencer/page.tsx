@@ -51,7 +51,7 @@ export default function InfluencerPage() {
 
   const siteBase = "https://www.zenivatravel.com";
   const refCode = stats.referralCode || (user?.email?.split("@")[0] ?? "ref");
-  const myLink = `${siteBase}?ref=${encodeURIComponent(refCode)}`;
+  const myLink = `${siteBase}/ref/${encodeURIComponent(refCode)}`;
 
   const videoShareLink = (videoId: string) =>
     `${siteBase}/ref/${encodeURIComponent(refCode)}/video/${videoId}`;
