@@ -64,7 +64,7 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen overflow-x-hidden m-0 p-0" style={{ backgroundColor: "#F8FAFF" }}>
+    <main className="min-h-screen m-0 p-0" style={{ backgroundColor: "#F8FAFF" }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
       {/* ── HEADER ── */}
@@ -226,7 +226,7 @@ export default function HomePage() {
       <div className="hidden sm:block">
 
         {/* ── HERO — full width, compact ── */}
-        <section className="relative w-full overflow-hidden" style={{ minHeight: "auto" }}>
+        <section data-fullbleed="true" className="relative w-full overflow-hidden" style={{ minHeight: "auto" }}>
           {/* Background full width */}
           <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #0B1B4D 0%, #0F3A8A 45%, #1a4fad 100%)" }} />
 
@@ -239,7 +239,7 @@ export default function HomePage() {
           {/* Grid pattern overlay */}
           <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
 
-          <div className="relative z-10 w-full px-8 xl:px-16 pt-28 pb-12">
+          <div className="relative z-10 w-full px-12 xl:px-20 pt-28 pb-12">
             <div className="w-full grid grid-cols-2 gap-12 items-center">
 
               {/* Left: Text + Search */}

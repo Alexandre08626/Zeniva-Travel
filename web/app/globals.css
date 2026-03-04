@@ -120,6 +120,14 @@ body[data-os="windows"] main {
   overflow-x: hidden;
 }
 
+/* Full-bleed sections — escape Windows padding */
+body[data-os="windows"] main section[data-fullbleed="true"] {
+  margin-left: -7.5vw !important;
+  margin-right: -7.5vw !important;
+  width: 100vw !important;
+  max-width: 100vw !important;
+}
+
 body[data-os="windows"] main > div[class*="max-w-"],
 body[data-os="windows"] main > section > div[class*="max-w-"],
 body[data-os="windows"] main > div > div[class*="max-w-"],
