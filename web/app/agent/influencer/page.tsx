@@ -150,10 +150,10 @@ export default function InfluencerPage() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all ${
+                className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all ${
                   activeTab === tab.key
                     ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25"
-                    : "text-slate-300 hover:bg-white/10 hover:text-white"
+                    : "text-white opacity-70 hover:bg-white/10 hover:opacity-100"
                 }`}
               >
                 <span>{tab.icon}</span>
