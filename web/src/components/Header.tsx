@@ -240,7 +240,6 @@ export default function Header({
                 </div>
               )}
             </div>
-            <LocaleSwitcher orientation="horizontal" compact className="h-9" />
             {loggedIn ? (
               <AccountMenu />
             ) : (
