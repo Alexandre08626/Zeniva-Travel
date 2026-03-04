@@ -15,6 +15,70 @@ interface Commission {
   status: "pending" | "paid";
   created_at: string;
   paid_at?: string;
+  booking_type?: string;
+}
+
+interface AgentProfile {
+  agent_type: string;
+  commission_rate: number;
+  role?: string;
+}
+
+// Commission rates by agent type
+const RATE_CONFIG: Record<string, {
+  label: string;
+  agentRate: number;
+  zenivaRate: number;
+  basis: string;
+  color: string;
+  icon: string;
+  description: string;
+}> = {
+  travel_agent: {
+    label: "Travel Agent",
+    agentRate: 70,
+    zenivaRate: 30,
+    basis: "of sale",
+    color: "text-blue-600",
+    icon: "✈️",
+    description: "You earn 70% of each booking — Zeniva keeps 30%",
+  },
+  yacht_broker: {
+    label: "Yacht Broker",
+    agentRate: 5,
+    zenivaRate: 95,
+    basis: "of Zeniva's cut",
+    color: "text-indigo-600",
+    icon: "⛵",
+    description: "Zeniva Yacht keeps 95% — you earn 5% of Zeniva's net profit",
+  },
+  influencer: {
+    label: "Influencer",
+    agentRate: 5,
+    zenivaRate: 95,
+    basis: "of net profit",
+    color: "text-purple-600",
+    icon: "⭐",
+    description: "You earn 5% of Zeniva's net profit on each referred booking",
+  },
+  default: {
+    label: "Agent",
+    agentRate: 70,
+    zenivaRate: 30,
+    basis: "of sale",
+    color: "text-blue-600",
+    icon: "💼",
+    description: "You earn 70% of each booking — Zeniva keeps 30%",
+  },
+};
+
+function getRateConfig(agentType?: string | null) {
+  if (!agentType) return RATE_CONFIG.default;
+  const t = agentType.toLowerCase();
+  if (t.includes("yacht")) return RATE_CONFIG.yacht_broker;
+  if (t.includes("influencer")) return RATE_CONFIG.influencer;
+  if (t.includes("travel")) return RATE_CONFIG.travel_agent;
+  return RATE_CONFIG.default;
 }
 
 export default function CommissionsPage() {
@@ -23,8 +87,13 @@ export default function CommissionsPage() {
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "pending" | "paid">("all");
+  const [agentProfile, setAgentProfile] = useState<AgentProfile | null>(null);
 
-  const fetchComm = async () => {
+  // Determine agent type from role or profile
+  const userRole = (user as any)?.role || (user as any)?.agent_type || "";
+  const rateConfig = getRateConfig(userRole || agentProfile?.agent_type);
+
+  const fetchData = async () => {
     setLoading(true);
     try {
       const p = new URLSearchParams({ path: "admin/commissions" });
@@ -32,11 +101,20 @@ export default function CommissionsPage() {
       const r = await fetch(`/api/agents-proxy?${p}`);
       const d = await r.json();
       setCommissions(d?.commissions || []);
+
+      // Load agent profile to get agent_type
+      if (user?.email) {
+        const pr = await fetch(`/api/agents-proxy?path=admin/agent-profile/${encodeURIComponent(user.email)}`);
+        if (pr.ok) {
+          const pd = await pr.json();
+          setAgentProfile(pd);
+        }
+      }
     } catch {}
     setLoading(false);
   };
 
-  useEffect(() => { if (user?.email) void fetchComm(); }, [user?.email]);
+  useEffect(() => { if (user?.email) void fetchData(); }, [user?.email]);
 
   const shown = filter === "all" ? commissions : commissions.filter(c => c.status === filter);
   const totalEarned = commissions.filter(c => c.status === "paid").reduce((s, c) => s + (c.commission_amount || 0), 0);
@@ -44,7 +122,7 @@ export default function CommissionsPage() {
   const totalSales = commissions.reduce((s, c) => s + (c.sale_amount || 0), 0);
 
   const downloadCSV = () => {
-    const header = "Client,Trip,Sale Amount,Zeniva Profit,Commission (5%),Status,Date\n";
+    const header = "Client,Trip,Sale Amount,Zeniva Profit,Your Commission,Status,Date\n";
     const rows = commissions.map(c => `"${c.client_name}","${c.trip_description||''}",${c.sale_amount},${c.zeniva_profit},${c.commission_amount},${c.status},${c.created_at}`).join("\n");
     const blob = new Blob([header + rows], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -55,55 +133,125 @@ export default function CommissionsPage() {
     <main className="min-h-screen bg-[#F3F6FB]">
       <div className="mx-auto max-w-7xl px-5 py-8 space-y-6">
 
+        {/* ── Header ── */}
         <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Earnings</p>
             <h1 className="text-3xl font-black text-slate-900">Commissions</h1>
-            <p className="text-sm text-slate-500 mt-0.5">5% of Zeniva's net profit on each booking</p>
+            <p className="text-sm text-slate-500 mt-0.5">
+              {rateConfig.icon} {rateConfig.label} · {rateConfig.description}
+            </p>
           </div>
           <button onClick={downloadCSV} className="rounded-full px-6 py-2.5 text-sm font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-sm">
             ⬇️ Export CSV
           </button>
         </header>
 
-        {/* KPIs */}
+        {/* ── Commission Rate Card ── */}
+        <div className="rounded-2xl overflow-hidden shadow-sm">
+          {/* Travel Agent */}
+          {(!userRole || userRole.includes("travel_agent") || (!userRole.includes("yacht") && !userRole.includes("influencer"))) && (
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-5 text-white">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="flex gap-6">
+                  <div className="text-center">
+                    <p className="text-4xl font-black">70%</p>
+                    <p className="text-blue-200 text-sm font-semibold">YOU</p>
+                  </div>
+                  <div className="flex items-center text-2xl font-black text-blue-300">+</div>
+                  <div className="text-center">
+                    <p className="text-4xl font-black text-blue-200">30%</p>
+                    <p className="text-blue-300 text-sm font-semibold">ZENIVA</p>
+                  </div>
+                </div>
+                <div className="sm:ml-6 sm:border-l sm:border-blue-500 sm:pl-6">
+                  <p className="font-black text-xl">✈️ Travel Agent Split</p>
+                  <p className="text-blue-100 text-sm mt-1">On every booking you close: <strong>you keep 70%</strong>, Zeniva keeps 30%.</p>
+                  <p className="text-blue-200 text-xs mt-1">Example: $5,000 trip → <strong>$3,500 for you</strong> · $1,500 for Zeniva</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Yacht Broker */}
+          {userRole.includes("yacht") && (
+            <div className="bg-gradient-to-r from-indigo-600 to-indigo-800 p-5 text-white">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="flex gap-6">
+                  <div className="text-center">
+                    <p className="text-4xl font-black">95%</p>
+                    <p className="text-indigo-200 text-sm font-semibold">ZENIVA YACHT</p>
+                  </div>
+                  <div className="flex items-center text-2xl font-black text-indigo-300">+</div>
+                  <div className="text-center">
+                    <p className="text-4xl font-black text-indigo-200">5%</p>
+                    <p className="text-indigo-300 text-sm font-semibold">YOU</p>
+                  </div>
+                </div>
+                <div className="sm:ml-6 sm:border-l sm:border-indigo-500 sm:pl-6">
+                  <p className="font-black text-xl">⛵ Yacht Broker Split</p>
+                  <p className="text-indigo-100 text-sm mt-1">Zeniva Yacht keeps 95% · You earn <strong>5% of Zeniva's net profit</strong> on yacht charters.</p>
+                  <p className="text-indigo-200 text-xs mt-1">Example: $50,000 yacht charter, Zeniva profit $10,000 → <strong>$500 for you</strong></p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* HQ sees all rates */}
+          {hq && (
+            <div className="bg-gradient-to-r from-slate-800 to-slate-900 p-5 text-white">
+              <p className="font-black text-lg mb-3">📊 HQ — All Commission Structures</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="bg-white/10 rounded-xl p-3">
+                  <p className="font-black text-white">✈️ Travel Agents</p>
+                  <p className="text-slate-300 text-sm mt-1">Agent: <strong className="text-white">70%</strong> · Zeniva: <strong className="text-amber-400">30%</strong></p>
+                  <p className="text-slate-400 text-xs">of total sale amount</p>
+                </div>
+                <div className="bg-white/10 rounded-xl p-3">
+                  <p className="font-black text-white">⛵ Yacht Brokers</p>
+                  <p className="text-slate-300 text-sm mt-1">Zeniva Yacht: <strong className="text-white">95%</strong> · Agent: <strong className="text-amber-400">5%</strong></p>
+                  <p className="text-slate-400 text-xs">of Zeniva's net profit</p>
+                </div>
+                <div className="bg-white/10 rounded-xl p-3">
+                  <p className="font-black text-white">⭐ Influencers</p>
+                  <p className="text-slate-300 text-sm mt-1">Influencer: <strong className="text-amber-400">5%</strong> · Zeniva: <strong className="text-white">95%</strong></p>
+                  <p className="text-slate-400 text-xs">of Zeniva's net profit</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── KPIs ── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { label: "Total Earned (Paid)", value: `$${totalEarned.toLocaleString()}`, color: "text-emerald-600", icon: "✅" },
-            { label: "Pending Commissions", value: `$${totalPending.toLocaleString()}`, color: "text-amber-600", icon: "⏳" },
-            { label: "Total Sales Tracked", value: `$${totalSales.toLocaleString()}`, color: "text-blue-600", icon: "📊" },
+            { label: "Total Earned (Paid)", value: `$${totalEarned.toLocaleString()}`, color: "text-emerald-600", icon: "✅", sub: "Commissions received" },
+            { label: "Pending Commissions", value: `$${totalPending.toLocaleString()}`, color: "text-amber-600", icon: "⏳", sub: "Awaiting payment" },
+            { label: "Total Sales Tracked", value: `$${totalSales.toLocaleString()}`, color: "text-blue-600", icon: "📊", sub: "All bookings" },
           ].map((k) => (
             <div key={k.label} className="rounded-2xl bg-white border border-slate-200 p-5 shadow-sm">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-xl">{k.icon}</span>
-                <p className="text-xs text-slate-500 font-medium">{k.label}</p>
+                <span className="text-2xl">{k.icon}</span>
+                <div>
+                  <p className="text-xs text-slate-500 font-medium">{k.label}</p>
+                  <p className="text-xs text-slate-400">{k.sub}</p>
+                </div>
               </div>
-              <p className={`text-3xl font-black ${k.color}`}>{k.value}</p>
+              <p className={`text-3xl font-black mt-2 ${k.color}`}>{k.value}</p>
             </div>
           ))}
         </div>
 
-        {/* Commission rate info */}
-        <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-5 text-white">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">💡</span>
-            <div>
-              <p className="font-black text-lg">Your Commission Rate: 5% of Net Profit</p>
-              <p className="text-blue-100 text-sm">Example: A $5,000 trip where Zeniva makes $1,000 profit = <strong>$50 commission</strong> for you. Paid monthly after client confirmation.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Filter */}
+        {/* ── Filter ── */}
         <div className="flex gap-2">
           {(["all","pending","paid"] as const).map(f => (
             <button key={f} onClick={() => setFilter(f)} className={`rounded-full px-4 py-1.5 text-xs font-bold transition-colors capitalize ${filter === f ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
-              {f}
+              {f === "all" ? "All" : f === "paid" ? "✅ Paid" : "⏳ Pending"}
             </button>
           ))}
         </div>
 
-        {/* Table */}
+        {/* ── Table ── */}
         <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
           {loading ? (
             <div className="p-8 text-center text-slate-400">Loading commissions…</div>
@@ -111,7 +259,16 @@ export default function CommissionsPage() {
             <div className="p-12 text-center">
               <p className="text-4xl mb-3">💰</p>
               <p className="text-slate-600 font-semibold">No commissions yet</p>
-              <p className="text-slate-400 text-sm mt-1">Commissions appear here once a booking is confirmed</p>
+              <p className="text-slate-400 text-sm mt-1">Commissions appear here once a booking is confirmed and payment is received</p>
+              <div className="mt-4 p-4 rounded-xl bg-blue-50 border border-blue-200 max-w-sm mx-auto text-left">
+                <p className="text-xs text-blue-800 font-bold mb-1">How to earn commissions:</p>
+                <ol className="text-xs text-blue-700 space-y-1 list-decimal list-inside">
+                  <li>Share your referral link from the Influencer page</li>
+                  <li>A client fills the travel form</li>
+                  <li>Lina qualifies them and closes the booking</li>
+                  <li>Your commission is calculated and tracked here</li>
+                </ol>
+              </div>
             </div>
           ) : (
             <table className="min-w-full text-sm">
@@ -120,8 +277,8 @@ export default function CommissionsPage() {
                   <th className="px-5 py-3">Client</th>
                   <th className="px-5 py-3">Trip</th>
                   <th className="px-5 py-3">Sale</th>
-                  <th className="px-5 py-3">Zeniva Profit</th>
-                  <th className="px-5 py-3">Your 5%</th>
+                  {hq && <th className="px-5 py-3">Zeniva Profit</th>}
+                  <th className="px-5 py-3">Your Commission</th>
                   <th className="px-5 py-3">Status</th>
                   <th className="px-5 py-3">Date</th>
                 </tr>
@@ -131,9 +288,11 @@ export default function CommissionsPage() {
                   <tr key={c.id} className="border-t border-slate-100 hover:bg-slate-50">
                     <td className="px-5 py-3 font-semibold text-slate-900">{c.client_name}</td>
                     <td className="px-5 py-3 text-slate-600 max-w-xs truncate">{c.trip_description || "—"}</td>
-                    <td className="px-5 py-3 font-semibold">${(c.sale_amount||0).toLocaleString()}</td>
-                    <td className="px-5 py-3 text-slate-600">${(c.zeniva_profit||0).toLocaleString()}</td>
-                    <td className="px-5 py-3 font-black text-emerald-700 text-base">${(c.commission_amount||0).toLocaleString()}</td>
+                    <td className="px-5 py-3 font-semibold text-slate-700">${(c.sale_amount||0).toLocaleString()}</td>
+                    {hq && <td className="px-5 py-3 text-slate-500">${(c.zeniva_profit||0).toLocaleString()}</td>}
+                    <td className="px-5 py-3">
+                      <span className="font-black text-emerald-700 text-base">${(c.commission_amount||0).toLocaleString()}</span>
+                    </td>
                     <td className="px-5 py-3">
                       <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${c.status === "paid" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
                         {c.status === "paid" ? "✅ Paid" : "⏳ Pending"}
@@ -146,6 +305,7 @@ export default function CommissionsPage() {
             </table>
           )}
         </div>
+
       </div>
     </main>
   );
