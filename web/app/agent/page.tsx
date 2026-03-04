@@ -137,7 +137,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
 
   const kpis = [
     { label: "Active Clients", value: dashStats?.active_clients ?? vpsStats?.total_clients ?? "—", icon: "👥", color: "bg-blue-50 border-blue-200", sub: `${dashStats?.open_dossiers ?? 0} dossiers` },
-    { label: "Total Leads", value: isHQorAdmin ? (vpsStats?.total_leads ?? "—") : (dashStats?.active_clients !== undefined ? (leads?.length ?? 0) : "0"), icon: "🎯", color: "bg-purple-50 border-purple-200", sub: isHQorAdmin ? `+${vpsStats?.leads_today ?? 0} today` : "Your pipeline" },
+    { label: "Total Leads", value: isHQorAdmin ? (vpsStats?.total_leads ?? "—") : (dashStats?.active_clients ?? 0), icon: "🎯", color: "bg-purple-50 border-purple-200", sub: isHQorAdmin ? `+${vpsStats?.leads_today ?? 0} today` : "Your pipeline" },
     { label: "Emails Sent", value: isHQorAdmin ? (vpsStats?.emails_sent ?? "—") : "—", icon: "📧", color: "bg-emerald-50 border-emerald-200", sub: isHQorAdmin ? `+${vpsStats?.emails_today ?? 0} today` : "Coming soon" },
     { label: "SMS Sent", value: isHQorAdmin ? (vpsStats?.sms_sent ?? "—") : "—", icon: "📱", color: "bg-amber-50 border-amber-200", sub: isHQorAdmin ? `+${vpsStats?.sms_today ?? 0} today` : "Coming soon" },
     { label: "Comm. Pipeline", value: dashStats ? `$${dashStats.commission_pipeline.toLocaleString()}` : "—", icon: "💰", color: "bg-rose-50 border-rose-200", sub: `${dashStats?.followups_due ?? 0} follow-ups` },
