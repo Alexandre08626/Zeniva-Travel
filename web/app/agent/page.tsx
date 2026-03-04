@@ -148,9 +148,9 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   return (
     <div className="min-h-screen flex" style={{ background: "#0B1B4D" }}>
       {/* SIDEBAR */}
-      <aside className={`fixed inset-y-0 left-0 z-40 flex flex-col transition-all duration-300 bg-slate-900 border-r border-slate-700/50 ${navOpen ? "w-64" : "w-16"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-40 flex flex-col transition-all duration-300 bg-white border-r border-slate-200 shadow-lg ${navOpen ? "w-64" : "w-16"}`}>
         {/* Logo + Toggle button at top */}
-        <div className="flex items-center gap-2 px-2 py-3 border-b border-slate-700/50">
+        <div className="flex items-center gap-2 px-2 py-3 border-b border-slate-200">
           <button
             onClick={() => setNavOpen(!navOpen)}
             className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-blue-600 hover:bg-blue-500 transition-colors text-white text-xl font-bold"
@@ -160,8 +160,8 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
           </button>
           {navOpen && (
             <div>
-              <p className="text-white font-black text-sm">Zeniva</p>
-              <p className="text-slate-400 text-xs">Agent Portal</p>
+              <p className="text-slate-900 font-black text-sm">Zeniva</p>
+              <p className="text-slate-500 text-xs">Agent Portal</p>
             </div>
           )}
         </div>
@@ -173,14 +173,14 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
             return (
               <div key={link.href} className="relative group">
                 <Link href={link.href}
-                  className={`flex items-center gap-3 rounded-xl px-2 py-2 text-sm font-semibold transition-all ${active ? "bg-blue-600 text-white" : "text-slate-400 hover:bg-slate-800 hover:text-white"}`}>
+                  className={`flex items-center gap-3 rounded-xl px-2 py-2 text-sm font-semibold transition-all ${active ? "bg-blue-600 text-white" : "text-slate-700 hover:bg-blue-50 hover:text-blue-700"}`}>
                   <span className="text-base shrink-0 w-6 text-center">{link.icon}</span>
                   {navOpen && <span>{link.label}</span>}
                 </Link>
                 {/* Tooltip when collapsed */}
                 {!navOpen && (
                   <div className="absolute left-14 top-1/2 -translate-y-1/2 z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-                    <div className="bg-slate-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl border border-slate-600">
+                    <div className="bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl border border-slate-700">
                       {link.label}
                       <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800" />
                     </div>
@@ -193,8 +193,8 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
             <>
               <div className="pt-2 pb-1">
                 {navOpen
-                  ? <p className="text-xs font-bold text-slate-600 uppercase tracking-widest px-2">HQ</p>
-                  : <div className="border-t border-slate-700 mx-2 my-1" />
+                  ? <p className="text-xs font-bold text-slate-500 uppercase tracking-widest px-2">HQ</p>
+                  : <div className="border-t border-slate-200 mx-2 my-1" />
                 }
               </div>
               {HQ_LINKS.map((link) => (
@@ -222,9 +222,9 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
         <div className="border-t border-slate-700/50 p-2 space-y-2">
 
           {navOpen && user && (
-            <div className="rounded-xl bg-slate-800 p-2">
-              <p className="text-white text-xs font-semibold truncate">{user.name || user.email}</p>
-              <p className="text-slate-400 text-xs truncate">{effectiveRole}</p>
+            <div className="rounded-xl bg-slate-50 border border-slate-200 p-2">
+              <p className="text-slate-800 text-xs font-semibold truncate">{user.name || user.email}</p>
+              <p className="text-slate-500 text-xs truncate">{effectiveRole}</p>
               <button onClick={() => logout()} className="text-rose-400 text-xs mt-1 hover:text-rose-300">Déconnexion</button>
             </div>
           )}
