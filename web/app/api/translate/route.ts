@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server";
 
-const DEFAULT_API_URL = "https://libretranslate.de/translate";
-const API_URL = process.env.TRANSLATION_API_URL || DEFAULT_API_URL;
-const API_KEY = process.env.TRANSLATION_API_KEY;
-
 export async function POST(req: Request) {
   try {
     const { text, target, source } = await req.json();
@@ -12,32 +8,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "'text' and 'target' are required" }, { status: 400 });
     }
 
-    const payload = {
-      q: text,
-      source: source || "auto",
-      target,
-      format: "text",
-      api_key: API_KEY || undefined,
-    };
+    // Use Google Translate unofficial API (no key needed, rate limited but works for UI)
+    const sl = source === "auto" ? "auto" : (source || "auto");
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${target}&dt=t&q=${encodeURIComponent(text)}`;
 
-    const upstream = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+    const resp = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0" },
     });
 
-    if (!upstream.ok) {
-      const body = await upstream.text();
-      return NextResponse.json({ error: `Upstream translation failed (${upstream.status}): ${body}` }, { status: 502 });
+    if (!resp.ok) {
+      return NextResponse.json({ error: `Translation failed (${resp.status})` }, { status: 502 });
     }
 
-    const data = await upstream.json();
-    const translated =
-      data?.translatedText ||
-      data?.translation ||
-      data?.data?.translations?.[0]?.translatedText;
+    const data = await resp.json();
+    // Google returns [[["translated","original",...],...],...]
+    const translated = Array.isArray(data?.[0])
+      ? data[0].map((seg: any) => seg?.[0] || "").join("")
+      : null;
 
-    if (!translated || typeof translated !== "string") {
+    if (!translated) {
       return NextResponse.json({ error: "No translated text returned" }, { status: 500 });
     }
 

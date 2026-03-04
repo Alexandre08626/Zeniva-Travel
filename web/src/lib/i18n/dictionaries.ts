@@ -96,7 +96,39 @@ const fr: Messages = {
   },
 };
 
-const dictionaries: Record<Locale, Messages> = { en, fr };
+const es: Messages = {
+  common: {
+    localeLabel: "Idioma",
+    switchTo: "Cambiar a",
+  },
+  nav: {
+    bookings: "Reservas",
+    proposals: "Propuestas",
+    clients: "Clientes",
+    dashboard: "Panel",
+  },
+  bookings: {
+    label: "Reservas",
+    title: "Archivos confirmados y emitidos",
+    subtitle: "Pipeline de viajes finalizados con pago, emisión y facturación.",
+    total: "Total",
+    ticketed: "Emitido",
+    confirmed: "Confirmado",
+    invoiced: "Facturado",
+    searchPlaceholder: "Buscar reserva, cliente, destino",
+    statusAll: "Todos",
+    statusConfirmed: "Confirmado",
+    statusTicketed: "Emitido",
+    statusInvoiced: "Facturado",
+    viewFile: "Ver archivo",
+    noResults: "Ninguna reserva coincide con los filtros.",
+    auditTitle: "Registro de auditoría (ejemplo)",
+    auditOne: "Emitido BK-1042 · boletos enviados a Dupuis",
+    auditTwo: "Factura enviada para BK-1045 (París)",
+  },
+};
+
+const dictionaries: Record<Locale, Messages> = { en, fr, es };
 
 export function getDictionary(locale: Locale): Messages {
   return dictionaries[locale] || dictionaries.en;

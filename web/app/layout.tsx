@@ -8,6 +8,7 @@ import BackButton from "../src/components/BackButton.client";
 import LinaAssistantDock from "../src/components/LinaAssistantDock";
 import CookieConsent from "../src/components/legal/CookieConsent.client";
 import PlatformOsTag from "../src/components/PlatformOsTag.client";
+import LocaleSwitcher from "../src/components/LocaleSwitcher";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -210,6 +211,8 @@ export default function RootLayout({
           <PlatformOsTag />
           <BackButton />
           <LinaAssistantDock />
+          {/* Floating language switcher — always visible */}
+          <LocaleSwitcher floating orientation="horizontal" compact className="bottom-24 right-4 top-auto" />
           {children}
           <CookieConsent />
         </Providers>

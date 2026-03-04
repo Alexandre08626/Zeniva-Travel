@@ -240,13 +240,11 @@ export default function Header({
                 </div>
               )}
             </div>
+            <LocaleSwitcher orientation="horizontal" compact className="h-9" />
             {loggedIn ? (
               <AccountMenu />
             ) : (
-              <>
-                <Image src="/branding/lina-avatar.png" alt="Lina avatar" width={40} height={40} className="rounded-full" />
-                <LocaleSwitcher orientation="horizontal" className="h-9" />
-              </>
+              <Image src="/branding/lina-avatar.png" alt="Lina avatar" width={40} height={40} className="rounded-full" />
             )}
           </div>
         </div>
