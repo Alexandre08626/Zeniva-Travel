@@ -1,11 +1,9 @@
 "use client";
 export const dynamic = "force-dynamic";
-
 import { useEffect, useState } from "react";
-import { useAuthStore } from "@/src/lib/authStore";
+import { useAuthStore, isHQ } from "@/src/lib/authStore";
 
-const PREMIUM_BLUE = "#0B1B4D";
-const BRAND_BLUE = "#0F6CF5";
+const AUTH = "Bearer zeniva-secret-2025";
 
 type BookingStatus = "confirmed" | "pending_payment" | "upcoming" | "past" | "cancelled";
 
@@ -14,206 +12,216 @@ interface Booking {
   client_name: string;
   client_email?: string;
   destination: string;
-  departure_date: string;
+  departure_date?: string;
   return_date?: string;
   travelers: number;
   total_price: number;
   currency: string;
   status: BookingStatus;
-  airline?: string;
-  hotel?: string;
-  reference?: string;
+  notes?: string;
   created_at: string;
 }
 
-const DEMO_BOOKINGS: Booking[] = [
-  { id: "BK-001", client_name: "Sarah & James Mitchell", client_email: "sarah@example.com", destination: "Paris, France", departure_date: "2025-04-15", return_date: "2025-04-22", travelers: 2, total_price: 4800, currency: "USD", status: "confirmed", airline: "Air France", hotel: "Hôtel Le Marais", reference: "AF-20250415-SJM", created_at: "2025-03-01" },
-  { id: "BK-002", client_name: "Carlos Ramirez", client_email: "carlos@example.com", destination: "Cancún, Mexico", departure_date: "2025-05-10", return_date: "2025-05-17", travelers: 4, total_price: 6200, currency: "USD", status: "pending_payment", airline: "AeroMéxico", hotel: "Grand Hyatt Cancún", reference: "AM-20250510-CR", created_at: "2025-03-05" },
-  { id: "BK-003", client_name: "Emma Thompson", destination: "Maldives", departure_date: "2025-06-01", return_date: "2025-06-08", travelers: 2, total_price: 9500, currency: "USD", status: "upcoming", airline: "Emirates", hotel: "Conrad Maldives", created_at: "2025-03-10" },
-  { id: "BK-004", client_name: "Liu Wei & Family", destination: "Tokyo, Japan", departure_date: "2025-01-20", return_date: "2025-01-30", travelers: 5, total_price: 12400, currency: "USD", status: "past", airline: "ANA", hotel: "Park Hyatt Tokyo", created_at: "2024-12-15" },
-  { id: "BK-005", client_name: "Alexandra Dupont", destination: "Santorini, Greece", departure_date: "2025-07-05", return_date: "2025-07-12", travelers: 2, total_price: 7300, currency: "USD", status: "confirmed", airline: "Aegean Airlines", hotel: "Canaves Oia", created_at: "2025-03-12" },
-];
-
-const STATUS_CFG: Record<BookingStatus, { label: string; bg: string; text: string }> = {
-  confirmed:      { label: "Confirmed",       bg: "bg-emerald-100", text: "text-emerald-700" },
-  pending_payment:{ label: "Pending Payment", bg: "bg-amber-100",   text: "text-amber-700" },
-  upcoming:       { label: "Upcoming",        bg: "bg-blue-100",    text: "text-blue-700" },
-  past:           { label: "Past",            bg: "bg-slate-100",   text: "text-slate-500" },
-  cancelled:      { label: "Cancelled",       bg: "bg-red-100",     text: "text-red-600" },
+const STATUS_CFG: Record<string, { label: string; bg: string; text: string }> = {
+  confirmed:       { label: "Confirmed",       bg: "bg-emerald-100", text: "text-emerald-700" },
+  pending_payment: { label: "Pending Payment", bg: "bg-amber-100",   text: "text-amber-700" },
+  upcoming:        { label: "Upcoming",        bg: "bg-blue-100",    text: "text-blue-700" },
+  past:            { label: "Completed",       bg: "bg-slate-100",   text: "text-slate-600" },
+  cancelled:       { label: "Cancelled",       bg: "bg-red-100",     text: "text-red-700" },
 };
 
-type Tab = "all" | "upcoming" | "past" | "cancelled";
-
-function fmtDate(d?: string) {
+function fmt(d?: string) {
   if (!d) return "—";
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-function fmtMoney(n: number, currency = "USD") {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
-}
-
-function avatarLetter(name: string) {
-  return name?.trim().charAt(0).toUpperCase() || "?";
-}
-
-const AVATAR_COLORS = ["#0F6CF5", "#7C3AED", "#10B981", "#F59E0B", "#EF4444", "#EC4899"];
-
-function avatarColor(name: string) {
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
-  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
-}
-
 export default function BookingsPage() {
   const user = useAuthStore((s) => s.user);
+  const hq = isHQ(user);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<Tab>("all");
+  const [filter, setFilter] = useState<"all" | BookingStatus>("all");
+  const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [actionId, setActionId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch(`/api/agents-proxy?path=admin/bookings`);
-        if (!res.ok) throw new Error("Not available");
-        const json = await res.json();
-        const arr: Booking[] = Array.isArray(json) ? json : json?.data ?? [];
-        setBookings(arr.length > 0 ? arr : DEMO_BOOKINGS);
-      } catch {
-        setBookings(DEMO_BOOKINGS);
-      } finally {
-        setLoading(false);
-      }
-    };
-    void load();
-  }, [user?.email]);
+  // form state
+  const [form, setForm] = useState({ client_name: "", client_email: "", destination: "", departure_date: "", return_date: "", travelers: "2", total_price: "", currency: "USD", status: "pending_payment", notes: "" });
 
-  const now = new Date();
-  const filtered = bookings.filter((b) => {
-    if (activeTab === "all") return true;
-    if (activeTab === "upcoming") return new Date(b.departure_date) > now && b.status !== "cancelled";
-    if (activeTab === "past") return new Date(b.departure_date) < now || b.status === "past";
-    if (activeTab === "cancelled") return b.status === "cancelled";
-    return true;
-  });
-
-  const stats = {
-    total: bookings.length,
-    confirmed: bookings.filter((b) => b.status === "confirmed").length,
-    pending: bookings.filter((b) => b.status === "pending_payment").length,
-    revenue: bookings.reduce((s, b) => s + (b.total_price ?? 0), 0),
+  const fetchBookings = async () => {
+    setLoading(true);
+    try {
+      const p = new URLSearchParams({ path: "admin/bookings" });
+      if (!hq && user?.email) p.append("agent_email", user.email);
+      const r = await fetch(`/api/agents-proxy?${p}`);
+      const d = await r.json();
+      setBookings(d?.bookings || []);
+    } catch {}
+    setLoading(false);
   };
 
-  const TABS: { key: Tab; label: string }[] = [
-    { key: "all", label: "All" },
-    { key: "upcoming", label: "Upcoming" },
-    { key: "past", label: "Past" },
-    { key: "cancelled", label: "Cancelled" },
-  ];
+  useEffect(() => { if (user?.email) void fetchBookings(); }, [user?.email]);
+
+  const displayed = filter === "all" ? bookings : bookings.filter(b => b.status === filter);
+  const totalRev = bookings.reduce((s, b) => s + (b.total_price || 0), 0);
+  const confirmed = bookings.filter(b => b.status === "confirmed").length;
+  const pending = bookings.filter(b => b.status === "pending_payment").length;
+
+  const createBooking = async () => {
+    setSaving(true);
+    try {
+      const payload = { ...form, travelers: Number(form.travelers), total_price: Number(form.total_price) };
+      if (!hq && user?.email) (payload as any).agent_email = user.email;
+      const r = await fetch("/api/agents-proxy?path=admin/bookings", {
+        method: "POST",
+        headers: { Authorization: AUTH, "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (r.ok) { setShowForm(false); setForm({ client_name:"",client_email:"",destination:"",departure_date:"",return_date:"",travelers:"2",total_price:"",currency:"USD",status:"pending_payment",notes:"" }); void fetchBookings(); }
+    } catch {}
+    setSaving(false);
+  };
+
+  const updateStatus = async (id: string, status: string) => {
+    setActionId(id + status);
+    await fetch(`/api/agents-proxy?path=admin/bookings/${id}`, {
+      method: "PATCH",
+      headers: { Authorization: AUTH, "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    setActionId(null);
+    void fetchBookings();
+  };
 
   return (
-    <div className="min-h-screen p-6" style={{ background: PREMIUM_BLUE }}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-black text-white">✈️ Bookings</h1>
-          <p className="text-slate-400 text-sm mt-1">Track and manage all client bookings</p>
-        </div>
-        <button
-          className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-white text-sm shadow-lg transition hover:opacity-90"
-          style={{ background: BRAND_BLUE }}
-        >
-          + New Booking
-        </button>
-      </div>
+    <main className="min-h-screen bg-[#F3F6FB]">
+      <div className="mx-auto max-w-7xl px-5 py-8 space-y-6">
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {[
-          { label: "Total Bookings",   value: stats.total,               icon: "🎫" },
-          { label: "Confirmed",        value: stats.confirmed,            icon: "✅" },
-          { label: "Pending Payment",  value: stats.pending,              icon: "⏳" },
-          { label: "Revenue",          value: fmtMoney(stats.revenue),    icon: "💵" },
-        ].map((s) => (
-          <div key={s.label} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-            <p className="text-2xl">{s.icon}</p>
-            <p className="text-2xl font-black text-slate-900 mt-1">{s.value}</p>
-            <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mt-1">{s.label}</p>
+        {/* Header */}
+        <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Bookings</p>
+            <h1 className="text-3xl font-black text-slate-900">Booking Center</h1>
+            <p className="text-sm text-slate-500 mt-0.5">All confirmed and upcoming trips — real-time from Supabase</p>
           </div>
-        ))}
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-2 mb-4">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setActiveTab(t.key)}
-            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition ${
-              activeTab === t.key
-                ? "bg-white text-slate-900"
-                : "bg-white/10 text-white hover:bg-white/20"
-            }`}
-          >
-            {t.label}
+          <button onClick={() => setShowForm(true)} className="rounded-full px-6 py-2.5 text-sm font-bold text-white shadow-lg hover:opacity-90" style={{ background: "linear-gradient(135deg,#0F6CF5,#0B1B4D)" }}>
+            + New Booking
           </button>
-        ))}
+        </header>
+
+        {/* KPI row */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[
+            { label: "Total Bookings", value: bookings.length, color: "text-blue-600" },
+            { label: "Confirmed", value: confirmed, color: "text-emerald-600" },
+            { label: "Pending Payment", value: pending, color: "text-amber-600" },
+            { label: "Total Revenue", value: `$${totalRev.toLocaleString()}`, color: "text-slate-900" },
+          ].map((k) => (
+            <div key={k.label} className="rounded-2xl bg-white border border-slate-200 px-5 py-4 shadow-sm">
+              <p className={`text-2xl font-black ${k.color}`}>{k.value}</p>
+              <p className="text-xs text-slate-500 mt-0.5">{k.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Filter tabs */}
+        <div className="flex gap-2 flex-wrap">
+          {(["all","confirmed","pending_payment","upcoming","past","cancelled"] as const).map((f) => (
+            <button key={f} onClick={() => setFilter(f)} className={`rounded-full px-4 py-1.5 text-xs font-bold transition-colors ${filter === f ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
+              {f === "all" ? "All" : STATUS_CFG[f]?.label || f}
+            </button>
+          ))}
+        </div>
+
+        {/* Table */}
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+          {loading ? (
+            <div className="p-8 text-center text-slate-400">Loading bookings…</div>
+          ) : displayed.length === 0 ? (
+            <div className="p-12 text-center">
+              <p className="text-4xl mb-3">✈️</p>
+              <p className="text-slate-600 font-semibold">No bookings yet</p>
+              <p className="text-slate-400 text-sm">Create your first booking above</p>
+            </div>
+          ) : (
+            <table className="min-w-full text-sm">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr className="text-left text-slate-500 text-xs uppercase tracking-wide">
+                  <th className="px-5 py-3">Client</th>
+                  <th className="px-5 py-3">Destination</th>
+                  <th className="px-5 py-3">Dates</th>
+                  <th className="px-5 py-3">Travelers</th>
+                  <th className="px-5 py-3">Revenue</th>
+                  <th className="px-5 py-3">Status</th>
+                  <th className="px-5 py-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {displayed.map((b) => {
+                  const sc = STATUS_CFG[b.status] || { label: b.status, bg: "bg-slate-100", text: "text-slate-600" };
+                  return (
+                    <tr key={b.id} className="border-t border-slate-100 hover:bg-slate-50 transition-colors">
+                      <td className="px-5 py-3">
+                        <p className="font-semibold text-slate-900">{b.client_name}</p>
+                        {b.client_email && <p className="text-xs text-slate-400">{b.client_email}</p>}
+                      </td>
+                      <td className="px-5 py-3 font-medium text-slate-700">{b.destination || "—"}</td>
+                      <td className="px-5 py-3 text-xs text-slate-500">{fmt(b.departure_date)} → {fmt(b.return_date)}</td>
+                      <td className="px-5 py-3 text-center">{b.travelers}</td>
+                      <td className="px-5 py-3 font-bold text-emerald-700">${(b.total_price || 0).toLocaleString()}</td>
+                      <td className="px-5 py-3"><span className={`text-xs font-bold px-2.5 py-1 rounded-full ${sc.bg} ${sc.text}`}>{sc.label}</span></td>
+                      <td className="px-5 py-3">
+                        <div className="flex gap-1">
+                          {b.status === "pending_payment" && (
+                            <button disabled={actionId === b.id+"confirmed"} onClick={() => updateStatus(b.id, "confirmed")} className="text-xs bg-emerald-500 text-white px-2 py-1 rounded-lg font-bold hover:bg-emerald-600 disabled:opacity-50">
+                              ✓ Confirm
+                            </button>
+                          )}
+                          {b.status !== "cancelled" && b.status !== "past" && (
+                            <button disabled={actionId === b.id+"cancelled"} onClick={() => updateStatus(b.id, "cancelled")} className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-lg font-bold hover:bg-red-200 disabled:opacity-50">
+                              Cancel
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
 
-      {/* Cards */}
-      {loading ? (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-12 text-center text-slate-400">Loading bookings…</div>
-      ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-16 text-center">
-          <p className="text-5xl mb-4">✈️</p>
-          <p className="text-xl font-bold text-slate-700">No bookings found</p>
-          <p className="text-slate-400 mt-2 text-sm">No bookings match this filter</p>
-        </div>
-      ) : (
-        <div className="grid gap-4">
-          {filtered.map((b) => {
-            const cfg = STATUS_CFG[b.status] ?? STATUS_CFG.upcoming;
-            const letter = avatarLetter(b.client_name);
-            const color = avatarColor(b.client_name);
-            return (
-              <div key={b.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-                <div className="flex items-start gap-4">
-                  {/* Avatar */}
-                  <div className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-lg shrink-0" style={{ background: color }}>
-                    {letter}
-                  </div>
-
-                  {/* Main info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-slate-900">{b.client_name}</span>
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${cfg.bg} ${cfg.text}`}>{cfg.label}</span>
-                    </div>
-                    <div className="flex items-center gap-4 mt-1 flex-wrap text-sm text-slate-500">
-                      <span>📍 {b.destination}</span>
-                      <span>🗓 {fmtDate(b.departure_date)} → {fmtDate(b.return_date)}</span>
-                      <span>👥 {b.travelers} traveler{b.travelers !== 1 ? "s" : ""}</span>
-                    </div>
-                    {(b.airline || b.hotel) && (
-                      <div className="flex gap-3 mt-2 text-xs text-slate-400">
-                        {b.airline && <span>✈ {b.airline}</span>}
-                        {b.hotel && <span>🏨 {b.hotel}</span>}
-                        {b.reference && <span>Ref: {b.reference}</span>}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Price */}
-                  <div className="text-right shrink-0">
-                    <p className="text-xl font-black text-slate-900">{fmtMoney(b.total_price, b.currency)}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">Booked {fmtDate(b.created_at)}</p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+      {/* New Booking Modal */}
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-3xl bg-white shadow-2xl p-6 space-y-4">
+            <h2 className="text-xl font-black text-slate-900">New Booking</h2>
+            <div className="grid grid-cols-2 gap-3">
+              <input className="col-span-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm" placeholder="Client name *" value={form.client_name} onChange={e => setForm(p=>({...p,client_name:e.target.value}))} />
+              <input className="col-span-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm" placeholder="Client email" value={form.client_email} onChange={e => setForm(p=>({...p,client_email:e.target.value}))} />
+              <input className="col-span-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm" placeholder="Destination *" value={form.destination} onChange={e => setForm(p=>({...p,destination:e.target.value}))} />
+              <div><label className="text-xs text-slate-500 mb-1 block">Departure</label><input type="date" className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={form.departure_date} onChange={e => setForm(p=>({...p,departure_date:e.target.value}))} /></div>
+              <div><label className="text-xs text-slate-500 mb-1 block">Return</label><input type="date" className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={form.return_date} onChange={e => setForm(p=>({...p,return_date:e.target.value}))} /></div>
+              <input type="number" className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm" placeholder="Travelers" value={form.travelers} onChange={e => setForm(p=>({...p,travelers:e.target.value}))} />
+              <input type="number" className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm" placeholder="Total price (USD)" value={form.total_price} onChange={e => setForm(p=>({...p,total_price:e.target.value}))} />
+              <select className="col-span-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm" value={form.status} onChange={e => setForm(p=>({...p,status:e.target.value}))}>
+                <option value="pending_payment">Pending Payment</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="upcoming">Upcoming</option>
+              </select>
+              <textarea className="col-span-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm" rows={2} placeholder="Notes…" value={form.notes} onChange={e => setForm(p=>({...p,notes:e.target.value}))} />
+            </div>
+            <div className="flex gap-2 justify-end pt-1">
+              <button onClick={() => setShowForm(false)} className="rounded-full px-5 py-2 text-sm border border-slate-200 font-semibold text-slate-600">Cancel</button>
+              <button onClick={createBooking} disabled={saving || !form.client_name || !form.destination} className="rounded-full px-6 py-2 text-sm font-bold text-white disabled:opacity-50" style={{ background: "linear-gradient(135deg,#0F6CF5,#0B1B4D)" }}>
+                {saving ? "Saving…" : "Create Booking"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }

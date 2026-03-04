@@ -1,227 +1,162 @@
 "use client";
 export const dynamic = "force-dynamic";
-
 import { useEffect, useRef, useState } from "react";
-import { useAuthStore } from "@/src/lib/authStore";
+import { useAuthStore, isHQ } from "@/src/lib/authStore";
 
-const PREMIUM_BLUE = "#0B1B4D";
-const BRAND_BLUE = "#0F6CF5";
-
-interface Message {
-  id: string;
-  role: "client" | "agent";
-  text: string;
-  ts: string;
-}
+const AUTH = "Bearer zeniva-secret-2025";
 
 interface Conversation {
   id: string;
   client_name: string;
-  client_email?: string;
+  client_email: string;
   last_message: string;
   last_ts: string;
-  unread: number;
-  messages: Message[];
+  count: number;
+  channel: string;
 }
 
-const DEMO_CONVOS: Conversation[] = [
-  {
-    id: "c1", client_name: "Sarah Mitchell", client_email: "sarah@example.com",
-    last_message: "Can you send me the Paris itinerary?", last_ts: "2025-03-04T18:30:00Z", unread: 2,
-    messages: [
-      { id: "m1", role: "client", text: "Hi! I'm interested in a Paris trip for April.", ts: "2025-03-04T14:00:00Z" },
-      { id: "m2", role: "agent", text: "Hello Sarah! Paris in April is beautiful. I'll prepare a custom proposal for you.", ts: "2025-03-04T14:05:00Z" },
-      { id: "m3", role: "client", text: "Can you send me the Paris itinerary?", ts: "2025-03-04T18:30:00Z" },
-    ],
-  },
-  {
-    id: "c2", client_name: "Carlos Ramirez", client_email: "carlos@example.com",
-    last_message: "Great, see you then!", last_ts: "2025-03-04T16:00:00Z", unread: 0,
-    messages: [
-      { id: "m1", role: "agent", text: "Carlos, your Cancún booking is confirmed for May 10–17!", ts: "2025-03-03T10:00:00Z" },
-      { id: "m2", role: "client", text: "Amazing, thank you so much!", ts: "2025-03-03T10:10:00Z" },
-      { id: "m3", role: "client", text: "Great, see you then!", ts: "2025-03-04T16:00:00Z" },
-    ],
-  },
-  {
-    id: "c3", client_name: "Emma Thompson", client_email: "emma@example.com",
-    last_message: "What's the best time to visit?", last_ts: "2025-03-04T12:00:00Z", unread: 1,
-    messages: [
-      { id: "m1", role: "client", text: "I'm dreaming of the Maldives!", ts: "2025-03-04T11:55:00Z" },
-      { id: "m2", role: "client", text: "What's the best time to visit?", ts: "2025-03-04T12:00:00Z" },
-    ],
-  },
-];
-
-function avatarLetter(name: string) {
-  return name?.trim().charAt(0).toUpperCase() || "?";
-}
-
-const COLORS = ["#0F6CF5", "#7C3AED", "#10B981", "#F59E0B", "#EF4444", "#EC4899"];
-function avatarColor(name: string) {
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
-  return COLORS[Math.abs(h) % COLORS.length];
-}
-
-function fmtTime(d: string) {
-  return new Date(d).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+interface Message {
+  id: string;
+  role: string;
+  content: string;
+  channel: string;
+  created_at: string;
 }
 
 export default function ChatHubPage() {
   const user = useAuthStore((s) => s.user);
+  const hq = isHQ(user);
   const [convos, setConvos] = useState<Conversation[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string | null>(null);
-  const [inputText, setInputText] = useState("");
-  const [sending, setSending] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [msgLoading, setMsgLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const endRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch("/api/agents-proxy?path=admin/agent-conversations");
-        if (!res.ok) throw new Error();
-        const json = await res.json();
-        const arr: Conversation[] = Array.isArray(json) ? json : json?.data ?? [];
-        setConvos(arr.length > 0 ? arr : DEMO_CONVOS);
-        if (arr.length > 0 || DEMO_CONVOS.length > 0) {
-          setSelected((arr.length > 0 ? arr : DEMO_CONVOS)[0].id);
-        }
-      } catch {
-        setConvos(DEMO_CONVOS);
-        setSelected(DEMO_CONVOS[0].id);
-      }
-    };
-    void load();
-  }, [user?.email]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [selected, convos]);
-
-  const activeCon = convos.find((c) => c.id === selected) ?? null;
-
-  const sendMessage = async () => {
-    if (!inputText.trim() || !activeCon) return;
-    setSending(true);
-    const msg: Message = { id: Date.now().toString(), role: "agent", text: inputText.trim(), ts: new Date().toISOString() };
-    setConvos((prev) =>
-      prev.map((c) =>
-        c.id === activeCon.id
-          ? { ...c, messages: [...c.messages, msg], last_message: msg.text, last_ts: msg.ts }
-          : c
-      )
-    );
-    setInputText("");
-    setSending(false);
+  const fetchConvos = async () => {
+    setLoading(true);
+    try {
+      const p = new URLSearchParams({ path: "admin/dashboard-stats" });
+      if (!hq && user?.email) p.append("agent_email", user.email);
+      const r = await fetch(`/api/agents-proxy?${p}`);
+      const d = await r.json();
+      const clients = d?.recent_clients || [];
+      const list: Conversation[] = clients.map((c: any) => ({
+        id: c.email,
+        client_name: c.name || c.email,
+        client_email: c.email,
+        last_message: c.last_message || "No messages yet",
+        last_ts: c.last_contact || c.created_at || new Date().toISOString(),
+        count: c.conversation_count || 0,
+        channel: c.last_channel || "chat",
+      }));
+      setConvos(list);
+    } catch {}
+    setLoading(false);
   };
 
+  const loadMessages = async (email: string) => {
+    setMsgLoading(true);
+    setMessages([]);
+    try {
+      const r = await fetch(`/api/agents-proxy?path=admin/client-profile/${encodeURIComponent(email)}`);
+      const d = await r.json();
+      setMessages((d?.conversations || []).slice(-50).reverse());
+    } catch {}
+    setMsgLoading(false);
+    setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+  };
+
+  useEffect(() => { if (user?.email) void fetchConvos(); }, [user?.email]);
+  useEffect(() => { if (selected) void loadMessages(selected); }, [selected]);
+
+  const shown = search ? convos.filter(c => c.client_name.toLowerCase().includes(search.toLowerCase()) || c.client_email.toLowerCase().includes(search.toLowerCase())) : convos;
+  const selConvo = convos.find(c => c.id === selected);
+
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: PREMIUM_BLUE }}>
-      <div className="p-6 pb-0">
-        <h1 className="text-3xl font-black text-white mb-1">💬 Chat Hub</h1>
-        <p className="text-slate-400 text-sm mb-4">Message your clients directly</p>
-      </div>
+    <main className="min-h-screen bg-[#F3F6FB]">
+      <div className="mx-auto max-w-7xl px-5 py-8">
 
-      <div className="flex flex-1 mx-6 mb-6 gap-4 min-h-0" style={{ height: "calc(100vh - 140px)" }}>
-        {/* Contact list */}
-        <div className="w-72 shrink-0 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
-          <div className="p-4 border-b border-slate-100">
-            <p className="font-bold text-slate-900 text-sm">Conversations</p>
-          </div>
-          <div className="flex-1 overflow-y-auto">
-            {convos.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center mt-8">No conversations yet</p>
-            ) : convos.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => setSelected(c.id)}
-                className={`w-full text-left px-4 py-3 flex items-center gap-3 border-b border-slate-50 transition hover:bg-slate-50 ${selected === c.id ? "bg-blue-50" : ""}`}
-              >
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0"
-                  style={{ background: avatarColor(c.client_name) }}
-                >
-                  {avatarLetter(c.client_name)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-slate-900 text-sm truncate">{c.client_name}</span>
-                    {c.unread > 0 && (
-                      <span className="ml-1 bg-blue-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 shrink-0">{c.unread}</span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-400 truncate mt-0.5">{c.last_message}</p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
+        <header className="mb-5">
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Communication</p>
+          <h1 className="text-3xl font-black text-slate-900">Chat Hub</h1>
+          <p className="text-sm text-slate-500 mt-0.5">All client conversations with Lina — read-only audit trail</p>
+        </header>
 
-        {/* Chat area */}
-        <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden min-w-0">
-          {!activeCon ? (
-            <div className="flex-1 flex items-center justify-center text-slate-400">
-              Select a conversation
+        <div className="flex gap-4 h-[calc(100vh-200px)]">
+
+          {/* Left — Conversation list */}
+          <div className="w-72 shrink-0 flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+            <div className="p-3 border-b border-slate-100">
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Search clients…" className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" />
             </div>
-          ) : (
-            <>
-              {/* Chat header */}
-              <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-3">
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-sm"
-                  style={{ background: avatarColor(activeCon.client_name) }}
-                >
-                  {avatarLetter(activeCon.client_name)}
-                </div>
-                <div>
-                  <p className="font-bold text-slate-900 text-sm">{activeCon.client_name}</p>
-                  {activeCon.client_email && <p className="text-xs text-slate-400">{activeCon.client_email}</p>}
-                </div>
-              </div>
-
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
-                {activeCon.messages.map((m) => (
-                  <div key={m.id} className={`flex ${m.role === "agent" ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-xs lg:max-w-md px-4 py-2.5 rounded-2xl text-sm shadow-sm ${
-                      m.role === "agent"
-                        ? "text-white rounded-br-md"
-                        : "bg-slate-100 text-slate-800 rounded-bl-md"
-                    }`} style={m.role === "agent" ? { background: BRAND_BLUE } : {}}>
-                      <p>{m.text}</p>
-                      <p className={`text-[10px] mt-1 ${m.role === "agent" ? "text-blue-200" : "text-slate-400"}`}>{fmtTime(m.ts)}</p>
+            <div className="flex-1 overflow-y-auto">
+              {loading ? (
+                <div className="p-4 text-sm text-slate-400 text-center">Loading…</div>
+              ) : shown.length === 0 ? (
+                <div className="p-6 text-center text-slate-400 text-sm">No conversations yet</div>
+              ) : shown.map((c) => (
+                <button key={c.id} onClick={() => setSelected(c.id)} className={`w-full text-left p-3 border-b border-slate-100 hover:bg-blue-50 transition-colors ${selected === c.id ? "bg-blue-50 border-l-4 border-l-blue-500" : ""}`}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0" style={{ background: "#0F6CF5" }}>
+                      {c.client_name[0]?.toUpperCase()}
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-slate-900 text-sm truncate">{c.client_name}</p>
+                      <p className="text-xs text-slate-400 truncate">{c.last_message}</p>
+                    </div>
+                    {c.count > 0 && <span className="text-xs bg-blue-100 text-blue-700 font-bold px-1.5 py-0.5 rounded-full">{c.count}</span>}
                   </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
+                </button>
+              ))}
+            </div>
+          </div>
 
-              {/* Input */}
-              <div className="px-5 py-3 border-t border-slate-100">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void sendMessage(); } }}
-                    placeholder="Type a message…"
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
-                  />
-                  <button
-                    onClick={() => void sendMessage()}
-                    disabled={sending || !inputText.trim()}
-                    className="px-4 py-2.5 rounded-xl font-semibold text-white text-sm disabled:opacity-50 transition hover:opacity-90"
-                    style={{ background: BRAND_BLUE }}
-                  >
-                    Send
-                  </button>
+          {/* Right — Message thread */}
+          <div className="flex-1 flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+            {!selected ? (
+              <div className="flex-1 flex items-center justify-center text-center p-8">
+                <div>
+                  <p className="text-5xl mb-4">💬</p>
+                  <p className="text-slate-600 font-semibold">Select a conversation</p>
+                  <p className="text-slate-400 text-sm mt-1">Click a client on the left to view their chat history with Lina</p>
                 </div>
               </div>
-            </>
-          )}
+            ) : (
+              <>
+                <div className="px-5 py-4 border-b border-slate-200 bg-slate-50">
+                  <p className="font-black text-slate-900">{selConvo?.client_name}</p>
+                  <p className="text-xs text-slate-400">{selConvo?.client_email} · {selConvo?.count} messages</p>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                  {msgLoading ? (
+                    <div className="text-center text-slate-400 text-sm py-8">Loading messages…</div>
+                  ) : messages.length === 0 ? (
+                    <div className="text-center text-slate-400 text-sm py-8">No messages found</div>
+                  ) : messages.map((m, i) => (
+                    <div key={i} className={`flex gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                      {m.role !== "user" && (
+                        <img src="/branding/lina-avatar.png" alt="Lina" className="w-7 h-7 rounded-full shrink-0" onError={e => { (e.currentTarget as HTMLImageElement).style.display="none"; }} />
+                      )}
+                      <div className={`max-w-xs lg:max-w-md px-3 py-2 rounded-2xl text-sm ${m.role === "user" ? "bg-blue-600 text-white rounded-br-sm" : "bg-slate-100 text-slate-800 rounded-bl-sm"}`}>
+                        <p>{m.content}</p>
+                        <p className={`text-[10px] mt-1 ${m.role === "user" ? "text-blue-200" : "text-slate-400"}`}>
+                          {m.role === "user" ? "Client" : "Lina"} · {m.created_at ? new Date(m.created_at).toLocaleString("en-CA") : ""}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={endRef} />
+                </div>
+                <div className="px-4 py-3 border-t border-slate-100 bg-slate-50 text-xs text-slate-400 text-center">
+                  Read-only view · Lina manages all client conversations automatically
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

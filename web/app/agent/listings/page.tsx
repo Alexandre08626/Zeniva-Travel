@@ -1,208 +1,170 @@
 "use client";
 export const dynamic = "force-dynamic";
-
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/src/lib/authStore";
 
-const PREMIUM_BLUE = "#0B1B4D";
-const BRAND_BLUE = "#0F6CF5";
-
-type ListingType = "hotel" | "villa" | "yacht";
-type ListingStatus = "active" | "pending" | "inactive";
+const AUTH = "Bearer zeniva-secret-2025";
 
 interface Listing {
   id: string;
   title: string;
-  type: ListingType;
+  type: "hotel" | "villa" | "yacht" | string;
   location: string;
   price_per_night: number;
   currency: string;
-  status: ListingStatus;
-  image_url?: string;
-  rating?: number;
-  rooms?: number;
+  status: "active" | "pending" | "inactive";
+  description?: string;
+  max_guests?: number;
+  created_at: string;
 }
 
-const DEMO_LISTINGS: Listing[] = [
-  { id: "l1", title: "Hôtel Le Marais", type: "hotel", location: "Paris, France", price_per_night: 320, currency: "USD", status: "active", rating: 4.8, rooms: 42 },
-  { id: "l2", title: "Villa Azura", type: "villa", location: "Santorini, Greece", price_per_night: 850, currency: "USD", status: "active", rating: 4.9, rooms: 5 },
-  { id: "l3", title: "MY Ocean Spirit", type: "yacht", location: "Monaco", price_per_night: 4200, currency: "USD", status: "active", rating: 5.0 },
-  { id: "l4", title: "Conrad Maldives Rangali", type: "hotel", location: "Maldives", price_per_night: 1100, currency: "USD", status: "active", rating: 4.9, rooms: 150 },
-  { id: "l5", title: "Villa Tulum Estrella", type: "villa", location: "Tulum, Mexico", price_per_night: 620, currency: "USD", status: "pending", rating: 4.7, rooms: 4 },
-  { id: "l6", title: "MY Serenity", type: "yacht", location: "Dubai Marina", price_per_night: 6500, currency: "USD", status: "pending" },
-];
-
-const TYPE_CFG: Record<ListingType, { label: string; icon: string; color: string }> = {
-  hotel: { label: "Hotel",  icon: "🏨", color: "#0F6CF5" },
-  villa: { label: "Villa",  icon: "🏡", color: "#10B981" },
-  yacht: { label: "Yacht",  icon: "⛵", color: "#6366f1" },
+const TYPE_CFG: Record<string, { icon: string; color: string }> = {
+  hotel: { icon: "🏨", color: "text-blue-600" },
+  villa: { icon: "🏡", color: "text-emerald-600" },
+  yacht: { icon: "⛵", color: "text-indigo-600" },
 };
-
-const STATUS_CFG: Record<ListingStatus, { label: string; bg: string; text: string }> = {
-  active:   { label: "Active",          bg: "bg-emerald-100", text: "text-emerald-700" },
-  pending:  { label: "Pending Review",  bg: "bg-amber-100",   text: "text-amber-700" },
-  inactive: { label: "Inactive",        bg: "bg-slate-100",   text: "text-slate-500" },
-};
-
-type Filter = "all" | ListingType;
-
-function fmtMoney(n: number, currency = "USD") {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
-}
 
 export default function ListingsPage() {
   const user = useAuthStore((s) => s.user);
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useState<"all" | "hotel" | "villa" | "yacht">("all");
+  const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({ title: "", type: "hotel", location: "", price_per_night: "", currency: "USD", description: "", max_guests: "2" });
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch("/api/agents-proxy?path=admin/listings");
-        if (!res.ok) throw new Error();
-        const json = await res.json();
-        const arr: Listing[] = Array.isArray(json) ? json : json?.data ?? [];
-        setListings(arr.length > 0 ? arr : DEMO_LISTINGS);
-      } catch {
-        setListings(DEMO_LISTINGS);
-      } finally {
-        setLoading(false);
-      }
-    };
-    void load();
-  }, [user?.email]);
-
-  const filtered = filter === "all" ? listings : listings.filter((l) => l.type === filter);
-
-  const stats = {
-    total: listings.length,
-    active: listings.filter((l) => l.status === "active").length,
-    pending: listings.filter((l) => l.status === "pending").length,
+  const fetchListings = async () => {
+    setLoading(true);
+    try {
+      const r = await fetch("/api/agents-proxy?path=admin/listings");
+      const d = await r.json();
+      setListings(d?.listings || []);
+    } catch {}
+    setLoading(false);
   };
 
-  const FILTERS: { key: Filter; label: string }[] = [
-    { key: "all", label: "All" },
-    { key: "hotel", label: "🏨 Hotels" },
-    { key: "villa", label: "🏡 Villas" },
-    { key: "yacht", label: "⛵ Yachts" },
-  ];
+  useEffect(() => { void fetchListings(); }, []);
+
+  const shown = filter === "all" ? listings : listings.filter(l => l.type === filter);
+
+  const createListing = async () => {
+    setSaving(true);
+    try {
+      const r = await fetch("/api/agents-proxy?path=admin/listings", {
+        method: "POST",
+        headers: { Authorization: AUTH, "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, price_per_night: Number(form.price_per_night), max_guests: Number(form.max_guests) }),
+      });
+      if (r.ok) { setShowForm(false); void fetchListings(); }
+    } catch {}
+    setSaving(false);
+  };
 
   return (
-    <div className="min-h-screen p-6" style={{ background: PREMIUM_BLUE }}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-black text-white">🏨 Listings</h1>
-          <p className="text-slate-400 text-sm mt-1">Manage your properties and offerings</p>
-        </div>
-        <button
-          className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-white text-sm shadow-lg transition hover:opacity-90"
-          style={{ background: BRAND_BLUE }}
-        >
-          + New Listing
-        </button>
-      </div>
+    <main className="min-h-screen bg-[#F3F6FB]">
+      <div className="mx-auto max-w-7xl px-5 py-8 space-y-6">
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        {[
-          { label: "Total",           value: stats.total,   icon: "🏨" },
-          { label: "Active",          value: stats.active,  icon: "✅" },
-          { label: "Pending Review",  value: stats.pending, icon: "⏳" },
-        ].map((s) => (
-          <div key={s.label} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-            <p className="text-2xl">{s.icon}</p>
-            <p className="text-2xl font-black text-slate-900 mt-1">{s.value}</p>
-            <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mt-1">{s.label}</p>
+        <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Inventory</p>
+            <h1 className="text-3xl font-black text-slate-900">Listings</h1>
+            <p className="text-sm text-slate-500 mt-0.5">{listings.length} properties · Hotels, Villas & Yachts</p>
           </div>
-        ))}
-      </div>
-
-      {/* Filter bar */}
-      <div className="flex gap-2 mb-5">
-        {FILTERS.map((f) => (
-          <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
-            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition ${
-              filter === f.key ? "bg-white text-slate-900" : "bg-white/10 text-white hover:bg-white/20"
-            }`}
-          >
-            {f.label}
+          <button onClick={() => setShowForm(true)} className="rounded-full px-6 py-2.5 text-sm font-bold text-white shadow-lg hover:opacity-90" style={{ background: "linear-gradient(135deg,#0F6CF5,#0B1B4D)" }}>
+            + Add Listing
           </button>
-        ))}
-      </div>
+        </header>
 
-      {/* Grid */}
-      {loading ? (
-        <div className="bg-white rounded-2xl p-12 text-center text-slate-400">Loading listings…</div>
-      ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-16 text-center">
-          <p className="text-5xl mb-4">🏨</p>
-          <p className="text-xl font-bold text-slate-700">No listings found</p>
-          <p className="text-slate-400 mt-2 text-sm">Add your first listing to get started</p>
-          <button className="mt-6 px-6 py-2.5 rounded-xl font-semibold text-white text-sm" style={{ background: BRAND_BLUE }}>
-            + New Listing
-          </button>
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { type: "hotel", icon: "🏨", label: "Hotels" },
+            { type: "villa", icon: "🏡", label: "Villas" },
+            { type: "yacht", icon: "⛵", label: "Yachts" },
+          ].map((t) => (
+            <div key={t.type} className="rounded-2xl bg-white border border-slate-200 px-5 py-4 shadow-sm text-center">
+              <p className="text-3xl">{t.icon}</p>
+              <p className="text-xl font-black text-slate-900">{listings.filter(l => l.type === t.type).length}</p>
+              <p className="text-xs text-slate-500">{t.label}</p>
+            </div>
+          ))}
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map((l) => {
-            const typeCfg = TYPE_CFG[l.type];
-            const statusCfg = STATUS_CFG[l.status];
-            return (
-              <div key={l.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                {/* Image placeholder */}
-                <div
-                  className="h-40 flex items-center justify-center text-5xl"
-                  style={{ background: `${typeCfg.color}18` }}
-                >
-                  {typeCfg.icon}
-                </div>
 
-                <div className="p-5 flex-1 flex flex-col">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-bold text-slate-900">{l.title}</h3>
-                    <span className={`shrink-0 px-2.5 py-0.5 rounded-full text-xs font-bold ${statusCfg.bg} ${statusCfg.text}`}>
-                      {statusCfg.label}
+        {/* Filters */}
+        <div className="flex gap-2 flex-wrap">
+          {(["all","hotel","villa","yacht"] as const).map(f => (
+            <button key={f} onClick={() => setFilter(f)} className={`rounded-full px-4 py-1.5 text-xs font-bold capitalize transition-colors ${filter === f ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600"}`}>
+              {f === "all" ? "All Types" : `${TYPE_CFG[f]?.icon} ${f.charAt(0).toUpperCase() + f.slice(1)}s`}
+            </button>
+          ))}
+        </div>
+
+        {/* Grid */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(6)].map((_,i) => <div key={i} className="rounded-2xl bg-white border border-slate-200 p-5 h-40 animate-pulse" />)}
+          </div>
+        ) : shown.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center">
+            <p className="text-4xl mb-3">🏨</p>
+            <p className="text-slate-600 font-semibold">No listings yet</p>
+            <p className="text-slate-400 text-sm mt-1">Add your first hotel, villa, or yacht</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {shown.map((l) => {
+              const tc = TYPE_CFG[l.type] || { icon: "🏢", color: "text-slate-600" };
+              return (
+                <div key={l.id} className="group rounded-2xl bg-white border border-slate-200 p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all">
+                  <div className="flex items-start justify-between mb-3">
+                    <span className="text-3xl">{tc.icon}</span>
+                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${l.status === "active" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                      {l.status}
                     </span>
                   </div>
-
-                  <div className="flex items-center gap-2 mt-1">
-                    <span
-                      className="text-xs font-bold px-2 py-0.5 rounded-full text-white"
-                      style={{ background: typeCfg.color }}
-                    >
-                      {typeCfg.label}
-                    </span>
-                    <span className="text-xs text-slate-400">📍 {l.location}</span>
-                  </div>
-
-                  {l.rating && (
-                    <p className="text-xs text-amber-500 font-semibold mt-1">★ {l.rating}/5</p>
-                  )}
-
-                  <div className="mt-auto pt-4 flex items-center justify-between">
-                    <p className="font-black text-slate-900">
-                      {fmtMoney(l.price_per_night, l.currency)}
-                      <span className="text-xs font-normal text-slate-400">/night</span>
-                    </p>
-                    <div className="flex gap-2">
-                      <button className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
-                        ✏️ Edit
-                      </button>
-                      <button className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition hover:opacity-90" style={{ background: BRAND_BLUE }}>
-                        👁 View
-                      </button>
+                  <h3 className="font-black text-slate-900 mb-1">{l.title}</h3>
+                  <p className="text-sm text-slate-500 mb-2">📍 {l.location}</p>
+                  {l.description && <p className="text-xs text-slate-400 mb-3 line-clamp-2">{l.description}</p>}
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                    <div>
+                      <p className="text-lg font-black text-blue-600">${(l.price_per_night || 0).toLocaleString()}</p>
+                      <p className="text-xs text-slate-400">per night · {l.max_guests || 2} guests max</p>
                     </div>
+                    <span className={`text-xs font-bold capitalize ${tc.color}`}>{l.type}</span>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Add Listing Modal */}
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl bg-white shadow-2xl p-6 space-y-4">
+            <h2 className="text-xl font-black text-slate-900">New Listing</h2>
+            <input className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm" placeholder="Title *" value={form.title} onChange={e => setForm(p=>({...p,title:e.target.value}))} />
+            <select className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm" value={form.type} onChange={e => setForm(p=>({...p,type:e.target.value}))}>
+              <option value="hotel">🏨 Hotel</option>
+              <option value="villa">🏡 Villa</option>
+              <option value="yacht">⛵ Yacht</option>
+            </select>
+            <input className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm" placeholder="Location *" value={form.location} onChange={e => setForm(p=>({...p,location:e.target.value}))} />
+            <div className="grid grid-cols-2 gap-3">
+              <input type="number" className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm" placeholder="Price/night" value={form.price_per_night} onChange={e => setForm(p=>({...p,price_per_night:e.target.value}))} />
+              <input type="number" className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm" placeholder="Max guests" value={form.max_guests} onChange={e => setForm(p=>({...p,max_guests:e.target.value}))} />
+            </div>
+            <textarea className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm" rows={2} placeholder="Description" value={form.description} onChange={e => setForm(p=>({...p,description:e.target.value}))} />
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setShowForm(false)} className="rounded-full px-5 py-2 text-sm border border-slate-200 font-semibold text-slate-600">Cancel</button>
+              <button onClick={createListing} disabled={saving || !form.title} className="rounded-full px-6 py-2 text-sm font-bold text-white disabled:opacity-50" style={{ background: "linear-gradient(135deg,#0F6CF5,#0B1B4D)" }}>
+                {saving ? "Saving…" : "Create"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }
