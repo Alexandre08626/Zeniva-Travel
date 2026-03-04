@@ -68,11 +68,24 @@ export default function ChatHubPage() {
   const fetchLeads = async () => {
     setLoading(true);
     try {
-      const p = new URLSearchParams({ path: "admin/chat/conversations" });
-      if (!hq && user?.email) p.append("agent_email", user.email);
-      const r = await fetch(`/api/agents-proxy?${p}`);
+      // Chat Hub shows only real accounts (people who created an account), not all leads
+      const r = await fetch(`/api/agents-proxy?path=admin/all-clients`);
       const d = await r.json();
-      setLeads(d?.conversations || []);
+      // Map accounts to Lead format, enriching with conversation data
+      // Use lead_id for loading messages (conversations table references lead_id)
+      const accounts: Lead[] = (d?.clients || []).map((c: any) => ({
+        id: c.lead_id || c.id || c.email,
+        name: c.name || c.email,
+        email: c.email,
+        phone: c.phone,
+        destination: c.destination,
+        status: c.status || "active",
+        last_msg: c.last_msg,
+        last_ts: c.last_ts || c.created_at,
+        msg_count: c.msg_count || 0,
+        last_channel: c.last_channel || "chat",
+      }));
+      setLeads(accounts);
     } catch {}
     // Also fetch agents list for HQ
     if (hq) {
