@@ -356,6 +356,19 @@ export default function HomePage() {
         {/* ── SERVICES STRIP ── */}
         <section className="w-full px-8 xl:px-16 py-12">
           <div className="max-w-[1400px] mx-auto">
+
+            {/* CTA Buttons — above the title */}
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <Link href="/call" className="flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-white shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-200 text-base" style={{ background: "linear-gradient(135deg, #0B1B4D, #0F6CF5)" }}>
+                <span className="text-xl">📞</span>
+                Call Lina
+              </Link>
+              <Link href="/chat" className="flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-white shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-200 text-base" style={{ background: "linear-gradient(135deg, #0F3A8A, #1a4fad)" }}>
+                <img src="/branding/lina-avatar.png" alt="Lina" className="w-7 h-7 rounded-full border-2 border-white/40" />
+                Chat Lina
+              </Link>
+            </div>
+
             <div className="text-center mb-8">
               <h2 className="text-3xl font-black text-slate-900">
                 <AutoTranslate text="Everything you need for the perfect trip" className="inline" />
@@ -372,18 +385,6 @@ export default function HomePage() {
                   <div className="text-xs text-slate-400 mt-1">{s.desc}</div>
                 </Link>
               ))}
-            </div>
-
-            {/* CTA Buttons */}
-            <div className="flex items-center justify-center gap-4 mt-10">
-              <Link href="/call" className="flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-white shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-200 text-base" style={{ background: "linear-gradient(135deg, #0B1B4D, #0F6CF5)" }}>
-                <span className="text-xl">📞</span>
-                Call Lina
-              </Link>
-              <Link href="/chat" className="flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-white shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-200 text-base" style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}>
-                <img src="/branding/lina-avatar.png" alt="Lina" className="w-7 h-7 rounded-full border-2 border-white/40" />
-                Chat Lina
-              </Link>
             </div>
           </div>
         </section>
