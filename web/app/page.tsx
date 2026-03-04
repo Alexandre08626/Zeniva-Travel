@@ -228,7 +228,7 @@ export default function HomePage() {
         {/* ── HERO — full width, compact ── */}
         <section className="relative w-full overflow-hidden" style={{ minHeight: "auto" }}>
           {/* Background full width */}
-          <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #060E1D 0%, #0B1B4D 45%, #0a2260 100%)" }} />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #0B1B4D 0%, #0F3A8A 45%, #1a4fad 100%)" }} />
 
           {/* Animated gradient orbs */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -254,11 +254,10 @@ export default function HomePage() {
                 <div>
                   <div className="flex items-baseline gap-4 flex-wrap">
                     <h1 className="text-5xl xl:text-6xl font-black leading-none tracking-tight text-white whitespace-nowrap">
-                      Travel the{" "}
                       <span style={{ background: "linear-gradient(90deg, #E6B85A 0%, #f7d98a 50%, #E6B85A 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                        World
+                        Zeniva
                       </span>{" "}
-                      Smarter.
+                      Travel AI
                     </h1>
                     <p className="text-base text-white/50 font-medium">
                       <AutoTranslate text="Your personal AI travel concierge" className="inline" />
@@ -309,12 +308,14 @@ export default function HomePage() {
                   <div className="absolute inset-0 rounded-full" style={{ margin: "-20px", background: "radial-gradient(circle, rgba(230,184,90,0.3) 0%, transparent 70%)", filter: "blur(20px)" }} />
                   <div className="absolute inset-0 rounded-full border border-yellow-400/20 animate-spin" style={{ margin: "-30px", animationDuration: "20s" }} />
 
-                  <img
-                    src="/branding/lina-avatar.png"
-                    alt="Lina AI"
-                    className="relative rounded-full object-cover border-4 shadow-2xl"
-                    style={{ width: "260px", height: "260px", borderColor: "rgba(230,184,90,0.4)", boxShadow: "0 0 80px rgba(230,184,90,0.2), 0 30px 80px rgba(0,0,0,0.5)" }}
-                  />
+                  <Link href="/call">
+                    <img
+                      src="/branding/lina-avatar.png"
+                      alt="Lina AI"
+                      className="relative rounded-full object-cover border-4 shadow-2xl cursor-pointer hover:scale-105 transition-transform duration-300"
+                      style={{ width: "260px", height: "260px", borderColor: "rgba(230,184,90,0.4)", boxShadow: "0 0 80px rgba(230,184,90,0.2), 0 30px 80px rgba(0,0,0,0.5)" }}
+                    />
+                  </Link>
                   <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-xl border border-yellow-100">
                     <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                     <span className="text-xs font-black text-slate-800">Lina AI · Online now</span>
@@ -371,6 +372,18 @@ export default function HomePage() {
                   <div className="text-xs text-slate-400 mt-1">{s.desc}</div>
                 </Link>
               ))}
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="flex items-center justify-center gap-4 mt-10">
+              <Link href="/call" className="flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-white shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-200 text-base" style={{ background: "linear-gradient(135deg, #0B1B4D, #0F6CF5)" }}>
+                <span className="text-xl">📞</span>
+                Call Lina
+              </Link>
+              <Link href="/chat" className="flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-white shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-200 text-base" style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}>
+                <img src="/branding/lina-avatar.png" alt="Lina" className="w-7 h-7 rounded-full border-2 border-white/40" />
+                Chat Lina
+              </Link>
             </div>
           </div>
         </section>
