@@ -41,16 +41,14 @@ const STATUS_CFG: Record<AgentStatus, { label: string; dot: string; badge: strin
 const NAV_LINKS = [
   { label: "Dashboard", href: "/agent", icon: "🏠" },
   { label: "Clients", href: "/agent/clients", icon: "👥" },
-  { label: "Dossiers", href: "/agent/clients", icon: "📁" },
   { label: "Proposals", href: "/agent/proposals", icon: "📋" },
   { label: "Bookings", href: "/agent/bookings", icon: "✈️" },
   { label: "Commissions", href: "/agent/commissions", icon: "💰" },
   { label: "Chat Hub", href: "/agent/chat", icon: "💬" },
-  { label: "Lina AI Desk", href: "/agent/lina", icon: "🤖" },
+  { label: "Chat with Lina", href: "/agent/lina", icon: "lina" },
   { label: "Listings", href: "/agent/listings", icon: "🏨" },
   { label: "Forms", href: "/agent/forms", icon: "📝" },
   { label: "Partners", href: "/agent/partners", icon: "🤝" },
-  { label: "Finance", href: "/agent/finance", icon: "📊" },
   { label: "Control Tower", href: "/agent/control-tower", icon: "🗼" },
   { label: "Settings", href: "/agent/settings", icon: "⚙️" },
 ];
@@ -60,6 +58,7 @@ const HQ_LINKS = [
   { label: "Agent Requests", href: "/agent/requests", icon: "📨" },
   { label: "Influencer", href: "/agent/influencer", icon: "⭐" },
   { label: "AI Agents Hub", href: "/ai-agents", icon: "🤖" },
+  { label: "Finance", href: "/agent/finance", icon: "📊" },
 ];
 
 export function AgentDashboardPage({ agentId }: { agentId?: string }) {
@@ -202,7 +201,11 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
               <div key={link.href} className="relative group">
                 <Link href={link.href}
                   className={`flex items-center gap-3 rounded-xl px-2 py-2 text-sm font-semibold transition-all ${active ? "bg-blue-600 text-white" : "text-slate-700 hover:bg-blue-50 hover:text-blue-700"}`}>
-                  <span className="text-base shrink-0 w-6 text-center">{link.icon}</span>
+                  {link.icon === "lina" ? (
+                    <img src="/branding/lina-avatar.png" alt="Lina" className="shrink-0 w-6 h-6 rounded-full object-cover border border-indigo-300" />
+                  ) : (
+                    <span className="text-base shrink-0 w-6 text-center">{link.icon}</span>
+                  )}
                   {navOpen && <span className="flex-1">{link.label}</span>}
                   {navBadges[link.href] ? (
                     <span className="ml-auto rounded-full bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center px-1 shrink-0">
@@ -457,13 +460,17 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
                     { label: "New Client", href: "/agent/clients", icon: "👥", color: "bg-blue-600" },
                     { label: "New Dossier", href: "/agent/clients", icon: "📁", color: "bg-indigo-600" },
                     { label: "Proposal", href: "/agent/proposals", icon: "📋", color: "bg-purple-600" },
-                    { label: "Chat Lina", href: "/agent/lina", icon: "🤖", color: "bg-emerald-600" },
+                    { label: "Chat Lina", href: "/agent/lina", icon: "lina", color: "bg-emerald-600" },
                     { label: "Booking", href: "/agent/bookings", icon: "✈️", color: "bg-amber-600" },
                     { label: "Commissions", href: "/agent/commissions", icon: "💰", color: "bg-rose-600" },
                   ].map((a) => (
                     <Link key={a.label} href={a.href}
                       className={`${a.color} rounded-xl px-3 py-3 text-white text-xs font-bold flex items-center gap-2 hover:opacity-90 transition`}>
-                      <span className="text-base">{a.icon}</span>
+                      {a.icon === "lina" ? (
+                        <img src="/branding/lina-avatar.png" alt="Lina" className="w-5 h-5 rounded-full object-cover border border-white/40" />
+                      ) : (
+                        <span className="text-base">{a.icon}</span>
+                      )}
                       {a.label}
                     </Link>
                   ))}
