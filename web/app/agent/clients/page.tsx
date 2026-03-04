@@ -102,7 +102,7 @@ export default function ClientsPage() {
     setLoading(true);
     try {
       // Get leads with status=client from VPS
-      const r = await fetch("/api/agents-proxy?path=admin/leads?limit=200", {
+      const r = await fetch(`/api/agents-proxy?path=admin/agent-leads/${encodeURIComponent(user?.email || "")}`, {
         headers: { Authorization: AUTH },
       });
       const data = await r.json();

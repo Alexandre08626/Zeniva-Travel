@@ -278,9 +278,9 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
                     <p className="text-xs font-bold uppercase tracking-widest text-blue-200">Artificial Intelligence</p>
                     <h2 className="text-xl font-black text-white">Your AI Agent Team</h2>
                   </div>
-                  <Link href="/ai-agents" className="rounded-full px-4 py-1.5 text-xs font-bold bg-white/20 text-white hover:bg-white/30 transition border border-white/30">
+                  <button onClick={() => window.location.href = "/ai-agents"} className="rounded-full px-4 py-1.5 text-xs font-bold bg-white/20 text-white hover:bg-white/30 transition border border-white/30">
                     Full view →
-                  </Link>
+                  </button>
                 </div>
                 <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
                   {(isHQorAdmin ? AI_AGENTS : AI_AGENTS.filter(a => ["lina","marco","sofia","luna"].includes(a.id))).map((agent) => {
