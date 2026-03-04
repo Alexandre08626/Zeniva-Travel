@@ -73,6 +73,33 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   const canTripSearch = !!user && hasPermission(user, "sales:all");
   const resolvedAgentId = agentId || toAgentWorkspaceId(user);
 
+
+  // Notification badges for sidebar
+  const [navBadges, setNavBadges] = useState<Record<string, number>>({});
+
+  const fetchNavBadges = async () => {
+    if (!user?.email) return;
+    try {
+      // Fetch dashboard stats to compute badges
+      const agentParam = isHQorAdmin ? "" : `&agent_email=${encodeURIComponent(user.email)}`;
+      const r = await fetch(`/api/agents-proxy?path=admin/dashboard-stats${agentParam}`, {
+        headers: { Authorization: "Bearer zeniva-secret-2025" },
+      });
+      if (!r.ok) return;
+      const d = await r.json();
+      const badges: Record<string, number> = {};
+      // New clients today
+      if (d.clients_today > 0) badges["/agent/clients"] = d.clients_today;
+      // Open dossiers
+      if (d.open_dossiers > 0) badges["/agent/dossiers"] = d.open_dossiers;
+      // Pending follow-ups
+      if (d.followups_due > 0) badges["/agent/commissions"] = d.followups_due;
+      // Leads today
+      if (d.leads_today > 0) badges["/agent"] = d.leads_today;
+      setNavBadges(badges);
+    } catch {}
+  };
+
   // Real-time stats
   const [dashStats, setDashStats] = useState<any>(null);
   const [vpsStats, setVpsStats] = useState<any>(null);
@@ -89,6 +116,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   const [activeSearchTab, setActiveSearchTab] = useState<"flights"|"hotels"|"transfers">("flights");
 
   const fetchAll = async () => {
+      fetchNavBadges();
     try {
       // Pass agent_email to scope data — HQ sees all, agents see only their data
       const agentEmailParam = user?.email ? `&agent_email=${encodeURIComponent(user.email)}` : "";
@@ -175,7 +203,12 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
                 <Link href={link.href}
                   className={`flex items-center gap-3 rounded-xl px-2 py-2 text-sm font-semibold transition-all ${active ? "bg-blue-600 text-white" : "text-slate-700 hover:bg-blue-50 hover:text-blue-700"}`}>
                   <span className="text-base shrink-0 w-6 text-center">{link.icon}</span>
-                  {navOpen && <span>{link.label}</span>}
+                  {navOpen && <span className="flex-1">{link.label}</span>}
+                  {navBadges[link.href] ? (
+                    <span className="ml-auto rounded-full bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center px-1 shrink-0">
+                      {navBadges[link.href]}
+                    </span>
+                  ) : null}
                 </Link>
                 {/* Tooltip when collapsed */}
                 {!navOpen && (
