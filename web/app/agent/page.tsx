@@ -47,7 +47,6 @@ const NAV_LINKS = [
   { label: "Chat Hub", href: "/agent/chat", icon: "💬" },
   { label: "Chat with Lina", href: "/agent/lina", icon: "lina" },
   { label: "Listings", href: "/agent/listings", icon: "🏨" },
-  { label: "Forms", href: "/agent/forms", icon: "📝" },
   { label: "Partners", href: "/agent/partners", icon: "🤝" },
   { label: "Control Tower", href: "/agent/control-tower", icon: "🗼" },
   { label: "Settings", href: "/agent/settings", icon: "⚙️" },

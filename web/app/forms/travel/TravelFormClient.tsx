@@ -7,24 +7,31 @@ import { FORM_DEFINITIONS } from "../../../src/lib/forms/catalog";
 const BRAND_BLUE = "#0B1B4D";
 const BRAND_LIGHT_BLUE = "#0F6CF5";
 const BRAND_GOLD = "#E6B85A";
+const HQ_EMAIL = "info@zeniva.ca";
 
 export default function TravelFormClient() {
   const searchParams = useSearchParams();
   const agentEmail = searchParams.get("agent") || "";
+  const isHQ = !agentEmail || agentEmail === HQ_EMAIL;
 
   const form = useMemo(() => FORM_DEFINITIONS.find((f) => f.id === "travel-agent"), []);
   const [fields, setFields] = useState<Record<string, any>>({});
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
   const [agentName, setAgentName] = useState<string>("");
+  const [agentAvatar, setAgentAvatar] = useState<string>("/branding/lina-avatar.png");
 
-  // Extract agent name from email if present
   useEffect(() => {
-    if (agentEmail) {
-      const name = agentEmail.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+    if (agentEmail && !isHQ) {
+      const name = agentEmail.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase());
       setAgentName(name);
+      // Try to fetch agent avatar from VPS
+      fetch(`/api/agents-proxy?path=admin/agent-by-email/${encodeURIComponent(agentEmail)}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(d => { if (d?.avatar_url) setAgentAvatar(d.avatar_url); })
+        .catch(() => {});
     }
-  }, [agentEmail]);
+  }, [agentEmail, isHQ]);
 
   if (!form) {
     return <div className="p-6">Form not found.</div>;
@@ -106,18 +113,33 @@ export default function TravelFormClient() {
     <main className="min-h-screen" style={{ background: `linear-gradient(135deg, #040d1f 0%, ${BRAND_BLUE} 50%, #040d1f 100%)` }}>
       <div className="mx-auto max-w-xl px-5 py-10">
         <header className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full overflow-hidden border-4" style={{ borderColor: BRAND_LIGHT_BLUE }}>
-            <img src="/branding/lina-avatar.png" alt="Lina" className="h-full w-full object-cover" />
-          </div>
-          <h1 className="text-3xl font-black text-white">{form.title}</h1>
-          <p className="mt-2 text-sm text-slate-400">{form.description}</p>
-          {agentEmail ? (
-            <div className="mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-1" style={{ borderColor: BRAND_LIGHT_BLUE, backgroundColor: "rgba(15,108,245,0.1)" }}>
-              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: BRAND_LIGHT_BLUE }} />
-              <p className="text-xs font-semibold text-white">Referred by <span style={{ color: BRAND_LIGHT_BLUE }}>{agentName || agentEmail}</span></p>
-            </div>
+          {isHQ ? (
+            /* HQ = 100% Zeniva branding */
+            <>
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full overflow-hidden border-4" style={{ borderColor: BRAND_GOLD }}>
+                <img src="/branding/lina-avatar.png" alt="Lina" className="h-full w-full object-cover" />
+              </div>
+              <div className="mb-2 inline-flex items-center gap-2">
+                <img src="/branding/logo.png" alt="Zeniva Travel" className="h-6" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                <span className="text-lg font-black text-white">Zeniva Travel</span>
+              </div>
+              <h1 className="text-3xl font-black text-white">{form.title}</h1>
+              <p className="mt-2 text-sm text-slate-400">{form.description}</p>
+              <p className="mt-1 text-xs" style={{ color: BRAND_GOLD }}>✈️ Your AI-powered travel concierge</p>
+            </>
           ) : (
-            <p className="mt-1 text-xs text-slate-500">Powered by <span style={{ color: BRAND_LIGHT_BLUE }} className="font-semibold">Zeniva Travel</span></p>
+            /* Agent/Influencer = their branding */
+            <>
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full overflow-hidden border-4" style={{ borderColor: BRAND_LIGHT_BLUE }}>
+                <img src={agentAvatar} alt={agentName} className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = '/branding/lina-avatar.png'; }} />
+              </div>
+              <h1 className="text-3xl font-black text-white">{form.title}</h1>
+              <p className="mt-2 text-sm text-slate-400">{form.description}</p>
+              <div className="mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-1" style={{ borderColor: BRAND_LIGHT_BLUE, backgroundColor: "rgba(15,108,245,0.1)" }}>
+                <span className="h-2 w-2 rounded-full animate-pulse" style={{ backgroundColor: BRAND_LIGHT_BLUE }} />
+                <p className="text-xs font-semibold text-white">Your specialist: <span style={{ color: BRAND_LIGHT_BLUE }}>{agentName || agentEmail}</span> · Zeniva Travel</p>
+              </div>
+            </>
           )}
         </header>
 
