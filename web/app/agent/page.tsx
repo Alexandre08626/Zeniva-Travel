@@ -25,7 +25,7 @@ const AI_AGENTS: AIAgent[] = [
   { id: "marco", name: "Marco", emoji: "🔥", avatar: "/agents/marco.png", status: "active", type: "Lead Hunter", schedule: "Toutes les 2h", color: "#ef4444", desc: "Identifie et qualifie les nouveaux leads automatiquement.", lastAction: "3 leads qualifiés" },
   { id: "sofia", name: "Sofia", emoji: "📬", avatar: "/agents/sofia.png", status: "active", type: "Email Converter", schedule: "Toutes les 6h", color: "#ec4899", desc: "Envoie des emails de relance et de conversion personnalisés.", lastAction: "39 emails envoyés" },
   { id: "noah", name: "Noah", emoji: "📧", avatar: "/agents/noah.png", status: "active", type: "Follow-up Agent", schedule: "Toutes les 6h", color: "#f59e0b", desc: "Relance automatique des leads inactifs + suivi dossiers.", lastAction: "Follow-up envoyé" },
-  { id: "luna", name: "Luna", emoji: "📞", avatar: "/agents/luna.png", status: "live", type: "SMS & Call Agent", schedule: "24/7 Real-time", color: "#06b6d4", desc: "Gère les SMS entrants et sortants. Déclenche les appels Lina.", lastAction: "4 SMS envoyés" },
+  { id: "luna", name: "Luna", emoji: "📞", avatar: "/agents/luna.png", status: "live", type: "SMS & Call Agent", schedule: "24/7 Real-time", color: "#06b6d4", desc: "Handles inbound & outbound SMS. Triggers Lina calls.", lastAction: "4 SMS Sent" },
   { id: "atlas", name: "Atlas", emoji: "🛡️", avatar: "/agents/atlas.png", status: "active", type: "Cyber Guardian", schedule: "Toutes les heures", color: "#64748b", desc: "Surveille la sécurité du VPS et les intrusions.", lastAction: "Scan OK 14:00" },
   { id: "mia", name: "Mia", emoji: "📱", avatar: "/agents/mia.png", status: "idle", type: "Social Media", schedule: "Quotidien", color: "#a855f7", desc: "Publie sur TikTok, Instagram. En attente d'accès API.", lastAction: "En attente TikTok" },
   { id: "leo", name: "Leo", emoji: "📊", avatar: "/agents/leo.png", status: "active", type: "Analytics", schedule: "Real-time", color: "#8b5cf6", desc: "Analyse les conversions, le pipeline et les performances.", lastAction: "Rapport mis à jour" },
@@ -133,12 +133,12 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   };
 
   const kpis = [
-    { label: "Clients actifs", value: dashStats?.active_clients ?? vpsStats?.total_clients ?? "—", icon: "👥", color: "bg-blue-50 border-blue-200", sub: `${dashStats?.open_dossiers ?? 0} dossiers` },
-    { label: "Leads totaux", value: vpsStats?.total_leads ?? "—", icon: "🎯", color: "bg-purple-50 border-purple-200", sub: `+${vpsStats?.leads_today ?? 0} aujourd'hui` },
-    { label: "Emails envoyés", value: vpsStats?.emails_sent ?? "—", icon: "📧", color: "bg-emerald-50 border-emerald-200", sub: `+${vpsStats?.emails_today ?? 0} aujourd'hui` },
-    { label: "SMS envoyés", value: vpsStats?.sms_sent ?? "—", icon: "📱", color: "bg-amber-50 border-amber-200", sub: `+${vpsStats?.sms_today ?? 0} aujourd'hui` },
-    { label: "Pipeline comm.", value: dashStats ? `$${dashStats.commission_pipeline.toLocaleString()}` : "—", icon: "💰", color: "bg-rose-50 border-rose-200", sub: `${dashStats?.followups_due ?? 0} relances` },
-    { label: "Chats Lina", value: vpsStats?.total_messages ?? "—", icon: "💬", color: "bg-indigo-50 border-indigo-200", sub: "Total conversations" },
+    { label: "Active Clients", value: dashStats?.active_clients ?? vpsStats?.total_clients ?? "—", icon: "👥", color: "bg-blue-50 border-blue-200", sub: `${dashStats?.open_dossiers ?? 0} dossiers` },
+    { label: "Total Leads", value: vpsStats?.total_leads ?? "—", icon: "🎯", color: "bg-purple-50 border-purple-200", sub: `+${vpsStats?.leads_today ?? 0} today` },
+    { label: "Emails Sent", value: vpsStats?.emails_sent ?? "—", icon: "📧", color: "bg-emerald-50 border-emerald-200", sub: `+${vpsStats?.emails_today ?? 0} today` },
+    { label: "SMS Sent", value: vpsStats?.sms_sent ?? "—", icon: "📱", color: "bg-amber-50 border-amber-200", sub: `+${vpsStats?.sms_today ?? 0} today` },
+    { label: "Comm. Pipeline", value: dashStats ? `$${dashStats.commission_pipeline.toLocaleString()}` : "—", icon: "💰", color: "bg-rose-50 border-rose-200", sub: `${dashStats?.followups_due ?? 0} follow-ups` },
+    { label: "Lina Chats", value: vpsStats?.total_messages ?? "—", icon: "💬", color: "bg-indigo-50 border-indigo-200", sub: "Total conversations" },
   ];
 
   return (
@@ -158,24 +158,48 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
           {NAV_LINKS.map((link) => {
             const active = pathname === link.href || (link.href !== "/agent" && pathname?.startsWith(link.href));
             return (
-              <Link key={link.href} href={link.href}
-                className={`flex items-center gap-3 rounded-xl px-2 py-2 text-sm font-semibold transition-all ${active ? "bg-blue-600 text-white" : "text-slate-400 hover:bg-slate-800 hover:text-white"}`}
-                title={link.label}>
-                <span className="text-base shrink-0 w-6 text-center">{link.icon}</span>
-                {navOpen && <span>{link.label}</span>}
-              </Link>
+              <div key={link.href} className="relative group">
+                <Link href={link.href}
+                  className={`flex items-center gap-3 rounded-xl px-2 py-2 text-sm font-semibold transition-all ${active ? "bg-blue-600 text-white" : "text-slate-400 hover:bg-slate-800 hover:text-white"}`}>
+                  <span className="text-base shrink-0 w-6 text-center">{link.icon}</span>
+                  {navOpen && <span>{link.label}</span>}
+                </Link>
+                {/* Tooltip when collapsed */}
+                {!navOpen && (
+                  <div className="absolute left-14 top-1/2 -translate-y-1/2 z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                    <div className="bg-slate-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl border border-slate-600">
+                      {link.label}
+                      <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800" />
+                    </div>
+                  </div>
+                )}
+              </div>
             );
           })}
           {isHQorAdmin && (
             <>
-              <div className="pt-2 pb-1">{navOpen && <p className="text-xs font-bold text-slate-600 uppercase tracking-widest px-2">HQ</p>}</div>
+              <div className="pt-2 pb-1">
+                {navOpen
+                  ? <p className="text-xs font-bold text-slate-600 uppercase tracking-widest px-2">HQ</p>
+                  : <div className="border-t border-slate-700 mx-2 my-1" />
+                }
+              </div>
               {HQ_LINKS.map((link) => (
-                <Link key={link.href} href={link.href}
-                  className="flex items-center gap-3 rounded-xl px-2 py-2 text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all"
-                  title={link.label}>
-                  <span className="text-base shrink-0 w-6 text-center">{link.icon}</span>
-                  {navOpen && <span>{link.label}</span>}
-                </Link>
+                <div key={link.href} className="relative group">
+                  <Link href={link.href}
+                    className="flex items-center gap-3 rounded-xl px-2 py-2 text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
+                    <span className="text-base shrink-0 w-6 text-center">{link.icon}</span>
+                    {navOpen && <span>{link.label}</span>}
+                  </Link>
+                  {!navOpen && (
+                    <div className="absolute left-14 top-1/2 -translate-y-1/2 z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                      <div className="bg-amber-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl border border-amber-600">
+                        HQ · {link.label}
+                        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-amber-800" />
+                      </div>
+                    </div>
+                  )}
+                </div>
               ))}
             </>
           )}
@@ -185,7 +209,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
         <div className="border-t border-slate-700/50 p-2 space-y-2">
           <button onClick={() => setNavOpen(!navOpen)} className="w-full flex items-center gap-2 rounded-xl px-2 py-2 text-slate-400 hover:bg-slate-800 hover:text-white transition-all text-sm">
             <span className="w-6 text-center text-base">{navOpen ? "◀" : "▶"}</span>
-            {navOpen && <span>Réduire</span>}
+            {navOpen && <span>Collapse</span>}
           </button>
           {navOpen && user && (
             <div className="rounded-xl bg-slate-800 p-2">
@@ -206,9 +230,9 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Zeniva Travel · Agent Portal</p>
               <h1 className="text-4xl font-black mt-1" style={{ color: PREMIUM_BLUE }}>
-                Bonjour{user?.name ? `, ${user.name.split(" ")[0]}` : ""} 👋
+                Good morning{user?.name ? `, ${user.name.split(" ")[0]}` : ""} 👋
               </h1>
-              <p className="text-slate-500 text-sm mt-1">Ton cockpit de commande — tout en temps réel</p>
+              <p className="text-slate-500 text-sm mt-1">Your command cockpit — fully real-time</p>
             </div>
             <div className="flex gap-3">
               {canTripSearch && (
@@ -248,11 +272,11 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
               <div className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100" style={{ background: `linear-gradient(135deg, ${PREMIUM_BLUE} 0%, ${BRAND_BLUE} 100%)` }}>
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-blue-200">Intelligence artificielle</p>
-                    <h2 className="text-xl font-black text-white">Ton équipe d'agents IA</h2>
+                    <p className="text-xs font-bold uppercase tracking-widest text-blue-200">Artificial Intelligence</p>
+                    <h2 className="text-xl font-black text-white">Your AI Agent Team</h2>
                   </div>
                   <Link href="/ai-agents" className="rounded-full px-4 py-1.5 text-xs font-bold bg-white/20 text-white hover:bg-white/30 transition">
-                    Vue complète →
+                    Full view →
                   </Link>
                 </div>
                 <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -288,7 +312,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
               <div className="rounded-2xl bg-white border border-slate-200 shadow-sm">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
                   <h2 className="font-black text-lg" style={{ color: PREMIUM_BLUE }}>Client 360°</h2>
-                  <Link href="/agent/clients" className="text-sm font-bold" style={{ color: BRAND_BLUE }}>Voir tout →</Link>
+                  <Link href="/agent/clients" className="text-sm font-bold" style={{ color: BRAND_BLUE }}>View all →</Link>
                 </div>
                 <div className="p-4">
                   {dashStats?.recent_clients?.length > 0 ? (
@@ -313,7 +337,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-400 text-center py-4">Aucun client — <Link href="/agent/clients" className="text-blue-600 font-semibold">Ajouter un client</Link></p>
+                    <p className="text-sm text-slate-400 text-center py-4">No clients yet — <Link href="/agent/clients" className="text-blue-600 font-semibold">Add a client</Link></p>
                   )}
                 </div>
               </div>
@@ -321,7 +345,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
               {/* ACTIVITY FEED */}
               <div className="rounded-2xl bg-white border border-slate-200 shadow-sm">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-                  <h2 className="font-black text-lg" style={{ color: PREMIUM_BLUE }}>Activité en direct</h2>
+                  <h2 className="font-black text-lg" style={{ color: PREMIUM_BLUE }}>Live Activity</h2>
                   <span className="flex items-center gap-1 text-xs text-emerald-600 font-bold">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     Live · 30s
@@ -329,7 +353,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
                 </div>
                 <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
                   {activity.length === 0 ? (
-                    <p className="px-6 py-4 text-sm text-slate-400">Aucune activité récente.</p>
+                    <p className="px-6 py-4 text-sm text-slate-400">No recent activity.</p>
                   ) : (
                     activity.slice(0, 15).map((a: any, i: number) => (
                       <div key={i} className="flex items-start gap-3 px-6 py-3">
@@ -353,14 +377,14 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
 
               {/* QUICK ACTIONS */}
               <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5">
-                <h2 className="font-black text-lg mb-4" style={{ color: PREMIUM_BLUE }}>Actions rapides</h2>
+                <h2 className="font-black text-lg mb-4" style={{ color: PREMIUM_BLUE }}>Quick Actions</h2>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { label: "Nouveau client", href: "/agent/clients", icon: "👥", color: "bg-blue-600" },
-                    { label: "Créer dossier", href: "/agent/clients", icon: "📁", color: "bg-indigo-600" },
-                    { label: "Proposition", href: "/agent/proposals", icon: "📋", color: "bg-purple-600" },
+                    { label: "New Client", href: "/agent/clients", icon: "👥", color: "bg-blue-600" },
+                    { label: "New Dossier", href: "/agent/clients", icon: "📁", color: "bg-indigo-600" },
+                    { label: "Proposal", href: "/agent/proposals", icon: "📋", color: "bg-purple-600" },
                     { label: "Chat Lina", href: "/agent/lina", icon: "🤖", color: "bg-emerald-600" },
-                    { label: "Réservation", href: "/agent/bookings", icon: "✈️", color: "bg-amber-600" },
+                    { label: "Booking", href: "/agent/bookings", icon: "✈️", color: "bg-amber-600" },
                     { label: "Commissions", href: "/agent/commissions", icon: "💰", color: "bg-rose-600" },
                   ].map((a) => (
                     <Link key={a.label} href={a.href}
@@ -376,8 +400,8 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
               {isHQorAdmin && (
                 <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="font-black text-base" style={{ color: PREMIUM_BLUE }}>Nouveaux voyageurs</h2>
-                    <Link href="/agent/clients" className="text-xs font-bold" style={{ color: BRAND_BLUE }}>Voir tout</Link>
+                    <h2 className="font-black text-base" style={{ color: PREMIUM_BLUE }}>New Travelers</h2>
+                    <Link href="/agent/clients" className="text-xs font-bold" style={{ color: BRAND_BLUE }}>View all</Link>
                   </div>
                   {recentTravelers.length === 0 ? (
                     <p className="text-xs text-slate-400">Aucun nouveau voyageur.</p>
@@ -404,18 +428,18 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
               {isHQorAdmin && (
                 <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="font-black text-base" style={{ color: PREMIUM_BLUE }}>Demandes agents</h2>
-                    <Link href="/agent/requests" className="text-xs font-bold" style={{ color: BRAND_BLUE }}>Voir tout</Link>
+                    <h2 className="font-black text-base" style={{ color: PREMIUM_BLUE }}>Agent Requests</h2>
+                    <Link href="/agent/requests" className="text-xs font-bold" style={{ color: BRAND_BLUE }}>View all</Link>
                   </div>
                   {agentRequests.length === 0 ? (
-                    <p className="text-xs text-slate-400">Aucune demande en attente.</p>
+                    <p className="text-xs text-slate-400">No pending requests.</p>
                   ) : (
                     <div className="space-y-2">
                       {agentRequests.map((r: any) => (
                         <div key={r.id} className="rounded-lg border border-amber-200 bg-amber-50 p-2">
                           <p className="text-xs font-semibold" style={{ color: PREMIUM_BLUE }}>{r.name}</p>
                           <p className="text-xs text-slate-500">{r.email} · {r.role || "agent"}</p>
-                          <Link href="/agent/requests" className="text-xs font-bold text-amber-700 mt-1 block">Approuver →</Link>
+                          <Link href="/agent/requests" className="text-xs font-bold text-amber-700 mt-1 block">Approve →</Link>
                         </div>
                       ))}
                     </div>
@@ -426,8 +450,8 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
               {/* DOSSIERS EN COURS */}
               <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-black text-base" style={{ color: PREMIUM_BLUE }}>Dossiers pipeline</h2>
-                  <Link href="/agent/clients" className="text-xs font-bold" style={{ color: BRAND_BLUE }}>Créer →</Link>
+                  <h2 className="font-black text-base" style={{ color: PREMIUM_BLUE }}>Dossier Pipeline</h2>
+                  <Link href="/agent/clients" className="text-xs font-bold" style={{ color: BRAND_BLUE }}>Create →</Link>
                 </div>
                 {dashStats?.recent_dossiers?.length > 0 ? (
                   <div className="space-y-2">
@@ -441,20 +465,20 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
                   </div>
                 ) : (
                   <div className="rounded-xl border-2 border-dashed border-slate-200 p-4 text-center">
-                    <p className="text-xs text-slate-400">Aucun dossier ouvert.</p>
-                    <Link href="/agent/clients" className="text-xs font-bold text-blue-600 mt-1 block">Créer un dossier →</Link>
+                    <p className="text-xs text-slate-400">No open dossiers.</p>
+                    <Link href="/agent/clients" className="text-xs font-bold text-blue-600 mt-1 block">Create a dossier →</Link>
                   </div>
                 )}
               </div>
 
               {/* OUTILS */}
               <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
-                <h2 className="font-black text-base mb-3" style={{ color: PREMIUM_BLUE }}>Outils agent</h2>
+                <h2 className="font-black text-base mb-3" style={{ color: PREMIUM_BLUE }}>Agent Tools</h2>
                 <div className="space-y-1.5">
                   {[
                     { label: "📊 AI Agents Dashboard", href: "/ai-agents" },
-                    { label: "🗂️ Profils clients", href: "/agent/clients" },
-                    { label: "📋 Centre de réservations", href: "/agent/bookings" },
+                    { label: "🗂️ Client Profiles", href: "/agent/clients" },
+                    { label: "📋 Bookings Center", href: "/agent/bookings" },
                     { label: "💰 Commissions", href: "/agent/commissions" },
                     { label: "📄 Documents", href: "/agent/documents" },
                   ].map((t) => (
