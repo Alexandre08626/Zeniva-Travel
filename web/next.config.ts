@@ -65,6 +65,7 @@ const nextConfig: NextConfig = {
       "base-uri 'self'",
       "form-action 'self'",
       "frame-ancestors 'self'",
+      "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com",
       "object-src 'none'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data: https:",
@@ -81,7 +82,7 @@ const nextConfig: NextConfig = {
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
       { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
       { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-      { key: "Cross-Origin-Embedder-Policy", value: "credentialless" },
+      { key: "Cross-Origin-Embedder-Policy", value: "unsafe-none" },
       { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains; preload" },
     ];
 
