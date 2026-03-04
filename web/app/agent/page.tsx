@@ -21,20 +21,20 @@ type AIAgent = {
 };
 
 const AI_AGENTS: AIAgent[] = [
-  { id: "lina", name: "Lina", emoji: "🤖", avatar: "/agents/lina.png", status: "live", type: "AI Travel Concierge", schedule: "24/7 Real-time", color: "#6366f1", desc: "Répond aux chats, emails et appels. Connaît chaque client.", lastAction: "Chat répondu il y a 2min" },
-  { id: "marco", name: "Marco", emoji: "🔥", avatar: "/agents/marco.png", status: "active", type: "Lead Hunter", schedule: "Toutes les 2h", color: "#ef4444", desc: "Identifie et qualifie les nouveaux leads automatiquement.", lastAction: "3 leads qualifiés" },
-  { id: "sofia", name: "Sofia", emoji: "📬", avatar: "/agents/sofia.png", status: "active", type: "Email Converter", schedule: "Toutes les 6h", color: "#ec4899", desc: "Envoie des emails de relance et de conversion personnalisés.", lastAction: "39 emails envoyés" },
-  { id: "noah", name: "Noah", emoji: "📧", avatar: "/agents/noah.png", status: "active", type: "Follow-up Agent", schedule: "Toutes les 6h", color: "#f59e0b", desc: "Relance automatique des leads inactifs + suivi dossiers.", lastAction: "Follow-up envoyé" },
+  { id: "lina", name: "Lina", emoji: "🤖", avatar: "/agents/lina.png", status: "live", type: "AI Travel Concierge", schedule: "24/7 Real-time", color: "#6366f1", desc: "Handles chats, emails and calls. Knows every client.", lastAction: "Chat replied 2min ago" },
+  { id: "marco", name: "Marco", emoji: "🔥", avatar: "/agents/marco.png", status: "active", type: "Lead Hunter", schedule: "Every 2h", color: "#ef4444", desc: "Identifies and qualifies new leads automatically.", lastAction: "3 leads qualified" },
+  { id: "sofia", name: "Sofia", emoji: "📬", avatar: "/agents/sofia.png", status: "active", type: "Email Converter", schedule: "Every 6h", color: "#ec4899", desc: "Sends personalized follow-up and conversion emails.", lastAction: "39 emails sent" },
+  { id: "noah", name: "Noah", emoji: "📧", avatar: "/agents/noah.png", status: "active", type: "Follow-up Agent", schedule: "Every 6h", color: "#f59e0b", desc: "Automatic re-engagement of inactive leads + dossier follow-up.", lastAction: "Follow-up sent" },
   { id: "luna", name: "Luna", emoji: "📞", avatar: "/agents/luna.png", status: "live", type: "SMS & Call Agent", schedule: "24/7 Real-time", color: "#06b6d4", desc: "Handles inbound & outbound SMS. Triggers Lina calls.", lastAction: "4 SMS Sent" },
-  { id: "atlas", name: "Atlas", emoji: "🛡️", avatar: "/agents/atlas.png", status: "active", type: "Cyber Guardian", schedule: "Toutes les heures", color: "#64748b", desc: "Surveille la sécurité du VPS et les intrusions.", lastAction: "Scan OK 14:00" },
-  { id: "mia", name: "Mia", emoji: "📱", avatar: "/agents/mia.png", status: "idle", type: "Social Media", schedule: "Quotidien", color: "#a855f7", desc: "Publie sur TikTok, Instagram. En attente d'accès API.", lastAction: "En attente TikTok" },
-  { id: "leo", name: "Leo", emoji: "📊", avatar: "/agents/leo.png", status: "active", type: "Analytics", schedule: "Real-time", color: "#8b5cf6", desc: "Analyse les conversions, le pipeline et les performances.", lastAction: "Rapport mis à jour" },
+  { id: "atlas", name: "Atlas", emoji: "🛡️", avatar: "/agents/atlas.png", status: "active", type: "Cyber Guardian", schedule: "Every hour", color: "#64748b", desc: "Monitors VPS security and intrusion attempts.", lastAction: "Scan OK 14:00" },
+  { id: "mia", name: "Mia", emoji: "📱", avatar: "/agents/mia.png", status: "idle", type: "Social Media", schedule: "Daily", color: "#a855f7", desc: "Posts on TikTok and Instagram. Awaiting API access.", lastAction: "Awaiting TikTok" },
+  { id: "leo", name: "Leo", emoji: "📊", avatar: "/agents/leo.png", status: "active", type: "Analytics", schedule: "Real-time", color: "#8b5cf6", desc: "Analyzes conversions, pipeline, and performance metrics.", lastAction: "Report updated" },
 ];
 
 const STATUS_CFG: Record<AgentStatus, { label: string; dot: string; badge: string }> = {
   live: { label: "LIVE", dot: "bg-emerald-500 animate-pulse", badge: "bg-emerald-100 text-emerald-700" },
-  active: { label: "Actif", dot: "bg-blue-500", badge: "bg-blue-100 text-blue-700" },
-  idle: { label: "En attente", dot: "bg-amber-400", badge: "bg-amber-100 text-amber-700" },
+  active: { label: "Active", dot: "bg-blue-500", badge: "bg-blue-100 text-blue-700" },
+  idle: { label: "Idle", dot: "bg-amber-400", badge: "bg-amber-100 text-amber-700" },
   error: { label: "Erreur", dot: "bg-red-500", badge: "bg-red-100 text-red-700" },
 };
 
@@ -283,7 +283,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
                   </Link>
                 </div>
                 <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {AI_AGENTS.map((agent) => {
+                  {(isHQorAdmin ? AI_AGENTS : AI_AGENTS.filter(a => ["lina","marco","sofia","luna"].includes(a.id))).map((agent) => {
                     const cfg = STATUS_CFG[agent.status];
                     return (
                       <button key={agent.id} onClick={() => setSelectedAgent(agent)}
