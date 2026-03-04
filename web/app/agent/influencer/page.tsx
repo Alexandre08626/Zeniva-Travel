@@ -143,7 +143,7 @@ export default function InfluencerPage() {
       </div>
 
       {/* ── TABS ─────────────────────────────────────────────────────── */}
-      <div className="sticky top-0 z-20 border-b border-white/10 bg-slate-900/90 backdrop-blur-md">
+      <div className="sticky top-0 z-20 border-b border-white/10 bg-slate-950/95 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-6">
           <div className="flex gap-1 overflow-x-auto py-3">
             {TABS.map(tab => (
@@ -153,7 +153,7 @@ export default function InfluencerPage() {
                 className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all ${
                   activeTab === tab.key
                     ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25"
-                    : "text-slate-400 hover:bg-white/5 hover:text-white"
+                    : "text-slate-300 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 <span>{tab.icon}</span>
