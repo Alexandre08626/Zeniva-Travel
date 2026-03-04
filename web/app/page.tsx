@@ -75,7 +75,7 @@ export default function HomePage() {
       {/* ══════════════════════════════════════════
           MOBILE VERSION
       ══════════════════════════════════════════ */}
-      <section className="sm:hidden" data-fullbleed="true">
+      <section className="sm:hidden" style={{ marginLeft: "calc(-1 * max(0px, (100vw - 100%) / 2))", marginRight: "calc(-1 * max(0px, (100vw - 100%) / 2))", width: "100vw", maxWidth: "100vw" }}>
         {/* Hero mobile */}
         <div className="relative min-h-screen overflow-hidden" style={{ background: "linear-gradient(160deg, #0F3A8A 0%, #1a4fad 40%, #2563eb 100%)" }}>
           {/* Animated orbs */}
@@ -116,7 +116,9 @@ export default function HomePage() {
                 </div>
                 <div className="absolute inset-0 rounded-full" style={{ margin: "-12px", background: "radial-gradient(circle, rgba(230,184,90,0.4) 0%, transparent 70%)", filter: "blur(15px)" }} />
                 <div className="absolute inset-0 rounded-full border-2 border-yellow-400/30 animate-ping" style={{ margin: "-4px", animationDuration: "3s" }} />
-                <img src="/branding/lina-avatar.png" alt="Lina AI" className="relative w-40 h-40 rounded-full object-cover border-4 shadow-2xl" style={{ borderColor: "rgba(230,184,90,0.5)" }} />
+                <Link href="/call">
+                  <img src="/branding/lina-avatar.png" alt="Lina AI" className="relative w-40 h-40 rounded-full object-cover border-4 shadow-2xl cursor-pointer hover:scale-105 transition-transform duration-300" style={{ borderColor: "rgba(230,184,90,0.5)" }} />
+                </Link>
                 <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-white/15 backdrop-blur rounded-full px-3 py-1 border border-white/20">
                   <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
                   <span className="text-white text-[10px] font-bold">Lina AI · Live</span>
