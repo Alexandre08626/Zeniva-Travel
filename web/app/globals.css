@@ -121,7 +121,8 @@ body[data-os="windows"] main {
 }
 
 /* Full-bleed sections — escape Windows padding */
-body[data-os="windows"] main section[data-fullbleed="true"] {
+body[data-os="windows"] main section[data-fullbleed="true"],
+body[data-os="windows"] main div[data-fullbleed="true"] {
   margin-left: -7.5vw !important;
   margin-right: -7.5vw !important;
   width: 100vw !important;
