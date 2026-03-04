@@ -576,3 +576,11 @@ body[data-os="windows"] div[style*="100vw"] {
     align-items: flex-start;
   }
 }
+
+@keyframes speechBubble {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+  15%  { opacity: 1; transform: translateX(-50%) translateY(0px); }
+  70%  { opacity: 1; transform: translateX(-50%) translateY(0px); }
+  85%  { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+}

@@ -107,6 +107,13 @@ export default function HomePage() {
             <div className="flex flex-col items-center mt-10 flex-1">
               {/* Lina with glow ring */}
               <div className="relative mb-6">
+                {/* Speech bubble */}
+                <div className="absolute -top-14 left-1/2 -translate-x-1/2 whitespace-nowrap z-10" style={{ animation: "speechBubble 4s ease-in-out 2" }}>
+                  <div className="bg-white rounded-2xl rounded-bl-none px-4 py-2 shadow-xl border border-slate-100">
+                    <p className="text-[#0B1B4D] text-xs font-bold">👆 Click on me to start!</p>
+                  </div>
+                  <div className="w-3 h-3 bg-white border-l border-b border-slate-100 ml-4" style={{ clipPath: "polygon(0 0, 100% 0, 0 100%)" }} />
+                </div>
                 <div className="absolute inset-0 rounded-full" style={{ margin: "-12px", background: "radial-gradient(circle, rgba(230,184,90,0.4) 0%, transparent 70%)", filter: "blur(15px)" }} />
                 <div className="absolute inset-0 rounded-full border-2 border-yellow-400/30 animate-ping" style={{ margin: "-4px", animationDuration: "3s" }} />
                 <img src="/branding/lina-avatar.png" alt="Lina AI" className="relative w-40 h-40 rounded-full object-cover border-4 shadow-2xl" style={{ borderColor: "rgba(230,184,90,0.5)" }} />
@@ -308,6 +315,13 @@ export default function HomePage() {
                   <div className="absolute inset-0 rounded-full" style={{ margin: "-20px", background: "radial-gradient(circle, rgba(230,184,90,0.3) 0%, transparent 70%)", filter: "blur(20px)" }} />
                   <div className="absolute inset-0 rounded-full border border-yellow-400/20 animate-spin" style={{ margin: "-30px", animationDuration: "20s" }} />
 
+                  {/* Speech bubble desktop */}
+                  <div className="absolute -top-16 left-1/2 -translate-x-1/2 whitespace-nowrap z-20" style={{ animation: "speechBubble 4s ease-in-out 2" }}>
+                    <div className="bg-white rounded-2xl px-5 py-2.5 shadow-2xl border border-slate-100">
+                      <p className="text-[#0B1B4D] text-sm font-bold">👆 Click on me to start!</p>
+                    </div>
+                    <div className="w-4 h-4 bg-white border-l border-b border-slate-100 mx-auto mt-[-1px]" style={{ clipPath: "polygon(0 0, 100% 0, 50% 100%)" }} />
+                  </div>
                   <Link href="/call">
                     <img
                       src="/branding/lina-avatar.png"
