@@ -168,6 +168,7 @@ export default function CommissionsPage() {
                   <p className="font-black text-xl">✈️ Travel Agent Split</p>
                   <p className="text-blue-100 text-sm mt-1">On every booking you close: <strong>you keep 70%</strong>, Zeniva keeps 30%.</p>
                   <p className="text-blue-200 text-xs mt-1">Example: $5,000 trip → <strong>$3,500 for you</strong> · $1,500 for Zeniva</p>
+                  <p className="text-blue-300 text-xs mt-2 bg-blue-800/40 rounded-lg px-2 py-1">⚠️ If Lina books alone without your involvement → reversed: <strong>Zeniva 70% · You 30%</strong></p>
                 </div>
               </div>
             </div>
@@ -197,26 +198,34 @@ export default function CommissionsPage() {
             </div>
           )}
 
-          {/* HQ sees all rates */}
+          {/* HQ sees all rates — white card */}
           {hq && (
-            <div className="bg-gradient-to-r from-slate-800 to-slate-900 p-5 text-white">
-              <p className="font-black text-lg mb-3">📊 HQ — All Commission Structures</p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="bg-white/10 rounded-xl p-3">
-                  <p className="font-black text-white">✈️ Travel Agents</p>
-                  <p className="text-slate-300 text-sm mt-1">Agent: <strong className="text-white">70%</strong> · Zeniva: <strong className="text-amber-400">30%</strong></p>
-                  <p className="text-slate-400 text-xs">of total sale amount</p>
+            <div className="bg-white border border-slate-200 p-5 text-slate-900">
+              <p className="font-black text-lg mb-3 text-slate-900">📊 HQ — All Commission Structures</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                  <p className="font-black text-blue-900">✈️ Travel Agents</p>
+                  <p className="text-blue-700 text-sm mt-1">Agent: <strong>70%</strong> · Zeniva: <strong>30%</strong></p>
+                  <p className="text-blue-500 text-xs">of total sale amount</p>
                 </div>
-                <div className="bg-white/10 rounded-xl p-3">
-                  <p className="font-black text-white">⛵ Yacht Brokers</p>
-                  <p className="text-slate-300 text-sm mt-1">Zeniva Yacht: <strong className="text-white">95%</strong> · Agent: <strong className="text-amber-400">5%</strong></p>
-                  <p className="text-slate-400 text-xs">of Zeniva's net profit</p>
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                  <p className="font-black text-amber-900">🤖 Lina Books Alone</p>
+                  <p className="text-amber-700 text-sm mt-1">Zeniva: <strong>70%</strong> · Agent: <strong>30%</strong></p>
+                  <p className="text-amber-600 text-xs">reversed — no agent involvement</p>
                 </div>
-                <div className="bg-white/10 rounded-xl p-3">
-                  <p className="font-black text-white">⭐ Influencers</p>
-                  <p className="text-slate-300 text-sm mt-1">Influencer: <strong className="text-amber-400">5%</strong> · Zeniva: <strong className="text-white">95%</strong></p>
-                  <p className="text-slate-400 text-xs">of Zeniva's net profit</p>
+                <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-3">
+                  <p className="font-black text-indigo-900">⛵ Yacht Brokers</p>
+                  <p className="text-indigo-700 text-sm mt-1">Zeniva Yacht: <strong>95%</strong> · Agent: <strong>5%</strong></p>
+                  <p className="text-indigo-500 text-xs">of Zeniva's net profit</p>
                 </div>
+                <div className="bg-purple-50 border border-purple-200 rounded-xl p-3">
+                  <p className="font-black text-purple-900">⭐ Influencers</p>
+                  <p className="text-purple-700 text-sm mt-1">Influencer: <strong>5%</strong> · Zeniva: <strong>95%</strong></p>
+                  <p className="text-purple-500 text-xs">of Zeniva's net profit</p>
+                </div>
+              </div>
+              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                <p className="text-xs text-amber-800 font-semibold">⚠️ Lina Auto-Book Rule: When Lina closes a booking entirely on her own (no agent action) → split reverses: <strong>Zeniva 70% · Agent 30%</strong>. This incentivizes agents to stay active in the sales process.</p>
               </div>
             </div>
           )}
