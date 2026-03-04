@@ -3,16 +3,17 @@ export const dynamic = "force-dynamic";
 import { useEffect, useRef, useState } from "react";
 import { useAuthStore, isHQ } from "@/src/lib/authStore";
 
-const AUTH = "Bearer zeniva-secret-2025";
-
-interface Conversation {
+interface Lead {
   id: string;
-  client_name: string;
-  client_email: string;
-  last_message: string;
-  last_ts: string;
-  count: number;
-  channel: string;
+  name: string;
+  email: string;
+  phone?: string;
+  destination?: string;
+  status: string;
+  last_msg?: string;
+  last_ts?: string;
+  msg_count: number;
+  last_channel?: string;
 }
 
 interface Message {
@@ -23,138 +24,277 @@ interface Message {
   created_at: string;
 }
 
+const CHANNEL_ICON: Record<string, string> = {
+  chat: "💬", email: "📧", sms: "📱", agent_chat: "👤", voice: "📞",
+};
+
+function Avatar({ name, size = 40 }: { name: string; size?: number }) {
+  const colors = ["#0F6CF5","#7C3AED","#10B981","#F59E0B","#EF4444","#EC4899","#06B6D4"];
+  const i = (name.charCodeAt(0) + (name.charCodeAt(1) || 0)) % colors.length;
+  const initials = name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+  return (
+    <div style={{ width: size, height: size, borderRadius: "50%", background: colors[i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.38, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
+      {initials}
+    </div>
+  );
+}
+
 export default function ChatHubPage() {
   const user = useAuthStore((s) => s.user);
   const hq = isHQ(user);
-  const [convos, setConvos] = useState<Conversation[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Lead | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [msgLoading, setMsgLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [input, setInput] = useState("");
+  const [sending, setSending] = useState(false);
+  const [pollInterval, setPollInterval] = useState<ReturnType<typeof setInterval> | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
-  const fetchConvos = async () => {
+  const fetchLeads = async () => {
     setLoading(true);
     try {
-      const p = new URLSearchParams({ path: "admin/dashboard-stats" });
+      const p = new URLSearchParams({ path: "admin/chat/conversations" });
       if (!hq && user?.email) p.append("agent_email", user.email);
       const r = await fetch(`/api/agents-proxy?${p}`);
       const d = await r.json();
-      const clients = d?.recent_clients || [];
-      const list: Conversation[] = clients.map((c: any) => ({
-        id: c.email,
-        client_name: c.name || c.email,
-        client_email: c.email,
-        last_message: c.last_message || "No messages yet",
-        last_ts: c.last_contact || c.created_at || new Date().toISOString(),
-        count: c.conversation_count || 0,
-        channel: c.last_channel || "chat",
-      }));
-      setConvos(list);
+      setLeads(d?.conversations || []);
     } catch {}
     setLoading(false);
   };
 
-  const loadMessages = async (email: string) => {
+  const loadMessages = async (leadId: string) => {
     setMsgLoading(true);
-    setMessages([]);
     try {
-      const r = await fetch(`/api/agents-proxy?path=admin/client-profile/${encodeURIComponent(email)}`);
+      const r = await fetch(`/api/agents-proxy?path=admin/chat/messages/${leadId}`);
       const d = await r.json();
-      setMessages((d?.conversations || []).slice(-50).reverse());
+      setMessages(d?.messages || []);
+      setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     } catch {}
     setMsgLoading(false);
-    setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
   };
 
-  useEffect(() => { if (user?.email) void fetchConvos(); }, [user?.email]);
-  useEffect(() => { if (selected) void loadMessages(selected); }, [selected]);
+  const sendMessage = async () => {
+    if (!input.trim() || !selected) return;
+    setSending(true);
+    const text = input.trim();
+    setInput("");
+    // Optimistic update
+    const tempMsg: Message = { id: "temp", role: "agent", content: text, channel: "agent_chat", created_at: new Date().toISOString() };
+    setMessages(m => [...m, tempMsg]);
+    setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+    try {
+      await fetch("/api/agents-proxy?path=admin/chat/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lead_id: selected.id, message: text, agent_email: user?.email || "" }),
+      });
+      await loadMessages(selected.id);
+    } catch {}
+    setSending(false);
+  };
 
-  const shown = search ? convos.filter(c => c.client_name.toLowerCase().includes(search.toLowerCase()) || c.client_email.toLowerCase().includes(search.toLowerCase())) : convos;
-  const selConvo = convos.find(c => c.id === selected);
+  useEffect(() => { if (user?.email) void fetchLeads(); }, [user?.email]);
+
+  useEffect(() => {
+    if (selected) {
+      void loadMessages(selected.id);
+      // Poll for new messages every 15s
+      const iv = setInterval(() => void loadMessages(selected.id), 15000);
+      setPollInterval(iv);
+      return () => clearInterval(iv);
+    }
+  }, [selected?.id]);
+
+  const filtered = search
+    ? leads.filter(l => l.name.toLowerCase().includes(search.toLowerCase()) || l.email.toLowerCase().includes(search.toLowerCase()) || (l.destination || "").toLowerCase().includes(search.toLowerCase()))
+    : leads;
+
+  const withConvos = filtered.filter(l => (l.msg_count || 0) > 0);
+  const noConvos = filtered.filter(l => (l.msg_count || 0) === 0);
 
   return (
     <main className="min-h-screen bg-[#F3F6FB]">
       <div className="mx-auto max-w-7xl px-5 py-8">
 
-        <header className="mb-5">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Communication</p>
-          <h1 className="text-3xl font-black text-slate-900">Chat Hub</h1>
-          <p className="text-sm text-slate-500 mt-0.5">All client conversations with Lina — read-only audit trail</p>
+        {/* Header */}
+        <header className="mb-6">
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Messaging</p>
+          <h1 className="text-3xl font-black text-slate-900">Client Chat Hub</h1>
+          <p className="text-sm text-slate-500 mt-0.5">All conversations with your clients — Lina's chats + your direct messages</p>
         </header>
 
-        <div className="flex gap-4 h-[calc(100vh-200px)]">
+        <div className="flex gap-4 h-[calc(100vh-200px)] min-h-[500px]">
 
-          {/* Left — Conversation list */}
-          <div className="w-72 shrink-0 flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-            <div className="p-3 border-b border-slate-100">
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Search clients…" className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" />
+          {/* ── Left: Contact List ── */}
+          <div className="w-80 flex-shrink-0 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+            <div className="p-4 border-b border-slate-100">
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search clients..."
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
             </div>
             <div className="flex-1 overflow-y-auto">
               {loading ? (
-                <div className="p-4 text-sm text-slate-400 text-center">Loading…</div>
-              ) : shown.length === 0 ? (
-                <div className="p-6 text-center text-slate-400 text-sm">No conversations yet</div>
-              ) : shown.map((c) => (
-                <button key={c.id} onClick={() => setSelected(c.id)} className={`w-full text-left p-3 border-b border-slate-100 hover:bg-blue-50 transition-colors ${selected === c.id ? "bg-blue-50 border-l-4 border-l-blue-500" : ""}`}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0" style={{ background: "#0F6CF5" }}>
-                      {c.client_name[0]?.toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-slate-900 text-sm truncate">{c.client_name}</p>
-                      <p className="text-xs text-slate-400 truncate">{c.last_message}</p>
-                    </div>
-                    {c.count > 0 && <span className="text-xs bg-blue-100 text-blue-700 font-bold px-1.5 py-0.5 rounded-full">{c.count}</span>}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Right — Message thread */}
-          <div className="flex-1 flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-            {!selected ? (
-              <div className="flex-1 flex items-center justify-center text-center p-8">
-                <div>
-                  <p className="text-5xl mb-4">💬</p>
-                  <p className="text-slate-600 font-semibold">Select a conversation</p>
-                  <p className="text-slate-400 text-sm mt-1">Click a client on the left to view their chat history with Lina</p>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="px-5 py-4 border-b border-slate-200 bg-slate-50">
-                  <p className="font-black text-slate-900">{selConvo?.client_name}</p>
-                  <p className="text-xs text-slate-400">{selConvo?.client_email} · {selConvo?.count} messages</p>
-                </div>
-                <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                  {msgLoading ? (
-                    <div className="text-center text-slate-400 text-sm py-8">Loading messages…</div>
-                  ) : messages.length === 0 ? (
-                    <div className="text-center text-slate-400 text-sm py-8">No messages found</div>
-                  ) : messages.map((m, i) => (
-                    <div key={i} className={`flex gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                      {m.role !== "user" && (
-                        <img src="/branding/lina-avatar.png" alt="Lina" className="w-7 h-7 rounded-full shrink-0" onError={e => { (e.currentTarget as HTMLImageElement).style.display="none"; }} />
-                      )}
-                      <div className={`max-w-xs lg:max-w-md px-3 py-2 rounded-2xl text-sm ${m.role === "user" ? "bg-blue-600 text-white rounded-br-sm" : "bg-slate-100 text-slate-800 rounded-bl-sm"}`}>
-                        <p>{m.content}</p>
-                        <p className={`text-[10px] mt-1 ${m.role === "user" ? "text-blue-200" : "text-slate-400"}`}>
-                          {m.role === "user" ? "Client" : "Lina"} · {m.created_at ? new Date(m.created_at).toLocaleString("en-CA") : ""}
-                        </p>
+                <div className="p-4 space-y-3">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="flex gap-3 items-center animate-pulse">
+                      <div className="w-10 h-10 rounded-full bg-slate-200" />
+                      <div className="flex-1 space-y-1">
+                        <div className="h-3 bg-slate-200 rounded w-3/4" />
+                        <div className="h-2 bg-slate-100 rounded w-1/2" />
                       </div>
                     </div>
                   ))}
+                </div>
+              ) : (
+                <>
+                  {withConvos.length > 0 && (
+                    <>
+                      <p className="px-4 pt-3 pb-1 text-xs font-bold text-slate-400 uppercase tracking-wider">Active Conversations ({withConvos.length})</p>
+                      {withConvos.map(lead => (
+                        <button
+                          key={lead.id}
+                          onClick={() => setSelected(lead)}
+                          className={`w-full text-left px-4 py-3 flex gap-3 items-start hover:bg-blue-50 transition-colors border-b border-slate-50 ${selected?.id === lead.id ? "bg-blue-50 border-l-2 border-l-blue-500" : ""}`}
+                        >
+                          <Avatar name={lead.name} size={40} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-1">
+                              <p className="font-semibold text-slate-900 text-sm truncate">{lead.name}</p>
+                              <span className="text-xs text-slate-400 shrink-0">{CHANNEL_ICON[lead.last_channel || "chat"]}</span>
+                            </div>
+                            <p className="text-xs text-slate-500 truncate">{lead.last_msg || "No messages"}</p>
+                            <div className="flex items-center gap-1 mt-0.5">
+                              {lead.destination && <span className="text-xs text-blue-600">✈️ {lead.destination}</span>}
+                              <span className="text-xs text-slate-400 ml-auto">{lead.msg_count} msg{lead.msg_count !== 1 ? "s" : ""}</span>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </>
+                  )}
+                  {noConvos.length > 0 && (
+                    <>
+                      <p className="px-4 pt-3 pb-1 text-xs font-bold text-slate-400 uppercase tracking-wider">No Messages Yet ({noConvos.length})</p>
+                      {noConvos.map(lead => (
+                        <button
+                          key={lead.id}
+                          onClick={() => setSelected(lead)}
+                          className={`w-full text-left px-4 py-3 flex gap-3 items-start hover:bg-slate-50 transition-colors border-b border-slate-50 ${selected?.id === lead.id ? "bg-blue-50" : ""}`}
+                        >
+                          <Avatar name={lead.name} size={36} />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-slate-700 text-sm truncate">{lead.name}</p>
+                            <p className="text-xs text-slate-400 truncate">{lead.email}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </>
+                  )}
+                  {filtered.length === 0 && (
+                    <div className="p-6 text-center text-slate-400 text-sm">No clients found</div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* ── Right: Conversation Thread ── */}
+          <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+            {!selected ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
+                <p className="text-5xl mb-3">💬</p>
+                <p className="font-semibold text-slate-600">Select a client to view their conversation</p>
+                <p className="text-sm mt-1">{leads.length} clients total · {withConvos.length} with conversations</p>
+              </div>
+            ) : (
+              <>
+                {/* Chat header */}
+                <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3">
+                  <Avatar name={selected.name} size={42} />
+                  <div className="flex-1">
+                    <p className="font-bold text-slate-900">{selected.name}</p>
+                    <p className="text-xs text-slate-500">{selected.email} {selected.phone ? `· ${selected.phone}` : ""} {selected.destination ? `· ✈️ ${selected.destination}` : ""}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    {selected.phone && (
+                      <a href={`sms:${selected.phone}`} className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded-full font-semibold hover:bg-green-200">📱 SMS</a>
+                    )}
+                    <a href={`mailto:${selected.email}`} className="text-xs bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full font-semibold hover:bg-blue-200">📧 Email</a>
+                  </div>
+                </div>
+
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto p-5 space-y-3">
+                  {msgLoading ? (
+                    <div className="flex items-center justify-center h-full text-slate-400 text-sm">Loading messages…</div>
+                  ) : messages.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                      <p className="text-3xl mb-2">✉️</p>
+                      <p className="font-medium text-slate-600">No messages yet</p>
+                      <p className="text-sm mt-1">Send a message below to start the conversation</p>
+                    </div>
+                  ) : (
+                    messages.map((msg) => {
+                      const isAgent = msg.role === "agent";
+                      const isLina = msg.role === "assistant";
+                      const isUser = msg.role === "user";
+                      return (
+                        <div key={msg.id} className={`flex ${isAgent || isLina ? "justify-end" : "justify-start"} gap-2`}>
+                          {isUser && <Avatar name={selected.name} size={28} />}
+                          <div className={`max-w-[70%] rounded-2xl px-4 py-2.5 text-sm ${
+                            isAgent ? "bg-blue-600 text-white rounded-br-sm" :
+                            isLina ? "bg-indigo-100 text-indigo-900 rounded-br-sm" :
+                            "bg-slate-100 text-slate-800 rounded-bl-sm"
+                          }`}>
+                            {(isAgent || isLina) && (
+                              <p className={`text-xs font-semibold mb-1 ${isAgent ? "text-blue-200" : "text-indigo-500"}`}>
+                                {isAgent ? "You (Agent)" : "🤖 Lina AI"}
+                              </p>
+                            )}
+                            <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                            <p className={`text-xs mt-1 ${isAgent ? "text-blue-200" : isLina ? "text-indigo-400" : "text-slate-400"}`}>
+                              {CHANNEL_ICON[msg.channel] || "💬"} {new Date(msg.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                          </div>
+                          {isAgent && <Avatar name={user?.email || "Agent"} size={28} />}
+                        </div>
+                      );
+                    })
+                  )}
                   <div ref={endRef} />
                 </div>
-                <div className="px-4 py-3 border-t border-slate-100 bg-slate-50 text-xs text-slate-400 text-center">
-                  Read-only view · Lina manages all client conversations automatically
+
+                {/* Message input */}
+                <div className="p-4 border-t border-slate-100">
+                  <div className="flex gap-3 items-end">
+                    <textarea
+                      value={input}
+                      onChange={e => setInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void sendMessage(); } }}
+                      placeholder={`Message ${selected.name}… (Enter to send)`}
+                      rows={2}
+                      className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                    <button
+                      onClick={() => void sendMessage()}
+                      disabled={sending || !input.trim()}
+                      className="bg-blue-600 text-white rounded-xl px-5 py-2.5 text-sm font-bold hover:bg-blue-700 disabled:opacity-40 transition-colors"
+                    >
+                      {sending ? "…" : "Send ↗"}
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1.5">Your message is logged in the conversation. The client won&apos;t receive a push notification — contact them via 📧 Email or 📱 SMS for urgent messages.</p>
                 </div>
               </>
             )}
           </div>
+
         </div>
       </div>
     </main>
