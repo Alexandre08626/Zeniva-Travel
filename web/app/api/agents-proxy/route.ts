@@ -10,7 +10,11 @@ export async function GET(req: NextRequest) {
   if (pathParam) {
     try {
       const auth = req.headers.get("Authorization") || AUTH;
-      const r = await fetch(`${VPS_BASE}/${pathParam}`, { headers: { Authorization: auth }, next: { revalidate: 0 } });
+      // Forward all query params (including agent_email) to VPS
+      const forwardParams = new URLSearchParams();
+      req.nextUrl.searchParams.forEach((v, k) => { if (k !== "path") forwardParams.set(k, v); });
+      const qs = forwardParams.toString() ? `?${forwardParams.toString()}` : "";
+      const r = await fetch(`${VPS_BASE}/${pathParam}${qs}`, { headers: { Authorization: auth }, next: { revalidate: 0 } });
       return NextResponse.json(await r.json());
     } catch (err: any) {
       return NextResponse.json({ error: err?.message }, { status: 502 });

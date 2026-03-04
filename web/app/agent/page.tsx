@@ -90,11 +90,14 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
 
   const fetchAll = async () => {
     try {
+      // Pass agent_email to scope data — HQ sees all, agents see only their data
+      const agentEmailParam = user?.email ? `&agent_email=${encodeURIComponent(user.email)}` : "";
+      const actEmailParam = user?.email ? `?agent_email=${encodeURIComponent(user.email)}` : "";
       const [dashRes, statsRes, accountsRes, actRes] = await Promise.all([
-        fetch("/api/agents-proxy?path=admin/dashboard-stats", { headers: { Authorization: AUTH } }),
+        fetch(`/api/agents-proxy?path=admin/dashboard-stats${agentEmailParam}`, { headers: { Authorization: AUTH } }),
         fetch("/api/agents-proxy?endpoint=stats", { headers: { Authorization: AUTH } }),
         hq ? fetch("/api/accounts") : Promise.resolve(null),
-        fetch("/api/agents-proxy?endpoint=activity", { headers: { Authorization: AUTH } }),
+        fetch(`/api/agents-proxy?path=admin/activity-log${actEmailParam}`, { headers: { Authorization: AUTH } }),
       ]);
       if (dashRes.ok) setDashStats(await dashRes.json());
       if (statsRes.ok) setVpsStats(await statsRes.json());
