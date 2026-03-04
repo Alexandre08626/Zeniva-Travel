@@ -215,6 +215,76 @@ function mapDuffelOffers(result: any): OfferCard[] {
   });
 }
 
+// City name → IATA code mapping
+const IATA_MAP: Record<string, string> = {
+  "montreal": "YUL", "montréal": "YUL",
+  "quebec": "YQB", "québec": "YQB", "quebec city": "YQB",
+  "toronto": "YYZ",
+  "vancouver": "YVR",
+  "calgary": "YYC",
+  "ottawa": "YOW",
+  "edmonton": "YEG",
+  "winnipeg": "YWG",
+  "halifax": "YHZ",
+  "miami": "MIA",
+  "new york": "JFK", "newyork": "JFK", "nyc": "JFK",
+  "los angeles": "LAX", "la": "LAX",
+  "chicago": "ORD",
+  "dallas": "DFW",
+  "houston": "IAH",
+  "boston": "BOS",
+  "washington": "DCA",
+  "atlanta": "ATL",
+  "san francisco": "SFO",
+  "seattle": "SEA",
+  "orlando": "MCO",
+  "las vegas": "LAS",
+  "denver": "DEN",
+  "phoenix": "PHX",
+  "paris": "CDG",
+  "london": "LHR",
+  "amsterdam": "AMS",
+  "madrid": "MAD",
+  "barcelona": "BCN",
+  "rome": "FCO",
+  "milan": "MXP",
+  "frankfurt": "FRA",
+  "zurich": "ZRH",
+  "lisbon": "LIS",
+  "brussels": "BRU",
+  "vienna": "VIE",
+  "istanbul": "IST",
+  "dubai": "DXB",
+  "tokyo": "NRT",
+  "osaka": "KIX",
+  "singapore": "SIN",
+  "bangkok": "BKK",
+  "hong kong": "HKG",
+  "sydney": "SYD",
+  "melbourne": "MEL",
+  "cancun": "CUN", "cancún": "CUN",
+  "punta cana": "PUJ",
+  "mexico city": "MEX",
+  "bogota": "BOG", "bogotá": "BOG",
+  "lima": "LIM",
+  "buenos aires": "EZE",
+  "sao paulo": "GRU",
+  "rio de janeiro": "GIG",
+  "cairo": "CAI",
+  "johannesburg": "JNB",
+  "nairobi": "NBO",
+};
+
+function resolveIATA(val: string): string {
+  const s = val.trim();
+  if (/^[A-Za-z]{3}$/.test(s)) return s.toUpperCase();
+  const lower = s.toLowerCase();
+  for (const [k, v] of Object.entries(IATA_MAP)) {
+    if (lower === k || lower.includes(k)) return v;
+  }
+  return s.toUpperCase().slice(0, 3);
+}
+
 async function loadOffers(params: Params) {
   const { from, to, depart, ret, passengers = "1", trip = "roundtrip", cabin = "Economy" } = params;
 
@@ -222,10 +292,13 @@ async function loadOffers(params: Params) {
     return { offers: [], message: "Veuillez saisir origine, destination et date de départ." };
   }
 
+  const originCode = resolveIATA(String(from));
+  const destCode = resolveIATA(String(to));
+
   const slices: any[] = [
     {
-      origin: String(from).toUpperCase(),
-      destination: String(to).toUpperCase(),
+      origin: originCode,
+      destination: destCode,
       departure_date: depart,
     },
   ];
@@ -233,8 +306,8 @@ async function loadOffers(params: Params) {
   // Add return slice for round-trip searches
   if (trip !== "oneway" && ret) {
     slices.push({
-      origin: String(to).toUpperCase(),
-      destination: String(from).toUpperCase(),
+      origin: destCode,
+      destination: originCode,
       departure_date: ret,
     });
   }
