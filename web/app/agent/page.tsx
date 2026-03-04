@@ -148,7 +148,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
         {/* Logo */}
         <div className="flex items-center gap-3 px-3 py-4 border-b border-slate-700/50">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 overflow-hidden" style={{ background: "linear-gradient(135deg,#0F6CF5,#0B1B4D)" }}>
-            <LinaAvatar size={40} />
+            <LinaAvatar size="md" />
           </div>
           {navOpen && <div><p className="text-white font-black text-sm">Zeniva</p><p className="text-slate-400 text-xs">Agent Portal</p></div>}
         </div>
