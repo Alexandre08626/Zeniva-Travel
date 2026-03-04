@@ -1,569 +1,670 @@
-// src/app/page.tsx
+// src/app/page.tsx — ZENIVA TRAVEL — REDESIGN ULTRA PREMIUM
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PREMIUM_BLUE, BRAND_BLUE, ACCENT_GOLD, LIGHT_BG, TITLE_TEXT, GRADIENT_START, GRADIENT_END } from "../src/design/tokens";
 import Header from "../src/components/Header";
 import Footer from "../src/components/Footer";
 import TravelSearchWidget from "../src/components/TravelSearchWidget";
-import LinaWidget from "../src/components/LinaWidget";
-import LinaHero from "../src/components/LinaHero";
-import AutoTranslate from "../src/components/AutoTranslate";
 import LinaAvatar from "../src/components/LinaAvatar";
-import dynamic from "next/dynamic";
+import AutoTranslate from "../src/components/AutoTranslate";
 import FeaturedTripsSection from "../src/components/FeaturedTripsSection";
-
-const COLLECTIONS = [
-  { id: "c7", title: "Yacht Charters", description: "YCN partner fleet", icon: "yacht", href: "/yachts" },
-  { id: "c4", title: "Partner Resorts", description: "All-inclusive resorts", icon: "resort", href: "/partners/resorts" },
-  { id: "c6", title: "Group Trips", description: "Friends & family", icon: "group", href: "/collections/group" },
-  { id: "c8", title: "Short-term rentals", description: "Private stays curated by Zeniva, bookable with concierge support.", icon: "home", href: "/residences" },
-];
 
 export const metadata: Metadata = {
   title: "Zeniva Travel | #1 AI Travel Concierge USA — Luxury Trips, Custom Vacations & Group Travel",
-  description:
-    "Zeniva Travel — America's AI travel agency. Plan luxury vacations, custom trips & group travel with Lina AI, available 24/7. Incorporated in Delaware, serving all 50 US states and Canada. Start planning in seconds.",
+  description: "Zeniva Travel — America's AI travel agency. Plan luxury vacations, custom trips & group travel with Lina AI, available 24/7. Incorporated in Delaware. Start planning in seconds.",
   alternates: {
     canonical: "https://zenivatravel.com",
-    languages: {
-      "en-US": "https://zenivatravel.com",
-      "en-CA": "https://zenivatravel.com",
-      "fr-CA": "https://zenivatravel.com/fr",
-    },
+    languages: { "en-US": "https://zenivatravel.com", "fr-CA": "https://zenivatravel.com/fr" },
   },
   openGraph: {
-    title: "Zeniva Travel | AI Travel Concierge USA — Luxury Trips & Custom Vacations",
-    description:
-      "America's AI travel agency. Luxury vacations, custom trips, yacht charters — all planned by Lina AI in seconds. US company (Delaware, NY, Virginia). Serving all 50 states & Canada.",
+    title: "Zeniva Travel | AI Travel Concierge USA",
+    description: "America's AI travel agency. Luxury vacations, custom trips, yacht charters — planned by Lina AI in seconds.",
     url: "https://zenivatravel.com",
     siteName: "Zeniva Travel",
     type: "website",
-    locale: "en_US",
-    images: [
-      {
-        url: "/branding/lina-avatar.png",
-        width: 1200,
-        height: 630,
-        alt: "Zeniva Travel — AI Travel Concierge USA",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Zeniva Travel | AI Travel Concierge USA",
-    description:
-      "America's AI travel agency — luxury vacations, custom trips, group travel. US company (Delaware, NY, Virginia). Start planning now.",
-    images: ["/branding/lina-avatar.png"],
+    images: [{ url: "/branding/lina-avatar.png", width: 1200, height: 630 }],
   },
 };
 
-function Icon({ name }: { name: string }) {
-  switch (name) {
-    case "beach":
-      return (
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2C8 2 5 5 5 9c0 2.5 1.4 4.7 3.5 5.8L12 22l3.5-7.2C17.6 13.7 19 11.5 19 9c0-4-3-7-7-7z" fill="#FFD166" />
-        </svg>
-      );
-    case "city":
-      return (
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="3" y="6" width="6" height="12" rx="1" fill="#8EA7FF" />
-          <rect x="15" y="4" width="6" height="14" rx="1" fill="#4D6CFF" />
-        </svg>
-      );
-    case "mountain":
-      return (
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M2 20h20L12 4 2 20z" fill="#A0E9D9" />
-        </svg>
-      );
-    case "resort":
-      return (
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke={TITLE_TEXT} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M4.5 18.5h15" />
-          <path d="M7 18.5V9.8c0-.5.4-.8.8-.9l8.4-1.5c.5-.1.8.3.8.8v10.3" />
-          <path d="M9 13h6" />
-          <path d="M10 10.5V7.8c0-1.6 1.3-2.8 2.8-2.8h.4C14.8 5 16 6.2 16 7.8V10" />
-          <path d="M10 15.5h2M14 15.5h1.5" />
-        </svg>
-      );
-    case "heart":
-      return (
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 21s-7-4.35-9-7.05C-0.25 9.3 3 4 8 6.5 10 7.8 12 9 12 9s2-1.2 4-2.5C21 4 24.25 9.3 21 13.95 19 16.65 12 21 12 21z" fill="#FF8AA1" />
-        </svg>
-      );
-    case "group":
-      return (
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="8" cy="8" r="2.5" fill="#B7C9FF" />
-          <circle cx="16" cy="8" r="2.5" fill="#8EA7FF" />
-          <path d="M2 18c2-4 8-4 10-4s8 0 10 4v2H2v-2z" fill="#CFE0FF" />
-        </svg>
-      );
-    case "home":
-      return (
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-4.5V15h-5v6H5a1 1 0 0 1-1-1v-8.5Z" fill="#8EA7FF" />
-        </svg>
-      );
-    case "yacht":
-      return (
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke={TITLE_TEXT} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M4 15.2h5.8l2.2-6.8 4.5 2.2V15h3.5" />
-          <path d="M3 17.5c1 .6 2.3 1 3.8 1 2.6 0 3.8-1.5 6.4-1.5s3.8 1.5 6.4 1.5c1.2 0 2.1-.3 2.8-.7" />
-          <path d="M14 6 10.5 8.5" />
-        </svg>
-      );
-    default:
-      return null;
-  }
-}
-
-const FEATURED_TRIPS = [
-  { id: "t1", title: "Bali Bliss", price: "$4,850", dates: "Mar 15 - Mar 22", destination: "Indonesia", image: "https://images.unsplash.com/photo-1505765052191-2b9d2c4b9a46?auto=format&fit=crop&w=1200&q=60" },
-  { id: "t2", title: "Parisian Romance", price: "$3,200", dates: "Apr 1 - Apr 8", destination: "France", image: "https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?auto=format&fit=crop&w=1200&q=60" },
-  { id: "t3", title: "Cancun All-Inclusive", price: "$2,500", dates: "May 10 - May 17", destination: "Mexico", image: "https://images.unsplash.com/photo-1501117170019-8782a8e5f9b8?auto=format&fit=crop&w=1200&q=60" },
-  { id: "t4", title: "Tokyo Culture", price: "$5,100", dates: "Jun 1 - Jun 10", destination: "Japan", image: "https://images.unsplash.com/photo-1549692520-acc6669e2f0c?auto=format&fit=crop&w=1200&q=60" },
-  { id: "t5", title: "Santorini Escape", price: "$3,800", dates: "Jul 5 - Jul 12", destination: "Greece", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=60" },
-  { id: "t6", title: "Dubai Luxe", price: "$4,200", dates: "Aug 1 - Aug 8", destination: "UAE", image: "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=1200&q=60" },
+const DESTINATIONS = [
+  { name: "Santorini", country: "Greece", emoji: "🇬🇷", img: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=800&q=80", tag: "Romantic", color: "#0F6CF5" },
+  { name: "Bali", country: "Indonesia", emoji: "🇮🇩", img: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=800&q=80", tag: "Adventure", color: "#10b981" },
+  { name: "Dubai", country: "UAE", emoji: "🇦🇪", img: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80", tag: "Luxury", color: "#E6B85A" },
+  { name: "Cancún", country: "Mexico", emoji: "🇲🇽", img: "https://images.unsplash.com/photo-1533104816931-20fa691ff6ca?auto=format&fit=crop&w=800&q=80", tag: "Beach", color: "#06b6d4" },
+  { name: "Tokyo", country: "Japan", emoji: "🇯🇵", img: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=800&q=80", tag: "Culture", color: "#ec4899" },
+  { name: "Maldives", country: "Indian Ocean", emoji: "🏝️", img: "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=800&q=80", tag: "Paradise", color: "#8b5cf6" },
 ];
 
-// UI-only (auth plus tard)
+const SERVICES = [
+  { icon: "✈️", title: "Flights", desc: "Best fares worldwide", href: "/search/flights", color: "#0F6CF5" },
+  { icon: "🏨", title: "Hotels", desc: "Curated luxury stays", href: "/hotels", color: "#10b981" },
+  { icon: "🛥️", title: "Yachts", desc: "Private charters", href: "/yachts", color: "#E6B85A" },
+  { icon: "🚗", title: "Transfers", desc: "Door-to-door service", href: "/chat?prompt=I+need+a+transfer", color: "#ec4899" },
+  { icon: "🏖️", title: "Packages", desc: "All-inclusive deals", href: "/packages", color: "#8b5cf6" },
+  { icon: "🌍", title: "Experiences", desc: "Local & unique", href: "/collections/group", color: "#06b6d4" },
+];
+
+const STATS = [
+  { value: "200+", label: "Destinations" },
+  { value: "24/7", label: "AI Concierge" },
+  { value: "4.9★", label: "Client Rating" },
+  { value: "$0", label: "Booking Fees" },
+];
+
 const isLoggedIn = false;
 const userEmail = "user@email.com";
-
-// Components moved to `src/components/*` for reuse (Pill, Label)
 
 export default function HomePage() {
   const structuredData = {
     "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Organization",
-        name: "Zeniva Travel",
-        url: "https://zenivatravel.com",
-        logo: "https://zenivatravel.com/branding/logo.png",
-        sameAs: ["https://zenivatravel.com"],
-      },
-      {
-        "@type": "TravelAgency",
-        name: "Zeniva Travel AI",
-        url: "https://zenivatravel.com",
-        logo: "https://zenivatravel.com/branding/logo.png",
-        image: "https://zenivatravel.com/branding/lina-avatar.png",
-        description:
-          "Zeniva Travel AI is powered by Lina AI. Discover intent, build intelligent proposals, and finalize with concierge experts.",
-        brand: {
-          "@type": "Brand",
-          name: "Lina AI",
-        },
-      },
-      {
-        "@type": "Product",
-        name: "Lina AI Travel Concierge",
-        description:
-          "AI travel concierge—intent discovery, intelligent proposals, and human finalization.",
-        brand: {
-          "@type": "Brand",
-          name: "Zeniva Travel",
-        },
-        url: "https://zenivatravel.com/ai-travel-concierge",
-        image: "https://zenivatravel.com/branding/lina-avatar.png",
-      },
-      {
-        "@type": "WebSite",
-        name: "Zeniva Travel AI",
-        url: "https://zenivatravel.com",
-        potentialAction: {
-          "@type": "SearchAction",
-          target: "https://zenivatravel.com/search?q={search_term_string}",
-          "query-input": "required name=search_term_string",
-        },
-      },
-    ],
+    "@type": "TravelAgency",
+    name: "Zeniva Travel",
+    url: "https://zenivatravel.com",
+    logo: "https://zenivatravel.com/branding/logo.png",
+    description: "AI-powered travel agency with Lina AI concierge",
   };
 
   return (
-    <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
-      {/* Mobile: override bg to dark */}
-      <style>{`@media(max-width:639px){main{background:#0A1628!important}}`}</style>
+    <main className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "#F8FAFF" }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
-      <div className="w-screen left-1/2 right-1/2 -translate-x-1/2 relative">
-        <div className="mx-auto w-full px-6 pt-5 hidden sm:block">
-          <Header isLoggedIn={isLoggedIn} userEmail={userEmail} />
-        </div>
+
+      {/* ── HEADER ── */}
+      <div className="hidden sm:block w-full px-6 pt-5">
+        <Header isLoggedIn={isLoggedIn} userEmail={userEmail} />
       </div>
 
-      {/* ========== MOBILE — FULL REDESIGN ========== */}
+      {/* ══════════════════════════════════════════
+          MOBILE VERSION
+      ══════════════════════════════════════════ */}
       <section className="sm:hidden">
-        <div className="relative w-screen left-1/2 right-1/2 -translate-x-1/2 overflow-hidden" style={{ background: `linear-gradient(160deg, ${GRADIENT_START} 0%, ${GRADIENT_END} 100%)` }}>
-          {/* Glow orbs */}
-          <div className="absolute -top-16 -right-16 h-56 w-56 rounded-full blur-3xl" style={{ background: "rgba(99,102,241,0.25)" }} />
-          <div className="absolute top-40 -left-20 h-48 w-48 rounded-full blur-3xl" style={{ background: "rgba(43,107,255,0.2)" }} />
+        {/* Hero mobile */}
+        <div className="relative min-h-screen overflow-hidden" style={{ background: "linear-gradient(160deg, #0B1B4D 0%, #0F2A6B 40%, #0F6CF5 100%)" }}>
+          {/* Animated orbs */}
+          <div className="absolute top-[-80px] right-[-60px] w-72 h-72 rounded-full opacity-20" style={{ background: "radial-gradient(circle, #E6B85A, transparent)", filter: "blur(40px)", animation: "pulse 4s ease-in-out infinite" }} />
+          <div className="absolute top-[30%] left-[-80px] w-64 h-64 rounded-full opacity-15" style={{ background: "radial-gradient(circle, #6366f1, transparent)", filter: "blur(50px)" }} />
+          <div className="absolute bottom-[10%] right-[-40px] w-48 h-48 rounded-full opacity-20" style={{ background: "radial-gradient(circle, #0F6CF5, transparent)", filter: "blur(30px)" }} />
 
-          <div className="relative z-10 px-5 pt-6 pb-8 flex flex-col" style={{ minHeight: "100dvh" }}>
-            {/* Top bar */}
+          {/* Stars/particles effect */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {[...Array(20)].map((_, i) => (
+              <div key={i} className="absolute rounded-full bg-white opacity-30" style={{ width: Math.random() * 3 + 1 + "px", height: Math.random() * 3 + 1 + "px", top: Math.random() * 100 + "%", left: Math.random() * 100 + "%" }} />
+            ))}
+          </div>
+
+          <div className="relative z-10 px-5 pt-6 pb-10 flex flex-col min-h-screen">
+            {/* Top nav */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <img src="/branding/lina-hero.png" alt="Lina" className="h-8 w-8 rounded-full object-cover object-top" />
-                <span className="text-white font-bold text-sm">Zeniva Travel</span>
+                <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full border border-white/20" />
+                <span className="text-white font-black text-sm tracking-tight">Zeniva Travel</span>
               </div>
               <div className="flex gap-2">
-                <Link href="/signup" className="rounded-full border border-white/20 px-3 py-1.5 text-xs font-semibold text-white/80">Sign up</Link>
-                <Link href="/login" className="rounded-full bg-white px-3 py-1.5 text-xs font-bold" style={{ color: PREMIUM_BLUE }}>Log in</Link>
+                <Link href="/login" className="rounded-full bg-white/10 backdrop-blur border border-white/20 px-3 py-1.5 text-xs font-semibold text-white">Log in</Link>
+                <Link href="/signup" className="rounded-full px-3 py-1.5 text-xs font-black text-[#0B1B4D]" style={{ background: "linear-gradient(90deg, #E6B85A, #f0c96b)" }}>Sign up</Link>
               </div>
             </div>
 
-            {/* Lina big avatar */}
-            <div className="flex flex-col items-center mt-8">
-              <div className="relative">
-                <div className="absolute inset-0 rounded-full" style={{ margin: "-8px", background: "linear-gradient(135deg, rgba(99,102,241,0.4), rgba(43,107,255,0.2))", filter: "blur(20px)" }} />
-                <img
-                  src="/branding/lina-hero.png"
-                  alt="Lina AI"
-                  className="relative h-52 w-52 rounded-full object-cover object-top shadow-2xl"
-                  style={{ border: "3px solid rgba(255,255,255,0.15)" }}
-                />
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-white/15 backdrop-blur-md rounded-full px-4 py-1 border border-white/20">
-                  <span className="text-white font-bold text-xs">Lina AI ✨</span>
+            {/* Lina avatar + hero */}
+            <div className="flex flex-col items-center mt-10 flex-1">
+              {/* Lina with glow ring */}
+              <div className="relative mb-6">
+                <div className="absolute inset-0 rounded-full" style={{ margin: "-12px", background: "radial-gradient(circle, rgba(230,184,90,0.4) 0%, transparent 70%)", filter: "blur(15px)" }} />
+                <div className="absolute inset-0 rounded-full border-2 border-yellow-400/30 animate-ping" style={{ margin: "-4px", animationDuration: "3s" }} />
+                <img src="/branding/lina-avatar.png" alt="Lina AI" className="relative w-40 h-40 rounded-full object-cover border-4 shadow-2xl" style={{ borderColor: "rgba(230,184,90,0.5)" }} />
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-white/15 backdrop-blur rounded-full px-3 py-1 border border-white/20">
+                  <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                  <span className="text-white text-[10px] font-bold">Lina AI · Live</span>
                 </div>
               </div>
 
-              <h1 className="mt-6 text-3xl font-black text-center text-white leading-tight tracking-tight">
-                Your AI Travel<br/>Concierge
-              </h1>
-              <p className="mt-2 text-sm text-white/70 text-center max-w-xs">
-                Tell Lina where you want to go. She&apos;ll plan everything.
-              </p>
+              <div className="text-center px-2">
+                <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur rounded-full px-4 py-1.5 mb-4 border border-white/15">
+                  <span className="text-[10px] font-bold text-yellow-300 uppercase tracking-widest">✨ AI-Powered Travel</span>
+                </div>
+                <h1 className="text-4xl font-black text-white leading-none tracking-tight mb-3">
+                  Your Personal<br/>
+                  <span style={{ background: "linear-gradient(90deg, #E6B85A, #fff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                    Travel Genius
+                  </span>
+                </h1>
+                <p className="text-white/60 text-sm leading-relaxed max-w-xs mx-auto">
+                  Tell Lina where you want to go. She plans flights, hotels & experiences in seconds.
+                </p>
+              </div>
+
+              {/* CTA */}
+              <div className="mt-8 w-full space-y-3">
+                <Link href="/chat" className="flex items-center justify-between bg-white rounded-2xl p-4 shadow-xl active:scale-[0.98] transition-transform">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg" style={{ background: "linear-gradient(135deg, #0B1B4D, #0F6CF5)" }}>💬</div>
+                    <div>
+                      <div className="text-sm font-black text-slate-900">Chat with Lina</div>
+                      <div className="text-xs text-slate-400">Plan your dream trip</div>
+                    </div>
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0F6CF5" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                  </div>
+                </Link>
+
+                <Link href="/call" className="flex items-center justify-between bg-white/10 backdrop-blur border border-white/15 rounded-2xl p-4 active:scale-[0.98] transition-transform">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg bg-white/10">📞</div>
+                    <div>
+                      <div className="text-sm font-black text-white">Call Lina</div>
+                      <div className="text-xs text-white/40">Voice AI concierge</div>
+                    </div>
+                  </div>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                </Link>
+              </div>
+
+              {/* Quick tags */}
+              <div className="mt-6 flex flex-wrap justify-center gap-2">
+                {["🏖️ Beach", "💑 Couples", "👨‍👩‍👧 Family", "🏔️ Adventure", "🛥️ Yacht"].map((t) => (
+                  <Link key={t} href={`/chat?prompt=${encodeURIComponent(t.split(" ")[1] + " trip")}`} className="rounded-full bg-white/8 border border-white/10 px-3 py-1.5 text-xs font-semibold text-white/70 active:bg-white/15">{t}</Link>
+                ))}
+              </div>
             </div>
 
-            {/* CTA Buttons */}
-            <div className="mt-8 space-y-3">
-              <Link href="/chat" className="flex items-center gap-4 bg-white rounded-2xl p-4 shadow-xl active:scale-[0.98] transition-transform">
-                <div className="h-12 w-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: `linear-gradient(135deg, ${GRADIENT_START}, ${GRADIENT_END})` }}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 5h14v9H8l-3 3V5z" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            {/* Stats bar */}
+            <div className="mt-8 grid grid-cols-4 gap-2 bg-white/8 backdrop-blur rounded-2xl p-4 border border-white/10">
+              {STATS.map((s) => (
+                <div key={s.value} className="text-center">
+                  <div className="text-base font-black text-white">{s.value}</div>
+                  <div className="text-[9px] text-white/40 mt-0.5">{s.label}</div>
                 </div>
-                <div className="flex-1">
-                  <div className="text-base font-bold" style={{ color: TITLE_TEXT }}>Chat with Lina</div>
-                  <div className="text-xs text-slate-500">Plan your trip by text</div>
-                </div>
-                <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
-              </Link>
-
-              <Link href="/call" className="flex items-center gap-4 bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-4 active:scale-[0.98] transition-transform">
-                <div className="h-12 w-12 rounded-full flex items-center justify-center flex-shrink-0 bg-white/15">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </div>
-                <div className="flex-1">
-                  <div className="text-base font-bold text-white">Call Lina</div>
-                  <div className="text-xs text-white/50">Voice call with AI concierge</div>
-                </div>
-                <svg className="h-5 w-5 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
-              </Link>
+              ))}
             </div>
+          </div>
+        </div>
 
-            {/* Quick prompts */}
-            <div className="mt-6 flex flex-wrap justify-center gap-2">
-              {[
-                { emoji: "🏖️", label: "Beach trip", prompt: "Beach vacation, 7 nights" },
-                { emoji: "💑", label: "Romantic", prompt: "Romantic getaway for two" },
-                { emoji: "👨‍👩‍👧‍👦", label: "Family", prompt: "Family vacation with kids" },
-                { emoji: "⛷️", label: "Adventure", prompt: "Adventure trip" },
-              ].map((q) => (
-                <Link
-                  key={q.label}
-                  href={`/chat?prompt=${encodeURIComponent(q.prompt)}`}
-                  className="rounded-full bg-white/10 border border-white/10 px-3 py-1.5 text-xs font-medium text-white/80 active:bg-white/20 transition-colors"
-                >
-                  {q.emoji} {q.label}
+        {/* Mobile destinations */}
+        <div className="bg-[#0A1628] px-5 py-8">
+          <h2 className="text-xl font-black text-white mb-4">Top Destinations</h2>
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+            {DESTINATIONS.map((d) => (
+              <Link key={d.name} href={`/chat?prompt=I want to go to ${d.name}`} className="flex-shrink-0 w-36 rounded-2xl overflow-hidden relative active:scale-95 transition-transform">
+                <img src={d.img} alt={d.name} className="w-full h-44 object-cover" />
+                <div className="absolute inset-0" style={{ background: "linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 60%)" }} />
+                <div className="absolute bottom-0 left-0 p-3">
+                  <div className="text-xs font-bold text-white/70">{d.country}</div>
+                  <div className="text-sm font-black text-white">{d.name}</div>
+                  <span className="inline-block mt-1 rounded-full px-2 py-0.5 text-[9px] font-bold text-white" style={{ backgroundColor: d.color + "90" }}>{d.tag}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Mobile search */}
+        <div className="bg-[#0A1628] px-5 pb-8">
+          <h2 className="text-xl font-black text-white mb-4">Search Flights</h2>
+          <div className="bg-white rounded-2xl p-4">
+            <TravelSearchWidget />
+          </div>
+        </div>
+
+        {/* Mobile footer */}
+        <div className="bg-[#060E1D] px-5 py-8">
+          <div className="flex items-center gap-2 mb-6">
+            <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full" />
+            <span className="text-white font-black">Zeniva Travel</span>
+          </div>
+          <div className="flex flex-wrap gap-4 text-white/30 text-xs mb-4">
+            <Link href="/about">About</Link>
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/terms">Terms</Link>
+            <Link href="/agent">Agents</Link>
+          </div>
+          <p className="text-white/20 text-[10px]">© 2026 Zeniva Travel Inc. · Delaware, USA</p>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════
+          DESKTOP VERSION
+      ══════════════════════════════════════════ */}
+      <div className="hidden sm:block">
+
+        {/* ── HERO ── */}
+        <section className="relative w-full overflow-hidden" style={{ minHeight: "92vh" }}>
+          {/* Background */}
+          <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #060E1D 0%, #0B1B4D 45%, #0a2260 100%)" }} />
+
+          {/* Animated gradient orbs */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute w-[800px] h-[800px] rounded-full opacity-20" style={{ top: "-200px", right: "-200px", background: "radial-gradient(circle, #E6B85A 0%, transparent 65%)", filter: "blur(60px)" }} />
+            <div className="absolute w-[600px] h-[600px] rounded-full opacity-15" style={{ top: "20%", left: "-100px", background: "radial-gradient(circle, #0F6CF5 0%, transparent 70%)", filter: "blur(80px)" }} />
+            <div className="absolute w-[500px] h-[500px] rounded-full opacity-10" style={{ bottom: "0", right: "30%", background: "radial-gradient(circle, #6366f1 0%, transparent 70%)", filter: "blur(60px)" }} />
+          </div>
+
+          {/* Grid pattern overlay */}
+          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
+
+          <div className="relative z-10 w-full px-8 xl:px-16 py-16 flex items-center" style={{ minHeight: "92vh" }}>
+            <div className="w-full grid grid-cols-2 gap-16 items-center max-w-[1400px] mx-auto">
+
+              {/* Left: Text + Search */}
+              <div className="space-y-8">
+                {/* Badge */}
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 backdrop-blur px-4 py-2">
+                  <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                  <span className="text-xs font-bold text-white/80 tracking-wider uppercase">Lina AI · Available 24/7</span>
+                </div>
+
+                {/* Headline */}
+                <div>
+                  <h1 className="text-6xl xl:text-7xl font-black leading-none tracking-tight text-white">
+                    Travel the<br/>
+                    <span className="relative inline-block">
+                      <span style={{ background: "linear-gradient(90deg, #E6B85A 0%, #f7d98a 50%, #E6B85A 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                        World
+                      </span>
+                      {/* Underline decoration */}
+                      <svg className="absolute -bottom-2 left-0 w-full" height="8" viewBox="0 0 200 8" fill="none">
+                        <path d="M0 6 Q50 0 100 4 Q150 8 200 2" stroke="#E6B85A" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.6"/>
+                      </svg>
+                    </span>
+                    <br/>
+                    <span className="text-white/90">Smarter.</span>
+                  </h1>
+                  <p className="mt-6 text-lg text-white/60 leading-relaxed max-w-lg">
+                    <AutoTranslate text="Lina AI plans your perfect trip in seconds — flights, hotels, experiences, all curated to your taste and budget." className="inline" />
+                  </p>
+                </div>
+
+                {/* Search Widget */}
+                <div className="bg-white rounded-3xl shadow-2xl p-6" style={{ boxShadow: "0 25px 80px rgba(0,0,0,0.4)" }}>
+                  <div className="flex items-center gap-2 mb-4">
+                    <img src="/branding/lina-avatar.png" alt="Lina" className="w-7 h-7 rounded-full border-2 border-yellow-400/40" />
+                    <span className="text-sm font-bold text-slate-700">Plan your perfect trip with Lina AI</span>
+                    <span className="ml-auto text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">LIVE</span>
+                  </div>
+                  <TravelSearchWidget />
+                  {/* Quick prompts */}
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {[
+                      { label: "🏖️ Beach escape", p: "Beach vacation 7 nights" },
+                      { label: "💑 Honeymoon", p: "Romantic honeymoon" },
+                      { label: "👨‍👩‍👧 Family trip", p: "Family vacation with kids" },
+                      { label: "🛥️ Yacht charter", p: "Luxury yacht charter" },
+                    ].map((q) => (
+                      <Link key={q.label} href={`/chat?prompt=${encodeURIComponent(q.p)}`} className="rounded-full bg-slate-100 hover:bg-blue-50 hover:text-blue-700 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors">
+                        {q.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Stats row */}
+                <div className="flex gap-8">
+                  {STATS.map((s) => (
+                    <div key={s.value}>
+                      <div className="text-2xl font-black text-white">{s.value}</div>
+                      <div className="text-xs text-white/40 mt-0.5">{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right: Lina visual + destination cards */}
+              <div className="relative flex items-center justify-center" style={{ minHeight: "600px" }}>
+
+                {/* Main Lina image */}
+                <div className="relative z-10">
+                  {/* Glow ring */}
+                  <div className="absolute inset-0 rounded-full" style={{ margin: "-20px", background: "radial-gradient(circle, rgba(230,184,90,0.3) 0%, transparent 70%)", filter: "blur(20px)" }} />
+                  {/* Orbit ring */}
+                  <div className="absolute inset-0 rounded-full border border-yellow-400/20 animate-spin" style={{ margin: "-30px", animationDuration: "20s" }} />
+                  <div className="absolute inset-0 rounded-full border border-blue-400/10 animate-spin" style={{ margin: "-50px", animationDuration: "30s", animationDirection: "reverse" }} />
+
+                  <img
+                    src="/branding/lina-avatar.png"
+                    alt="Lina AI"
+                    className="relative rounded-full object-cover border-4 shadow-2xl"
+                    style={{ width: "320px", height: "320px", borderColor: "rgba(230,184,90,0.4)", boxShadow: "0 0 80px rgba(230,184,90,0.2), 0 30px 80px rgba(0,0,0,0.5)" }}
+                  />
+
+                  {/* Live badge */}
+                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-xl border border-yellow-100">
+                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <span className="text-xs font-black text-slate-800">Lina AI · Online now</span>
+                  </div>
+                </div>
+
+                {/* Floating destination cards */}
+                {/* Card top-left */}
+                <div className="absolute top-0 left-0 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex items-center gap-3 shadow-xl" style={{ maxWidth: "180px" }}>
+                  <img src="https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=100&q=80" className="w-10 h-10 rounded-xl object-cover" alt="Santorini" />
+                  <div>
+                    <div className="text-xs font-black text-white">Santorini</div>
+                    <div className="text-[10px] text-white/50">From $2,800</div>
+                  </div>
+                </div>
+
+                {/* Card top-right */}
+                <div className="absolute top-16 right-0 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex items-center gap-3 shadow-xl" style={{ maxWidth: "180px" }}>
+                  <img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=100&q=80" className="w-10 h-10 rounded-xl object-cover" alt="Dubai" />
+                  <div>
+                    <div className="text-xs font-black text-white">Dubai</div>
+                    <div className="text-[10px] text-white/50">From $3,500</div>
+                  </div>
+                </div>
+
+                {/* Card bottom-left */}
+                <div className="absolute bottom-20 left-0 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex items-center gap-3 shadow-xl" style={{ maxWidth: "180px" }}>
+                  <img src="https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=100&q=80" className="w-10 h-10 rounded-xl object-cover" alt="Maldives" />
+                  <div>
+                    <div className="text-xs font-black text-white">Maldives</div>
+                    <div className="text-[10px] text-white/50">From $4,200</div>
+                  </div>
+                </div>
+
+                {/* Card bottom-right */}
+                <div className="absolute bottom-16 right-0 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex items-center gap-3 shadow-xl" style={{ maxWidth: "180px" }}>
+                  <img src="https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=100&q=80" className="w-10 h-10 rounded-xl object-cover" alt="Bali" />
+                  <div>
+                    <div className="text-xs font-black text-white">Bali</div>
+                    <div className="text-[10px] text-white/50">From $1,950</div>
+                  </div>
+                </div>
+
+                {/* Active chat bubble */}
+                <div className="absolute top-[45%] right-[-20px] bg-white rounded-2xl p-3 shadow-2xl border border-slate-100" style={{ maxWidth: "220px" }}>
+                  <div className="flex items-start gap-2">
+                    <img src="/branding/lina-avatar.png" alt="Lina" className="w-6 h-6 rounded-full flex-shrink-0" />
+                    <div className="text-[11px] text-slate-700 font-medium leading-relaxed">"I found 3 perfect options for your Cancún trip in July! 🌴"</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom wave */}
+          <div className="absolute bottom-0 left-0 w-full">
+            <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" className="w-full h-16">
+              <path d="M0 40 Q360 80 720 40 Q1080 0 1440 40 V80 H0 Z" fill="#F8FAFF" />
+            </svg>
+          </div>
+        </section>
+
+        {/* ── SERVICES STRIP ── */}
+        <section className="w-full px-8 xl:px-16 py-16">
+          <div className="max-w-[1400px] mx-auto">
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-black text-slate-900">
+                <AutoTranslate text="Everything you need for the perfect trip" className="inline" />
+              </h2>
+              <p className="text-slate-500 mt-2"><AutoTranslate text="Lina handles it all — you just enjoy the journey." className="inline" /></p>
+            </div>
+            <div className="grid grid-cols-6 gap-4">
+              {SERVICES.map((s) => (
+                <Link key={s.title} href={s.href} className="group bg-white rounded-2xl p-5 text-center hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border border-slate-100">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 group-hover:scale-110 transition-transform" style={{ backgroundColor: s.color + "15" }}>
+                    {s.icon}
+                  </div>
+                  <div className="text-sm font-black text-slate-900">{s.title}</div>
+                  <div className="text-xs text-slate-400 mt-1">{s.desc}</div>
                 </Link>
               ))}
             </div>
-
-            {/* Bottom section */}
-            <div className="mt-auto pt-10">
-              {/* Collections strip */}
-              <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
-                {COLLECTIONS.map((c) => (
-                  <Link key={c.id} href={c.href} className="flex-shrink-0 w-28 rounded-2xl bg-white/10 border border-white/10 p-3 active:bg-white/15 transition-colors">
-                    <div className="text-2xl mb-1"><Icon name={c.icon} /></div>
-                    <div className="text-xs font-bold text-white truncate">{c.title}</div>
-                    <div className="text-[10px] text-white/50 truncate">{c.description}</div>
-                  </Link>
-                ))}
-              </div>
-
-              {/* Trust bar */}
-              <div className="mt-6 flex items-center justify-center gap-4 text-white/40 text-[10px] font-medium">
-                <span>✈️ 24/7 AI Concierge</span>
-                <span>•</span>
-                <span>🌍 200+ Destinations</span>
-                <span>•</span>
-                <span>⚡ Instant Proposals</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* HERO SECTION (Compact) - full-bleed banner */}
-      <section className="mt-4 mb-8 sm:mt-8 sm:mb-12 hidden sm:block">
-        <div className="relative w-screen left-1/2 right-1/2 -translate-x-1/2">
-          <div className="relative rounded-3xl overflow-hidden">
-            <div
-              className="absolute inset-0"
-              style={{
-                background: `linear-gradient(110deg, ${GRADIENT_START} 0%, ${GRADIENT_END} 60%)`,
-                opacity: 0.98,
-              }}
-            />
-
-            <div className="relative z-10 w-full mx-auto px-6 py-8 sm:py-12">
-              <div className="flex flex-col md:flex-row items-center gap-6 sm:gap-8">
-                <div className="flex-1 text-center md:text-left">
-                  <div className="mb-3 flex items-center justify-center md:justify-start gap-4">
-                    <img src="/branding/logo.png" alt="Zeniva logo" className="w-auto rounded-lg shadow-sm" style={{ height: "clamp(2.5rem, 6.5vw, 4.25rem)" }} />
-                    <div>
-                      <div
-                        className="font-extrabold tracking-tight text-white"
-                        style={{
-                          fontSize: "clamp(2.5rem, 6.5vw, 4.25rem)",
-                          lineHeight: 0.95,
-                          background: "linear-gradient(90deg,#ffffff 60%, #E6B85A 100%)",
-                          WebkitBackgroundClip: "text",
-                          WebkitTextFillColor: "transparent",
-                          textShadow: "0 8px 24px rgba(11,27,77,0.28)",
-                          letterSpacing: "-0.02em",
-                        }}
-                      >
-                        Zeniva Travel AI
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className="mt-3 text-md text-white/90 max-w-xl md:max-w-2xl">
-                    <AutoTranslate
-                      text="Plan a trip in minutes with Lina AI—intent discovery, intelligent proposals, and concierge validation."
-                      className="inline"
-                    />
-                  </p>
-
-                  {/* Prominent Search Card */}
-                  <div className="mt-6 mx-auto md:mx-0 w-full max-w-[820px] lg:max-w-[1040px] xl:max-w-[1040px] 2xl:max-w-[820px]">
-                    <div className="bg-white rounded-2xl shadow-lg p-4">
-                      <TravelSearchWidget />
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {[
-                          { id: 'q1', label: 'Family trip', prompt: 'Family beach trip, 7 nights' },
-                          { id: 'q2', label: 'Romantic', prompt: 'Honeymoon Santorini, 5 nights' },
-                          { id: 'q3', label: 'Budget', prompt: 'Sunny destinations under $1500' },
-                        ].map((q) => (
-                          <Link
-                            key={q.id}
-                            href={`/chat?prompt=${encodeURIComponent(q.prompt)}`}
-                            className="inline-block rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 transition"
-                          >
-                            {q.label}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* action cards removed from hero - placed below as separate section */}
-                </div>
-
-                <LinaHero />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ========== MOBILE SECTIONS (below hero) ========== */}
-      <div className="sm:hidden px-5 pb-12" style={{ background: `linear-gradient(180deg, ${GRADIENT_END} 0%, #0A1628 8%, #0A1628 100%)` }}>
-
-        {/* How Lina works */}
-        <section className="pt-10 pb-8">
-          <h2 className="text-xl font-black text-white mb-5 text-center">How it works</h2>
-          <div className="flex gap-3">
-            {[
-              { step: "1", icon: "💬", title: "Tell Lina", desc: "Your dream trip" },
-              { step: "2", icon: "✨", title: "She Plans", desc: "Flights + Hotels" },
-              { step: "3", icon: "✅", title: "You Book", desc: "Ready to go" },
-            ].map((s) => (
-              <div key={s.step} className="flex-1 bg-white/8 rounded-2xl p-3 border border-white/8 text-center">
-                <div className="text-2xl mb-1">{s.icon}</div>
-                <div className="text-xs font-bold text-white">{s.title}</div>
-                <div className="text-[10px] text-white/45">{s.desc}</div>
-              </div>
-            ))}
           </div>
         </section>
 
-        {/* Quick actions grid */}
-        <section className="pb-8">
-          <h2 className="text-xl font-black text-white mb-4">Quick access</h2>
-          <div className="grid grid-cols-2 gap-3">
-            <Link href="/proposals" className="bg-white/8 border border-white/8 rounded-2xl p-4 active:bg-white/12 transition-colors">
-              <div className="text-2xl mb-2">📋</div>
-              <div className="text-sm font-bold text-white">My Proposals</div>
-              <div className="text-[11px] text-white/45 mt-1">View your trips</div>
-            </Link>
-            <Link href="/yachts" className="bg-white/8 border border-white/8 rounded-2xl p-4 active:bg-white/12 transition-colors">
-              <div className="text-2xl mb-2">🛥️</div>
-              <div className="text-sm font-bold text-white">Yachts</div>
-              <div className="text-[11px] text-white/45 mt-1">Luxury charters</div>
-            </Link>
-            <Link href="/partners/resorts" className="bg-white/8 border border-white/8 rounded-2xl p-4 active:bg-white/12 transition-colors">
-              <div className="text-2xl mb-2">🏨</div>
-              <div className="text-sm font-bold text-white">Resorts</div>
-              <div className="text-[11px] text-white/45 mt-1">Partner stays</div>
-            </Link>
-            <Link href="/residences" className="bg-white/8 border border-white/8 rounded-2xl p-4 active:bg-white/12 transition-colors">
-              <div className="text-2xl mb-2">🏠</div>
-              <div className="text-sm font-bold text-white">Rentals</div>
-              <div className="text-[11px] text-white/45 mt-1">Short-term stays</div>
-            </Link>
-            <Link href="/collections/group" className="bg-white/8 border border-white/8 rounded-2xl p-4 active:bg-white/12 transition-colors">
-              <div className="text-2xl mb-2">👥</div>
-              <div className="text-sm font-bold text-white">Group Trips</div>
-              <div className="text-[11px] text-white/45 mt-1">Travel together</div>
-            </Link>
-            <Link href="/packages" className="bg-white/8 border border-white/8 rounded-2xl p-4 active:bg-white/12 transition-colors">
-              <div className="text-2xl mb-2">🔥</div>
-              <div className="text-sm font-bold text-white">Deals</div>
-              <div className="text-[11px] text-white/45 mt-1">Hot packages</div>
-            </Link>
-          </div>
-        </section>
-
-        {/* Featured Trips */}
-        <section className="pb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-black text-white">Featured Trips</h2>
-            <Link href="/packages" className="text-xs font-bold text-indigo-400">View all →</Link>
-          </div>
-          <FeaturedTripsSection />
-        </section>
-
-        {/* Lina CTA */}
-        <section className="pb-8">
-          <div className="rounded-2xl overflow-hidden" style={{ background: `linear-gradient(135deg, ${GRADIENT_START}, ${GRADIENT_END})` }}>
-            <div className="p-5 flex items-center gap-4">
-              <img src="/branding/lina-hero.png" alt="Lina" className="h-16 w-16 rounded-full object-cover object-top border-2 border-white/20 flex-shrink-0" />
-              <div className="flex-1">
-                <div className="text-white font-bold text-base">Ready to plan?</div>
-                <div className="text-white/60 text-xs mt-0.5">Lina is available 24/7</div>
-              </div>
-              <Link href="/chat" className="bg-white rounded-full px-4 py-2 text-xs font-bold flex-shrink-0" style={{ color: PREMIUM_BLUE }}>
-                Start →
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        {/* Footer mini */}
-        <div className="pt-6 border-t border-white/8 flex items-center justify-center gap-4 text-white/25 text-[10px]">
-          <span>© Zeniva Travel</span>
-          <Link href="/privacy" className="hover:text-white/40">Privacy</Link>
-          <Link href="/terms" className="hover:text-white/40">Terms</Link>
-        </div>
-      </div>
-
-      {/* ========== DESKTOP SECTIONS ========== */}
-      <div className="hidden sm:block mx-auto w-full max-w-none px-6 pb-16">
-
-        {/* 3 large tiles */}
-        <section className="mt-6 mb-12">
-          <div className="w-full">
-            <div className="grid grid-cols-3 gap-4">
-              <Link href="/chat" className="rounded-2xl overflow-hidden shadow-xl group">
-                <div className="relative h-44 md:h-56 lg:h-64 bg-slate-50 flex flex-col items-center justify-center gap-3 p-4">
-                  <div className="w-16 h-16 rounded-full bg-slate-900/5 flex items-center justify-center">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M5 5h14v9H8l-3 3V5z" stroke="#0F172A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  <div className="text-lg font-extrabold text-slate-900"><AutoTranslate text="Chat Lina" className="inline" /></div>
-                  <div className="text-sm text-slate-500"><AutoTranslate text="Start a conversation" className="inline" /></div>
-                </div>
-              </Link>
-              <Link href="/call" className="rounded-2xl overflow-hidden shadow-xl group">
-                <div className="relative h-44 md:h-56 lg:h-64 bg-slate-50 flex flex-col items-center justify-center gap-3 p-4">
-                  <div className="w-16 h-16 rounded-full bg-slate-900/5 flex items-center justify-center">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#0F172A" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92V20a1 1 0 0 1-1 1 19 19 0 0 1-8.63-2.21A19 19 0 0 1 3 8a1 1 0 0 1 1-1h3.09a1 1 0 0 1 1 .75c.14.7.48 1.9 1.2 3.04a1 1 0 0 1-.24 1.26l-1.2 1.2a12 12 0 0 0 6.6 6.6l1.2-1.2a1 1 0 0 1 1.26-.24c1.14.72 2.34 1.06 3.04 1.2a1 1 0 0 1 .75 1V20z"/></svg>
-                  </div>
-                  <div className="text-lg font-extrabold text-slate-900"><AutoTranslate text="Call Lina" className="inline" /></div>
-                  <div className="text-sm text-slate-500"><AutoTranslate text="Speak with concierge" className="inline" /></div>
-                </div>
-              </Link>
-              <Link href="/proposals" className="rounded-2xl overflow-hidden shadow-xl group">
-                <div className="relative h-44 md:h-56 lg:h-64 bg-slate-50 flex flex-col items-center justify-center gap-3 p-4">
-                  <div className="w-16 h-16 rounded-full bg-slate-900/5 flex items-center justify-center">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 5h12v14H6z" stroke="#0F172A" strokeWidth="1.5" strokeLinejoin="round"/><path d="M9 9h6M9 12h6M9 15h4" stroke="#0F172A" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                  </div>
-                  <div className="text-lg font-extrabold text-slate-900"><AutoTranslate text="Proposals" className="inline" /></div>
-                  <div className="text-sm text-slate-500"><AutoTranslate text="View curated proposals" className="inline" /></div>
-                </div>
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        {/* COLLECTIONS */}
-        <section className="mt-20 mb-20">
-          <div className="mb-8 flex flex-col items-center text-center gap-2">
-            <h2 className="text-4xl font-black" style={{ color: TITLE_TEXT }}><AutoTranslate text="Collection & Themes" className="inline" /></h2>
-            <p className="text-slate-600"><AutoTranslate text="Browse curated travel collections tailored by Lina." className="inline" /></p>
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {COLLECTIONS.map((c) => (
-              <Link key={c.id} href={c.href || `/collections/${c.title.toLowerCase().replace(/\s+/g,'-')}`} className="rounded-2xl border border-slate-200 bg-white p-6 hover:shadow-lg transition w-full cursor-pointer">
-                <div className="text-4xl mb-3"><Icon name={c.icon} /></div>
-                <h3 className="text-lg font-bold" style={{ color: TITLE_TEXT }}><AutoTranslate text={c.title} className="inline" /></h3>
-                <p className="text-sm text-slate-500 mt-1"><AutoTranslate text={c.description} className="inline" /></p>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* FEATURED TRIPS */}
-        <section className="mt-20 mb-20">
-          <div className="relative mb-8">
-            <div className="flex flex-col items-center text-center gap-2">
-              <h2 className="text-4xl font-black" style={{ color: TITLE_TEXT }}><AutoTranslate text="Featured Trips by Lina" className="inline" /></h2>
-              <p className="text-slate-600"><AutoTranslate text="Hand-picked proposals ready to book." className="inline" /></p>
-            </div>
-            <Link href="/packages" className="text-sm font-bold underline hidden md:block absolute right-0 top-1/2 -translate-y-1/2" style={{ color: PREMIUM_BLUE }}>View all →</Link>
-          </div>
-          <FeaturedTripsSection />
-        </section>
-
-        {/* WHY LINA */}
-        <section className="mt-20 mb-20 rounded-3xl p-10 md:p-16 text-white relative overflow-hidden" style={{ backgroundColor: PREMIUM_BLUE }}>
-          <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none rounded-3xl"></div>
-          <div className="relative z-10 max-w-3xl">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="h-16 w-16 rounded-full bg-white/10 flex items-center justify-center overflow-hidden"><LinaAvatar size="md" className="h-full w-full" /></div>
+        {/* ── DESTINATIONS ── */}
+        <section className="w-full px-8 xl:px-16 py-16 bg-white">
+          <div className="max-w-[1400px] mx-auto">
+            <div className="flex items-end justify-between mb-10">
               <div>
-                <h3 className="text-2xl font-black"><AutoTranslate text="Lina AI, Your Travel Genius" className="inline" /></h3>
-                <p className="text-sm text-white/80 mt-1"><AutoTranslate text="Powered by Zeniva Intelligence" className="inline" /></p>
+                <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">✈️ Top Destinations</p>
+                <h2 className="text-4xl font-black text-slate-900"><AutoTranslate text="Where do you want to go?" className="inline" /></h2>
               </div>
+              <Link href="/packages" className="text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                See all destinations <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+              </Link>
             </div>
-            <p className="text-lg font-semibold leading-8 mb-8"><AutoTranslate text="Lina asks clarifying questions about your preferences, budget, and dates — then generates hand-picked proposals combining flights, hotels, and experiences. No cookie-cutter packages. Just travel tailored to you." className="inline" /></p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div><div className="mb-2"><svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 14h-2v-2h2v2zm0-4h-2V6h2v6z" fill="#FFF"/></svg></div><h4 className="font-bold mb-2"><AutoTranslate text="She Asks" className="inline"/></h4><p className="text-sm text-white/80"><AutoTranslate text="Departure city, dates, budget & vibe" className="inline"/></p></div>
-              <div><div className="mb-2"><svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M12 3l2 5 5 .5-4 3 1.2 5L12 15l-4.2 2.5L9 11 5 8l5-.5L12 3z" fill="#FFF"/></svg></div><h4 className="font-bold mb-2"><AutoTranslate text="She Curates" className="inline"/></h4><p className="text-sm text-white/80"><AutoTranslate text="Optimized flight + hotel combos" className="inline"/></p></div>
-              <div><div className="mb-2"><svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#FFF" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg></div><h4 className="font-bold mb-2"><AutoTranslate text="You Book" className="inline"/></h4><p className="text-sm text-white/80"><AutoTranslate text="Ready-to-checkout itineraries" className="inline"/></p></div>
+            <div className="grid grid-cols-3 gap-5">
+              {/* Big card */}
+              <Link href={`/chat?prompt=I want to go to ${DESTINATIONS[0].name}`} className="group col-span-1 row-span-2 relative rounded-3xl overflow-hidden cursor-pointer" style={{ minHeight: "500px" }}>
+                <img src={DESTINATIONS[0].img} alt={DESTINATIONS[0].name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <div className="absolute inset-0" style={{ background: "linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.1) 60%)" }} />
+                <div className="absolute bottom-0 left-0 p-6">
+                  <span className="inline-block rounded-full px-3 py-1 text-xs font-bold text-white mb-3" style={{ backgroundColor: DESTINATIONS[0].color }}>{DESTINATIONS[0].tag}</span>
+                  <div className="text-white/60 text-sm font-medium">{DESTINATIONS[0].country} {DESTINATIONS[0].emoji}</div>
+                  <div className="text-white text-3xl font-black mt-1">{DESTINATIONS[0].name}</div>
+                  <div className="mt-3 flex items-center gap-2 text-white/70 text-sm">
+                    <span>Ask Lina to plan this trip</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                  </div>
+                </div>
+              </Link>
+              {/* Small cards */}
+              {DESTINATIONS.slice(1).map((d) => (
+                <Link key={d.name} href={`/chat?prompt=I want to go to ${d.name}`} className="group relative rounded-3xl overflow-hidden cursor-pointer" style={{ height: "235px" }}>
+                  <img src={d.img} alt={d.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <div className="absolute inset-0" style={{ background: "linear-gradient(0deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.05) 50%)" }} />
+                  <div className="absolute bottom-0 left-0 p-4">
+                    <span className="inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold text-white mb-2" style={{ backgroundColor: d.color }}>{d.tag}</span>
+                    <div className="text-white/60 text-xs">{d.country} {d.emoji}</div>
+                    <div className="text-white text-xl font-black">{d.name}</div>
+                  </div>
+                </Link>
+              ))}
             </div>
-            <div className="mt-10"><Link href="/chat" className="inline-block rounded-full px-8 py-3 text-sm font-extrabold bg-white" style={{ color: PREMIUM_BLUE }}><AutoTranslate text="Start Planning Now →" className="inline" /></Link></div>
           </div>
         </section>
 
-        <Footer />
+        {/* ── FEATURED TRIPS ── */}
+        <section className="w-full px-8 xl:px-16 py-20">
+          <div className="max-w-[1400px] mx-auto">
+            <div className="flex items-end justify-between mb-10">
+              <div>
+                <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">🔥 Hot Deals</p>
+                <h2 className="text-4xl font-black text-slate-900"><AutoTranslate text="Featured Trips by Lina" className="inline" /></h2>
+              </div>
+              <Link href="/packages" className="text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                View all <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+              </Link>
+            </div>
+            <FeaturedTripsSection />
+          </div>
+        </section>
+
+        {/* ── LINA SHOWCASE ── */}
+        <section className="w-full px-8 xl:px-16 py-24 relative overflow-hidden" style={{ background: "linear-gradient(135deg, #0B1B4D 0%, #0a2260 50%, #0F6CF5 100%)" }}>
+          {/* Decorative orbs */}
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full opacity-20" style={{ background: "radial-gradient(circle, #E6B85A, transparent)", filter: "blur(80px)" }} />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full opacity-10" style={{ background: "radial-gradient(circle, #6366f1, transparent)", filter: "blur(60px)" }} />
+
+          <div className="max-w-[1400px] mx-auto relative z-10">
+            <div className="grid grid-cols-2 gap-20 items-center">
+              {/* Left */}
+              <div>
+                <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-2 mb-6">
+                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                  <span className="text-xs font-bold text-white/80 uppercase tracking-widest">AI Technology</span>
+                </div>
+                <h2 className="text-5xl font-black text-white leading-tight mb-6">
+                  Meet <span style={{ background: "linear-gradient(90deg, #E6B85A, #f7d98a)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Lina</span>,<br/>
+                  Your Travel<br/>Concierge
+                </h2>
+                <p className="text-white/60 text-lg leading-relaxed mb-8">
+                  <AutoTranslate text="Lina is the world's most advanced AI travel concierge. She speaks your language, understands your budget, and builds perfect custom trips in seconds — 24/7." className="inline" />
+                </p>
+
+                {/* Features */}
+                <div className="space-y-4">
+                  {[
+                    { icon: "🌍", title: "Speaks 40+ languages", desc: "EN, FR, ES, AR and more" },
+                    { icon: "⚡", title: "Instant proposals", desc: "Full trip in under 30 seconds" },
+                    { icon: "💰", title: "Best price guarantee", desc: "We always find the best deals" },
+                    { icon: "🔄", title: "Unlimited revisions", desc: "Adjust until it's perfect" },
+                  ].map((f) => (
+                    <div key={f.title} className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-lg flex-shrink-0">{f.icon}</div>
+                      <div>
+                        <div className="text-white font-bold text-sm">{f.title}</div>
+                        <div className="text-white/40 text-xs">{f.desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-10 flex gap-4">
+                  <Link href="/chat" className="inline-flex items-center gap-2 rounded-2xl px-7 py-4 text-sm font-black text-slate-900 hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(90deg, #E6B85A, #f7d98a)" }}>
+                    <span>Chat with Lina</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                  </Link>
+                  <Link href="/call" className="inline-flex items-center gap-2 rounded-2xl px-7 py-4 text-sm font-black text-white border border-white/20 hover:bg-white/10 transition-colors">
+                    📞 Call Lina
+                  </Link>
+                </div>
+              </div>
+
+              {/* Right: Lina with chat interface */}
+              <div className="relative flex items-center justify-center">
+                <div className="relative">
+                  {/* Glow */}
+                  <div className="absolute inset-0 rounded-3xl" style={{ margin: "-20px", background: "radial-gradient(circle, rgba(230,184,90,0.2) 0%, transparent 70%)", filter: "blur(20px)" }} />
+
+                  {/* Chat card */}
+                  <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 w-96" style={{ boxShadow: "0 30px 80px rgba(0,0,0,0.4)" }}>
+                    {/* Header */}
+                    <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
+                      <img src="/branding/lina-avatar.png" alt="Lina" className="w-10 h-10 rounded-full border-2 border-yellow-400/40" />
+                      <div>
+                        <div className="text-white font-black text-sm">Lina AI</div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                          <span className="text-green-400 text-xs font-semibold">Online now</span>
+                        </div>
+                      </div>
+                      <div className="ml-auto bg-white/10 rounded-full p-2">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0z"/></svg>
+                      </div>
+                    </div>
+
+                    {/* Chat messages */}
+                    <div className="space-y-3 mb-4">
+                      <div className="flex items-start gap-2">
+                        <img src="/branding/lina-avatar.png" alt="Lina" className="w-7 h-7 rounded-full flex-shrink-0" />
+                        <div className="bg-white/15 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
+                          <p className="text-white text-sm">Hi! Where are you dreaming of traveling? 🌍</p>
+                        </div>
+                      </div>
+                      <div className="flex justify-end">
+                        <div className="px-4 py-3 rounded-2xl rounded-tr-sm max-w-[80%]" style={{ background: "linear-gradient(135deg, #0F6CF5, #0B1B4D)" }}>
+                          <p className="text-white text-sm">Santorini for our anniversary 💑</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <img src="/branding/lina-avatar.png" alt="Lina" className="w-7 h-7 rounded-full flex-shrink-0" />
+                        <div className="bg-white/15 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
+                          <p className="text-white text-sm">Perfect choice! 🏛️ I found a 7-night package with cave villa + sunset cruise from $2,850/person. Want to see it?</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Input */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 bg-white/10 border border-white/15 rounded-2xl px-4 py-3">
+                        <span className="text-white/30 text-sm">Message Lina...</span>
+                      </div>
+                      <Link href="/chat" className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-900 hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(135deg, #E6B85A, #f7d98a)" }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── HOW IT WORKS ── */}
+        <section className="w-full px-8 xl:px-16 py-20 bg-white">
+          <div className="max-w-[1400px] mx-auto text-center">
+            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">Simple Process</p>
+            <h2 className="text-4xl font-black text-slate-900 mb-4"><AutoTranslate text="Book your dream trip in 3 steps" className="inline" /></h2>
+            <p className="text-slate-500 max-w-xl mx-auto mb-14"><AutoTranslate text="No endless searching. Lina does all the work." className="inline" /></p>
+
+            <div className="grid grid-cols-3 gap-8">
+              {[
+                { step: "01", icon: "💬", title: "Tell Lina", desc: "Describe your dream trip — destination, budget, travel style, dates. Any language works.", color: "#0F6CF5" },
+                { step: "02", icon: "✨", title: "Lina Plans", desc: "She searches hundreds of options and builds a perfect custom itinerary just for you.", color: "#E6B85A" },
+                { step: "03", icon: "✅", title: "You Book", desc: "Review your proposal, ask for changes, then confirm with one click. Done.", color: "#10b981" },
+              ].map((s) => (
+                <div key={s.step} className="relative group">
+                  {/* Connector line */}
+                  <div className="absolute top-16 left-full w-8 h-0.5 bg-slate-100 z-0" style={{ display: s.step === "03" ? "none" : "block" }} />
+                  <div className="bg-[#F8FAFF] rounded-3xl p-8 border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-200">
+                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-6 mx-auto" style={{ backgroundColor: s.color + "15" }}>{s.icon}</div>
+                    <div className="text-xs font-black tracking-widest mb-3" style={{ color: s.color }}>STEP {s.step}</div>
+                    <h3 className="text-xl font-black text-slate-900 mb-3">{s.title}</h3>
+                    <p className="text-slate-500 text-sm leading-relaxed">{s.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-12">
+              <Link href="/chat" className="inline-flex items-center gap-2 rounded-2xl px-8 py-4 text-sm font-black text-white hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(135deg, #0B1B4D, #0F6CF5)" }}>
+                <span>Start planning now</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ── TRUST SECTION ── */}
+        <section className="w-full px-8 xl:px-16 py-20" style={{ backgroundColor: "#F8FAFF" }}>
+          <div className="max-w-[1400px] mx-auto">
+            <div className="grid grid-cols-4 gap-6">
+              {[
+                { icon: "🏛️", title: "Delaware Incorporated", desc: "Officially registered US company", badge: "Verified" },
+                { icon: "🔒", title: "100% Secure", desc: "SSL encrypted, PCI compliant", badge: "Secure" },
+                { icon: "💰", title: "No Hidden Fees", desc: "What Lina quotes is what you pay", badge: "Transparent" },
+                { icon: "⭐", title: "4.9/5 Rating", desc: "From verified traveler reviews", badge: "Top Rated" },
+              ].map((t) => (
+                <div key={t.title} className="bg-white rounded-3xl p-6 border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-200">
+                  <div className="text-3xl mb-4">{t.icon}</div>
+                  <div className="inline-block text-[10px] font-black px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 mb-3">{t.badge}</div>
+                  <h3 className="text-base font-black text-slate-900 mb-2">{t.title}</h3>
+                  <p className="text-slate-500 text-sm">{t.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── FINAL CTA ── */}
+        <section className="w-full px-8 xl:px-16 py-24">
+          <div className="max-w-[1400px] mx-auto">
+            <div className="relative rounded-3xl overflow-hidden" style={{ background: "linear-gradient(135deg, #0B1B4D 0%, #0F6CF5 100%)" }}>
+              <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full opacity-20" style={{ background: "radial-gradient(circle, #E6B85A, transparent)", filter: "blur(60px)" }} />
+              <div className="relative z-10 text-center py-20 px-8">
+                <img src="/branding/lina-avatar.png" alt="Lina" className="w-20 h-20 rounded-full border-4 mx-auto mb-6 shadow-2xl" style={{ borderColor: "rgba(230,184,90,0.5)" }} />
+                <h2 className="text-5xl font-black text-white mb-4">
+                  <AutoTranslate text="Ready to travel smarter?" className="inline" />
+                </h2>
+                <p className="text-white/60 text-lg max-w-xl mx-auto mb-10">
+                  <AutoTranslate text="Join thousands of travelers who let Lina plan their perfect trips. Free to start. No credit card required." className="inline" />
+                </p>
+                <div className="flex items-center justify-center gap-4">
+                  <Link href="/chat" className="inline-flex items-center gap-2 rounded-2xl px-8 py-4 text-base font-black text-slate-900 hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(90deg, #E6B85A, #f7d98a)" }}>
+                    💬 Chat with Lina — Free
+                  </Link>
+                  <Link href="/call" className="inline-flex items-center gap-2 rounded-2xl px-8 py-4 text-base font-black text-white border-2 border-white/20 hover:bg-white/10 transition-colors">
+                    📞 Call Lina
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="px-8 xl:px-16">
+          <Footer />
+        </div>
       </div>
     </main>
   );
