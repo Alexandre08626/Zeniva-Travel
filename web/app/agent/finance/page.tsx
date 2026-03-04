@@ -42,7 +42,7 @@ interface Booking {
 
 export default function FinancePage() {
   const { user } = useAuthStore();
-  const hq = isHQ(user?.email);
+  const hq = isHQ(user);
   const [stats, setStats] = useState<FinanceStats | null>(null);
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
