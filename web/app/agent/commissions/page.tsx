@@ -168,7 +168,11 @@ export default function CommissionsPage() {
                   <p className="font-black text-xl">✈️ Travel Agent Split</p>
                   <p className="text-blue-100 text-sm mt-1">On every booking you close: <strong>you keep 70%</strong>, Zeniva keeps 30%.</p>
                   <p className="text-blue-200 text-xs mt-1">Example: $5,000 trip → <strong>$3,500 for you</strong> · $1,500 for Zeniva</p>
-                  <p className="text-blue-300 text-xs mt-2 bg-blue-800/40 rounded-lg px-2 py-1">⚠️ If Lina books alone without your involvement → reversed: <strong>Zeniva 70% · You 30%</strong></p>
+                  <div className="mt-3 bg-amber-400/20 border border-amber-300/40 rounded-lg px-3 py-2">
+                    <p className="text-amber-200 text-xs font-bold">⚠️ Lina Books Alone Rule</p>
+                    <p className="text-amber-100 text-xs mt-0.5">If Lina closes a deal <strong>entirely on her own</strong> without your involvement → split reverses: <strong>Zeniva 70% · You 30%</strong></p>
+                    <p className="text-amber-200/70 text-xs mt-0.5">Stay active in your pipeline to keep your 70% !</p>
+                  </div>
                 </div>
               </div>
             </div>
