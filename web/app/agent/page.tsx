@@ -118,10 +118,11 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   };
 
   useEffect(() => {
+    if (!user?.email) return; // Wait for user to load before fetching
     fetchAll();
     const iv = setInterval(fetchAll, 30000);
     return () => clearInterval(iv);
-  }, [hq]);
+  }, [hq, user?.email]);
 
   useEffect(() => {
     if (resolvedAgentId) {
