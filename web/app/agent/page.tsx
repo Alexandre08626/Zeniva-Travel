@@ -393,7 +393,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
                   {dashStats?.recent_clients?.length > 0 ? (
                     <div className="space-y-2">
                       {dashStats.recent_clients.slice(0, 5).map((c: any) => (
-                        <div key={c.id} className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 hover:border-blue-200 transition">
+                        <div key={c.id} className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 hover:border-blue-200 hover:bg-blue-50 transition cursor-pointer" onClick={() => window.location.href = "/agent/clients"}>
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-black text-white"
                               style={{ background: `linear-gradient(135deg, ${BRAND_BLUE}, ${PREMIUM_BLUE})` }}>
