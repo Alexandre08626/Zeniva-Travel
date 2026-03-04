@@ -70,7 +70,7 @@ export default function ClientsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedClient, setSelectedClient] = useState<ClientProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"dossiers" | "notes" | "chat" | "proposals">("dossiers");
+  const [activeTab, setActiveTab] = useState<"profile" | "dossiers" | "notes" | "chat" | "proposals">("profile");
 
   // New dossier form
   const [showDossierForm, setShowDossierForm] = useState(false);
@@ -116,7 +116,7 @@ export default function ClientsPage() {
 
   const openProfile = async (c: Client) => {
     setSelectedClient({ client: c, dossiers: [], proposals: [], bookings: [], notes: [], conversations: [], followups: [] });
-    setActiveTab("dossiers");
+    setActiveTab("profile");
     setProfileLoading(true);
     try {
       const r = await fetch(`/api/agents-proxy?path=admin/client-profile/${encodeURIComponent(c.email)}`, {
@@ -353,13 +353,13 @@ export default function ClientsPage() {
 
             {/* Tabs */}
             <div className="flex border-b border-slate-200 bg-slate-50">
-              {(["dossiers", "notes", "chat", "proposals"] as const).map((tab) => (
+              {(["profile", "dossiers", "notes", "chat", "proposals"] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`px-5 py-3 text-sm font-semibold capitalize transition-colors ${activeTab === tab ? "border-b-2 border-blue-600 text-blue-600" : "text-slate-500 hover:text-slate-700"}`}
                 >
-                  {tab === "chat" ? "Conversations" : tab === "proposals" ? "Propositions" : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab === "profile" ? "👤 Profile" : tab === "chat" ? "💬 Conversations" : tab === "proposals" ? "📋 Proposals" : tab === "dossiers" ? "🗂️ Dossiers" : "📝 Notes"}
                   {tab === "dossiers" && selectedClient.dossiers.length > 0 && (
                     <span className="ml-1 rounded-full bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5">{selectedClient.dossiers.length}</span>
                   )}
@@ -376,13 +376,107 @@ export default function ClientsPage() {
             <div className="p-6">
               {profileLoading && <p className="text-sm text-slate-500">Chargement du dossier...</p>}
 
+              {/* PROFILE TAB */}
+              {activeTab === "profile" && !profileLoading && (
+                <div className="space-y-6">
+                  {/* Known info card */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Contact info */}
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+                      <h4 className="font-bold text-sm text-slate-700 uppercase tracking-wide">📇 Contact</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Email</span>
+                          <span className="font-medium text-slate-800">{selectedClient.client.email}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Phone</span>
+                          <span className="font-medium text-slate-800">{selectedClient.client.phone ? selectedClient.client.phone : <span className="text-slate-400 italic">Not provided</span>}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Language</span>
+                          <span className="font-medium text-slate-800 uppercase">{selectedClient.client.language || "—"}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Source</span>
+                          <span className="font-medium text-slate-800">{selectedClient.client.source || "—"}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Client since</span>
+                          <span className="font-medium text-slate-800">{selectedClient.client.created_at ? new Date(selectedClient.client.created_at).toLocaleDateString("en-CA") : "—"}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Travel info */}
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+                      <h4 className="font-bold text-sm text-slate-700 uppercase tracking-wide">✈️ Travel</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Destination</span>
+                          <span className="font-medium text-slate-800">{selectedClient.client.destination ? selectedClient.client.destination : <span className="text-slate-400 italic">Not set</span>}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Deal value</span>
+                          <span className="font-medium text-slate-800">{selectedClient.client.deal_value ? `$${Number(selectedClient.client.deal_value).toLocaleString()} USD` : <span className="text-slate-400 italic">Not set</span>}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Status</span>
+                          <span className="font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full text-xs">{selectedClient.client.status}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Dossiers</span>
+                          <span className="font-medium text-slate-800">{selectedClient.dossiers.length} dossier{selectedClient.dossiers.length !== 1 ? "s" : ""}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Conversations</span>
+                          <span className="font-medium text-slate-800">{selectedClient.conversations.length} message{selectedClient.conversations.length !== 1 ? "s" : ""} with Lina</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* To be collected */}
+                    <div className="md:col-span-2 rounded-xl border border-dashed border-amber-300 bg-amber-50 p-4 space-y-2">
+                      <h4 className="font-bold text-sm text-amber-700 uppercase tracking-wide">📋 Coming Soon — Auto-Collected by Lina</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                        {["🛂 Passport", "🏠 Address", "🎂 Birthday", "🚨 Emergency contact", "💳 Preferred payment", "✈️ Seat preference", "🍽️ Dietary needs", "🏨 Hotel preference"].map(f => (
+                          <div key={f} className="rounded-lg bg-white border border-amber-200 px-3 py-2 text-amber-700 text-xs font-medium opacity-60">{f}</div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-amber-600">As Lina chats with this client, she collects and saves this info automatically.</p>
+                    </div>
+                  </div>
+
+                  {/* Last conversation preview */}
+                  {selectedClient.conversations.length > 0 && (
+                    <div>
+                      <h4 className="font-bold text-sm text-slate-700 mb-3">💬 Last Conversation</h4>
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {[...selectedClient.conversations].slice(0, 4).map((c, i) => (
+                          <div key={i} className={`rounded-lg p-3 text-sm ${c.role === "user" ? "bg-blue-50 border-l-4 border-blue-400" : "bg-slate-50 border-l-4 border-slate-300"}`}>
+                            <div className="flex justify-between text-xs text-slate-500 mb-1">
+                              <span className="font-semibold">{c.role === "user" ? "👤 Client" : "🤖 Lina"}</span>
+                              <span>{c.created_at ? new Date(c.created_at).toLocaleString("en-CA") : ""}</span>
+                            </div>
+                            <p className="text-slate-700">{c.content}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <button onClick={() => setActiveTab("chat")} className="mt-2 text-xs font-semibold text-blue-600 hover:underline">
+                        View all {selectedClient.conversations.length} messages →
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* DOSSIERS TAB */}
               {activeTab === "dossiers" && !profileLoading && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="font-bold text-lg" style={{ color: TITLE_TEXT }}>Dossiers voyage</h3>
                     <button
-                      onClick={() => setShowDossierForm(!showDossierForm)}
+                      onClick={() => { setShowDossierForm(!showDossierForm); if (!showDossierForm && selectedClient) { setDossierDest(selectedClient.client.destination || ""); } }}
                       className="rounded-full px-4 py-2 text-sm font-bold text-white"
                       style={{ backgroundColor: PREMIUM_BLUE }}
                     >
