@@ -64,11 +64,11 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "#F8FAFF" }}>
+    <main className="min-h-screen overflow-x-hidden m-0 p-0" style={{ backgroundColor: "#F8FAFF" }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
       {/* ── HEADER ── */}
-      <div className="hidden sm:block w-full px-6 pt-5">
+      <div className="hidden sm:block w-full px-6 pt-5 absolute top-0 left-0 z-20">
         <Header isLoggedIn={isLoggedIn} userEmail={userEmail} />
       </div>
 
@@ -239,7 +239,7 @@ export default function HomePage() {
           {/* Grid pattern overlay */}
           <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
 
-          <div className="relative z-10 w-full px-8 xl:px-16 py-12">
+          <div className="relative z-10 w-full px-8 xl:px-16 pt-28 pb-12">
             <div className="w-full grid grid-cols-2 gap-12 items-center">
 
               {/* Left: Text + Search */}
@@ -302,7 +302,7 @@ export default function HomePage() {
               </div>
 
               {/* Right: Lina visual + floating cards */}
-              <div className="relative flex items-center justify-center" style={{ minHeight: "460px" }}>
+              <div className="relative flex items-center justify-center" style={{ minHeight: "520px" }}>
                 {/* Main Lina image */}
                 <div className="relative z-10">
                   <div className="absolute inset-0 rounded-full" style={{ margin: "-20px", background: "radial-gradient(circle, rgba(230,184,90,0.3) 0%, transparent 70%)", filter: "blur(20px)" }} />
@@ -313,7 +313,7 @@ export default function HomePage() {
                       src="/branding/lina-avatar.png"
                       alt="Lina AI"
                       className="relative rounded-full object-cover border-4 shadow-2xl cursor-pointer hover:scale-105 transition-transform duration-300"
-                      style={{ width: "260px", height: "260px", borderColor: "rgba(230,184,90,0.4)", boxShadow: "0 0 80px rgba(230,184,90,0.2), 0 30px 80px rgba(0,0,0,0.5)" }}
+                      style={{ width: "320px", height: "320px", borderColor: "rgba(230,184,90,0.4)", boxShadow: "0 0 100px rgba(230,184,90,0.25), 0 30px 80px rgba(0,0,0,0.5)" }}
                     />
                   </Link>
                   <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-xl border border-yellow-100">
