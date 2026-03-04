@@ -112,7 +112,7 @@ export default function ClientsPage() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchClients(); }, []);
+  useEffect(() => { fetchClients(); }, [user?.email]);
 
   const openProfile = async (c: Client) => {
     setSelectedClient({ client: c, dossiers: [], proposals: [], bookings: [], notes: [], conversations: [], followups: [] });
