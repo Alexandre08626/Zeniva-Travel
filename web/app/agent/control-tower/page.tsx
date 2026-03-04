@@ -1,176 +1,229 @@
 "use client";
-import Link from "next/link";
-import { useRequireHQ } from "../../../src/lib/roleGuards";
-import { useAuthStore } from "../../../src/lib/authStore";
-import { ACCENT_GOLD, PREMIUM_BLUE, TITLE_TEXT, MUTED_TEXT } from "../../../src/design/tokens";
+export const dynamic = "force-dynamic";
 
-const lanes = [
-  { id: "needs-quote", title: "Needs quote", color: "border-amber-200 bg-amber-50" },
-  { id: "need-approval", title: "Need approval", color: "border-blue-200 bg-blue-50" },
-  { id: "ready-invoice", title: "Ready to invoice", color: "border-emerald-200 bg-emerald-50" },
-  { id: "waiting-client", title: "Waiting client", color: "border-slate-200 bg-slate-50" },
-  { id: "booked", title: "Booked", color: "border-indigo-200 bg-indigo-50" },
-  { id: "docs-ready", title: "Docs ready", color: "border-teal-200 bg-teal-50" },
-  { id: "post-trip", title: "Post-trip follow-up", color: "border-violet-200 bg-violet-50" },
+import { useEffect, useState } from "react";
+import { useAuthStore, isHQ } from "@/src/lib/authStore";
+
+const PREMIUM_BLUE = "#0B1B4D";
+const BRAND_BLUE = "#0F6CF5";
+
+type ServiceStatus = "online" | "offline" | "degraded" | "unknown";
+
+interface ServiceHealth {
+  name: string;
+  key: string;
+  status: ServiceStatus;
+  latency?: number;
+  icon: string;
+  description: string;
+}
+
+interface WorkflowItem {
+  name: string;
+  description: string;
+  status: "running" | "paused" | "error";
+  lastRun: string;
+  runs: number;
+}
+
+interface SystemEvent {
+  id: string;
+  ts: string;
+  type: "info" | "warning" | "error" | "success";
+  message: string;
+}
+
+const WORKFLOWS: WorkflowItem[] = [
+  { name: "Lina Chat", description: "AI chat intake & lead qualification", status: "running", lastRun: "2min ago", runs: 1842 },
+  { name: "Email Auto-Reply", description: "Automated email responses via Sofia", status: "running", lastRun: "15min ago", runs: 394 },
+  { name: "Marketing Agent", description: "Daily social media posts via Mia", status: "running", lastRun: "6h ago", runs: 87 },
+  { name: "Lead Hunter (Marco)", description: "5-engine scraping every 2h", status: "running", lastRun: "1h ago", runs: 220 },
+  { name: "Follow-up (Noah)", description: "Smart follow-up sequences", status: "running", lastRun: "3h ago", runs: 156 },
 ];
 
-const orders = [
-  { id: "ORD-1042", client: "Morales / Paris", division: "TRAVEL", status: "Submitted", amount: "$4,200", owner: "Alice", updated: "2h" },
-  { id: "ORD-1039", client: "Yacht / Med", division: "YACHT", status: "Approved", amount: "$18,500", owner: "Marco", updated: "4h" },
-  { id: "ORD-1032", client: "Group / Cancun", division: "GROUPS", status: "Invoiced", amount: "$22,300", owner: "Sara", updated: "1d" },
-  { id: "ORD-1028", client: "Villa / Tulum", division: "VILLAS", status: "Draft", amount: "$6,800", owner: "Ben", updated: "1d" },
+const STATUS_DISPLAY: Record<ServiceStatus, { label: string; dot: string; text: string }> = {
+  online:   { label: "Online",   dot: "bg-emerald-500 animate-pulse", text: "text-emerald-600" },
+  offline:  { label: "Offline",  dot: "bg-red-500 animate-pulse",     text: "text-red-600" },
+  degraded: { label: "Degraded", dot: "bg-amber-500 animate-pulse",   text: "text-amber-600" },
+  unknown:  { label: "Unknown",  dot: "bg-slate-400",                  text: "text-slate-500" },
+};
+
+const EVENT_ICONS: Record<string, string> = { info: "ℹ️", warning: "⚠️", error: "❌", success: "✅" };
+
+const DEMO_EVENTS: SystemEvent[] = [
+  { id: "e1", ts: new Date(Date.now() - 2 * 60000).toISOString(), type: "success", message: "VPS API health check passed (23ms)" },
+  { id: "e2", ts: new Date(Date.now() - 15 * 60000).toISOString(), type: "info", message: "Lina processed 14 chat sessions" },
+  { id: "e3", ts: new Date(Date.now() - 30 * 60000).toISOString(), type: "success", message: "Email batch sent: 42 emails delivered" },
+  { id: "e4", ts: new Date(Date.now() - 60 * 60000).toISOString(), type: "info", message: "Marco scraped 8 new leads from Reddit" },
+  { id: "e5", ts: new Date(Date.now() - 2 * 3600000).toISOString(), type: "warning", message: "Supabase connection spike detected (resolved)" },
+  { id: "e6", ts: new Date(Date.now() - 6 * 3600000).toISOString(), type: "success", message: "Daily backup completed — 4.2MB" },
 ];
+
+function timeAgo(ts: string) {
+  const diff = Date.now() - new Date(ts).getTime();
+  if (diff < 60000) return `${Math.floor(diff / 1000)}s ago`;
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+  return `${Math.floor(diff / 86400000)}d ago`;
+}
 
 export default function ControlTowerPage() {
-  useRequireHQ("/agent");
-  const audit = useAuthStore((s) => s.auditLog);
-  const opsEntries = audit.filter((a) => [
-    "lina:",
-    "pricing:",
-    "payment:",
-    "docs:",
-    "trip:"
-  ].some((p) => a.action.startsWith(p)));
+  const user = useAuthStore((s) => s.user);
+  const hq = isHQ(user);
+
+  const [services, setServices] = useState<ServiceHealth[]>([
+    { name: "VPS API",    key: "vps",      status: "unknown", icon: "🖥️",  description: "Main backend API (port 8000)" },
+    { name: "n8n",        key: "n8n",      status: "unknown", icon: "⚡",  description: "Workflow automation engine" },
+    { name: "Supabase",   key: "supabase", status: "unknown", icon: "🗄️",  description: "Database & realtime" },
+    { name: "Last Backup",key: "backup",   status: "unknown", icon: "💾",  description: "Automated daily backup" },
+  ]);
+  const [events, setEvents] = useState<SystemEvent[]>(DEMO_EVENTS);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!hq) return;
+    const checkHealth = async () => {
+      try {
+        const res = await fetch("/api/agents-proxy?path=health");
+        if (res.ok) {
+          const json = await res.json();
+          setServices((prev) => prev.map((s) => {
+            if (s.key === "vps") return { ...s, status: "online", latency: json?.latency ?? 15 };
+            if (s.key === "supabase") return { ...s, status: json?.supabase === false ? "offline" : "online" };
+            if (s.key === "n8n") return { ...s, status: json?.n8n === false ? "offline" : "online" };
+            if (s.key === "backup") return { ...s, status: "online", description: `Last: ${json?.last_backup ?? "today 02:00"}` };
+            return s;
+          }));
+        } else {
+          setServices((prev) => prev.map((s) => s.key === "vps" ? { ...s, status: "offline" } : { ...s, status: "unknown" }));
+        }
+      } catch {
+        setServices((prev) => prev.map((s) => s.key === "vps" ? { ...s, status: "offline" } : { ...s, status: "unknown" }));
+      }
+    };
+    void checkHealth();
+    const iv = window.setInterval(checkHealth, 60000);
+    return () => window.clearInterval(iv);
+  }, [hq]);
+
+  const runAction = async (action: string) => {
+    setActionLoading(action);
+    try {
+      await fetch(`/api/agents-proxy?path=admin/${action}`, { method: "POST" });
+      const ev: SystemEvent = { id: Date.now().toString(), ts: new Date().toISOString(), type: "success", message: `Action "${action}" triggered successfully` };
+      setEvents((prev) => [ev, ...prev].slice(0, 20));
+    } catch {
+      const ev: SystemEvent = { id: Date.now().toString(), ts: new Date().toISOString(), type: "error", message: `Action "${action}" failed` };
+      setEvents((prev) => [ev, ...prev].slice(0, 20));
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  if (!hq) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: PREMIUM_BLUE }}>
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-12 text-center max-w-md">
+          <p className="text-5xl mb-4">🔒</p>
+          <h2 className="text-2xl font-black text-slate-900">Access Denied</h2>
+          <p className="text-slate-400 mt-2">Control Tower is restricted to HQ administrators only.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <main className="min-h-screen" style={{ backgroundColor: "#F3F6FB" }}>
-      <div className="mx-auto max-w-6xl px-5 py-8 space-y-8">
-        <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">HQ Control Tower</p>
-            <h1 className="text-3xl md:text-4xl font-black" style={{ color: TITLE_TEXT }}>
-              Command center
-            </h1>
-            <p className="text-sm md:text-base" style={{ color: MUTED_TEXT }}>
-              Visibility across all dossiers, orders, finances, and agent performance.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link href="/agent/finance" className="rounded-full px-4 py-2 text-sm font-bold text-white" style={{ backgroundColor: PREMIUM_BLUE }}>
-              Finance
-            </Link>
-            <Link href="/agent/agents" className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold" style={{ color: TITLE_TEXT }}>
-              Agents
-            </Link>
-          </div>
-        </header>
+    <div className="min-h-screen p-6" style={{ background: PREMIUM_BLUE }}>
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-black text-white">🗼 Control Tower</h1>
+        <p className="text-slate-400 text-sm mt-1">System health, workflows, and quick actions</p>
+      </div>
 
-        <section className="grid gap-4 md:grid-cols-3">
-          {[{ label: "Active dossiers", value: "42", meta: "Across all divisions" }, { label: "Pipeline value", value: "$486k", meta: "Weighted" }, { label: "Confirmed bookings", value: "19", meta: "Last 30 days" }, { label: "Pending invoices", value: "11", meta: "Needs action" }, { label: "Disputes / chargebacks", value: "2", meta: "Open" }, { label: "Avg agent response", value: "12m", meta: "SLA" }, { label: "Top performer", value: "Sara", meta: "46% conversion" }, { label: "Docs ready", value: "8", meta: "Awaiting send" }, { label: "Waiting client", value: "15", meta: "Follow-up" }].map((card) => (
-            <div key={card.label} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="text-xs font-semibold text-slate-500">{card.label}</p>
-              <p className="text-2xl font-black" style={{ color: TITLE_TEXT }}>{card.value}</p>
-              <p className="text-xs" style={{ color: MUTED_TEXT }}>{card.meta}</p>
+      {/* Service health */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {services.map((svc) => {
+          const cfg = STATUS_DISPLAY[svc.status];
+          return (
+            <div key={svc.key} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xl">{svc.icon}</span>
+                <div className="flex items-center gap-1.5">
+                  <span className={`w-2.5 h-2.5 rounded-full ${cfg.dot}`} />
+                  <span className={`text-xs font-bold ${cfg.text}`}>{cfg.label}</span>
+                </div>
+              </div>
+              <p className="font-bold text-slate-900">{svc.name}</p>
+              <p className="text-xs text-slate-400 mt-0.5">{svc.latency ? `${svc.latency}ms` : svc.description}</p>
             </div>
-          ))}
-        </section>
+          );
+        })}
+      </div>
 
-        <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-6 space-y-4">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Production queue</p>
-              <h2 className="text-2xl font-black" style={{ color: TITLE_TEXT }}>Work Queue</h2>
-              <p className="text-sm" style={{ color: MUTED_TEXT }}>Quote → Approval → Invoice → Docs → Follow-up</p>
-            </div>
-            <Link href="/agent/orders" className="rounded-full px-4 py-2 text-sm font-bold text-slate-900" style={{ backgroundColor: ACCENT_GOLD }}>
-              View orders
-            </Link>
-          </div>
-          <div className="grid gap-3 md:grid-cols-4 xl:grid-cols-7 text-sm">
-            {lanes.map((lane) => (
-              <div key={lane.id} className={`rounded-xl border ${lane.color} p-3 space-y-2`}>
-                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-600">{lane.title}</p>
-                <div className="rounded-lg bg-white/80 border border-white/70 p-2 shadow-sm">
-                  <p className="text-xs text-slate-600">(placeholder) drag items here</p>
+      <div className="grid md:grid-cols-2 gap-4 mb-4">
+        {/* Workflows */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <h2 className="font-bold text-slate-900 mb-4">⚡ Active Workflows</h2>
+          <div className="space-y-3">
+            {WORKFLOWS.map((w) => (
+              <div key={w.name} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
+                <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                  w.status === "running" ? "bg-emerald-500 animate-pulse" : w.status === "error" ? "bg-red-500" : "bg-amber-400"
+                }`} />
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-slate-900 text-sm">{w.name}</p>
+                  <p className="text-xs text-slate-400">{w.description}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-xs text-slate-400">{w.lastRun}</p>
+                  <p className="text-xs font-bold text-slate-500">{w.runs} runs</p>
                 </div>
               </div>
             ))}
           </div>
-        </section>
+        </div>
 
-        <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-6 space-y-4">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Orders</p>
-              <h2 className="text-2xl font-black" style={{ color: TITLE_TEXT }}>Internal orders</h2>
-              <p className="text-sm" style={{ color: MUTED_TEXT }}>Draft → Submitted → Approved → Invoiced → Paid → Closed</p>
-            </div>
-            <Link href="/agent/orders" className="rounded-full px-4 py-2 text-sm font-bold text-white" style={{ backgroundColor: PREMIUM_BLUE }}>
-              Go to orders
-            </Link>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="text-left text-slate-600">
-                  <th className="pb-2 pr-3">Ref</th>
-                  <th className="pb-2 pr-3">Client</th>
-                  <th className="pb-2 pr-3">Division</th>
-                  <th className="pb-2 pr-3">Status</th>
-                  <th className="pb-2 pr-3">Amount</th>
-                  <th className="pb-2 pr-3">Owner</th>
-                  <th className="pb-2 pr-3">Updated</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((o) => (
-                  <tr key={o.id} className="border-t border-slate-100">
-                    <td className="py-2 pr-3 font-semibold" style={{ color: TITLE_TEXT }}>{o.id}</td>
-                    <td className="py-2 pr-3" style={{ color: TITLE_TEXT }}>{o.client}</td>
-                    <td className="py-2 pr-3 text-xs font-semibold rounded-full">
-                      <span className="rounded-full bg-slate-100 px-2 py-1">{o.division}</span>
-                    </td>
-                    <td className="py-2 pr-3">
-                      <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold">{o.status}</span>
-                    </td>
-                    <td className="py-2 pr-3" style={{ color: TITLE_TEXT }}>{o.amount}</td>
-                    <td className="py-2 pr-3" style={{ color: TITLE_TEXT }}>{o.owner}</td>
-                    <td className="py-2 pr-3 text-slate-500">{o.updated}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-6 space-y-3">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Ops Log</p>
-              <h2 className="text-2xl font-black" style={{ color: TITLE_TEXT }}>Lina + Pricing + Payments</h2>
-              <p className="text-sm" style={{ color: MUTED_TEXT }}>Assistant actions, overrides, payments, and docs for HQ visibility.</p>
+        {/* Quick Actions + Events */}
+        <div className="space-y-4">
+          {/* Quick actions */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <h2 className="font-bold text-slate-900 mb-3">🎯 Quick Actions</h2>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { key: "restart",   label: "Restart API",   icon: "🔄" },
+                { key: "cache",     label: "Clear Cache",   icon: "🗑️" },
+                { key: "backup",    label: "Run Backup",    icon: "💾" },
+              ].map((a) => (
+                <button
+                  key={a.key}
+                  disabled={!!actionLoading}
+                  onClick={() => void runAction(a.key)}
+                  className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition disabled:opacity-50"
+                >
+                  <span className="text-xl">{a.icon}</span>
+                  <span className="text-xs font-semibold text-slate-700">{a.label}</span>
+                </button>
+              ))}
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="text-left text-slate-600">
-                  <th className="pb-2 pr-3">Time</th>
-                  <th className="pb-2 pr-3">Agent</th>
-                  <th className="pb-2 pr-3">Action</th>
-                  <th className="pb-2 pr-3">Target</th>
-                  <th className="pb-2 pr-3">Meta</th>
-                </tr>
-              </thead>
-              <tbody>
-                {opsEntries.length === 0 && (
-                  <tr>
-                    <td className="py-2 text-slate-500" colSpan={5}>No actions yet.</td>
-                  </tr>
-                )}
-                {opsEntries.slice(-50).reverse().map((e) => (
-                  <tr key={e.id} className="border-t border-slate-100">
-                    <td className="py-2 pr-3 text-slate-500">{new Date(e.timestamp).toLocaleString()}</td>
-                    <td className="py-2 pr-3" style={{ color: TITLE_TEXT }}>{e.actor}</td>
-                    <td className="py-2 pr-3" style={{ color: TITLE_TEXT }}>{e.action}</td>
-                    <td className="py-2 pr-3" style={{ color: TITLE_TEXT }}>{e.targetId || "-"}</td>
-                    <td className="py-2 pr-3 text-slate-500">{e.meta ? JSON.stringify(e.meta) : ""}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+          {/* System events */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <h2 className="font-bold text-slate-900 mb-3">📋 Recent Events</h2>
+            <div className="space-y-2 max-h-52 overflow-y-auto">
+              {events.map((ev) => (
+                <div key={ev.id} className="flex items-start gap-2 text-sm">
+                  <span className="shrink-0 text-base">{EVENT_ICONS[ev.type]}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-slate-700 text-xs">{ev.message}</p>
+                    <p className="text-slate-400 text-[10px] mt-0.5">{timeAgo(ev.ts)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </section>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

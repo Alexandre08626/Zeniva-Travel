@@ -1,317 +1,235 @@
 "use client";
+export const dynamic = "force-dynamic";
 
-import { useEffect, useMemo, useState, Suspense } from "react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { ACCENT_GOLD, PREMIUM_BLUE, TITLE_TEXT, MUTED_TEXT, LIGHT_BG } from "../../../src/design/tokens";
-import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
-import { useAuthStore, hasPermission } from "../../../src/lib/authStore";
-import { normalizeRbacRole } from "../../../src/lib/rbac";
+import { useEffect, useState } from "react";
+import { useAuthStore, isHQ } from "@/src/lib/authStore";
 
-type ProposalStatus = "Draft" | "Sent" | "Approved" | "Booked";
+const PREMIUM_BLUE = "#0B1B4D";
+const BRAND_BLUE = "#0F6CF5";
+const ACCENT_GOLD = "#E6B85A";
 
-type Proposal = {
+type ProposalStatus = "pending" | "accepted" | "rejected" | "expired";
+
+interface Proposal {
   id: string;
-  client: string;
+  client_name: string;
+  client_email?: string;
   destination: string;
-  value: number;
+  trip_start?: string;
+  trip_end?: string;
+  amount: number;
   currency: string;
   status: ProposalStatus;
-  segments: string[];
-  updatedAt: string;
-  owner: string;
+  created_at: string;
+  notes?: string;
+  agent_email?: string;
+}
+
+const STATUS_CONFIG: Record<ProposalStatus, { label: string; bg: string; text: string }> = {
+  pending:  { label: "Pending",  bg: "bg-amber-100",  text: "text-amber-700" },
+  accepted: { label: "Accepted", bg: "bg-emerald-100", text: "text-emerald-700" },
+  rejected: { label: "Rejected", bg: "bg-red-100",    text: "text-red-700" },
+  expired:  { label: "Expired",  bg: "bg-slate-100",  text: "text-slate-500" },
 };
 
-type ProposalRecord = {
-  id: string;
-  owner_email: string;
-  status?: string | null;
-  created_at?: string | null;
-  updated_at?: string | null;
-  payload?: Record<string, unknown> | null;
-};
+function fmtDate(d?: string) {
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
 
-const statusTheme: Record<ProposalStatus, { bg: string; text: string }> = {
-  Draft: { bg: "bg-slate-100", text: "text-slate-800" },
-  Sent: { bg: "bg-blue-50", text: "text-blue-700" },
-  Approved: { bg: "bg-emerald-50", text: "text-emerald-700" },
-  Booked: { bg: "bg-amber-50", text: "text-amber-800" },
-};
-
-const normalizeStatus = (value?: string | null): ProposalStatus => {
-  if (value === "Sent" || value === "Approved" || value === "Booked") return value;
-  return "Draft";
-};
-
-const mapRecordToProposal = (record: ProposalRecord): Proposal | null => {
-  if (!record?.id) return null;
-  const payload = (record.payload || {}) as Record<string, unknown>;
-  const segments = Array.isArray(payload.segments) ? (payload.segments as string[]) : [];
-  const status = normalizeStatus((payload.status as string) || record.status || "Draft");
-  const updatedAt = String(payload.updatedAt || record.updated_at || record.created_at || new Date().toISOString());
-  return {
-    id: record.id,
-    client: String(payload.client || payload.clientName || "Client"),
-    destination: String(payload.destination || payload.title || "Destination"),
-    value: Number(payload.value || payload.total || 0),
-    currency: String(payload.currency || "USD"),
-    status,
-    segments,
-    updatedAt,
-    owner: String(record.owner_email || payload.owner || ""),
-  };
-};
-
-function ProposalsContent() {
-  const user = useAuthStore((s) => s.user);
-  const effectiveRole = normalizeRbacRole(user?.effectiveRole) || normalizeRbacRole((user?.roles || [])[0]);
-  const canSend = user ? hasPermission(user, "send_proposal_to_client") || hasPermission(user, "sales:all") : false;
-  const canViewAll = user ? hasPermission(user, "sales:all") : false;
-  const searchParams = useSearchParams();
-  const [statusFilter, setStatusFilter] = useState<ProposalStatus | "All">("All");
-  const [query, setQuery] = useState(() => searchParams.get("q") || "");
-  const [proposals, setProposals] = useState<Proposal[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const incoming = searchParams.get("q") || "";
-    setQuery(incoming);
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (!user?.email) return;
-    let active = true;
-    const load = async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams();
-        if (!canViewAll) params.set("ownerEmail", user.email);
-        const resp = await fetch(`/api/proposals${params.toString() ? `?${params.toString()}` : ""}`, { cache: "no-store" });
-        const payload = await resp.json();
-        if (!resp.ok) throw new Error(payload?.error || "Failed to load proposals");
-        if (!active) return;
-        const rows = Array.isArray(payload?.data) ? payload.data : [];
-        const mapped = rows.map(mapRecordToProposal).filter(Boolean) as Proposal[];
-        setProposals(mapped);
-      } catch {
-        if (!active) return;
-        setProposals([]);
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
-    void load();
-    return () => {
-      active = false;
-    };
-  }, [user?.email, canViewAll]);
-
-  const filtered = useMemo(() => {
-    const q = query.toLowerCase();
-    return proposals.filter((p) => {
-      if (effectiveRole === "yacht_broker" && !p.segments.some((seg) => seg.toLowerCase().includes("yacht"))) {
-        return false;
-      }
-      const matchesStatus = statusFilter === "All" ? true : p.status === statusFilter;
-      const matchesQuery = [p.id, p.client, p.destination].some((v) => v.toLowerCase().includes(q));
-      return matchesStatus && matchesQuery;
-    });
-  }, [statusFilter, query, effectiveRole, proposals]);
-
-  const totals = useMemo(() => {
-    const base: Record<ProposalStatus, number> = { Draft: 0, Sent: 0, Approved: 0, Booked: 0 };
-    proposals.forEach((p) => { base[p.status] += 1; });
-    return base;
-  }, [proposals]);
-
-  return (
-    <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
-      <div className="mx-auto max-w-6xl px-5 py-8 space-y-6">
-        <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Proposals</p>
-            <h1 className="text-3xl font-black" style={{ color: TITLE_TEXT }}>Pipeline of client proposals</h1>
-            <p className="text-sm" style={{ color: MUTED_TEXT }}>See every draft, sent link, approval, and booked conversion.</p>
-          </div>
-          <div className="flex flex-wrap gap-2 text-xs font-semibold">
-            <span className="rounded-full bg-white px-3 py-2 text-slate-800 border border-slate-200 shadow-sm">Total {proposals.length}</span>
-            <span className="rounded-full bg-blue-50 px-3 py-2 text-blue-700 border border-blue-100">Sent {totals.Sent}</span>
-            <span className="rounded-full bg-emerald-50 px-3 py-2 text-emerald-700 border border-emerald-100">Approved {totals.Approved}</span>
-            <span className="rounded-full bg-amber-50 px-3 py-2 text-amber-800 border border-amber-100">Booked {totals.Booked}</span>
-          </div>
-        </header>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="flex flex-wrap gap-2 text-xs font-bold">
-              {["All", "Draft", "Sent", "Approved", "Booked"].map((s) => {
-                const active = statusFilter === s;
-                return (
-                  <button
-                    key={s}
-                    onClick={() => setStatusFilter(s as ProposalStatus | "All")}
-                    className="rounded-full border px-3 py-1.5"
-                    style={{
-                      borderColor: active ? PREMIUM_BLUE : "#e2e8f0",
-                      backgroundColor: active ? PREMIUM_BLUE : "#fff",
-                      color: active ? "#fff" : TITLE_TEXT,
-                    }}
-                  >
-                    {s}
-                  </button>
-                );
-              })}
-            </div>
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search client, destination, ID"
-              className="w-full md:w-72 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm outline-none"
-            />
-          </div>
-
-          <div className="grid gap-3 md:grid-cols-2">
-            {loading && (
-              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-600">
-                Loading proposals...
-              </div>
-            )}
-            {filtered.map((p) => (
-              <div key={p.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="text-sm font-bold" style={{ color: TITLE_TEXT }}>{p.id} · {p.client}</div>
-                  <span className={`rounded-full px-3 py-1 text-[11px] font-bold ${statusTheme[p.status].bg} ${statusTheme[p.status].text}`}>
-                    {p.status}
-                  </span>
-                </div>
-                <div className="text-sm" style={{ color: TITLE_TEXT }}>{p.destination}</div>
-                <div className="flex flex-wrap gap-2 text-[11px] font-semibold" style={{ color: MUTED_TEXT }}>
-                  {p.segments.map((seg) => (
-                    <span key={seg} className="rounded-full bg-slate-100 px-2 py-1">{seg}</span>
-                  ))}
-                </div>
-                <div className="text-xs" style={{ color: MUTED_TEXT }}>
-                  Updated {new Date(p.updatedAt).toLocaleString()} · Owner {p.owner}
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-semibold" style={{ color: TITLE_TEXT }}>{p.currency} {p.value.toLocaleString()}</span>
-                  <div className="flex gap-2">
-                    <button
-                      className="rounded-full border border-slate-200 px-3 py-1 text-xs font-bold"
-                      style={{ color: PREMIUM_BLUE }}
-                      onClick={() => {
-                        // Générer un vrai tripId unique et copier les infos du mock
-                        if (typeof window !== 'undefined') {
-                          const key = 'zeniva_trips_store_v1__guest';
-                          let store: any = {};
-                          try {
-                            store = JSON.parse(window.localStorage.getItem(key) || '{}');
-                          } catch (e) {}
-                          if (!store.trips) store.trips = [];
-                          if (!store.snapshots) store.snapshots = {};
-                          if (!store.proposals) store.proposals = {};
-                          if (!store.selections) store.selections = {};
-                          // Générer un id unique
-                          const tripId = 'trip-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-                          const now = new Date().toISOString();
-                          store.trips.unshift({ id: tripId, title: p.destination, status: p.status, lastMessage: '', updatedAt: now, createdAt: now });
-                          store.snapshots[tripId] = { departure: '', destination: p.destination, dates: '', travelers: '', budget: p.value.toString(), style: '' };
-                          const sections = effectiveRole === "yacht_broker"
-                            ? [{ title: 'Yacht', items: [] }]
-                            : [{ title: 'Flights', items: [] }, { title: 'Hotels', items: [] }];
-                          store.proposals[tripId] = { tripId, title: p.destination, sections, priceEstimate: p.value.toString(), images: [], notes: '', updatedAt: now };
-                          store.selections[tripId] = { flight: null, hotel: null };
-                          window.localStorage.setItem(key, JSON.stringify(store));
-                          window.location.href = `/proposals/${tripId}/select`;
-                        }
-                      }}
-                    >
-                      Open
-                    </button>
-                    {canSend && (
-                      <Link
-                        href="#"
-                        className="rounded-full px-3 py-1 text-xs font-bold text-white"
-                        style={{ backgroundColor: ACCENT_GOLD, color: "#0B1228" }}
-                      >
-                        Share link
-                      </Link>
-                    )}
-                      <button
-                        className="rounded-full px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-blue-600 border-2 border-emerald-500 hover:border-blue-500 hover:from-emerald-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl"
-                        style={{ minWidth: 140 }}
-                        onClick={async () => {
-                          try {
-                            // Map agent proposal to PDF API format
-                            const pdfPayload = {
-                              id: p.id,
-                              dossierId: p.id,
-                              clientName: p.client,
-                              destination: p.destination,
-                              travelDates: new Date(p.updatedAt).toLocaleDateString('fr-CA'),
-                              pax: 1,
-                              budget: `${p.currency} ${p.value}`,
-                              itinerary: p.segments,
-                              totalPrice: `${p.currency} ${p.value}`,
-                              createdAt: p.updatedAt,
-                              status: 'draft',
-                            };
-                            const response = await fetch('/api/proposals/generate-pdf', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify(pdfPayload)
-                            });
-                            if (response.ok) {
-                              const blob = await response.blob();
-                              const url = window.URL.createObjectURL(blob);
-                              const a = document.createElement('a');
-                              a.href = url;
-                              a.download = `Proposition-${p.client}-${p.destination}.pdf`;
-                              document.body.appendChild(a);
-                              a.click();
-                              document.body.removeChild(a);
-                              window.URL.revokeObjectURL(url);
-                              alert('✅ PDF téléchargé avec succès ! 📄');
-                            } else {
-                              alert('❌ Erreur lors de la génération du PDF');
-                            }
-                          } catch (error) {
-                            alert('❌ Erreur lors du téléchargement: ' + (error instanceof Error ? error.message : String(error)));
-                          }
-                        }}
-                      >
-                        📥 Télécharger PDF
-                      </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-            {!loading && filtered.length === 0 && (
-              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-600">
-                No proposals match your filters.
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 mb-2">Next actions</p>
-          <ul className="space-y-1 text-xs" style={{ color: MUTED_TEXT }}>
-            <li>Send PR-2310 to Lefebvre after adding rail add-on.</li>
-            <li>Follow up on approval signature for PR-2311 (Tokyo).</li>
-            <li>Block yacht dates for PR-2312 once deposit is confirmed.</li>
-          </ul>
-        </div>
-      </div>
-    </main>
-  );
+function fmtMoney(n: number, currency = "USD") {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
 }
 
 export default function ProposalsPage() {
-  useRequireAnyPermission(["sales:all", "create_yacht_proposal"], "/agent");
+  const user = useAuthStore((s) => s.user);
+  const hq = isHQ(user);
+
+  const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const fetchProposals = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams({ path: "admin/proposals" });
+      if (!hq && user?.email) params.append("agent_email", user.email);
+      const res = await fetch(`/api/agents-proxy?${params.toString()}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      const arr: Proposal[] = Array.isArray(json) ? json : json?.data ?? [];
+      setProposals(arr);
+    } catch (err) {
+      setError("Could not load proposals.");
+      setProposals([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { void fetchProposals(); }, [user?.email]);
+
+  const updateStatus = async (id: string, status: "accepted" | "rejected") => {
+    setActionLoading(id + status);
+    try {
+      await fetch(`/api/agents-proxy?path=admin/proposals/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      await fetchProposals();
+    } catch {
+      // graceful
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const stats = {
+    total: proposals.length,
+    pending: proposals.filter((p) => p.status === "pending").length,
+    accepted: proposals.filter((p) => p.status === "accepted").length,
+    value: proposals.reduce((s, p) => s + (p.amount ?? 0), 0),
+  };
+
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ProposalsContent />
-    </Suspense>
+    <div className="min-h-screen p-6" style={{ background: PREMIUM_BLUE }}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-black text-white">📋 Proposals</h1>
+          <p className="text-slate-400 text-sm mt-1">Manage and track your client proposals</p>
+        </div>
+        <button
+          className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-white text-sm shadow-lg transition hover:opacity-90"
+          style={{ background: BRAND_BLUE }}
+        >
+          + New Proposal
+        </button>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: "Total", value: stats.total, icon: "📋" },
+          { label: "Pending", value: stats.pending, icon: "⏳" },
+          { label: "Accepted", value: stats.accepted, icon: "✅" },
+          { label: "Total Value", value: fmtMoney(stats.value), icon: "💰" },
+        ].map((s) => (
+          <div key={s.label} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <p className="text-2xl">{s.icon}</p>
+            <p className="text-2xl font-black text-slate-900 mt-1">{s.value}</p>
+            <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mt-1">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Content */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        {loading ? (
+          <div className="flex items-center justify-center py-16 text-slate-400">Loading proposals…</div>
+        ) : error ? (
+          <div className="text-center py-16 text-red-500">{error}</div>
+        ) : proposals.length === 0 ? (
+          <div className="text-center py-20">
+            <p className="text-5xl mb-4">📋</p>
+            <p className="text-xl font-bold text-slate-700">No proposals yet</p>
+            <p className="text-slate-400 mt-2">Create your first one to get started</p>
+            <button
+              className="mt-6 px-6 py-2.5 rounded-xl font-semibold text-white text-sm"
+              style={{ background: BRAND_BLUE }}
+            >
+              + New Proposal
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {proposals.map((p) => {
+              const cfg = STATUS_CONFIG[p.status] ?? STATUS_CONFIG.pending;
+              const isOpen = expandedId === p.id;
+              return (
+                <div key={p.id} className="border border-slate-100 rounded-xl overflow-hidden">
+                  <button
+                    className="w-full text-left px-5 py-4 flex items-center gap-4 hover:bg-slate-50 transition"
+                    onClick={() => setExpandedId(isOpen ? null : p.id)}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-slate-900">{p.client_name || "Unknown client"}</span>
+                        <span className="text-slate-400">·</span>
+                        <span className="text-slate-600 text-sm">{p.destination || "—"}</span>
+                      </div>
+                      <div className="text-xs text-slate-400 mt-0.5">
+                        {fmtDate(p.trip_start)} – {fmtDate(p.trip_end)} · Created {fmtDate(p.created_at)}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="font-bold text-slate-900">{fmtMoney(p.amount, p.currency)}</span>
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${cfg.bg} ${cfg.text}`}>{cfg.label}</span>
+                      <span className="text-slate-400">{isOpen ? "▲" : "▼"}</span>
+                    </div>
+                  </button>
+
+                  {isOpen && (
+                    <div className="px-5 pb-5 border-t border-slate-100 bg-slate-50">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 mb-4">
+                        <div>
+                          <p className="text-xs text-slate-400 uppercase font-semibold">Client Email</p>
+                          <p className="text-sm text-slate-800 mt-0.5">{p.client_email || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-400 uppercase font-semibold">Destination</p>
+                          <p className="text-sm text-slate-800 mt-0.5">{p.destination || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-400 uppercase font-semibold">Dates</p>
+                          <p className="text-sm text-slate-800 mt-0.5">{fmtDate(p.trip_start)} – {fmtDate(p.trip_end)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-400 uppercase font-semibold">Amount</p>
+                          <p className="text-sm font-bold text-slate-900 mt-0.5">{fmtMoney(p.amount, p.currency)}</p>
+                        </div>
+                      </div>
+                      {p.notes && (
+                        <div className="mb-4 p-3 bg-white rounded-xl border border-slate-200">
+                          <p className="text-xs text-slate-400 font-semibold mb-1">Notes</p>
+                          <p className="text-sm text-slate-700">{p.notes}</p>
+                        </div>
+                      )}
+                      <div className="flex gap-2 flex-wrap">
+                        {p.status === "pending" && (
+                          <>
+                            <button
+                              disabled={!!actionLoading}
+                              onClick={() => updateStatus(p.id, "accepted")}
+                              className="px-4 py-2 rounded-lg text-sm font-semibold bg-emerald-500 text-white hover:bg-emerald-600 transition disabled:opacity-50"
+                            >
+                              ✅ Mark Accepted
+                            </button>
+                            <button
+                              disabled={!!actionLoading}
+                              onClick={() => updateStatus(p.id, "rejected")}
+                              className="px-4 py-2 rounded-lg text-sm font-semibold bg-red-100 text-red-700 hover:bg-red-200 transition disabled:opacity-50"
+                            >
+                              ❌ Mark Rejected
+                            </button>
+                          </>
+                        )}
+                        <button className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+                          📄 Duplicate
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

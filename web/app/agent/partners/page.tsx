@@ -1,1071 +1,162 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { useAuthStore } from "../../../src/lib/authStore";
-import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
-import { TITLE_TEXT, MUTED_TEXT } from "../../../src/design/tokens";
-import { partnerOrganizations, propertyOwners, listingAssignments, type PartnerOrganization, type PropertyOwner } from "../../../src/lib/partnerRelations";
-import { mockListings } from "../../../src/lib/mockData";
-import { resortPartners } from "../../../src/data/partners/resorts";
-import AirbnbAvailability from "../../../src/components/airbnbs/AirbnbAvailability.client";
+import { useState } from "react";
+import { useAuthStore } from "@/src/lib/authStore";
 
+const PREMIUM_BLUE = "#0B1B4D";
+const BRAND_BLUE = "#0F6CF5";
+const ACCENT_GOLD = "#E6B85A";
 
-type PartnerAccount = {
+type PartnerStatus = "active" | "pending";
+type PartnerCategory = "Airlines" | "Hotels" | "Car Rentals" | "Insurance" | "Experiences";
+
+interface Partner {
   id: string;
   name: string;
-  email: string;
-  role: string;
-  roles?: string[];
-  divisions?: string[];
-  status?: "active" | "disabled" | "suspended";
-  createdAt: string;
+  category: PartnerCategory;
+  commission_rate: string;
+  status: PartnerStatus;
+  description: string;
+  logo_color: string;
+  logo_letter: string;
+  website?: string;
+}
+
+const DEMO_PARTNERS: Partner[] = [
+  { id: "p1", name: "Duffel Airlines API", category: "Airlines", commission_rate: "3%", status: "active", description: "Book flights from 300+ airlines worldwide via Duffel API. Real-time pricing and availability.", logo_color: "#0F6CF5", logo_letter: "D" },
+  { id: "p2", name: "Emirates",            category: "Airlines", commission_rate: "4%", status: "active", description: "Premium airline partner. Business and first class booking access.", logo_color: "#C8102E", logo_letter: "E" },
+  { id: "p3", name: "Air France",          category: "Airlines", commission_rate: "3.5%", status: "active", description: "European and international routes. GDS access included.", logo_color: "#002395", logo_letter: "AF" },
+  { id: "p4", name: "Hotels.com",          category: "Hotels",   commission_rate: "6%", status: "active", description: "Over 500,000 hotel properties globally. Instant booking confirmation.", logo_color: "#CC0000", logo_letter: "H" },
+  { id: "p5", name: "Marriott International", category: "Hotels", commission_rate: "8%", status: "active", description: "30 brands, 8,000+ hotels worldwide. Exclusive Zeniva agent rates.", logo_color: "#8B1A1A", logo_letter: "M" },
+  { id: "p6", name: "Hyatt",              category: "Hotels",   commission_rate: "7%", status: "active", description: "Luxury and lifestyle brands. Park Hyatt, Andaz, Grand Hyatt.", logo_color: "#00308F", logo_letter: "H" },
+  { id: "p7", name: "Hertz",             category: "Car Rentals", commission_rate: "5%", status: "active", description: "Global car rental leader. 10,000+ locations worldwide.", logo_color: "#FFD100", logo_letter: "H" },
+  { id: "p8", name: "Avis",              category: "Car Rentals", commission_rate: "4.5%", status: "active", description: "Premium car rental services in 165+ countries.", logo_color: "#CC0000", logo_letter: "A" },
+  { id: "p9", name: "Allianz Travel",    category: "Insurance", commission_rate: "10%", status: "active", description: "Comprehensive travel insurance. Medical, cancellation, baggage coverage.", logo_color: "#003781", logo_letter: "Al" },
+  { id: "p10", name: "AXA Assistance",  category: "Insurance", commission_rate: "9%", status: "pending", description: "Global insurance partner. Emergency assistance in 200+ countries.", logo_color: "#00008F", logo_letter: "AX" },
+  { id: "p11", name: "Viator",           category: "Experiences", commission_rate: "8%", status: "active", description: "300,000+ tours, activities, and experiences worldwide.", logo_color: "#27AE60", logo_letter: "V" },
+  { id: "p12", name: "GetYourGuide",    category: "Experiences", commission_rate: "7%", status: "active", description: "Unforgettable travel experiences. Activities, day trips, skip-the-line tickets.", logo_color: "#FF5533", logo_letter: "G" },
+];
+
+const CATEGORIES: PartnerCategory[] = ["Airlines", "Hotels", "Car Rentals", "Insurance", "Experiences"];
+
+const CATEGORY_ICONS: Record<PartnerCategory, string> = {
+  "Airlines":     "✈️",
+  "Hotels":       "🏨",
+  "Car Rentals":  "🚗",
+  "Insurance":    "🛡️",
+  "Experiences":  "🎯",
 };
 
-type ListingType = "yacht" | "home" | "hotel";
-
-type BookingStatus = "requested" | "confirmed" | "on_hold" | "paid" | "cancelled";
-
-type PartnerBooking = {
-  id: string;
-  partnerName: string;
-  listingTitle: string;
-  type: ListingType;
-  status: BookingStatus;
-  checkIn: string;
-  checkOut: string;
-  value: number;
-  currency: string;
-  travelers: number;
-  source: string;
-  updatedAt: string;
-};
-
-type PartnerListing = {
-  id: string;
-  partnerId?: string;
-  title: string;
-  type: ListingType;
-  status?: string;
-  thumbnail?: string;
-  images?: string[];
-  location?: string;
-  price?: number | string;
-  currency?: string;
-  description?: string;
-  amenities?: string[];
-  capacity?: number;
-  bedrooms?: number;
-  bathrooms?: number;
-  rating?: number;
-  reviews?: number;
-  createdByAgent?: boolean;
-  workflowStatus?: string;
-};
-
-const TYPE_LABELS: Record<ListingType, string> = {
-  yacht: "Yacht",
-  home: "Short‑term rental",
-  hotel: "Hotel",
-};
-
-export default function PartnerAccountsPage() {
-  useRequireAnyPermission(["accounts:manage"], "/agent");
+export default function PartnersPage() {
   const user = useAuthStore((s) => s.user);
-  const [data, setData] = useState<PartnerAccount[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [typeFilter, setTypeFilter] = useState<"all" | ListingType>("all");
-  const [query, setQuery] = useState("");
-  const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
-  const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
-  const [remoteListings, setRemoteListings] = useState<PartnerListing[]>([]);
-  const [bookingStatus, setBookingStatus] = useState<"all" | BookingStatus>("all");
-  const [bookingType, setBookingType] = useState<"all" | ListingType>("all");
-  const [bookingQuery, setBookingQuery] = useState("");
-  const [bookingDetails, setBookingDetails] = useState({
-    checkIn: "",
-    checkOut: "",
-    travelers: 2,
-    rooms: 1,
-    roomType: "Standard",
-  });
+  const [activeCategory, setActiveCategory] = useState<PartnerCategory | "All">("All");
 
-  const canView = !!user && (() => {
-    const roles = user.roles || (user.role ? [user.role] : []);
-    return roles.includes("hq") || roles.includes("admin");
-  })();
+  const filtered = activeCategory === "All"
+    ? DEMO_PARTNERS
+    : DEMO_PARTNERS.filter((p) => p.category === activeCategory);
 
-  const dynamicPartners = useMemo<PartnerOrganization[]>(() => {
-    if (!data.length) return [];
-    const partnerAccounts = data.filter((account) => {
-      const roles = Array.isArray(account.roles) && account.roles.length ? account.roles : account.role ? [account.role] : [];
-      return roles.includes("partner_owner") || roles.includes("partner_staff");
-    });
-
-    return partnerAccounts.map((account, index) => {
-      const baseId = account.id || account.email || account.name || `partner-${index + 1}`;
-      const normalized = String(baseId).toLowerCase().replace(/[^a-z0-9]+/g, "-");
-      const partnerId = normalized || `partner-${index + 1}`;
-      return {
-        id: partnerId,
-        displayName: account.name || "Partner",
-        legalName: account.name || "Partner",
-        primaryContactEmail: account.email,
-        phone: "—",
-        ownerId: `owner-${partnerId}`,
-      } as PartnerOrganization;
-    });
-  }, [data]);
-
-  const dynamicOwners = useMemo<PropertyOwner[]>(() => {
-    return dynamicPartners.map((partner) => ({
-      id: partner.ownerId,
-      name: partner.displayName,
-      email: partner.primaryContactEmail,
-      phone: partner.phone || "—",
-    }));
-  }, [dynamicPartners]);
-
-  const mergedPartners = useMemo<PartnerOrganization[]>(() => {
-    const dedupe = new Map<string, PartnerOrganization>();
-    [...partnerOrganizations, ...dynamicPartners].forEach((partner) => {
-      const key = partner.id || partner.primaryContactEmail;
-      if (!key) return;
-      if (!dedupe.has(key)) dedupe.set(key, partner);
-    });
-    return Array.from(dedupe.values());
-  }, [dynamicPartners]);
-
-  const mergedOwners = useMemo<PropertyOwner[]>(() => {
-    const dedupe = new Map<string, PropertyOwner>();
-    [...propertyOwners, ...dynamicOwners].forEach((owner) => {
-      const key = owner.id || owner.email;
-      if (!key) return;
-      if (!dedupe.has(key)) dedupe.set(key, owner);
-    });
-    return Array.from(dedupe.values());
-  }, [dynamicOwners]);
-
-  useEffect(() => {
-    if (!canView) return;
-    let active = true;
-    fetch("/api/accounts")
-      .then((res) => res.json())
-      .then((payload) => {
-        if (!active) return;
-        const records = Array.isArray(payload?.data) ? payload.data : [];
-        const partners = records.filter((r: PartnerAccount) => {
-          const roles = Array.isArray(r.roles) && r.roles.length ? r.roles : r.role ? [r.role] : [];
-          return roles.includes("partner_owner") || roles.includes("partner_staff");
-        });
-        setData(partners);
-      })
-      .catch(() => setData([]))
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [canView]);
-
-  useEffect(() => {
-    if (!canView) return;
-    let active = true;
-
-    const extractLocationFromDescription = (description?: string) => {
-      if (!description) return "";
-      const marker = "property location";
-      const lower = description.toLowerCase();
-      const idx = lower.indexOf(marker);
-      if (idx === -1) return "";
-      const after = description.slice(idx + marker.length);
-      const lines = after.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-      const first = lines[0] || "";
-      if (!first || first === "â€‹") return "";
-      return first;
-    };
-
-    const normalizeHomeLocation = (location?: string, description?: string) => {
-      const raw = (location || "").trim();
-      if (raw && raw.toLowerCase() !== "property description") return raw;
-      return extractLocationFromDescription(description);
-    };
-
-    const mapPartnerForHome = (location?: string, description?: string) => {
-      const loc = (normalizeHomeLocation(location, description) || "").toLowerCase();
-      if (loc.includes("barcelona")) return "partner-home-02";
-      if (loc.includes("lac-beauport") || loc.includes("beauport") || loc.includes("quebec") || loc.includes("canada")) return "partner-home-01";
-      if (loc.includes("tulum") || loc.includes("quintana roo") || loc.includes("holbox") || loc.includes("mexico") || loc.includes("méxico")) return "partner-home-03";
-      if (loc.includes("polynes") || loc.includes("tahiti") || loc.includes("bora bora") || loc.includes("tikehau") || loc.includes("taha'a") || loc.includes("tahaa") || loc.includes("moorea") || loc.includes("papeete")) return "partner-home-04";
-      if (loc.includes("florida") || loc.includes("floride") || loc.includes("fort lauderdale") || loc.includes("hollywood") || loc.includes("hallandale") || loc.includes("pompano") || loc.includes("deerfield") || loc.includes("sunny isles") || loc.includes("wilton manors") || loc.includes("états-unis") || loc.includes("etats-unis") || loc.includes("usa") || loc.includes("united states")) return "partner-home-05";
-      if (loc.includes("dominican") || loc.includes("juan dolio")) return "partner-home-06";
-      if (loc.includes("madagascar")) return "partner-home-07";
-      return undefined;
-    };
-
-    const mapPartnerForResort = (destination?: string, email?: string) => {
-      const dest = (destination || "").toLowerCase();
-      const mail = (email || "").toLowerCase();
-      if (mail.includes("pearlresorts") || dest.includes("bora bora") || dest.includes("tahiti") || dest.includes("tikehau") || dest.includes("taha'a") || dest.includes("tahaa")) {
-        return "partner-resort-02";
-      }
-      if (dest.includes("dominican") || dest.includes("punta cana") || mail.includes("tribe")) {
-        return "partner-resort-03";
-      }
-      return "partner-resort-01";
-    };
-
-    const resortListings: PartnerListing[] = resortPartners.map((resort) => ({
-      id: `resort-${resort.id}`,
-      partnerId: mapPartnerForResort(resort.destination, resort.contact?.email),
-      title: resort.name,
-      type: "hotel",
-      status: resort.status,
-      thumbnail: resort.media?.[0]?.images?.[0],
-      images: resort.media?.flatMap((cat) => cat.images) || [],
-      location: resort.destination,
-      price: resort.pricing?.publicRateFrom,
-      currency: resort.pricing?.publicRateFrom?.includes("$") ? "USD" : undefined,
-      description: resort.description,
-      amenities: resort.amenities,
-    }));
-
-    const ycnReq = fetch("/api/partners/ycn").then((r) => r.json()).catch(() => []);
-    const yachtReq = fetch("/api/public/listings?type=yacht")
-      .then((r) => r.json())
-      .then((res) => (res && res.data) || [])
-      .catch(() => []);
-    const airbnbReq = fetch("/api/partners/airbnbs").then((r) => r.json()).catch(() => []);
-    const homeReq = fetch("/api/public/listings?type=home")
-      .then((r) => r.json())
-      .then((res) => (res && res.data) || [])
-      .catch(() => []);
-    const hotelReq = fetch("/api/public/listings?type=hotel")
-      .then((r) => r.json())
-      .then((res) => (res && res.data) || [])
-      .catch(() => []);
-
-    Promise.all([ycnReq, yachtReq, airbnbReq, homeReq, hotelReq])
-      .then(([ycnData, yachtData, airbnbData, homeData, hotelData]) => {
-        if (!active) return;
-        const ycnListings: PartnerListing[] = (ycnData || []).map((item: any, idx: number) => ({
-          id: item?.id || `ycn-${idx}`,
-          partnerId: "partner-yacht-01",
-          title: item?.title || "Yacht Charter",
-          type: "yacht",
-          status: "published",
-          thumbnail: item?.thumbnail || (item?.images && item.images[0]),
-          images: item?.images || [],
-          location: item?.destination || "",
-          price: (item?.prices && item.prices[0]) || "Request",
-          currency: (item?.prices && item.prices[0] && item.prices[0].includes("USD")) ? "USD" : undefined,
-        }));
-
-        const yachtListings: PartnerListing[] = (yachtData || []).map((item: any, idx: number) => ({
-          id: item?.id || `yacht-${idx}`,
-          partnerId: item?.partnerId || item?.data?.partnerId || "partner-yacht-01",
-          title: item?.title || "Yacht Charter",
-          type: "yacht",
-          status: item?.status || "published",
-          thumbnail: item?.data?.thumbnail || (item?.data?.images && item.data.images[0]),
-          images: item?.data?.images || [],
-          location: item?.data?.location || item?.data?.destination || "",
-          price: (item?.data?.prices && item.data.prices[0]) || item?.data?.price || "Request",
-          currency: item?.data?.currency,
-          createdByAgent: Boolean(item?.createdByAgent || item?.data?.createdByAgent),
-          workflowStatus: item?.data?.workflowStatus || "in_progress",
-        }));
-
-        const airbnbListings: PartnerListing[] = (airbnbData || [])
-          .map((item: any, idx: number) => {
-            const mappedLocation = normalizeHomeLocation(item?.location, item?.description);
-            const partnerId = mapPartnerForHome(item?.location, item?.description);
-            if (!partnerId) return null;
-            return {
-              id: item?.id || `airbnb-${idx}`,
-              partnerId,
-              title: item?.title || "Residence",
-              type: "home",
-              status: "published",
-              thumbnail: item?.thumbnail || (item?.images && item.images[0]),
-              images: item?.images || [],
-              location: mappedLocation || item?.location || "",
-              description: item?.description || "",
-            } as PartnerListing;
-          })
-          .filter(Boolean) as PartnerListing[];
-
-        const homeListings: PartnerListing[] = (homeData || [])
-          .map((item: any, idx: number) => {
-            const payload = item?.data || item || {};
-            const partnerId = item?.partnerId || payload.partnerId || mapPartnerForHome(payload.location || payload.destination, payload.description);
-            return {
-              id: item?.id || payload.id || `home-${idx}`,
-              partnerId,
-              title: item?.title || payload.title || "Residence",
-              type: "home",
-              status: item?.status || "published",
-              thumbnail: payload.thumbnail || (payload.images && payload.images[0]),
-              images: payload.images || [],
-              location: payload.location || payload.destination || "",
-              description: payload.description || "",
-              createdByAgent: Boolean(item?.createdByAgent || payload.createdByAgent),
-              workflowStatus: payload.workflowStatus || "in_progress",
-            } as PartnerListing;
-          });
-
-        const hotelListings: PartnerListing[] = (hotelData || []).map((item: any, idx: number) => {
-          const payload = item?.data || item || {};
-          const partnerId = item?.partnerId || payload.partnerId || mapPartnerForResort(payload.location || payload.destination, payload.contactEmail);
-          return {
-            id: item?.id || payload.id || `hotel-${idx}`,
-            partnerId,
-            title: item?.title || payload.title || "Hotel",
-            type: "hotel",
-            status: item?.status || "published",
-            thumbnail: payload.thumbnail || (payload.images && payload.images[0]),
-            images: payload.images || [],
-            location: payload.location || payload.destination || "",
-            description: payload.description || "",
-            price: payload.price,
-            currency: payload.currency,
-            createdByAgent: Boolean(item?.createdByAgent || payload.createdByAgent),
-            workflowStatus: payload.workflowStatus || "in_progress",
-          } as PartnerListing;
-        });
-
-        setRemoteListings([...resortListings, ...ycnListings, ...yachtListings, ...airbnbListings, ...homeListings, ...hotelListings]);
-      })
-      .catch(() => {
-        if (!active) return;
-        setRemoteListings(resortListings);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [canView]);
-
-  const partnerListings = useMemo<PartnerListing[]>(() => {
-    const baseListings = mockListings
-      .filter((listing) => listing.status === "published")
-      .map((listing) => ({
-        id: listing.id,
-        partnerId: listing.partnerId,
-        title: listing.title,
-        type: listing.type as ListingType,
-        status: listing.status,
-        thumbnail: listing.thumbnail,
-        images: listing.amenities
-          ? (listing.amenities.map(() => listing.thumbnail).filter(Boolean) as string[])
-          : listing.thumbnail
-            ? [listing.thumbnail]
-            : [],
-        location: listing.location,
-        price: listing.price,
-        currency: listing.currency,
-        description: listing.description,
-        amenities: listing.amenities,
-        capacity: listing.capacity,
-        bedrooms: listing.bedrooms,
-        bathrooms: listing.bathrooms,
-        rating: listing.rating,
-        reviews: listing.reviews,
-        createdByAgent: Boolean((listing as any).createdByAgent),
-        workflowStatus: String((listing as any).workflowStatus || "in_progress"),
-      }));
-
-    const dedupe = new Map<string, PartnerListing>();
-    [...baseListings, ...remoteListings].forEach((listing) => {
-      if (!listing?.id) return;
-      if (!dedupe.has(listing.id)) {
-        dedupe.set(listing.id, listing);
-      }
-    });
-    return Array.from(dedupe.values());
-  }, [remoteListings]);
-
-  const partnersWithListings = useMemo(() => {
-    const base = mergedPartners.map((partner) => {
-      const account = data.find((row) => row.id === partner.id || row.email === partner.primaryContactEmail);
-      const owner = mergedOwners.find((o) => o.id === partner.ownerId);
-      const listings = partnerListings.filter((listing) => listing.partnerId === partner.id);
-      const assignments = listingAssignments.filter((assignment) => assignment.partnerId === partner.id);
-      const locations = Array.from(new Set(listings.map((listing) => listing.location)));
-      return {
-        partner,
-        owner,
-        account,
-        listings,
-        assignments,
-        locations,
-        listingTypes: Array.from(new Set(listings.map((listing) => listing.type as ListingType))),
-      };
-    });
-    const unassigned = partnerListings.filter((listing) => !listing.partnerId);
-    if (unassigned.length) {
-      base.push({
-        partner: {
-          id: "zeniva-catalog",
-          displayName: "Zeniva Catalog",
-          legalName: "Zeniva Travel",
-          primaryContactEmail: "inventory@zenivatravel.com",
-          phone: "—",
-          ownerId: "zeniva-catalog-owner",
-        },
-        owner: undefined,
-        account: undefined,
-        listings: unassigned,
-        assignments: [],
-        locations: Array.from(new Set(unassigned.map((listing) => listing.location))),
-        listingTypes: Array.from(new Set(unassigned.map((listing) => listing.type as ListingType))),
-      });
-    }
-    return base;
-  }, [data, partnerListings, mergedOwners, mergedPartners, listingAssignments]);
-
-  const partnerNameMap = useMemo(() => {
-    const map = new Map<string, string>();
-    mergedPartners.forEach((partner) => {
-      if (partner.id) map.set(partner.id, partner.displayName);
-    });
-    return map;
-  }, [mergedPartners]);
-
-  const bookingFeed = useMemo<PartnerBooking[]>(() => {
-    const statuses: BookingStatus[] = ["requested", "confirmed", "paid", "on_hold", "cancelled"];
-    const base = new Date();
-    const formatDate = (offsetDays: number) => {
-      const date = new Date(base);
-      date.setDate(date.getDate() + offsetDays);
-      return date.toISOString().slice(0, 10);
-    };
-    return partnerListings.slice(0, 12).map((listing, idx) => {
-      const startOffset = 7 + idx * 3;
-      const endOffset = startOffset + 4 + (idx % 3);
-      const value = 2800 + idx * 650 + (listing.type === "yacht" ? 5400 : 0);
-      return {
-        id: `bk-${listing.id}-${idx}`,
-        partnerName: partnerNameMap.get(listing.partnerId || "") || "Partner",
-        listingTitle: listing.title,
-        type: listing.type,
-        status: statuses[idx % statuses.length],
-        checkIn: formatDate(startOffset),
-        checkOut: formatDate(endOffset),
-        value,
-        currency: listing.currency || "USD",
-        travelers: 2 + (idx % 4),
-        source: idx % 2 === 0 ? "Direct" : "Zeniva",
-        updatedAt: formatDate(idx % 10),
-      };
-    });
-  }, [partnerListings, partnerNameMap]);
-
-  const filteredBookings = useMemo(() => {
-    const q = bookingQuery.trim().toLowerCase();
-    return bookingFeed
-      .filter((booking) => (bookingStatus === "all" ? true : booking.status === bookingStatus))
-      .filter((booking) => (bookingType === "all" ? true : booking.type === bookingType))
-      .filter((booking) => {
-        if (!q) return true;
-        const haystack = `${booking.partnerName} ${booking.listingTitle}`.toLowerCase();
-        return haystack.includes(q);
-      });
-  }, [bookingFeed, bookingQuery, bookingStatus, bookingType]);
-
-  const metrics = useMemo(() => {
-    const totalPartners = mergedPartners.length;
-    const totalListings = partnerListings.length;
-    const liveListings = partnerListings.filter((listing) => listing.status === "published").length;
-    const activeBookings = bookingFeed.filter((booking) => booking.status === "confirmed" || booking.status === "paid").length;
-    const requestBookings = bookingFeed.filter((booking) => booking.status === "requested").length;
-    const totalValue = bookingFeed.reduce((sum, booking) => sum + booking.value, 0);
-    return {
-      totalPartners,
-      totalListings,
-      liveListings,
-      activeBookings,
-      requestBookings,
-      totalValue,
-    };
-  }, [bookingFeed, mergedPartners.length, partnerListings]);
-
-  const filteredPartners = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    return partnersWithListings
-      .filter((entry) => (typeFilter === "all" ? true : entry.listings.some((listing) => listing.type === typeFilter)))
-      .filter((entry) => {
-        if (!normalizedQuery) return true;
-        const haystack = [
-          entry.partner.displayName,
-          entry.partner.legalName,
-          entry.partner.primaryContactEmail,
-          entry.owner?.name,
-          ...entry.locations,
-          ...entry.listings.map((listing) => listing.title),
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-        return haystack.includes(normalizedQuery);
-      })
-      .sort((a, b) => a.partner.displayName.localeCompare(b.partner.displayName));
-  }, [partnersWithListings, query, typeFilter]);
-
-  const selectedPartner = useMemo(() => {
-    if (!filteredPartners.length) return null;
-    const byId = filteredPartners.find((entry) => entry.partner.id === selectedPartnerId);
-    return byId || filteredPartners[0];
-  }, [filteredPartners, selectedPartnerId]);
-
-  const selectedListing = useMemo(() => {
-    if (!selectedPartner || !selectedListingId) return null;
-    return selectedPartner.listings.find((listing) => listing.id === selectedListingId) || null;
-  }, [selectedPartner, selectedListingId]);
-
-  useEffect(() => {
-    if (!selectedPartner?.listings?.length) {
-      setSelectedListingId(null);
-      return;
-    }
-    setSelectedListingId((prev) => prev || selectedPartner.listings[0].id);
-  }, [selectedPartner]);
-
-  const bookingStorageKey = selectedListing ? `agent:partner:dates:${selectedListing.id}` : "";
-
-  useEffect(() => {
-    if (!selectedListingId) return;
-    setBookingDetails({
-      checkIn: "",
-      checkOut: "",
-      travelers: 2,
-      rooms: 1,
-      roomType: "Standard",
-    });
-  }, [selectedListingId]);
-
-  useEffect(() => {
-    if (!bookingStorageKey || typeof window === "undefined") return;
-    const stored = window.localStorage.getItem(bookingStorageKey);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as { start?: string; end?: string };
-        setBookingDetails((prev) => ({
-          ...prev,
-          checkIn: parsed.start || "",
-          checkOut: parsed.end || "",
-        }));
-      } catch {
-        // ignore
-      }
-    }
-
-    const handler = (event: Event) => {
-      const detail = (event as CustomEvent<{ key: string; start: string | null; end: string | null }>).detail;
-      if (!detail || detail.key !== bookingStorageKey) return;
-      setBookingDetails((prev) => ({
-        ...prev,
-        checkIn: detail.start || "",
-        checkOut: detail.end || "",
-      }));
-    };
-
-    window.addEventListener("residence:dates", handler as EventListener);
-    return () => window.removeEventListener("residence:dates", handler as EventListener);
-  }, [bookingStorageKey]);
-
-  const handleDownloadPresentation = (listing: PartnerListing) => {
-    const title = listing.title || "Partner Listing";
-    const heroImage = listing.images?.[0] || listing.thumbnail || "";
-    const amenities = listing.amenities?.length ? listing.amenities : [];
-    const priceLabel = listing.price
-      ? `${listing.currency ? `${listing.currency} ` : ""}${listing.price}`
-      : "Price on request";
-
-    const html = `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>${title} – Zeniva Travel</title>
-    <style>
-      body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #0f172a; background: #f8fafc; }
-      .wrap { max-width: 720px; margin: 0 auto; padding: 32px 24px 48px; }
-      .card { background: #ffffff; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08); overflow: hidden; }
-      .hero { width: 100%; height: 280px; object-fit: cover; background: #e2e8f0; }
-      .content { padding: 24px; }
-      .badge { display: inline-block; padding: 6px 12px; border-radius: 999px; background: #0f172a; color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
-      h1 { margin: 16px 0 6px; font-size: 26px; }
-      .muted { color: #475569; font-size: 14px; margin: 0 0 12px; }
-      .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
-      .panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; font-size: 14px; }
-      .panel strong { display: block; margin-bottom: 4px; font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; }
-      .amenities { display: flex; flex-wrap: wrap; gap: 8px; }
-      .amenities span { border: 1px solid #e2e8f0; border-radius: 999px; padding: 6px 10px; font-size: 12px; }
-      .cta { margin-top: 20px; font-size: 14px; color: #0f172a; }
-      .footer { margin-top: 20px; font-size: 12px; color: #94a3b8; }
-    </style>
-  </head>
-  <body>
-    <div class="wrap">
-      <div class="card">
-        ${heroImage ? `<img class="hero" src="${heroImage}" alt="${title}" />` : `<div class="hero"></div>`}
-        <div class="content">
-          <span class="badge">Zeniva Partner</span>
-          <h1>${title}</h1>
-          <p class="muted">${listing.location || "Destination available on request"}</p>
-          <div class="grid">
-            <div class="panel"><strong>Category</strong>${TYPE_LABELS[listing.type]}</div>
-            <div class="panel"><strong>Price</strong>${priceLabel}</div>
-            <div class="panel"><strong>Capacity</strong>${listing.capacity ? `${listing.capacity} guests` : "Custom"}</div>
-            <div class="panel"><strong>Bedrooms</strong>${listing.bedrooms ?? "Custom"}</div>
-            <div class="panel"><strong>Bathrooms</strong>${listing.bathrooms ?? "Custom"}</div>
-            <div class="panel"><strong>Rating</strong>${listing.rating ? `${listing.rating} (${listing.reviews || 0} reviews)` : "Preferred partner"}</div>
-          </div>
-          <p class="muted">${listing.description || "A curated Zeniva Travel partner listing prepared for your client."}</p>
-          ${amenities.length ? `<div class="amenities">${amenities.map((a) => `<span>${a}</span>`).join("")}</div>` : ""}
-          <p class="cta">Reply to this email to reserve or request a full itinerary. We will confirm availability and finalize pricing.</p>
-          <div class="footer">Zeniva Travel · Private partner network</div>
-        </div>
-      </div>
-    </div>
-  </body>
-</html>`;
-
-    const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `${title.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-presentation.html`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-  };
-
-
-  if (!canView) {
-    return (
-      <main className="min-h-screen bg-slate-50">
-        <div className="mx-auto max-w-3xl px-5 py-16 space-y-3">
-          <h1 className="text-3xl font-black" style={{ color: TITLE_TEXT }}>Restricted</h1>
-          <p className="text-sm" style={{ color: MUTED_TEXT }}>Partner accounts are visible only to the primary HQ account.</p>
-          <Link href="/agent" className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold" style={{ color: TITLE_TEXT }}>
-            Back to dashboard
-          </Link>
-        </div>
-      </main>
-    );
-  }
+  const grouped: Record<PartnerCategory, Partner[]> = CATEGORIES.reduce((acc, cat) => {
+    acc[cat] = filtered.filter((p) => p.category === cat);
+    return acc;
+  }, {} as Record<PartnerCategory, Partner[]>);
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <div className="mx-auto max-w-6xl px-5 py-8 space-y-6">
-        <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Partner Accounts</p>
-            <h1 className="text-3xl md:text-4xl font-black" style={{ color: TITLE_TEXT }}>Partner directory</h1>
-            <p className="text-sm" style={{ color: MUTED_TEXT }}>Detailed list of partner accounts created in the system.</p>
-          </div>
-          <Link href="/agent" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm">
-            Back to Agent
-          </Link>
-        </header>
-
-        <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs font-semibold text-slate-500">Partners</p>
-            <p className="mt-2 text-2xl font-black" style={{ color: TITLE_TEXT }}>{metrics.totalPartners}</p>
-            <p className="text-xs text-slate-500">Total onboarded suppliers</p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs font-semibold text-slate-500">Listings</p>
-            <p className="mt-2 text-2xl font-black" style={{ color: TITLE_TEXT }}>{metrics.liveListings} / {metrics.totalListings}</p>
-            <p className="text-xs text-slate-500">Live listings vs total</p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs font-semibold text-slate-500">Active bookings</p>
-            <p className="mt-2 text-2xl font-black" style={{ color: TITLE_TEXT }}>{metrics.activeBookings}</p>
-            <p className="text-xs text-slate-500">Confirmed or paid</p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs font-semibold text-slate-500">Booking requests</p>
-            <p className="mt-2 text-2xl font-black" style={{ color: TITLE_TEXT }}>{metrics.requestBookings}</p>
-            <p className="text-xs text-slate-500">Waiting on partner reply</p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs font-semibold text-slate-500">Pipeline value</p>
-            <p className="mt-2 text-2xl font-black" style={{ color: TITLE_TEXT }}>${metrics.totalValue.toLocaleString()}</p>
-            <p className="text-xs text-slate-500">Next 30 days estimate</p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs font-semibold text-slate-500">Coverage</p>
-            <p className="mt-2 text-2xl font-black" style={{ color: TITLE_TEXT }}>{new Set(partnerListings.map((listing) => listing.type)).size}</p>
-            <p className="text-xs text-slate-500">Active inventory categories</p>
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 text-sm space-y-4">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setBookingStatus("all")}
-                className={`rounded-full px-3 py-1 text-xs font-semibold ${bookingStatus === "all" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700"}`}
-              >
-                All bookings
-              </button>
-              {(["requested", "confirmed", "paid", "on_hold", "cancelled"] as BookingStatus[]).map((status) => (
-                <button
-                  key={status}
-                  type="button"
-                  onClick={() => setBookingStatus(status)}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${bookingStatus === status ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700"}`}
-                >
-                  {status.replace("_", " ")}
-                </button>
-              ))}
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <select
-                value={bookingType}
-                onChange={(e) => setBookingType(e.target.value as "all" | ListingType)}
-                className="rounded-full border border-slate-200 px-3 py-1 text-xs"
-              >
-                <option value="all">All types</option>
-                <option value="yacht">Yachts</option>
-                <option value="home">Homes</option>
-                <option value="hotel">Hotels</option>
-              </select>
-              <input
-                value={bookingQuery}
-                onChange={(e) => setBookingQuery(e.target.value)}
-                placeholder="Search bookings"
-                className="w-full md:w-56 rounded-full border border-slate-200 px-4 py-2 text-xs"
-              />
-            </div>
-          </div>
-          <div className="flex items-center justify-between text-xs text-slate-500">
-            <span>{filteredBookings.length} bookings</span>
-            <span>Updated {filteredBookings[0]?.updatedAt || "today"}</span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-xs">
-              <thead>
-                <tr className="text-left text-slate-500">
-                  <th className="pb-2 pr-3">Partner</th>
-                  <th className="pb-2 pr-3">Listing</th>
-                  <th className="pb-2 pr-3">Type</th>
-                  <th className="pb-2 pr-3">Status</th>
-                  <th className="pb-2 pr-3">Dates</th>
-                  <th className="pb-2 pr-3">Travelers</th>
-                  <th className="pb-2 pr-3">Value</th>
-                  <th className="pb-2 pr-3">Source</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredBookings.map((booking) => (
-                  <tr key={booking.id} className="border-t border-slate-100">
-                    <td className="py-2 pr-3 font-semibold text-slate-800">{booking.partnerName}</td>
-                    <td className="py-2 pr-3 text-slate-700">{booking.listingTitle}</td>
-                    <td className="py-2 pr-3">{TYPE_LABELS[booking.type]}</td>
-                    <td className="py-2 pr-3">
-                      <span className={`rounded-full px-2 py-1 text-[11px] font-semibold ${booking.status === "paid" ? "bg-emerald-100 text-emerald-700" : booking.status === "confirmed" ? "bg-blue-100 text-blue-700" : booking.status === "requested" ? "bg-amber-100 text-amber-700" : booking.status === "on_hold" ? "bg-slate-100 text-slate-700" : "bg-rose-100 text-rose-700"}`}>
-                        {booking.status.replace("_", " ")}
-                      </span>
-                    </td>
-                    <td className="py-2 pr-3 text-slate-600">{booking.checkIn} → {booking.checkOut}</td>
-                    <td className="py-2 pr-3 text-slate-600">{booking.travelers}</td>
-                    <td className="py-2 pr-3 text-slate-800">{booking.currency} {booking.value.toLocaleString()}</td>
-                    <td className="py-2 pr-3 text-slate-600">{booking.source}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 text-sm space-y-4">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setTypeFilter("all")}
-                className={`rounded-full px-3 py-1 text-xs font-semibold ${typeFilter === "all" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700"}`}
-              >
-                All partners
-              </button>
-              {(["yacht", "home", "hotel"] as ListingType[]).map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setTypeFilter(type)}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${typeFilter === type ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700"}`}
-                >
-                  {TYPE_LABELS[type]}
-                </button>
-              ))}
-            </div>
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search partner, location, or listing"
-              className="w-full md:w-64 rounded-full border border-slate-200 px-4 py-2 text-sm"
-            />
-          </div>
-          <div className="flex items-center justify-between text-xs text-slate-500">
-            <span>{filteredPartners.length} partners</span>
-            {loading && <span>Syncing partner accounts…</span>}
-          </div>
-          {!loading && filteredPartners.length === 0 && (
-            <p className="text-slate-500">No partners match the current filters.</p>
-          )}
-        </section>
-
-        <section className="grid gap-4 lg:grid-cols-[1.1fr_1.4fr]">
-          <div className="space-y-3">
-            {filteredPartners.map((entry) => (
-              <button
-                key={entry.partner.id}
-                type="button"
-                onClick={() => setSelectedPartnerId(entry.partner.id)}
-                className={`w-full rounded-2xl border p-4 text-left shadow-sm transition ${selectedPartner?.partner.id === entry.partner.id ? "border-slate-900 bg-white" : "border-slate-200 bg-white hover:border-slate-300"}`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="text-lg font-bold" style={{ color: TITLE_TEXT }}>{entry.partner.displayName}</h3>
-                    <p className="text-xs" style={{ color: MUTED_TEXT }}>{entry.partner.primaryContactEmail}</p>
-                  </div>
-                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${entry.account?.status === "suspended" ? "bg-rose-100 text-rose-700" : entry.account?.status === "disabled" ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"}`}>
-                    {entry.account?.status || "active"}
-                  </span>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
-                  {entry.listingTypes.map((type) => (
-                    <span key={type} className="rounded-full border border-slate-200 px-3 py-1">
-                      {TYPE_LABELS[type]}
-                    </span>
-                  ))}
-                  {!entry.listingTypes.length && (
-                    <span className="rounded-full border border-slate-200 px-3 py-1">No listings</span>
-                  )}
-                </div>
-                <p className="mt-3 text-xs text-slate-500">Listings: {entry.listings.length}</p>
-              </button>
-            ))}
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            {!selectedPartner ? (
-              <p className="text-sm text-slate-500">Select a partner to see details.</p>
-            ) : (
-              <div className="space-y-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Partner profile</p>
-                  <h2 className="text-2xl font-black" style={{ color: TITLE_TEXT }}>{selectedPartner.partner.displayName}</h2>
-                  <p className="text-sm" style={{ color: MUTED_TEXT }}>{selectedPartner.partner.legalName}</p>
-                </div>
-
-                <div className="grid gap-3 md:grid-cols-2 text-sm">
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                    <p className="text-xs font-semibold text-slate-500">Primary contact</p>
-                    <p className="font-semibold" style={{ color: TITLE_TEXT }}>{selectedPartner.partner.primaryContactEmail}</p>
-                    <p className="text-xs text-slate-500">{selectedPartner.partner.phone}</p>
-                  </div>
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                    <p className="text-xs font-semibold text-slate-500">Owner</p>
-                    <p className="font-semibold" style={{ color: TITLE_TEXT }}>{selectedPartner.owner?.name || "—"}</p>
-                    <p className="text-xs text-slate-500">{selectedPartner.owner?.email || ""}</p>
-                  </div>
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                    <p className="text-xs font-semibold text-slate-500">Locations</p>
-                    <p className="font-semibold" style={{ color: TITLE_TEXT }}>{selectedPartner.locations.join(" · ") || "—"}</p>
-                  </div>
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                    <p className="text-xs font-semibold text-slate-500">Service level</p>
-                    <p className="font-semibold" style={{ color: TITLE_TEXT }}>{selectedPartner.assignments[0]?.serviceLevel || "standard"}</p>
-                  </div>
-                </div>
-
-                {selectedListing && (
-                  <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Listing</p>
-                        <h3 className="text-lg font-bold" style={{ color: TITLE_TEXT }}>{selectedListing.title}</h3>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleDownloadPresentation(selectedListing)}
-                        className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white"
-                      >
-                        Télécharger
-                      </button>
-                    </div>
-
-                    {selectedListing.images && selectedListing.images.length > 0 ? (
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        {selectedListing.images.slice(0, 4).map((img, idx) => (
-                          <img key={`${img}-${idx}`} src={img} alt={selectedListing.title} className="h-40 w-full rounded-xl object-cover" />
-                        ))}
-                      </div>
-                    ) : selectedListing.thumbnail ? (
-                      <img src={selectedListing.thumbnail} alt={selectedListing.title} className="h-52 w-full rounded-xl object-cover" />
-                    ) : null}
-
-                    <div className="grid gap-3 md:grid-cols-2 text-sm">
-                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                        <p className="text-xs font-semibold text-slate-500">Location</p>
-                        <p className="font-semibold" style={{ color: TITLE_TEXT }}>{selectedListing.location || "—"}</p>
-                        <p className="text-xs text-slate-500">
-                          {TYPE_LABELS[selectedListing.type]} · {selectedListing.status || "published"}
-                          {selectedListing.createdByAgent ? " · Created by agent" : ""}
-                          {selectedListing.workflowStatus === "completed" ? " · Terminée" : " · En cours"}
-                        </p>
-                      </div>
-                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                        <p className="text-xs font-semibold text-slate-500">Price</p>
-                        <p className="font-semibold" style={{ color: TITLE_TEXT }}>
-                          {selectedListing.price ? `${selectedListing.currency ? `${selectedListing.currency} ` : ""}${selectedListing.price}` : "Price on request"}
-                        </p>
-                        {selectedListing.rating ? (
-                          <p className="text-xs text-slate-500">Rating {selectedListing.rating} · {selectedListing.reviews || 0} reviews</p>
-                        ) : (
-                          <p className="text-xs text-slate-500">Preferred partner listing</p>
-                        )}
-                      </div>
-                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                        <p className="text-xs font-semibold text-slate-500">Capacity</p>
-                        <p className="font-semibold" style={{ color: TITLE_TEXT }}>
-                          {selectedListing.capacity ? `${selectedListing.capacity} guests` : "—"}
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          {selectedListing.bedrooms ? `${selectedListing.bedrooms} beds` : ""}{selectedListing.bathrooms ? ` · ${selectedListing.bathrooms} baths` : ""}
-                        </p>
-                      </div>
-                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                        <p className="text-xs font-semibold text-slate-500">Description</p>
-                        <p className="text-sm text-slate-700">{selectedListing.description || "No description available."}</p>
-                      </div>
-                    </div>
-
-                    {selectedListing.amenities && selectedListing.amenities.length > 0 && (
-                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                        <p className="text-xs font-semibold text-slate-500">Amenities</p>
-                        <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                          {selectedListing.amenities.map((amenity) => (
-                            <span key={amenity} className="rounded-full border border-slate-200 px-2 py-1">
-                              {amenity}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="rounded-xl border border-slate-100 bg-white p-4">
-                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Reservation details</p>
-                      <div className="mt-3 space-y-4">
-                        {bookingStorageKey && (
-                          <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                            <AirbnbAvailability storageKey={bookingStorageKey} />
-                          </div>
-                        )}
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          <label className="text-xs font-semibold text-slate-600">
-                            Travelers
-                            <input
-                              type="number"
-                              min={1}
-                              value={bookingDetails.travelers}
-                              onChange={(e) => setBookingDetails((prev) => ({ ...prev, travelers: Number(e.target.value || 1) }))}
-                              className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                            />
-                          </label>
-                          {selectedListing.type === "hotel" && (
-                            <label className="text-xs font-semibold text-slate-600">
-                              Rooms
-                              <input
-                                type="number"
-                                min={1}
-                                value={bookingDetails.rooms}
-                                onChange={(e) => setBookingDetails((prev) => ({ ...prev, rooms: Number(e.target.value || 1) }))}
-                                className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                              />
-                            </label>
-                          )}
-                          {selectedListing.type === "hotel" && (
-                            <label className="text-xs font-semibold text-slate-600 sm:col-span-2">
-                              Room type
-                              <select
-                                value={bookingDetails.roomType}
-                                onChange={(e) => setBookingDetails((prev) => ({ ...prev, roomType: e.target.value }))}
-                                className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                              >
-                                <option value="Standard">Standard</option>
-                                <option value="Deluxe">Deluxe</option>
-                                <option value="Suite">Suite</option>
-                                <option value="Family">Family</option>
-                              </select>
-                            </label>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-                )}
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-slate-800">Listings</p>
-                    <span className="text-xs text-slate-500">{selectedPartner.listings.length} total</span>
-                  </div>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {selectedPartner.listings.map((listing: PartnerListing) => (
-                      <button
-                        key={listing.id}
-                        type="button"
-                        onClick={() => setSelectedListingId(listing.id)}
-                        className="w-full rounded-xl border border-slate-200 bg-white p-3 text-left hover:border-slate-300"
-                      >
-                        <div className="flex items-center gap-3">
-                          {listing.thumbnail ? (
-                            <img
-                              src={listing.thumbnail}
-                              alt={listing.title}
-                              className="h-14 w-16 rounded-lg object-cover"
-                            />
-                          ) : (
-                            <div className="h-14 w-16 rounded-lg bg-slate-100" />
-                          )}
-                          <div>
-                            <p className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>{listing.title}</p>
-                            <p className="text-xs text-slate-500">{listing.location}</p>
-                            <p className="text-xs text-slate-500">
-                              {TYPE_LABELS[listing.type as ListingType]} · {listing.price ? `${listing.currency ? `${listing.currency} ` : ""}${listing.price}` : "Price on request"}
-                            </p>
-                            {listing.createdByAgent && (
-                              <p className="text-[11px] font-semibold text-emerald-700">Created by agent</p>
-                            )}
-                            <p className="text-[11px] font-semibold text-slate-600">
-                              {listing.workflowStatus === "completed" ? "Terminée" : "En cours"}
-                            </p>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-
-
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 text-xs text-slate-500">
-          Manage partner accounts and onboarding from this directory. Future actions (suspend, view listings) can be added here.
+    <div className="min-h-screen p-6" style={{ background: PREMIUM_BLUE }}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-black text-white">🤝 Partners</h1>
+          <p className="text-slate-400 text-sm mt-1">Your partner network and commission rates</p>
         </div>
       </div>
-    </main>
+
+      {/* Category filter */}
+      <div className="flex gap-2 flex-wrap mb-6">
+        {(["All", ...CATEGORIES] as (PartnerCategory | "All")[]).map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setActiveCategory(cat)}
+            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition ${
+              activeCategory === cat ? "bg-white text-slate-900" : "bg-white/10 text-white hover:bg-white/20"
+            }`}
+          >
+            {cat !== "All" ? `${CATEGORY_ICONS[cat as PartnerCategory]} ` : ""}{cat}
+          </button>
+        ))}
+      </div>
+
+      {/* Partners by category */}
+      {(activeCategory === "All" ? CATEGORIES : [activeCategory as PartnerCategory]).map((cat) => {
+        const catPartners = grouped[cat];
+        if (catPartners.length === 0) return null;
+        return (
+          <div key={cat} className="mb-8">
+            <h2 className="text-white font-bold text-lg mb-3">
+              {CATEGORY_ICONS[cat]} {cat}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {catPartners.map((p) => (
+                <div key={p.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                  <div className="flex items-start gap-4">
+                    {/* Logo */}
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-white text-sm shrink-0"
+                      style={{ background: p.logo_color }}
+                    >
+                      {p.logo_letter}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-slate-900">{p.name}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          p.status === "active" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                        }`}>
+                          {p.status === "active" ? "Active" : "Pending"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1 line-clamp-2">{p.description}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
+                    <div>
+                      <p className="text-xs text-slate-400 font-semibold">Commission Rate</p>
+                      <p className="font-black text-slate-900">{p.commission_rate}</p>
+                    </div>
+                    <button
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition hover:opacity-90"
+                      style={{ background: BRAND_BLUE }}
+                    >
+                      Contact
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Become a Partner CTA */}
+      <div
+        className="rounded-2xl p-8 mt-4 flex flex-col md:flex-row items-center justify-between gap-6"
+        style={{ background: `linear-gradient(135deg, ${ACCENT_GOLD}22, ${ACCENT_GOLD}44)`, border: `1.5px solid ${ACCENT_GOLD}66` }}
+      >
+        <div>
+          <h3 className="text-2xl font-black text-white">🌟 Become a Partner</h3>
+          <p className="text-white/70 mt-1 max-w-md">
+            Are you a hotel, airline, or experience provider? Join the Zeniva Travel network and reach premium clients worldwide.
+          </p>
+        </div>
+        <button
+          className="shrink-0 px-6 py-3 rounded-xl font-bold text-slate-900 text-sm shadow-lg transition hover:opacity-90 whitespace-nowrap"
+          style={{ background: ACCENT_GOLD }}
+        >
+          Apply to Partner →
+        </button>
+      </div>
+    </div>
   );
 }
