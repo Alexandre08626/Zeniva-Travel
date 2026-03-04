@@ -107,7 +107,7 @@ export default function ClientsPage() {
       });
       const data = await r.json();
       const allLeads: Client[] = data?.leads || [];
-      setClients(allLeads.filter((l) => l.status === "client"));
+      setClients(allLeads); // Show ALL leads, not just status=client
     } catch {}
     setLoading(false);
   };
@@ -229,7 +229,16 @@ export default function ClientsPage() {
     setAddSaving(false);
   };
 
-  const statusColor: Record<string, string> = {
+  const STATUS_BADGE: Record<string, string> = {
+  client: "bg-emerald-100 text-emerald-700",
+  new: "bg-blue-100 text-blue-700",
+  contacted: "bg-purple-100 text-purple-700",
+  followed_up: "bg-amber-100 text-amber-700",
+  junk: "bg-slate-100 text-slate-500",
+  prospect: "bg-indigo-100 text-indigo-700",
+};
+
+const statusColor: Record<string, string> = {
     prospect: "bg-slate-100 text-slate-700",
     planning: "bg-blue-100 text-blue-700",
     in_progress: "bg-amber-100 text-amber-700",
@@ -306,7 +315,12 @@ export default function ClientsPage() {
                     </td>
                     <td className="px-4 py-3 text-xs" style={{ color: MUTED_TEXT }}>{c.email}</td>
                     <td className="px-4 py-3 text-xs" style={{ color: MUTED_TEXT }}>{c.phone || "—"}</td>
-                    <td className="px-4 py-3 text-xs" style={{ color: MUTED_TEXT }}>{c.destination || "—"}</td>
+                    <td className="px-4 py-3 text-xs" style={{ color: MUTED_TEXT }}>
+                      <div className="flex items-center gap-2">
+                        <span>{c.destination || "—"}</span>
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${STATUS_BADGE[c.status] || "bg-slate-100 text-slate-500"}`}>{c.status}</span>
+                      </div>
+                    </td>
                     <td className="px-4 py-3 text-xs font-semibold">{c.deal_value ? `$${Number(c.deal_value).toLocaleString()}` : "—"}</td>
                     <td className="px-4 py-3 text-xs" style={{ color: MUTED_TEXT }}>{c.created_at ? new Date(c.created_at).toLocaleDateString("fr-CA") : "—"}</td>
                     <td className="px-4 py-3">
