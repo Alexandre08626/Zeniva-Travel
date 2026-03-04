@@ -82,24 +82,6 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   const [activity, setActivity] = useState<any[]>([]);
   const [selectedAgent, setSelectedAgent] = useState<AIAgent | null>(null);
   const [navOpen, setNavOpen] = useState(false);
-  const [sidebarWidth, setSidebarWidth] = useState(256); // default open = 256px
-  const isResizing = { current: false };
-
-  const startResize = (e: React.MouseEvent) => {
-    isResizing.current = true;
-    const startX = e.clientX;
-    const startWidth = sidebarWidth;
-    const onMove = (ev: MouseEvent) => {
-      if (!isResizing.current) return;
-      const newW = Math.max(64, Math.min(480, startWidth + ev.clientX - startX));
-      setSidebarWidth(newW);
-      if (newW > 90 && !navOpen) setNavOpen(true);
-      if (newW <= 90) setNavOpen(false);
-    };
-    const onUp = () => { isResizing.current = false; window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-  };
 
   // Trip search
   const [searchOpen, setSearchOpen] = useState(false);
@@ -166,16 +148,22 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   return (
     <div className="min-h-screen flex" style={{ background: "#0B1B4D" }}>
       {/* SIDEBAR */}
-      <aside style={{ width: navOpen ? sidebarWidth : 64, transition: isResizing.current ? "none" : "width 0.2s" }}
-        className="fixed inset-y-0 left-0 z-40 flex flex-col bg-slate-900 border-r border-slate-700/50 select-none">
-        {/* Drag handle */}
-        {navOpen && <div onMouseDown={startResize} className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500/50 transition-colors z-50" title="Drag to resize" />}
-        {/* Logo */}
-        <div className="flex items-center gap-3 px-3 py-4 border-b border-slate-700/50">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 overflow-hidden" style={{ background: "linear-gradient(135deg,#0F6CF5,#0B1B4D)" }}>
-            <LinaAvatar size="md" />
-          </div>
-          {navOpen && <div><p className="text-white font-black text-sm">Zeniva</p><p className="text-slate-400 text-xs">Agent Portal</p></div>}
+      <aside className={`fixed inset-y-0 left-0 z-40 flex flex-col transition-all duration-300 bg-slate-900 border-r border-slate-700/50 ${navOpen ? "w-64" : "w-16"}`}>
+        {/* Logo + Toggle button at top */}
+        <div className="flex items-center gap-2 px-2 py-3 border-b border-slate-700/50">
+          <button
+            onClick={() => setNavOpen(!navOpen)}
+            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-blue-600 hover:bg-blue-500 transition-colors text-white text-xl font-bold"
+            title={navOpen ? "Collapse menu" : "Expand menu"}
+          >
+            {navOpen ? "✕" : "☰"}
+          </button>
+          {navOpen && (
+            <div>
+              <p className="text-white font-black text-sm">Zeniva</p>
+              <p className="text-slate-400 text-xs">Agent Portal</p>
+            </div>
+          )}
         </div>
 
         {/* Nav */}
@@ -232,10 +220,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
 
         {/* Toggle + user */}
         <div className="border-t border-slate-700/50 p-2 space-y-2">
-          <button onClick={() => setNavOpen(!navOpen)} className="w-full flex items-center gap-2 rounded-xl px-2 py-2 text-slate-400 hover:bg-slate-800 hover:text-white transition-all text-sm">
-            <span className="w-6 text-center text-base">{navOpen ? "◀" : "▶"}</span>
-            {navOpen && <span>Collapse</span>}
-          </button>
+
           {navOpen && user && (
             <div className="rounded-xl bg-slate-800 p-2">
               <p className="text-white text-xs font-semibold truncate">{user.name || user.email}</p>
@@ -247,7 +232,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
       </aside>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 min-h-screen" style={{ background: "#F3F6FB", marginLeft: navOpen ? sidebarWidth : 64, transition: isResizing.current ? "none" : "margin 0.2s" }}>
+      <main className={`flex-1 transition-all duration-300 min-h-screen ${navOpen ? "ml-64" : "ml-16"}`} style={{ background: "#F3F6FB" }}>
         <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
 
           {/* TOP HEADER */}
