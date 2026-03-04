@@ -101,37 +101,25 @@ export default function ClientsPage() {
   const fetchClients = async () => {
     setLoading(true);
     try {
-      const SUPABASE_URL = "https://rvlcgtlcjylozbihtpkr.supabase.co";
-      const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2bGNndGxjanlsb3piaWh0cGtyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0NTA4NTMsImV4cCI6MjA4NTAyNjg1M30.ZWQi4bvY1Z3LVb04jxDGt9QLSTEzulGXKTKLrgrSt-Y";
-      // Fetch ALL accounts except internal Zeniva staff
-      const [accountsRes, leadsRes] = await Promise.all([
-        fetch(`${SUPABASE_URL}/rest/v1/accounts?email=not.in.(info@zeniva.ca,yacht@zeniva.ca,admin@zeniva.ca)&order=created_at.desc&select=*`, {
-          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
-        }),
-        fetch(`${SUPABASE_URL}/rest/v1/leads?select=email,destination,deal_value,phone,language,status,source`, {
-          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
-        })
-      ]);
-      const accounts = await accountsRes.json();
-      const leads = await leadsRes.json();
-      const leadsMap: Record<string, any> = {};
-      (leads || []).forEach((l: any) => { leadsMap[l.email] = l; });
-      const merged: Client[] = (accounts || []).map((a: any) => {
-        const lead = leadsMap[a.email] || {};
+      const r = await fetch(`/api/agents-proxy?path=admin/all-clients`, {
+        headers: { Authorization: AUTH },
+      });
+      const data = await r.json();
+      const merged: Client[] = (data?.clients || []).map((a: any) => {
         const nameParts = (a.name || "").split(" ");
         return {
           id: a.id,
           email: a.email,
           first_name: nameParts[0] || "",
           last_name: nameParts.slice(1).join(" ") || "",
-          phone: lead.phone || "",
-          destination: lead.destination || "",
-          status: lead.status || "new",
-          language: lead.language || "",
-          deal_value: lead.deal_value || 0,
-          source: lead.source || "signup",
+          phone: a.phone || "",
+          destination: a.destination || "",
+          status: a.lead_status || "new",
+          language: a.language || "",
+          deal_value: a.deal_value || 0,
+          source: a.source || "signup",
           created_at: a.created_at,
-          updated_at: a.updated_at || a.created_at,
+          updated_at: a.created_at,
         };
       });
       setClients(merged);
