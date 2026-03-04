@@ -17,18 +17,19 @@ type AgentStatus = "live" | "active" | "idle" | "error";
 type AIAgent = {
   id: string; name: string; emoji: string; avatar?: string;
   status: AgentStatus; type: string; schedule: string; color: string;
+  description: string; features: string[];
   desc: string; lastAction?: string;
 };
 
 const AI_AGENTS: AIAgent[] = [
-  { id: "lina", name: "Lina", emoji: "🤖", avatar: "/agents/lina.png", status: "live", type: "AI Travel Concierge", schedule: "24/7 Real-time", color: "#6366f1", desc: "Handles chats, emails and calls. Knows every client.", lastAction: "Chat replied 2min ago" },
-  { id: "marco", name: "Marco", emoji: "🔥", avatar: "/agents/marco.png", status: "active", type: "Lead Hunter", schedule: "Every 2h", color: "#ef4444", desc: "Identifies and qualifies new leads automatically.", lastAction: "3 leads qualified" },
-  { id: "sofia", name: "Sofia", emoji: "📬", avatar: "/agents/sofia.png", status: "active", type: "Email Converter", schedule: "Every 6h", color: "#ec4899", desc: "Sends personalized follow-up and conversion emails.", lastAction: "39 emails sent" },
-  { id: "noah", name: "Noah", emoji: "📧", avatar: "/agents/noah.png", status: "active", type: "Follow-up Agent", schedule: "Every 6h", color: "#f59e0b", desc: "Automatic re-engagement of inactive leads + dossier follow-up.", lastAction: "Follow-up sent" },
-  { id: "luna", name: "Luna", emoji: "📞", avatar: "/agents/luna.png", status: "live", type: "SMS & Call Agent", schedule: "24/7 Real-time", color: "#06b6d4", desc: "Handles inbound & outbound SMS. Triggers Lina calls.", lastAction: "4 SMS Sent" },
-  { id: "atlas", name: "Atlas", emoji: "🛡️", avatar: "/agents/atlas.png", status: "active", type: "Cyber Guardian", schedule: "Every hour", color: "#64748b", desc: "Monitors VPS security and intrusion attempts.", lastAction: "Scan OK 14:00" },
-  { id: "mia", name: "Mia", emoji: "📱", avatar: "/agents/mia.png", status: "idle", type: "Social Media", schedule: "Daily", color: "#a855f7", desc: "Posts on TikTok and Instagram. Awaiting API access.", lastAction: "Awaiting TikTok" },
-  { id: "leo", name: "Leo", emoji: "📊", avatar: "/agents/leo.png", status: "active", type: "Analytics", schedule: "Real-time", color: "#8b5cf6", desc: "Analyzes conversions, pipeline, and performance metrics.", lastAction: "Report updated" },
+  { id: "lina", name: "Lina", emoji: "🤖", avatar: "/agents/lina.png", status: "live", type: "AI Travel Concierge · GPT-4o", schedule: "24/7 Real-time", color: "#6366f1", description: "Polyglot AI travel concierge. Qualifies leads, quotes packages, saves to Supabase. Speaks every language your clients do.", features: ["GPT-4o", "Multi-language", "Lead extraction", "Supabase sync", "24/7"], lastAction: "Chat replied 2min ago" },
+  { id: "marco", name: "Marco", emoji: "🔥", avatar: "/agents/marco.png", status: "active", type: "Lead Hunter · 5-Engine Scraper", schedule: "Every 2h", color: "#ef4444", description: "5 scraping engines running 24/7: Reddit travel subs, competitor sites, social signals, SEO intent keywords, and deep web scraping.", features: ["Reddit", "Competitors", "Social", "SEO", "Deep web"], lastAction: "3 leads qualified" },
+  { id: "sofia", name: "Sofia", emoji: "📬", avatar: "/agents/sofia.png", status: "active", type: "Email Marketing · AI Writer", schedule: "Every 6h", color: "#ec4899", description: "Sends personalized AI-written invite emails to every new lead. Detects their language and writes in EN, FR, ES, or AR. Not templates — every email is unique.", features: ["AI emails", "EN/FR/ES/AR", "Smart timing", "Conversion tracking", "Unique copy"], lastAction: "39 emails sent" },
+  { id: "noah", name: "Noah", emoji: "📧", avatar: "/agents/noah.png", status: "active", type: "Follow-up Specialist · AI", schedule: "Every 6h", color: "#f59e0b", description: "Smart follow-up system. New leads get a follow-up within 6 hours. Quoted leads get re-engaged after 72 hours. All personalized, all multi-language.", features: ["AI copy", "Multi-language", "Smart cadence", "Re-engagement", "Dossier sync"], lastAction: "Follow-up sent" },
+  { id: "luna", name: "Luna", emoji: "📞", avatar: "/agents/luna.png", status: "live", type: "Voice & SMS · Real-time", schedule: "24/7 Real-time", color: "#06b6d4", description: "Real-time phone and SMS powered by AI. Lina answers calls and texts, sends follow-up SMS, delivers quotes by text, and handles voice conversations naturally.", features: ["Inbound SMS", "Outbound SMS", "Voice calls", "AI responses", "Twilio"], lastAction: "4 SMS Sent" },
+  { id: "atlas", name: "Atlas", emoji: "🛡️", avatar: "/agents/atlas.png", status: "active", type: "Security Guardian · 24/7", schedule: "Every hour", color: "#64748b", description: "24/7 security watchdog. Monitors all services, SSL certificates, disk usage, RAM, SSH logins, and Docker containers. Auto-restarts any failures.", features: ["Services", "SSL certs", "SSH detect", "Disk/RAM", "Auto-restart"], lastAction: "Scan OK 14:00" },
+  { id: "mia", name: "Mia", emoji: "📱", avatar: "/agents/mia.png", status: "idle", type: "Social Media Manager · AI", schedule: "Daily", color: "#a855f7", description: "Generates 5 travel posts per day with AI captions and stunning visuals. Auto-posts to Instagram, TikTok, and Facebook — after your approval.", features: ["AI captions", "Visual creation", "Instagram", "TikTok", "Approval flow"], lastAction: "Awaiting TikTok" },
+  { id: "leo", name: "Leo", emoji: "📊", avatar: "/agents/leo.png", status: "active", type: "Analytics · Real-time", schedule: "Real-time", color: "#8b5cf6", description: "Analyzes conversions, pipeline velocity, agent ROI, and client LTV. Feeds insights back to all other agents for smarter decisions.", features: ["Conversions", "Pipeline", "Agent ROI", "Client LTV", "Real-time"], lastAction: "Report updated" },
 ];
 
 const STATUS_CFG: Record<AgentStatus, { label: string; dot: string; badge: string }> = {
@@ -272,60 +273,72 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
             <div className="lg:col-span-2 space-y-6">
 
               {/* AI AGENTS SECTION */}
-              <div className="rounded-2xl overflow-hidden shadow-lg border border-blue-900/40" style={{ background: "linear-gradient(135deg, #060e24 0%, #0B1B4D 100%)" }}>
-                <div className="flex items-center justify-between px-6 py-4 border-b border-blue-800/40">
+              <div className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100" style={{ background: `linear-gradient(135deg, ${PREMIUM_BLUE} 0%, ${BRAND_BLUE} 100%)` }}>
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-blue-400">Artificial Intelligence</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-blue-200">Artificial Intelligence</p>
                     <h2 className="text-xl font-black text-white">Your AI Agent Team</h2>
                   </div>
-                  <Link href="/ai-agents"
-                    className="rounded-full px-4 py-1.5 text-xs font-bold text-white hover:text-blue-300 transition border border-blue-600/50 hover:border-blue-400">
+                  <Link href="/ai-agents" className="rounded-full px-4 py-1.5 text-xs font-bold bg-white/20 text-white hover:bg-white/30 transition border border-white/30">
                     Full view →
                   </Link>
                 </div>
-                <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
                   {(isHQorAdmin ? AI_AGENTS : AI_AGENTS.filter(a => ["lina","marco","sofia","luna"].includes(a.id))).map((agent) => {
                     const cfg = STATUS_CFG[agent.status];
-                    const isLive = agent.status === "live";
+                    const isAlive = agent.status === "live" || agent.status === "active";
+                    const accentColor = agent.color;
                     return (
-                      <button key={agent.id} onClick={() => setSelectedAgent(agent)}
-                        className="rounded-2xl p-4 text-left transition-all group relative overflow-hidden"
-                        style={{
-                          background: `linear-gradient(135deg, #0d1b3e 0%, #0f2460 100%)`,
-                          border: `1px solid ${agent.color}44`,
-                          boxShadow: isLive ? `0 0 18px ${agent.color}40` : "none",
-                        }}>
-                        {/* Glow background */}
-                        <div className="absolute inset-0 opacity-10 rounded-2xl" style={{ background: `radial-gradient(circle at 30% 30%, ${agent.color}, transparent 70%)` }} />
-                        {/* Status badge */}
-                        <div className="flex items-center justify-between mb-3 relative z-10">
-                          <div className="flex items-center gap-1.5">
-                            {isLive && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />}
-                            {!isLive && <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />}
-                            <span className="text-xs font-bold" style={{ color: isLive ? "#34d399" : agent.color }}>{cfg.label}</span>
+                      <div key={agent.id} onClick={() => setSelectedAgent(agent)}
+                        className="group relative bg-white rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-gray-300/50 hover:-translate-y-2 border border-gray-200">
+                        {/* Character image area */}
+                        <div className="relative w-full aspect-square overflow-hidden flex items-end justify-center"
+                          style={{ background: `linear-gradient(135deg, ${accentColor}08, ${accentColor}15)` }}>
+                          {agent.avatar ? (
+                            <img src={agent.avatar} alt={agent.name}
+                              className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-8xl"
+                              style={{ background: `linear-gradient(135deg, ${accentColor}10, ${accentColor}05)` }}>
+                              {agent.emoji}
+                            </div>
+                          )}
+                          {/* Status badge */}
+                          <div className="absolute top-4 right-4">
+                            <span className={`text-[10px] font-black px-3 py-1.5 rounded-full backdrop-blur-md tracking-wider shadow-lg bg-white/90 border border-gray-200 ${cfg.badge}`}>
+                              {isAlive && <span className={`inline-block h-1.5 w-1.5 rounded-full ${cfg.dot} mr-1.5 animate-pulse`} />}
+                              {cfg.label}
+                            </span>
                           </div>
-                          <span className="text-base">{agent.emoji}</span>
+                          {/* Gradient fade */}
+                          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white via-white/80 to-transparent" />
                         </div>
-                        {/* Avatar */}
-                        <div className="w-12 h-12 rounded-xl overflow-hidden mb-3 relative z-10 mx-auto"
-                          style={{ border: `2px solid ${agent.color}66`, background: agent.color + "22" }}>
-                          {agent.avatar
-                            ? <img src={agent.avatar} alt={agent.name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                            : <div className="w-full h-full flex items-center justify-center text-2xl">{agent.emoji}</div>
-                          }
+                        {/* Info */}
+                        <div className="px-4 pb-4 -mt-8 relative z-10">
+                          <h3 className="text-lg font-black text-gray-900 tracking-tight">{agent.name}</h3>
+                          <p className="text-xs font-semibold mt-0.5 mb-2 line-clamp-1" style={{ color: accentColor }}>{agent.type}</p>
+                          <p className="text-xs text-gray-500 leading-relaxed mb-3 line-clamp-2">{agent.description}</p>
+                          {/* Feature pills */}
+                          <div className="flex flex-wrap gap-1 mb-3">
+                            {agent.features.slice(0, 3).map(f => (
+                              <span key={f} className="text-[9px] font-semibold px-2 py-0.5 rounded-lg border"
+                                style={{ background: `${accentColor}08`, borderColor: `${accentColor}25`, color: accentColor }}>{f}</span>
+                            ))}
+                            {agent.features.length > 3 && (
+                              <span className="text-[9px] font-semibold px-2 py-0.5 rounded-lg bg-gray-50 text-gray-400 border border-gray-200">+{agent.features.length - 3} more</span>
+                            )}
+                          </div>
+                          {/* Discover button */}
+                          <div className="flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all duration-300 group-hover:gap-3"
+                            style={{ background: `${accentColor}10`, color: accentColor, border: `1px solid ${accentColor}25` }}>
+                            Discover {agent.name}
+                            <svg className="h-3 w-3 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                            </svg>
+                          </div>
                         </div>
-                        {/* Name & type */}
-                        <p className="text-sm font-black text-white text-center relative z-10">{agent.name}</p>
-                        <p className="text-xs text-center leading-tight mt-0.5 relative z-10" style={{ color: agent.color }}>{agent.type}</p>
-                        {/* Last action */}
-                        {agent.lastAction && (
-                          <p className="text-xs text-slate-400 mt-2 text-center truncate relative z-10">{agent.lastAction}</p>
-                        )}
-                        {/* Schedule */}
-                        <div className="flex items-center justify-center gap-1 mt-2 relative z-10">
-                          <span className="text-xs text-slate-500">{agent.schedule}</span>
-                        </div>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
