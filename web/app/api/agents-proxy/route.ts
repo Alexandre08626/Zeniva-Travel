@@ -76,6 +76,23 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  // Support ?path=admin/xxx for direct VPS passthrough
+  const pathParam = req.nextUrl.searchParams.get("path");
+  if (pathParam) {
+    try {
+      const auth = req.headers.get("Authorization") || AUTH;
+      const body = await req.text();
+      const r = await fetch(`${VPS_BASE}/${pathParam}`, {
+        method: "POST",
+        headers: { Authorization: auth, "Content-Type": "application/json" },
+        body,
+      });
+      return NextResponse.json(await r.json());
+    } catch (err: any) {
+      return NextResponse.json({ error: err?.message }, { status: 502 });
+    }
+  }
+
   const endpoint = req.nextUrl.searchParams.get("endpoint") || "";
   try {
     if (endpoint === "tiktok-action") {

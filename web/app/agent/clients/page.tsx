@@ -1,408 +1,537 @@
 "use client";
 export const dynamic = "force-dynamic";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { listClients, addClient } from "../../../src/lib/agent/store";
-import type { Client, Division } from "../../../src/lib/agent/types";
+import { useEffect, useState } from "react";
 import { useAuthStore, hasPermission } from "../../../src/lib/authStore";
 import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../src/design/tokens";
 
-const IS_PROD = process.env.NODE_ENV === "production";
+const VPS = "http://217.216.88.202:8000";
+const AUTH = "Bearer zeniva-secret-2025";
+
+type Client = {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  destination: string;
+  status: string;
+  language: string;
+  deal_value: number;
+  source: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type Dossier = {
+  id?: string;
+  title: string;
+  destination: string;
+  departure_date: string;
+  return_date: string;
+  travelers: number;
+  budget_usd: number;
+  trip_type: string;
+  status: string;
+  notes: string;
+  created_at?: string;
+};
+
+type Note = {
+  id?: string;
+  note: string;
+  category: string;
+  created_at?: string;
+};
+
+type Conversation = {
+  role: string;
+  content: string;
+  channel: string;
+  created_at: string;
+};
+
+type ClientProfile = {
+  client: Client;
+  dossiers: Dossier[];
+  proposals: any[];
+  bookings: any[];
+  notes: Note[];
+  conversations: Conversation[];
+  followups: any[];
+};
 
 export default function ClientsPage() {
   useRequireAnyPermission(["clients:all", "clients:own"], "/agent");
   const user = useAuthStore((s) => s.user);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [division, setDivision] = useState<Division>("TRAVEL");
-  const [agentEmail, setAgentEmail] = useState("");
-  const [clientsState, setClientsState] = useState<ClientProfile[]>(IS_PROD ? [] : (listClients() as ClientProfile[]));
+
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedClient, setSelectedClient] = useState<ClientProfile | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<"dossiers" | "notes" | "chat" | "proposals">("dossiers");
 
-  const clients = useMemo(() => {
-    if (!user) return clientsState;
-    if (hasPermission(user, "clients:all")) return clientsState;
-    const email = user.email?.toLowerCase() || "";
-    return clientsState.filter((client) => {
-      const owner = (client.ownerEmail || "").toLowerCase();
-      const assigned = (client.assignedAgents || []).map((a) => a.toLowerCase());
-      return owner === email || assigned.includes(email);
-    });
-  }, [clientsState, user]);
+  // New dossier form
+  const [showDossierForm, setShowDossierForm] = useState(false);
+  const [dossierTitle, setDossierTitle] = useState("");
+  const [dossierDest, setDossierDest] = useState("");
+  const [dossierDepart, setDossierDepart] = useState("");
+  const [dossierReturn, setDossierReturn] = useState("");
+  const [dossierTravelers, setDossierTravelers] = useState(2);
+  const [dossierBudget, setDossierBudget] = useState("");
+  const [dossierType, setDossierType] = useState("leisure");
+  const [dossierStatus, setDossierStatus] = useState("prospect");
+  const [dossierNotes, setDossierNotes] = useState("");
+  const [dossierSaving, setDossierSaving] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-    fetch("/api/clients")
-      .then((res) => res.json())
-      .then((payload) => {
-        if (!active) return;
-        const records: any[] = Array.isArray(payload?.data) ? payload.data : [];
-        const remote = records.map((record: any) => toClient(record)).filter(Boolean) as Client[];
-        if (!remote.length) return;
-        if (IS_PROD) {
-          setClientsState(remote);
-          return;
-        }
-        const local = listClients();
-        const merged = mergeClients(local, remote);
-        setClientsState(merged);
-      })
-      .catch(() => undefined);
+  // New note form
+  const [newNote, setNewNote] = useState("");
+  const [noteSaving, setNoteSaving] = useState(false);
 
-    return () => {
-      active = false;
-    };
-  }, []);
+  // Add client form
+  const [showAddClient, setShowAddClient] = useState(false);
+  const [addName, setAddName] = useState("");
+  const [addEmail, setAddEmail] = useState("");
+  const [addPhone, setAddPhone] = useState("");
+  const [addDest, setAddDest] = useState("");
+  const [addSaving, setAddSaving] = useState(false);
+  const [addMsg, setAddMsg] = useState("");
 
-  const handleCreate = async () => {
-    setError(null);
-    setMessage(null);
-    if (!name.trim()) {
-      setError("Client name is required.");
-      return;
-    }
-    if (!email.trim()) {
-      setError("Client email is required.");
-      return;
-    }
-    if (!phone.trim()) {
-      setError("Phone number is required.");
-      return;
-    }
-    const payload = {
-      name: name.trim(),
-      email: email.trim(),
-      ownerEmail: user?.email || "agent@zenivatravel.com",
-      phone: phone.trim(),
-      origin: agentEmail.trim() ? "agent" : "house",
-      assignedAgents: agentEmail.trim() ? [agentEmail.trim()] : [],
-      primaryDivision: division,
-    };
-
-    if (IS_PROD) {
-      try {
-        const res = await fetch("/api/clients", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        const json = await res.json();
-        if (!res.ok) throw new Error(json?.error || "Failed to create client");
-        const created = toClient(json?.data);
-        if (created) {
-          setClientsState((prev) => mergeClients(prev, [created]));
-        }
-        setMessage(
-          `Client created (${created?.id || ""}). Commission rule: ${payload.assignedAgents.length > 0 ? "agent commission applies" : "100% Zeniva Travel"}.`
-        );
-      } catch (err: any) {
-        setError(err?.message || "Failed to create client.");
-        return;
-      }
-    } else {
-      const entry = addClient({
-        name: payload.name,
-        email: payload.email,
-        ownerEmail: payload.ownerEmail,
-        phone: payload.phone,
-        primaryDivision: division,
-        assignedAgent: agentEmail.trim() || undefined,
+  const fetchClients = async () => {
+    setLoading(true);
+    try {
+      // Get leads with status=client from VPS
+      const r = await fetch("/api/agents-proxy?path=admin/leads?limit=200", {
+        headers: { Authorization: AUTH },
       });
-      try {
-        fetch("/api/clients", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            id: entry.id,
-            name: entry.name,
-            email: entry.email,
-            ownerEmail: entry.ownerEmail,
-            phone: entry.phone,
-            origin: entry.origin,
-            assignedAgents: entry.assignedAgents || [],
-            primaryDivision: entry.primaryDivision,
-          }),
+      const data = await r.json();
+      const allLeads: Client[] = data?.leads || [];
+      setClients(allLeads.filter((l) => l.status === "client"));
+    } catch {}
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchClients(); }, []);
+
+  const openProfile = async (c: Client) => {
+    setSelectedClient({ client: c, dossiers: [], proposals: [], bookings: [], notes: [], conversations: [], followups: [] });
+    setActiveTab("dossiers");
+    setProfileLoading(true);
+    try {
+      const r = await fetch(`/api/agents-proxy?path=admin/client-profile/${encodeURIComponent(c.email)}`, {
+        headers: { Authorization: AUTH },
+      });
+      if (r.ok) {
+        const d = await r.json();
+        setSelectedClient({
+          client: c,
+          dossiers: d.dossiers || [],
+          proposals: d.proposals || [],
+          bookings: d.bookings || [],
+          notes: d.notes || [],
+          conversations: d.conversations || [],
+          followups: d.followups || [],
         });
-      } catch (_) {
-        // ignore
       }
-      setClientsState(listClients());
-      setMessage(
-        `Client created (${entry.id}). Commission rule: ${entry.assignedAgents && entry.assignedAgents.length > 0 ? "agent commission applies" : "100% Zeniva Travel"}.`
-      );
-    }
-    setName("");
-    setEmail("");
-    setPhone("");
-    setAgentEmail("");
+    } catch {}
+    setProfileLoading(false);
+  };
+
+  const saveDossier = async () => {
+    if (!selectedClient || !dossierTitle) return;
+    setDossierSaving(true);
+    try {
+      const payload = {
+        client_id: selectedClient.client.id,
+        client_email: selectedClient.client.email,
+        client_name: `${selectedClient.client.first_name} ${selectedClient.client.last_name}`.trim(),
+        agent_id: user?.email || "",
+        title: dossierTitle,
+        destination: dossierDest || selectedClient.client.destination,
+        departure_date: dossierDepart || null,
+        return_date: dossierReturn || null,
+        travelers: dossierTravelers,
+        budget_usd: parseFloat(dossierBudget) || null,
+        trip_type: dossierType,
+        status: dossierStatus,
+        notes: dossierNotes,
+      };
+      const r = await fetch("/api/agents-proxy?path=admin/dossiers", {
+        method: "POST",
+        headers: { Authorization: AUTH, "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (r.ok) {
+        const newDos = await r.json();
+        setSelectedClient((prev) => prev ? { ...prev, dossiers: [newDos, ...prev.dossiers] } : prev);
+        setShowDossierForm(false);
+        setDossierTitle(""); setDossierDest(""); setDossierDepart(""); setDossierReturn("");
+        setDossierBudget(""); setDossierNotes("");
+      }
+    } catch {}
+    setDossierSaving(false);
+  };
+
+  const saveNote = async () => {
+    if (!selectedClient || !newNote.trim()) return;
+    setNoteSaving(true);
+    try {
+      const payload = {
+        client_id: selectedClient.client.id,
+        client_email: selectedClient.client.email,
+        agent_id: user?.email || "",
+        note: newNote.trim(),
+        category: "general",
+      };
+      const r = await fetch("/api/agents-proxy?path=admin/client-notes", {
+        method: "POST",
+        headers: { Authorization: AUTH, "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (r.ok) {
+        const n = await r.json();
+        setSelectedClient((prev) => prev ? { ...prev, notes: [n, ...prev.notes] } : prev);
+        setNewNote("");
+      }
+    } catch {}
+    setNoteSaving(false);
+  };
+
+  const addClientAsLead = async () => {
+    if (!addEmail || !addName) return;
+    setAddSaving(true);
+    setAddMsg("");
+    try {
+      const r = await fetch("/api/agents-proxy?path=admin/leads", {
+        method: "POST",
+        headers: { Authorization: AUTH, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: addEmail.trim().toLowerCase(),
+          first_name: addName.split(" ")[0],
+          last_name: addName.split(" ").slice(1).join(" ") || "",
+          phone: addPhone,
+          destination: addDest,
+          status: "client",
+          source: "agent-added",
+          language: "fr",
+        }),
+      });
+      if (r.ok) {
+        setAddMsg("✅ Client ajouté !");
+        setAddName(""); setAddEmail(""); setAddPhone(""); setAddDest("");
+        fetchClients();
+        setTimeout(() => { setShowAddClient(false); setAddMsg(""); }, 2000);
+      } else {
+        setAddMsg("❌ Erreur — email déjà existant?");
+      }
+    } catch { setAddMsg("❌ Erreur réseau"); }
+    setAddSaving(false);
+  };
+
+  const statusColor: Record<string, string> = {
+    prospect: "bg-slate-100 text-slate-700",
+    planning: "bg-blue-100 text-blue-700",
+    in_progress: "bg-amber-100 text-amber-700",
+    proposal_sent: "bg-purple-100 text-purple-700",
+    confirmed: "bg-emerald-100 text-emerald-700",
+    closed: "bg-gray-100 text-gray-500",
+    cancelled: "bg-rose-100 text-rose-700",
   };
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: "#F3F6FB" }}>
-      <div className="mx-auto max-w-5xl px-5 py-8 space-y-6">
+      <div className="mx-auto max-w-6xl px-5 py-8 space-y-6">
+
+        {/* Header */}
         <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Clients</p>
             <h1 className="text-3xl font-black" style={{ color: TITLE_TEXT }}>Client roster</h1>
-            <p className="text-sm" style={{ color: MUTED_TEXT }}>All clients are listed here. If assigned to an agent, commission applies; otherwise 100% Zeniva Travel.</p>
+            <p className="text-sm" style={{ color: MUTED_TEXT }}>{clients.length} clients actifs — Lina a accès à tous leurs dossiers</p>
           </div>
-          <Link href="/agent/trips" className="rounded-full px-4 py-2 text-sm font-bold text-white" style={{ backgroundColor: PREMIUM_BLUE }}>
-            View trips
-          </Link>
+          <button
+            onClick={() => setShowAddClient(true)}
+            className="rounded-full px-5 py-2 text-sm font-bold text-white"
+            style={{ backgroundColor: PREMIUM_BLUE }}
+          >
+            + Nouveau client
+          </button>
         </header>
 
-        <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-6 space-y-3">
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-12 md:items-end">
-            <label className="md:col-span-3 flex flex-col text-sm font-semibold" style={{ color: TITLE_TEXT }}>
-              Client name
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                placeholder="Client or company name"
-              />
-            </label>
-            <label className="md:col-span-2 flex flex-col text-sm font-semibold" style={{ color: TITLE_TEXT }}>
-              Client email
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                placeholder="client@email.com"
-              />
-            </label>
-            <label className="md:col-span-2 flex flex-col text-sm font-semibold" style={{ color: TITLE_TEXT }}>
-              Phone number
-              <input
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                placeholder="+1 (555) 555-5555"
-              />
-            </label>
-            <label className="md:col-span-1 flex flex-col text-sm font-semibold" style={{ color: TITLE_TEXT }}>
-              Division
-              <select
-                value={division}
-                onChange={(e) => setDivision(e.target.value as Division)}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              >
-                <option value="TRAVEL">Travel</option>
-                <option value="YACHT">Yacht</option>
-              </select>
-            </label>
-            <label className="md:col-span-2 flex flex-col text-sm font-semibold" style={{ color: TITLE_TEXT }}>
-              Assigned agent (optional)
-              <input
-                value={agentEmail}
-                onChange={(e) => setAgentEmail(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                placeholder="agent@zenivatravel.com"
-              />
-            </label>
-            <div className="md:col-span-2 flex items-end">
-              <button
-                type="button"
-                onClick={handleCreate}
-                className="h-[42px] w-full rounded-full px-4 py-2 text-sm font-bold text-white md:w-auto md:justify-self-end"
-                style={{ backgroundColor: PREMIUM_BLUE }}
-              >
-                Create client
-              </button>
+        {/* Add client modal */}
+        {showAddClient && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl space-y-4">
+              <h2 className="text-xl font-black" style={{ color: TITLE_TEXT }}>Nouveau client</h2>
+              <input className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Nom complet *" value={addName} onChange={e => setAddName(e.target.value)} />
+              <input className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Email *" value={addEmail} onChange={e => setAddEmail(e.target.value)} />
+              <input className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Téléphone" value={addPhone} onChange={e => setAddPhone(e.target.value)} />
+              <input className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Destination" value={addDest} onChange={e => setAddDest(e.target.value)} />
+              {addMsg && <p className="text-sm font-semibold">{addMsg}</p>}
+              <div className="flex gap-2 justify-end">
+                <button onClick={() => setShowAddClient(false)} className="rounded-full px-4 py-2 text-sm border border-slate-200 font-semibold">Annuler</button>
+                <button onClick={addClientAsLead} disabled={addSaving} className="rounded-full px-5 py-2 text-sm font-bold text-white" style={{ backgroundColor: PREMIUM_BLUE }}>
+                  {addSaving ? "Sauvegarde..." : "Créer"}
+                </button>
+              </div>
             </div>
           </div>
-          <p className="text-xs" style={{ color: MUTED_TEXT }}>
-            Commission rule: if a client is assigned to an agent, that agent commission applies; otherwise 100% goes to Zeniva Travel.
-          </p>
-          {message && <p className="text-sm font-semibold text-emerald-600">{message}</p>}
-          {error && <p className="text-sm font-semibold text-rose-600">{error}</p>}
-        </section>
+        )}
 
-        <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-6 space-y-3">
-          <div className="overflow-x-auto">
+        {/* Client list */}
+        <section className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+          {loading ? (
+            <p className="p-6 text-sm" style={{ color: MUTED_TEXT }}>Chargement...</p>
+          ) : clients.length === 0 ? (
+            <p className="p-6 text-sm" style={{ color: MUTED_TEXT }}>Aucun client trouvé.</p>
+          ) : (
             <table className="min-w-full text-sm">
-              <thead>
+              <thead className="bg-slate-50 border-b border-slate-200">
                 <tr className="text-left text-slate-600">
-                  <th className="pb-2 pr-3">Client</th>
-                  <th className="pb-2 pr-3">Email</th>
-                  <th className="pb-2 pr-3">Phone</th>
-                  <th className="pb-2 pr-3">Division</th>
-                  <th className="pb-2 pr-3">Owner</th>
-                  <th className="pb-2 pr-3">Origin</th>
-                  <th className="pb-2 pr-3">Assigned</th>
-                  <th className="pb-2 pr-3">Commission</th>
+                  <th className="px-4 py-3 font-semibold">Client</th>
+                  <th className="px-4 py-3 font-semibold">Email</th>
+                  <th className="px-4 py-3 font-semibold">Téléphone</th>
+                  <th className="px-4 py-3 font-semibold">Destination</th>
+                  <th className="px-4 py-3 font-semibold">Budget</th>
+                  <th className="px-4 py-3 font-semibold">Depuis</th>
+                  <th className="px-4 py-3 font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {clients.map((c) => (
-                  <tr key={c.id} className="border-t border-slate-100">
-                    <td className="py-2 pr-3" style={{ color: TITLE_TEXT }}>
+                  <tr key={c.id} className="border-t border-slate-100 hover:bg-slate-50 transition-colors">
+                    <td className="px-4 py-3 font-semibold" style={{ color: TITLE_TEXT }}>
+                      {`${c.first_name || ""} ${c.last_name || ""}`.trim() || c.email}
+                    </td>
+                    <td className="px-4 py-3 text-xs" style={{ color: MUTED_TEXT }}>{c.email}</td>
+                    <td className="px-4 py-3 text-xs" style={{ color: MUTED_TEXT }}>{c.phone || "—"}</td>
+                    <td className="px-4 py-3 text-xs" style={{ color: MUTED_TEXT }}>{c.destination || "—"}</td>
+                    <td className="px-4 py-3 text-xs font-semibold">{c.deal_value ? `$${Number(c.deal_value).toLocaleString()}` : "—"}</td>
+                    <td className="px-4 py-3 text-xs" style={{ color: MUTED_TEXT }}>{c.created_at ? new Date(c.created_at).toLocaleDateString("fr-CA") : "—"}</td>
+                    <td className="px-4 py-3">
                       <button
-                        type="button"
-                        onClick={() => setSelectedClient(c)}
-                        className="text-left font-semibold hover:underline"
-                        style={{ color: TITLE_TEXT }}
+                        onClick={() => openProfile(c)}
+                        className="rounded-full px-3 py-1 text-xs font-bold text-white"
+                        style={{ backgroundColor: PREMIUM_BLUE }}
                       >
-                        {c.name}
+                        Voir dossier
                       </button>
-                    </td>
-                    <td className="py-2 pr-3 text-xs" style={{ color: MUTED_TEXT }}>{c.email || "-"}</td>
-                    <td className="py-2 pr-3 text-xs" style={{ color: MUTED_TEXT }}>{c.phone || "-"}</td>
-                    <td className="py-2 pr-3 text-xs font-semibold"><span className="rounded-full bg-slate-100 px-2 py-1">{c.primaryDivision || "TRAVEL"}</span></td>
-                    <td className="py-2 pr-3" style={{ color: TITLE_TEXT }}>{c.ownerEmail}</td>
-                    <td className="py-2 pr-3 text-xs font-semibold">
-                      <span
-                        className={`rounded-full px-2 py-1 ${
-                          c.origin === "agent"
-                            ? "bg-amber-100 text-amber-800"
-                            : c.origin === "web_signup"
-                              ? "bg-indigo-100 text-indigo-800"
-                              : "bg-emerald-100 text-emerald-800"
-                        }`}
-                      >
-                        {c.origin === "agent" ? "Agent-added" : c.origin === "web_signup" ? "Web signup" : "Direct"}
-                      </span>
-                    </td>
-                    <td className="py-2 pr-3 text-xs" style={{ color: MUTED_TEXT }}>{c.assignedAgents?.join(", ") || "-"}</td>
-                    <td className="py-2 pr-3 text-xs" style={{ color: MUTED_TEXT }}>
-                      {c.assignedAgents && c.assignedAgents.length > 0 ? "Agent commission" : "100% Zeniva Travel"}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+          )}
         </section>
+      </div>
 
-        {selectedClient && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
-            <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-              <div className="mb-4 flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Client profile</p>
-                  <h2 className="text-2xl font-black" style={{ color: TITLE_TEXT }}>{selectedClient.name}</h2>
-                  <p className="text-xs" style={{ color: MUTED_TEXT }}>ID: {selectedClient.id}</p>
-                </div>
+      {/* Client 360° Profile Modal */}
+      {selectedClient && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/50 p-4 overflow-y-auto">
+          <div className="w-full max-w-4xl rounded-2xl bg-white shadow-2xl my-8">
+
+            {/* Profile header */}
+            <div className="flex items-start justify-between gap-4 p-6 border-b border-slate-200" style={{ background: `linear-gradient(135deg, #0B1B4D 0%, #0F6CF5 100%)` }}>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-blue-200">Client 360°</p>
+                <h2 className="text-2xl font-black text-white">
+                  {`${selectedClient.client.first_name || ""} ${selectedClient.client.last_name || ""}`.trim() || selectedClient.client.email}
+                </h2>
+                <p className="text-blue-200 text-sm">{selectedClient.client.email} · {selectedClient.client.phone || "—"}</p>
+                {selectedClient.client.destination && (
+                  <p className="text-blue-200 text-xs mt-1">✈️ Destination: {selectedClient.client.destination}</p>
+                )}
+              </div>
+              <button
+                onClick={() => setSelectedClient(null)}
+                className="rounded-full border border-blue-300 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700"
+              >
+                Fermer
+              </button>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex border-b border-slate-200 bg-slate-50">
+              {(["dossiers", "notes", "chat", "proposals"] as const).map((tab) => (
                 <button
-                  type="button"
-                  onClick={() => setSelectedClient(null)}
-                  className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700"
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-5 py-3 text-sm font-semibold capitalize transition-colors ${activeTab === tab ? "border-b-2 border-blue-600 text-blue-600" : "text-slate-500 hover:text-slate-700"}`}
                 >
-                  Close
+                  {tab === "chat" ? "Conversations" : tab === "proposals" ? "Propositions" : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab === "dossiers" && selectedClient.dossiers.length > 0 && (
+                    <span className="ml-1 rounded-full bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5">{selectedClient.dossiers.length}</span>
+                  )}
+                  {tab === "notes" && selectedClient.notes.length > 0 && (
+                    <span className="ml-1 rounded-full bg-amber-100 text-amber-700 text-xs px-1.5 py-0.5">{selectedClient.notes.length}</span>
+                  )}
+                  {tab === "chat" && selectedClient.conversations.length > 0 && (
+                    <span className="ml-1 rounded-full bg-emerald-100 text-emerald-700 text-xs px-1.5 py-0.5">{selectedClient.conversations.length}</span>
+                  )}
                 </button>
-              </div>
+              ))}
+            </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <ProfileField label="Name" value={selectedClient.name} />
-                <ProfileField label="Email" value={selectedClient.email} />
-                <ProfileField label="Phone" value={selectedClient.phone} />
-                <ProfileField label="Primary division" value={selectedClient.primaryDivision || "TRAVEL"} />
-                <ProfileField label="Owner" value={selectedClient.ownerEmail} />
-                <ProfileField label="Origin" value={originLabel(selectedClient.origin)} />
-                <ProfileField label="Assigned agents" value={selectedClient.assignedAgents?.join(", ") || "-"} />
-                <ProfileField
-                  label="Commission rule"
-                  value={selectedClient.assignedAgents && selectedClient.assignedAgents.length > 0 ? "Agent commission" : "100% Zeniva Travel"}
-                />
-                <ProfileField label="Budget" value={selectedClient.budget} />
-                <ProfileField label="Created at" value={selectedClient.createdAt ? new Date(selectedClient.createdAt).toLocaleString() : undefined} />
-              </div>
+            <div className="p-6">
+              {profileLoading && <p className="text-sm text-slate-500">Chargement du dossier...</p>}
 
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Preferences</p>
-                  <p className="mt-2 text-sm" style={{ color: TITLE_TEXT }}>{selectedClient.preferences || "-"}</p>
+              {/* DOSSIERS TAB */}
+              {activeTab === "dossiers" && !profileLoading && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-bold text-lg" style={{ color: TITLE_TEXT }}>Dossiers voyage</h3>
+                    <button
+                      onClick={() => setShowDossierForm(!showDossierForm)}
+                      className="rounded-full px-4 py-2 text-sm font-bold text-white"
+                      style={{ backgroundColor: PREMIUM_BLUE }}
+                    >
+                      {showDossierForm ? "Annuler" : "+ Nouveau dossier"}
+                    </button>
+                  </div>
+
+                  {/* New dossier form */}
+                  {showDossierForm && (
+                    <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 space-y-3">
+                      <p className="text-sm font-bold text-blue-800">Créer un nouveau dossier</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input className="rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Titre du dossier *" value={dossierTitle} onChange={e => setDossierTitle(e.target.value)} />
+                        <input className="rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Destination" value={dossierDest} onChange={e => setDossierDest(e.target.value)} />
+                        <input type="date" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Départ" value={dossierDepart} onChange={e => setDossierDepart(e.target.value)} />
+                        <input type="date" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Retour" value={dossierReturn} onChange={e => setDossierReturn(e.target.value)} />
+                        <input type="number" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Voyageurs" value={dossierTravelers} onChange={e => setDossierTravelers(Number(e.target.value))} />
+                        <input type="number" className="rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Budget USD" value={dossierBudget} onChange={e => setDossierBudget(e.target.value)} />
+                        <select className="rounded-lg border border-slate-200 px-3 py-2 text-sm" value={dossierType} onChange={e => setDossierType(e.target.value)}>
+                          <option value="leisure">Leisure</option>
+                          <option value="honeymoon">Honeymoon</option>
+                          <option value="family">Family</option>
+                          <option value="business">Business</option>
+                          <option value="group">Group</option>
+                          <option value="yacht">Yacht</option>
+                        </select>
+                        <select className="rounded-lg border border-slate-200 px-3 py-2 text-sm" value={dossierStatus} onChange={e => setDossierStatus(e.target.value)}>
+                          <option value="prospect">Prospect</option>
+                          <option value="planning">Planning</option>
+                          <option value="in_progress">En cours</option>
+                          <option value="proposal_sent">Proposition envoyée</option>
+                          <option value="confirmed">Confirmé</option>
+                        </select>
+                      </div>
+                      <textarea className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" rows={2} placeholder="Notes..." value={dossierNotes} onChange={e => setDossierNotes(e.target.value)} />
+                      <button onClick={saveDossier} disabled={dossierSaving || !dossierTitle} className="rounded-full px-5 py-2 text-sm font-bold text-white" style={{ backgroundColor: "#0B1B4D" }}>
+                        {dossierSaving ? "Sauvegarde..." : "💾 Sauvegarder"}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Dossier list */}
+                  {selectedClient.dossiers.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center">
+                      <p className="text-slate-500 text-sm">Aucun dossier — crée le premier !</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {selectedClient.dossiers.map((d, i) => (
+                        <div key={d.id || i} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <p className="font-bold text-sm" style={{ color: TITLE_TEXT }}>{d.title}</p>
+                              <p className="text-xs text-slate-500">{d.destination || "—"} · {d.departure_date || "?"} → {d.return_date || "?"} · {d.travelers} voyageurs</p>
+                              {d.budget_usd && <p className="text-xs text-slate-500">Budget: ${Number(d.budget_usd).toLocaleString()} USD</p>}
+                              {d.notes && <p className="text-xs text-slate-600 mt-1">{d.notes}</p>}
+                            </div>
+                            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${statusColor[d.status] || "bg-slate-100 text-slate-600"}`}>
+                              {d.status}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Notes</p>
-                  <p className="mt-2 text-sm" style={{ color: TITLE_TEXT }}>{selectedClient.notes || "-"}</p>
+              )}
+
+              {/* NOTES TAB */}
+              {activeTab === "notes" && !profileLoading && (
+                <div className="space-y-4">
+                  <h3 className="font-bold text-lg" style={{ color: TITLE_TEXT }}>Notes agent</h3>
+                  <div className="flex gap-2">
+                    <textarea
+                      className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                      rows={2}
+                      placeholder="Ajouter une note sur ce client..."
+                      value={newNote}
+                      onChange={e => setNewNote(e.target.value)}
+                    />
+                    <button onClick={saveNote} disabled={noteSaving || !newNote.trim()} className="rounded-full px-4 py-2 text-sm font-bold text-white self-end" style={{ backgroundColor: PREMIUM_BLUE }}>
+                      {noteSaving ? "..." : "Ajouter"}
+                    </button>
+                  </div>
+                  {selectedClient.notes.length === 0 ? (
+                    <p className="text-sm text-slate-500">Aucune note.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {selectedClient.notes.map((n, i) => (
+                        <div key={n.id || i} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                          <p className="text-sm" style={{ color: TITLE_TEXT }}>{n.note}</p>
+                          <p className="text-xs text-slate-400 mt-1">{n.created_at ? new Date(n.created_at).toLocaleString("fr-CA") : ""}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
+
+              {/* CONVERSATIONS TAB */}
+              {activeTab === "chat" && !profileLoading && (
+                <div className="space-y-3">
+                  <h3 className="font-bold text-lg" style={{ color: TITLE_TEXT }}>Historique conversations avec Lina</h3>
+                  {selectedClient.conversations.length === 0 ? (
+                    <p className="text-sm text-slate-500">Aucune conversation.</p>
+                  ) : (
+                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                      {[...selectedClient.conversations].reverse().map((c, i) => (
+                        <div key={i} className={`rounded-lg p-3 text-sm ${c.role === "user" ? "bg-blue-50 border-l-4 border-blue-400" : "bg-slate-50 border-l-4 border-slate-300"}`}>
+                          <div className="flex justify-between text-xs text-slate-500 mb-1">
+                            <span className="font-semibold">{c.role === "user" ? "👤 Client" : "🤖 Lina"} · {c.channel}</span>
+                            <span>{c.created_at ? new Date(c.created_at).toLocaleString("fr-CA") : ""}</span>
+                          </div>
+                          <p style={{ color: TITLE_TEXT }}>{c.content}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* PROPOSALS TAB */}
+              {activeTab === "proposals" && !profileLoading && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-bold text-lg" style={{ color: TITLE_TEXT }}>Propositions & Devis</h3>
+                    <Link href="/agent/proposals" className="rounded-full px-4 py-2 text-sm font-bold text-white" style={{ backgroundColor: PREMIUM_BLUE }}>
+                      Créer proposition
+                    </Link>
+                  </div>
+                  {selectedClient.proposals.length === 0 ? (
+                    <p className="text-sm text-slate-500">Aucune proposition pour ce client.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {selectedClient.proposals.map((p: any, i: number) => (
+                        <div key={p.id || i} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                          <p className="font-bold text-sm" style={{ color: TITLE_TEXT }}>{p.title || "Sans titre"}</p>
+                          <p className="text-xs text-slate-500">{p.destination} · {p.departure_date} · ${p.total_price?.toLocaleString()}</p>
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full mt-1 inline-block ${statusColor[p.status] || "bg-slate-100 text-slate-600"}`}>{p.status}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </main>
   );
-}
-
-type ClientProfile = Client & {
-  createdAt?: string;
-};
-
-function originLabel(origin?: Client["origin"]) {
-  if (origin === "agent") return "Agent-added";
-  if (origin === "web_signup") return "Web signup";
-  return "Direct";
-}
-
-function ProfileField({ label, value }: { label: string; value?: string }) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{label}</p>
-      <p className="mt-2 text-sm" style={{ color: TITLE_TEXT }}>{value || "-"}</p>
-    </div>
-  );
-}
-
-const DIVISIONS: Division[] = ["TRAVEL", "YACHT", "VILLAS", "GROUPS", "RESORTS"];
-
-function toDivision(value?: string): Division | undefined {
-  if (!value) return undefined;
-  const normalized = value.toUpperCase();
-  return DIVISIONS.includes(normalized as Division) ? (normalized as Division) : undefined;
-}
-
-function toClient(record: any): ClientProfile | null {
-  if (!record?.id || !record?.name || !record?.ownerEmail) return null;
-  return {
-    id: String(record.id),
-    name: String(record.name),
-    email: record.email ? String(record.email) : undefined,
-    ownerEmail: String(record.ownerEmail),
-    phone: record.phone ? String(record.phone) : undefined,
-    origin: record.origin === "agent" ? "agent" : record.origin === "web_signup" ? "web_signup" : "house",
-    assignedAgents: Array.isArray(record.assignedAgents) ? record.assignedAgents.map((agent: string) => String(agent)) : [],
-    primaryDivision: toDivision(record.primaryDivision),
-    budget: record.budget ? String(record.budget) : undefined,
-    preferences: record.preferences ? String(record.preferences) : undefined,
-    notes: record.notes ? String(record.notes) : undefined,
-    createdAt: record.createdAt ? String(record.createdAt) : undefined,
-  };
-}
-
-function mergeClients(local: ClientProfile[], remote: ClientProfile[]) {
-  const byKey = new Map<string, ClientProfile>();
-  const makeKey = (c: ClientProfile) => (c.email ? c.email.toLowerCase() : c.id);
-
-  local.forEach((client) => {
-    byKey.set(makeKey(client), client);
-  });
-
-  remote.forEach((client) => {
-    const key = makeKey(client);
-    const existing = byKey.get(key);
-    if (!existing) {
-      byKey.set(key, client);
-      return;
-    }
-
-    const assignedAgents = Array.from(new Set([...(existing.assignedAgents || []), ...(client.assignedAgents || [])]));
-    const origin = assignedAgents.length > 0
-      ? "agent"
-      : (existing.origin === "web_signup" || client.origin === "web_signup" ? "web_signup" : (existing.origin || client.origin));
-
-    byKey.set(key, {
-      ...existing,
-      ...client,
-      assignedAgents,
-      origin,
-    });
-  });
-
-  return Array.from(byKey.values());
 }
