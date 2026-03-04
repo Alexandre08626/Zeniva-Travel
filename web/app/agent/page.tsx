@@ -137,11 +137,11 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
 
   const kpis = [
     { label: "Active Clients", value: dashStats?.active_clients ?? vpsStats?.total_clients ?? "—", icon: "👥", color: "bg-blue-50 border-blue-200", sub: `${dashStats?.open_dossiers ?? 0} dossiers` },
-    { label: "Total Leads", value: vpsStats?.total_leads ?? "—", icon: "🎯", color: "bg-purple-50 border-purple-200", sub: `+${vpsStats?.leads_today ?? 0} today` },
-    { label: "Emails Sent", value: vpsStats?.emails_sent ?? "—", icon: "📧", color: "bg-emerald-50 border-emerald-200", sub: `+${vpsStats?.emails_today ?? 0} today` },
-    { label: "SMS Sent", value: vpsStats?.sms_sent ?? "—", icon: "📱", color: "bg-amber-50 border-amber-200", sub: `+${vpsStats?.sms_today ?? 0} today` },
+    { label: "Total Leads", value: isHQorAdmin ? (vpsStats?.total_leads ?? "—") : (dashStats?.active_clients !== undefined ? (leads?.length ?? 0) : "0"), icon: "🎯", color: "bg-purple-50 border-purple-200", sub: isHQorAdmin ? `+${vpsStats?.leads_today ?? 0} today` : "Your pipeline" },
+    { label: "Emails Sent", value: isHQorAdmin ? (vpsStats?.emails_sent ?? "—") : "—", icon: "📧", color: "bg-emerald-50 border-emerald-200", sub: isHQorAdmin ? `+${vpsStats?.emails_today ?? 0} today` : "Coming soon" },
+    { label: "SMS Sent", value: isHQorAdmin ? (vpsStats?.sms_sent ?? "—") : "—", icon: "📱", color: "bg-amber-50 border-amber-200", sub: isHQorAdmin ? `+${vpsStats?.sms_today ?? 0} today` : "Coming soon" },
     { label: "Comm. Pipeline", value: dashStats ? `$${dashStats.commission_pipeline.toLocaleString()}` : "—", icon: "💰", color: "bg-rose-50 border-rose-200", sub: `${dashStats?.followups_due ?? 0} follow-ups` },
-    { label: "Lina Chats", value: vpsStats?.total_messages ?? "—", icon: "💬", color: "bg-indigo-50 border-indigo-200", sub: "Total conversations" },
+    { label: "Lina Chats", value: isHQorAdmin ? (vpsStats?.total_messages ?? "—") : "—", icon: "💬", color: "bg-indigo-50 border-indigo-200", sub: "Total conversations" },
   ];
 
   return (
@@ -272,38 +272,58 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
             <div className="lg:col-span-2 space-y-6">
 
               {/* AI AGENTS SECTION */}
-              <div className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100" style={{ background: `linear-gradient(135deg, ${PREMIUM_BLUE} 0%, ${BRAND_BLUE} 100%)` }}>
+              <div className="rounded-2xl overflow-hidden shadow-lg border border-blue-900/40" style={{ background: "linear-gradient(135deg, #060e24 0%, #0B1B4D 100%)" }}>
+                <div className="flex items-center justify-between px-6 py-4 border-b border-blue-800/40">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-blue-200">Artificial Intelligence</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-blue-400">Artificial Intelligence</p>
                     <h2 className="text-xl font-black text-white">Your AI Agent Team</h2>
                   </div>
-                  <Link href="/ai-agents" className="rounded-full px-4 py-1.5 text-xs font-bold bg-white/20 text-white hover:bg-white/30 transition">
+                  <Link href="/ai-agents"
+                    className="rounded-full px-4 py-1.5 text-xs font-bold text-white hover:text-blue-300 transition border border-blue-600/50 hover:border-blue-400">
                     Full view →
                   </Link>
                 </div>
                 <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-3">
                   {(isHQorAdmin ? AI_AGENTS : AI_AGENTS.filter(a => ["lina","marco","sofia","luna"].includes(a.id))).map((agent) => {
                     const cfg = STATUS_CFG[agent.status];
+                    const isLive = agent.status === "live";
                     return (
                       <button key={agent.id} onClick={() => setSelectedAgent(agent)}
-                        className="rounded-xl border border-slate-200 p-3 text-left hover:border-blue-300 hover:shadow-md transition-all group bg-white">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow"
-                            style={{ background: agent.color + "22" }}>
-                            {agent.avatar
-                              ? <img src={agent.avatar} alt={agent.name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                              : <div className="w-full h-full flex items-center justify-center text-lg">{agent.emoji}</div>
-                            }
+                        className="rounded-2xl p-4 text-left transition-all group relative overflow-hidden"
+                        style={{
+                          background: `linear-gradient(135deg, #0d1b3e 0%, #0f2460 100%)`,
+                          border: `1px solid ${agent.color}44`,
+                          boxShadow: isLive ? `0 0 18px ${agent.color}40` : "none",
+                        }}>
+                        {/* Glow background */}
+                        <div className="absolute inset-0 opacity-10 rounded-2xl" style={{ background: `radial-gradient(circle at 30% 30%, ${agent.color}, transparent 70%)` }} />
+                        {/* Status badge */}
+                        <div className="flex items-center justify-between mb-3 relative z-10">
+                          <div className="flex items-center gap-1.5">
+                            {isLive && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />}
+                            {!isLive && <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />}
+                            <span className="text-xs font-bold" style={{ color: isLive ? "#34d399" : agent.color }}>{cfg.label}</span>
                           </div>
-                          <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${cfg.badge}`}>{cfg.label}</span>
+                          <span className="text-base">{agent.emoji}</span>
                         </div>
-                        <p className="text-sm font-black" style={{ color: PREMIUM_BLUE }}>{agent.name}</p>
-                        <p className="text-xs text-slate-500 leading-tight">{agent.type}</p>
-                        {agent.lastAction && <p className="text-xs text-slate-400 mt-1 truncate">{agent.lastAction}</p>}
-                        <div className="flex items-center gap-1 mt-2">
-                          <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-                          <span className="text-xs text-slate-400">{agent.schedule}</span>
+                        {/* Avatar */}
+                        <div className="w-12 h-12 rounded-xl overflow-hidden mb-3 relative z-10 mx-auto"
+                          style={{ border: `2px solid ${agent.color}66`, background: agent.color + "22" }}>
+                          {agent.avatar
+                            ? <img src={agent.avatar} alt={agent.name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                            : <div className="w-full h-full flex items-center justify-center text-2xl">{agent.emoji}</div>
+                          }
+                        </div>
+                        {/* Name & type */}
+                        <p className="text-sm font-black text-white text-center relative z-10">{agent.name}</p>
+                        <p className="text-xs text-center leading-tight mt-0.5 relative z-10" style={{ color: agent.color }}>{agent.type}</p>
+                        {/* Last action */}
+                        {agent.lastAction && (
+                          <p className="text-xs text-slate-400 mt-2 text-center truncate relative z-10">{agent.lastAction}</p>
+                        )}
+                        {/* Schedule */}
+                        <div className="flex items-center justify-center gap-1 mt-2 relative z-10">
+                          <span className="text-xs text-slate-500">{agent.schedule}</span>
                         </div>
                       </button>
                     );
