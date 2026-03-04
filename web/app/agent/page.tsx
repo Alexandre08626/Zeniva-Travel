@@ -343,11 +343,10 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
                               {agent.emoji}
                             </div>
                           )}
-                          {/* Status badge */}
+                          {/* Status dot only */}
                           <div className="absolute top-4 right-4">
-                            <span className={`text-[10px] font-black px-3 py-1.5 rounded-full backdrop-blur-md tracking-wider shadow-lg bg-white/90 border border-gray-200 ${cfg.badge}`}>
-                              {isAlive && <span className={`inline-block h-1.5 w-1.5 rounded-full ${cfg.dot} mr-1.5 animate-pulse`} />}
-                              {cfg.label}
+                            <span className={`flex items-center justify-center w-6 h-6 rounded-full bg-white/90 shadow-md border border-gray-200`}>
+                              <span className={`h-2.5 w-2.5 rounded-full ${cfg.dot} ${isAlive ? 'animate-pulse' : ''}`} />
                             </span>
                           </div>
                           {/* Gradient fade */}
