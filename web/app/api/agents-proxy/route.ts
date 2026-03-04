@@ -5,6 +5,18 @@ const VPS_WEBHOOK = "https://vmi3097009.contaboserver.net/webhook/zeniva-lina-ch
 const AUTH = "Bearer zeniva-secret-2025";
 
 export async function GET(req: NextRequest) {
+  // Support both ?endpoint=xxx and ?path=admin/xxx
+  const pathParam = req.nextUrl.searchParams.get("path");
+  if (pathParam) {
+    try {
+      const auth = req.headers.get("Authorization") || AUTH;
+      const r = await fetch(`${VPS_BASE}/${pathParam}`, { headers: { Authorization: auth }, next: { revalidate: 0 } });
+      return NextResponse.json(await r.json());
+    } catch (err: any) {
+      return NextResponse.json({ error: err?.message }, { status: 502 });
+    }
+  }
+
   const endpoint = req.nextUrl.searchParams.get("endpoint") || "health";
 
   try {

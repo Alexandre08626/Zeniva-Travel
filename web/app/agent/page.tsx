@@ -110,46 +110,65 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
     ];
   }, [dashboardHref, isInfluencer, isHQorAdmin]);
 
+  // === REAL-TIME DASHBOARD DATA ===
+  const [dashStats, setDashStats] = useState<{
+    active_clients: number;
+    open_dossiers: number;
+    in_progress_dossiers: number;
+    commission_pipeline: number;
+    commission_pending: number;
+    followups_due: number;
+    recent_clients: Array<{id:string;name:string;email:string;status:string;destination:string;deal_value:number;last_contact:string}>;
+    recent_dossiers: Array<{id:string;title:string;client_name:string;status:string;destination:string;departure_date:string|null}>;
+    recent_followups: Array<{id:string;client_name:string;action:string;due_date:string|null}>;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchDash = async () => {
+      try {
+        const r = await fetch("/api/agents-proxy?path=admin/dashboard-stats", {
+          headers: { Authorization: "Bearer zeniva-secret-2025" }
+        });
+        if (r.ok) setDashStats(await r.json());
+      } catch {}
+    };
+    fetchDash();
+    const iv = setInterval(fetchDash, 30000);
+    return () => clearInterval(iv);
+  }, []);
+
   const kpiCards = [
-    { label: "Active clients", value: "18", delta: "+4 this week" },
-    { label: "Open dossiers", value: "27", delta: "12 in progress" },
-    { label: "Commission pipeline", value: "$46,280", delta: "$8.2k pending" },
-    { label: "Follow-ups due", value: "9", delta: "Next 48 hours" },
+    { label: "Active clients", value: dashStats ? String(dashStats.active_clients) : "—", delta: dashStats ? `${dashStats.open_dossiers} dossiers` : "Chargement..." },
+    { label: "Open dossiers", value: dashStats ? String(dashStats.open_dossiers) : "—", delta: dashStats ? `${dashStats.in_progress_dossiers} in progress` : "" },
+    { label: "Commission pipeline", value: dashStats ? `$${dashStats.commission_pipeline.toLocaleString()}` : "—", delta: dashStats ? `$${dashStats.commission_pending.toLocaleString()} pending` : "" },
+    { label: "Follow-ups due", value: dashStats ? String(dashStats.followups_due) : "—", delta: "Next 48 hours" },
   ];
 
-  const clientFocus = [
-    { name: "Sofia R.", status: "Proposal sent", next: "Follow-up today", value: "$18,400", last: "Lina chat · 2h" },
-    { name: "Daniel K.", status: "Confirmed", next: "Collect final payment", value: "$9,950", last: "Payment · 1d" },
-    { name: "Maya L.", status: "Prospect", next: "Needs dates", value: "$6,800", last: "Email · 4h" },
-    { name: "Arjun S.", status: "In planning", next: "Send hotel options", value: "$12,300", last: "Call · 6h" },
-  ];
+  const clientFocus = dashStats?.recent_clients?.map(c => ({
+    name: c.name, status: c.status,
+    next: c.destination ? `Destination: ${c.destination}` : "Voir dossier",
+    value: c.deal_value ? `$${c.deal_value.toLocaleString()}` : "—",
+    last: c.last_contact, email: c.email,
+  })) ?? [];
 
-  const dossierPipeline = [
-    { title: "Tulum escape · 7 nights", stage: "Proposal", due: "Today", owner: "Sofia R." },
-    { title: "Miami yacht weekend", stage: "Confirmed", due: "Feb 12", owner: "Daniel K." },
-    { title: "Paris fashion week", stage: "In planning", due: "Feb 14", owner: "Maya L." },
-    { title: "Bora Bora anniversary", stage: "Prospect", due: "Feb 16", owner: "Arjun S." },
-  ];
+  const dossierPipeline = dashStats?.recent_dossiers?.map(d => ({
+    title: d.title, stage: d.status, owner: d.client_name,
+    due: d.departure_date ? new Date(d.departure_date).toLocaleDateString("en-CA") : "—",
+  })) ?? [];
 
-  const chatQueue = [
-    { name: "Sofia R.", subject: "Airport transfer updates", time: "4m", channel: "Chat" },
-    { name: "Maya L.", subject: "Best dates for villas", time: "18m", channel: "Email" },
-    { name: "Private YCN", subject: "Quote revision", time: "42m", channel: "Chat" },
-  ];
+  const chatQueue: Array<{name:string;subject:string;time:string;channel:string}> = [];
 
   const accountingSnapshot = [
-    { label: "Commissions earned", value: "$12,480" },
-    { label: "Revenue generated", value: "$248,900" },
-    { label: "Payments pending", value: "$31,200" },
-    { label: "Client balances", value: "$4,680" },
+    { label: "Commission pipeline", value: dashStats ? `$${dashStats.commission_pipeline.toLocaleString()}` : "—" },
+    { label: "Commissions pending", value: dashStats ? `$${dashStats.commission_pending.toLocaleString()}` : "—" },
+    { label: "Payments pending", value: "—" },
+    { label: "Client balances", value: "—" },
   ];
 
-  const timeline = [
-    { label: "Final payment due · Daniel K.", when: "Today" },
-    { label: "Flight ticketing · Sofia R.", when: "Tomorrow" },
-    { label: "Proposal review · Maya L.", when: "Feb 10" },
-    { label: "Commission payout · Week 7", when: "Feb 14" },
-  ];
+  const timeline = dashStats?.recent_followups?.map(f => ({
+    label: `${f.action} · ${f.client_name}`,
+    when: f.due_date ? new Date(f.due_date).toLocaleDateString("en-CA") : "—",
+  })) ?? [];
 
   const toolLinks = [
     { label: "Create proposal", href: "/agent/proposals" },
