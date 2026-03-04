@@ -4,6 +4,106 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BRAND_BLUE, PREMIUM_BLUE } from "../design/tokens";
 import LinaAvatar from "./LinaAvatar";
+import { useI18n } from "../lib/i18n/I18nProvider";
+
+const WIDGET_TRANSLATIONS: Record<string, Record<string, string>> = {
+  fr: {
+    "Plan your perfect trip with Lina AI": "Planifiez votre voyage parfait avec Lina AI",
+    "Your personal travel concierge powered by AI": "Votre conseiller voyage personnel propulsé par l'IA",
+    "Flights": "Vols",
+    "Hotels": "Hôtels",
+    "Transfers": "Transferts",
+    "Rental Car": "Location de voiture",
+    "Experience": "Expérience",
+    "Cruise": "Croisière",
+    "Yacht": "Yacht",
+    "Short‑term rentals": "Locations courte durée",
+    "From (airport/city)": "Départ (aéroport/ville)",
+    "To (airport/city)": "Arrivée (aéroport/ville)",
+    "One-way": "Aller simple",
+    "Economy": "Économique",
+    "Premium Economy": "Économique Premium",
+    "Business": "Affaires",
+    "First": "Première classe",
+    "Search flights": "Rechercher vols",
+    "Search hotels": "Rechercher hôtels",
+    "Search transfers": "Rechercher transferts",
+    "Search cars": "Rechercher voitures",
+    "Search experiences": "Rechercher expériences",
+    "Search cruises": "Rechercher croisières",
+    "Search yachts": "Rechercher yachts",
+    "Search residences": "Rechercher résidences",
+    "Destination": "Destination",
+    "Check-in": "Arrivée",
+    "Check-out": "Départ",
+    "Guests": "Voyageurs",
+    "Rooms": "Chambres",
+    "Budget": "Budget",
+    "Pickup location": "Lieu de prise en charge",
+    "Dropoff location": "Lieu de dépose",
+    "Pickup date": "Date de prise en charge",
+    "Drop-off date": "Date de retour",
+    "Drivers": "Conducteurs",
+    "Region": "Région",
+    "Departure month": "Mois de départ",
+    "Duration": "Durée",
+    "Category": "Catégorie",
+    "Travelers": "Voyageurs",
+    "Country / region": "Pays / région",
+    "Talk to Lina instead": "Parler à Lina",
+    "Partner with us": "Devenez partenaire",
+    "Sign up": "S'inscrire",
+    "Log in": "Se connecter",
+  },
+  es: {
+    "Plan your perfect trip with Lina AI": "Planifica tu viaje perfecto con Lina AI",
+    "Your personal travel concierge powered by AI": "Tu asistente de viaje personal impulsado por IA",
+    "Flights": "Vuelos",
+    "Hotels": "Hoteles",
+    "Transfers": "Traslados",
+    "Rental Car": "Coche de alquiler",
+    "Experience": "Experiencia",
+    "Cruise": "Crucero",
+    "Yacht": "Yate",
+    "Short‑term rentals": "Alquileres corto plazo",
+    "From (airport/city)": "Desde (aeropuerto/ciudad)",
+    "To (airport/city)": "Hasta (aeropuerto/ciudad)",
+    "One-way": "Solo ida",
+    "Economy": "Económica",
+    "Premium Economy": "Económica Premium",
+    "Business": "Negocios",
+    "First": "Primera clase",
+    "Search flights": "Buscar vuelos",
+    "Search hotels": "Buscar hoteles",
+    "Search transfers": "Buscar traslados",
+    "Search cars": "Buscar coches",
+    "Search experiences": "Buscar experiencias",
+    "Search cruises": "Buscar cruceros",
+    "Search yachts": "Buscar yates",
+    "Search residences": "Buscar residencias",
+    "Destination": "Destino",
+    "Check-in": "Llegada",
+    "Check-out": "Salida",
+    "Guests": "Huéspedes",
+    "Rooms": "Habitaciones",
+    "Budget": "Presupuesto",
+    "Pickup location": "Lugar de recogida",
+    "Dropoff location": "Lugar de entrega",
+    "Pickup date": "Fecha de recogida",
+    "Drop-off date": "Fecha de devolución",
+    "Drivers": "Conductores",
+    "Region": "Región",
+    "Departure month": "Mes de salida",
+    "Duration": "Duración",
+    "Category": "Categoría",
+    "Travelers": "Viajeros",
+    "Country / region": "País / región",
+    "Talk to Lina instead": "Hablar con Lina",
+    "Partner with us": "Asóciate con nosotros",
+    "Sign up": "Registrarse",
+    "Log in": "Iniciar sesión",
+  },
+};
 
 <style>{`
   @media (max-width: 640px) {
@@ -63,6 +163,8 @@ import LinaAvatar from "./LinaAvatar";
 type Tab = "flights" | "hotels" | "cruises" | "experiences" | "transfers" | "cars" | "yachts" | "residences";
 
 export default function TravelSearchWidget() {
+  const { locale } = useI18n();
+  const tx = (s: string) => WIDGET_TRANSLATIONS[locale]?.[s] ?? s;
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("flights");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -213,21 +315,21 @@ export default function TravelSearchWidget() {
       {/* Desktop: formulaire de recherche classique et tabs */}
       <div className="hidden sm:block">
         <div className="mb-4 text-center">
-          <h2 className="text-xl font-bold text-slate-900">Plan your perfect trip with Lina AI</h2>
-          <p className="text-base text-slate-600 mt-1">Your personal travel concierge powered by AI</p>
+          <h2 className="text-xl font-bold text-slate-900">{tx("Plan your perfect trip with Lina AI")}</h2>
+          <p className="text-base text-slate-600 mt-1">{tx("Your personal travel concierge powered by AI")}</p>
         </div>
 
         {/* Tabs (desktop) */}
         <div className="search-tabs mb-4 flex items-center justify-center gap-3">
           {[
-            { key: 'flights', label: 'Flights' },
-            { key: 'hotels', label: 'Hotels' },
-            { key: 'transfers', label: 'Transfers' },
-            { key: 'cars', label: 'Rental Car' },
-            { key: 'experiences', label: 'Experience' },
-            { key: 'cruises', label: 'Cruise' },
-            { key: 'yachts', label: 'Yacht' },
-            { key: 'residences', label: 'Short‑term rentals' },
+            { key: 'flights', label: tx('Flights') },
+            { key: 'hotels', label: tx('Hotels') },
+            { key: 'transfers', label: tx('Transfers') },
+            { key: 'cars', label: tx('Rental Car') },
+            { key: 'experiences', label: tx('Experience') },
+            { key: 'cruises', label: tx('Cruise') },
+            { key: 'yachts', label: tx('Yacht') },
+            { key: 'residences', label: tx('Short‑term rentals') },
           ].map((t: any) => (
             <button
               key={t.key}
@@ -262,8 +364,8 @@ export default function TravelSearchWidget() {
       <div className="hidden sm:block">
         {tab === "flights" && (
           <form onSubmit={searchFlights} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <input value={from} onChange={(e) => setFrom(e.target.value)} placeholder="From (airport/city)" required className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
-            <input value={to} onChange={(e) => setTo(e.target.value)} placeholder="To (airport/city)" required className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
+            <input value={from} onChange={(e) => setFrom(e.target.value)} placeholder={tx("From (airport/city)")} required className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
+            <input value={to} onChange={(e) => setTo(e.target.value)} placeholder={tx("To (airport/city)")} required className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
             <input
               type="date"
               value={depart}
@@ -286,26 +388,26 @@ export default function TravelSearchWidget() {
                 className="flex-1 rounded-2xl bg-slate-50 px-4 py-3"
                 disabled={oneWay}
               />
-              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={oneWay} onChange={(e) => { setOneWay(e.target.checked); if (e.target.checked) setRet(""); }} /> One-way</label>
+              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={oneWay} onChange={(e) => { setOneWay(e.target.checked); if (e.target.checked) setRet(""); }} /> {tx("One-way")}</label>
             </div>
             <select value={passengers} onChange={(e) => setPassengers(Number(e.target.value))} className="w-full rounded-2xl bg-slate-50 px-4 py-3" aria-label="Passengers" data-nosnippet>
               {[1,2,3,4,5,6].map(n=>(<option key={n} value={n}>{n}</option>))}
             </select>
             <select value={cabin} onChange={(e)=>setCabin(e.target.value)} className="w-full rounded-2xl bg-slate-50 px-4 py-3">
-              {['Economy','Premium Economy','Business','First'].map(c=>(<option key={c} value={c}>{c}</option>))}
+              {['Economy','Premium Economy','Business','First'].map(c=>(<option key={c} value={c}>{tx(c)}</option>))}
             </select>
 
             <div className="md:col-span-2 flex justify-end">
-              <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>Search flights</button>
+              <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>{tx("Search flights")}</button>
             </div>
           </form>
         )}
 
         {tab === "hotels" && (
           <form onSubmit={searchHotels} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <input value={hotelDestination} onChange={(e)=>setHotelDestination(e.target.value)} placeholder="Destination" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
-            <input value={checkIn} onChange={(e)=>setCheckIn(e.target.value)} placeholder="Check-in" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
-            <input value={checkOut} onChange={(e)=>setCheckOut(e.target.value)} placeholder="Check-out" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
+            <input value={hotelDestination} onChange={(e)=>setHotelDestination(e.target.value)} placeholder={tx("Destination")} className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
+            <input value={checkIn} onChange={(e)=>setCheckIn(e.target.value)} placeholder={tx("Check-in")} className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
+            <input value={checkOut} onChange={(e)=>setCheckOut(e.target.value)} placeholder={tx("Check-out")} className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
             <div className="flex gap-2">
               <input value={guests} onChange={(e)=>setGuests(Number(e.target.value))} placeholder="Guests" className="w-24 rounded-2xl bg-slate-50 px-4 py-3" type="number" data-nosnippet />
               <input value={rooms} onChange={(e)=>setRooms(Number(e.target.value))} placeholder="Rooms" className="w-24 rounded-2xl bg-slate-50 px-4 py-3" type="number" data-nosnippet />
@@ -313,7 +415,7 @@ export default function TravelSearchWidget() {
             <input value={budget} onChange={(e)=>setBudget(e.target.value)} placeholder="Budget (optional)" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
 
             <div className="md:col-span-2 flex justify-end">
-              <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>Search hotels</button>
+              <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>{tx("Search hotels")}</button>
             </div>
           </form>
         )}
@@ -326,12 +428,12 @@ export default function TravelSearchWidget() {
               <option>Mediterranean</option>
               <option>Alaska</option>
             </select>
-            <input value={departureMonth} onChange={(e)=>setDepartureMonth(e.target.value)} placeholder="Departure month" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
+            <input value={departureMonth} onChange={(e)=>setDepartureMonth(e.target.value)} placeholder={tx("Departure month")} className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
             <input value={duration} onChange={(e)=>setDuration(e.target.value)} placeholder="Duration (nights)" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
             <input value={cruiseGuests} onChange={(e)=>setCruiseGuests(Number(e.target.value))} placeholder="Guests" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="number" data-nosnippet />
 
             <div className="md:col-span-2 flex justify-end">
-              <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>Search cruises</button>
+              <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>{tx("Search cruises")}</button>
             </div>
           </form>
         )}
@@ -350,33 +452,33 @@ export default function TravelSearchWidget() {
             </select>
 
             <div className="md:col-span-2 flex justify-end">
-              <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>Search experiences</button>
+              <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>{tx("Search experiences")}</button>
             </div>
           </form>
         )}
 
         {tab === "transfers" && (
           <form onSubmit={searchTransfers} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <input value={transferPickup} onChange={(e)=>setTransferPickup(e.target.value)} placeholder="Pickup location" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
+            <input value={transferPickup} onChange={(e)=>setTransferPickup(e.target.value)} placeholder={tx("Pickup location")} className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
             <input value={transferDropoff} onChange={(e)=>setTransferDropoff(e.target.value)} placeholder="Drop-off location" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
             <input value={transferDate} onChange={(e)=>setTransferDate(e.target.value)} placeholder="Date" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="date" />
             <input value={transferPassengers} onChange={(e)=>setTransferPassengers(Number(e.target.value))} placeholder="Passengers" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="number" data-nosnippet />
 
             <div className="md:col-span-2 flex justify-end">
-              <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>Search transfers</button>
+              <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>{tx("Search transfers")}</button>
             </div>
           </form>
         )}
 
         {tab === "cars" && (
           <form onSubmit={searchCars} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <input value={carPickup} onChange={(e)=>setCarPickup(e.target.value)} placeholder="Pickup location" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
-            <input value={carPickupDate} onChange={(e)=>setCarPickupDate(e.target.value)} placeholder="Pickup date" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="date" />
+            <input value={carPickup} onChange={(e)=>setCarPickup(e.target.value)} placeholder={tx("Pickup location")} className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
+            <input value={carPickupDate} onChange={(e)=>setCarPickupDate(e.target.value)} placeholder={tx("Pickup date")} className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="date" />
             <input value={carDropoffDate} onChange={(e)=>setCarDropoffDate(e.target.value)} placeholder="Dropoff date" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="date" />
             <input value={carDrivers} onChange={(e)=>setCarDrivers(Number(e.target.value))} placeholder="Drivers" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="number" data-nosnippet />
 
             <div className="md:col-span-2 flex justify-end">
-              <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>Search cars</button>
+              <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>{tx("Search cars")}</button>
             </div>
           </form>
         )}

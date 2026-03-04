@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore, logout, switchActiveSpace, setPreviewRole } from '@/src/lib/authStore';
 import { canPreviewRole, RBAC_ROLES, type RbacRole } from '@/src/lib/rbac';
 import LinaAvatar from './LinaAvatar';
+import { locales, localeLabels } from '../lib/i18n/config';
+import { useI18n } from '../lib/i18n/I18nProvider';
 
 export default function AccountMenu() {
   const user = useAuthStore((s) => s.user);
@@ -20,6 +22,7 @@ export default function AccountMenu() {
   const canTraveler = roles.includes('traveler') || !!user?.travelerProfile;
   const canPreview = canPreviewRole({ email: user?.email, id: (user as any)?.id });
   const previewRole = user?.effectiveRole || '';
+  const { locale, setLocale } = useI18n();
 
   function goTo(space: 'traveler'|'partner'|'agent') {
     if (space === 'traveler' && !canTraveler) {
@@ -63,6 +66,24 @@ export default function AccountMenu() {
             style={{ top: menuStyle?.top ?? 64, right: menuStyle?.right ?? 16 }}
           >
             <div className="mb-2 text-sm text-slate-600">Signed in as <strong className="text-slate-900">{user.email}</strong></div>
+            {/* Language switcher */}
+            <div className="mb-3 border rounded-xl p-2 bg-slate-50">
+              <p className="text-xs font-semibold text-slate-500 mb-2 px-1">🌐 Language</p>
+              <div className="flex gap-1">
+                {locales.map((loc) => (
+                  <button
+                    key={loc}
+                    onClick={() => { setLocale(loc); if (typeof window !== 'undefined') window.localStorage.setItem('zeniva_locale', loc); }}
+                    className={[
+                      'flex-1 py-1.5 rounded-lg text-xs font-bold transition-all',
+                      locale === loc ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-200',
+                    ].join(' ')}
+                  >
+                    {localeLabels[loc]}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="space-y-2">
               <button onClick={() => goTo('traveler')} className="w-full text-left px-3 py-2 rounded text-slate-900 hover:bg-slate-50">Switch to Traveler</button>
               {canPartner && <button onClick={() => goTo('partner')} className="w-full text-left px-3 py-2 rounded text-slate-900 hover:bg-slate-50">Switch to Partner</button>}
