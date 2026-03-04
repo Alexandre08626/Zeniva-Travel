@@ -173,7 +173,7 @@ export default function InfluencerPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-black text-white">🎬 Vidéos approuvées à partager</h2>
-                <p className="mt-1 text-slate-400">Chaque vidéo a <strong className="text-white">ton lien unique</strong> intégré → les clients qui remplissent le formulaire deviennent tes leads.</p>
+                <p className="mt-1 text-white/80">Chaque vidéo a <strong className="text-white">ton lien unique</strong> intégré → les clients qui remplissent le formulaire deviennent tes leads.</p>
               </div>
               {isHQ && (
                 <span className="rounded-full border border-yellow-400/30 bg-yellow-400/10 px-3 py-1.5 text-xs font-bold text-yellow-300">
