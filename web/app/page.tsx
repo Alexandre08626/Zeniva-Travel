@@ -68,7 +68,7 @@ export default function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
       {/* ── HEADER ── */}
-      <div className="hidden sm:block w-full px-6 bg-white border-b border-slate-100 shadow-sm sticky top-0 z-50">
+      <div className="hidden sm:block w-screen relative left-1/2 -translate-x-1/2 px-6 bg-white border-b border-slate-100 shadow-sm sticky top-0 z-50">
         <Header isLoggedIn={isLoggedIn} userEmail={userEmail} />
       </div>
 
