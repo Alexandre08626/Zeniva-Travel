@@ -198,22 +198,73 @@ export default function FinancePage() {
 
           {/* Commission summary */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-            <h3 className="font-black text-slate-800 mb-4">Commission Rate</h3>
-            <div className="rounded-xl p-4 mb-4" style={{ background: `${ACCENT_GOLD}20`, border: `1px solid ${ACCENT_GOLD}` }}>
-              <div className="text-3xl font-black mb-1" style={{ color: PREMIUM_BLUE }}>5%</div>
-              <div className="text-sm font-semibold text-slate-700">of Zeniva's net profit per trip</div>
-              <div className="text-xs text-slate-500 mt-1">Example: $5,000 trip · $1,000 Zeniva profit → <strong>$50 commission</strong></div>
+            <h3 className="font-black text-slate-800 mb-4">Commission Structures</h3>
+
+            {/* Travel Agent */}
+            <div className="rounded-xl p-4 mb-3 bg-blue-50 border border-blue-200">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-lg">✈️</span>
+                <span className="font-black text-blue-900">Travel Agents</span>
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-black text-blue-700">70%</span>
+                <span className="text-sm text-blue-600">agent · 30% Zeniva</span>
+              </div>
+              <div className="text-xs text-blue-500 mt-1">of total sale amount</div>
+              <div className="text-xs text-blue-400 mt-0.5">Ex: $5,000 trip → <strong className="text-blue-700">$3,500</strong> agent · $1,500 Zeniva</div>
             </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between py-2 border-b border-slate-100">
+
+            {/* Lina alone rule */}
+            <div className="rounded-xl p-3 mb-3 bg-amber-50 border border-amber-200">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-lg">🤖</span>
+                <span className="font-bold text-amber-900 text-sm">Lina Books Alone</span>
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg font-black text-amber-700">70%</span>
+                <span className="text-xs text-amber-600">Zeniva · 30% agent</span>
+              </div>
+              <div className="text-xs text-amber-500 mt-0.5">Reversed — no agent involvement in closing</div>
+            </div>
+
+            {/* Yacht Broker */}
+            <div className="rounded-xl p-4 mb-3 bg-indigo-50 border border-indigo-200">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-lg">⛵</span>
+                <span className="font-black text-indigo-900">Yacht Brokers</span>
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-black text-indigo-700">5%</span>
+                <span className="text-sm text-indigo-600">agent · 95% Zeniva Yacht</span>
+              </div>
+              <div className="text-xs text-indigo-500 mt-1">of Zeniva's net profit</div>
+              <div className="text-xs text-indigo-400 mt-0.5">Ex: $50k charter, $10k profit → <strong className="text-indigo-700">$500</strong> agent</div>
+            </div>
+
+            {/* Influencer */}
+            <div className="rounded-xl p-4 mb-4 bg-purple-50 border border-purple-200">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-lg">⭐</span>
+                <span className="font-black text-purple-900">Influencers</span>
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-black text-purple-700">5%</span>
+                <span className="text-sm text-purple-600">influencer · 95% Zeniva</span>
+              </div>
+              <div className="text-xs text-purple-500 mt-1">of Zeniva's net profit</div>
+              <div className="text-xs text-purple-400 mt-0.5">Ex: $5k trip, $1k profit → <strong className="text-purple-700">$50</strong> commission</div>
+            </div>
+
+            <div className="space-y-2 text-sm border-t border-slate-100 pt-3">
+              <div className="flex justify-between py-1.5 border-b border-slate-100">
                 <span className="text-slate-500">Total agents</span>
                 <span className="font-bold">{new Set(commissions.map(c => c.agent_email)).size || "—"}</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-slate-100">
+              <div className="flex justify-between py-1.5 border-b border-slate-100">
                 <span className="text-slate-500">Paid out</span>
                 <span className="font-bold text-emerald-600">{commissions.filter(c => c.status === "paid").length} commissions</span>
               </div>
-              <div className="flex justify-between py-2">
+              <div className="flex justify-between py-1.5">
                 <span className="text-slate-500">Pending payout</span>
                 <span className="font-bold text-amber-600">{commissions.filter(c => c.status === "pending").length} commissions</span>
               </div>
