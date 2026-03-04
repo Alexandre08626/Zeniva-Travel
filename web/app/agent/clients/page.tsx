@@ -124,7 +124,8 @@ export default function ClientsPage() {
   const fetchClients = async () => {
     setLoading(true);
     try {
-      const r = await fetch(`/api/agents-proxy?path=admin/all-clients`, {
+      const agentParam = user?.email ? `&agent_email=${encodeURIComponent(user.email)}` : "";
+      const r = await fetch(`/api/agents-proxy?path=admin/all-clients${agentParam}`, {
         headers: { Authorization: AUTH },
       });
       const data = await r.json();

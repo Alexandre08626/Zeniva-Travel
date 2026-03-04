@@ -69,7 +69,8 @@ export default function ChatHubPage() {
     setLoading(true);
     try {
       // Chat Hub shows only real accounts (people who created an account), not all leads
-      const r = await fetch(`/api/agents-proxy?path=admin/all-clients`);
+      const agentParam = user?.email ? `&agent_email=${encodeURIComponent(user.email)}` : "";
+      const r = await fetch(`/api/agents-proxy?path=admin/all-clients${agentParam}`);
       const d = await r.json();
       // Map accounts to Lead format, enriching with conversation data
       // Use lead_id for loading messages (conversations table references lead_id)
