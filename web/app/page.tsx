@@ -68,7 +68,7 @@ export default function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
       {/* ── HEADER ── */}
-      <div className="hidden sm:block w-full px-6 pt-5 absolute top-0 left-0 z-20">
+      <div className="hidden sm:block w-full px-6 bg-white border-b border-slate-100 shadow-sm sticky top-0 z-50">
         <Header isLoggedIn={isLoggedIn} userEmail={userEmail} />
       </div>
 
@@ -239,7 +239,7 @@ export default function HomePage() {
           {/* Grid pattern overlay */}
           <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
 
-          <div className="relative z-10 w-full px-12 xl:px-20 pt-28 pb-12">
+          <div className="relative z-10 w-full px-12 xl:px-20 pt-12 pb-12">
             <div className="w-full grid grid-cols-2 gap-12 items-center">
 
               {/* Left: Text + Search */}
