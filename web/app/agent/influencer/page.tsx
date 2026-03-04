@@ -51,10 +51,10 @@ export default function InfluencerPage() {
 
   const siteBase = "https://www.zenivatravel.com";
   const refCode = stats.referralCode || (user?.email?.split("@")[0] ?? "ref");
-  const myLink = `${siteBase}/ref/${encodeURIComponent(refCode)}`;
+  const myLink = `${siteBase}/forms/travel?agent=${encodeURIComponent(user?.email ?? refCode)}`;
 
   const videoShareLink = (videoId: string) =>
-    `${siteBase}/ref/${encodeURIComponent(refCode)}/video/${videoId}`;
+    `${siteBase}/forms/travel?agent=${encodeURIComponent(user?.email ?? refCode)}&video=${videoId}`;
 
   const copy = async (text: string, key: string) => {
     try { await navigator.clipboard.writeText(text); } catch {}
