@@ -225,63 +225,59 @@ export default function HomePage() {
       ══════════════════════════════════════════ */}
       <div className="hidden sm:block">
 
-        {/* ── HERO ── */}
-        <section className="relative w-full overflow-hidden" style={{ minHeight: "92vh" }}>
-          {/* Background */}
+        {/* ── HERO — full width, compact ── */}
+        <section className="relative w-full overflow-hidden" style={{ minHeight: "auto" }}>
+          {/* Background full width */}
           <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #060E1D 0%, #0B1B4D 45%, #0a2260 100%)" }} />
 
           {/* Animated gradient orbs */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute w-[800px] h-[800px] rounded-full opacity-20" style={{ top: "-200px", right: "-200px", background: "radial-gradient(circle, #E6B85A 0%, transparent 65%)", filter: "blur(60px)" }} />
-            <div className="absolute w-[600px] h-[600px] rounded-full opacity-15" style={{ top: "20%", left: "-100px", background: "radial-gradient(circle, #0F6CF5 0%, transparent 70%)", filter: "blur(80px)" }} />
-            <div className="absolute w-[500px] h-[500px] rounded-full opacity-10" style={{ bottom: "0", right: "30%", background: "radial-gradient(circle, #6366f1 0%, transparent 70%)", filter: "blur(60px)" }} />
+            <div className="absolute w-[600px] h-[600px] rounded-full opacity-20" style={{ top: "-150px", right: "-100px", background: "radial-gradient(circle, #E6B85A 0%, transparent 65%)", filter: "blur(60px)" }} />
+            <div className="absolute w-[400px] h-[400px] rounded-full opacity-15" style={{ bottom: "-50px", left: "-80px", background: "radial-gradient(circle, #0F6CF5 0%, transparent 70%)", filter: "blur(60px)" }} />
           </div>
 
           {/* Grid pattern overlay */}
           <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
 
-          <div className="relative z-10 w-full px-8 xl:px-16 py-16 flex items-center" style={{ minHeight: "92vh" }}>
-            <div className="w-full grid grid-cols-2 gap-16 items-center max-w-[1400px] mx-auto">
+          <div className="relative z-10 w-full px-8 xl:px-16 py-12">
+            <div className="w-full grid grid-cols-2 gap-12 items-center">
 
               {/* Left: Text + Search */}
-              <div className="space-y-8">
+              <div className="space-y-6">
                 {/* Badge */}
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 backdrop-blur px-4 py-2">
                   <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
                   <span className="text-xs font-bold text-white/80 tracking-wider uppercase">Lina AI · Available 24/7</span>
                 </div>
 
-                {/* Headline */}
+                {/* Headline + subtitle on same line */}
                 <div>
-                  <h1 className="text-6xl xl:text-7xl font-black leading-none tracking-tight text-white">
-                    Travel the<br/>
-                    <span className="relative inline-block">
+                  <div className="flex items-baseline gap-4 flex-wrap">
+                    <h1 className="text-5xl xl:text-6xl font-black leading-none tracking-tight text-white whitespace-nowrap">
+                      Travel the{" "}
                       <span style={{ background: "linear-gradient(90deg, #E6B85A 0%, #f7d98a 50%, #E6B85A 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                         World
-                      </span>
-                      {/* Underline decoration */}
-                      <svg className="absolute -bottom-2 left-0 w-full" height="8" viewBox="0 0 200 8" fill="none">
-                        <path d="M0 6 Q50 0 100 4 Q150 8 200 2" stroke="#E6B85A" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.6"/>
-                      </svg>
-                    </span>
-                    <br/>
-                    <span className="text-white/90">Smarter.</span>
-                  </h1>
-                  <p className="mt-6 text-lg text-white/60 leading-relaxed max-w-lg">
-                    <AutoTranslate text="Lina AI plans your perfect trip in seconds — flights, hotels, experiences, all curated to your taste and budget." className="inline" />
-                  </p>
+                      </span>{" "}
+                      Smarter.
+                    </h1>
+                    <p className="text-base text-white/50 font-medium">
+                      <AutoTranslate text="Your personal AI travel concierge" className="inline" />
+                    </p>
+                  </div>
                 </div>
 
-                {/* Search Widget */}
-                <div className="bg-white rounded-3xl shadow-2xl p-6" style={{ boxShadow: "0 25px 80px rgba(0,0,0,0.4)" }}>
-                  <div className="flex items-center gap-2 mb-4">
-                    <img src="/branding/lina-avatar.png" alt="Lina" className="w-7 h-7 rounded-full border-2 border-yellow-400/40" />
-                    <span className="text-sm font-bold text-slate-700">Plan your perfect trip with Lina AI</span>
-                    <span className="ml-auto text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">LIVE</span>
+                {/* Search Widget — contained */}
+                <div className="bg-white rounded-3xl shadow-2xl p-5 overflow-hidden" style={{ boxShadow: "0 25px 80px rgba(0,0,0,0.4)" }}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <img src="/branding/lina-avatar.png" alt="Lina" className="w-6 h-6 rounded-full border-2 border-yellow-400/40" />
+                    <span className="text-sm font-bold text-slate-700"><AutoTranslate text="Plan your perfect trip with Lina AI" className="inline" /></span>
+                    <span className="ml-auto text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full flex-shrink-0">LIVE</span>
                   </div>
-                  <TravelSearchWidget />
+                  <div className="w-full overflow-hidden">
+                    <TravelSearchWidget />
+                  </div>
                   {/* Quick prompts */}
-                  <div className="mt-4 flex flex-wrap gap-2">
+                  <div className="mt-3 flex flex-wrap gap-2">
                     {[
                       { label: "🏖️ Beach escape", p: "Beach vacation 7 nights" },
                       { label: "💑 Honeymoon", p: "Romantic honeymoon" },
@@ -299,80 +295,49 @@ export default function HomePage() {
                 <div className="flex gap-8">
                   {STATS.map((s) => (
                     <div key={s.value}>
-                      <div className="text-2xl font-black text-white">{s.value}</div>
+                      <div className="text-xl font-black text-white">{s.value}</div>
                       <div className="text-xs text-white/40 mt-0.5">{s.label}</div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Right: Lina visual + destination cards */}
-              <div className="relative flex items-center justify-center" style={{ minHeight: "600px" }}>
-
+              {/* Right: Lina visual + floating cards */}
+              <div className="relative flex items-center justify-center" style={{ minHeight: "460px" }}>
                 {/* Main Lina image */}
                 <div className="relative z-10">
-                  {/* Glow ring */}
                   <div className="absolute inset-0 rounded-full" style={{ margin: "-20px", background: "radial-gradient(circle, rgba(230,184,90,0.3) 0%, transparent 70%)", filter: "blur(20px)" }} />
-                  {/* Orbit ring */}
                   <div className="absolute inset-0 rounded-full border border-yellow-400/20 animate-spin" style={{ margin: "-30px", animationDuration: "20s" }} />
-                  <div className="absolute inset-0 rounded-full border border-blue-400/10 animate-spin" style={{ margin: "-50px", animationDuration: "30s", animationDirection: "reverse" }} />
 
                   <img
                     src="/branding/lina-avatar.png"
                     alt="Lina AI"
                     className="relative rounded-full object-cover border-4 shadow-2xl"
-                    style={{ width: "320px", height: "320px", borderColor: "rgba(230,184,90,0.4)", boxShadow: "0 0 80px rgba(230,184,90,0.2), 0 30px 80px rgba(0,0,0,0.5)" }}
+                    style={{ width: "260px", height: "260px", borderColor: "rgba(230,184,90,0.4)", boxShadow: "0 0 80px rgba(230,184,90,0.2), 0 30px 80px rgba(0,0,0,0.5)" }}
                   />
-
-                  {/* Live badge */}
                   <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-xl border border-yellow-100">
                     <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                     <span className="text-xs font-black text-slate-800">Lina AI · Online now</span>
                   </div>
                 </div>
 
-                {/* Floating destination cards */}
-                {/* Card top-left */}
-                <div className="absolute top-0 left-0 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex items-center gap-3 shadow-xl" style={{ maxWidth: "180px" }}>
-                  <img src="https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=100&q=80" className="w-10 h-10 rounded-xl object-cover" alt="Santorini" />
-                  <div>
-                    <div className="text-xs font-black text-white">Santorini</div>
-                    <div className="text-[10px] text-white/50">From $2,800</div>
-                  </div>
+                {/* Floating cards */}
+                <div className="absolute top-0 left-0 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex items-center gap-3 shadow-xl" style={{ maxWidth: "170px" }}>
+                  <img src="https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=100&q=80" className="w-10 h-10 rounded-xl object-cover flex-shrink-0" alt="Santorini" />
+                  <div><div className="text-xs font-black text-white">Santorini</div><div className="text-[10px] text-white/50">From $2,800</div></div>
                 </div>
-
-                {/* Card top-right */}
-                <div className="absolute top-16 right-0 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex items-center gap-3 shadow-xl" style={{ maxWidth: "180px" }}>
-                  <img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=100&q=80" className="w-10 h-10 rounded-xl object-cover" alt="Dubai" />
-                  <div>
-                    <div className="text-xs font-black text-white">Dubai</div>
-                    <div className="text-[10px] text-white/50">From $3,500</div>
-                  </div>
+                <div className="absolute top-12 right-0 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex items-center gap-3 shadow-xl" style={{ maxWidth: "170px" }}>
+                  <img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=100&q=80" className="w-10 h-10 rounded-xl object-cover flex-shrink-0" alt="Dubai" />
+                  <div><div className="text-xs font-black text-white">Dubai</div><div className="text-[10px] text-white/50">From $3,500</div></div>
                 </div>
-
-                {/* Card bottom-left */}
-                <div className="absolute bottom-20 left-0 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex items-center gap-3 shadow-xl" style={{ maxWidth: "180px" }}>
-                  <img src="https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=100&q=80" className="w-10 h-10 rounded-xl object-cover" alt="Maldives" />
-                  <div>
-                    <div className="text-xs font-black text-white">Maldives</div>
-                    <div className="text-[10px] text-white/50">From $4,200</div>
-                  </div>
+                <div className="absolute bottom-16 left-0 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex items-center gap-3 shadow-xl" style={{ maxWidth: "170px" }}>
+                  <img src="https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=100&q=80" className="w-10 h-10 rounded-xl object-cover flex-shrink-0" alt="Bali" />
+                  <div><div className="text-xs font-black text-white">Bali</div><div className="text-[10px] text-white/50">From $1,950</div></div>
                 </div>
-
-                {/* Card bottom-right */}
-                <div className="absolute bottom-16 right-0 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex items-center gap-3 shadow-xl" style={{ maxWidth: "180px" }}>
-                  <img src="https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=100&q=80" className="w-10 h-10 rounded-xl object-cover" alt="Bali" />
-                  <div>
-                    <div className="text-xs font-black text-white">Bali</div>
-                    <div className="text-[10px] text-white/50">From $1,950</div>
-                  </div>
-                </div>
-
-                {/* Active chat bubble */}
-                <div className="absolute top-[45%] right-[-20px] bg-white rounded-2xl p-3 shadow-2xl border border-slate-100" style={{ maxWidth: "220px" }}>
+                <div className="absolute bottom-8 right-0 bg-white rounded-2xl p-3 shadow-2xl border border-slate-100" style={{ maxWidth: "210px" }}>
                   <div className="flex items-start gap-2">
                     <img src="/branding/lina-avatar.png" alt="Lina" className="w-6 h-6 rounded-full flex-shrink-0" />
-                    <div className="text-[11px] text-slate-700 font-medium leading-relaxed">"I found 3 perfect options for your Cancún trip in July! 🌴"</div>
+                    <div className="text-[11px] text-slate-700 font-medium leading-relaxed">"Found 3 perfect Cancún options for July! 🌴"</div>
                   </div>
                 </div>
               </div>
@@ -381,16 +346,16 @@ export default function HomePage() {
 
           {/* Bottom wave */}
           <div className="absolute bottom-0 left-0 w-full">
-            <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" className="w-full h-16">
-              <path d="M0 40 Q360 80 720 40 Q1080 0 1440 40 V80 H0 Z" fill="#F8FAFF" />
+            <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" className="w-full h-12">
+              <path d="M0 30 Q360 60 720 30 Q1080 0 1440 30 V60 H0 Z" fill="#F8FAFF" />
             </svg>
           </div>
         </section>
 
         {/* ── SERVICES STRIP ── */}
-        <section className="w-full px-8 xl:px-16 py-16">
+        <section className="w-full px-8 xl:px-16 py-12">
           <div className="max-w-[1400px] mx-auto">
-            <div className="text-center mb-10">
+            <div className="text-center mb-8">
               <h2 className="text-3xl font-black text-slate-900">
                 <AutoTranslate text="Everything you need for the perfect trip" className="inline" />
               </h2>
@@ -404,49 +369,6 @@ export default function HomePage() {
                   </div>
                   <div className="text-sm font-black text-slate-900">{s.title}</div>
                   <div className="text-xs text-slate-400 mt-1">{s.desc}</div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── DESTINATIONS ── */}
-        <section className="w-full px-8 xl:px-16 py-16 bg-white">
-          <div className="max-w-[1400px] mx-auto">
-            <div className="flex items-end justify-between mb-10">
-              <div>
-                <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">✈️ Top Destinations</p>
-                <h2 className="text-4xl font-black text-slate-900"><AutoTranslate text="Where do you want to go?" className="inline" /></h2>
-              </div>
-              <Link href="/packages" className="text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                See all destinations <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
-              </Link>
-            </div>
-            <div className="grid grid-cols-3 gap-5">
-              {/* Big card */}
-              <Link href={`/chat?prompt=I want to go to ${DESTINATIONS[0].name}`} className="group col-span-1 row-span-2 relative rounded-3xl overflow-hidden cursor-pointer" style={{ minHeight: "500px" }}>
-                <img src={DESTINATIONS[0].img} alt={DESTINATIONS[0].name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                <div className="absolute inset-0" style={{ background: "linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.1) 60%)" }} />
-                <div className="absolute bottom-0 left-0 p-6">
-                  <span className="inline-block rounded-full px-3 py-1 text-xs font-bold text-white mb-3" style={{ backgroundColor: DESTINATIONS[0].color }}>{DESTINATIONS[0].tag}</span>
-                  <div className="text-white/60 text-sm font-medium">{DESTINATIONS[0].country} {DESTINATIONS[0].emoji}</div>
-                  <div className="text-white text-3xl font-black mt-1">{DESTINATIONS[0].name}</div>
-                  <div className="mt-3 flex items-center gap-2 text-white/70 text-sm">
-                    <span>Ask Lina to plan this trip</span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
-                  </div>
-                </div>
-              </Link>
-              {/* Small cards */}
-              {DESTINATIONS.slice(1).map((d) => (
-                <Link key={d.name} href={`/chat?prompt=I want to go to ${d.name}`} className="group relative rounded-3xl overflow-hidden cursor-pointer" style={{ height: "235px" }}>
-                  <img src={d.img} alt={d.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                  <div className="absolute inset-0" style={{ background: "linear-gradient(0deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.05) 50%)" }} />
-                  <div className="absolute bottom-0 left-0 p-4">
-                    <span className="inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold text-white mb-2" style={{ backgroundColor: d.color }}>{d.tag}</span>
-                    <div className="text-white/60 text-xs">{d.country} {d.emoji}</div>
-                    <div className="text-white text-xl font-black">{d.name}</div>
-                  </div>
                 </Link>
               ))}
             </div>
