@@ -553,7 +553,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
               </div>
             </div>
             <div className="p-6 bg-white space-y-4">
-              <p className="text-sm text-slate-700">{selectedAgent.desc}</p>
+              <p className="text-sm text-slate-700">{selectedAgent.description}</p>
               <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Statut</span>
