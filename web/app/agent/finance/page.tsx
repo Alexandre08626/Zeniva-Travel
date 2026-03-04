@@ -1,290 +1,337 @@
 "use client";
-import { useMemo, useState } from "react";
-import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
-import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE, ACCENT_GOLD } from "../../../src/design/tokens";
+export const dynamic = "force-dynamic";
 
-type Invoice = {
+import { useEffect, useState } from "react";
+import { useAuthStore, isHQ } from "@/src/lib/authStore";
+
+const PREMIUM_BLUE = "#0B1B4D";
+const BRAND_BLUE = "#0F6CF5";
+const ACCENT_GOLD = "#E6B85A";
+
+interface FinanceStats {
+  total_revenue: number;
+  commissions_paid: number;
+  commissions_pending: number;
+  bookings_this_month: number;
+  revenue_this_month: number;
+  avg_deal_value: number;
+}
+
+interface Commission {
   id: string;
-  client: string;
-  product: string;
-  status: "paid" | "pending" | "canceled";
-  amount: string;
-  agent: string;
-  date: string;
-  pdf?: string;
-};
+  agent_name: string;
+  agent_email: string;
+  client_name: string;
+  trip: string;
+  sale_amount: number;
+  zeniva_profit: number;
+  commission: number;
+  status: "pending" | "paid";
+  created_at: string;
+}
 
-type Payment = {
+interface Booking {
   id: string;
-  method: "Card" | "Stripe" | "Wire" | "Other";
-  amount: string;
-  date: string;
-  client: string;
-  agent: string;
-  dossier: string;
-};
-
-type Commission = {
-  id: string;
-  agent: string;
-  dossier: string;
-  product: "Travel" | "Yacht" | "Resort" | "Excursion";
-  status: "due" | "paid" | "pending";
-  base: string;
-  split: string;
-  zeniva: string;
-  agentShare: string;
-};
-
-const invoices: Invoice[] = [
-  { id: "INV-2042", client: "Dupuis / Cancun", product: "Package", status: "paid", amount: "$6,200", agent: "Alice", date: "2026-01-05", pdf: "/invoices/INV-2042.pdf" },
-  { id: "INV-2038", client: "HQ / Yacht Med", product: "Yacht", status: "pending", amount: "$42,500", agent: "Marco", date: "2026-01-03" },
-  { id: "INV-2033", client: "NovaTech", product: "Flights", status: "paid", amount: "$18,900", agent: "Sara", date: "2025-12-28" },
-  { id: "INV-2027", client: "Lavoie / Maldives", product: "Resort", status: "canceled", amount: "$11,400", agent: "Ben", date: "2025-12-19" },
-];
-
-const payments: Payment[] = [
-  { id: "PAY-8841", method: "Card", amount: "$4,800", date: "2026-01-06", client: "Dupuis", agent: "Alice", dossier: "TRIP-104" },
-  { id: "PAY-8833", method: "Wire", amount: "$18,500", date: "2026-01-04", client: "HQ Yacht", agent: "Marco", dossier: "YCHT-55" },
-  { id: "PAY-8810", method: "Stripe", amount: "$6,900", date: "2026-01-02", client: "NovaTech", agent: "Sara", dossier: "TRIP-099" },
-];
-
-const commissions: Commission[] = [
-  { id: "COM-551", agent: "Alice", dossier: "TRIP-104", product: "Travel", status: "due", base: "$1,240", split: "80/20", zeniva: "$248", agentShare: "$992" },
-  { id: "COM-547", agent: "Marco", dossier: "YCHT-55", product: "Yacht", status: "pending", base: "$42,500", split: "95/5", zeniva: "$2,125", agentShare: "$40,375" },
-  { id: "COM-540", agent: "Sara", dossier: "TRIP-099", product: "Travel", status: "paid", base: "$1,380", split: "80/20", zeniva: "$276", agentShare: "$1,104" },
-];
+  client_name: string;
+  destination: string;
+  total_price: number;
+  status: string;
+  departure_date: string;
+  agent_email?: string;
+}
 
 export default function FinancePage() {
-  const user = useRequireAnyPermission(["finance:all"], "/agent");
-  const [filter, setFilter] = useState("all");
+  const { user } = useAuthStore();
+  const hq = isHQ(user?.email);
+  const [stats, setStats] = useState<FinanceStats | null>(null);
+  const [commissions, setCommissions] = useState<Commission[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [tab, setTab] = useState<"overview" | "commissions" | "bookings">("overview");
+  const [loading, setLoading] = useState(true);
 
-  const paidTotal = useMemo(() => invoices.filter((i) => i.status === "paid").length, []);
-  const pendingTotal = useMemo(() => invoices.filter((i) => i.status === "pending").length, []);
-  const commissionDue = useMemo(() => commissions.filter((c) => c.status !== "paid").length, []);
+  useEffect(() => {
+    if (!hq) return;
+    const fetchAll = async () => {
+      setLoading(true);
+      try {
+        const [cRes, bRes] = await Promise.all([
+          fetch("/api/agents-proxy?path=admin/commissions"),
+          fetch("/api/agents-proxy?path=admin/bookings"),
+        ]);
+        const cData = await cRes.json().catch(() => []);
+        const bData = await bRes.json().catch(() => []);
+        const comms: Commission[] = Array.isArray(cData) ? cData : [];
+        const books: Booking[] = Array.isArray(bData) ? bData : [];
+        setCommissions(comms);
+        setBookings(books);
+        const totalRev = books.reduce((s, b) => s + (b.total_price || 0), 0);
+        const commPaid = comms.filter(c => c.status === "paid").reduce((s, c) => s + c.commission, 0);
+        const commPending = comms.filter(c => c.status === "pending").reduce((s, c) => s + c.commission, 0);
+        const now = new Date();
+        const thisMonth = books.filter(b => new Date(b.departure_date).getMonth() === now.getMonth());
+        setStats({
+          total_revenue: totalRev,
+          commissions_paid: commPaid,
+          commissions_pending: commPending,
+          bookings_this_month: thisMonth.length,
+          revenue_this_month: thisMonth.reduce((s, b) => s + (b.total_price || 0), 0),
+          avg_deal_value: books.length ? Math.round(totalRev / books.length) : 0,
+        });
+      } catch {
+        setStats(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAll();
+  }, [hq]);
+
+  if (!hq) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: PREMIUM_BLUE }}>
+        <div className="bg-white rounded-2xl p-10 text-center shadow-xl max-w-sm">
+          <div className="text-5xl mb-4">🔒</div>
+          <h2 className="text-xl font-black text-slate-800 mb-2">HQ Access Only</h2>
+          <p className="text-slate-500 text-sm">Finance is restricted to Zeniva headquarters.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const fmt = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 0 })}`;
+
+  const kpis = [
+    { label: "Total Revenue", value: fmt(stats?.total_revenue ?? 0), icon: "💵", color: "from-blue-500 to-blue-700", sub: "All time" },
+    { label: "This Month", value: fmt(stats?.revenue_this_month ?? 0), icon: "📅", color: "from-emerald-500 to-emerald-700", sub: `${stats?.bookings_this_month ?? 0} bookings` },
+    { label: "Commissions Paid", value: fmt(stats?.commissions_paid ?? 0), icon: "✅", color: "from-purple-500 to-purple-700", sub: "To agents" },
+    { label: "Commissions Pending", value: fmt(stats?.commissions_pending ?? 0), icon: "⏳", color: "from-amber-500 to-amber-700", sub: "Awaiting payout" },
+    { label: "Avg Deal Value", value: fmt(stats?.avg_deal_value ?? 0), icon: "📊", color: "from-rose-500 to-rose-700", sub: "Per booking" },
+    { label: "Net Profit Est.", value: fmt(Math.round((stats?.total_revenue ?? 0) * 0.2)), icon: "🏦", color: "from-slate-600 to-slate-800", sub: "~20% margin" },
+  ];
+
+  const tabs = [
+    { id: "overview", label: "📊 Overview" },
+    { id: "commissions", label: "💰 Commissions" },
+    { id: "bookings", label: "✈️ Revenue" },
+  ];
 
   return (
-    <main className="min-h-screen" style={{ backgroundColor: "#0f172a" }}>
-      <div className="mx-auto max-w-6xl px-5 py-8 space-y-6">
-        <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">HQ only • Finance</p>
-            <h1 className="text-3xl md:text-4xl font-black text-white">Finance Control (HQ)</h1>
-            <p className="text-sm" style={{ color: MUTED_TEXT }}>
-              Consolidated invoices, payments, commissions, and synthesis. Exports and accounting integrations are staged here.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2 text-xs font-semibold">
-            <button className="rounded-full border border-slate-700 bg-slate-800 px-3 py-1.5 text-slate-100">Export CSV</button>
-            <button className="rounded-full border border-slate-700 bg-slate-800 px-3 py-1.5 text-slate-100">Export PDF</button>
-            <button className="rounded-full border border-emerald-500 bg-emerald-600 px-3 py-1.5 text-white">Prepare accounting sync</button>
-          </div>
-        </header>
+    <div className="min-h-screen p-6 space-y-6" style={{ background: PREMIUM_BLUE }}>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-black text-white">📊 Finance</h1>
+          <p className="text-white/60 text-sm mt-1">Global revenue, commissions & financial overview</p>
+        </div>
+        <button
+          onClick={() => {
+            const csv = commissions.map(c =>
+              `${c.agent_name},${c.client_name},${c.trip},${c.sale_amount},${c.commission},${c.status},${c.created_at}`
+            ).join("\n");
+            const blob = new Blob(["Agent,Client,Trip,Sale,Commission,Status,Date\n" + csv], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a"); a.href = url; a.download = "zeniva-finance.csv"; a.click();
+          }}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
+          style={{ background: ACCENT_GOLD, color: PREMIUM_BLUE }}
+        >
+          ⬇️ Export CSV
+        </button>
+      </div>
 
-        <section className="grid gap-3 md:grid-cols-3">
-          {[{ label: "Paid invoices", value: paidTotal, meta: "Across all products" }, { label: "Pending invoices", value: pendingTotal, meta: "Needs HQ action" }, { label: "Commissions due", value: commissionDue, meta: "Travel + Yacht (95/5)" }].map((c) => (
-            <div key={c.label} className="rounded-xl border border-slate-800 bg-slate-900 p-4 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-400">{c.label}</p>
-              <p className="text-2xl font-black text-white">{c.value}</p>
-              <p className="text-xs" style={{ color: MUTED_TEXT }}>{c.meta}</p>
+      {/* KPI Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {kpis.map(k => (
+          <div key={k.label} className={`bg-gradient-to-br ${k.color} rounded-2xl p-5 text-white`}>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-2xl">{k.icon}</span>
+              <span className="text-xs text-white/70">{k.sub}</span>
             </div>
-          ))}
-        </section>
+            <div className="text-2xl font-black">{loading ? "—" : k.value}</div>
+            <div className="text-xs text-white/80 mt-1">{k.label}</div>
+          </div>
+        ))}
+      </div>
 
-        <section className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5 space-y-3">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Invoices</p>
-              <h2 className="text-xl font-black text-white">Billing</h2>
-              <p className="text-sm" style={{ color: MUTED_TEXT }}>PDF + structured data. Paid / pending / canceled.</p>
-            </div>
-            <div className="flex gap-2 text-xs font-semibold">
-              {["all", "paid", "pending", "canceled"].map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  className="rounded-full border px-3 py-1.5"
-                  style={{
-                    backgroundColor: filter === f ? PREMIUM_BLUE : "transparent",
-                    color: filter === f ? "white" : "#cbd5e1",
-                    borderColor: filter === f ? PREMIUM_BLUE : "#1e293b",
-                  }}
-                >
-                  {f}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm text-slate-100">
-              <thead>
-                <tr className="text-left text-slate-400">
-                  <th className="pb-2 pr-3">Invoice</th>
-                  <th className="pb-2 pr-3">Client</th>
-                  <th className="pb-2 pr-3">Product</th>
-                  <th className="pb-2 pr-3">Status</th>
-                  <th className="pb-2 pr-3">Amount</th>
-                  <th className="pb-2 pr-3">Agent</th>
-                  <th className="pb-2 pr-3">Date</th>
-                  <th className="pb-2 pr-3">PDF</th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoices
-                  .filter((i) => filter === "all" || i.status === filter)
-                  .map((i) => (
-                    <tr key={i.id} className="border-t border-slate-800">
-                      <td className="py-2 pr-3 font-semibold text-white">{i.id}</td>
-                      <td className="py-2 pr-3 text-slate-100">{i.client}</td>
-                      <td className="py-2 pr-3 text-slate-100">{i.product}</td>
-                      <td className="py-2 pr-3">
-                        <span className="rounded-full bg-slate-800 px-2 py-1 text-[11px] font-bold" style={{ color: statusColor(i.status) }}>
-                          {i.status.toUpperCase()}
-                        </span>
-                      </td>
-                      <td className="py-2 pr-3 text-white">{i.amount}</td>
-                      <td className="py-2 pr-3 text-slate-100">{i.agent}</td>
-                      <td className="py-2 pr-3 text-slate-400">{i.date}</td>
-                      <td className="py-2 pr-3 text-slate-200">
-                        {i.pdf ? (
-                          <a href={i.pdf} className="underline" target="_blank" rel="noreferrer" style={{ color: PREMIUM_BLUE }}>
-                            PDF
-                          </a>
-                        ) : (
-                          <span className="text-slate-500">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+      {/* Tabs */}
+      <div className="flex gap-2">
+        {tabs.map(t => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id as typeof tab)}
+            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+              tab === t.id ? "text-white shadow-lg" : "bg-white/10 text-white/70 hover:bg-white/20"
+            }`}
+            style={tab === t.id ? { background: BRAND_BLUE } : {}}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-        <section className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5 space-y-3">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Paiements</p>
-              <h2 className="text-xl font-black text-white">Payments received</h2>
-              <p className="text-sm" style={{ color: MUTED_TEXT }}>Card, Stripe, Wire, other. Linked to dossiers and agents.</p>
-            </div>
-            <div className="rounded-full border border-emerald-500 bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white">
-              Reconciliation view
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm text-slate-100">
-              <thead>
-                <tr className="text-left text-slate-400">
-                  <th className="pb-2 pr-3">Payment</th>
-                  <th className="pb-2 pr-3">Method</th>
-                  <th className="pb-2 pr-3">Amount</th>
-                  <th className="pb-2 pr-3">Date</th>
-                  <th className="pb-2 pr-3">Client</th>
-                  <th className="pb-2 pr-3">Agent</th>
-                  <th className="pb-2 pr-3">Dossier</th>
-                </tr>
-              </thead>
-              <tbody>
-                {payments.map((p) => (
-                  <tr key={p.id} className="border-t border-slate-800">
-                    <td className="py-2 pr-3 font-semibold text-white">{p.id}</td>
-                    <td className="py-2 pr-3 text-slate-100">{p.method}</td>
-                    <td className="py-2 pr-3 text-white">{p.amount}</td>
-                    <td className="py-2 pr-3 text-slate-400">{p.date}</td>
-                    <td className="py-2 pr-3 text-slate-100">{p.client}</td>
-                    <td className="py-2 pr-3 text-slate-100">{p.agent}</td>
-                    <td className="py-2 pr-3 text-slate-100">{p.dossier}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5 space-y-3">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Commissions</p>
-              <h2 className="text-xl font-black text-white">Splits & payouts</h2>
-              <p className="text-sm" style={{ color: MUTED_TEXT }}>Travel agents, Zeniva Travel, Zeniva Yacht (95/5) — due, pending, paid.</p>
-            </div>
-            <div className="rounded-full border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200">
-              Rules enforced: yacht 95/5, travel agent 80/20
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm text-slate-100">
-              <thead>
-                <tr className="text-left text-slate-400">
-                  <th className="pb-2 pr-3">ID</th>
-                  <th className="pb-2 pr-3">Agent</th>
-                  <th className="pb-2 pr-3">Dossier</th>
-                  <th className="pb-2 pr-3">Product</th>
-                  <th className="pb-2 pr-3">Status</th>
-                  <th className="pb-2 pr-3">Base</th>
-                  <th className="pb-2 pr-3">Split</th>
-                  <th className="pb-2 pr-3">Zeniva</th>
-                  <th className="pb-2 pr-3">Agent share</th>
-                </tr>
-              </thead>
-              <tbody>
-                {commissions.map((c) => (
-                  <tr key={c.id} className="border-t border-slate-800">
-                    <td className="py-2 pr-3 font-semibold text-white">{c.id}</td>
-                    <td className="py-2 pr-3 text-slate-100">{c.agent}</td>
-                    <td className="py-2 pr-3 text-slate-100">{c.dossier}</td>
-                    <td className="py-2 pr-3 text-slate-100">{c.product}</td>
-                    <td className="py-2 pr-3">
-                      <span className="rounded-full bg-slate-800 px-2 py-1 text-[11px] font-bold" style={{ color: statusColor(c.status) }}>
-                        {c.status.toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="py-2 pr-3 text-white">{c.base}</td>
-                    <td className="py-2 pr-3 text-slate-100">{c.split}</td>
-                    <td className="py-2 pr-3 text-white">{c.zeniva}</td>
-                    <td className="py-2 pr-3 text-white">{c.agentShare}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm p-5 space-y-3">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Synthesis</p>
-              <h2 className="text-xl font-black text-white">Revenue & margins</h2>
-              <p className="text-sm" style={{ color: MUTED_TEXT }}>By period, agent, product, client. Forecast ready for export/API.</p>
-            </div>
-            <div className="rounded-full border border-indigo-500 bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white">Lina HQ mode</div>
-          </div>
-          <div className="grid gap-3 md:grid-cols-3 text-sm">
-            {[{ label: "Revenue MTD", value: "$186k" }, { label: "Revenue 30d", value: "$482k" }, { label: "Margin", value: "19%" }, { label: "Top agent", value: "Sara" }, { label: "Top product", value: "Yacht" }, { label: "Forecast next 30d", value: "$520k" }].map((card) => (
-              <div key={card.label} className="rounded-xl border border-slate-800 bg-slate-950 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-400">{card.label}</p>
-                <p className="text-lg font-black text-white">{card.value}</p>
+      {/* Overview Tab */}
+      {tab === "overview" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Revenue bar */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <h3 className="font-black text-slate-800 mb-4">Revenue Breakdown</h3>
+            {[
+              { label: "Gross Revenue", value: stats?.total_revenue ?? 0, color: "bg-blue-500", max: stats?.total_revenue ?? 1 },
+              { label: "Commissions Paid", value: stats?.commissions_paid ?? 0, color: "bg-purple-500", max: stats?.total_revenue ?? 1 },
+              { label: "Commissions Pending", value: stats?.commissions_pending ?? 0, color: "bg-amber-500", max: stats?.total_revenue ?? 1 },
+              { label: "Est. Net Profit (20%)", value: Math.round((stats?.total_revenue ?? 0) * 0.2), color: "bg-emerald-500", max: stats?.total_revenue ?? 1 },
+            ].map(row => (
+              <div key={row.label} className="mb-3">
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-slate-600">{row.label}</span>
+                  <span className="font-bold text-slate-800">{fmt(row.value)}</span>
+                </div>
+                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${row.color} rounded-full transition-all duration-700`}
+                    style={{ width: `${row.max > 0 ? Math.min(100, (row.value / row.max) * 100) : 0}%` }}
+                  />
+                </div>
               </div>
             ))}
           </div>
-          <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Lina HQ briefing</p>
-            <div className="mt-2 grid gap-2 text-sm text-slate-100">
-              <p>• Ask Lina: "Résumé financier du mois"</p>
-              <p>• Ask Lina: "Top 3 agents par revenus"</p>
-              <p>• Ask Lina: "Anomalies de paiement / chargebacks"</p>
-              <p>• Ask Lina: "Préparer rapport PDF pour comptabilité"</p>
+
+          {/* Commission summary */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <h3 className="font-black text-slate-800 mb-4">Commission Rate</h3>
+            <div className="rounded-xl p-4 mb-4" style={{ background: `${ACCENT_GOLD}20`, border: `1px solid ${ACCENT_GOLD}` }}>
+              <div className="text-3xl font-black mb-1" style={{ color: PREMIUM_BLUE }}>5%</div>
+              <div className="text-sm font-semibold text-slate-700">of Zeniva's net profit per trip</div>
+              <div className="text-xs text-slate-500 mt-1">Example: $5,000 trip · $1,000 Zeniva profit → <strong>$50 commission</strong></div>
+            </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between py-2 border-b border-slate-100">
+                <span className="text-slate-500">Total agents</span>
+                <span className="font-bold">{new Set(commissions.map(c => c.agent_email)).size || "—"}</span>
+              </div>
+              <div className="flex justify-between py-2 border-b border-slate-100">
+                <span className="text-slate-500">Paid out</span>
+                <span className="font-bold text-emerald-600">{commissions.filter(c => c.status === "paid").length} commissions</span>
+              </div>
+              <div className="flex justify-between py-2">
+                <span className="text-slate-500">Pending payout</span>
+                <span className="font-bold text-amber-600">{commissions.filter(c => c.status === "pending").length} commissions</span>
+              </div>
             </div>
           </div>
-        </section>
-      </div>
-    </main>
-  );
-}
+        </div>
+      )}
 
-function statusColor(status: string) {
-  if (status === "paid") return ACCENT_GOLD;
-  if (status === "pending") return PREMIUM_BLUE;
-  return "#94a3b8";
+      {/* Commissions Tab */}
+      {tab === "commissions" && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="p-5 border-b border-slate-100">
+            <h3 className="font-black text-slate-800">All Commissions</h3>
+            <p className="text-slate-500 text-sm">{commissions.length} total records</p>
+          </div>
+          {loading ? (
+            <div className="p-8 text-center text-slate-400">Loading...</div>
+          ) : commissions.length === 0 ? (
+            <div className="p-12 text-center">
+              <div className="text-4xl mb-3">💰</div>
+              <p className="text-slate-500 font-semibold">No commissions yet</p>
+              <p className="text-slate-400 text-sm mt-1">Commissions appear when bookings are confirmed</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50">
+                  <tr>
+                    {["Agent", "Client", "Trip", "Sale", "Profit Est.", "Commission", "Status", "Date"].map(h => (
+                      <th key={h} className="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wide">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {commissions.map(c => (
+                    <tr key={c.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="font-semibold text-slate-800">{c.agent_name || c.agent_email?.split("@")[0]}</div>
+                        <div className="text-xs text-slate-400">{c.agent_email}</div>
+                      </td>
+                      <td className="px-4 py-3 text-slate-700">{c.client_name}</td>
+                      <td className="px-4 py-3 text-slate-700">{c.trip}</td>
+                      <td className="px-4 py-3 font-semibold text-slate-800">{fmt(c.sale_amount)}</td>
+                      <td className="px-4 py-3 text-slate-600">{fmt(c.zeniva_profit || Math.round(c.sale_amount * 0.2))}</td>
+                      <td className="px-4 py-3 font-bold" style={{ color: ACCENT_GOLD }}>{fmt(c.commission)}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                          c.status === "paid" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                        }`}>
+                          {c.status === "paid" ? "✅ Paid" : "⏳ Pending"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-400 text-xs">
+                        {c.created_at ? new Date(c.created_at).toLocaleDateString() : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Bookings / Revenue Tab */}
+      {tab === "bookings" && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="p-5 border-b border-slate-100">
+            <h3 className="font-black text-slate-800">Revenue by Booking</h3>
+            <p className="text-slate-500 text-sm">{bookings.length} total bookings</p>
+          </div>
+          {loading ? (
+            <div className="p-8 text-center text-slate-400">Loading...</div>
+          ) : bookings.length === 0 ? (
+            <div className="p-12 text-center">
+              <div className="text-4xl mb-3">✈️</div>
+              <p className="text-slate-500 font-semibold">No bookings yet</p>
+              <p className="text-slate-400 text-sm mt-1">Revenue appears when trips are booked</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50">
+                  <tr>
+                    {["Client", "Destination", "Departure", "Revenue", "Profit Est.", "Agent", "Status"].map(h => (
+                      <th key={h} className="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wide">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {bookings.map(b => (
+                    <tr key={b.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-4 py-3 font-semibold text-slate-800">{b.client_name}</td>
+                      <td className="px-4 py-3 text-slate-700">{b.destination}</td>
+                      <td className="px-4 py-3 text-slate-500 text-xs">
+                        {b.departure_date ? new Date(b.departure_date).toLocaleDateString() : "—"}
+                      </td>
+                      <td className="px-4 py-3 font-bold text-slate-800">{fmt(b.total_price || 0)}</td>
+                      <td className="px-4 py-3 text-emerald-600 font-semibold">{fmt(Math.round((b.total_price || 0) * 0.2))}</td>
+                      <td className="px-4 py-3 text-slate-500 text-xs">{b.agent_email?.split("@")[0] || "—"}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                          b.status === "confirmed" ? "bg-emerald-100 text-emerald-700" :
+                          b.status === "pending_payment" ? "bg-amber-100 text-amber-700" :
+                          b.status === "cancelled" ? "bg-red-100 text-red-700" :
+                          "bg-blue-100 text-blue-700"
+                        }`}>
+                          {b.status?.replace("_", " ") || "upcoming"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
