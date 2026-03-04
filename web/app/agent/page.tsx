@@ -81,7 +81,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   const [agentRequests, setAgentRequests] = useState<any[]>([]);
   const [activity, setActivity] = useState<any[]>([]);
   const [selectedAgent, setSelectedAgent] = useState<AIAgent | null>(null);
-  const [navOpen, setNavOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(true); // open by default — labels visible
 
   // Trip search
   const [searchOpen, setSearchOpen] = useState(false);
@@ -154,9 +154,9 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
           <button
             onClick={() => setNavOpen(!navOpen)}
             className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-blue-600 hover:bg-blue-500 transition-colors text-white text-xl font-bold"
-            title={navOpen ? "Collapse menu" : "Expand menu"}
+            title={navOpen ? "Hide labels" : "Show labels"}
           >
-            {navOpen ? "✕" : "☰"}
+            {navOpen ? "◀" : "☰"}
           </button>
           {navOpen && (
             <div>
