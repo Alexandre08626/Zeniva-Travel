@@ -75,9 +75,9 @@ export default function HomePage() {
       {/* ══════════════════════════════════════════
           MOBILE VERSION
       ══════════════════════════════════════════ */}
-      <section className="sm:hidden">
+      <section className="sm:hidden" data-fullbleed="true">
         {/* Hero mobile */}
-        <div className="relative min-h-screen overflow-hidden" style={{ background: "linear-gradient(160deg, #0B1B4D 0%, #0F2A6B 40%, #0F6CF5 100%)" }}>
+        <div className="relative min-h-screen overflow-hidden" style={{ background: "linear-gradient(160deg, #0F3A8A 0%, #1a4fad 40%, #2563eb 100%)" }}>
           {/* Animated orbs */}
           <div className="absolute top-[-80px] right-[-60px] w-72 h-72 rounded-full opacity-20" style={{ background: "radial-gradient(circle, #E6B85A, transparent)", filter: "blur(40px)", animation: "pulse 4s ease-in-out infinite" }} />
           <div className="absolute top-[30%] left-[-80px] w-64 h-64 rounded-full opacity-15" style={{ background: "radial-gradient(circle, #6366f1, transparent)", filter: "blur(50px)" }} />
