@@ -182,7 +182,7 @@ export default function AgentChatClient() {
     try {
       await fetch(`/api/agent/requests?messageId=${encodeURIComponent(msg.id)}`, { method: "DELETE" });
     } catch {
-      await refreshMessages();
+      // ignore - next poll will refresh
     } finally {
       setDeletingId(null);
     }
