@@ -39,7 +39,6 @@ export async function GET(request: Request) {
     const { data, error } = await client
       .from("agent_inbox_messages")
       .select("*")
-      .is("deleted_at", null)
       .order("created_at", { ascending: true })
       .limit(500);
 
