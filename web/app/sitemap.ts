@@ -1,263 +1,68 @@
 import type { MetadataRoute } from "next";
 
-const BASE_URL = "https://zenivatravel.com";
+const BASE_URL = "https://www.zenivatravel.com";
+const NOW = new Date();
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date();
-
   return [
-    {
-      url: `${BASE_URL}/`,
-      lastModified,
-      changeFrequency: "daily",
-      priority: 1,
-      alternates: {
-        languages: {
-          "en-US": `${BASE_URL}/`,
-          "en-CA": `${BASE_URL}/`,
-          "fr-CA": `${BASE_URL}/fr`,
-        },
-      },
-    },
-    {
-      url: `${BASE_URL}/about`,
-      lastModified,
-      changeFrequency: "monthly",
-      priority: 0.9,
-    },
-    {
-      url: `${BASE_URL}/packages`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.95,
-    },
-    {
-      url: `${BASE_URL}/packages/cancun`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${BASE_URL}/packages/all-inclusive`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${BASE_URL}/packages/caribbean`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.85,
-    },
-    {
-      url: `${BASE_URL}/packages/europe`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.85,
-    },
-    {
-      url: `${BASE_URL}/ai-travel-concierge`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.9,
-      alternates: {
-        languages: {
-          "en-CA": `${BASE_URL}/ai-travel-concierge`,
-          "fr-CA": `${BASE_URL}/fr/ai-travel-concierge`,
-        },
-      },
-    },
-    {
-      url: `${BASE_URL}/fr`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.9,
-      alternates: {
-        languages: {
-          "en-CA": `${BASE_URL}/`,
-          "fr-CA": `${BASE_URL}/fr`,
-        },
-      },
-    },
-    {
-      url: `${BASE_URL}/yachts`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.8,
-      alternates: {
-        languages: {
-          "en-CA": `${BASE_URL}/yachts`,
-          "fr-CA": `${BASE_URL}/fr/yachts`,
-        },
-      },
-    },
-    {
-      url: `${BASE_URL}/fr/yachts`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.8,
-      alternates: {
-        languages: {
-          "en-CA": `${BASE_URL}/yachts`,
-          "fr-CA": `${BASE_URL}/fr/yachts`,
-        },
-      },
-    },
-    {
-      url: `${BASE_URL}/partners/resorts`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.7,
-      alternates: {
-        languages: {
-          "en-CA": `${BASE_URL}/partners/resorts`,
-          "fr-CA": `${BASE_URL}/fr/partners/resorts`,
-        },
-      },
-    },
-    {
-      url: `${BASE_URL}/fr/partners/resorts`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.7,
-      alternates: {
-        languages: {
-          "en-CA": `${BASE_URL}/partners/resorts`,
-          "fr-CA": `${BASE_URL}/fr/partners/resorts`,
-        },
-      },
-    },
-    {
-      url: `${BASE_URL}/chat`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.7,
-      alternates: {
-        languages: {
-          "en-CA": `${BASE_URL}/chat`,
-          "fr-CA": `${BASE_URL}/fr/chat`,
-        },
-      },
-    },
-    {
-      url: `${BASE_URL}/fr/chat`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.7,
-      alternates: {
-        languages: {
-          "en-CA": `${BASE_URL}/chat`,
-          "fr-CA": `${BASE_URL}/fr/chat`,
-        },
-      },
-    },
-    {
-      url: `${BASE_URL}/call`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.7,
-      alternates: {
-        languages: {
-          "en-CA": `${BASE_URL}/call`,
-          "fr-CA": `${BASE_URL}/fr/call`,
-        },
-      },
-    },
-    {
-      url: `${BASE_URL}/fr/call`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.7,
-      alternates: {
-        languages: {
-          "en-CA": `${BASE_URL}/call`,
-          "fr-CA": `${BASE_URL}/fr/call`,
-        },
-      },
-    },
-    {
-      url: `${BASE_URL}/proposals`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.6,
-      alternates: {
-        languages: {
-          "en-CA": `${BASE_URL}/proposals`,
-          "fr-CA": `${BASE_URL}/fr/proposals`,
-        },
-      },
-    },
-    {
-      url: `${BASE_URL}/fr/proposals`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.6,
-      alternates: {
-        languages: {
-          "en-CA": `${BASE_URL}/proposals`,
-          "fr-CA": `${BASE_URL}/fr/proposals`,
-        },
-      },
-    },
-    {
-      url: `${BASE_URL}/fr/ai-travel-concierge`,
-      lastModified,
-      changeFrequency: "weekly",
-      priority: 0.8,
-      alternates: {
-        languages: {
-          "en-CA": `${BASE_URL}/ai-travel-concierge`,
-          "fr-CA": `${BASE_URL}/fr/ai-travel-concierge`,
-        },
-      },
-    },
-    {
-      url: `${BASE_URL}/privacy-policy`,
-      lastModified,
-      changeFrequency: "yearly",
-      priority: 0.5,
-    },
-    {
-      url: `${BASE_URL}/privacy-agents`,
-      lastModified,
-      changeFrequency: "yearly",
-      priority: 0.5,
-    },
-    {
-      url: `${BASE_URL}/privacy-partners`,
-      lastModified,
-      changeFrequency: "yearly",
-      priority: 0.5,
-    },
-    {
-      url: `${BASE_URL}/cookie-policy`,
-      lastModified,
-      changeFrequency: "yearly",
-      priority: 0.5,
-    },
-    {
-      url: `${BASE_URL}/terms`,
-      lastModified,
-      changeFrequency: "yearly",
-      priority: 0.5,
-    },
-    {
-      url: `${BASE_URL}/ai-terms`,
-      lastModified,
-      changeFrequency: "yearly",
-      priority: 0.4,
-    },
-    {
-      url: `${BASE_URL}/do-not-sell`,
-      lastModified,
-      changeFrequency: "yearly",
-      priority: 0.4,
-    },
-    {
-      url: `${BASE_URL}/data-requests`,
-      lastModified,
-      changeFrequency: "yearly",
-      priority: 0.5,
-    },
+    // ─── HOMEPAGE ─────────────────────────────────────
+    { url: `${BASE_URL}/`, lastModified: NOW, changeFrequency: "daily", priority: 1.0 },
+    { url: `${BASE_URL}/fr`, lastModified: NOW, changeFrequency: "daily", priority: 0.95 },
+
+    // ─── MAIN SERVICES ────────────────────────────────
+    { url: `${BASE_URL}/chat`, lastModified: NOW, changeFrequency: "weekly", priority: 0.95 },
+    { url: `${BASE_URL}/call`, lastModified: NOW, changeFrequency: "weekly", priority: 0.95 },
+    { url: `${BASE_URL}/fr/chat`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/fr/call`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+
+    // ─── AI CONCIERGE ─────────────────────────────────
+    { url: `${BASE_URL}/ai-travel-concierge`, lastModified: NOW, changeFrequency: "weekly", priority: 0.95 },
+    { url: `${BASE_URL}/fr/ai-travel-concierge`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/ai-agents`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
+
+    // ─── PACKAGES ─────────────────────────────────────
+    { url: `${BASE_URL}/packages`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/packages/all-inclusive`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },
+    { url: `${BASE_URL}/packages/cancun`, lastModified: NOW, changeFrequency: "weekly", priority: 0.87 },
+    { url: `${BASE_URL}/packages/caribbean`, lastModified: NOW, changeFrequency: "weekly", priority: 0.86 },
+    { url: `${BASE_URL}/packages/europe`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
+
+    // ─── YACHTS ───────────────────────────────────────
+    { url: `${BASE_URL}/yachts`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },
+    { url: `${BASE_URL}/fr/yachts`, lastModified: NOW, changeFrequency: "weekly", priority: 0.82 },
+
+    // ─── PARTNERS & RESORTS ───────────────────────────
+    { url: `${BASE_URL}/partners/resorts`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },
+    { url: `${BASE_URL}/fr/partners/resorts`, lastModified: NOW, changeFrequency: "weekly", priority: 0.82 },
+
+    // ─── RESIDENCES / AIRBNBS ─────────────────────────
+    { url: `${BASE_URL}/residences`, lastModified: NOW, changeFrequency: "weekly", priority: 0.82 },
+    { url: `${BASE_URL}/airbnbs`, lastModified: NOW, changeFrequency: "weekly", priority: 0.78 },
+
+    // ─── SEARCH ───────────────────────────────────────
+    { url: `${BASE_URL}/search/flights`, lastModified: NOW, changeFrequency: "daily", priority: 0.85 },
+
+    // ─── DEALS ────────────────────────────────────────
+    { url: `${BASE_URL}/deals`, lastModified: NOW, changeFrequency: "daily", priority: 0.85 },
+
+    // ─── PROPOSALS ────────────────────────────────────
+    { url: `${BASE_URL}/proposals`, lastModified: NOW, changeFrequency: "weekly", priority: 0.75 },
+
+    // ─── FORMS ────────────────────────────────────────
+    { url: `${BASE_URL}/forms/travel`, lastModified: NOW, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE_URL}/forms/yacht`, lastModified: NOW, changeFrequency: "monthly", priority: 0.68 },
+
+    // ─── ABOUT ────────────────────────────────────────
+    { url: `${BASE_URL}/about`, lastModified: NOW, changeFrequency: "monthly", priority: 0.8 },
+
+    // ─── LEGAL ────────────────────────────────────────
+    { url: `${BASE_URL}/privacy-policy`, lastModified: NOW, changeFrequency: "yearly", priority: 0.4 },
+    { url: `${BASE_URL}/terms`, lastModified: NOW, changeFrequency: "yearly", priority: 0.4 },
+    { url: `${BASE_URL}/cookie-policy`, lastModified: NOW, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${BASE_URL}/ai-terms`, lastModified: NOW, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${BASE_URL}/do-not-sell`, lastModified: NOW, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${BASE_URL}/data-requests`, lastModified: NOW, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${BASE_URL}/privacy-agents`, lastModified: NOW, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${BASE_URL}/privacy-partners`, lastModified: NOW, changeFrequency: "yearly", priority: 0.3 },
   ];
 }
