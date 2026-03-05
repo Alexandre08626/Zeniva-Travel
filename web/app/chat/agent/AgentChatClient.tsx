@@ -47,6 +47,24 @@ export default function TravelerAgentChatClient() {
   const channelId = brokerChannelId || rawChannelId;
   const linaChannelId = "lina-help";
 
+  // Load persisted messages from localStorage on first render
+  const loadLocalMessages = (chId: string): ChatMessage[] => {
+    if (typeof window === "undefined") return [];
+    try {
+      const raw = localStorage.getItem(`zeniva_helpchat_${chId}`);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch { return []; }
+  };
+  const saveLocalMessages = (chId: string, msgs: ChatMessage[]) => {
+    if (typeof window === "undefined") return;
+    try {
+      const toSave = msgs.filter((m) => m.id !== "welcome-lina" && m.id !== "welcome-agent");
+      localStorage.setItem(`zeniva_helpchat_${chId}`, JSON.stringify(toSave.slice(-100)));
+    } catch {}
+  };
+
   const [threads, setThreads] = useState<ChatThread[]>([
     {
       id: "lina-help",
@@ -62,6 +80,7 @@ export default function TravelerAgentChatClient() {
           text: "Hi! I'm Lina, your AI travel concierge ✈️ I can help with trip planning, booking changes, and questions. For complex issues, switch to a human agent.",
           ts: new Date().toLocaleTimeString().slice(0, 5),
         },
+        ...loadLocalMessages("lina-help"),
       ],
     },
     {
@@ -78,6 +97,7 @@ export default function TravelerAgentChatClient() {
           text: "Hello! You're now connected with a real Zeniva Travel agent 👋 We typically respond within a few minutes during business hours. How can we help you today?",
           ts: new Date().toLocaleTimeString().slice(0, 5),
         },
+        ...loadLocalMessages(channelId),
       ],
     },
   ]);
@@ -127,8 +147,16 @@ export default function TravelerAgentChatClient() {
   };
 
   const upsertThreadMessages = useCallback((nextMessages: Record<string, ChatMessage[]>) => {
-    setThreads((prev) => prev.map((thread) => ({ ...thread, messages: nextMessages[thread.id] ? mergeMessages(thread.messages, nextMessages[thread.id]) : thread.messages })));
-  }, []);
+    setThreads((prev) => {
+      const updated = prev.map((thread) => {
+        if (!nextMessages[thread.id]) return thread;
+        const merged = mergeMessages(thread.messages, nextMessages[thread.id]);
+        saveLocalMessages(thread.id, merged);
+        return { ...thread, messages: merged };
+      });
+      return updated;
+    });
+  }, [saveLocalMessages]);
 
   const refreshMessages = useCallback(async () => {
     const mapRowsToMessages = (rows: any[]) => {
@@ -197,7 +225,12 @@ export default function TravelerAgentChatClient() {
     const text = input.trim();
     const now = new Date();
     const userMessage: ChatMessage = { id: `${now.getTime()}-user`, role: "user", text, ts: now.toLocaleTimeString().slice(0, 5), createdAt: now.toISOString() };
-    setThreads((prev) => prev.map((t) => t.id === activeThread.id ? { ...t, messages: [...t.messages, userMessage], unread: 0 } : t));
+    setThreads((prev) => prev.map((t) => {
+      if (t.id !== activeThread.id) return t;
+      const updated = [...t.messages, userMessage];
+      saveLocalMessages(t.id, updated);
+      return { ...t, messages: updated, unread: 0 };
+    }));
     setInput("");
     setSending(true);
 
@@ -210,7 +243,12 @@ export default function TravelerAgentChatClient() {
         const data = await resp.json();
         const reply = data?.reply || "Lina is currently unavailable.";
         const linaMessage: ChatMessage = { id: `${now.getTime()}-lina`, role: "lina", text: reply, ts: new Date().toLocaleTimeString().slice(0, 5), createdAt: new Date().toISOString() };
-        setThreads((prev) => prev.map((t) => t.id === "lina-help" ? { ...t, messages: [...t.messages, linaMessage], unread: 0 } : t));
+        setThreads((prev) => prev.map((t) => {
+          if (t.id !== "lina-help") return t;
+          const updated = [...t.messages, linaMessage];
+          saveLocalMessages("lina-help", updated);
+          return { ...t, messages: updated, unread: 0 };
+        }));
         await postAgentMessage({ id: linaMessage.id, createdAt: linaMessage.createdAt || new Date().toISOString(), channelIds: [linaChannelId], sourcePath, propertyName: listing, author: "Lina", senderRole: "lina", source: "traveler-lina", message: reply });
       } finally { setSending(false); }
       return;

@@ -46,7 +46,18 @@ function requireAgentSession(request: Request) {
   if (!session) {
     return { ok: false as const, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
-  const roles = normalizeRbacRoles(session.roles || []);
+  // Use JWT roles first, but also check zeniva_roles cookie (updated by hydrateFromServer on page load)
+  let roles = normalizeRbacRoles(session.roles || []);
+  const rolesCookie = getCookieValue(cookies, "zeniva_roles");
+  if (rolesCookie) {
+    try {
+      const cookieRoles = normalizeRbacRoles(JSON.parse(decodeURIComponent(rolesCookie)));
+      // If cookie has higher privilege than JWT (e.g. role was upgraded in DB), use cookie roles
+      if (cookieRoles.includes("hq") || cookieRoles.includes("admin")) {
+        roles = cookieRoles;
+      }
+    } catch { /* ignore */ }
+  }
   if (!roles.length) {
     return { ok: false as const, error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
@@ -198,13 +209,25 @@ async function writeRequests(requests: AgentRequest[]) {
 
 export async function GET(request: Request) {
   try {
+    const url = new URL(request.url);
+    const channelId = url.searchParams.get("channelId") || undefined;
+
+    // Allow public read for a specific non-hq channel (client chat history)
+    // Clients can read their own channel without agent auth
+    const isPublicChannelRead = channelId && channelId !== "hq" && channelId.startsWith("agent-");
+    if (isPublicChannelRead) {
+      if (hasSupabaseEnv()) {
+        const requests = await readRequestsFromSupabaseByContains(channelId);
+        return NextResponse.json({ data: requests });
+      }
+      const requests = await readRequests(channelId);
+      return NextResponse.json({ data: requests });
+    }
+
     const gate = requireAgentSession(request);
     if (!gate.ok) return gate.error;
 
     const { isAdmin, isYachtBroker, session } = gate;
-
-    const url = new URL(request.url);
-    const channelId = url.searchParams.get("channelId") || undefined;
 
     // Non-admin agents only see their own direct channel (never "hq" or others' messages)
     const isAgent = !isAdmin;
