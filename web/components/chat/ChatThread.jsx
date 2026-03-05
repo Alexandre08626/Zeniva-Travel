@@ -669,8 +669,21 @@ function ChatThread({ tripId, proposalMode = "" }) {
           </button>
         </form>
 
-        <div className="mt-2 text-center">
-          <span className="text-slate-400 text-xs">Powered by Zeniva AI · Your concierge is always online</span>
+        <div className="mt-3 flex items-center gap-3">
+          <button
+            onClick={() => {
+              const { generateProposal } = require("../../lib/store/tripsStore");
+              if (typeof window !== "undefined") {
+                generateProposal(tripId);
+                window.location.href = `/proposals/${tripId}/select`;
+              }
+            }}
+            className="flex-1 rounded-2xl px-5 py-3 text-sm font-black text-[#0B1B4D] hover:scale-105 transition-all shadow-md"
+            style={{ background: "linear-gradient(90deg, #E6B85A, #f0c96b)" }}
+          >
+            🚀 Generate Proposal
+          </button>
+          <span className="text-slate-400 text-xs hidden sm:block">Powered by Zeniva AI</span>
         </div>
       </div>
     </div>

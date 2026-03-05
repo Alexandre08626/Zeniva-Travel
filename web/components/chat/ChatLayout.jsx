@@ -63,7 +63,7 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
       )}
 
       {/* Main chat — full width */}
-      <div className="flex-1 flex flex-col w-full max-w-6xl mx-auto px-4 py-4">
+      <div className="flex-1 flex flex-col w-[90%] mx-auto py-4">
         {chat}
       </div>
     </div>
