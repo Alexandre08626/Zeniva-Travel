@@ -38,9 +38,6 @@ export default function AgentLinaTripChatPage() {
       tripId={tripId}
       backHref="/agent/lina"
       backLabel="Back to Lina Desk"
-      pillLabel="Lina AI • Agent Travel Builder"
-      callHref={`/call/${tripId}?mode=agent`}
-      callLabel="Call Lina (Agent)"
     />
   );
 }

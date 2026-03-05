@@ -539,68 +539,47 @@ function ChatThread({ tripId, proposalMode = "" }) {
   };
 
   return (
-    <div className={`flex flex-col overflow-hidden ${isMobile ? "rounded-3xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(11,27,77,0.12)] min-h-[65vh] h-[calc(100dvh-9rem)]" : "rounded-2xl border border-slate-200 bg-white shadow-sm min-h-[60vh] md:min-h-[72vh] lg:min-h-0 lg:h-full"}`}>
-      {isMobile ? (
-        <div
-          className="px-4 py-4 border-b border-white/15"
-          style={{
-            background: `linear-gradient(110deg, ${PREMIUM_BLUE} 0%, ${BRAND_BLUE} 72%)`,
-          }}
-        >
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="h-11 w-11 rounded-full border border-white/40 p-0.5 bg-white/10">
-                <img src="/branding/lina-avatar.png" alt="Lina" className="h-full w-full rounded-full object-cover" />
-              </div>
-              <div className="min-w-0">
-                <Label className="text-white/85">Lina Concierge</Label>
-                <div className="text-lg font-extrabold text-white truncate">AI Travel Assistant</div>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-[11px] font-semibold text-white/85">Live</div>
-              <div className="text-[11px] font-semibold" style={{ color: ACCENT_GOLD }}>
-                Premium mode
-              </div>
-            </div>
-          </div>
+    <div className="flex flex-col overflow-hidden rounded-2xl min-h-[70vh] md:min-h-[80vh]" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", backdropFilter: "blur(20px)" }}>
+      {/* Header */}
+      <div className="flex items-center gap-3 px-5 py-4 border-b border-white/10">
+        <div className="relative">
+          <img src="/branding/lina-avatar.png" alt="Lina" className="w-10 h-10 rounded-full ring-2 ring-yellow-400/50 object-cover" />
+          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-400 ring-2 ring-white/10" />
         </div>
-      ) : (
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-          <div>
-            <Label>Assistant</Label>
-            <div className="text-xl font-extrabold" style={{ color: TITLE_TEXT }}>
-              AI Travel Assistant
-            </div>
-          </div>
-          <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
-            Travel planning • live
-          </div>
+        <div className="flex-1">
+          <div className="text-white font-black text-sm">Lina <span style={{ color: "#E6B85A" }}>AI</span></div>
+          <div className="text-white/50 text-xs">Your personal travel concierge · Online</div>
         </div>
-      )}
+        <div className="flex items-center gap-1.5">
+          <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+          <span className="text-green-400 text-xs font-bold">LIVE</span>
+        </div>
+      </div>
 
-      <div
-        ref={containerRef}
-        className={`flex-1 overflow-y-scroll space-y-3 ${isMobile ? "px-4 py-4" : "px-5 py-4"}`}
-        style={{ backgroundColor: LIGHT_BG, scrollbarGutter: "stable" }}
-      >
+      {/* Messages */}
+      <div ref={containerRef} className="flex-1 overflow-y-auto px-5 py-5 space-y-4" style={{ scrollbarGutter: "stable" }}>
         {history.length === 0 && (
-          <div className={`${isMobile ? "rounded-2xl border border-slate-200 bg-white p-4 text-sm shadow-sm" : "rounded-xl border border-dashed border-slate-200 bg-white p-4 text-sm"}`} style={{ color: MUTED_TEXT }}>
-            {isMobile && <div className="text-xs font-bold uppercase tracking-[0.15em]" style={{ color: BRAND_BLUE }}>Start fast</div>}
-            <div className={`${isMobile ? "mt-2" : ""} text-sm font-semibold`} style={{ color: TITLE_TEXT }}>Suggested prompts</div>
-            <div className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${isMobile ? "mt-3" : "mt-2"}`}>
+          <div className="text-center py-8">
+            {/* Lina welcome */}
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ring-4 ring-yellow-400/20 overflow-hidden">
+              <img src="/branding/lina-avatar.png" alt="Lina" className="w-full h-full object-cover" />
+            </div>
+            <p className="text-white font-black text-xl mb-1">Hi, I&apos;m Lina ✈️</p>
+            <p className="text-white/60 text-sm mb-6">Tell me about your dream trip and I&apos;ll plan everything — flights, hotels, experiences.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
-                "Plan a 7-day family trip from NYC to Paris in June under $8k",
-                "Find business class flights from SFO to Tokyo next month",
-                "Design a Maldives honeymoon with villas and excursions",
+                { icon: "🏖️", text: "Plan a 7-day family trip from Montreal to Paris in June under $8k" },
+                { icon: "✈️", text: "Find business class flights from NYC to Tokyo next month" },
+                { icon: "🌊", text: "Design a Maldives honeymoon with overwater villas" },
               ].map((p) => (
                 <button
-                  key={p}
-                  onClick={() => handleSend(p)}
-                  className={`rounded-xl border border-slate-200 px-3 py-2 text-left text-xs hover:border-slate-300 ${isMobile ? "bg-slate-50/70 hover:bg-white" : "bg-white"}`}
-                  style={{ color: TITLE_TEXT }}
+                  key={p.text}
+                  onClick={() => handleSend(p.text)}
+                  className="rounded-xl p-4 text-left text-sm hover:scale-105 transition-all duration-200"
+                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}
                 >
-                  {p}
+                  <div className="text-2xl mb-2">{p.icon}</div>
+                  <div className="text-white/80 text-xs">{p.text}</div>
                 </button>
               ))}
             </div>
@@ -608,113 +587,93 @@ function ChatThread({ tripId, proposalMode = "" }) {
         )}
 
         {history.map((m) => (
-          isMobile ? (
-            <div key={m.id} className={`flex ${m.role === "assistant" ? "justify-start" : "justify-end"}`}>
-              <div
-                className={`max-w-[90%] rounded-2xl p-3 shadow-sm border ${m.role === "assistant" ? "bg-white border-slate-200" : "border-transparent"}`}
-                style={m.role === "assistant" ? undefined : { backgroundColor: BRAND_BLUE }}
-              >
-                <div className="text-[11px] font-semibold" style={{ color: m.role === "assistant" ? MUTED_TEXT : "rgba(255,255,255,0.82)" }}>
-                  {m.role === "assistant" ? "Lina AI" : "You"}
-                </div>
-                <div className="mt-1 whitespace-pre-line text-sm font-semibold" style={{ color: m.role === "assistant" ? TITLE_TEXT : "#ffffff" }}>
-                  {m.content}
-                </div>
-              </div>
-            </div>
-          ) : (
+          <div key={m.id} className={`flex gap-3 ${m.role === "assistant" ? "justify-start" : "justify-end"}`}>
+            {m.role === "assistant" && (
+              <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full ring-1 ring-yellow-400/30 object-cover shrink-0 mt-1" />
+            )}
             <div
-              key={m.id}
-              className={`rounded-xl p-3 shadow-sm ${m.role === "assistant" ? "bg-white border border-slate-100" : "bg-[#EEF5FF]"}`}
+              className="max-w-[80%] rounded-2xl px-4 py-3"
+              style={m.role === "assistant"
+                ? { background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }
+                : { background: "linear-gradient(135deg, #0F6CF5, #0B1B4D)", border: "1px solid rgba(15,108,245,0.4)" }
+              }
             >
-              <div className="text-[11px] font-semibold" style={{ color: MUTED_TEXT }}>
-                {m.role === "assistant" ? "AI Assistant" : "You"}
+              <div className="text-[10px] font-bold mb-1" style={{ color: m.role === "assistant" ? "#E6B85A" : "rgba(255,255,255,0.5)" }}>
+                {m.role === "assistant" ? "LINA AI" : "YOU"}
               </div>
-              <div className="mt-1 whitespace-pre-line text-sm font-semibold" style={{ color: m.role === "assistant" ? TITLE_TEXT : BRAND_BLUE }}>
-                {m.content}
-              </div>
+              <div className="text-sm text-white whitespace-pre-line leading-relaxed">{m.content}</div>
             </div>
-          )
+          </div>
         ))}
 
-        {isMobile && loading && (
-          <div className="flex justify-start">
-            <div className="max-w-[85%] rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
-              <div className="text-[11px] font-semibold" style={{ color: MUTED_TEXT }}>Lina AI</div>
-              <div className="mt-1 text-sm font-semibold" style={{ color: TITLE_TEXT }}>Typing…</div>
+        {loading && (
+          <div className="flex gap-3 justify-start">
+            <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full ring-1 ring-yellow-400/30 object-cover shrink-0 mt-1" />
+            <div className="rounded-2xl px-4 py-3" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}>
+              <div className="text-[10px] font-bold mb-2" style={{ color: "#E6B85A" }}>LINA AI</div>
+              <div className="flex gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="w-2 h-2 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: "150ms" }} />
+                <div className="w-2 h-2 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: "300ms" }} />
+              </div>
             </div>
           </div>
         )}
       </div>
 
-      <div className={`space-y-3 ${isMobile ? "border-t border-slate-200 bg-white/95 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.9rem)]" : "border-t border-slate-100 px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.9rem)]"}`}>
-        <div className="flex items-center justify-between">
-          <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Write your message</div>
-          <button
-            type="button"
-            onClick={() => {
-              if (typeof window !== "undefined") {
-                window.location.href = `/call/${tripId}`;
-              }
-            }}
-            className="flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 hover:bg-indigo-100 transition-all"
-          >
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-            </svg>
-            Talk to Lina
-          </button>
+      {/* Input area */}
+      <div className="px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] border-t border-white/10" style={{ background: "rgba(0,0,0,0.2)" }}>
+        {/* Quick prompts */}
+        <div className="flex flex-wrap gap-2 mb-3">
+          {quickPrompts.map((qp) => (
+            <button
+              key={qp}
+              onClick={() => onQuick(qp)}
+              className="rounded-full px-3 py-1 text-xs font-semibold text-white/70 hover:text-white hover:bg-white/10 transition-all"
+              style={{ border: "1px solid rgba(255,255,255,0.15)" }}
+            >
+              {qp === "Flights" ? "✈️ " : qp === "Hotels" ? "🏨 " : qp === "Cruise" ? "🛳️ " : qp === "All-Inclusive" ? "🌴 " : "🎯 "}{qp}
+            </button>
+          ))}
         </div>
-        <form onSubmit={onSubmit} className={`flex items-end ${isMobile ? "gap-2" : "gap-3"}`}>
+
+        <form onSubmit={onSubmit} className="flex items-end gap-2">
           <textarea
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Describe your trip—AI assistant plans flights, stays, and experiences"
-            rows={2}
-            className={`flex-1 min-w-0 w-full resize-none rounded-2xl px-4 py-3 text-sm font-semibold outline-none ${isMobile ? "border border-slate-300 bg-white focus:border-slate-400" : "border border-slate-200 focus:border-slate-300"}`}
-            style={{ maxHeight: "200px" }}
+            placeholder="Tell Lina about your dream trip..."
+            rows={1}
+            className="flex-1 min-w-0 resize-none rounded-2xl px-4 py-3 text-sm text-white placeholder-white/30 outline-none"
+            style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", maxHeight: "120px" }}
           />
+
+          {/* Mic button */}
           <button
             type="button"
             onClick={toggleMic}
-            title={isListening ? "Stop recording" : "Voice input"}
-            className={`rounded-2xl px-3 py-3 text-sm font-extrabold transition-all ${isListening ? "bg-red-500 text-white animate-pulse" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+            title={isListening ? "Stop" : "Voice"}
+            className={`rounded-2xl p-3 transition-all ${isListening ? "bg-red-500 animate-pulse" : "bg-white/10 hover:bg-white/20"}`}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-              {isListening ? (
-                <path d="M12 1a4 4 0 0 0-4 4v7a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4ZM6 11a1 1 0 1 0-2 0 8 8 0 0 0 7 7.93V21H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-2.07A8 8 0 0 0 20 11a1 1 0 1 0-2 0 6 6 0 0 1-12 0Z"/>
-              ) : (
-                <path d="M12 1a4 4 0 0 0-4 4v7a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4ZM6 11a1 1 0 1 0-2 0 8 8 0 0 0 7 7.93V21H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-2.07A8 8 0 0 0 20 11a1 1 0 1 0-2 0 6 6 0 0 1-12 0Z"/>
-              )}
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-white">
+              <path d="M12 1a4 4 0 0 0-4 4v7a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4ZM6 11a1 1 0 1 0-2 0 8 8 0 0 0 7 7.93V21H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-2.07A8 8 0 0 0 20 11a1 1 0 1 0-2 0 6 6 0 0 1-12 0Z"/>
             </svg>
           </button>
+
+          {/* Send button */}
           <button
             type="submit"
             disabled={loading}
-            className={`rounded-2xl px-4 py-3 text-sm font-extrabold text-white ${isMobile ? "min-w-[86px]" : ""}`}
-            style={isMobile ? { backgroundColor: loading ? "#6b7280" : BRAND_BLUE, opacity: loading ? 0.9 : 1 } : { backgroundColor: BRAND_BLUE, opacity: loading ? 0.8 : 1 }}
+            className="rounded-2xl px-5 py-3 text-sm font-black text-[#0B1B4D] transition-all hover:scale-105 disabled:opacity-50"
+            style={{ background: "linear-gradient(90deg, #E6B85A, #f0c96b)" }}
           >
-            {loading ? "Sending..." : "Send"}
+            {loading ? "..." : "Send →"}
           </button>
         </form>
 
-        <div className="flex flex-wrap gap-2">
-          {quickPrompts.map((qp) => (
-            <button
-              key={qp}
-              onClick={() => onQuick(qp)}
-              className={`rounded-full border px-3 py-1 text-xs font-semibold ${isMobile ? "transition" : "hover:border-slate-300"}`}
-              style={isMobile ? {
-                color: qp === "Flights" || qp === "Hotels" ? "#fff" : TITLE_TEXT,
-                backgroundColor: qp === "Flights" || qp === "Hotels" ? PREMIUM_BLUE : "#fff",
-                borderColor: qp === "Flights" || qp === "Hotels" ? PREMIUM_BLUE : "#e2e8f0",
-              } : { color: TITLE_TEXT }}
-            >
-              {qp}
-            </button>
-          ))}
+        <div className="mt-2 text-center">
+          <span className="text-white/25 text-xs">Powered by Zeniva AI · Your concierge is always online</span>
         </div>
       </div>
     </div>

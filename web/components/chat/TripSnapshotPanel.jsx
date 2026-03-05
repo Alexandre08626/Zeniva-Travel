@@ -136,15 +136,13 @@ export default function TripSnapshotPanel({ tripId, proposalMode = "" }) {
   const onMarkReady = () => setTripStatus(tripId, "Ready");
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 min-h-0 md:min-h-[72vh]">
-      <div className="flex items-center justify-between mb-3">
+    <div className="rounded-2xl p-4" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}>
+      <div className="flex items-center justify-between mb-4">
         <div>
-          <Label>Trip snapshot</Label>
-          <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>
-            {trip?.title || "Trip"}
-          </div>
+          <div className="text-xs font-bold text-white/40 uppercase tracking-wider mb-0.5">Trip Snapshot</div>
+          <div className="text-base font-black text-white">{trip?.title || "My Trip"}</div>
         </div>
-        <span className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
+        <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ background: "rgba(230,184,90,0.15)", color: "#E6B85A", border: "1px solid rgba(230,184,90,0.3)" }}>
           {tripDraft?.status || trip?.status || "Draft"}
         </span>
       </div>
@@ -152,43 +150,22 @@ export default function TripSnapshotPanel({ tripId, proposalMode = "" }) {
       <div className="mb-4 space-y-2">
         <button
           onClick={onGenerate}
-          disabled={
-            !effectiveSnapshot?.dates ||
-            !effectiveSnapshot?.destination ||
-            !effectiveSnapshot?.travelers ||
-            effectiveSnapshot?.accommodationType !== "Hotel" ||
-            effectiveSnapshot?.transportationType !== "Flights"
-          }
-          className={`w-full rounded-xl px-4 py-3 text-sm font-extrabold text-white ${
-            (!effectiveSnapshot?.dates ||
-              !effectiveSnapshot?.destination ||
-              !effectiveSnapshot?.travelers ||
-              effectiveSnapshot?.accommodationType !== "Hotel" ||
-              effectiveSnapshot?.transportationType !== "Flights")
-              ? 'opacity-50 cursor-not-allowed'
-              : ''
-          }`}
-          style={{ backgroundColor: PREMIUM_BLUE }}
+          disabled={!effectiveSnapshot?.dates || !effectiveSnapshot?.destination || !effectiveSnapshot?.travelers}
+          className="w-full rounded-xl px-4 py-3 text-sm font-black text-[#0B1B4D] transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+          style={{ background: "linear-gradient(90deg, #E6B85A, #f0c96b)" }}
         >
-          Generate Proposal
+          🚀 Generate Proposal
         </button>
         <button
           onClick={onOpen}
-          className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-extrabold"
-          style={{ color: PREMIUM_BLUE }}
+          className="w-full rounded-xl px-4 py-2.5 text-sm font-bold text-white/80 hover:text-white hover:bg-white/10 transition-all"
+          style={{ border: "1px solid rgba(255,255,255,0.15)" }}
         >
-          Open Proposal
-        </button>
-        <button
-          onClick={onMarkReady}
-          className="w-full rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold"
-          style={{ color: TITLE_TEXT }}
-        >
-          Mark Ready / Save
+          View Proposal →
         </button>
         {proposal && (
-          <div className="rounded-lg bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 border border-emerald-100">
-            Proposal saved · {new Date(proposal.updatedAt).toLocaleString()}
+          <div className="rounded-lg px-3 py-2 text-xs font-semibold" style={{ background: "rgba(16,185,129,0.15)", color: "#34d399", border: "1px solid rgba(16,185,129,0.2)" }}>
+            ✅ Proposal saved · {new Date(proposal.updatedAt).toLocaleString()}
           </div>
         )}
       </div>
@@ -214,38 +191,40 @@ export default function TripSnapshotPanel({ tripId, proposalMode = "" }) {
           { key: "includeTransfers", label: "Include Transfers", type: "checkbox" },
         ].map((f) => (
           <div key={f.key} className="space-y-1">
-            <div className="text-xs font-semibold flex items-center" style={{ color: MUTED_TEXT }}>
+            <div className="text-xs font-bold flex items-center gap-1" style={{ color: "rgba(255,255,255,0.5)" }}>
               {f.label}
-              {effectiveSnapshot?.[f.key] && f.type !== "checkbox" && <span className="ml-1 text-green-600">✓</span>}
+              {effectiveSnapshot?.[f.key] && f.type !== "checkbox" && <span className="text-green-400">✓</span>}
             </div>
             {f.type === "select" ? (
               <select
                 value={effectiveSnapshot?.[f.key] || ""}
                 onChange={(e) => onChange(f.key, e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:border-slate-300"
+                className="w-full rounded-xl px-3 py-2 text-sm font-semibold outline-none text-white"
+                style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}
               >
-                <option value="">Select {f.label.toLowerCase()}</option>
+                <option value="" style={{ background: "#0B1B4D" }}>Select...</option>
                 {f.options.map((opt) => (
                   typeof opt === "string"
-                    ? <option key={opt} value={opt}>{opt}</option>
-                    : <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ? <option key={opt} value={opt} style={{ background: "#0B1B4D" }}>{opt}</option>
+                    : <option key={opt.value} value={opt.value} style={{ background: "#0B1B4D" }}>{opt.label}</option>
                 ))}
               </select>
             ) : f.type === "checkbox" ? (
-              <label className="flex items-center space-x-2 cursor-pointer">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={Boolean(effectiveSnapshot?.[f.key])}
                   onChange={(e) => onChange(f.key, e.target.checked)}
-                  className="w-5 h-5 text-blue-600 bg-white border-2 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 checked:bg-blue-600 checked:border-blue-600"
+                  className="w-4 h-4 rounded"
                 />
-                <span className="text-sm font-semibold">Include in proposal</span>
+                <span className="text-sm text-white/70">Include in proposal</span>
               </label>
             ) : (
               <input
                 value={effectiveSnapshot?.[f.key] || ""}
                 onChange={(e) => onChange(f.key, e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:border-slate-300"
+                className="w-full rounded-xl px-3 py-2 text-sm font-semibold outline-none text-white placeholder-white/30"
+                style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}
                 placeholder={`Enter ${f.label.toLowerCase()}`}
               />
             )}
@@ -253,22 +232,17 @@ export default function TripSnapshotPanel({ tripId, proposalMode = "" }) {
         ))}
       </div>
 
-      <div className="mt-4 space-y-2">
-        <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Missing Info</div>
-        {!effectiveSnapshot?.dates && <div className="text-xs text-red-600">• Dates missing</div>}
-        {!effectiveSnapshot?.destination && <div className="text-xs text-red-600">• Destination missing</div>}
-        {!effectiveSnapshot?.travelers && <div className="text-xs text-red-600">• Travelers missing</div>}
-        {!effectiveSnapshot?.budget && <div className="text-xs text-orange-600">• Budget not specified</div>}
-        {!effectiveSnapshot?.accommodationType && <div className="text-xs text-orange-600">• Accommodation type not specified</div>}
-        {!effectiveSnapshot?.transportationType && <div className="text-xs text-orange-600">• Transportation type not specified</div>}
+      {/* Missing info hints */}
+      <div className="mt-4 rounded-xl p-3 space-y-1" style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">Needed for proposal</div>
+        {!effectiveSnapshot?.dates && <div className="text-xs text-red-400">✗ Dates missing</div>}
+        {!effectiveSnapshot?.destination && <div className="text-xs text-red-400">✗ Destination missing</div>}
+        {!effectiveSnapshot?.travelers && <div className="text-xs text-red-400">✗ Travelers missing</div>}
+        {!effectiveSnapshot?.budget && <div className="text-xs" style={{ color: "#f59e0b" }}>○ Budget not set</div>}
+        {effectiveSnapshot?.dates && effectiveSnapshot?.destination && effectiveSnapshot?.travelers && (
+          <div className="text-xs text-green-400">✓ Ready to generate!</div>
+        )}
       </div>
-
-      {tripDraft?.lastPatch && (
-        <div className="mt-4 p-2 bg-gray-50 rounded text-xs">
-          <div className="font-semibold">Last AI Update ({new Date(tripDraft.lastPatch.timestamp).toLocaleTimeString()}):</div>
-          <pre>{JSON.stringify(tripDraft.lastPatch, null, 2)}</pre>
-        </div>
-      )}
 
     </div>
   );
