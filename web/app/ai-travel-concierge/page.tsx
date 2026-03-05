@@ -2,21 +2,36 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "AI Travel Concierge",
+  title: "AI Travel Concierge USA — Meet Lina, Your 24/7 AI Travel Planner | Zeniva Travel",
   description:
-    "Zeniva Travel is an AI travel company. Lina AI discovers intent, builds intelligent proposals, and our concierge team finalizes every detail.",
+    "Meet Lina — Zeniva Travel's AI travel concierge. Available 24/7, she builds personalized trip proposals in seconds: flights, hotels, transfers, experiences. The smartest way to plan your next vacation in the USA or anywhere in the world.",
+  keywords: [
+    "AI travel concierge USA",
+    "AI travel planner",
+    "Lina AI travel",
+    "best AI travel assistant 2025",
+    "ChatGPT for travel",
+    "AI vacation planner",
+    "travel planning AI USA",
+    "smart travel planner",
+    "AI trip planner",
+    "virtual travel concierge",
+    "Zeniva Lina AI",
+    "automated travel planning",
+  ],
   alternates: {
-    canonical: "https://zenivatravel.com/ai-travel-concierge",
+    canonical: "https://www.zenivatravel.com/ai-travel-concierge",
     languages: {
-      "en-CA": "https://zenivatravel.com/ai-travel-concierge",
-      "fr-CA": "https://zenivatravel.com/fr/ai-travel-concierge",
+      "en-US": "https://www.zenivatravel.com/ai-travel-concierge",
+      "en-CA": "https://www.zenivatravel.com/ai-travel-concierge",
+      "fr-CA": "https://www.zenivatravel.com/fr/ai-travel-concierge",
     },
   },
   openGraph: {
-    title: "Zeniva Travel AI | AI Travel Concierge",
+    title: "AI Travel Concierge USA — Lina AI Plans Your Dream Trip | Zeniva Travel",
     description:
-      "AI travel concierge powered by Lina AI: intent discovery, smart itineraries, and human validation.",
-    url: "https://zenivatravel.com/ai-travel-concierge",
+      "Lina AI builds your perfect trip in seconds — flights, hotels, experiences, transfers. Available 24/7. Zeniva Travel's AI concierge for the USA & Canada.",
+    url: "https://www.zenivatravel.com/ai-travel-concierge",
     siteName: "Zeniva Travel",
     type: "website",
     images: [
@@ -24,15 +39,15 @@ export const metadata: Metadata = {
         url: "/branding/lina-avatar.png",
         width: 1200,
         height: 630,
-        alt: "Lina AI",
+        alt: "Lina — Zeniva Travel AI Concierge",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zeniva Travel AI | AI Travel Concierge",
+    title: "AI Travel Concierge USA — Lina AI | Zeniva Travel",
     description:
-      "AI travel concierge powered by Lina AI: intent discovery, smart itineraries, and human validation.",
+      "Lina AI builds your dream trip in seconds. 24/7 travel planning for USA, Canada & worldwide.",
     images: ["/branding/lina-avatar.png"],
   },
 };

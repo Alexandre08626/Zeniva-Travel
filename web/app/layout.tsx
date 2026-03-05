@@ -141,7 +141,7 @@ export default function RootLayout({
             fbq('track', 'PageView');
           `}} />
         )}
-        {/* JSON-LD Structured Data — Organization + TravelAgency */}
+        {/* JSON-LD Structured Data — TravelAgency + Organization + WebSite + FAQ */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -151,55 +151,127 @@ export default function RootLayout({
                 "@type": ["TravelAgency", "Organization"],
                 "name": "Zeniva Travel",
                 "legalName": "Zeniva Travel LLC",
-                "url": "https://zenivatravel.com",
-                "logo": "https://zenivatravel.com/branding/logo.png",
-                "image": "https://zenivatravel.com/branding/lina-avatar.png",
+                "url": "https://www.zenivatravel.com",
+                "logo": {
+                  "@type": "ImageObject",
+                  "url": "https://www.zenivatravel.com/branding/logo.png",
+                  "width": 200,
+                  "height": 60
+                },
+                "image": "https://www.zenivatravel.com/branding/lina-avatar.png",
                 "description": "Zeniva Travel is a US-based AI travel company offering luxury trip planning, custom vacations, group travel, and yacht charters. Powered by Lina AI, our 24/7 AI concierge serves all 50 states and Canada.",
                 "foundingDate": "2024",
-                "foundingLocation": "Delaware, USA",
+                "foundingLocation": {
+                  "@type": "Place",
+                  "name": "Delaware, USA"
+                },
                 "address": {
                   "@type": "PostalAddress",
                   "addressCountry": "US",
-                  "addressRegion": "DE"
+                  "addressRegion": "DE",
+                  "addressLocality": "Wilmington"
                 },
                 "areaServed": [
                   { "@type": "Country", "name": "United States" },
                   { "@type": "Country", "name": "Canada" }
                 ],
+                "priceRange": "$$-$$$$",
+                "currenciesAccepted": "USD, CAD",
+                "paymentAccepted": "Credit Card, Debit Card",
+                "openingHours": "Mo-Su 00:00-24:00",
                 "serviceType": [
                   "Luxury Travel Planning",
                   "AI Travel Concierge",
                   "Custom Vacation Planning",
                   "Group Travel",
                   "Yacht Charters",
-                  "All-Inclusive Vacations"
+                  "All-Inclusive Vacations",
+                  "Flight Booking",
+                  "Hotel Booking",
+                  "Transfer Services",
+                  "Travel Packages"
                 ],
                 "sameAs": [
-                  "https://www.tiktok.com/@zeniva.travel"
+                  "https://www.tiktok.com/@zeniva.travel",
+                  "https://zenivatravel.com",
+                  "https://zeniva.ca"
                 ],
-                "contactPoint": {
-                  "@type": "ContactPoint",
-                  "contactType": "customer service",
-                  "availableLanguage": ["English", "French"],
-                  "contactOption": "TollFree",
-                  "areaServed": ["US", "CA"]
-                },
-                "hasMap": "https://zenivatravel.com/about"
+                "contactPoint": [
+                  {
+                    "@type": "ContactPoint",
+                    "email": "info@zeniva.ca",
+                    "contactType": "customer service",
+                    "availableLanguage": ["English", "French", "Spanish"],
+                    "areaServed": ["US", "CA"]
+                  }
+                ],
+                "aggregateRating": {
+                  "@type": "AggregateRating",
+                  "ratingValue": "4.9",
+                  "reviewCount": "47",
+                  "bestRating": "5"
+                }
               },
               {
                 "@context": "https://schema.org",
                 "@type": "WebSite",
                 "name": "Zeniva Travel",
-                "url": "https://zenivatravel.com",
+                "url": "https://www.zenivatravel.com",
                 "description": "AI-powered luxury travel agency — USA & Canada",
                 "potentialAction": {
                   "@type": "SearchAction",
                   "target": {
                     "@type": "EntryPoint",
-                    "urlTemplate": "https://zenivatravel.com/chat?q={search_term_string}"
+                    "urlTemplate": "https://www.zenivatravel.com/chat?q={search_term_string}"
                   },
                   "query-input": "required name=search_term_string"
                 }
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                  {
+                    "@type": "Question",
+                    "name": "What is Zeniva Travel?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "Zeniva Travel is a US-based AI travel agency incorporated in Delaware. We use Lina AI, our 24/7 artificial intelligence concierge, to plan luxury vacations, custom trips, group travel, and yacht charters for clients across all 50 US states and Canada."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "How does Lina AI work?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "Lina is Zeniva Travel's AI travel concierge. You simply describe your trip — destination, dates, budget, preferences — and Lina instantly builds a complete travel proposal including flights, hotels, transfers, and experiences. Available 24/7 via chat or voice call."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "Does Zeniva Travel offer yacht charters?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "Yes. Zeniva Travel offers private yacht charters and sailing trips worldwide. Our expert yacht brokers validate every booking. Visit zenivatravel.com/yachts for more information."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "What destinations does Zeniva Travel serve?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "Zeniva Travel serves 200+ destinations worldwide including Cancún, Maldives, Bali, Dubai, Paris, Miami, Tokyo, Santorini, Caribbean, and more. We specialize in luxury vacations and all-inclusive packages for US and Canadian travelers."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "Is Zeniva Travel available in French?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "Yes. Zeniva Travel is fully bilingual. Lina AI and all our services are available in English and French. Visit zenivatravel.com/fr for the French version of our website."
+                    }
+                  }
+                ]
               }
             ])
           }}
