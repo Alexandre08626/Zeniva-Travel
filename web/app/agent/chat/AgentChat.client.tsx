@@ -95,9 +95,11 @@ export default function AgentChatClient() {
 
     const tryFetch = async () => {
       try {
-        const resp = await fetch("/api/agent/inbox", { cache: "no-store" });
+        // Send email in header — bypasses cookie timing issues entirely
+        const headers: Record<string, string> = { "cache-control": "no-store" };
+        if (user?.email) headers["x-user-email"] = user.email;
+        const resp = await fetch("/api/agent/inbox", { cache: "no-store", headers });
         if (resp.status === 401 && retryCount < 5) {
-          // Cookie might not be set yet — retry after 1.5s (hydrateFromServer is async)
           retryCount++;
           setTimeout(() => { if (active) void tryFetch(); }, 1500);
           return;

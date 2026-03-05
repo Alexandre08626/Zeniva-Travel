@@ -9,7 +9,11 @@ import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
 
 const HQ_ROLES = ["hq", "admin", "super_admin"];
 
-function getEmailFromCookies(request: Request): string {
+function getEmailFromRequest(request: Request): string {
+  // 1. Header sent by React component (most reliable — no cookie timing issues)
+  const emailHeader = request.headers.get("x-user-email") || "";
+  if (emailHeader) return emailHeader.toLowerCase().trim();
+  // 2. Cookie fallback
   const raw = request.headers.get("cookie") || "";
   const match = raw.split(";").map((c) => c.trim()).find((c) => c.startsWith("zeniva_email="));
   if (!match) return "";
@@ -25,10 +29,10 @@ async function verifyHqEmail(email: string): Promise<boolean> {
 
 export async function GET(request: Request) {
   try {
-    const email = getEmailFromCookies(request);
+    const email = getEmailFromRequest(request);
     const isHq = await verifyHqEmail(email);
     if (!isHq) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized", email }, { status: 401 });
     }
 
     const { client } = getSupabaseAdminClient();
