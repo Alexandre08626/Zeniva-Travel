@@ -11,9 +11,23 @@ function TripsScopeBridge() {
   useEffect(() => {
     const email = user?.email || "";
     setTripUserScope(email || "guest");
-    // Sync from Supabase every time user becomes available (page load OR login)
     if (email) {
-      syncTripsFromServer(email).catch(() => undefined);
+      // 1. Pull from Supabase (merge server + local)
+      syncTripsFromServer(email)
+        .then(() => {
+          // 2. Push merged local state back to Supabase
+          // This ensures all local trips that were never pushed get saved
+          import("../../lib/store/tripsStore").then((mod) => {
+            const state = mod.getState?.();
+            if (!state) return;
+            fetch("/api/user-data", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email, tripsState: state }),
+            }).catch(() => undefined);
+          }).catch(() => undefined);
+        })
+        .catch(() => undefined);
     }
   }, [user?.email]);
   return null;
