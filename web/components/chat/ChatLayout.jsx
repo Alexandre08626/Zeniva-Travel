@@ -9,13 +9,13 @@ import { useRouter } from "next/navigation";
 function getCurrentUserEmail() {
   if (typeof window === "undefined") return "";
   try {
-    // 1. authStore in localStorage
-    const raw = localStorage.getItem("zeniva_auth");
+    // 1. authStore in localStorage (correct key: zeniva_auth_store_v1)
+    const raw = localStorage.getItem("zeniva_auth_store_v1");
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed?.user?.email) return parsed.user.email.trim().toLowerCase();
     }
-    // 2. cookie fallback
+    // 2. cookie fallback (set by authStore on login)
     const match = document.cookie.match(/zeniva_email=([^;]+)/);
     if (match) return decodeURIComponent(match[1]).trim().toLowerCase();
   } catch (_) {}
