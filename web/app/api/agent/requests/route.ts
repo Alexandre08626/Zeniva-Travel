@@ -1,9 +1,50 @@
 import { NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
+import nodemailer from "nodemailer";
 import { getSupabaseAdminClient, getSupabaseAnonClient } from "../../../../src/lib/supabase/server";
 import { getSessionCookieName, verifySession } from "../../../../src/lib/server/auth";
 import { normalizeRbacRoles } from "../../../../src/lib/rbac";
+
+// ── Email helpers ────────────────────────────────────────────────────────────
+const smtpTransporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: { user: "info@zeniva.ca", pass: "zsyqqdjltafwhlyc" },
+});
+
+async function sendEmailNotification(opts: {
+  to: string;
+  subject: string;
+  html: string;
+}) {
+  try {
+    await smtpTransporter.sendMail({
+      from: '"Zeniva Travel" <info@zeniva.ca>',
+      ...opts,
+    });
+  } catch (e) {
+    console.error("[email] Failed to send:", e);
+  }
+}
+
+async function findClientEmailInChannel(channelId: string): Promise<{ email: string; name: string } | null> {
+  try {
+    const client = getSupabaseAdminClient().client;
+    const { data } = await client
+      .from("agent_inbox_messages")
+      .select("email, author, full_name")
+      .filter("channel_ids", "cs", JSON.stringify([channelId]))
+      .eq("sender_role", "client")
+      .order("created_at", { ascending: false })
+      .limit(1);
+    const row = data?.[0];
+    if (row?.email) return { email: row.email, name: row.full_name || row.author || "Client" };
+  } catch { /* ignore */ }
+  return null;
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "agent-requests.json");
@@ -367,6 +408,62 @@ export async function POST(request: Request) {
 
     if (hasSupabaseEnv()) {
       await writeRequestToSupabase(newRequest);
+
+      // ── Email notifications ──────────────────────────────────────────────
+      const msgText = newRequest.message || "";
+      const clientEmail = newRequest.email || "";
+      const clientName = newRequest.author || newRequest.fullName || "Client";
+      const isSenderClient = senderRole === "client" || !senderRole;
+      const isSenderAgent = senderRole === "hq" || senderRole === "agent";
+
+      if (isSenderClient && msgText && clientEmail) {
+        // 1. Notify agent inbox (info@zeniva.ca) — confirmation to client
+        void sendEmailNotification({
+          to: "info@zeniva.ca",
+          subject: `💬 New message from ${clientName}`,
+          html: `<p><strong>${clientName}</strong> (${clientEmail}) sent a message via the Help chat:</p>
+<blockquote style="border-left:4px solid #0F6CF5;padding:12px 16px;margin:16px 0;color:#333;">${msgText.replace(/\n/g,"<br/>")}</blockquote>
+<p><a href="https://www.zenivatravel.com/agent/chat" style="background:#0F6CF5;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;">Reply in Agent Inbox →</a></p>`,
+        });
+        // 2. Confirmation email to client
+        void sendEmailNotification({
+          to: clientEmail,
+          subject: "✅ We received your message — Zeniva Travel",
+          html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto">
+<h2 style="color:#0B1B4D">We got your message!</h2>
+<p>Hi ${clientName},</p>
+<p>Our team has received your message and will get back to you shortly.</p>
+<blockquote style="border-left:4px solid #0F6CF5;padding:12px 16px;margin:16px 0;color:#555;">${msgText.replace(/\n/g,"<br/>")}</blockquote>
+<p>In the meantime, you can explore your trips at <a href="https://www.zenivatravel.com">zenivatravel.com</a>.</p>
+<p style="color:#888;font-size:12px">— The Zeniva Travel Team</p>
+</div>`,
+        });
+      }
+
+      if (isSenderAgent && msgText) {
+        // Find the client's email from the channel history
+        const primaryChannel = channelIds.find((c) => c !== "hq") || "";
+        if (primaryChannel) {
+          findClientEmailInChannel(primaryChannel).then((clientInfo) => {
+            if (clientInfo?.email) {
+              void sendEmailNotification({
+                to: clientInfo.email,
+                subject: "💬 New reply from Zeniva Travel",
+                html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto">
+<h2 style="color:#0B1B4D">You have a new reply</h2>
+<p>Hi ${clientInfo.name},</p>
+<p>Our team has replied to your message:</p>
+<blockquote style="border-left:4px solid #E6B85A;padding:12px 16px;margin:16px 0;color:#333;">${msgText.replace(/\n/g,"<br/>")}</blockquote>
+<p><a href="https://www.zenivatravel.com/chat/agent" style="background:#0B1B4D;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;">Reply in chat →</a></p>
+<p style="color:#888;font-size:12px">— The Zeniva Travel Team</p>
+</div>`,
+              });
+            }
+          }).catch(() => {});
+        }
+      }
+      // ────────────────────────────────────────────────────────────────────
+
       return NextResponse.json({ data: newRequest }, { status: 201 });
     }
 
