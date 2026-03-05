@@ -94,17 +94,32 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
       const r = await fetch(`/api/agents-proxy?path=admin/dashboard-stats${agentParam}`, {
         headers: { Authorization: "Bearer zeniva-secret-2025" },
       });
-      if (!r.ok) return;
-      const d = await r.json();
       const badges: Record<string, number> = {};
-      // New clients today
-      if (d.clients_today > 0) badges["/agent/clients"] = d.clients_today;
-      // Open dossiers
-      if (d.open_dossiers > 0) badges["/agent/dossiers"] = d.open_dossiers;
-      // Pending follow-ups
-      if (d.followups_due > 0) badges["/agent/commissions"] = d.followups_due;
-      // Leads today
-      if (d.leads_today > 0) badges["/agent"] = d.leads_today;
+      if (r.ok) {
+        const d = await r.json();
+        if (d.clients_today > 0) badges["/agent/clients"] = d.clients_today;
+        if (d.open_dossiers > 0) badges["/agent/dossiers"] = d.open_dossiers;
+        if (d.followups_due > 0) badges["/agent/commissions"] = d.followups_due;
+        if (d.leads_today > 0) badges["/agent"] = d.leads_today;
+      }
+
+      // Fetch unread inbox count — client messages newer than last seen timestamp
+      if (isHQorAdmin) {
+        const lastSeenKey = "zeniva_inbox_last_seen";
+        const lastSeen = typeof window !== "undefined" ? (localStorage.getItem(lastSeenKey) || "1970-01-01") : "1970-01-01";
+        const inboxResp = await fetch("/api/agent/inbox", { cache: "no-store" });
+        if (inboxResp.ok) {
+          const inboxData = await inboxResp.json();
+          const rows: any[] = Array.isArray(inboxData?.data) ? inboxData.data : [];
+          const unread = rows.filter((row) => {
+            if (row?.sender_role === "hq" || row?.sender_role === "agent" || row?.sender_role === "lina") return false;
+            const ts = row?.created_at || row?.createdAt || "1970-01-01";
+            return ts > lastSeen;
+          }).length;
+          if (unread > 0) badges["/agent/chat"] = unread;
+        }
+      }
+
       setNavBadges(badges);
     } catch {}
   };
@@ -226,6 +241,13 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
             return (
               <div key={link.href} className="relative group">
                 <Link href={link.href}
+                  onClick={() => {
+                    // Clear inbox unread count when clicking Chat Hub
+                    if (link.href === "/agent/chat" && typeof window !== "undefined") {
+                      localStorage.setItem("zeniva_inbox_last_seen", new Date().toISOString());
+                      setNavBadges((prev) => { const n = { ...prev }; delete n["/agent/chat"]; return n; });
+                    }
+                  }}
                   className={`flex items-center gap-3 rounded-xl px-2 py-2 text-sm font-semibold transition-all ${active ? "bg-blue-600 text-white" : "text-slate-700 hover:bg-blue-50 hover:text-blue-700"}`}>
                   {link.icon === "lina" ? (
                     <img src="/branding/lina-avatar.png" alt="Lina" className="shrink-0 w-6 h-6 rounded-full object-cover border border-indigo-300" />
