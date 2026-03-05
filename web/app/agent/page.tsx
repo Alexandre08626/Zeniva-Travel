@@ -12,6 +12,7 @@ const AUTH = "Bearer zeniva-secret-2025";
 const PREMIUM_BLUE = "#0B1B4D";
 const BRAND_BLUE = "#0F6CF5";
 const ACCENT_GOLD = "#E6B85A";
+const IMPERSONATE_KEY = "zeniva_impersonating";
 
 type AgentStatus = "live" | "active" | "idle" | "error";
 type AIAgent = {
@@ -66,6 +67,15 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
   const hq = isHQ(user);
+
+  // Impersonation — HQ can view portal as any agent
+  const [impersonation, setImpersonation] = useState<{agentEmail: string; agentName: string; originalEmail: string} | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const raw = localStorage.getItem(IMPERSONATE_KEY);
+    if (raw) { try { setImpersonation(JSON.parse(raw)); } catch {} }
+  }, []);
+  const effectiveEmail = impersonation?.agentEmail || user?.email || "";
   const roles = user?.roles?.length ? user.roles : user?.role ? [user.role] : [];
   const effectiveRole = normalizeRbacRole(user?.effectiveRole) || normalizeRbacRole(roles[0]);
   const isHQorAdmin = effectiveRole === "hq" || effectiveRole === "admin" || hq;
@@ -77,10 +87,10 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   const [navBadges, setNavBadges] = useState<Record<string, number>>({});
 
   const fetchNavBadges = async () => {
-    if (!user?.email) return;
+    if (!effectiveEmail) return;
     try {
       // Fetch dashboard stats to compute badges
-      const agentParam = isHQorAdmin ? "" : `&agent_email=${encodeURIComponent(user.email)}`;
+      const agentParam = isHQorAdmin ? "" : `&agent_email=${encodeURIComponent(effectiveEmail)}`;
       const r = await fetch(`/api/agents-proxy?path=admin/dashboard-stats${agentParam}`, {
         headers: { Authorization: "Bearer zeniva-secret-2025" },
       });
@@ -118,8 +128,8 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
       fetchNavBadges();
     try {
       // Pass agent_email to scope data — HQ sees all, agents see only their data
-      const agentEmailParam = user?.email ? `&agent_email=${encodeURIComponent(user.email)}` : "";
-      const actEmailParam = user?.email ? `?agent_email=${encodeURIComponent(user.email)}` : "";
+      const agentEmailParam = effectiveEmail ? `&agent_email=${encodeURIComponent(effectiveEmail)}` : "";
+      const actEmailParam = effectiveEmail ? `?agent_email=${encodeURIComponent(effectiveEmail)}` : "";
       const [dashRes, statsRes, accountsRes, actRes] = await Promise.all([
         fetch(`/api/agents-proxy?path=admin/dashboard-stats${agentEmailParam}`, { headers: { Authorization: AUTH } }),
         fetch("/api/agents-proxy?endpoint=stats", { headers: { Authorization: AUTH } }),
@@ -145,11 +155,11 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   };
 
   useEffect(() => {
-    if (!user?.email) return; // Wait for user to load before fetching
+    if (!effectiveEmail) return; // Wait for user to load before fetching
     fetchAll();
     const iv = setInterval(fetchAll, 30000);
     return () => clearInterval(iv);
-  }, [hq, user?.email]);
+  }, [hq, effectiveEmail, user?.email]);
 
   useEffect(() => {
     if (resolvedAgentId) {
@@ -174,6 +184,22 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
 
   return (
     <div className="min-h-screen flex" style={{ background: "#0B1B4D" }}>
+      {/* Impersonation banner */}
+      {impersonation && (
+        <div className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-6 py-2.5 text-sm font-bold text-white" style={{ background: "linear-gradient(90deg, #7c3aed, #ec4899)" }}>
+          <span>👁️ Viewing as: <span className="underline">{impersonation.agentName}</span> ({impersonation.agentEmail})</span>
+          <button
+            onClick={() => {
+              localStorage.removeItem(IMPERSONATE_KEY);
+              setImpersonation(null);
+              window.location.href = "/agent/agents";
+            }}
+            className="bg-white/20 hover:bg-white/30 rounded-full px-4 py-1 font-black transition-all text-xs"
+          >
+            ← Return to HQ
+          </button>
+        </div>
+      )}
       {/* SIDEBAR */}
       <aside className={`fixed inset-y-0 left-0 z-40 flex flex-col transition-all duration-300 bg-white border-r border-slate-200 shadow-lg ${navOpen ? "w-64" : "w-16"}`}>
         {/* Logo + Toggle button at top */}
