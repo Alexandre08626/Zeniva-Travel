@@ -17,7 +17,7 @@ function TripsScopeBridge() {
         .then(() => {
           // 2. Push merged local state back to Supabase
           // This ensures all local trips that were never pushed get saved
-          import("../../lib/store/tripsStore").then((mod) => {
+          import("../lib/store/tripsStore").then((mod) => {
             const state = mod.getState?.();
             if (!state) return;
             fetch("/api/user-data", {
