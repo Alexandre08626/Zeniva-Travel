@@ -2,6 +2,64 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+
+function SquarePayButton({ amount, description, referenceId, disabled }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handlePay = async () => {
+    if (disabled || loading) return;
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/payment/square", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: amount || 1,
+          currency: "USD",
+          description: description || "Zeniva Travel Booking",
+          referenceId: referenceId || Date.now().toString(),
+          redirectUrl: `${window.location.origin}/payment/confirmation`,
+        }),
+      });
+      const data = await res.json();
+      if (data.paymentUrl) {
+        window.location.href = data.paymentUrl;
+      } else {
+        setError(data.error || "Payment error. Please try again.");
+        setLoading(false);
+      }
+    } catch {
+      setError("Connection error. Please try again.");
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <button
+        onClick={handlePay}
+        disabled={disabled || loading}
+        className="w-full rounded-full px-4 py-4 text-sm font-extrabold text-white shadow-lg transition-all"
+        style={{
+          background: disabled ? "#94a3b8" : "linear-gradient(135deg, #0F6CF5, #0B1B4D)",
+          cursor: disabled ? "not-allowed" : "pointer",
+          fontSize: "15px",
+          letterSpacing: "0.5px",
+        }}
+      >
+        {loading ? "Redirecting to secure payment…" : disabled ? "Fill in your details first" : "💳 Pay by Card (Secure)"}
+      </button>
+      {error && <p className="text-red-500 text-xs mt-2 text-center">{error}</p>}
+      {!disabled && (
+        <p className="text-xs text-center text-gray-400 mt-1">
+          🔒 Secured by Square — Visa · Mastercard · Amex · Apple Pay
+        </p>
+      )}
+    </div>
+  );
+}
 import { BRAND_BLUE, LIGHT_BG, MUTED_TEXT, TITLE_TEXT } from "../../../src/design/tokens";
 import { useTripsStore, createTrip } from "../../../lib/store/tripsStore";
 import { getImagesForDestination, getPartnerHotelImages } from "../../../src/lib/images";
@@ -454,13 +512,21 @@ export default function CheckoutPage() {
               </div>
             )}
 
+            {/* Square Payment Button */}
+            <SquarePayButton
+              amount={pricing.hasAnyPrice ? pricing.total : 0}
+              description={`Zeniva Travel — ${tripDraft?.destination || "Trip"} (${tripDraft?.adults || 1} travelers)`}
+              referenceId={proposalId}
+              disabled={!travelerForm.firstName.trim() || !travelerForm.email.trim()}
+            />
+
             <button
-              className="w-full rounded-full px-4 py-3 text-sm font-extrabold text-white shadow-sm"
-              style={{ backgroundColor: BRAND_BLUE, opacity: canSubmitPayment ? 1 : 0.6 }}
+              className="w-full rounded-full px-4 py-3 text-sm font-bold text-white shadow-sm mt-2"
+              style={{ backgroundColor: BRAND_BLUE, opacity: canSubmitPayment ? 0.4 : 0.3, fontSize: "12px" }}
               onClick={handlePayNow}
               disabled={!canSubmitPayment || paymentStatus === "processing" || paymentStatus === "confirmation"}
             >
-              {paymentStatus === "confirmation" ? "Payment confirmation" : paymentStatus === "processing" ? "Processing…" : "Pay now (mock)"}
+              {paymentStatus === "confirmation" ? "✓ Confirmed" : paymentStatus === "processing" ? "Processing…" : "Test mode (mock)"}
             </button>
             <div className="rounded-xl border border-slate-200 bg-white p-3 text-xs" style={{ color: MUTED_TEXT }}>
               After payment, your concierge will confirm ticketing and send e-tickets via email.
