@@ -3,10 +3,9 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { sendMessageToLina } from "../../../src/lib/linaClient";
-import { normalizeAgentId } from "../../../src/lib/agent/agentWorkspace";
 import { useAuthStore, isHQ } from "../../../src/lib/authStore";
 
-type MessageRole = "agent" | "hq" | "lina" | "client";
+type MessageRole = "agent" | "hq" | "lina" | "client" | "system";
 
 type ChatMessage = {
   id: string;
@@ -25,9 +24,12 @@ type Channel = {
   label: string;
   scope: string;
   unread: number;
+  closed?: boolean;
 };
 
 const createLocalId = () => `local-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+const CLOSED_MSG = "__CONVERSATION_CLOSED__";
+const REOPENED_MSG = "__CONVERSATION_REOPENED__";
 
 export default function AgentChatClient() {
   const searchParams = useSearchParams();
@@ -39,8 +41,9 @@ export default function AgentChatClient() {
   const [messages, setMessages] = useState<Record<string, ChatMessage[]>>({});
   const [sending, setSending] = useState(false);
   const [linaBusy, setLinaBusy] = useState(false);
+  const [closingId, setClosingId] = useState<string | null>(null);
   const [channels, setChannels] = useState<Channel[]>([
-    { id: "hq", label: "📥 All Messages", scope: "Global inbox", unread: 0 },
+    { id: "hq", label: "📥 All Messages", scope: "Global inbox", unread: 0, closed: false },
   ]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -60,7 +63,7 @@ export default function AgentChatClient() {
     if (!targetChannel) return;
     setChannels((prev) => {
       if (prev.find((c) => c.id === targetChannel)) return prev;
-      return [...prev, { id: targetChannel, label: `💬 ${label}`, scope: "Direct", unread: 0 }];
+      return [...prev, { id: targetChannel, label: `💬 ${label}`, scope: "Direct", unread: 0, closed: false }];
     });
     setChannelId(targetChannel);
   }, [searchParams]);
@@ -85,9 +88,20 @@ export default function AgentChatClient() {
     };
   };
 
+  // Determine if a channel is closed based on its messages
+  const isChannelClosed = (channelMessages: ChatMessage[]): boolean => {
+    // Walk backwards to find the last status marker
+    for (let i = channelMessages.length - 1; i >= 0; i--) {
+      const m = channelMessages[i];
+      if (m.role === "system") {
+        if (m.text === CLOSED_MSG) return true;
+        if (m.text === REOPENED_MSG) return false;
+      }
+    }
+    return false;
+  };
 
-
-  // Poll every 5 seconds — with retry if 401 (zeniva_email cookie not yet set)
+  // Poll every 5s
   useEffect(() => {
     if (!user?.email) return;
     let active = true;
@@ -95,9 +109,9 @@ export default function AgentChatClient() {
 
     const tryFetch = async () => {
       try {
-        // Send email in header — bypasses cookie timing issues entirely
         const headers: Record<string, string> = { "cache-control": "no-store" };
         if (user?.email) headers["x-user-email"] = user.email;
+
         const resp = await fetch("/api/agent/inbox", { cache: "no-store", headers });
         if (resp.status === 401 && retryCount < 5) {
           retryCount++;
@@ -107,103 +121,180 @@ export default function AgentChatClient() {
         retryCount = 0;
         const payload = await resp.json().catch(() => ({}));
         if (!resp.ok) return;
-        const rows = Array.isArray(payload?.data) ? payload.data : [];
-        const nextMessages: Record<string, ChatMessage[]> = {};
-        const newChannels: Map<string, Channel> = new Map();
 
-        rows.forEach((row: any) => {
-          if (row?.deleted_at || row?.is_deleted) return;
+        const rows: any[] = payload?.messages || payload?.data || [];
+        const channelMap: Record<string, ChatMessage[]> = {};
+
+        rows.forEach((row) => {
+          const ids: string[] = Array.isArray(row?.channel_ids) ? row.channel_ids : [row?.channel_id || "hq"];
           const msg = buildMessageFromRow(row);
-          const channelIds: string[] = Array.isArray(row?.channelIds)
-            ? row.channelIds
-            : Array.isArray(row?.channel_ids)
-              ? row.channel_ids
-              : ["hq"];
-          const safeIds = channelIds.length ? channelIds : ["hq"];
-
-          safeIds.forEach((id) => {
-            if (!nextMessages["hq"]) nextMessages["hq"] = [];
-            if (!nextMessages["hq"].some((m) => m.id === msg.id)) nextMessages["hq"].push(msg);
-            if (id !== "hq") {
-              if (!nextMessages[id]) nextMessages[id] = [];
-              if (!nextMessages[id].some((m) => m.id === msg.id)) nextMessages[id].push(msg);
-              if (!newChannels.has(id)) {
-                const label = row?.author || row?.full_name || row?.email || id;
-                newChannels.set(id, { id, label: `💬 ${label}`, scope: "Direct", unread: 0 });
-              }
+          ids.forEach((cid) => {
+            if (!channelMap[cid]) channelMap[cid] = [];
+            if (!channelMap[cid].some((m) => m.id === msg.id)) {
+              channelMap[cid].push(msg);
             }
           });
         });
 
-        Object.values(nextMessages).forEach((list) =>
-          list.sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime())
-        );
+        // Sort by date
+        Object.keys(channelMap).forEach((cid) => {
+          channelMap[cid].sort((a, b) => new Date(a.createdAt!).getTime() - new Date(b.createdAt!).getTime());
+        });
 
         setMessages((prev) => {
-          const prevFlat = Object.values(prev).flat().map((m) => m.id);
-          const active = activeChannelRef.current;
-          setChannels((prevCh) => {
-            const next = [...prevCh];
-            newChannels.forEach((ch) => {
-              if (!next.some((c) => c.id === ch.id)) next.push(ch);
-            });
-            return next.map((ch) => {
-              if (ch.id === active) return { ...ch, unread: 0 };
-              const chMsgs = nextMessages[ch.id] || [];
-              const newCount = chMsgs.filter((m) => m.role === "client" && !prevFlat.includes(m.id)).length;
-              return newCount > 0 ? { ...ch, unread: ch.unread + newCount } : ch;
-            });
+          const merged: Record<string, ChatMessage[]> = { ...prev };
+          Object.entries(channelMap).forEach(([cid, newMsgs]) => {
+            const existing = prev[cid] || [];
+            const existingIds = new Set(existing.map((m) => m.id));
+            const toAdd = newMsgs.filter((m) => !existingIds.has(m.id));
+            merged[cid] = [...existing, ...toAdd].sort(
+              (a, b) => new Date(a.createdAt!).getTime() - new Date(b.createdAt!).getTime()
+            );
           });
-          return nextMessages;
+          return merged;
         });
-      } catch { /* ignore */ }
+
+        // Update channels list & unread counts & closed status
+        setChannels((prev) => {
+          const updated = [...prev];
+          const activeId = activeChannelRef.current;
+          Object.entries(channelMap).forEach(([cid, msgs]) => {
+            if (cid === "hq") return;
+            const clientMsgs = msgs.filter((m) => m.role === "client");
+            const label = clientMsgs[0]?.author || cid.replace("agent-alexandre-", "").replace(/-/g, " ");
+            const existing = updated.find((c) => c.id === cid);
+            const closed = isChannelClosed(msgs);
+            if (!existing) {
+              updated.push({ id: cid, label: `💬 ${label}`, scope: "Client", unread: cid !== activeId ? clientMsgs.length : 0, closed });
+            } else {
+              existing.label = `💬 ${label}`;
+              existing.closed = closed;
+              if (cid !== activeId) {
+                const prevCount = existing.unread;
+                existing.unread = Math.max(prevCount, clientMsgs.length);
+              }
+            }
+          });
+          return updated;
+        });
+      } catch {
+        // ignore network errors
+      }
     };
 
     void tryFetch();
-    const interval = window.setInterval(() => { if (active) void tryFetch(); }, 5000);
-    return () => {
-      active = false;
-      window.clearInterval(interval);
-    };
+    const iv = setInterval(() => { if (active) void tryFetch(); }, 5000);
+    return () => { active = false; clearInterval(iv); };
   }, [user?.email]);
 
-  const history = messages[channelId] || [];
-  const totalMessages = Object.values(messages).flat().filter((m, i, arr) => arr.findIndex((x) => x.id === m.id) === i).length;
+  const totalMessages = Object.values(messages).flat().filter(
+    (m, i, arr) => arr.findIndex((x) => x.id === m.id) === i
+  ).length;
 
-  // Delete single message
+  const history = useMemo(() => {
+    const msgs = messages[channelId] || [];
+    return msgs.filter((m) => m.text !== CLOSED_MSG && m.text !== REOPENED_MSG);
+  }, [messages, channelId]);
+
+  const currentClosed = useMemo(() => {
+    const msgs = messages[channelId] || [];
+    return isChannelClosed(msgs);
+  }, [messages, channelId]);
+
   const handleDeleteMessage = async (msg: ChatMessage) => {
     setDeletingId(msg.id);
-    // Optimistic UI
-    setMessages((prev) => {
-      const next: Record<string, ChatMessage[]> = {};
-      Object.entries(prev).forEach(([id, list]) => {
-        next[id] = list.filter((m) => m.id !== msg.id);
-      });
-      return next;
-    });
+    removeMessageById(msg.id);
     try {
       await fetch(`/api/agent/requests?messageId=${encodeURIComponent(msg.id)}`, { method: "DELETE" });
     } catch {
-      // ignore - next poll will refresh
+      // ignore
     } finally {
       setDeletingId(null);
     }
   };
 
-  // Delete all in a channel
-  const handleClearChannel = async (targetChannelId: string) => {
-    if (!window.confirm("Delete all messages in this conversation?")) return;
-    const toDelete = (messages[targetChannelId] || []).map((m) => m.id);
-    setMessages((prev) => ({ ...prev, [targetChannelId]: [] }));
-    await Promise.all(
-      toDelete.map((id) =>
-        fetch(`/api/agent/requests?messageId=${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {})
-      )
+  const handleClearChannel = (targetChannelId: string) => {
+    if (!window.confirm("Delete this conversation? This cannot be undone.")) return;
+    (messages[targetChannelId] || []).forEach((msg) =>
+      fetch(`/api/agent/requests?messageId=${encodeURIComponent(msg.id)}`, { method: "DELETE" }).catch(() => {})
     );
     if (!nonDeletableChannels.has(targetChannelId)) {
       setChannels((prev) => prev.filter((c) => c.id !== targetChannelId));
       setChannelId("hq");
     }
+  };
+
+  // Close / Reopen conversation
+  const handleCloseConversation = async () => {
+    if (!window.confirm("Mark this conversation as resolved? The client will see it as closed.")) return;
+    setClosingId(channelId);
+    const id = crypto.randomUUID?.() || createLocalId();
+    const createdAt = new Date().toISOString();
+
+    // Post system marker message
+    await postMessage({
+      id, createdAt,
+      channelIds: [channelId, "hq"],
+      message: CLOSED_MSG,
+      author: user?.name || "Agent",
+      senderRole: "system",
+      source: "agent-chat",
+      sourcePath: `/agent/chat`,
+    }).catch(() => {});
+
+    // Post visible resolution message to client
+    const resolutionId = crypto.randomUUID?.() || createLocalId();
+    const resolutionCreatedAt = new Date().toISOString();
+    const resolutionText = "✅ Your request has been resolved. If you need further assistance, please don't hesitate to contact us again.";
+    addMessage({ id: resolutionId, role: "hq", author: user?.name || "Agent", text: resolutionText, createdAt: resolutionCreatedAt });
+    await postMessage({
+      id: resolutionId, createdAt: resolutionCreatedAt,
+      channelIds: [channelId, "hq"],
+      message: resolutionText,
+      author: user?.name || "Agent",
+      senderRole: "hq",
+      source: "agent-chat",
+      sourcePath: `/agent/chat`,
+    }).catch(() => {});
+
+    // Mark locally
+    const sysMsg: ChatMessage = { id, role: "system", author: "system", text: CLOSED_MSG, ts: new Date(createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), createdAt };
+    setMessages((prev) => {
+      const next = { ...prev };
+      [channelId, "hq"].forEach((cid) => {
+        next[cid] = [...(next[cid] || []), sysMsg];
+      });
+      return next;
+    });
+    setChannels((prev) => prev.map((c) => c.id === channelId ? { ...c, closed: true } : c));
+    setClosingId(null);
+  };
+
+  const handleReopenConversation = async () => {
+    setClosingId(channelId);
+    const id = crypto.randomUUID?.() || createLocalId();
+    const createdAt = new Date().toISOString();
+
+    await postMessage({
+      id, createdAt,
+      channelIds: [channelId, "hq"],
+      message: REOPENED_MSG,
+      author: user?.name || "Agent",
+      senderRole: "system",
+      source: "agent-chat",
+      sourcePath: `/agent/chat`,
+    }).catch(() => {});
+
+    const sysMsg: ChatMessage = { id, role: "system", author: "system", text: REOPENED_MSG, ts: new Date(createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), createdAt };
+    setMessages((prev) => {
+      const next = { ...prev };
+      [channelId, "hq"].forEach((cid) => {
+        next[cid] = [...(next[cid] || []), sysMsg];
+      });
+      return next;
+    });
+    setChannels((prev) => prev.map((c) => c.id === channelId ? { ...c, closed: false } : c));
+    setClosingId(null);
   };
 
   // Send message
@@ -296,6 +387,8 @@ export default function AgentChatClient() {
   };
 
   const currentChannel = channels.find((c) => c.id === channelId);
+  const openChannels = channels.filter((c) => !c.closed && c.id !== "hq");
+  const closedChannels = channels.filter((c) => c.closed);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -321,17 +414,48 @@ export default function AgentChatClient() {
       </div>
 
       <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 73px)" }}>
-        {/* Sidebar - conversations */}
+        {/* Sidebar */}
         <div className="w-72 bg-white border-r border-slate-200 flex flex-col overflow-hidden">
           <div className="p-4 border-b border-slate-100">
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">Conversations</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Conversations</p>
           </div>
           <div className="flex-1 overflow-y-auto">
-            {channels.map((ch) => {
+            {/* All Messages */}
+            {[channels[0]].map((ch) => {
               const isActive = ch.id === channelId;
               const chMessages = messages[ch.id] || [];
-              const lastMsg = chMessages[chMessages.length - 1];
-              const clientMessages = chMessages.filter((m) => m.role === "client");
+              const lastMsg = chMessages.filter(m => m.role !== "system").slice(-1)[0];
+              return (
+                <div
+                  key={ch.id}
+                  onClick={() => setChannelId(ch.id)}
+                  className={`flex items-start gap-3 px-4 py-3 cursor-pointer border-b border-slate-100 transition ${
+                    isActive ? "bg-blue-50 border-l-4 border-l-blue-500" : "hover:bg-slate-50"
+                  }`}
+                >
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold bg-slate-100 text-slate-600 flex-shrink-0">
+                    📥
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className={`text-sm font-semibold truncate block ${isActive ? "text-blue-700" : "text-slate-900"}`}>
+                      {ch.label}
+                    </span>
+                    <p className="text-xs text-slate-500 truncate mt-0.5">{lastMsg?.text || "No messages yet"}</p>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Open conversations */}
+            {openChannels.length > 0 && (
+              <p className="px-4 pt-3 pb-1 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                🟢 Open ({openChannels.length})
+              </p>
+            )}
+            {openChannels.map((ch) => {
+              const isActive = ch.id === channelId;
+              const chMessages = messages[ch.id] || [];
+              const lastMsg = chMessages.filter(m => m.role !== "system").slice(-1)[0];
               return (
                 <div
                   key={ch.id}
@@ -340,8 +464,8 @@ export default function AgentChatClient() {
                     isActive ? "bg-blue-50 border-l-4 border-l-blue-500" : "hover:bg-slate-50"
                   }`}
                 >
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold bg-slate-100 text-slate-600 flex-shrink-0">
-                    {ch.id === "hq" ? "📥" : ch.label.replace("💬 ", "").charAt(0).toUpperCase()}
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold bg-blue-100 text-blue-700 flex-shrink-0">
+                    {ch.label.replace("💬 ", "").charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
@@ -354,9 +478,38 @@ export default function AgentChatClient() {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-slate-500 truncate mt-0.5">
-                      {lastMsg?.text || "No messages yet"}
-                    </p>
+                    <p className="text-xs text-slate-500 truncate mt-0.5">{lastMsg?.text || "No messages yet"}</p>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Closed conversations */}
+            {closedChannels.length > 0 && (
+              <p className="px-4 pt-3 pb-1 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                ✅ Resolved ({closedChannels.length})
+              </p>
+            )}
+            {closedChannels.map((ch) => {
+              const isActive = ch.id === channelId;
+              const chMessages = messages[ch.id] || [];
+              const lastMsg = chMessages.filter(m => m.role !== "system").slice(-1)[0];
+              return (
+                <div
+                  key={ch.id}
+                  onClick={() => setChannelId(ch.id)}
+                  className={`flex items-start gap-3 px-4 py-3 cursor-pointer border-b border-slate-100 transition opacity-60 ${
+                    isActive ? "bg-emerald-50 border-l-4 border-l-emerald-500 opacity-100" : "hover:bg-slate-50 hover:opacity-80"
+                  }`}
+                >
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold bg-emerald-100 text-emerald-700 flex-shrink-0">
+                    ✓
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className={`text-sm font-medium truncate block ${isActive ? "text-emerald-700" : "text-slate-500"}`}>
+                      {ch.label}
+                    </span>
+                    <p className="text-xs text-slate-400 truncate mt-0.5">{lastMsg?.text || "Resolved"}</p>
                   </div>
                 </div>
               );
@@ -369,18 +522,65 @@ export default function AgentChatClient() {
           {/* Chat header */}
           <div className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
             <div>
-              <h2 className="font-semibold text-slate-900">{currentChannel?.label || "Messages"}</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="font-semibold text-slate-900">{currentChannel?.label || "Messages"}</h2>
+                {currentClosed && (
+                  <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-semibold border border-emerald-200">
+                    ✅ Resolved
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-slate-500">{currentChannel?.scope || ""}</p>
             </div>
-            {!nonDeletableChannels.has(channelId) && (
-              <button
-                onClick={() => handleClearChannel(channelId)}
-                className="text-xs text-red-500 hover:text-red-700 border border-red-200 hover:border-red-300 px-3 py-1.5 rounded-lg transition font-medium"
-              >
-                🗑 Delete conversation
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {/* Close / Reopen button — only on client channels, not on "hq" */}
+              {!nonDeletableChannels.has(channelId) && (
+                currentClosed ? (
+                  <button
+                    onClick={handleReopenConversation}
+                    disabled={closingId === channelId}
+                    className="text-xs bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-lg transition font-semibold flex items-center gap-1.5 disabled:opacity-50"
+                  >
+                    {closingId === channelId ? "..." : "🔄 Reopen"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleCloseConversation}
+                    disabled={closingId === channelId}
+                    className="text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-lg transition font-semibold flex items-center gap-1.5 disabled:opacity-50"
+                  >
+                    {closingId === channelId ? "..." : "✅ Mark as Resolved"}
+                  </button>
+                )
+              )}
+              {!nonDeletableChannels.has(channelId) && (
+                <button
+                  onClick={() => handleClearChannel(channelId)}
+                  className="text-xs text-red-400 hover:text-red-600 border border-red-100 hover:border-red-200 px-3 py-1.5 rounded-lg transition font-medium"
+                >
+                  🗑
+                </button>
+              )}
+            </div>
           </div>
+
+          {/* Closed banner */}
+          {currentClosed && !nonDeletableChannels.has(channelId) && (
+            <div className="bg-emerald-50 border-b border-emerald-200 px-6 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-emerald-800 text-sm">
+                <span className="text-lg">✅</span>
+                <span className="font-semibold">This conversation is resolved.</span>
+                <span className="text-emerald-600">The client has been notified.</span>
+              </div>
+              <button
+                onClick={handleReopenConversation}
+                disabled={closingId === channelId}
+                className="text-xs text-emerald-700 underline hover:no-underline font-medium disabled:opacity-50"
+              >
+                Reopen if needed
+              </button>
+            </div>
+          )}
 
           {/* Messages */}
           <div ref={listRef} className="flex-1 overflow-y-auto p-6 space-y-3">
@@ -400,7 +600,6 @@ export default function AgentChatClient() {
               return (
                 <div key={m.id} className={`flex ${isMe ? "justify-end" : "justify-start"} group`}>
                   <div className={`max-w-[70%] ${isMe ? "items-end" : "items-start"} flex flex-col gap-1`}>
-                    {/* Sender label */}
                     <div className={`flex items-center gap-2 px-1 ${isMe ? "flex-row-reverse" : ""}`}>
                       <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
                         isClient ? "bg-blue-100 text-blue-700" :
@@ -415,7 +614,6 @@ export default function AgentChatClient() {
                       )}
                     </div>
 
-                    {/* Bubble */}
                     <div className={`relative px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                       isMe ? "bg-slate-900 text-white rounded-tr-sm" :
                       isClient ? "bg-white border border-slate-200 text-slate-900 rounded-tl-sm shadow-sm" :
@@ -423,8 +621,6 @@ export default function AgentChatClient() {
                       "bg-slate-100 text-slate-900 rounded-tl-sm"
                     }`}>
                       <p className="whitespace-pre-wrap">{m.text}</p>
-
-                      {/* Meta info for client messages */}
                       {isClient && (m.email || m.phone || m.sourcePath) && (
                         <div className="mt-2 pt-2 border-t border-slate-100 space-y-0.5">
                           {m.email && <p className="text-xs text-slate-400">📧 {m.email}</p>}
@@ -432,17 +628,13 @@ export default function AgentChatClient() {
                           {m.sourcePath && <p className="text-xs text-slate-400">🔗 {m.sourcePath}</p>}
                         </div>
                       )}
-
-                      {/* Time + delete */}
                       <div className="flex items-center justify-between mt-2 gap-4">
-                        <span className={`text-xs ${isMe ? "text-slate-400" : "text-slate-400"}`}>{m.ts}</span>
+                        <span className="text-xs text-slate-400">{m.ts}</span>
                         <button
                           onClick={() => handleDeleteMessage(m)}
                           disabled={deletingId === m.id}
                           className={`opacity-0 group-hover:opacity-100 transition text-xs px-2 py-0.5 rounded font-medium ${
-                            isMe
-                              ? "text-slate-400 hover:text-red-300"
-                              : "text-slate-400 hover:text-red-500"
+                            isMe ? "text-slate-400 hover:text-red-300" : "text-slate-400 hover:text-red-500"
                           } disabled:opacity-30`}
                           title="Delete message"
                         >
@@ -464,33 +656,48 @@ export default function AgentChatClient() {
             )}
           </div>
 
-          {/* Input */}
+          {/* Input — disabled if closed */}
           <div className="bg-white border-t border-slate-200 p-4">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setSending(true);
-                Promise.resolve(handleSend(input)).finally(() => setSending(false));
-              }}
-              className="flex gap-3"
-            >
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder={`Reply to client${channelId !== "hq" ? " in this thread" : ""}… or type @Lina for AI help`}
-                className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition"
-              />
-              <button
-                type="submit"
-                disabled={sending || !input.trim()}
-                className="px-5 py-3 bg-slate-900 text-white rounded-xl font-semibold text-sm hover:bg-slate-800 transition disabled:opacity-50 flex items-center gap-2"
-              >
-                {sending ? "..." : "Send ↑"}
-              </button>
-            </form>
-            <p className="text-xs text-slate-400 mt-2 pl-1">
-              Tip: Mention <strong>@Lina</strong> to get AI assistance · 🗑 hover any message to delete it
-            </p>
+            {currentClosed && !nonDeletableChannels.has(channelId) ? (
+              <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-5 py-4">
+                <p className="text-sm text-slate-500">This conversation is resolved. Reopen to send more messages.</p>
+                <button
+                  onClick={handleReopenConversation}
+                  disabled={closingId === channelId}
+                  className="text-sm bg-amber-100 text-amber-800 hover:bg-amber-200 px-4 py-2 rounded-lg font-semibold transition disabled:opacity-50 whitespace-nowrap ml-4"
+                >
+                  🔄 Reopen
+                </button>
+              </div>
+            ) : (
+              <>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    setSending(true);
+                    Promise.resolve(handleSend(input)).finally(() => setSending(false));
+                  }}
+                  className="flex gap-3"
+                >
+                  <input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder={`Reply to client${channelId !== "hq" ? " in this thread" : ""}… or type @Lina for AI help`}
+                    className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition"
+                  />
+                  <button
+                    type="submit"
+                    disabled={sending || !input.trim()}
+                    className="px-5 py-3 bg-slate-900 text-white rounded-xl font-semibold text-sm hover:bg-slate-800 transition disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {sending ? "..." : "Send ↑"}
+                  </button>
+                </form>
+                <p className="text-xs text-slate-400 mt-2 pl-1">
+                  Tip: Mention <strong>@Lina</strong> for AI help · 🗑 hover any message to delete it
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>
