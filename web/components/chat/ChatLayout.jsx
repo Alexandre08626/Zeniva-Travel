@@ -4,47 +4,175 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
+// ── helpers ──────────────────────────────────────────────────────────────────
+
+function getCurrentUserEmail() {
+  if (typeof window === "undefined") return "";
+  try {
+    // 1. authStore in localStorage
+    const raw = localStorage.getItem("zeniva_auth");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.user?.email) return parsed.user.email.trim().toLowerCase();
+    }
+    // 2. cookie fallback
+    const match = document.cookie.match(/zeniva_email=([^;]+)/);
+    if (match) return decodeURIComponent(match[1]).trim().toLowerCase();
+  } catch (_) {}
+  return "";
+}
+
+function getActiveStoreKey(email) {
+  const base = "zeniva_trips_store_v1";
+  if (!email) return base;
+  return `${base}__${email}`;
+}
+
+function readAllTrips(email) {
+  try {
+    const key = getActiveStoreKey(email);
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed?.trips)) return { key, trips: parsed.trips, store: parsed };
+    }
+    // fallback: scan all keys
+    const keys = Object.keys(localStorage).filter((k) => k.startsWith("zeniva_trips_store_v1"));
+    let all = [];
+    let foundKey = key;
+    for (const k of keys) {
+      try {
+        const s = JSON.parse(localStorage.getItem(k) || "{}");
+        if (Array.isArray(s?.trips) && s.trips.length > 0) {
+          all = [...all, ...s.trips];
+          foundKey = k;
+        }
+      } catch (_) {}
+    }
+    return { key: foundKey, trips: all, store: null };
+  } catch (_) {
+    return { key: "zeniva_trips_store_v1", trips: [], store: null };
+  }
+}
+
+function deleteTripFromStorage(tripId, email) {
+  try {
+    const keys = Object.keys(localStorage).filter((k) => k.startsWith("zeniva_trips_store_v1"));
+    for (const key of keys) {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      const store = JSON.parse(raw);
+      if (!Array.isArray(store?.trips)) continue;
+      const hadIt = store.trips.some((t) => t.id === tripId);
+      if (!hadIt) continue;
+      store.trips = store.trips.filter((t) => t.id !== tripId);
+      // also remove messages/snapshots/proposals/selections
+      if (store.messages) delete store.messages[tripId];
+      if (store.snapshots) delete store.snapshots[tripId];
+      if (store.proposals) delete store.proposals[tripId];
+      if (store.selections) delete store.selections[tripId];
+      if (store.tripDrafts) delete store.tripDrafts[tripId];
+      localStorage.setItem(key, JSON.stringify(store));
+    }
+    window.dispatchEvent(new Event("storage"));
+    // push delete to server too
+    if (email) {
+      pushTripsToServer(email).catch(() => {});
+    }
+  } catch (_) {}
+}
+
+async function pushTripsToServer(email) {
+  if (!email) return;
+  try {
+    const key = getActiveStoreKey(email);
+    const raw = localStorage.getItem(key);
+    if (!raw) return;
+    const store = JSON.parse(raw);
+    await fetch("/api/user-data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, tripsState: store }),
+    });
+  } catch (_) {}
+}
+
+async function pullTripsFromServer(email) {
+  if (!email) return;
+  try {
+    const res = await fetch("/api/user-data");
+    if (!res.ok) return;
+    const payload = await res.json();
+    const tripsState = payload?.tripsState;
+    if (!tripsState || typeof tripsState !== "object") return;
+    const serverTrips = tripsState.trips;
+    if (!Array.isArray(serverTrips) || serverTrips.length === 0) return;
+
+    // Merge: server wins over empty local, local wins over empty server
+    const key = getActiveStoreKey(email);
+    const raw = localStorage.getItem(key);
+    const localStore = raw ? JSON.parse(raw) : {};
+    const localTrips = Array.isArray(localStore?.trips) ? localStore.trips : [];
+
+    // Merge trips by id: server + local, deduplicated
+    const byId = new Map();
+    [...serverTrips, ...localTrips].forEach((t) => {
+      if (!t?.id) return;
+      const existing = byId.get(t.id);
+      if (!existing) { byId.set(t.id, t); return; }
+      // Keep newer
+      const da = new Date(t.updatedAt || 0).getTime();
+      const db = new Date(existing.updatedAt || 0).getTime();
+      if (da > db) byId.set(t.id, t);
+    });
+
+    const mergedStore = {
+      ...localStore,
+      ...tripsState,
+      trips: Array.from(byId.values()),
+      messages: { ...(tripsState.messages || {}), ...(localStore.messages || {}) },
+      snapshots: { ...(tripsState.snapshots || {}), ...(localStore.snapshots || {}) },
+      proposals: { ...(tripsState.proposals || {}), ...(localStore.proposals || {}) },
+      selections: { ...(tripsState.selections || {}), ...(localStore.selections || {}) },
+      tripDrafts: { ...(tripsState.tripDrafts || {}), ...(localStore.tripDrafts || {}) },
+    };
+    localStorage.setItem(key, JSON.stringify(mergedStore));
+    window.dispatchEvent(new Event("storage"));
+  } catch (_) {}
+}
+
 function useTrips() {
   const [trips, setTrips] = useState([]);
+  const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
+    const email = getCurrentUserEmail();
+    setUserEmail(email);
+
     const load = () => {
-      try {
-        // Try all zeniva trip store keys
-        const keys = Object.keys(localStorage).filter(
-          (k) => k.startsWith("zeniva_trips_store_v1")
-        );
-        let allTrips = [];
-        keys.forEach((key) => {
-          try {
-            const raw = localStorage.getItem(key);
-            if (!raw) return;
-            const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed?.trips)) {
-              allTrips = [...allTrips, ...parsed.trips];
-            }
-          } catch (_) {}
-        });
-        // Deduplicate by id
-        const seen = new Set();
-        allTrips = allTrips.filter((t) => {
-          if (seen.has(t.id)) return false;
-          seen.add(t.id);
-          return true;
-        });
-        // Sort by updatedAt desc, max 10
-        allTrips.sort((a, b) => {
-          const da = new Date(a.updatedAt || a.createdAt || 0).getTime();
-          const db = new Date(b.updatedAt || b.createdAt || 0).getTime();
-          return db - da;
-        });
-        setTrips(allTrips.slice(0, 10));
-      } catch (_) {}
+      const { trips: all } = readAllTrips(email);
+      const seen = new Set();
+      const deduped = all.filter((t) => {
+        if (!t?.id || seen.has(t.id)) return false;
+        seen.add(t.id);
+        return true;
+      });
+      deduped.sort((a, b) => {
+        const da = new Date(a.updatedAt || a.createdAt || 0).getTime();
+        const db = new Date(b.updatedAt || b.createdAt || 0).getTime();
+        return db - da;
+      });
+      setTrips(deduped.slice(0, 10));
     };
 
     load();
+
+    // Pull from Supabase once if user is logged in
+    if (email) {
+      pullTripsFromServer(email).then(load).catch(() => {});
+    }
+
     window.addEventListener("storage", load);
-    // Also poll every 3s for same-tab updates
     const interval = setInterval(load, 3000);
     return () => {
       window.removeEventListener("storage", load);
@@ -52,7 +180,7 @@ function useTrips() {
     };
   }, []);
 
-  return trips;
+  return { trips, userEmail };
 }
 
 function createNewTrip() {
@@ -87,7 +215,7 @@ function createNewTrip() {
 export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref = "/", backLabel = "Back" }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [tripsOpen, setTripsOpen] = useState(false);
-  const trips = useTrips();
+  const { trips, userEmail } = useTrips();
   const router = useRouter();
   const dropdownRef = useRef(null);
 
@@ -106,6 +234,18 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
     const id = createNewTrip();
     setTripsOpen(false);
     router.push(`/chat/${id}`);
+  };
+
+  const handleDeleteTrip = (e, deletedTripId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm("Delete this trip conversation? This cannot be undone.")) return;
+    deleteTripFromStorage(deletedTripId, userEmail);
+    // If deleting active trip, go to new trip
+    if (deletedTripId === tripId) {
+      const id = createNewTrip();
+      router.push(`/chat/${id}`);
+    }
   };
 
   const getTripLabel = (trip) => {
@@ -190,25 +330,34 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
                     const date = trip.updatedAt || trip.createdAt;
                     const dateStr = date ? new Date(date).toLocaleDateString([], { month: "short", day: "numeric" }) : "";
                     return (
-                      <Link
-                        key={trip.id}
-                        href={`/chat/${trip.id}`}
-                        onClick={() => setTripsOpen(false)}
-                        className={`flex items-center gap-3 px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition ${isActive ? "bg-blue-50" : ""}`}
-                      >
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0 ${isActive ? "bg-blue-500 text-white" : "bg-slate-100 text-slate-600"}`}>
-                          ✈️
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-semibold truncate ${isActive ? "text-blue-700" : "text-slate-900"}`}>
-                            {label}
-                          </p>
-                          <p className="text-xs text-slate-400">{dateStr}</p>
-                        </div>
-                        {isActive && (
-                          <span className="text-blue-500 text-xs font-bold flex-shrink-0">Active</span>
-                        )}
-                      </Link>
+                      <div key={trip.id} className={`flex items-center gap-0 border-b border-slate-50 group ${isActive ? "bg-blue-50" : "hover:bg-slate-50"} transition`}>
+                        <Link
+                          href={`/chat/${trip.id}`}
+                          onClick={() => setTripsOpen(false)}
+                          className="flex items-center gap-3 flex-1 min-w-0 px-4 py-3"
+                        >
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0 ${isActive ? "bg-blue-500 text-white" : "bg-slate-100 text-slate-600"}`}>
+                            ✈️
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-semibold truncate ${isActive ? "text-blue-700" : "text-slate-900"}`}>
+                              {label}
+                            </p>
+                            <p className="text-xs text-slate-400">{dateStr}</p>
+                          </div>
+                          {isActive && (
+                            <span className="text-blue-500 text-xs font-bold flex-shrink-0 mr-1">Active</span>
+                          )}
+                        </Link>
+                        {/* Delete button */}
+                        <button
+                          onClick={(e) => handleDeleteTrip(e, trip.id)}
+                          className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition opacity-0 group-hover:opacity-100 mr-2"
+                          title="Delete this trip"
+                        >
+                          ×
+                        </button>
+                      </div>
                     );
                   })}
                 </div>
