@@ -407,28 +407,13 @@ export default function CheckoutPage() {
             <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>Payment</div>
-                <span className="text-[11px] font-bold text-slate-500">Card secured via mock form</span>
+                <span className="text-[11px] font-bold text-emerald-600">🔒 Secured by Square</span>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <label className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
-                  Card number
-                  <input className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="4242 4242 4242 4242" value={paymentForm.cardNumber} onChange={(event) => setPaymentForm((prev) => ({ ...prev, cardNumber: event.target.value }))} />
-                </label>
-                <label className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
-                  Name on card
-                  <input className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Traveler Name" value={paymentForm.cardName} onChange={(event) => setPaymentForm((prev) => ({ ...prev, cardName: event.target.value }))} />
-                </label>
-                <label className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
-                  Expiry
-                  <input className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="MM/YY" value={paymentForm.expiry} onChange={(event) => setPaymentForm((prev) => ({ ...prev, expiry: event.target.value }))} />
-                </label>
-                <label className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
-                  CVC
-                  <input className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="123" value={paymentForm.cvc} onChange={(event) => setPaymentForm((prev) => ({ ...prev, cvc: event.target.value }))} />
-                </label>
-              </div>
-              <div className="rounded-xl bg-slate-50 border border-dashed border-slate-200 px-4 py-3 text-xs" style={{ color: MUTED_TEXT }}>
-                Payments are processed securely (demo). No real charges are made.
+              <p className="text-sm text-slate-600">
+                Fill in your traveler details above, then click the button below to proceed to our secure payment page.
+              </p>
+              <div className="flex flex-wrap gap-3 text-xs text-slate-500">
+                <span>✅ Visa</span><span>✅ Mastercard</span><span>✅ Amex</span><span>✅ Apple Pay</span>
               </div>
             </section>
           </div>
@@ -514,20 +499,11 @@ export default function CheckoutPage() {
 
             {/* Square Payment Button */}
             <SquarePayButton
-              amount={pricing.hasAnyPrice ? pricing.total : 0}
+              amount={pricing.hasAnyPrice ? pricing.total : 100}
               description={`Zeniva Travel — ${tripDraft?.destination || "Trip"} (${tripDraft?.adults || 1} travelers)`}
               referenceId={proposalId}
               disabled={!travelerForm.firstName.trim() || !travelerForm.email.trim()}
             />
-
-            <button
-              className="w-full rounded-full px-4 py-3 text-sm font-bold text-white shadow-sm mt-2"
-              style={{ backgroundColor: BRAND_BLUE, opacity: canSubmitPayment ? 0.4 : 0.3, fontSize: "12px" }}
-              onClick={handlePayNow}
-              disabled={!canSubmitPayment || paymentStatus === "processing" || paymentStatus === "confirmation"}
-            >
-              {paymentStatus === "confirmation" ? "✓ Confirmed" : paymentStatus === "processing" ? "Processing…" : "Test mode (mock)"}
-            </button>
             <div className="rounded-xl border border-slate-200 bg-white p-3 text-xs" style={{ color: MUTED_TEXT }}>
               After payment, your concierge will confirm ticketing and send e-tickets via email.
               {confirmationId ? ` Ref: ${confirmationId}` : ""}
