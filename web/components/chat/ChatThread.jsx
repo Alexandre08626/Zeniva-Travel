@@ -548,7 +548,7 @@ function ChatThread({ tripId, proposalMode = "" }) {
         </div>
         <div className="flex-1">
           <div className="text-white font-black text-base">Lina <span style={{ color: "#E6B85A" }}>AI</span></div>
-          <div className="text-white/60 text-xs">Your personal travel concierge</div>
+          <div className="text-white/85 text-xs">Your personal travel concierge</div>
         </div>
         <div className="flex items-center gap-1.5 bg-white/10 rounded-full px-3 py-1">
           <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />

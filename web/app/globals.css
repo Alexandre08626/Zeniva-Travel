@@ -584,3 +584,44 @@ body[data-os="windows"] div[style*="100vw"] {
   85%  { opacity: 0; transform: translateX(-50%) translateY(-6px); }
   100% { opacity: 0; transform: translateX(-50%) translateY(-6px); }
 }
+
+/* ============================================
+   CROSS-BROWSER TEXT CONTRAST FIXES
+   Ensures readability on all monitors & OS
+   ============================================ */
+
+/* Hero sections — enforce minimum white text opacity */
+section[data-fullbleed="true"] p,
+section[data-fullbleed="true"] span,
+section[data-fullbleed="true"] div {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Force minimum contrast for white text on dark backgrounds */
+[style*="linear-gradient(135deg, #0B1B4D"],
+[style*="linear-gradient(160deg, #0F3A8A"] {
+  color: #ffffff;
+}
+
+/* Prevent overly transparent text */
+.text-white\/60, .text-white\/65, .text-white\/70 {
+  color: rgba(255,255,255,0.82) !important;
+}
+.text-white\/75, .text-white\/80 {
+  color: rgba(255,255,255,0.88) !important;
+}
+.text-white\/85, .text-white\/90 {
+  color: rgba(255,255,255,0.94) !important;
+}
+
+/* Slate text minimums for light backgrounds */
+.text-slate-300 { color: #94a3b8 !important; }
+.text-slate-400 { color: #64748b !important; }
+.text-slate-500 { color: #475569 !important; }
+
+/* Ensure chat bubbles are readable */
+.backdrop-blur, .backdrop-blur-md, .backdrop-blur-xl {
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}

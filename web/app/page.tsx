@@ -98,7 +98,7 @@ export default function HomePage() {
                 <span className="text-white font-black text-sm tracking-tight">Zeniva Travel</span>
               </div>
               <div className="flex gap-2">
-                <Link href="/login" className="rounded-full bg-white/10 backdrop-blur border border-white/20 px-3 py-1.5 text-xs font-semibold text-white">Log in</Link>
+                <Link href="/login" className="rounded-full bg-white/20 backdrop-blur border border-white/20 px-3 py-1.5 text-xs font-semibold text-white">Log in</Link>
                 <Link href="/signup" className="rounded-full px-3 py-1.5 text-xs font-black text-[#0B1B4D]" style={{ background: "linear-gradient(90deg, #E6B85A, #f0c96b)" }}>Sign up</Link>
               </div>
             </div>
@@ -119,14 +119,14 @@ export default function HomePage() {
                 <Link href="/call">
                   <img src="/branding/lina-avatar.png" alt="Lina AI" className="relative w-40 h-40 rounded-full object-cover border-4 shadow-2xl cursor-pointer hover:scale-105 transition-transform duration-300" style={{ borderColor: "rgba(230,184,90,0.5)" }} />
                 </Link>
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-white/15 backdrop-blur rounded-full px-3 py-1 border border-white/20">
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-white/25 backdrop-blur rounded-full px-3 py-1 border border-white/20">
                   <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
                   <span className="text-white text-[10px] font-bold">Lina AI · Live</span>
                 </div>
               </div>
 
               <div className="text-center px-2">
-                <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur rounded-full px-4 py-1.5 mb-4 border border-white/15">
+                <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur rounded-full px-4 py-1.5 mb-4 border border-white/15">
                   <span className="text-[10px] font-bold text-yellow-300 uppercase tracking-widest">✨ AI-Powered Travel</span>
                 </div>
                 <h1 className="text-4xl font-black text-white leading-none tracking-tight mb-3">
@@ -135,7 +135,7 @@ export default function HomePage() {
                     Travel Genius
                   </span>
                 </h1>
-                <p className="text-white/60 text-sm leading-relaxed max-w-xs mx-auto">
+                <p className="text-white/90 text-sm leading-relaxed max-w-xs mx-auto">
                   Tell Lina where you want to go. She plans flights, hotels & experiences in seconds.
                 </p>
               </div>
@@ -155,12 +155,12 @@ export default function HomePage() {
                   </div>
                 </Link>
 
-                <Link href="/call" className="flex items-center justify-between bg-white/10 backdrop-blur border border-white/15 rounded-2xl p-4 active:scale-[0.98] transition-transform">
+                <Link href="/call" className="flex items-center justify-between bg-white/20 backdrop-blur border border-white/15 rounded-2xl p-4 active:scale-[0.98] transition-transform">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg bg-white/10">📞</div>
                     <div>
                       <div className="text-sm font-black text-white">Call Lina</div>
-                      <div className="text-xs text-white/40">Voice AI concierge</div>
+                      <div className="text-xs text-white/85">Voice AI concierge</div>
                     </div>
                   </div>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
@@ -170,17 +170,17 @@ export default function HomePage() {
               {/* Quick tags */}
               <div className="mt-6 flex flex-wrap justify-center gap-2">
                 {["🏖️ Beach", "💑 Couples", "👨‍👩‍👧 Family", "🏔️ Adventure", "🛥️ Yacht"].map((t) => (
-                  <Link key={t} href={`/chat?prompt=${encodeURIComponent(t.split(" ")[1] + " trip")}`} className="rounded-full bg-white/8 border border-white/10 px-3 py-1.5 text-xs font-semibold text-white/70 active:bg-white/15">{t}</Link>
+                  <Link key={t} href={`/chat?prompt=${encodeURIComponent(t.split(" ")[1] + " trip")}`} className="rounded-full bg-white/25 border border-white/10 px-3 py-1.5 text-xs font-semibold text-white/85 active:bg-white/15">{t}</Link>
                 ))}
               </div>
             </div>
 
             {/* Stats bar */}
-            <div className="mt-8 grid grid-cols-4 gap-2 bg-white/8 backdrop-blur rounded-2xl p-4 border border-white/10">
+            <div className="mt-8 grid grid-cols-4 gap-2 bg-white/25 backdrop-blur rounded-2xl p-4 border border-white/10">
               {STATS.map((s) => (
                 <div key={s.value} className="text-center">
                   <div className="text-base font-black text-white">{s.value}</div>
-                  <div className="text-[9px] text-white/40 mt-0.5">{s.label}</div>
+                  <div className="text-[9px] text-white/85 mt-0.5">{s.label}</div>
                 </div>
               ))}
             </div>
@@ -196,7 +196,7 @@ export default function HomePage() {
                 <img src={d.img} alt={d.name} className="w-full h-44 object-cover" />
                 <div className="absolute inset-0" style={{ background: "linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 60%)" }} />
                 <div className="absolute bottom-0 left-0 p-3">
-                  <div className="text-xs font-bold text-white/70">{d.country}</div>
+                  <div className="text-xs font-bold text-white/85">{d.country}</div>
                   <div className="text-sm font-black text-white">{d.name}</div>
                   <span className="inline-block mt-1 rounded-full px-2 py-0.5 text-[9px] font-bold text-white" style={{ backgroundColor: d.color + "90" }}>{d.tag}</span>
                 </div>
@@ -219,13 +219,13 @@ export default function HomePage() {
             <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full" />
             <span className="text-white font-black">Zeniva Travel</span>
           </div>
-          <div className="flex flex-wrap gap-4 text-white/30 text-xs mb-4">
+          <div className="flex flex-wrap gap-4 text-white/85 text-xs mb-4">
             <Link href="/about">About</Link>
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
             <Link href="/agent">Agents</Link>
           </div>
-          <p className="text-white/20 text-[10px]">© 2026 Zeniva Travel Inc. · Delaware, USA</p>
+          <p className="text-white/90 text-[10px]">© 2026 Zeniva Travel Inc. · Delaware, USA</p>
         </div>
       </section>
 
@@ -254,9 +254,9 @@ export default function HomePage() {
               {/* Left: Text + Search */}
               <div className="space-y-6">
                 {/* Badge */}
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 backdrop-blur px-4 py-2">
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/25 backdrop-blur px-4 py-2">
                   <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                  <span className="text-xs font-bold text-white/80 tracking-wider uppercase">Lina AI · Available 24/7</span>
+                  <span className="text-xs font-bold text-white/90 tracking-wider uppercase">Lina AI · Available 24/7</span>
                 </div>
 
                 {/* Headline + subtitle on same line */}
@@ -268,7 +268,7 @@ export default function HomePage() {
                       </span>{" "}
                       Travel AI
                     </h1>
-                    <p className="text-base text-white/50 font-medium">
+                    <p className="text-base text-white/90 font-medium">
                       <AutoTranslate text="Your personal AI travel concierge" className="inline" />
                     </p>
                   </div>
@@ -304,7 +304,7 @@ export default function HomePage() {
                   {STATS.map((s) => (
                     <div key={s.value}>
                       <div className="text-xl font-black text-white">{s.value}</div>
-                      <div className="text-xs text-white/40 mt-0.5">{s.label}</div>
+                      <div className="text-xs text-white/85 mt-0.5">{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -339,17 +339,17 @@ export default function HomePage() {
                 </div>
 
                 {/* Floating cards */}
-                <div className="absolute top-0 left-0 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex items-center gap-3 shadow-xl" style={{ maxWidth: "170px" }}>
+                <div className="absolute top-0 left-0 bg-white/20 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex items-center gap-3 shadow-xl" style={{ maxWidth: "170px" }}>
                   <img src="https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=100&q=80" className="w-10 h-10 rounded-xl object-cover flex-shrink-0" alt="Santorini" />
-                  <div><div className="text-xs font-black text-white">Santorini</div><div className="text-[10px] text-white/50">From $2,800</div></div>
+                  <div><div className="text-xs font-black text-white">Santorini</div><div className="text-[10px] text-white/90">From $2,800</div></div>
                 </div>
-                <div className="absolute top-12 right-0 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex items-center gap-3 shadow-xl" style={{ maxWidth: "170px" }}>
+                <div className="absolute top-12 right-0 bg-white/20 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex items-center gap-3 shadow-xl" style={{ maxWidth: "170px" }}>
                   <img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=100&q=80" className="w-10 h-10 rounded-xl object-cover flex-shrink-0" alt="Dubai" />
-                  <div><div className="text-xs font-black text-white">Dubai</div><div className="text-[10px] text-white/50">From $3,500</div></div>
+                  <div><div className="text-xs font-black text-white">Dubai</div><div className="text-[10px] text-white/90">From $3,500</div></div>
                 </div>
-                <div className="absolute bottom-16 left-0 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex items-center gap-3 shadow-xl" style={{ maxWidth: "170px" }}>
+                <div className="absolute bottom-16 left-0 bg-white/20 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex items-center gap-3 shadow-xl" style={{ maxWidth: "170px" }}>
                   <img src="https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=100&q=80" className="w-10 h-10 rounded-xl object-cover flex-shrink-0" alt="Bali" />
-                  <div><div className="text-xs font-black text-white">Bali</div><div className="text-[10px] text-white/50">From $1,950</div></div>
+                  <div><div className="text-xs font-black text-white">Bali</div><div className="text-[10px] text-white/90">From $1,950</div></div>
                 </div>
                 <div className="absolute bottom-8 right-0 bg-white rounded-2xl p-3 shadow-2xl border border-slate-100" style={{ maxWidth: "210px" }}>
                   <div className="flex items-start gap-2">
@@ -431,15 +431,15 @@ export default function HomePage() {
             <div className="grid grid-cols-2 gap-20 items-center">
               {/* Left */}
               <div>
-                <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-2 mb-6">
+                <div className="inline-flex items-center gap-2 bg-white/20 border border-white/20 rounded-full px-4 py-2 mb-6">
                   <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                  <span className="text-xs font-bold text-white/80 uppercase tracking-widest">AI Technology</span>
+                  <span className="text-xs font-bold text-white/90 uppercase tracking-widest">AI Technology</span>
                 </div>
                 <h2 className="text-5xl font-black text-white leading-tight mb-6">
                   Meet <span style={{ background: "linear-gradient(90deg, #E6B85A, #f7d98a)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Lina</span>,<br/>
                   Your Travel<br/>Concierge
                 </h2>
-                <p className="text-white/60 text-lg leading-relaxed mb-8">
+                <p className="text-white/90 text-lg leading-relaxed mb-8">
                   <AutoTranslate text="Lina is the world's most advanced AI travel concierge. She speaks your language, understands your budget, and builds perfect custom trips in seconds — 24/7." className="inline" />
                 </p>
 
@@ -452,10 +452,10 @@ export default function HomePage() {
                     { icon: "🔄", title: "Unlimited revisions", desc: "Adjust until it's perfect" },
                   ].map((f) => (
                     <div key={f.title} className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-lg flex-shrink-0">{f.icon}</div>
+                      <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">{f.icon}</div>
                       <div>
                         <div className="text-white font-bold text-sm">{f.title}</div>
-                        <div className="text-white/40 text-xs">{f.desc}</div>
+                        <div className="text-white/85 text-xs">{f.desc}</div>
                       </div>
                     </div>
                   ))}
@@ -466,7 +466,7 @@ export default function HomePage() {
                     <span>Chat with Lina</span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
                   </Link>
-                  <Link href="/call" className="inline-flex items-center gap-2 rounded-2xl px-7 py-4 text-sm font-black text-white border border-white/20 hover:bg-white/10 transition-colors">
+                  <Link href="/call" className="inline-flex items-center gap-2 rounded-2xl px-7 py-4 text-sm font-black text-white border border-white/20 hover:bg-white/20 transition-colors">
                     📞 Call Lina
                   </Link>
                 </div>
@@ -479,7 +479,7 @@ export default function HomePage() {
                   <div className="absolute inset-0 rounded-3xl" style={{ margin: "-20px", background: "radial-gradient(circle, rgba(230,184,90,0.2) 0%, transparent 70%)", filter: "blur(20px)" }} />
 
                   {/* Chat card */}
-                  <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 w-96" style={{ boxShadow: "0 30px 80px rgba(0,0,0,0.4)" }}>
+                  <div className="bg-white/20 backdrop-blur-xl border border-white/20 rounded-3xl p-6 w-96" style={{ boxShadow: "0 30px 80px rgba(0,0,0,0.4)" }}>
                     {/* Header */}
                     <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
                       <img src="/branding/lina-avatar.png" alt="Lina" className="w-10 h-10 rounded-full border-2 border-yellow-400/40" />
@@ -490,7 +490,7 @@ export default function HomePage() {
                           <span className="text-green-400 text-xs font-semibold">Online now</span>
                         </div>
                       </div>
-                      <div className="ml-auto bg-white/10 rounded-full p-2">
+                      <div className="ml-auto bg-white/20 rounded-full p-2">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0z"/></svg>
                       </div>
                     </div>
@@ -499,7 +499,7 @@ export default function HomePage() {
                     <div className="space-y-3 mb-4">
                       <div className="flex items-start gap-2">
                         <img src="/branding/lina-avatar.png" alt="Lina" className="w-7 h-7 rounded-full flex-shrink-0" />
-                        <div className="bg-white/15 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
+                        <div className="bg-white/25 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
                           <p className="text-white text-sm">Hi! Where are you dreaming of traveling? 🌍</p>
                         </div>
                       </div>
@@ -510,7 +510,7 @@ export default function HomePage() {
                       </div>
                       <div className="flex items-start gap-2">
                         <img src="/branding/lina-avatar.png" alt="Lina" className="w-7 h-7 rounded-full flex-shrink-0" />
-                        <div className="bg-white/15 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
+                        <div className="bg-white/25 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[80%]">
                           <p className="text-white text-sm">Perfect choice! 🏛️ I found a 7-night package with cave villa + sunset cruise from $2,850/person. Want to see it?</p>
                         </div>
                       </div>
@@ -518,8 +518,8 @@ export default function HomePage() {
 
                     {/* Input */}
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 bg-white/10 border border-white/15 rounded-2xl px-4 py-3">
-                        <span className="text-white/30 text-sm">Message Lina...</span>
+                      <div className="flex-1 bg-white/20 border border-white/15 rounded-2xl px-4 py-3">
+                        <span className="text-white/85 text-sm">Message Lina...</span>
                       </div>
                       <Link href="/chat" className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-900 hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(135deg, #E6B85A, #f7d98a)" }}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
@@ -598,14 +598,14 @@ export default function HomePage() {
                 <h2 className="text-5xl font-black text-white mb-4">
                   <AutoTranslate text="Ready to travel smarter?" className="inline" />
                 </h2>
-                <p className="text-white/60 text-lg max-w-xl mx-auto mb-10">
+                <p className="text-white/90 text-lg max-w-xl mx-auto mb-10">
                   <AutoTranslate text="Join thousands of travelers who let Lina plan their perfect trips. Free to start. No credit card required." className="inline" />
                 </p>
                 <div className="flex items-center justify-center gap-4">
                   <Link href="/chat" className="inline-flex items-center gap-2 rounded-2xl px-8 py-4 text-base font-black text-slate-900 hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(90deg, #E6B85A, #f7d98a)" }}>
                     💬 Chat with Lina — Free
                   </Link>
-                  <Link href="/call" className="inline-flex items-center gap-2 rounded-2xl px-8 py-4 text-base font-black text-white border-2 border-white/20 hover:bg-white/10 transition-colors">
+                  <Link href="/call" className="inline-flex items-center gap-2 rounded-2xl px-8 py-4 text-base font-black text-white border-2 border-white/20 hover:bg-white/20 transition-colors">
                     📞 Call Lina
                   </Link>
                 </div>
