@@ -539,33 +539,32 @@ function ChatThread({ tripId, proposalMode = "" }) {
   };
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-2xl min-h-[70vh] md:min-h-[80vh]" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", backdropFilter: "blur(20px)" }}>
+    <div className="flex flex-col overflow-hidden rounded-2xl min-h-[70vh] md:min-h-[80vh] bg-white shadow-xl border border-slate-100">
       {/* Header */}
-      <div className="flex items-center gap-3 px-5 py-4 border-b border-white/10">
+      <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100" style={{ background: "linear-gradient(135deg, #0B1B4D 0%, #0F3A8A 100%)" }}>
         <div className="relative">
-          <img src="/branding/lina-avatar.png" alt="Lina" className="w-10 h-10 rounded-full ring-2 ring-yellow-400/50 object-cover" />
-          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-400 ring-2 ring-white/10" />
+          <img src="/branding/lina-avatar.png" alt="Lina" className="w-11 h-11 rounded-full ring-2 ring-yellow-400/60 object-cover" />
+          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-400 ring-2 ring-white/20" />
         </div>
         <div className="flex-1">
-          <div className="text-white font-black text-sm">Lina <span style={{ color: "#E6B85A" }}>AI</span></div>
-          <div className="text-white/50 text-xs">Your personal travel concierge · Online</div>
+          <div className="text-white font-black text-base">Lina <span style={{ color: "#E6B85A" }}>AI</span></div>
+          <div className="text-white/60 text-xs">Your personal travel concierge</div>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 bg-white/10 rounded-full px-3 py-1">
           <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-green-400 text-xs font-bold">LIVE</span>
+          <span className="text-white text-xs font-bold">LIVE</span>
         </div>
       </div>
 
       {/* Messages */}
-      <div ref={containerRef} className="flex-1 overflow-y-auto px-5 py-5 space-y-4" style={{ scrollbarGutter: "stable" }}>
+      <div ref={containerRef} className="flex-1 overflow-y-auto px-5 py-5 space-y-4 bg-slate-50" style={{ scrollbarGutter: "stable" }}>
         {history.length === 0 && (
           <div className="text-center py-8">
-            {/* Lina welcome */}
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ring-4 ring-yellow-400/20 overflow-hidden">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ring-4 ring-blue-100 overflow-hidden">
               <img src="/branding/lina-avatar.png" alt="Lina" className="w-full h-full object-cover" />
             </div>
-            <p className="text-white font-black text-xl mb-1">Hi, I&apos;m Lina ✈️</p>
-            <p className="text-white/60 text-sm mb-6">Tell me about your dream trip and I&apos;ll plan everything — flights, hotels, experiences.</p>
+            <p className="text-slate-900 font-black text-xl mb-1">Hi, I&apos;m Lina ✈️</p>
+            <p className="text-slate-500 text-sm mb-6">Tell me about your dream trip and I&apos;ll plan everything — flights, hotels, experiences.</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
                 { icon: "🏖️", text: "Plan a 7-day family trip from Montreal to Paris in June under $8k" },
@@ -575,11 +574,10 @@ function ChatThread({ tripId, proposalMode = "" }) {
                 <button
                   key={p.text}
                   onClick={() => handleSend(p.text)}
-                  className="rounded-xl p-4 text-left text-sm hover:scale-105 transition-all duration-200"
-                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}
+                  className="rounded-xl p-4 text-left hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 bg-white border border-slate-200"
                 >
                   <div className="text-2xl mb-2">{p.icon}</div>
-                  <div className="text-white/80 text-xs">{p.text}</div>
+                  <div className="text-slate-600 text-xs leading-relaxed">{p.text}</div>
                 </button>
               ))}
             </div>
@@ -589,32 +587,32 @@ function ChatThread({ tripId, proposalMode = "" }) {
         {history.map((m) => (
           <div key={m.id} className={`flex gap-3 ${m.role === "assistant" ? "justify-start" : "justify-end"}`}>
             {m.role === "assistant" && (
-              <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full ring-1 ring-yellow-400/30 object-cover shrink-0 mt-1" />
+              <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full ring-2 ring-blue-100 object-cover shrink-0 mt-1" />
             )}
             <div
               className="max-w-[80%] rounded-2xl px-4 py-3"
               style={m.role === "assistant"
-                ? { background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }
-                : { background: "linear-gradient(135deg, #0F6CF5, #0B1B4D)", border: "1px solid rgba(15,108,245,0.4)" }
+                ? { background: "white", border: "1px solid #e2e8f0", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }
+                : { background: "linear-gradient(135deg, #0F3A8A, #1a4fad)", border: "none" }
               }
             >
-              <div className="text-[10px] font-bold mb-1" style={{ color: m.role === "assistant" ? "#E6B85A" : "rgba(255,255,255,0.5)" }}>
+              <div className="text-[10px] font-bold mb-1" style={{ color: m.role === "assistant" ? "#E6B85A" : "rgba(255,255,255,0.6)" }}>
                 {m.role === "assistant" ? "LINA AI" : "YOU"}
               </div>
-              <div className="text-sm text-white whitespace-pre-line leading-relaxed">{m.content}</div>
+              <div className={`text-sm whitespace-pre-line leading-relaxed ${m.role === "assistant" ? "text-slate-800" : "text-white"}`}>{m.content}</div>
             </div>
           </div>
         ))}
 
         {loading && (
           <div className="flex gap-3 justify-start">
-            <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full ring-1 ring-yellow-400/30 object-cover shrink-0 mt-1" />
-            <div className="rounded-2xl px-4 py-3" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}>
+            <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full ring-2 ring-blue-100 object-cover shrink-0 mt-1" />
+            <div className="rounded-2xl px-4 py-3 bg-white border border-slate-200 shadow-sm">
               <div className="text-[10px] font-bold mb-2" style={{ color: "#E6B85A" }}>LINA AI</div>
               <div className="flex gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: "0ms" }} />
-                <div className="w-2 h-2 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: "150ms" }} />
-                <div className="w-2 h-2 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: "300ms" }} />
+                <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "150ms" }} />
+                <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "300ms" }} />
               </div>
             </div>
           </div>
@@ -622,15 +620,14 @@ function ChatThread({ tripId, proposalMode = "" }) {
       </div>
 
       {/* Input area */}
-      <div className="px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] border-t border-white/10" style={{ background: "rgba(0,0,0,0.2)" }}>
+      <div className="px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] border-t border-slate-100 bg-white">
         {/* Quick prompts */}
         <div className="flex flex-wrap gap-2 mb-3">
           {quickPrompts.map((qp) => (
             <button
               key={qp}
               onClick={() => onQuick(qp)}
-              className="rounded-full px-3 py-1 text-xs font-semibold text-white/70 hover:text-white hover:bg-white/10 transition-all"
-              style={{ border: "1px solid rgba(255,255,255,0.15)" }}
+              className="rounded-full px-3 py-1 text-xs font-semibold text-slate-600 hover:text-blue-700 hover:bg-blue-50 hover:border-blue-200 transition-all border border-slate-200 bg-white"
             >
               {qp === "Flights" ? "✈️ " : qp === "Hotels" ? "🏨 " : qp === "Cruise" ? "🛳️ " : qp === "All-Inclusive" ? "🌴 " : "🎯 "}{qp}
             </button>
@@ -645,8 +642,8 @@ function ChatThread({ tripId, proposalMode = "" }) {
             onKeyDown={onKeyDown}
             placeholder="Tell Lina about your dream trip..."
             rows={1}
-            className="flex-1 min-w-0 resize-none rounded-2xl px-4 py-3 text-sm text-white placeholder-white/30 outline-none"
-            style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", maxHeight: "120px" }}
+            className="flex-1 min-w-0 resize-none rounded-2xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all bg-slate-50"
+            style={{ maxHeight: "120px" }}
           />
 
           {/* Mic button */}
@@ -654,9 +651,9 @@ function ChatThread({ tripId, proposalMode = "" }) {
             type="button"
             onClick={toggleMic}
             title={isListening ? "Stop" : "Voice"}
-            className={`rounded-2xl p-3 transition-all ${isListening ? "bg-red-500 animate-pulse" : "bg-white/10 hover:bg-white/20"}`}
+            className={`rounded-2xl p-3 transition-all border ${isListening ? "bg-red-500 border-red-500 text-white animate-pulse" : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"}`}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
               <path d="M12 1a4 4 0 0 0-4 4v7a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4ZM6 11a1 1 0 1 0-2 0 8 8 0 0 0 7 7.93V21H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-2.07A8 8 0 0 0 20 11a1 1 0 1 0-2 0 6 6 0 0 1-12 0Z"/>
             </svg>
           </button>
@@ -665,15 +662,15 @@ function ChatThread({ tripId, proposalMode = "" }) {
           <button
             type="submit"
             disabled={loading}
-            className="rounded-2xl px-5 py-3 text-sm font-black text-[#0B1B4D] transition-all hover:scale-105 disabled:opacity-50"
-            style={{ background: "linear-gradient(90deg, #E6B85A, #f0c96b)" }}
+            className="rounded-2xl px-5 py-3 text-sm font-black text-white transition-all hover:scale-105 disabled:opacity-50"
+            style={{ background: "linear-gradient(135deg, #0F3A8A, #1a4fad)" }}
           >
             {loading ? "..." : "Send →"}
           </button>
         </form>
 
         <div className="mt-2 text-center">
-          <span className="text-white/25 text-xs">Powered by Zeniva AI · Your concierge is always online</span>
+          <span className="text-slate-400 text-xs">Powered by Zeniva AI · Your concierge is always online</span>
         </div>
       </div>
     </div>
