@@ -493,11 +493,11 @@ export default function ProposalReviewPage() {
 
             {/* BOOKING CHECKLIST */}
             <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-slate-900 to-slate-700 px-6 py-4 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">📋</div>
+              <div className="bg-white border-b border-slate-100 px-6 py-4 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-lg">📋</div>
                 <div>
-                  <h2 className="text-lg font-black text-white">Booking checklist</h2>
-                  <p className="text-slate-300 text-xs">{isAgentMode ? "Complete before sending to client" : "Required before payment"}</p>
+                  <h2 className="text-lg font-black text-slate-900">Booking checklist</h2>
+                  <p className="text-slate-500 text-xs">{isAgentMode ? "Complete before sending to client" : "Required before payment"}</p>
                 </div>
                 {allWorkflowComplete && (
                   <div className="ml-auto flex items-center gap-1.5 bg-emerald-500 rounded-full px-3 py-1">
@@ -749,9 +749,9 @@ export default function ProposalReviewPage() {
 
             {/* PRICE BREAKDOWN */}
             <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-slate-900 to-slate-700 px-6 py-4 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">💰</div>
-                <h2 className="text-lg font-black text-white">Price breakdown</h2>
+              <div className="bg-white border-b border-slate-100 px-6 py-4 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-amber-50 flex items-center justify-center text-lg">💰</div>
+                <h2 className="text-lg font-black text-slate-900">Price breakdown</h2>
               </div>
               <div className="p-5 space-y-3">
                 {breakdown.map((row) => (
@@ -760,12 +760,12 @@ export default function ProposalReviewPage() {
                     <span className="text-sm font-bold text-slate-900">{row.value}</span>
                   </div>
                 ))}
-                <div className="rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 p-4 flex items-center justify-between mt-2">
+                <div className="rounded-xl border-2 border-amber-200 bg-amber-50 p-4 flex items-center justify-between mt-2">
                   <div>
-                    <p className="text-white font-black text-lg">Total</p>
-                    <p className="text-slate-400 text-xs mt-0.5">{pricing.travelers} traveler(s) · {pricing.nights} nights</p>
+                    <p className="text-slate-900 font-black text-lg">Total</p>
+                    <p className="text-slate-500 text-xs mt-0.5">{pricing.travelers} traveler(s) · {pricing.nights} nights</p>
                   </div>
-                  <p className="text-3xl font-black" style={{ color: "#E6B85A" }}>
+                  <p className="text-3xl font-black text-amber-600">
                     {pricing.hasAnyPrice ? formatCurrency(pricing.total) : "On request"}
                   </p>
                 </div>
@@ -779,12 +779,12 @@ export default function ProposalReviewPage() {
           {/* ── RIGHT SIDEBAR ── */}
           <aside className="space-y-4 sticky top-4">
             {/* Summary card */}
-            <div className="rounded-2xl bg-gradient-to-b from-slate-900 to-slate-800 border border-slate-700 shadow-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-slate-700">
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Trip Summary</p>
+            <div className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-5 py-4 border-b border-slate-100" style={{ background: "linear-gradient(135deg, #0B1B4D 0%, #0F6CF5 100%)" }}>
+                <p className="text-blue-200 text-xs font-bold uppercase tracking-widest">Trip Summary</p>
                 <p className="text-white font-black text-lg mt-0.5">{tripDraft?.destination || "Your Trip"}</p>
               </div>
-              <div className="px-5 py-4 space-y-3">
+              <div className="px-5 py-4 space-y-3 bg-white">
                 {[
                   { icon: "📍", label: "Route", value: `${tripDraft?.departureCity || "TBC"} → ${tripDraft?.destination || "Destination"}` },
                   { icon: "📅", label: "Dates", value: tripDraft?.checkIn && tripDraft?.checkOut ? `${tripDraft.checkIn} → ${tripDraft.checkOut}` : "Flexible" },
@@ -796,7 +796,7 @@ export default function ProposalReviewPage() {
                     <span className="text-lg flex-shrink-0">{icon}</span>
                     <div className="min-w-0">
                       <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">{label}</p>
-                      <p className="text-white text-xs font-semibold truncate mt-0.5">{value}</p>
+                      <p className="text-slate-800 text-xs font-semibold truncate mt-0.5">{value}</p>
                     </div>
                   </div>
                 ))}
@@ -805,9 +805,9 @@ export default function ProposalReviewPage() {
               {/* Total */}
               {pricing.hasAnyPrice && (
                 <div className="px-5 pb-4">
-                  <div className="rounded-xl bg-white/10 border border-white/10 px-4 py-3 flex items-center justify-between">
-                    <p className="text-slate-300 text-sm font-bold">Total</p>
-                    <p className="font-black text-xl" style={{ color: "#E6B85A" }}>{formatCurrency(pricing.total)}</p>
+                  <div className="rounded-xl border-2 border-amber-200 bg-amber-50 px-4 py-3 flex items-center justify-between">
+                    <p className="text-slate-700 text-sm font-bold">Total</p>
+                    <p className="font-black text-xl text-amber-600">{formatCurrency(pricing.total)}</p>
                   </div>
                 </div>
               )}
@@ -827,12 +827,12 @@ export default function ProposalReviewPage() {
                     <button
                       onClick={onPay}
                       disabled={!allWorkflowComplete}
-                      className="w-full rounded-xl border border-white/20 bg-white/10 py-3 text-sm font-semibold text-white hover:bg-white/20 transition disabled:opacity-40"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition disabled:opacity-40"
                     >
                       👁 Preview payment page
                     </button>
                     {shareUrl && (
-                      <div className="rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-[10px] text-slate-400 break-all">
+                      <div className="rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-[10px] text-slate-500 break-all">
                         🔗 {shareUrl}{shareStatus ? ` · ${shareStatus}` : ""}
                       </div>
                     )}
