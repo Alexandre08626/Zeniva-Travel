@@ -414,7 +414,7 @@ export default function ProposalReviewPage() {
   return (
     <main className="min-h-screen bg-slate-50">
       {/* ── HERO ── */}
-      <div className="relative h-72 sm:h-[400px] overflow-hidden" style={{ width: "100vw", marginLeft: "calc(50% - 50vw)" }}>
+      <div className="relative w-full h-72 sm:h-[400px] overflow-hidden">
         <img src={heroImage} alt="Destination" className="h-full w-full object-cover object-center" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/40" />
         {/* Nav buttons */}
