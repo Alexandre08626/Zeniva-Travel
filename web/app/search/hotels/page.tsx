@@ -757,144 +757,173 @@ function HotelsSearchContent() {
     }
   }, [resume]);
 
+    const STEPS = [
+    { key: "search", icon: "🔍", label: "Search" },
+    { key: "rates", icon: "🛏", label: "Choose room" },
+    { key: "quote", icon: "📋", label: "Review" },
+    { key: "payment", icon: "💳", label: "Payment" },
+    { key: "booking", icon: "✅", label: "Confirmed" },
+  ];
+  const stepIdx = STEPS.findIndex(s => s.key === bookingStep);
+
   return (
-    <main className="min-h-screen bg-slate-50 py-10 px-4">
-      <div className="mx-auto max-w-5xl space-y-4">
-        <header className="rounded-2xl bg-white px-5 py-4 shadow-sm border border-slate-200 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-              {bookingStep === 'search' && 'Hotels search'}
-              {bookingStep === 'rates' && 'Select room & rate'}
-              {bookingStep === 'quote' && 'Review booking'}
-              {bookingStep === 'payment' && 'Payment'}
-              {bookingStep === 'booking' && 'Booking confirmed'}
-            </p>
-            <h1 className="text-2xl font-black text-slate-900">
-              {bookingStep === 'search' && (destination || "Choose destination")}
-              {bookingStep === 'rates' && (selectedSearchResult?.name || "Select room")}
-              {bookingStep === 'quote' && "Confirm your booking"}
-              {bookingStep === 'payment' && "Secure payment"}
-              {bookingStep === 'booking' && "Booking successful!"}
-            </h1>
-            <p className="text-sm text-slate-600">{summary.stay} · {summary.guestLabel}{budget ? ` · Budget ${budget}` : ""}</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {bookingStep !== 'search' && (
-              <button
-                onClick={resetBookingFlow}
-                className="rounded-full border px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
-              >
-                ← Back to search
-              </button>
-            )}
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">{mergedOptions.length} options</span>
-            {budget && <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-800">Budget cap {budget}</span>}
-          </div>
-        </header>
-
-        {bookingStep === 'search' && (
-          <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-800">Hotels</h2>
-              <span className="text-xs bg-slate-100 text-slate-800 px-2 py-1 rounded-full">{mergedOptions.length} options</span>
+    <main className="min-h-screen bg-slate-50">
+      {/* Hero */}
+      <div style={{ background: "linear-gradient(135deg, #0B1B4D 0%, #0F6CF5 100%)" }} className="px-4 py-6">
+        <div className="mx-auto max-w-5xl">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+            <div className="text-white">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-200 mb-1">🏨 Zeniva Travel · Hotels</p>
+              <h1 className="text-3xl font-black">
+                {bookingStep === "search" && (destination || "Find your hotel")}
+                {bookingStep === "rates" && (selectedSearchResult?.name || "Choose your room")}
+                {bookingStep === "quote" && "Review your booking"}
+                {bookingStep === "payment" && "Secure payment"}
+                {bookingStep === "booking" && "🎉 Booking confirmed!"}
+              </h1>
+              <p className="text-blue-200 text-sm mt-0.5">{summary.stay} · {summary.guestLabel}{budget ? ` · Budget ${budget}` : ""}</p>
             </div>
+            <div className="flex flex-wrap gap-2">
+              {bookingStep !== "search" && (
+                <button onClick={resetBookingFlow} className="rounded-2xl bg-white/15 border border-white/30 px-4 py-2 text-sm font-semibold text-white hover:bg-white/25 transition">
+                  ← Back
+                </button>
+              )}
+              {bookingStep === "search" && (
+                <span className="rounded-2xl bg-emerald-400/20 border border-emerald-400/40 px-3 py-2 text-xs font-bold text-emerald-300">
+                  {mergedOptions.length} hotels found
+                </span>
+              )}
+            </div>
+          </div>
+          {/* Stepper */}
+          <div className="flex items-center gap-1 overflow-x-auto">
+            {STEPS.map((s, i) => (
+              <div key={s.key} className="flex items-center gap-1">
+                <div className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold whitespace-nowrap ${i === stepIdx ? "bg-white text-blue-700" : i < stepIdx ? "bg-white/20 text-white" : "bg-white/10 text-white/50"}`}>
+                  <span>{s.icon}</span><span>{s.label}</span>{i < stepIdx && <span>✓</span>}
+                </div>
+                {i < STEPS.length - 1 && <div className={`w-5 h-px ${i < stepIdx ? "bg-white/60" : "bg-white/20"}`} />}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
+      <div className="mx-auto max-w-5xl px-4 py-6 space-y-5">
+        {bookingStep === "search" && (
+          <section>
             {anySearchLoading && (
-              <div className="rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-sm text-slate-700">Loading hotel results…</div>
+              <div className="rounded-2xl bg-blue-50 border border-blue-200 px-5 py-4 flex items-center gap-3 mb-4">
+                <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full flex-shrink-0" />
+                <span className="text-sm font-semibold text-blue-800">Loading hotel results…</span>
+              </div>
             )}
             {anySearchError && (
-              <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
-                Some results could not be loaded. Showing what’s available.
+              <div className="rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800 mb-4">
+                Some results could not be loaded. Showing what&apos;s available.
               </div>
             )}
 
-            <div className="space-y-3">
-              {mergedOptions.map((h) => (
-                <button
-                  key={h.id}
-                  onClick={() => handleSelectPartnerAccommodation(h)}
-                  className={`w-full rounded-xl border bg-slate-50 p-3 shadow-sm flex flex-col gap-3 text-left md:flex-row md:items-center md:justify-between ${selectedId === h.id ? "border-blue-500 ring-2 ring-blue-100" : "border-slate-200"}`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="h-16 w-20 overflow-hidden rounded-lg bg-white border border-slate-200">
-                      <img src={h.image} alt={h.name} className="h-full w-full object-cover" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {mergedOptions.map((h) => {
+                const price = getPriceDisplay(h.price);
+                return (
+                  <button
+                    key={h.id}
+                    onClick={() => handleSelectPartnerAccommodation(h)}
+                    className={`group rounded-3xl overflow-hidden border-2 text-left shadow-sm transition hover:shadow-xl hover:-translate-y-0.5 bg-white ${selectedId === h.id ? "border-blue-500 ring-2 ring-blue-100" : "border-slate-200 hover:border-slate-300"}`}
+                  >
+                    {/* Image */}
+                    <div className="relative h-48 w-full overflow-hidden bg-slate-100">
+                      <img src={h.image} alt={h.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                      {/* Price badge */}
+                      <div className="absolute bottom-3 left-3 rounded-xl px-3 py-1.5 text-sm font-black text-white shadow-lg" style={{ background: "linear-gradient(135deg, #0B1B4D, #0F6CF5)" }}>
+                        {price.primary}
+                      </div>
+                      {h.badge && (
+                        <div className="absolute top-3 right-3 rounded-xl bg-emerald-500 px-2 py-1 text-[10px] font-black text-white shadow">{h.badge}</div>
+                      )}
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold text-slate-800">{h.name}</p>
-                      <p className="text-xs text-slate-600">{h.location}</p>
-                      <p className="text-xs text-slate-600">{h.room}</p>
-                      <div className="flex flex-wrap gap-1 text-[11px] text-slate-700">
-                        {(h.perks || []).map((p: any, idx: number) => {
-                          const label = typeof p === 'string' ? p : (p && (p.label || p.name)) || JSON.stringify(p);
-                          const key = `${label}-${idx}`;
-                          return (
-                            <span key={key} className="rounded-full bg-white border px-2 py-[3px]">{label}</span>
-                          );
-                        })}
+                    {/* Content */}
+                    <div className="p-4">
+                      <h3 className="font-black text-slate-900 text-base leading-tight">{h.name}</h3>
+                      <p className="text-sm text-slate-500 mt-0.5 flex items-center gap-1">📍 {h.location}</p>
+                      {h.room && <p className="text-xs text-slate-500 mt-1">🛏 {h.room}</p>}
+                      {price.secondary && <p className="text-xs text-blue-600 font-semibold mt-1">{price.secondary}</p>}
+                      {(h.perks || []).length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {(h.perks || []).slice(0, 3).map((p: any, idx: number) => {
+                            const label = typeof p === "string" ? p : (p && (p.label || p.name)) || "";
+                            return label ? <span key={`${label}-${idx}`} className="rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5">{label}</span> : null;
+                          })}
+                        </div>
+                      )}
+                      <div className="mt-3 flex items-center justify-between">
+                        <span className="text-xs text-slate-400">{summary.stay}{nights ? ` · ${nights} nights` : ""}</span>
+                        <span className="text-xs font-black text-blue-600">View rooms →</span>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    {(() => {
-                      const price = getPriceDisplay(h.price);
-                      return (
-                        <>
-                          <p className="text-lg font-bold text-slate-900">{price.primary}</p>
-                          {price.secondary && <p className="text-xs text-slate-600">{price.secondary}</p>}
-                        </>
-                      );
-                    })()}
-                    {h.badge && <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">{h.badge}</span>}
-                  </div>
-                </button>
-              ))}
-
-              {!anySearchLoading && mergedOptions.length === 0 && !anySearchError && (
-                <div className="rounded-xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-600">No hotels found. Try adjusting dates or destination.</div>
-              )}
+                  </button>
+                );
+              })}
             </div>
+
+            {!anySearchLoading && mergedOptions.length === 0 && !anySearchError && (
+              <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white p-12 text-center">
+                <div className="text-5xl mb-3">🏨</div>
+                <p className="font-black text-slate-900">No hotels found</p>
+                <p className="text-slate-500 text-sm mt-1">Try adjusting your dates or destination.</p>
+              </div>
+            )}
           </section>
         )}
 
-        {bookingStep === 'rates' && selectedSearchResult && (
-          <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
-            {loading && <div className="rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-sm text-slate-700">Loading rates…</div>}
-            {error && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">{error}</div>}
+        {bookingStep === "rates" && selectedSearchResult && (
+          <section className="space-y-4">
+            {loading && <div className="rounded-2xl bg-blue-50 border border-blue-200 px-5 py-4 text-sm font-semibold text-blue-800 flex items-center gap-3"><div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full" /> Loading rates…</div>}
+            {error && <div className="rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">{error}</div>}
 
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">{selectedSearchResult.name}</p>
-                  <p className="text-xs text-slate-600">{selectedSearchResult.location}</p>
+            {/* Hotel hero */}
+            <div className="rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm">
+              {selectedSearchResult.image && (
+                <div className="relative h-56 w-full overflow-hidden">
+                  <img src={selectedSearchResult.image} alt={selectedSearchResult.name} className="h-full w-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-4 left-4">
+                    <h2 className="text-2xl font-black text-white">{selectedSearchResult.name}</h2>
+                    <p className="text-white/80 text-sm">📍 {selectedSearchResult.location}</p>
+                  </div>
                 </div>
-                <div className="text-xs text-slate-600">
-                  {summary.stay} · {summary.guestLabel}{nights ? ` · ${nights} night${nights === 1 ? "" : "s"}` : ""}
-                </div>
+              )}
+              <div className="p-4 flex flex-wrap gap-4 text-sm text-slate-600 border-t border-slate-100">
+                <span>📅 {summary.stay}</span>
+                <span>👥 {summary.guestLabel}</span>
+                {nights && <span>🌙 {nights} nights</span>}
+                {selectedSearchResult.room && <span>🛏 {selectedSearchResult.room}</span>}
               </div>
-              {selectedSearchResult.room && <p className="text-xs text-slate-600 mt-2">{selectedSearchResult.room}</p>}
             </div>
 
+            <h2 className="text-xl font-black text-slate-900">Available rooms</h2>
             <div className="space-y-3">
               {rates.map((rate: any) => (
                 <button
                   key={rate.id}
                   onClick={() => handleSelectRate(rate.id)}
-                  className={`w-full rounded-xl border bg-slate-50 p-4 shadow-sm text-left ${selectedRateId === rate.id ? "border-blue-500 ring-2 ring-blue-100" : "border-slate-200"}`}
+                  className={`w-full rounded-2xl border-2 p-5 text-left transition-all ${selectedRateId === rate.id ? "border-blue-500 bg-blue-50 shadow-md" : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"}`}
                 >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-semibold text-slate-800">{rate.room_type?.name || 'Room'}</p>
-                      <p className="text-sm text-slate-600">{rate.total_amount} {rate.total_currency}</p>
-                      {rate.conditions && <p className="text-xs text-slate-500">{rate.conditions}</p>}
-                      {rate.cancellation_timeline && (
-                        <p className="text-xs text-slate-500 mt-1">
-                          Cancellation: {Array.isArray(rate.cancellation_timeline) ? `${rate.cancellation_timeline.length} policy steps` : 'See policy details'}
-                        </p>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <p className="font-black text-slate-900 text-base">{rate.room_type?.name || "Room"}</p>
+                      {rate.conditions && <p className="text-xs text-slate-500 mt-0.5">{rate.conditions}</p>}
+                      {rate.refundable && <span className="inline-block mt-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-0.5">✓ Free cancellation</span>}
+                      {rate.cancellation_timeline && Array.isArray(rate.cancellation_timeline) && rate.cancellation_timeline.length > 0 && (
+                        <p className="text-xs text-slate-400 mt-1">Cancellation: {rate.cancellation_timeline.length} policy steps</p>
                       )}
                     </div>
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-slate-900">{rate.total_amount} {rate.total_currency}</p>
-                      {rate.refundable && <span className="text-xs text-green-600">Free cancellation</span>}
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-2xl font-black text-slate-900">{rate.total_amount} <span className="text-sm font-semibold">{rate.total_currency}</span></p>
+                      {selectedRateId === rate.id && <p className="text-xs text-blue-600 font-bold mt-1">✓ Selected</p>}
                     </div>
                   </div>
                 </button>

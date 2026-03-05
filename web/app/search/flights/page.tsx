@@ -430,260 +430,199 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
   const maxVisiblePrice = numericPrices.length ? Math.max(...numericPrices) : null;
   const nonstopCount = filteredOffers.filter((offer) => getStopsCount(offer.stops) === 0).length;
 
+    const inputCls = "mt-1 block w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200 bg-white text-slate-800 placeholder:text-slate-400";
+  const labelCls = "block text-[10px] font-bold uppercase tracking-wider text-slate-500";
+
   return (
-    <main className="min-h-screen bg-slate-50 py-10 px-4">
-      <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)] gap-4 items-start">
-        <aside className="md:sticky md:top-6 rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Zeniva Travel</p>
-            <h2 className="text-lg font-black text-slate-900">Flight filters</h2>
-            <p className="text-xs text-slate-500 mt-1">{filteredOffers.length} results · {nonstopCount} nonstop</p>
-            {minVisiblePrice !== null && maxVisiblePrice !== null && (
-              <p className="text-xs text-slate-500">USD {minVisiblePrice.toFixed(0)} - USD {maxVisiblePrice.toFixed(0)}</p>
+    <main className="min-h-screen bg-slate-50">
+      {/* Hero header */}
+      <div style={{ background: "linear-gradient(135deg, #0B1B4D 0%, #0F6CF5 100%)" }} className="px-4 py-6">
+        <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="text-white">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-200 mb-1">✈️ Zeniva Travel · Flights</p>
+            <h1 className="text-3xl font-black">{routeLabel}</h1>
+            <p className="text-blue-200 text-sm mt-0.5">{datesLabel} · {paxLabel}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {!isRoundTrip && <span className="rounded-full bg-amber-400/20 border border-amber-400/40 px-3 py-1 text-xs font-bold text-amber-300">One-way</span>}
+            <span className="rounded-full bg-emerald-400/20 border border-emerald-400/40 px-3 py-1 text-xs font-bold text-emerald-300">
+              {filteredOffers.length} options · {nonstopCount} direct
+            </span>
+            {minVisiblePrice !== null && (
+              <span className="rounded-full bg-white/15 border border-white/25 px-3 py-1 text-xs font-bold text-white">
+                From USD {minVisiblePrice.toFixed(0)}
+              </span>
             )}
           </div>
+        </div>
+      </div>
 
-          <form action="/search/flights" method="GET" className="space-y-4">
-            <div className="grid grid-cols-2 gap-2">
-              <label className={`rounded-lg border px-3 py-2 text-sm font-semibold cursor-pointer ${trip === "oneway" ? "border-blue-500 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-700"}`}>
-                <input type="radio" name="trip" value="oneway" defaultChecked={trip === "oneway"} className="mr-2" />
-                One-way
-              </label>
-              <label className={`rounded-lg border px-3 py-2 text-sm font-semibold cursor-pointer ${trip !== "oneway" ? "border-blue-500 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-700"}`}>
-                <input type="radio" name="trip" value="roundtrip" defaultChecked={trip !== "oneway"} className="mr-2" />
-                Round-trip
-              </label>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600">From (IATA)</label>
-                <input name="from" defaultValue={from} required className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" placeholder="YUL" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600">To (IATA)</label>
-                <input name="to" defaultValue={to} required className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" placeholder="MIA" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600">Depart</label>
-                <input name="depart" type="date" defaultValue={depart} required className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600">Return</label>
-                <input name="ret" type="date" defaultValue={ret} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600">Passengers</label>
-                <select name="passengers" defaultValue={passengers} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm">
-                  {Array.from({ length: 9 }).map((_, idx) => {
-                    const value = String(idx + 1);
-                    return <option key={value} value={value}>{value}</option>;
-                  })}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600">Cabin</label>
-                <select name="cabin" defaultValue={cabin} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm">
-                  <option value="Economy">Economy</option>
-                  <option value="Premium Economy">Premium Economy</option>
-                  <option value="Business">Business</option>
-                  <option value="First">First</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600">Min price (USD)</label>
-                <input name="minPrice" type="number" min="1" step="1" defaultValue={minPrice} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" placeholder="200" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600">Max stops</label>
-                <select name="maxStops" defaultValue={maxStops} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm">
-                  <option value="">Any</option>
-                  <option value="0">Nonstop only</option>
-                  <option value="1">Up to 1 stop</option>
-                  <option value="2">Up to 2 stops</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600">Max price (USD)</label>
-                <input name="maxPrice" type="number" min="1" step="1" defaultValue={maxPrice} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" placeholder="700" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600">Max duration (hours)</label>
-                <input name="maxDuration" type="number" min="1" step="1" defaultValue={maxDuration} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" placeholder="12" />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-600">Preferred airline</label>
-              <input
-                name="airline"
-                list="airline-options"
-                defaultValue={airline}
-                className="mt-1 block w-full rounded-md border-slate-300 shadow-sm"
-                placeholder="Air Canada"
-              />
-              <datalist id="airline-options">
-                {carrierSuggestions.map((carrier) => (
-                  <option key={carrier} value={carrier} />
+      <div className="mx-auto max-w-7xl px-4 py-5 grid grid-cols-1 md:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[340px_minmax(0,1fr)] gap-5 items-start">
+        {/* Filters sidebar */}
+        <aside className="md:sticky md:top-4 rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-5 py-4">
+            <h2 className="font-black text-white text-base">🔍 Search & Filters</h2>
+            <p className="text-slate-400 text-xs mt-0.5">{filteredOffers.length} results · {nonstopCount} nonstop</p>
+          </div>
+          <div className="p-4 max-h-[80vh] overflow-y-auto">
+            <form action="/search/flights" method="GET" className="space-y-4">
+              {/* Trip type */}
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { val: "oneway", label: "One-way" },
+                  { val: "roundtrip", label: "Round-trip" },
+                ].map(({ val, label }) => (
+                  <label key={val} className={`rounded-xl border-2 px-3 py-2 text-xs font-bold cursor-pointer text-center transition ${(val === "oneway" ? trip === "oneway" : trip !== "oneway") ? "border-blue-500 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+                    <input type="radio" name="trip" value={val} defaultChecked={val === "oneway" ? trip === "oneway" : trip !== "oneway"} className="sr-only" />
+                    {label}
+                  </label>
                 ))}
-              </datalist>
-            </div>
+              </div>
 
-            {carrierOptions.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-slate-600">Airlines</p>
-                <div className="max-h-48 overflow-auto rounded-lg border border-slate-200 p-2 space-y-1">
-                  {carrierOptions.map((carrier) => (
-                    <label key={carrier.code} className="flex items-center gap-2 text-xs text-slate-700">
-                      <input type="checkbox" name="airlines" value={carrier.code} defaultChecked={selectedAirlines.includes(carrier.code)} />
-                      <img src={carrier.logo} alt={carrier.name} className="h-5 w-5 rounded-full border border-slate-200 bg-white" loading="lazy" />
-                      <span className="truncate">{carrier.name} ({carrier.code})</span>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className={labelCls}>From</label><input name="from" defaultValue={from} required className={inputCls} placeholder="YUL" /></div>
+                <div><label className={labelCls}>To</label><input name="to" defaultValue={to} required className={inputCls} placeholder="MIA" /></div>
+                <div><label className={labelCls}>Depart</label><input name="depart" type="date" defaultValue={depart} required className={inputCls} /></div>
+                <div><label className={labelCls}>Return</label><input name="ret" type="date" defaultValue={ret} className={inputCls} /></div>
+                <div>
+                  <label className={labelCls}>Passengers</label>
+                  <select name="passengers" defaultValue={passengers} className={inputCls}>
+                    {Array.from({ length: 9 }).map((_, idx) => { const v = String(idx + 1); return <option key={v} value={v}>{v}</option>; })}
+                  </select>
+                </div>
+                <div>
+                  <label className={labelCls}>Cabin</label>
+                  <select name="cabin" defaultValue={cabin} className={inputCls}>
+                    {["Economy", "Premium Economy", "Business", "First"].map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div><label className={labelCls}>Min price (USD)</label><input name="minPrice" type="number" min="1" step="1" defaultValue={minPrice} className={inputCls} placeholder="200" /></div>
+                <div>
+                  <label className={labelCls}>Max stops</label>
+                  <select name="maxStops" defaultValue={maxStops} className={inputCls}>
+                    <option value="">Any</option>
+                    <option value="0">Nonstop only</option>
+                    <option value="1">Up to 1 stop</option>
+                    <option value="2">Up to 2 stops</option>
+                  </select>
+                </div>
+                <div><label className={labelCls}>Max price (USD)</label><input name="maxPrice" type="number" min="1" step="1" defaultValue={maxPrice} className={inputCls} placeholder="700" /></div>
+                <div><label className={labelCls}>Max duration (h)</label><input name="maxDuration" type="number" min="1" step="1" defaultValue={maxDuration} className={inputCls} placeholder="12" /></div>
+              </div>
+
+              <div>
+                <label className={labelCls}>Airline</label>
+                <input name="airline" list="airline-options" defaultValue={airline} className={inputCls} placeholder="Air Canada" />
+                <datalist id="airline-options">{carrierSuggestions.map(c => <option key={c} value={c} />)}</datalist>
+              </div>
+
+              {carrierOptions.length > 0 && (
+                <div>
+                  <p className={labelCls + " mb-2"}>Airlines</p>
+                  <div className="max-h-40 overflow-auto rounded-xl border border-slate-200 p-2 space-y-1">
+                    {carrierOptions.map((c) => (
+                      <label key={c.code} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer hover:bg-slate-50 rounded px-1 py-0.5">
+                        <input type="checkbox" name="airlines" value={c.code} defaultChecked={selectedAirlines.includes(c.code)} />
+                        <img src={c.logo} alt={c.name} className="h-5 w-5 rounded border border-slate-200 object-contain bg-white" loading="lazy" />
+                        <span className="truncate">{c.name} ({c.code})</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <p className={labelCls + " mb-2"}>Departure window</p>
+                <div className="grid grid-cols-2 gap-1">
+                  {["morning", "afternoon", "evening", "night"].map(w => (
+                    <label key={w} className="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                      <input type="checkbox" name="depWindow" value={w} defaultChecked={selectedDepartureWindows.includes(w)} className="rounded" />
+                      <span className="capitalize">{w}</span>
                     </label>
                   ))}
                 </div>
               </div>
-            )}
 
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-slate-600">Departure window</p>
-              <div className="grid grid-cols-2 gap-1 text-xs text-slate-700">
-                <label className="inline-flex items-center gap-2"><input type="checkbox" name="depWindow" value="morning" defaultChecked={selectedDepartureWindows.includes("morning")} /> Morning</label>
-                <label className="inline-flex items-center gap-2"><input type="checkbox" name="depWindow" value="afternoon" defaultChecked={selectedDepartureWindows.includes("afternoon")} /> Afternoon</label>
-                <label className="inline-flex items-center gap-2"><input type="checkbox" name="depWindow" value="evening" defaultChecked={selectedDepartureWindows.includes("evening")} /> Evening</label>
-                <label className="inline-flex items-center gap-2"><input type="checkbox" name="depWindow" value="night" defaultChecked={selectedDepartureWindows.includes("night")} /> Night</label>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-slate-600">Arrival window</p>
-              <div className="grid grid-cols-2 gap-1 text-xs text-slate-700">
-                <label className="inline-flex items-center gap-2"><input type="checkbox" name="arrWindow" value="morning" defaultChecked={selectedArrivalWindows.includes("morning")} /> Morning</label>
-                <label className="inline-flex items-center gap-2"><input type="checkbox" name="arrWindow" value="afternoon" defaultChecked={selectedArrivalWindows.includes("afternoon")} /> Afternoon</label>
-                <label className="inline-flex items-center gap-2"><input type="checkbox" name="arrWindow" value="evening" defaultChecked={selectedArrivalWindows.includes("evening")} /> Evening</label>
-                <label className="inline-flex items-center gap-2"><input type="checkbox" name="arrWindow" value="night" defaultChecked={selectedArrivalWindows.includes("night")} /> Night</label>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-slate-600">Depart after</label>
-                <input name="departAfter" type="time" defaultValue={departAfter} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" />
+                <p className={labelCls + " mb-2"}>Arrival window</p>
+                <div className="grid grid-cols-2 gap-1">
+                  {["morning", "afternoon", "evening", "night"].map(w => (
+                    <label key={w} className="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                      <input type="checkbox" name="arrWindow" value={w} defaultChecked={selectedArrivalWindows.includes(w)} className="rounded" />
+                      <span className="capitalize">{w}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600">Depart before</label>
-                <input name="departBefore" type="time" defaultValue={departBefore} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" />
-              </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <label className="inline-flex items-center gap-2 text-xs text-slate-700">
-                <input type="checkbox" name="direct" value="1" defaultChecked={direct === "1"} />
-                Direct only
-              </label>
-              <div>
-                <label className="block text-xs font-medium text-slate-600">Sort by</label>
-                <select name="sort" defaultValue={sort} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm">
-                  <option value="best">Best</option>
-                  <option value="price">Lowest price</option>
-                  <option value="duration">Shortest trip</option>
-                  <option value="depart">Earliest departure</option>
-                  <option value="arrive">Earliest arrival</option>
-                </select>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className={labelCls}>Depart after</label><input name="departAfter" type="time" defaultValue={departAfter} className={inputCls} /></div>
+                <div><label className={labelCls}>Depart before</label><input name="departBefore" type="time" defaultValue={departBefore} className={inputCls} /></div>
               </div>
-            </div>
 
-            <div className="flex gap-2">
-              <button type="submit" className="flex-1 rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
-                Search flights
-              </button>
-              <Link href="/search/flights" className="rounded-full border px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                Reset
-              </Link>
-            </div>
-          </form>
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 text-xs text-slate-700 font-semibold cursor-pointer">
+                  <input type="checkbox" name="direct" value="1" defaultChecked={direct === "1"} className="rounded" />
+                  Direct flights only
+                </label>
+                <div>
+                  <label className={labelCls + " inline"}>Sort: </label>
+                  <select name="sort" defaultValue={sort} className="ml-1 text-xs rounded-lg border border-slate-200 px-2 py-1">
+                    <option value="best">Best</option>
+                    <option value="price">Price ↑</option>
+                    <option value="duration">Duration ↑</option>
+                    <option value="depart">Depart ↑</option>
+                    <option value="arrive">Arrive ↑</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-1">
+                <button type="submit" className="flex-1 rounded-xl py-2.5 text-sm font-black text-white transition" style={{ background: "linear-gradient(135deg, #0B1B4D, #0F6CF5)" }}>
+                  ✈️ Search flights
+                </button>
+                <Link href="/search/flights" className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+                  Reset
+                </Link>
+              </div>
+            </form>
+          </div>
         </aside>
 
+        {/* Results */}
         <div className="space-y-4">
-        <header className="rounded-2xl bg-white px-5 py-4 shadow-sm border border-slate-200 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Zeniva Travel · Flights</p>
-            <h1 className="text-2xl font-black text-slate-900">{routeLabel}</h1>
-            <p className="text-sm text-slate-600">{datesLabel} · {paxLabel}</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {!isRoundTrip && <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">One-way</span>}
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">Showing {filteredOffers.length} options</span>
-          </div>
-        </header>
-
-        <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-3">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div className="flex flex-wrap gap-2 text-xs">
-              <span className="rounded-full bg-slate-100 px-3 py-1 font-semibold text-slate-800">Sort: Best</span>
-              <span className="rounded-full bg-slate-100 px-3 py-1 font-semibold text-slate-800">Filters: Nonstop, Carry-on</span>
-            </div>
+          <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <p className="text-sm text-slate-600">
+              <span className="font-black text-slate-900">{filteredOffers.length} flights</span> found · click to book instantly
+            </p>
             <div className="flex gap-2">
-              <Link
-                href={`/chat?prompt=${encodeURIComponent(askPrompt)}`}
-                className="rounded-full bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-2 text-sm font-semibold text-white shadow hover:opacity-95"
-              >
-                Ask Lina
+              <Link href={`/chat?prompt=${encodeURIComponent(askPrompt)}`}
+                className="rounded-xl px-4 py-2 text-xs font-black text-white shadow transition hover:opacity-90"
+                style={{ background: "linear-gradient(135deg, #0B1B4D, #0F6CF5)" }}>
+                💬 Ask Lina
               </Link>
-              <Link
-                href="/"
-                className="rounded-full border px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
-              >
+              <Link href="/" className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">
                 New search
               </Link>
             </div>
           </div>
 
-          {message && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">{message}</div>}
+          {message && <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">{message}</div>}
           {!message && filteredOffers.length === 0 && (
-            <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
-              Aucun résultat ne correspond à vos filtres avancés. Modifiez les filtres à gauche.
+            <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white p-10 text-center">
+              <div className="text-5xl mb-3">✈️</div>
+              <p className="font-black text-slate-900">No flights found</p>
+              <p className="text-slate-500 text-sm mt-1">Try adjusting your filters or dates.</p>
             </div>
           )}
 
-          <div className="space-y-3">
-            {/* Use client component for interactive selection */}
-            {/* @ts-ignore */}
-            <FlightOffers
-              offers={filteredOffers}
-              roundTrip={!!ret}
-              searchContext={{
-                from,
-                to,
-                depart,
-                ret,
-                passengers,
-                cabin,
-              }}
-            />
-          </div>
-        </section>
-
-        <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-2">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-slate-800">Search context</p>
-            <span className="text-xs text-slate-500">Visible to agents only</span>
-          </div>
-          <pre className="text-xs bg-slate-50 p-3 rounded border border-slate-100 overflow-x-auto">{JSON.stringify(resolved, null, 2)}</pre>
-        </section>
+          {/* @ts-ignore */}
+          <FlightOffers
+            offers={filteredOffers}
+            roundTrip={!!ret}
+            searchContext={{ from, to, depart, ret, passengers, cabin }}
+          />
         </div>
-
       </div>
     </main>
   );
