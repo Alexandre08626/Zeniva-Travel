@@ -5,6 +5,17 @@ const SQUARE_BASE = process.env.SQUARE_SANDBOX === "true"
   ? "https://connect.squareupsandbox.com"
   : "https://connect.squareup.com";
 
+// Fetch live USD→CAD rate (fallback to 1.38 if unavailable)
+async function getUsdToCadRate(): Promise<number> {
+  try {
+    const res = await fetch("https://open.er-api.com/v6/latest/USD", { next: { revalidate: 3600 } });
+    const data = await res.json();
+    return data?.rates?.CAD || 1.38;
+  } catch {
+    return 1.38; // safe fallback
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { amount, currency = "USD", description, referenceId, redirectUrl } = await req.json();
@@ -13,8 +24,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing amount or description" }, { status: 400 });
     }
 
+    // Square account is in CAD — convert USD → CAD before sending
+    const rawAmount = parseFloat(String(amount).replace(/[^0-9.]/g, ""));
+    const usdToCad = await getUsdToCadRate();
+    const amountInCad = currency.toUpperCase() === "USD" ? rawAmount * usdToCad : rawAmount;
+    const squareCurrency = "CAD";
+
     // Convert amount to cents (Square uses smallest currency unit)
-    const amountCents = Math.round(parseFloat(String(amount).replace(/[^0-9.]/g, "")) * 100);
+    const amountCents = Math.round(amountInCad * 100);
 
     const body = {
       idempotency_key: `zeniva-${referenceId || Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -22,7 +39,7 @@ export async function POST(req: NextRequest) {
         name: description,
         price_money: {
           amount: amountCents,
-          currency: currency.toUpperCase(),
+          currency: squareCurrency,
         },
         location_id: process.env.SQUARE_LOCATION_ID || "",
       },

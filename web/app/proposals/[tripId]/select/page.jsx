@@ -254,6 +254,8 @@ export default function ProposalSelectPage() {
   const [errorTransfers, setErrorTransfers] = useState(null);
   const [selectedTransferKey, setSelectedTransferKey] = useState("");
   const [expandedFlightId, setExpandedFlightId] = useState("");
+  const [flightModal, setFlightModal] = useState(null);
+  const [hotelModal, setHotelModal] = useState(null);
   const [departureCityInput, setDepartureCityInput] = useState("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [filters, setFilters] = useState({
@@ -1433,30 +1435,14 @@ export default function ProposalSelectPage() {
                         </div>
                       </button>
 
-                      {/* Details toggle */}
-                      <div className="px-4 pb-3 border-t border-slate-100 pt-2">
-                        <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setExpandedFlightId((prev) => (prev === f.id ? "" : f.id)); }} className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition">
-                          {isExpanded ? "▲ Hide details" : "▾ Flight details"}
+                      {/* Details toggle → opens modal */}
+                      <div className="px-4 pb-3 border-t border-slate-100 pt-2 flex items-center gap-3">
+                        <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setFlightModal(f); }} className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 transition bg-blue-50 hover:bg-blue-100 rounded-full px-3 py-1.5">
+                          🔍 Flight details
                         </button>
-                        {isExpanded && Array.isArray(f.segments) && f.segments.length > 0 && (
-                          <div className="mt-3 rounded-xl bg-slate-50 border border-slate-200 p-4 text-xs text-slate-700 space-y-3">
-                            {f.segments.map((seg, segIdx) => {
-                              const next = f.segments[segIdx + 1];
-                              const layoverMin = next ? diffMinutes(seg.arrivingAt, next.departingAt) : null;
-                              return (
-                                <div key={`${f.id}-seg-${segIdx}`} className={segIdx > 0 ? "pt-3 border-t border-slate-200" : ""}>
-                                  <div className="font-bold text-slate-800 mb-1">Segment {segIdx + 1} · {seg.marketingCarrier || f.airline}{seg.marketingFlightNumber ? ` ${seg.marketingFlightNumber}` : ""}</div>
-                                  <div className="grid grid-cols-2 gap-3">
-                                    <div><p className="font-semibold">{seg.origin?.name || seg.origin?.code}</p><p className="text-slate-500">{fmtTime(seg.departingAt)} · {fmtDate(seg.departingAt)}</p></div>
-                                    <div><p className="font-semibold">{seg.destination?.name || seg.destination?.code}</p><p className="text-slate-500">{fmtTime(seg.arrivingAt)} · {fmtDate(seg.arrivingAt)}</p></div>
-                                  </div>
-                                  {seg.aircraft && <p className="text-slate-500 mt-1">Aircraft: {seg.aircraft}</p>}
-                                  {layoverMin && <p className="text-amber-600 font-medium mt-1">⏱ {fmtDuration(layoverMin)} layover</p>}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
+                        <button type="button" onClick={() => onSelectFlight(f)} className={`ml-auto text-xs font-bold rounded-full px-4 py-1.5 transition ${active ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-700 hover:bg-blue-100"}`}>
+                          {active ? "✓ Selected" : "Select"}
+                        </button>
                       </div>
                     </div>
                   );
@@ -1529,6 +1515,13 @@ export default function ProposalSelectPage() {
                             <p className="text-xs text-slate-600">{h.room}</p>
                             {stars > 0 && <p className="text-xs text-amber-500">{"★".repeat(stars)}</p>}
                           </div>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setHotelModal(h); }}
+                            className="mt-2 w-full text-center text-[11px] font-bold text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 rounded-lg py-1.5 transition"
+                          >
+                            📷 View photos & details
+                          </button>
                         </div>
                       </button>
                     );
@@ -1712,6 +1705,221 @@ export default function ProposalSelectPage() {
           </aside>
         </div>
       </div>
+      {/* ── FLIGHT DETAIL MODAL ── */}
+      {flightModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-4" onClick={() => setFlightModal(null)}>
+          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-700 to-blue-600 px-6 py-5 flex items-center gap-4">
+              {flightModal.carrierLogo && (
+                <img src={flightModal.carrierLogo} alt={flightModal.airline} className="h-14 w-14 rounded-full border-2 border-white/30 bg-white p-1 object-contain flex-shrink-0" />
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-white/70 text-xs font-bold uppercase tracking-widest">Flight Details</p>
+                <h2 className="text-xl font-black text-white">{flightModal.airline}</h2>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  {flightModal.flightNumber && <span className="bg-white/20 text-white text-xs rounded-full px-2 py-0.5">{flightModal.flightNumber}</span>}
+                  {flightModal.layovers === 0 && <span className="bg-green-400 text-green-900 text-[10px] font-black rounded-full px-2 py-0.5">DIRECT</span>}
+                  {flightModal.layovers > 0 && <span className="bg-orange-300 text-orange-900 text-[10px] font-black rounded-full px-2 py-0.5">{flightModal.layovers} stop{flightModal.layovers > 1 ? "s" : ""}</span>}
+                  <span className="bg-white/20 text-white text-[10px] rounded-full px-2 py-0.5">{flightModal.fare}</span>
+                </div>
+              </div>
+              <button onClick={() => setFlightModal(null)} className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-white font-black text-lg hover:bg-white/30 flex-shrink-0">×</button>
+            </div>
+
+            {/* Timeline */}
+            <div className="px-6 py-5 bg-blue-50 border-b border-blue-100">
+              <div className="flex items-center gap-4">
+                <div className="text-center min-w-[80px]">
+                  <p className="text-3xl font-black text-slate-900">{(flightModal.times || "").split("–")[0]?.trim()}</p>
+                  <p className="text-xs font-bold text-slate-600 mt-1">{flightModal.route?.split("→")[0]?.trim() || "Departure"}</p>
+                  {flightModal.date && <p className="text-[10px] text-slate-400 mt-0.5">{flightModal.date}</p>}
+                </div>
+                <div className="flex-1 relative">
+                  <div className="h-px w-full bg-blue-300" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+                      <p className="text-xs font-bold text-blue-700">✈️ {flightModal.duration}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center min-w-[80px]">
+                  <p className="text-3xl font-black text-slate-900">{(flightModal.times || "").split("–")[1]?.trim()}</p>
+                  <p className="text-xs font-bold text-slate-600 mt-1">{flightModal.route?.split("→")[1]?.trim() || "Arrival"}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Info grid */}
+            <div className="px-6 py-4 grid grid-cols-2 gap-3">
+              {[
+                { icon: "🛫", label: "Route", val: flightModal.route },
+                { icon: "⏱", label: "Duration", val: flightModal.duration },
+                { icon: "💺", label: "Cabin", val: flightModal.fare },
+                { icon: "🧳", label: "Baggage", val: flightModal.bags },
+                { icon: "🔢", label: "Flight #", val: flightModal.flightNumber },
+                { icon: "📅", label: "Date", val: flightModal.date },
+              ].filter(item => item.val).map(({ icon, label, val }) => (
+                <div key={label} className="rounded-xl bg-slate-50 border border-slate-200 p-3">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{icon} {label}</p>
+                  <p className="text-sm font-bold text-slate-800 mt-0.5">{val}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Segments */}
+            {Array.isArray(flightModal.segments) && flightModal.segments.length > 0 && (
+              <div className="px-6 pb-4">
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">✈️ Segment details</p>
+                <div className="space-y-3">
+                  {flightModal.segments.map((seg, idx) => {
+                    const next = flightModal.segments[idx + 1];
+                    const layoverMin = next ? diffMinutes(seg.arrivingAt, next.departingAt) : null;
+                    return (
+                      <div key={idx}>
+                        <div className="rounded-2xl border border-slate-200 overflow-hidden">
+                          <div className="bg-slate-800 px-4 py-2.5 flex items-center justify-between">
+                            <span className="text-white font-black text-sm">Segment {idx + 1}</span>
+                            <span className="text-slate-300 text-xs">{seg.marketingCarrier || flightModal.airline}{seg.marketingFlightNumber ? ` ${seg.marketingFlightNumber}` : ""}</span>
+                          </div>
+                          <div className="p-4 grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">From</p>
+                              <p className="font-black text-slate-900 text-sm mt-0.5">{seg.origin?.name || seg.origin?.code}</p>
+                              <p className="text-blue-600 font-bold text-lg mt-1">{fmtTime(seg.departingAt)}</p>
+                              <p className="text-slate-400 text-xs">{fmtDate(seg.departingAt)}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">To</p>
+                              <p className="font-black text-slate-900 text-sm mt-0.5">{seg.destination?.name || seg.destination?.code}</p>
+                              <p className="text-blue-600 font-bold text-lg mt-1">{fmtTime(seg.arrivingAt)}</p>
+                              <p className="text-slate-400 text-xs">{fmtDate(seg.arrivingAt)}</p>
+                            </div>
+                          </div>
+                          {seg.aircraft && (
+                            <div className="px-4 pb-3 text-xs text-slate-500">✈️ Aircraft: {seg.aircraft}</div>
+                          )}
+                        </div>
+                        {layoverMin && (
+                          <div className="flex items-center gap-2 my-2 px-4">
+                            <div className="flex-1 h-px bg-amber-200" />
+                            <span className="text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">⏱ {fmtDuration(layoverMin)} layover at {seg.destination?.code || ""}</span>
+                            <div className="flex-1 h-px bg-amber-200" />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Price + CTA */}
+            <div className="px-6 pb-6 flex items-center justify-between gap-4 border-t border-slate-100 pt-4">
+              <div>
+                <p className="text-xs text-slate-400">Total price</p>
+                <p className="text-2xl font-black text-blue-600">{flightModal.price}</p>
+              </div>
+              <button
+                onClick={() => { onSelectFlight(flightModal); setFlightModal(null); }}
+                className="rounded-2xl bg-blue-600 text-white px-8 py-3 font-black text-sm hover:bg-blue-500 transition shadow-lg"
+              >
+                {(selection?.flight?.inbound?.id || selection?.flight?.outbound?.id || selection?.flight?.id) === flightModal.id ? "✓ Selected" : "Select this flight →"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── HOTEL DETAIL MODAL ── */}
+      {hotelModal && (() => {
+        const hImages = hotelModal.images?.length ? hotelModal.images : hotelModal.image ? [hotelModal.image] : [];
+        const hotelStars = hotelModal.rating ? Math.min(5, Math.round(Number(hotelModal.rating))) : 0;
+        const isSelected = selection?.hotel?.id === hotelModal.id;
+        return (
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-4" onClick={() => setHotelModal(null)}>
+            <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              {/* Hero image */}
+              <div className="relative h-64 w-full overflow-hidden">
+                <img src={hImages[0] || "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80"} alt={hotelModal.name} className="h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <button onClick={() => setHotelModal(null)} className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/50 flex items-center justify-center text-white font-black text-lg hover:bg-black/70">×</button>
+                <div className="absolute bottom-4 left-4">
+                  <h2 className="text-2xl font-black text-white">{hotelModal.name}</h2>
+                  <p className="text-white/80 text-sm">{hotelModal.location}</p>
+                  {hotelStars > 0 && <p className="text-amber-400 text-sm mt-1">{"★".repeat(hotelStars)}</p>}
+                </div>
+                {isSelected && <div className="absolute top-4 left-4 bg-purple-600 text-white text-xs font-black rounded-full px-3 py-1">✓ Selected</div>}
+              </div>
+
+              {/* Photo gallery */}
+              {hImages.length > 1 && (
+                <div className="px-4 pt-4">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">📷 {hImages.length} photos</p>
+                  <div className="grid grid-cols-4 gap-1.5 max-h-48 overflow-y-auto">
+                    {hImages.map((img, i) => (
+                      <div key={i} className="aspect-square overflow-hidden rounded-xl">
+                        <img src={img} alt={`Photo ${i + 1}`} className="h-full w-full object-cover hover:scale-110 transition-transform duration-300" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Details */}
+              <div className="px-5 py-4 space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { icon: "🛏", label: "Room type", val: hotelModal.room },
+                    { icon: "📍", label: "Location", val: hotelModal.location },
+                    { icon: "💰", label: "Price", val: String(hotelModal.price || "On request") },
+                    { icon: "⭐", label: "Rating", val: hotelModal.rating ? `${hotelModal.rating} / 5` : "N/A" },
+                    { icon: "🏢", label: "Provider", val: hotelModal.provider },
+                  ].filter(item => item.val && item.val !== "undefined").map(({ icon, label, val }) => (
+                    <div key={label} className="rounded-xl bg-slate-50 border border-slate-200 p-3">
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{icon} {label}</p>
+                      <p className="text-sm font-bold text-slate-800 mt-0.5 truncate">{val}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Yacht specs/amenities */}
+                {hotelModal.specs && (
+                  <div className="rounded-xl bg-cyan-50 border border-cyan-200 p-4">
+                    <p className="text-xs font-bold text-cyan-700 uppercase tracking-wider mb-1">⛵ Specs</p>
+                    <p className="text-sm text-slate-700">{hotelModal.specs}</p>
+                  </div>
+                )}
+                {Array.isArray(hotelModal.amenities) && hotelModal.amenities.length > 0 && (
+                  <div>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">✨ Amenities</p>
+                    <div className="flex flex-wrap gap-2">
+                      {hotelModal.amenities.map((a, i) => (
+                        <span key={i} className="bg-slate-100 text-slate-700 text-xs rounded-full px-3 py-1">{a}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* CTA */}
+              <div className="px-5 pb-6 border-t border-slate-100 pt-4 flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs text-slate-400">Price</p>
+                  <p className="text-2xl font-black text-purple-600">{hotelModal.price}</p>
+                </div>
+                <button
+                  onClick={() => { onSelectHotel(hotelModal); setHotelModal(null); }}
+                  className="rounded-2xl px-8 py-3 font-black text-sm transition shadow-lg"
+                  style={{ background: "linear-gradient(135deg, #9333ea, #7c3aed)", color: "white" }}
+                >
+                  {isSelected ? "✓ Selected" : "Select this stay →"}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </main>
   );
 }
