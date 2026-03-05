@@ -38,13 +38,37 @@ export default function TravelerAgentChatClient() {
   const roles = useMemo(() => (user?.roles && user.roles.length ? user.roles : user?.role ? [user.role] : []), [user]);
   const effectiveRole = useMemo(() => normalizeRbacRole(user?.effectiveRole) || normalizeRbacRole(roles[0]), [user?.effectiveRole, roles]);
   const isYachtBroker = effectiveRole === "yacht_broker";
+
+  // Generate a PRIVATE channel per client so conversations are isolated
+  // Logged-in: use their email slug. Guest: use a persistent random session ID
+  const clientChannelId = useMemo(() => {
+    if (user?.email) {
+      // e.g. "agent-alexandre-client-louisblais26"
+      const emailSlug = String(user.email).split("@")[0].toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 20);
+      return `${rawChannelId}-${emailSlug}`;
+    }
+    // Guest: generate/reuse a session ID from localStorage
+    if (typeof window !== "undefined") {
+      const key = `zeniva_guest_session_${rawChannelId}`;
+      let guestId = localStorage.getItem(key);
+      if (!guestId) {
+        guestId = Math.random().toString(36).slice(2, 10);
+        localStorage.setItem(key, guestId);
+      }
+      return `${rawChannelId}-guest-${guestId}`;
+    }
+    return rawChannelId;
+  }, [user?.email, rawChannelId]);
+
   const brokerChannelId = useMemo(() => {
     if (!isYachtBroker || !user?.email) return null;
     const local = String(user.email).split("@")[0] || "";
     const slug = local.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     return slug ? `agent-${slug}` : null;
   }, [isYachtBroker, user?.email]);
-  const channelId = brokerChannelId || rawChannelId;
+
+  // Yacht brokers use their own channel; others use private client channel
+  const channelId = brokerChannelId || clientChannelId;
   const linaChannelId = "lina-help";
 
   // Load persisted messages from localStorage on first render
