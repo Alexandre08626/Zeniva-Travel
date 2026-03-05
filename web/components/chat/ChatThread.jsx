@@ -590,7 +590,7 @@ function ChatThread({ tripId, proposalMode = "" }) {
               <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full ring-2 ring-blue-100 object-cover shrink-0 mt-1" />
             )}
             <div
-              className="max-w-[80%] rounded-2xl px-4 py-3"
+              className="w-full max-w-[85%] rounded-2xl px-4 py-3"
               style={m.role === "assistant"
                 ? { background: "white", border: "1px solid #e2e8f0", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }
                 : { background: "linear-gradient(135deg, #0F3A8A, #1a4fad)", border: "none" }
