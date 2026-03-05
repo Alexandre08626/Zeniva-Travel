@@ -300,7 +300,7 @@ export async function POST(request: Request) {
           .maybeSingle();
 
         if (!updateError && updated) {
-          const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7;
+          const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30;
           const token = signSession({ email: updated.email, roles: updated.roles || [updated.role || "traveler"], exp });
           const response = NextResponse.json({ user: updated }, { status: 200 });
           const cookieDomain = getCookieDomain();
@@ -310,7 +310,7 @@ export async function POST(request: Request) {
             secure: true,
             path: "/",
             ...(cookieDomain ? { domain: cookieDomain } : {}),
-            maxAge: 60 * 60 * 24 * 7,
+            maxAge: 60 * 60 * 24 * 30,
           });
           return response;
         }
@@ -361,7 +361,7 @@ export async function POST(request: Request) {
     }
 
     // ---- Create session cookie (your custom token)
-    const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7;
+    const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30;
     const token = signSession({ email: account.email, roles: normalizedRoles, exp });
 
     const response = NextResponse.json(
@@ -391,7 +391,7 @@ export async function POST(request: Request) {
       secure: true,
       path: "/",
       ...(cookieDomain ? { domain: cookieDomain } : {}),
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 60 * 24 * 30,
     });
 
     return response;

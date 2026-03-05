@@ -50,7 +50,7 @@ function buildSessionResponse(request: Request, account: {
     : account.role
       ? [account.role]
       : ["traveler"]).map((role) => normalizeRbacRole(role) || role);
-  const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7;
+  const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30;
   const token = signSession({ email: account.email, roles, exp });
   const activeSpace = computeDefaultActiveSpace(roles);
   const secureCookies = shouldUseSecureCookies(request);
@@ -79,7 +79,7 @@ function buildSessionResponse(request: Request, account: {
     secure: secureCookies,
     path: "/",
     ...(cookieDomain ? { domain: cookieDomain } : {}),
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: 60 * 60 * 24 * 30,
   });
 
   response.cookies.set("zeniva_roles", encodeURIComponent(JSON.stringify(roles)), {
@@ -88,7 +88,7 @@ function buildSessionResponse(request: Request, account: {
     secure: secureCookies,
     path: "/",
     ...(cookieDomain ? { domain: cookieDomain } : {}),
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: 60 * 60 * 24 * 30,
   });
   response.cookies.set("zeniva_active_space", activeSpace, {
     httpOnly: false,
@@ -96,7 +96,7 @@ function buildSessionResponse(request: Request, account: {
     secure: secureCookies,
     path: "/",
     ...(cookieDomain ? { domain: cookieDomain } : {}),
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: 60 * 60 * 24 * 30,
   });
   response.cookies.set("zeniva_email", account.email, {
     httpOnly: false,
@@ -104,7 +104,7 @@ function buildSessionResponse(request: Request, account: {
     secure: secureCookies,
     path: "/",
     ...(cookieDomain ? { domain: cookieDomain } : {}),
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: 60 * 60 * 24 * 30,
   });
   if (account.traveler_profile) {
     response.cookies.set("zeniva_has_traveler_profile", "1", {
@@ -113,7 +113,7 @@ function buildSessionResponse(request: Request, account: {
       secure: secureCookies,
       path: "/",
       ...(cookieDomain ? { domain: cookieDomain } : {}),
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 60 * 24 * 30,
     });
   }
 

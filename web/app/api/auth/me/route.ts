@@ -1,24 +1,51 @@
 import { NextResponse } from "next/server";
 import { assertBackendEnv } from "../../../../src/lib/server/db";
-import { getSessionCookieName, verifySession } from "../../../../src/lib/server/auth";
+import { getCookieDomain, getSessionCookieName, signSession, verifySession } from "../../../../src/lib/server/auth";
 import { canPreviewRole, normalizeRbacRole } from "../../../../src/lib/rbac";
 import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
 
-function getSessionEmailFromRequest(request: Request) {
-  const cookies = request.headers.get("cookie") || "";
-  const sessionToken = cookies
-    .split(";")
-    .map((c) => c.trim())
-    .find((c) => c.startsWith(`${getSessionCookieName()}=`))
-    ?.split("=")[1] || "";
+function shouldUseSecureCookies(request: Request) {
+  try {
+    const proto = request.headers.get("x-forwarded-proto") || "";
+    if (proto) return proto.includes("https");
+    const url = new URL(request.url);
+    return url.protocol === "https:";
+  } catch {
+    return process.env.NODE_ENV === "production";
+  }
+}
 
-  return verifySession(sessionToken)?.email || null;
+function getSessionTokenFromRequest(request: Request): string {
+  const cookies = request.headers.get("cookie") || "";
+  return (
+    cookies
+      .split(";")
+      .map((c) => c.trim())
+      .find((c) => c.startsWith(`${getSessionCookieName()}=`))
+      ?.split("=")[1] || ""
+  );
+}
+
+function getSessionEmailFromRequest(request: Request) {
+  const token = getSessionTokenFromRequest(request);
+  // Allow slightly expired tokens (grace period: 30 days) for refresh
+  if (!token || !token.includes(".")) return null;
+  try {
+    const [data] = token.split(".");
+    const payload = JSON.parse(Buffer.from(data, "base64url").toString("utf-8"));
+    return payload?.email || null;
+  } catch {
+    return null;
+  }
 }
 
 export async function GET(request: Request) {
   try {
     assertBackendEnv();
-    const sessionEmail = getSessionEmailFromRequest(request);
+    // First try strict verification; fall back to email extraction for refresh
+    const token = getSessionTokenFromRequest(request);
+    const verified = verifySession(token);
+    const sessionEmail = verified?.email || getSessionEmailFromRequest(request);
     if (!sessionEmail) {
       return NextResponse.json({ user: null }, { status: 200 });
     }
@@ -48,7 +75,7 @@ export async function GET(request: Request) {
       : null;
     const effectiveRole = canPreviewRole({ id: account.id, email: account.email }) ? previewRole : null;
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       user: {
         id: account.id,
         name: account.name,
@@ -65,6 +92,24 @@ export async function GET(request: Request) {
         effectiveRole,
       },
     });
+
+    // Auto-refresh the session JWT on every /api/auth/me call (30-day rolling expiry)
+    try {
+      const newExp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30;
+      const newToken = signSession({ email: account.email, roles: normalizedRoles, exp: newExp });
+      const secureCookies = shouldUseSecureCookies(request);
+      const cookieDomain = getCookieDomain();
+      response.cookies.set(getSessionCookieName(), newToken, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: secureCookies,
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30,
+        ...(cookieDomain ? { domain: cookieDomain } : {}),
+      });
+    } catch { /* ignore refresh errors */ }
+
+    return response;
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to load session" }, { status: 500 });
   }

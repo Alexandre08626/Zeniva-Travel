@@ -85,98 +85,85 @@ export default function AgentChatClient() {
     };
   };
 
-  const refreshMessages = async () => {
-    try {
-      const resp = await fetch("/api/agent/requests", { cache: "no-store" });
-      const payload = await resp.json().catch(() => ({}));
-      if (!resp.ok) return;
 
-      const rows = Array.isArray(payload?.data) ? payload.data : [];
-      const nextMessages: Record<string, ChatMessage[]> = {};
-      const newChannels: Map<string, Channel> = new Map();
 
-      rows.forEach((row: any) => {
-        if (row?.deleted_at || row?.is_deleted) return;
-        const msg = buildMessageFromRow(row);
-        const channelIds: string[] = Array.isArray(row?.channelIds)
-          ? row.channelIds
-          : Array.isArray(row?.channel_ids)
-            ? row.channel_ids
-            : ["hq"];
-        const safeIds = channelIds.length ? channelIds : ["hq"];
-
-        safeIds.forEach((id) => {
-          // Add to hq (global inbox)
-          if (!nextMessages["hq"]) nextMessages["hq"] = [];
-          if (!nextMessages["hq"].some((m) => m.id === msg.id)) {
-            nextMessages["hq"].push(msg);
-          }
-
-          // Add to specific channel
-          if (id !== "hq") {
-            if (!nextMessages[id]) nextMessages[id] = [];
-            if (!nextMessages[id].some((m) => m.id === msg.id)) {
-              nextMessages[id].push(msg);
-            }
-            // Create channel if not exists
-            if (!newChannels.has(id)) {
-              const label = row?.author || row?.fullName || row?.full_name || row?.email || id;
-              newChannels.set(id, { id, label: `💬 ${label}`, scope: "Direct", unread: 0 });
-            }
-          }
-        });
-      });
-
-      // Sort by time
-      Object.values(nextMessages).forEach((list) =>
-        list.sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime())
-      );
-
-      // Track unread: count new messages on channels not currently active
-      setMessages((prev) => {
-        const prevFlat = Object.values(prev).flat().map((m) => m.id);
-        const active = activeChannelRef.current;
-
-        setChannels((prevCh) => {
-          const next = [...prevCh];
-          // Add new channels from this batch
-          newChannels.forEach((ch) => {
-            if (!next.some((c) => c.id === ch.id)) {
-              next.push(ch);
-            }
-          });
-          // Increment unread for channels that got new messages and are not active
-          return next.map((ch) => {
-            if (ch.id === active) return { ...ch, unread: 0 };
-            const chMsgs = nextMessages[ch.id] || [];
-            const newCount = chMsgs.filter(
-              (m) => m.role === "client" && !prevFlat.includes(m.id)
-            ).length;
-            return newCount > 0 ? { ...ch, unread: ch.unread + newCount } : ch;
-          });
-        });
-
-        return nextMessages;
-      });
-    } catch {
-      // ignore
-    }
-  };
-
-  // Poll every 5 seconds — wait for user auth to be hydrated first
+  // Poll every 5 seconds — with retry if 401 (zeniva_email cookie not yet set)
   useEffect(() => {
-    // Don't start polling until we have a user session (avoids 401 race condition)
     if (!user?.email) return;
     let active = true;
-    void refreshMessages();
-    const interval = window.setInterval(() => {
-      if (active) void refreshMessages();
-    }, 5000);
+    let retryCount = 0;
+
+    const tryFetch = async () => {
+      try {
+        const resp = await fetch("/api/agent/inbox", { cache: "no-store" });
+        if (resp.status === 401 && retryCount < 5) {
+          // Cookie might not be set yet — retry after 1.5s (hydrateFromServer is async)
+          retryCount++;
+          setTimeout(() => { if (active) void tryFetch(); }, 1500);
+          return;
+        }
+        retryCount = 0;
+        const payload = await resp.json().catch(() => ({}));
+        if (!resp.ok) return;
+        const rows = Array.isArray(payload?.data) ? payload.data : [];
+        const nextMessages: Record<string, ChatMessage[]> = {};
+        const newChannels: Map<string, Channel> = new Map();
+
+        rows.forEach((row: any) => {
+          if (row?.deleted_at || row?.is_deleted) return;
+          const msg = buildMessageFromRow(row);
+          const channelIds: string[] = Array.isArray(row?.channelIds)
+            ? row.channelIds
+            : Array.isArray(row?.channel_ids)
+              ? row.channel_ids
+              : ["hq"];
+          const safeIds = channelIds.length ? channelIds : ["hq"];
+
+          safeIds.forEach((id) => {
+            if (!nextMessages["hq"]) nextMessages["hq"] = [];
+            if (!nextMessages["hq"].some((m) => m.id === msg.id)) nextMessages["hq"].push(msg);
+            if (id !== "hq") {
+              if (!nextMessages[id]) nextMessages[id] = [];
+              if (!nextMessages[id].some((m) => m.id === msg.id)) nextMessages[id].push(msg);
+              if (!newChannels.has(id)) {
+                const label = row?.author || row?.full_name || row?.email || id;
+                newChannels.set(id, { id, label: `💬 ${label}`, scope: "Direct", unread: 0 });
+              }
+            }
+          });
+        });
+
+        Object.values(nextMessages).forEach((list) =>
+          list.sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime())
+        );
+
+        setMessages((prev) => {
+          const prevFlat = Object.values(prev).flat().map((m) => m.id);
+          const active = activeChannelRef.current;
+          setChannels((prevCh) => {
+            const next = [...prevCh];
+            newChannels.forEach((ch) => {
+              if (!next.some((c) => c.id === ch.id)) next.push(ch);
+            });
+            return next.map((ch) => {
+              if (ch.id === active) return { ...ch, unread: 0 };
+              const chMsgs = nextMessages[ch.id] || [];
+              const newCount = chMsgs.filter((m) => m.role === "client" && !prevFlat.includes(m.id)).length;
+              return newCount > 0 ? { ...ch, unread: ch.unread + newCount } : ch;
+            });
+          });
+          return nextMessages;
+        });
+      } catch { /* ignore */ }
+    };
+
+    void tryFetch();
+    const interval = window.setInterval(() => { if (active) void tryFetch(); }, 5000);
     return () => {
       active = false;
       window.clearInterval(interval);
     };
-  }, [user?.email]); // re-run when user becomes available (after hydrateFromServer)
+  }, [user?.email]);
 
   const history = messages[channelId] || [];
   const totalMessages = Object.values(messages).flat().filter((m, i, arr) => arr.findIndex((x) => x.id === m.id) === i).length;

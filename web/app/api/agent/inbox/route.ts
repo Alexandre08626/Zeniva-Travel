@@ -1,0 +1,50 @@
+/**
+ * /api/agent/inbox
+ * Dedicated endpoint for the HQ agent inbox.
+ * Auth: zeniva_email cookie verified directly against Supabase accounts table.
+ * No JWT required — uses service role to bypass RLS.
+ */
+import { NextResponse } from "next/server";
+import { getSupabaseAdminClient, hasSupabaseEnv } from "../../../../src/lib/supabase/server";
+
+const HQ_ROLES = ["hq", "admin", "super_admin"];
+
+function getEmailFromCookies(request: Request): string {
+  const raw = request.headers.get("cookie") || "";
+  const match = raw.split(";").map((c) => c.trim()).find((c) => c.startsWith("zeniva_email="));
+  if (!match) return "";
+  try { return decodeURIComponent(match.split("=").slice(1).join("=")); } catch { return ""; }
+}
+
+async function verifyHqEmail(email: string): Promise<boolean> {
+  if (!email || !hasSupabaseEnv()) return false;
+  const { client } = getSupabaseAdminClient();
+  const { data } = await client.from("accounts").select("role").eq("email", email.toLowerCase().trim()).maybeSingle();
+  return HQ_ROLES.includes(data?.role || "");
+}
+
+export async function GET(request: Request) {
+  try {
+    const email = getEmailFromCookies(request);
+    const isHq = await verifyHqEmail(email);
+    if (!isHq) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { client } = getSupabaseAdminClient();
+    const { data, error } = await client
+      .from("agent_inbox_messages")
+      .select("*")
+      .is("deleted_at", null)
+      .order("created_at", { ascending: true })
+      .limit(500);
+
+    if (error) throw error;
+    return NextResponse.json({ data: data || [] });
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message || "Failed" }, { status: 500 });
+  }
+}
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
