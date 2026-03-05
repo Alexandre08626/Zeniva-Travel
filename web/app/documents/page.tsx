@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Header from "../../src/components/Header";
 import Footer from "../../src/components/Footer";
-import { LIGHT_BG, TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../src/design/tokens";
+import { LIGHT_BG, TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE, GRADIENT_START, GRADIENT_END } from "../../src/design/tokens";
 import { useAuthStore } from "../../src/lib/authStore";
 import { buildChatChannelId, buildContactChannelId, fetchChatMessages, saveChatMessage } from "../../src/lib/chatPersistence";
 import { useTripsStore, createTrip } from "../../lib/store/tripsStore";
