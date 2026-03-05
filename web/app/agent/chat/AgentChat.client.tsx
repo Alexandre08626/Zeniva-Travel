@@ -132,20 +132,32 @@ export default function AgentChatClient() {
         list.sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime())
       );
 
-      setMessages(nextMessages);
+      // Track unread: count new messages on channels not currently active
+      setMessages((prev) => {
+        const prevFlat = Object.values(prev).flat().map((m) => m.id);
+        const active = activeChannelRef.current;
 
-      // Update channels list
-      if (newChannels.size > 0) {
-        setChannels((prev) => {
-          const next = [...prev];
+        setChannels((prevCh) => {
+          const next = [...prevCh];
+          // Add new channels from this batch
           newChannels.forEach((ch) => {
             if (!next.some((c) => c.id === ch.id)) {
               next.push(ch);
             }
           });
-          return next;
+          // Increment unread for channels that got new messages and are not active
+          return next.map((ch) => {
+            if (ch.id === active) return { ...ch, unread: 0 };
+            const chMsgs = nextMessages[ch.id] || [];
+            const newCount = chMsgs.filter(
+              (m) => m.role === "client" && !prevFlat.includes(m.id)
+            ).length;
+            return newCount > 0 ? { ...ch, unread: ch.unread + newCount } : ch;
+          });
         });
-      }
+
+        return nextMessages;
+      });
     } catch {
       // ignore
     }
@@ -345,9 +357,9 @@ export default function AgentChatClient() {
                       <span className={`text-sm font-semibold truncate ${isActive ? "text-blue-700" : "text-slate-900"}`}>
                         {ch.label}
                       </span>
-                      {clientMessages.length > 0 && (
-                        <span className="text-xs bg-blue-500 text-white rounded-full px-1.5 py-0.5 ml-1 flex-shrink-0">
-                          {clientMessages.length}
+                      {ch.unread > 0 && !isActive && (
+                        <span className="text-xs bg-red-500 text-white rounded-full px-1.5 py-0.5 ml-1 flex-shrink-0 font-bold animate-pulse">
+                          {ch.unread}
                         </span>
                       )}
                     </div>
