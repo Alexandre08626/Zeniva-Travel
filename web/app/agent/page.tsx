@@ -103,16 +103,20 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
         if (d.leads_today > 0) badges["/agent"] = d.leads_today;
       }
 
-      // Fetch unread inbox count — client messages newer than last seen timestamp
-      if (isHQorAdmin) {
+      // Fetch unread inbox count — all agents get badge for new client messages
+      {
         const lastSeenKey = "zeniva_inbox_last_seen";
         const lastSeen = typeof window !== "undefined" ? (localStorage.getItem(lastSeenKey) || "1970-01-01") : "1970-01-01";
-        const inboxResp = await fetch("/api/agent/inbox", { cache: "no-store" });
+        const inboxResp = await fetch("/api/agent/inbox", {
+          cache: "no-store",
+          headers: effectiveEmail ? { "x-user-email": effectiveEmail } : {},
+        });
         if (inboxResp.ok) {
           const inboxData = await inboxResp.json();
           const rows: any[] = Array.isArray(inboxData?.data) ? inboxData.data : [];
           const unread = rows.filter((row) => {
-            if (row?.sender_role === "hq" || row?.sender_role === "agent" || row?.sender_role === "lina") return false;
+            const role = row?.sender_role;
+            if (role === "hq" || role === "agent" || role === "lina" || role === "system") return false;
             const ts = row?.created_at || row?.createdAt || "1970-01-01";
             return ts > lastSeen;
           }).length;
