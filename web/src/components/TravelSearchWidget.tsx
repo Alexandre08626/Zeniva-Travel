@@ -328,8 +328,7 @@ export default function TravelSearchWidget() {
             { key: 'cars', label: tx('Rental Car') },
             { key: 'experiences', label: tx('Experience') },
             { key: 'cruises', label: tx('Cruise') },
-            { key: 'yachts', label: tx('Yacht') },
-            { key: 'residences', label: tx('Short‑term rentals') },
+
           ].map((t: any) => (
             <button
               key={t.key}
