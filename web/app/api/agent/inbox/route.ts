@@ -5,7 +5,7 @@
  * No JWT required — uses service role to bypass RLS.
  */
 import { NextResponse } from "next/server";
-import { getSupabaseAdminClient, hasSupabaseEnv } from "../../../../src/lib/supabase/server";
+import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
 
 const HQ_ROLES = ["hq", "admin", "super_admin"];
 
@@ -17,7 +17,7 @@ function getEmailFromCookies(request: Request): string {
 }
 
 async function verifyHqEmail(email: string): Promise<boolean> {
-  if (!email || !hasSupabaseEnv()) return false;
+  if (!email) return false;
   const { client } = getSupabaseAdminClient();
   const { data } = await client.from("accounts").select("role").eq("email", email.toLowerCase().trim()).maybeSingle();
   return HQ_ROLES.includes(data?.role || "");
