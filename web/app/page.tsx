@@ -36,11 +36,12 @@ const DESTINATIONS = [
 
 const SERVICES = [
   { icon: "✈️", title: "Flights", desc: "Best fares worldwide", href: "/search/flights", color: "#0F6CF5" },
-  { icon: "🏨", title: "Hotels", desc: "Curated luxury stays", href: "/hotels", color: "#10b981" },
+  { icon: "🏨", title: "Hotels", desc: "Curated luxury stays", href: "/agent/partners", color: "#10b981" },
   { icon: "🛥️", title: "Yachts", desc: "Private charters", href: "/yachts", color: "#E6B85A" },
   { icon: "🚗", title: "Transfers", desc: "Door-to-door service", href: "/chat?prompt=I+need+a+transfer", color: "#ec4899" },
   { icon: "🏖️", title: "Packages", desc: "All-inclusive deals", href: "/packages", color: "#8b5cf6" },
   { icon: "🌍", title: "Experiences", desc: "Local & unique", href: "/collections/group", color: "#06b6d4" },
+  { icon: "🏠", title: "Short-term", desc: "Homes & villas", href: "/agent/listings", color: "#f59e0b" },
 ];
 
 const STATS = [
