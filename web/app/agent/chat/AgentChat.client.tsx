@@ -329,9 +329,11 @@ export default function AgentChatClient() {
   };
 
   const postMessage = async (payload: any) => {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (user?.email) headers["x-user-email"] = user.email;
     const resp = await fetch("/api/agent/requests", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(payload),
     });
     if (!resp.ok) throw new Error("Failed to send");

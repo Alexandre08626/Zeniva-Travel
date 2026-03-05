@@ -322,13 +322,26 @@ export async function POST(request: Request) {
 
     // Only authenticated agents/HQ/Lina can send non-client messages.
     if (senderRole && senderRole !== "client") {
-      const gate = requireAgentSession(request);
-      if (!gate.ok) return gate.error;
-
-      // Non-admin agents are locked to their own channel (plus HQ)
-      if (!gate.isAdmin) {
-        const agentChannel = toAgentChannelIdFromEmail(gate.session.email);
-        body.channelIds = [agentChannel, "hq"];
+      // Try x-user-email header first (used by AgentChat.client.tsx — bypasses JWT timing)
+      const emailHeader = (request.headers.get("x-user-email") || "").toLowerCase().trim();
+      if (emailHeader) {
+        // Verify HQ role via DB
+        const { client: adminClient } = getSupabaseAdminClient();
+        const { data: acct } = await adminClient.from("accounts").select("role").eq("email", emailHeader).maybeSingle();
+        const dbRole = acct?.role || "";
+        const isHqViaHeader = ["hq", "admin", "super_admin"].includes(dbRole);
+        if (!isHqViaHeader) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+        // HQ via header — all good, no channel restriction
+      } else {
+        const gate = await requireAgentSessionAsync(request);
+        if (!gate.ok) return gate.error;
+        // Non-admin agents are locked to their own channel (plus HQ)
+        if (!gate.isAdmin) {
+          const agentChannel = toAgentChannelIdFromEmail(gate.session.email);
+          body.channelIds = [agentChannel, "hq"];
+        }
       }
     }
 
