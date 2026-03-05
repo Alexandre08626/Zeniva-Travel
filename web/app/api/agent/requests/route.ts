@@ -43,28 +43,31 @@ async function requireAgentSessionAsync(request: Request) {
   const cookies = request.headers.get("cookie") || "";
   const token = getCookieValue(cookies, getSessionCookieName());
   const session = verifySession(token);
-  if (!session) {
+
+  // Try to get email from session OR from zeniva_email cookie fallback
+  const emailFromCookie = decodeURIComponent(getCookieValue(cookies, "zeniva_email") || "").toLowerCase().trim();
+  const emailToCheck = session?.email?.toLowerCase().trim() || emailFromCookie;
+
+  if (!emailToCheck) {
     return { ok: false as const, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
 
-  // Use JWT roles first
-  let roles = normalizeRbacRoles(session.roles || []);
-
-  // If JWT doesn't have HQ/admin, check DB directly (role may have been upgraded since last login)
+  // Determine roles: start from JWT if available, then check DB
+  let roles = session ? normalizeRbacRoles(session.roles || []) : [];
   const isAdminFromJwt = roles.includes("hq") || roles.includes("admin");
-  if (!isAdminFromJwt && session.email && hasSupabaseEnv()) {
+
+  // Always check DB for actual current role (handles role upgrades + expired JWT)
+  if (!isAdminFromJwt && hasSupabaseEnv()) {
     try {
       const client = getSupabaseAdminClient().client;
       const { data } = await client
         .from("accounts")
         .select("role")
-        .eq("email", session.email.toLowerCase())
+        .eq("email", emailToCheck)
         .single();
       if (data?.role) {
         const dbRoles = normalizeRbacRoles([data.role]);
-        if (dbRoles.includes("hq") || dbRoles.includes("admin")) {
-          roles = dbRoles;
-        }
+        if (dbRoles.length) roles = dbRoles;
       }
     } catch { /* ignore */ }
   }
@@ -72,9 +75,12 @@ async function requireAgentSessionAsync(request: Request) {
   if (!roles.length) {
     return { ok: false as const, error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
+
+  // Create a minimal session object if we only have cookie email (no JWT)
+  const effectiveSession = session || { email: emailToCheck, roles, exp: 0 };
   const isAdmin = roles.includes("hq") || roles.includes("admin");
   const isYachtBroker = roles.includes("yacht_broker");
-  return { ok: true as const, session, roles, isAdmin, isYachtBroker };
+  return { ok: true as const, session: effectiveSession, roles, isAdmin, isYachtBroker };
 }
 
 // Sync wrapper kept for POST/DELETE which don't need DB lookup
