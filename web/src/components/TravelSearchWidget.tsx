@@ -314,27 +314,28 @@ export default function TravelSearchWidget() {
 
       {/* Desktop: formulaire de recherche classique et tabs */}
       <div className="hidden sm:block">
-        <div className="mb-4 text-center">
-          <h2 className="text-xl font-bold text-slate-900">{tx("Plan your perfect trip with Lina AI")}</h2>
-          <p className="text-base text-slate-600 mt-1">{tx("Your personal travel concierge powered by AI")}</p>
+        <div className="mb-5 text-center">
+          <h2 className="text-2xl font-black text-slate-900">{tx("Plan your perfect trip with Lina AI")}</h2>
+          <p className="text-slate-500 mt-1 text-sm">{tx("Your personal travel concierge powered by AI")}</p>
         </div>
 
-        {/* Tabs (desktop) */}
-        <div className="search-tabs mb-4 flex items-center justify-center gap-3">
+        {/* Tabs (desktop) — premium icons */}
+        <div className="mb-5 flex items-center justify-center gap-2 flex-wrap">
           {[
-            { key: 'flights', label: tx('Flights') },
-            { key: 'hotels', label: tx('Hotels') },
-            { key: 'transfers', label: tx('Transfers') },
-            { key: 'cars', label: tx('Rental Car') },
-            { key: 'experiences', label: tx('Experience') },
-            { key: 'cruises', label: tx('Cruise') },
-
+            { key: 'flights', label: tx('Flights'), icon: '✈️' },
+            { key: 'hotels', label: tx('Hotels'), icon: '🏨' },
+            { key: 'transfers', label: tx('Transfers'), icon: '🚐' },
+            { key: 'cars', label: tx('Rental Car'), icon: '🚗' },
+            { key: 'experiences', label: tx('Experience'), icon: '🎯' },
+            { key: 'cruises', label: tx('Cruise'), icon: '🚢' },
           ].map((t: any) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`search-tab-item tab-button ${tab === t.key ? 'active' : ''} rounded-full px-4 py-2 font-semibold text-sm whitespace-nowrap`}>
-              {t.label}
+              className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold whitespace-nowrap transition-all border ${tab === t.key ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-200' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-600'}`}
+            >
+              <span>{t.icon}</span>
+              <span>{t.label}</span>
             </button>
           ))}
         </div>

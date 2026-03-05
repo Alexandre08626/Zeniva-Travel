@@ -43,12 +43,19 @@ export default function ProposalReviewPage() {
   }, [tripId, proposal]);
 
   const heroImage = useMemo(() => {
-    // Use selected accommodation image if available, otherwise fallback to destination images
-    if (selection?.hotel?.image) {
-      return selection.hotel.image;
-    }
+    // Priority: high-res destination photo > hotel full images > hotel thumbnail
     const dest = tripDraft?.destination || proposal?.title || "trip";
-    return getImagesForDestination(dest)[0];
+    const destImgs = getImagesForDestination(dest);
+    // If it's a real Unsplash image (not picsum/small thumb), use destination first
+    const hotelImages = selection?.hotel?.images;
+    if (Array.isArray(hotelImages) && hotelImages.length > 0 && hotelImages[0].includes("unsplash")) {
+      return hotelImages[0];
+    }
+    if (destImgs && destImgs[0] && !destImgs[0].includes("picsum")) {
+      return destImgs[0];
+    }
+    if (selection?.hotel?.image) return selection.hotel.image;
+    return destImgs[0] || "https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=1400&q=85";
   }, [tripDraft, proposal, selection]);
 
   const extraHotels = tripDraft?.extraHotels || [];
@@ -407,8 +414,8 @@ export default function ProposalReviewPage() {
   return (
     <main className="min-h-screen bg-slate-50">
       {/* ── HERO ── */}
-      <div className="relative h-72 sm:h-80 w-full overflow-hidden">
-        <img src={heroImage} alt="Destination" className="h-full w-full object-cover" />
+      <div className="relative h-80 sm:h-[460px] w-full overflow-hidden">
+        <img src={heroImage} alt="Destination" className="h-full w-full object-cover object-center" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-black/75" />
         {/* Nav buttons */}
         <div className="absolute top-4 left-4 flex items-center gap-2">

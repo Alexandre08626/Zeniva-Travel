@@ -216,209 +216,193 @@ export default function YachtsPageClient() {
     router.push("/proposals");
   };
 
-  return (
-    <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
-      <div className="w-screen left-1/2 right-1/2 -translate-x-1/2 relative">
-        <div className="mx-auto w-full px-6 pt-5">
-          <Header isLoggedIn={isLoggedIn} userEmail={userEmail} />
-        </div>
+    return (
+    <main className="min-h-screen bg-slate-50">
+      <div className="mx-auto w-full px-4 sm:px-6 pt-5">
+        <Header isLoggedIn={isLoggedIn} userEmail={userEmail} />
       </div>
 
-      <section className="mb-6 rounded-2xl sm:rounded-3xl px-4 sm:px-6 py-5 sm:py-8 overflow-hidden" style={{ background: `linear-gradient(110deg, ${GRADIENT_START} 0%, ${GRADIENT_END} 60%)` }}>
-        <div className="mx-auto max-w-6xl text-white">
-          <div className="hidden sm:flex flex-col gap-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Traveler Catalog</p>
-            <h1 className="text-3xl font-black">Full Travel Inventory</h1>
-            <p className="text-sm text-white/90">
-              Explore the full traveler catalog and connect with Zeniva to finalize your trip.
-            </p>
+      {/* Hero section */}
+      <section className="relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${GRADIENT_START} 0%, ${GRADIENT_END} 100%)` }}>
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1600&q=60')] bg-cover bg-center opacity-20" />
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 py-12 sm:py-16">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+            <div className="text-white">
+              <p className="text-xs font-bold uppercase tracking-[0.25em] text-white/70 mb-2">⛵ Zeniva Yacht Collection</p>
+              <h1 className="text-4xl sm:text-5xl font-black leading-tight">
+                Luxury Yacht<br className="hidden sm:block" /> Charters
+              </h1>
+              <p className="text-white/80 mt-3 text-base max-w-xl">
+                <AutoTranslate text="Private yacht charters curated by YCN Miami — from intimate catamarans to mega-yachts. Expert brokers, instant quotes." className="inline" />
+              </p>
+              <div className="flex flex-wrap gap-2 mt-4">
+                {["⚓ Expert brokers", "📍 Miami & Caribbean", "💎 Premium fleet", "✈️ Concierge included"].map(tag => (
+                  <span key={tag} className="bg-white/15 border border-white/25 rounded-full px-3 py-1 text-xs font-semibold text-white">{tag}</span>
+                ))}
+              </div>
+            </div>
+            <Link href="/chat?prompt=Plan%20a%20luxury%20yacht%20charter"
+              className="flex-shrink-0 inline-flex items-center gap-2 rounded-2xl px-6 py-3 text-sm font-black text-slate-900 shadow-lg transition hover:scale-105"
+              style={{ background: "linear-gradient(135deg, #E6B85A, #d4a442)" }}>
+              <span>💬 Plan with Lina</span>
+            </Link>
           </div>
-          <div className="mt-3 sm:mt-10 flex flex-col gap-4 sm:gap-6">
-            <div className="hidden sm:flex flex-wrap gap-3">
-              <Link href="/partners/resorts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
-                Hotels & Resorts
-              </Link>
-              <Link href="/yachts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white text-slate-900">
-                Yachts
-              </Link>
-              <Link href="/residences" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
-                Short-term Rentals
-              </Link>
-              <Link href="/" className="rounded-full border border-white/50 px-4 py-2 text-sm font-semibold text-white">
-                Flights
-              </Link>
-            </div>
-            <div className="w-full max-w-full rounded-2xl sm:rounded-3xl border border-white/35 bg-white/15 p-2.5 sm:p-3 shadow-sm backdrop-blur overflow-hidden">
-              <div className="flex items-center gap-4 pb-3">
-                <Link
-                  href="/chat/r5ug551qmll3p6p3"
-                  className="inline-flex items-center justify-center rounded-full border border-white/40 bg-white/15 p-1 shadow-sm backdrop-blur transition hover:bg-white/25"
-                  aria-label="Chat with Lina"
-                >
-                  <img
-                    src="/branding/lina-avatar.png"
-                    alt="Lina"
-                    className="h-14 w-14 sm:h-16 sm:w-16 rounded-full object-cover"
-                  />
-                </Link>
-                <div className="text-sm font-semibold text-white/90">
-                  Lina concierge
-                </div>
+
+          {/* Search bar */}
+          <div className="mt-8 rounded-2xl bg-white/15 border border-white/30 backdrop-blur-sm p-4">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1">
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="🔍 Search yacht name or destination…"
+                  className="w-full rounded-xl border border-white/40 bg-white/20 px-4 py-3 text-sm font-semibold text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-white/50"
+                />
               </div>
-              <div className="flex flex-col gap-3 md:flex-row md:items-center min-w-0">
-                <div className="flex-1 min-w-0">
-                  <label htmlFor="yachts-search" className="sr-only">
-                    Search yachts
-                  </label>
-                  <input
-                    id="yachts-search"
-                    type="search"
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Search by yacht or destination"
-                    className="w-full max-w-full min-w-0 rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white/70"
-                  />
-                </div>
-                <div className="flex flex-1 min-w-0 flex-col gap-3 sm:flex-row">
-                  <div className="flex-1 min-w-0">
-                    <label htmlFor="yachts-checkin" className="sr-only">
-                      Check-in date
-                    </label>
-                    <input
-                      id="yachts-checkin"
-                      type="date"
-                      value={checkIn}
-                      onChange={(event) => setCheckIn(event.target.value)}
-                      className="w-full max-w-full min-w-0 rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/70"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <label htmlFor="yachts-checkout" className="sr-only">
-                      Check-out date
-                    </label>
-                    <input
-                      id="yachts-checkout"
-                      type="date"
-                      value={checkOut}
-                      onChange={(event) => setCheckOut(event.target.value)}
-                      className="w-full max-w-full min-w-0 rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/70"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <label htmlFor="yachts-travelers" className="sr-only">
-                      Travelers
-                    </label>
-                    <select
-                      id="yachts-travelers"
-                      value={travelers}
-                      onChange={(event) => setTravelers(event.target.value)}
-                      className="w-full max-w-full min-w-0 rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/70"
-                    >
-                      {Array.from({ length: 8 }, (_, index) => {
-                        const count = index + 1;
-                        return (
-                          <option key={count} value={String(count)} className="text-slate-900">
-                            {count} traveler{count > 1 ? "s" : ""}
-                          </option>
-                        );
-                      })}
-                      <option value="9" className="text-slate-900">9 travelers</option>
-                      <option value="10" className="text-slate-900">10 travelers</option>
-                      <option value="11" className="text-slate-900">11+ travelers</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+              <input type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)}
+                className="rounded-xl border border-white/40 bg-white/20 px-4 py-3 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/50 sm:w-44" />
+              <input type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)}
+                className="rounded-xl border border-white/40 bg-white/20 px-4 py-3 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/50 sm:w-44" />
+              <select value={travelers} onChange={(e) => setTravelers(e.target.value)}
+                className="rounded-xl border border-white/40 bg-white/20 px-4 py-3 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/50 sm:w-40">
+                {[...Array(11)].map((_, i) => {
+                  const n = i + 1;
+                  return <option key={n} value={String(n)} className="text-slate-900">{n === 11 ? "11+ travelers" : `${n} traveler${n > 1 ? "s" : ""}`}</option>;
+                })}
+              </select>
             </div>
+          </div>
+
+          {/* Nav pills */}
+          <div className="flex flex-wrap gap-2 mt-4">
+            {[
+              { label: "Hotels & Resorts", href: "/partners/resorts" },
+              { label: "⛵ Yachts", href: "/yachts", active: true },
+              { label: "🏠 Short-term Rentals", href: "/residences" },
+              { label: "✈️ Flights", href: "/" },
+            ].map(({ label, href, active }) => (
+              <Link key={href} href={href}
+                className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${active ? "bg-white text-slate-900" : "bg-white/15 text-white hover:bg-white/25"}`}>
+                {label}
+              </Link>
+            ))}
           </div>
         </div>
       </section>
 
-      <div className="mx-auto w-full max-w-none px-6 pb-16">
-
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <p className="text-sm uppercase tracking-wide text-slate-500"><AutoTranslate text="Yacht Charters" className="inline" /></p>
-              <h1 className="text-3xl font-black mt-1"><AutoTranslate text="YCN Fleet" className="inline" /></h1>
-              <p className="text-slate-600 mt-2"><AutoTranslate text="Browse curated yachts and contact us for tailored itineraries." className="inline" /></p>
-            </div>
-            <Link href="/chat?prompt=Plan%20a%20yacht%20charter" className="hidden md:inline-flex px-4 py-2 rounded-full bg-black text-white text-sm font-semibold shadow">
-              <AutoTranslate text="Chat to plan" className="inline" />
-            </Link>
+      {/* Content */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8">
+        {/* Filters row */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500"><AutoTranslate text="Yacht Charters" className="inline" /></p>
+            <h2 className="text-2xl font-black text-slate-900 mt-0.5">
+              <AutoTranslate text="YCN Premium Fleet" className="inline" />
+              <span className="ml-2 text-base font-semibold text-slate-400">({filtered.length})</span>
+            </h2>
           </div>
-
-          <div className="flex flex-wrap items-center gap-3 mb-6">
-            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500"><AutoTranslate text="Filter by country" className="inline" /></label>
+          <div className="flex items-center gap-3">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Country:</label>
             <select
               value={countryFilter}
-              onChange={(e) => {
-                setCountryFilter(e.target.value);
-                setVisible(12);
-              }}
-              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+              onChange={(e) => { setCountryFilter(e.target.value); setVisible(12); }}
+              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm"
             >
               <option value="all">All countries</option>
-              {countries.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
+              {countries.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
+        </div>
 
         {filtered.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-600 shadow">
-            <AutoTranslate text="No yachts available right now. Please check back soon." className="inline" />
+          <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+            <div className="text-5xl mb-4">⛵</div>
+            <p className="text-lg font-bold text-slate-700"><AutoTranslate text="No yachts match your search." className="inline" /></p>
+            <p className="text-slate-500 text-sm mt-1"><AutoTranslate text="Try adjusting your filters." className="inline" /></p>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filtered.slice(0, visible).map((p) => (
-                <div key={p.slug} className="bg-white rounded-2xl shadow p-4 flex flex-col">
-                  <div className="h-44 w-full overflow-hidden rounded-lg mb-4">
+                <div key={p.slug} className="group bg-white rounded-3xl shadow-md overflow-hidden flex flex-col transition hover:shadow-xl hover:-translate-y-1">
+                  {/* Photo */}
+                  <div className="relative h-56 w-full overflow-hidden">
                     <Image
                       src={p.image}
                       alt={p.title}
                       width={800}
                       height={520}
-                      className="h-full w-full object-cover"
-                      sizes="(min-width: 1024px) 320px, (min-width: 640px) 45vw, 100vw"
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
                       priority={false}
                     />
+                    {/* Price badge */}
+                    {p.price && (
+                      <div className="absolute bottom-3 left-3 rounded-xl px-3 py-1.5 text-sm font-black text-white shadow-lg"
+                        style={{ background: "linear-gradient(135deg, #0B1B4D, #0F6CF5)" }}>
+                        {p.price}
+                      </div>
+                    )}
+                    {/* Photo count */}
+                    {p.images && p.images.length > 1 && (
+                      <div className="absolute bottom-3 right-3 rounded-lg bg-black/60 px-2 py-1 text-[10px] font-bold text-white">
+                        📷 {p.images.length}
+                      </div>
+                    )}
                   </div>
-                  <h2 className="text-xl font-bold mb-1">{p.title}</h2>
-                  <div className="text-sm text-slate-500 mb-3">{p.destination}</div>
-                  <div className="mt-auto flex items-center justify-between">
-                    <div className="text-lg font-black">{p.price}</div>
-                    <div className="flex items-center gap-2">
+
+                  {/* Content */}
+                  <div className="p-5 flex flex-col flex-1">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <h2 className="text-lg font-black text-slate-900 leading-tight">{p.title}</h2>
+                    </div>
+                    <p className="text-sm text-slate-500 flex items-center gap-1 mb-3">
+                      <span>📍</span> {p.destination}
+                    </p>
+
+                    {/* Specs */}
+                    {(p as any).specs && (
+                      <div className="flex flex-wrap gap-1.5 mb-4">
+                        {String((p as any).specs || "").split("·").slice(0, 3).map((s: string) => s.trim()).filter(Boolean).map((spec: string) => (
+                          <span key={spec} className="bg-slate-100 text-slate-600 text-[10px] font-bold rounded-full px-2 py-0.5">{spec}</span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="mt-auto flex gap-2">
                       <Link
                         href={`/partners/ycn/${p.slug}`}
-                        className="text-sm font-semibold underline text-slate-700"
+                        className="flex-1 rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-bold text-slate-700 text-center hover:bg-slate-50 transition"
                       >
-                        View
+                        View details
                       </Link>
+                      <button
+                        type="button"
+                        onClick={() => handleAddToProposal(p)}
+                        className="flex-1 rounded-xl px-3 py-2.5 text-sm font-black text-white transition hover:opacity-90"
+                        style={{ background: "linear-gradient(135deg, #0B1B4D, #0F6CF5)" }}
+                      >
+                        + Proposal
+                      </button>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleAddToProposal(p)}
-                    className="mt-3 rounded-full bg-black px-4 py-2 text-sm font-semibold text-white shadow hover:bg-slate-900"
-                  >
-                    Add to proposal
-                  </button>
                 </div>
               ))}
             </div>
 
             {visible < filtered.length && (
               <div className="flex justify-center mt-8">
-                <button onClick={() => setVisible((v) => v + 12)} className="px-6 py-3 rounded-full bg-white border shadow">
-                  Load more
+                <button
+                  onClick={() => setVisible((v) => v + 12)}
+                  className="rounded-2xl border border-slate-200 bg-white px-8 py-3 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50 transition"
+                >
+                  Load {Math.min(filtered.length - visible, 12)} more yachts ↓
                 </button>
               </div>
             )}
           </>
         )}
-        </div>
       </div>
     </main>
   );

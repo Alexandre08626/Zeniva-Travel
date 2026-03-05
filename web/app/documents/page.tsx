@@ -397,237 +397,184 @@ export default function DocumentsPage() {
   }, [chatChannelId, user?.name]);
 
   return (
-    <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
-      <div className="mx-auto w-full max-w-none px-6 pb-14 pt-6 space-y-6">
+    <main className="min-h-screen bg-slate-50">
+      <div className="mx-auto w-full max-w-none px-4 sm:px-6 pb-14 pt-6 space-y-0">
         <Header isLoggedIn={!!userId} userEmail={userId} hideAgentWorkspaceSwitch />
 
-        <div className="rounded-[24px] border border-slate-100 bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Traveler Dashboard</p>
-              <h1 className="text-3xl font-black" style={{ color: TITLE_TEXT }}>Your traveler cockpit</h1>
-              <p className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>
-                Track your trip, finalize bookings, and communicate with Lina and the Zeniva team.
-              </p>
+        {/* ── HERO ── */}
+        <div className="rounded-3xl overflow-hidden shadow-xl mb-6 mt-4" style={{ background: `linear-gradient(135deg, ${GRADIENT_START} 0%, #1a3a7a 50%, ${GRADIENT_END} 100%)` }}>
+          <div className="px-6 py-8 sm:py-10">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
+              <div className="text-white">
+                <p className="text-xs font-bold uppercase tracking-[0.25em] text-white/70 mb-2">✈️ Traveler Cockpit</p>
+                <h1 className="text-3xl sm:text-4xl font-black">Your Travel Hub</h1>
+                <p className="text-white/80 mt-2 text-sm max-w-lg">
+                  Track bookings, manage documents, and chat with Lina or a Zeniva expert — all in one place.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 flex-shrink-0">
+                <Link href="/payment"
+                  className="rounded-2xl px-5 py-2.5 text-sm font-black text-slate-900 shadow-lg transition hover:scale-105"
+                  style={{ background: "linear-gradient(135deg, #E6B85A, #d4a442)" }}>
+                  💳 Finalize booking
+                </Link>
+                <Link href="/chat?prompt=Continue%20with%20Lina"
+                  className="rounded-2xl border border-white/40 bg-white/15 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/25 transition">
+                  💬 Chat with Lina
+                </Link>
+                <Link href="/chat/agent?channel=agent-alexandre&source=/documents"
+                  className="rounded-2xl border border-white/40 bg-white/15 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/25 transition">
+                  🧑‍💼 Expert support
+                </Link>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">Status: {tripStatus}</span>
-              <Link
-                href="/payment"
-                className="rounded-full px-4 py-2 text-sm font-bold text-white"
-                style={{ backgroundColor: PREMIUM_BLUE }}
-              >
-                Finalize booking
-              </Link>
-              <Link
-                href="/chat?prompt=Continue%20with%20Lina"
-                className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold"
-                style={{ color: TITLE_TEXT }}
-              >
-                Continue with Lina
-              </Link>
-              <Link
-                href="/chat/agent?channel=agent-alexandre&source=/documents"
-                className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold"
-                style={{ color: TITLE_TEXT }}
-              >
-                Contact an expert
-              </Link>
-            </div>
-          </div>
 
-          <div className="mt-6 grid gap-3 md:grid-cols-4">
-            <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
-              <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Trip</div>
-              <div className="mt-1 text-sm font-bold" style={{ color: TITLE_TEXT }}>{primaryTrip?.title || "New itinerary"}</div>
-              <div className="text-xs" style={{ color: MUTED_TEXT }}>{primaryTrip?.destination || "Destination à confirmer"}</div>
-            </div>
-            <div className="rounded-2xl border border-blue-100 bg-white p-4">
-              <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Documents</div>
-              <div className="mt-1 text-2xl font-extrabold" style={{ color: TITLE_TEXT }}>{list.length}</div>
-              <div className="text-xs" style={{ color: MUTED_TEXT }}>Trips with files</div>
-            </div>
-            <div className="rounded-2xl border border-blue-100 bg-white p-4">
-              <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Support</div>
-              <div className="mt-1 text-sm font-bold" style={{ color: TITLE_TEXT }}>{hasPartner ? "Lina + Partner" : "Lina + Zeniva"}</div>
-              <div className="text-xs" style={{ color: MUTED_TEXT }}>{hasPartner ? "Partner assistance enabled" : "Dedicated Zeniva assistance"}</div>
-            </div>
-            <div className="rounded-2xl border border-blue-100 bg-white p-4">
-              <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Réservation</div>
-              <div className="mt-1 text-sm font-bold" style={{ color: TITLE_TEXT }}>{tripStatus}</div>
-              <div className="text-xs" style={{ color: MUTED_TEXT }}>Real-time tracking</div>
+            {/* Stats */}
+            <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { icon: "✈️", label: "Trip", val: primaryTrip?.title || "New itinerary", sub: primaryTrip?.destination || "TBD" },
+                { icon: "📄", label: "Documents", val: String(list.length), sub: "Trips with files" },
+                { icon: "🎯", label: "Support", val: hasPartner ? "Lina + Partner" : "Lina + Zeniva", sub: hasPartner ? "Partner enabled" : "Zeniva dedicated" },
+                { icon: "📊", label: "Status", val: tripStatus, sub: "Real-time tracking" },
+              ].map(({ icon, label, val, sub }) => (
+                <div key={label} className="rounded-2xl bg-white/15 border border-white/20 p-4">
+                  <div className="text-white/70 text-[10px] font-bold uppercase tracking-wider">{icon} {label}</div>
+                  <div className="text-white font-black text-sm mt-1 truncate">{val}</div>
+                  <div className="text-white/60 text-[10px] mt-0.5">{sub}</div>
+                </div>
+              ))}
             </div>
           </div>
+        </div>
+
+        <div className="space-y-5">
 
           {loggedOut ? (
-            <div className="mt-8 space-y-6">
-              {/* Show locally saved docs when available */}
+            <div className="space-y-4">
               {Object.keys(localDocuments || {}).length > 0 && (
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                  <div className="text-lg font-bold" style={{ color: TITLE_TEXT }}>Saved on this device</div>
-                  <div className="text-sm font-semibold mt-2" style={{ color: MUTED_TEXT }}>
-                    These documents were saved locally after booking. <strong>Log in to save them to your account.</strong>
-                  </div>
-
-                  <div className="mt-4 space-y-5">
+                <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5">
+                  <h2 className="text-lg font-black text-slate-900 mb-1">📱 Saved on this device</h2>
+                  <p className="text-sm text-slate-600 mb-4">Documents saved locally. <strong>Log in to sync to your account.</strong></p>
+                  <div className="space-y-4">
                     {Object.entries(localDocuments).map(([tripId, docs]) => (
-                      <TripCard key={`local-${tripId}`} tripId={tripId} title={trips.find((t: any) => t.id === tripId)?.title || 'Trip'} docs={docs} />       
+                      <TripCard key={`local-${tripId}`} tripId={tripId} title={trips.find((t: any) => t.id === tripId)?.title || 'Trip'} docs={docs} />
                     ))}
                   </div>
                 </div>
               )}
-
-              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
-                <div className="text-lg font-bold" style={{ color: TITLE_TEXT }}>Please log in to view your travel documents.</div>
-                <p className="text-sm font-semibold mt-2" style={{ color: MUTED_TEXT }}>
-                  Documents are secured to your account.
-                </p>
-                <div className="mt-4 flex justify-center gap-3">
-                  <Link
-                    href="/login"
-                    className="rounded-full px-4 py-2 text-sm font-bold text-white"
-                    style={{ backgroundColor: PREMIUM_BLUE }}
-                  >
-                    Log in
-                  </Link>
-                  <Link
-                    href="/signup"
-                    className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold"
-                    style={{ color: TITLE_TEXT }}
-                  >
-                    Create account
-                  </Link>
+              <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white p-10 text-center">
+                <div className="text-5xl mb-4">🔐</div>
+                <h2 className="text-xl font-black text-slate-900">Log in to view your documents</h2>
+                <p className="text-slate-500 text-sm mt-2 mb-6">Your tickets, vouchers, and confirmations are secured to your account.</p>
+                <div className="flex justify-center gap-3">
+                  <Link href="/login" className="rounded-2xl px-6 py-3 text-sm font-black text-white shadow-lg" style={{ backgroundColor: PREMIUM_BLUE }}>Log in</Link>
+                  <Link href="/signup" className="rounded-2xl border border-slate-200 px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">Create account</Link>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="mt-8 grid gap-6 lg:grid-cols-3">
-              <section className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="flex items-center justify-between">
+            <div className="grid gap-5 lg:grid-cols-3">
+              {/* Chat center */}
+              <section className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-700 to-blue-600 px-5 py-4 flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Messaging</p>
-                    <h2 className="text-xl font-black" style={{ color: TITLE_TEXT }}>Communication center</h2>
-                    <p className="text-sm" style={{ color: MUTED_TEXT }}>
-                      Lina replies first, then the right expert takes over based on your trip.
-                    </p>
+                    <h2 className="font-black text-white text-lg">💬 Communication center</h2>
+                    <p className="text-blue-200 text-xs mt-0.5">Lina replies first — then a Zeniva expert takes over</p>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">Lina (AI)</span>
-                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Zeniva Agent</span>
-                    {hasPartner && <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">Partner host</span>}
+                  <div className="flex gap-1.5">
+                    <span className="rounded-full bg-white/20 px-2.5 py-1 text-[10px] font-bold text-white">🤖 Lina (AI)</span>
+                    <span className="rounded-full bg-white/20 px-2.5 py-1 text-[10px] font-bold text-white">🧑‍💼 Agent</span>
+                    {hasPartner && <span className="rounded-full bg-emerald-400/30 px-2.5 py-1 text-[10px] font-bold text-emerald-200">🏨 Partner</span>}
                   </div>
                 </div>
-
-                <div className="mt-4 max-h-[320px] overflow-y-auto space-y-3 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                <div className="max-h-72 overflow-y-auto space-y-3 bg-slate-50 p-4">
                   {chatMessages.map((msg) => {
-                    const roleStyle =
-                      msg.role === "lina"
-                        ? "bg-blue-600 text-white"
-                        : msg.role === "partner"
-                          ? "bg-emerald-600 text-white"
-                          : msg.role === "traveler"
-                            ? "bg-slate-900 text-white"
-                            : "bg-white text-slate-900";
+                    const isLina = msg.role === "lina";
+                    const isTraveler = msg.role === "traveler";
                     return (
-                      <div key={msg.id} className="flex items-start gap-3">
-                        <div className={`rounded-2xl px-4 py-3 text-sm shadow-sm ${roleStyle}`}>
-                          <div className="text-xs font-bold opacity-70">{msg.author}</div>
-                          <div className="mt-1">{msg.text}</div>
-                          <div className="mt-2 text-[11px] opacity-70">{msg.ts}</div>
+                      <div key={msg.id} className={`flex ${isTraveler ? "justify-end" : "justify-start"}`}>
+                        <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-sm ${isLina ? "bg-blue-600 text-white" : isTraveler ? "bg-slate-900 text-white" : msg.role === "partner" ? "bg-emerald-600 text-white" : "bg-white text-slate-900 border border-slate-200"}`}>
+                          <div className="text-[10px] font-bold opacity-70 mb-1">{msg.author}</div>
+                          <div>{msg.text}</div>
+                          <div className="text-[10px] opacity-60 mt-1.5">{msg.ts}</div>
                         </div>
                       </div>
                     );
                   })}
                 </div>
-
-                <form onSubmit={handleChatSubmit} className="mt-4 flex flex-col gap-3 sm:flex-row">
+                <form onSubmit={handleChatSubmit} className="p-4 flex gap-2 border-t border-slate-100">
                   <input
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
-                    placeholder="Write to Lina or your Zeniva expert..."
-                    className="flex-1 min-w-0 w-full rounded-full border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-400"
+                    placeholder="Message Lina or your Zeniva expert…"
+                    className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:border-blue-400"
                   />
-                  <button
-                    type="submit"
-                    className="rounded-full px-4 py-2 text-sm font-semibold text-white"
-                    style={{ backgroundColor: PREMIUM_BLUE }}
-                  >
-                    Send
-                  </button>
+                  <button type="submit" className="rounded-xl px-5 py-2.5 text-sm font-black text-white" style={{ backgroundColor: PREMIUM_BLUE }}>Send</button>
                 </form>
               </section>
 
-              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Trip</p>
-                <h2 className="text-xl font-black" style={{ color: TITLE_TEXT }}>Status & actions</h2>
-                <div className="mt-4 space-y-3 text-sm" style={{ color: TITLE_TEXT }}>
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                    <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Current status</div>
-                    <div className="mt-1 font-semibold">{tripStatus}</div>
+              {/* Status sidebar */}
+              <section className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-5 py-4">
+                  <h2 className="font-black text-white text-lg">📊 Trip status</h2>
+                </div>
+                <div className="p-5 space-y-3">
+                  {[
+                    { icon: "📊", label: "Current status", val: tripStatus },
+                    { icon: "👥", label: "Support team", val: hasPartner ? `Lina + ${partnerName || "Partner"}` : "Lina + Zeniva Expert" },
+                  ].map(({ icon, label, val }) => (
+                    <div key={label} className="rounded-xl bg-slate-50 border border-slate-100 p-3">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{icon} {label}</div>
+                      <div className="font-bold text-slate-800 mt-0.5 text-sm">{val}</div>
+                    </div>
+                  ))}
+                  <div className="rounded-xl bg-slate-50 border border-slate-100 p-3">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">📋 Next steps</div>
+                    {["Review confirmations", "Finalize payments", "Confirm transfers"].map(s => (
+                      <div key={s} className="flex items-center gap-2 text-xs text-slate-600 py-0.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />{s}
+                      </div>
+                    ))}
                   </div>
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                    <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Next steps</div>
-                    <ul className="mt-2 space-y-2 text-sm">
-                      <li>• Review documents and confirmations</li>
-                      <li>• Finalize remaining payments</li>
-                      <li>• Confirm transfers and excursions</li>
-                    </ul>
-                  </div>
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                    <div className="text-xs font-bold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Contacts</div>
-                    <div className="mt-2 text-sm">Lina (AI) + Zeniva Expert</div>
-                    {hasPartner && <div className="text-sm">{partnerName || "Partner host"}</div>}
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <Link href="/proposals" className="rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-bold text-center text-slate-700 hover:bg-slate-50">Proposals</Link>
+                    <Link href="/payment" className="rounded-xl px-3 py-2.5 text-xs font-black text-center text-white" style={{ backgroundColor: PREMIUM_BLUE }}>Pay now</Link>
                   </div>
                 </div>
               </section>
             </div>
           )}
 
+          {/* Documents section */}
           {!loggedOut && (
-            <div className="mt-8" id="documents">
-              <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div id="documents">
+              <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Travel documents</p>
-                  <h2 className="text-2xl font-black" style={{ color: TITLE_TEXT }}>Tickets, vouchers, and confirmations</h2>
-                  <p className="text-sm" style={{ color: MUTED_TEXT }}>Everything you need before, during, and after your trip.</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500">📄 Travel documents</p>
+                  <h2 className="text-2xl font-black text-slate-900 mt-0.5">Tickets, vouchers & confirmations</h2>
+                  <p className="text-slate-500 text-sm mt-0.5">Everything you need before, during, and after your trip.</p>
                 </div>
-                <Link
-                  href="/documents"
-                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold"
-                  style={{ color: TITLE_TEXT }}
-                >
-                  View all documents
-                </Link>
               </div>
+
+              {list.length === 0 ? (
+                <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white p-10 text-center">
+                  <div className="text-5xl mb-3">📭</div>
+                  <h3 className="text-lg font-black text-slate-900">No documents yet</h3>
+                  <p className="text-slate-500 text-sm mt-1 mb-5">Book a proposal to receive your confirmations, tickets, and vouchers here.</p>
+                  <Link href="/proposals" className="rounded-2xl px-6 py-3 text-sm font-black text-white" style={{ backgroundColor: PREMIUM_BLUE }}>View proposals →</Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {list.map((trip) => <TripCard key={trip.tripId} {...trip} />)}
+                </div>
+              )}
             </div>
           )}
-
-          {!loggedOut && list.length === 0 ? (
-            <div className="mt-8 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
-              <div className="text-lg font-bold" style={{ color: TITLE_TEXT }}>No documents yet</div>
-              <p className="text-sm font-semibold mt-2" style={{ color: MUTED_TEXT }}>
-                Book a proposal and your confirmations, vouchers, and tickets will appear here.
-              </p>
-              <div className="mt-4">
-                <Link
-                  href="/proposals"
-                  className="rounded-full px-4 py-2 text-sm font-bold text-white"
-                  style={{ backgroundColor: PREMIUM_BLUE }}
-                >
-                  View proposals
-                </Link>
-              </div>
-            </div>
-          ) : !loggedOut ? (
-            <div className="mt-6 space-y-5">
-              {list.map((trip) => (
-                <TripCard key={trip.tripId} {...trip} />
-              ))}
-            </div>
-          ) : null}
         </div>
 
-        <Footer />
+        <div className="mt-8">
+          <Footer />
+        </div>
       </div>
     </main>
   );
