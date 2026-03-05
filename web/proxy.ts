@@ -50,7 +50,9 @@ function hasPrefixSegment(pathname: string, prefix: string) {
 
 export default function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const isPublicAgentRequestsApi = hasPrefixSegment(pathname, "/api/agent/requests");
+  const isPublicAgentRequestsApi =
+    hasPrefixSegment(pathname, "/api/agent/requests") ||
+    hasPrefixSegment(pathname, "/api/agent/inbox");
 
   if (!SAFE_METHODS.has(req.method)) {
     const origin = req.headers.get("origin");
