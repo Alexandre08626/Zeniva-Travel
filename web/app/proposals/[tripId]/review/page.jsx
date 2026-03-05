@@ -405,444 +405,491 @@ export default function ProposalReviewPage() {
   if (!tripId) return null;
 
   return (
-    <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
-      <div className="mx-auto max-w-6xl px-6 py-8 space-y-6">
-        <header className="flex items-center justify-between text-sm">
+    <main className="min-h-screen bg-slate-50">
+      {/* ── HERO ── */}
+      <div className="relative h-72 sm:h-80 w-full overflow-hidden">
+        <img src={heroImage} alt="Destination" className="h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-black/75" />
+        {/* Nav buttons */}
+        <div className="absolute top-4 left-4 flex items-center gap-2">
           <button
             onClick={() => router.push(isAgentMode ? `/agent/proposals` : `/proposals`)}
-            className="text-blue-700 font-semibold"
+            className="flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 px-4 py-2 text-sm font-semibold text-white hover:bg-white/30 transition"
           >
-            {isAgentMode ? "Back to agent proposals" : "Back to proposals"}
+            ← {isAgentMode ? "Proposals" : "Back"}
           </button>
-          <div className="flex gap-2">
-            <button
-              onClick={() => router.push(`/proposals/${tripId}/select${modeSuffix}`)}
-              className="rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-semibold text-blue-700"
-            >
-              Edit selections
-            </button>
-            <button
-              onClick={() => router.push(isAgentMode ? `/agent/lina/chat/${tripId}` : `/chat/${tripId}`)}
-              className="rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-semibold text-blue-700"
-            >
-              {isAgentMode ? "Back to Lina" : "Back to chat"}
-            </button>
-          </div>
-        </header>
-
-        <div className="space-y-2">
-          <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Zeniva travel</p>
-          <h1 className="text-3xl font-black text-slate-900">Your tailored trip</h1>
-          <div className="text-sm text-blue-800">
-            {tripDraft?.destination || "Your trip"} · {isAgentMode ? "Review before sending to client" : "Review before payment"}
+          <button
+            onClick={() => router.push(`/proposals/${tripId}/select${modeSuffix}`)}
+            className="flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 px-4 py-2 text-sm font-semibold text-white hover:bg-white/30 transition"
+          >
+            ✏️ Edit selections
+          </button>
+          <button
+            onClick={() => router.push(isAgentMode ? `/agent/lina/chat/${tripId}` : `/chat/${tripId}`)}
+            className="flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 px-4 py-2 text-sm font-semibold text-white hover:bg-white/30 transition"
+          >
+            💬 {isAgentMode ? "Back to Lina" : "Back to chat"}
+          </button>
+        </div>
+        {/* Title overlay */}
+        <div className="absolute bottom-0 left-0 right-0 px-6 pb-8">
+          <p className="text-white/70 text-sm font-medium tracking-widest uppercase mb-1">
+            {isAgentMode ? "Agent Review" : "Your Trip"}
+          </p>
+          <h1 className="text-3xl sm:text-4xl font-black text-white drop-shadow-lg">
+            {tripDraft?.destination || proposal?.title || "Your tailored trip"}
+          </h1>
+          <div className="flex flex-wrap gap-2 mt-3">
+            {tripDraft?.departureCity && (
+              <span className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-3 py-1 text-xs font-semibold text-white">
+                ✈️ {tripDraft.departureCity} → {tripDraft.destination}
+              </span>
+            )}
+            {tripDraft?.checkIn && (
+              <span className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-3 py-1 text-xs font-semibold text-white">
+                📅 {tripDraft.checkIn}{tripDraft?.checkOut ? ` → ${tripDraft.checkOut}` : ""}
+              </span>
+            )}
+            {tripDraft?.adults && (
+              <span className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-3 py-1 text-xs font-semibold text-white">
+                👥 {tripDraft.adults} traveler{tripDraft.adults > 1 ? "s" : ""}
+              </span>
+            )}
+            <span className="bg-amber-400/90 rounded-full px-3 py-1 text-xs font-bold text-amber-900">
+              ★ 4.92 · 52 reviews
+            </span>
           </div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 lg:grid-rows-2 gap-2 rounded-3xl overflow-hidden">
-          <div className="lg:col-span-2 lg:row-span-2 h-80 lg:h-full">
-            <button
-              type="button"
-              onClick={() => setActivePhoto(heroImage)}
-              className="h-full w-full"
-              aria-label="Enlarge photo"
-            >
-              <img src={heroImage} alt="Destination" className="h-full w-full object-cover" />
-            </button>
-          </div>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 space-y-6">
+        {/* Photo grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 rounded-2xl overflow-hidden shadow-md h-52 md:h-64">
           {((uniqueHotels[0]
             ? getAccommodationImages(uniqueHotels[0], getAccommodationType(uniqueHotels[0]))
             : [heroImage, heroImage, heroImage, heroImage]
           ).slice(0, 4)).map((img, i) => (
-            <div key={i} className="h-40 lg:h-full">
-              <button
-                type="button"
-                onClick={() => setActivePhoto(img)}
-                className="h-full w-full"
-                aria-label={`Enlarge photo ${i + 1}`}
-              >
-                <img src={img} alt={`Trip ${i + 1}`} className="h-full w-full object-cover" />
-              </button>
-            </div>
+            <button key={i} onClick={() => setActivePhoto(img)} className="h-full w-full overflow-hidden relative group">
+              <img src={img} alt={`Trip ${i + 1}`} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              {i === 3 && (
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">+ Show all</span>
+                </div>
+              )}
+            </button>
           ))}
         </div>
 
-        <section className="rounded-2xl border border-blue-100 bg-white p-6">
-          <p className="text-lg font-bold text-slate-900">Trip overview</p>
-          <p className="mt-1 text-sm text-slate-600">
-            {tripDraft?.departureCity || "Departure"} → {tripDraft?.destination || "Destination"} · {tripDraft?.checkIn && tripDraft?.checkOut ? `${tripDraft.checkIn} to ${tripDraft.checkOut}` : "Flexible dates"}
-          </p>
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-blue-800">
-            <span className="font-semibold">4.92</span>
-            <span>· 52 reviews</span>
-          </div>
-        </section>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 items-start">
+          {/* ── LEFT COLUMN ── */}
+          <div className="space-y-5">
 
-        <section className="rounded-2xl border border-blue-100 bg-white p-6 space-y-4">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Required before payment</p>
-            <h2 className="text-xl font-black text-slate-900">Booking process checklist</h2>
-            <p className="text-sm text-slate-600">Complete all required steps for flights and accommodation before final payment.</p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="rounded-xl border border-slate-200 p-4 space-y-3">
-              <p className="text-sm font-extrabold text-slate-900">Flights process</p>
-              <div className="space-y-2 text-sm">
-                <div className={`flex items-center justify-between ${workflow.passengersComplete ? "text-emerald-700" : "text-slate-700"}`}>
-                  <span>Passenger + passport details</span>
-                  <span>{workflow.passengersComplete ? "✓" : "Required"}</span>
+            {/* BOOKING CHECKLIST */}
+            <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-slate-900 to-slate-700 px-6 py-4 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">📋</div>
+                <div>
+                  <h2 className="text-lg font-black text-white">Booking checklist</h2>
+                  <p className="text-slate-300 text-xs">{isAgentMode ? "Complete before sending to client" : "Required before payment"}</p>
                 </div>
-                <div className={`flex items-center justify-between ${workflow.seatsComplete ? "text-emerald-700" : "text-slate-700"}`}>
-                  <span>Seat selection</span>
-                  <span>{workflow.seatsComplete ? "✓" : "Required"}</span>
+                {allWorkflowComplete && (
+                  <div className="ml-auto flex items-center gap-1.5 bg-emerald-500 rounded-full px-3 py-1">
+                    <span className="text-white text-xs font-bold">✓ All complete</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Flights checklist */}
+                <div className="rounded-xl border border-slate-200 overflow-hidden">
+                  <div className="bg-blue-50 border-b border-blue-100 px-4 py-3 flex items-center gap-2">
+                    <span className="text-base">✈️</span>
+                    <p className="font-bold text-slate-800 text-sm">Flights</p>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    {[
+                      { label: "Passenger & passport details", done: workflow.passengersComplete, href: "/booking/flights/passengers" },
+                      { label: "Seat selection", done: workflow.seatsComplete, href: "/booking/flights/seats" },
+                      { label: "Baggage selection", done: workflow.bagsComplete, href: "/booking/flights/bags" },
+                    ].map(({ label, done, href }) => (
+                      <div key={label} className="flex items-center justify-between gap-2">
+                        <span className={`text-sm ${done ? "text-emerald-700 font-semibold line-through" : "text-slate-700"}`}>{label}</span>
+                        <button
+                          onClick={() => openFlightStep(href)}
+                          className={`flex-shrink-0 rounded-full px-3 py-1 text-[10px] font-bold transition ${done ? "bg-emerald-100 text-emerald-700" : "bg-blue-600 text-white hover:bg-blue-500"}`}
+                        >
+                          {done ? "✓ Done" : "Fill →"}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className={`flex items-center justify-between ${workflow.bagsComplete ? "text-emerald-700" : "text-slate-700"}`}>
-                  <span>Baggage selection</span>
-                  <span>{workflow.bagsComplete ? "✓" : "Required"}</span>
+
+                {/* Hotel checklist */}
+                <div className="rounded-xl border border-slate-200 overflow-hidden">
+                  <div className="bg-purple-50 border-b border-purple-100 px-4 py-3 flex items-center gap-2">
+                    <span className="text-base">🏨</span>
+                    <p className="font-bold text-slate-800 text-sm">Accommodation</p>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    {[
+                      { label: "Traveler details (name/email/phone)", key: "hotelTravelerConfirmed" },
+                      { label: "Property policies reviewed", key: "hotelPoliciesConfirmed" },
+                      { label: "Cancellation terms acknowledged", key: "hotelCancellationConfirmed" },
+                    ].map(({ label, key }) => (
+                      <label key={key} className="flex items-center gap-3 cursor-pointer group">
+                        <div className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition ${workflow[key] ? "bg-emerald-500 border-emerald-500" : "border-slate-300 group-hover:border-slate-400"}`}>
+                          {workflow[key] && <span className="text-white text-[10px] font-black">✓</span>}
+                        </div>
+                        <input type="checkbox" checked={workflow[key]} onChange={(e) => persistHotelChecklist({ [key]: e.target.checked })} className="sr-only" />
+                        <span className={`text-sm ${workflow[key] ? "text-emerald-700 font-medium line-through" : "text-slate-700"}`}>{label}</span>
+                      </label>
+                    ))}
+                    <button onClick={openHotelStep} className="w-full mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition">
+                      Validate hotel details →
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => openFlightStep("/booking/flights/passengers")}
-                  className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
-                >
-                  Passengers & passport
-                </button>
-                <button
-                  onClick={() => openFlightStep("/booking/flights/seats")}
-                  className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
-                >
-                  Seats
-                </button>
-                <button
-                  onClick={() => openFlightStep("/booking/flights/bags")}
-                  className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
-                >
-                  Bags
-                </button>
-              </div>
-            </div>
 
-            <div className="rounded-xl border border-slate-200 p-4 space-y-3">
-              <p className="text-sm font-extrabold text-slate-900">Accommodation process</p>
-              <div className="space-y-2 text-sm text-slate-700">
-                <label className="flex items-center justify-between gap-2">
-                  <span>Traveler details complete (name/email/phone)</span>
-                  <input
-                    type="checkbox"
-                    checked={workflow.hotelTravelerConfirmed}
-                    onChange={(event) => persistHotelChecklist({ hotelTravelerConfirmed: event.target.checked })}
-                  />
-                </label>
-                <label className="flex items-center justify-between gap-2">
-                  <span>Property policies reviewed</span>
-                  <input
-                    type="checkbox"
-                    checked={workflow.hotelPoliciesConfirmed}
-                    onChange={(event) => persistHotelChecklist({ hotelPoliciesConfirmed: event.target.checked })}
-                  />
-                </label>
-                <label className="flex items-center justify-between gap-2">
-                  <span>Cancellation terms acknowledged</span>
-                  <input
-                    type="checkbox"
-                    checked={workflow.hotelCancellationConfirmed}
-                    onChange={(event) => persistHotelChecklist({ hotelCancellationConfirmed: event.target.checked })}
-                  />
-                </label>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={openHotelStep}
-                  className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
-                >
-                  Validate hotel details
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {!allWorkflowComplete && (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              Complete all required steps above before proceeding to payment.
-            </div>
-          )}
-
-          <div className="flex justify-end">
-            <button
-              onClick={refreshWorkflow}
-              className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
-            >
-              Refresh checklist
-            </button>
-          </div>
-        </section>
-
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr,360px] gap-8 items-start">
-          <div className="lg:col-span-2 space-y-4">
-            <section className="rounded-2xl border border-blue-100 bg-white shadow-sm p-6 space-y-2">
-              <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Flight</div>
-              <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>
-                {flight.airline} • {flight.route}
-              </div>
-              <div className="text-sm" style={{ color: MUTED_TEXT }}>
-                {flight.times} • {flight.fare} • {flight.bags}
-              </div>
-              {flight.flightNumber && (
-                <div className="text-sm" style={{ color: MUTED_TEXT }}>
-                  Flight: {flight.flightNumber}
+              {!allWorkflowComplete && (
+                <div className="mx-5 mb-5 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 flex items-center gap-3">
+                  <span className="text-amber-500 text-lg">⚠️</span>
+                  <p className="text-sm text-amber-800 font-medium">Complete all steps above before proceeding to payment.</p>
+                  <button onClick={refreshWorkflow} className="ml-auto flex-shrink-0 rounded-full border border-amber-300 bg-white px-3 py-1.5 text-xs font-bold text-amber-700">↺ Refresh</button>
                 </div>
               )}
-              {flight.date && (
-                <div className="text-sm" style={{ color: MUTED_TEXT }}>
-                  Date: {flight.date}
+            </section>
+
+            {/* FLIGHT SECTION */}
+            <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">✈️</div>
+                <h2 className="text-lg font-black text-white">Your Flight</h2>
+                <span className="ml-auto text-blue-200 text-sm font-bold">{flight.price || ""}</span>
+              </div>
+              <div className="p-5">
+                <div className="flex items-center gap-4">
+                  {flight.carrierLogo && (
+                    <img src={flight.carrierLogo} alt={flight.airline} className="h-14 w-14 rounded-full border border-slate-200 bg-white p-1 object-contain shadow-sm flex-shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="font-black text-slate-900">{flight.airline}</span>
+                      {flight.flightNumber && <span className="bg-slate-100 text-slate-500 text-xs px-2 py-0.5 rounded">{flight.flightNumber}</span>}
+                      {flight.layovers === 0 && <span className="bg-green-100 text-green-700 text-[10px] font-bold rounded-full px-2 py-0.5">DIRECT</span>}
+                      {flight.layovers > 0 && <span className="bg-orange-100 text-orange-700 text-[10px] font-bold rounded-full px-2 py-0.5">{flight.layovers} stop{flight.layovers > 1 ? "s" : ""}</span>}
+                    </div>
+                    {/* Timeline */}
+                    {flight.times && (
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="text-center">
+                          <p className="text-2xl font-black text-slate-900">{flight.times.split("–")[0]?.trim()}</p>
+                          <p className="text-xs text-slate-500">Departure</p>
+                        </div>
+                        <div className="flex-1 relative flex items-center">
+                          <div className="h-px w-full bg-slate-200" />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="bg-white px-2 text-[10px] text-slate-400">{flight.duration}</span>
+                          </div>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-2xl font-black text-slate-900">{flight.times.split("–")[1]?.trim()}</p>
+                          <p className="text-xs text-slate-500">Arrival</p>
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-2 text-xs text-slate-500">
+                      {flight.route && <span>📍 {flight.route}</span>}
+                      {flight.fare && <span>· {flight.fare}</span>}
+                      {flight.bags && <span>· {flight.bags}</span>}
+                      {flight.date && <span>· 📅 {flight.date}</span>}
+                    </div>
+                  </div>
                 </div>
-              )}
-              {flight.duration && (
-                <div className="text-sm" style={{ color: MUTED_TEXT }}>
-                  Duration: {flight.duration}
+                <div className="mt-4 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3">
+                  <p className="text-xs text-blue-700 font-semibold">📜 Fare rules: Flexible changes with fee · Cancellation subject to airline policy</p>
                 </div>
-              )}
-              {flight.layovers > 0 && (
-                <div className="text-sm" style={{ color: MUTED_TEXT }}>
-                  Layovers: {flight.layovers}
-                </div>
-              )}
-              <div className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>
-                Fare rules: flexible changes with fee, cancellation subject to airline policy.
               </div>
             </section>
 
+            {/* STAYS */}
             {uniqueHotels.map((stay, idx) => {
               const type = getAccommodationType(stay);
-              const label = type === 'Yacht' ? 'Yacht' : type === 'Residence' ? 'Short-term rental' : 'Hotel';
+              const label = type === "Yacht" ? "Yacht" : type === "Residence" ? "Short-term rental" : "Hotel";
+              const icon = type === "Yacht" ? "⛵" : type === "Residence" ? "🏡" : "🏨";
               const stayImages = getAccommodationImages(stay, type);
               const stayKey = String(stay?.id || stay?.name || idx);
               const isExpanded = Boolean(expandedStayPhotos?.[stayKey]);
-              const visibleImages = isExpanded ? stayImages : stayImages.slice(0, 10);
+              const visibleImages = isExpanded ? stayImages : stayImages.slice(0, 9);
+              const gradient = type === "Yacht" ? "from-cyan-600 to-blue-700" : type === "Residence" ? "from-orange-500 to-amber-600" : "from-purple-600 to-purple-700";
               return (
-                <section key={`${stay?.id || stay?.name || idx}`} className="rounded-2xl border border-blue-100 bg-white shadow-sm p-6 space-y-2">
-                  <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>{label}</div>
-                  <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>
-                    {stay.name} • {stay.location || "Central"}
-                  </div>
-                  <div className="text-sm" style={{ color: MUTED_TEXT }}>
-                    {type === 'Yacht'
-                      ? `Specs: ${stay.specs || "Yacht specs"}`
-                      : type === 'Residence'
-                        ? `Stay: ${stay.room || "Private stay"} • Rating: ${stay.rating || "4.9"}`
-                        : `Room: ${stay.room || "Deluxe"} • Board: Breakfast • Rating: ${stay.rating || "4.5"}`}
-                  </div>
-                  <div className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>
-                    {type === 'Yacht'
-                      ? `Amenities: ${stay.amenities?.join(" • ") || "Yacht amenities"}`
-                      : "Policies: Free cancellation until 7 days before arrival; pay at property or prepaid per partner terms."}
-                  </div>
-                  {stayImages.length > 0 && (
-                    <div className="pt-4">
-                      <div className="text-xs font-semibold mb-2" style={{ color: MUTED_TEXT }}>Photo gallery</div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {visibleImages.map((src, i) => (
-                          <div key={i} className="aspect-square overflow-hidden rounded-lg">
-                            <button
-                              type="button"
-                              onClick={() => setActivePhoto(src)}
-                              className="h-full w-full"
-                              aria-label={`Enlarge ${label} photo ${i + 1}`}
-                            >
-                              <img src={src} alt={`${label} ${i + 1}`} className="h-full w-full object-cover hover:scale-105 transition-transform" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-
-                      {!isExpanded && stayImages.length > 10 ? (
-                        <div className="mt-3">
-                          <button
-                            type="button"
-                            onClick={() => setExpandedStayPhotos((prev) => ({ ...prev, [stayKey]: true }))}
-                            className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
-                          >
-                            See more
-                          </button>
-                        </div>
-                      ) : null}
+                <section key={stayKey} className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+                  <div className={`bg-gradient-to-r ${gradient} px-6 py-4 flex items-center gap-3`}>
+                    <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">{icon}</div>
+                    <div>
+                      <h2 className="text-lg font-black text-white">{label}</h2>
+                      <p className="text-white/80 text-xs">{stay.location || "Central location"}</p>
                     </div>
-                  )}
+                    {stay.rating && (
+                      <span className="ml-auto bg-white/20 text-white text-xs font-bold rounded-full px-3 py-1">★ {stay.rating}</span>
+                    )}
+                  </div>
+
+                  <div className="p-5 space-y-4">
+                    <div>
+                      <h3 className="text-xl font-black text-slate-900">{stay.name}</h3>
+                      <p className="text-slate-500 text-sm mt-1">
+                        {type === "Yacht"
+                          ? stay.specs || "Yacht specs"
+                          : type === "Residence"
+                          ? stay.room || "Private villa"
+                          : `${stay.room || "Deluxe Room"} · Board: Breakfast`}
+                      </p>
+                      {type === "Yacht" && stay.amenities?.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {stay.amenities.slice(0, 6).map((a, i) => (
+                            <span key={i} className="bg-cyan-50 border border-cyan-200 text-cyan-800 text-xs rounded-full px-2.5 py-1">{a}</span>
+                          ))}
+                        </div>
+                      )}
+                      {type !== "Yacht" && (
+                        <div className="mt-3 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-xs text-slate-600">
+                          📜 Free cancellation until 7 days before arrival · Pay at property or prepaid per partner terms
+                        </div>
+                      )}
+                    </div>
+
+                    {stayImages.length > 0 && (
+                      <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Photo gallery · {stayImages.length} photos</p>
+                        <div className="grid grid-cols-3 gap-2">
+                          {visibleImages.map((src, i) => (
+                            <button key={i} onClick={() => setActivePhoto(src)} className="aspect-square overflow-hidden rounded-xl group relative shadow-sm">
+                              <img src={src} alt={`${label} ${i + 1}`} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded-xl" />
+                            </button>
+                          ))}
+                        </div>
+                        {!isExpanded && stayImages.length > 9 && (
+                          <button
+                            onClick={() => setExpandedStayPhotos((prev) => ({ ...prev, [stayKey]: true }))}
+                            className="mt-3 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
+                          >
+                            + {stayImages.length - 9} more photos
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </section>
               );
             })}
 
-            {activityList.map((act, idx) => (
-              <section key={`activity-${idx}-${act?.id || act?.name || "item"}`} className="rounded-2xl border border-blue-100 bg-white shadow-sm p-6 space-y-2">
-                <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Activity</div>
-                <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>
-                  {act.name}
+            {/* ACTIVITIES */}
+            {activityList.length > 0 && (
+              <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">🎯</div>
+                  <h2 className="text-lg font-black text-white">Experiences</h2>
                 </div>
-                <div className="text-sm" style={{ color: MUTED_TEXT }}>
-                  {act.date} at {act.time} • {act.supplier}
-                </div>
-                <div className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>
-                  Includes: Guided tour, entrance fees, transportation.
-                </div>
-                {act.images && act.images.length > 0 && (
-                  <div className="pt-4">
-                    <div className="text-xs font-semibold mb-2" style={{ color: MUTED_TEXT }}>Photo gallery</div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {act.images.slice(0, 6).map((src, i) => (
-                        <div key={i} className="aspect-square overflow-hidden rounded-lg">
-                          <button
-                            type="button"
-                            onClick={() => setActivePhoto(src)}
-                            className="h-full w-full"
-                            aria-label={`Enlarge activity photo ${i + 1}`}
-                          >
-                            <img src={src} alt={`Activity ${i + 1}`} className="h-full w-full object-cover hover:scale-105 transition-transform" />
-                          </button>
-                        </div>
-                      ))}
+                <div className="p-5 space-y-4">
+                  {activityList.map((act, idx) => (
+                    <div key={`activity-${idx}-${act?.id || act?.name}`} className="flex gap-4 rounded-xl border border-slate-200 overflow-hidden">
+                      {act.image && (
+                        <button onClick={() => setActivePhoto(act.image)} className="w-32 flex-shrink-0 overflow-hidden">
+                          <img src={act.image} alt={act.name} className="h-full w-full object-cover hover:scale-105 transition-transform" />
+                        </button>
+                      )}
+                      <div className="flex-1 p-4">
+                        <p className="font-black text-slate-900">{act.name}</p>
+                        <p className="text-xs text-slate-500 mt-1">📅 {act.date} at {act.time} · {act.supplier}</p>
+                        <p className="text-xs text-emerald-700 mt-1 font-semibold">✓ Includes: Guided tour, entrance fees, transportation</p>
+                        {act.price && <p className="text-sm font-black text-emerald-600 mt-2">{act.price}</p>}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  ))}
+                </div>
               </section>
-            ))}
+            )}
 
-            {transferList.map((item, idx) => (
-              <section key={`transfer-${idx}-${item?.id || item?.name || "item"}`} className="rounded-2xl border border-blue-100 bg-white shadow-sm p-6 space-y-2">
-                <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Transfer</div>
-                <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>
-                  {item.name}
+            {/* TRANSFERS */}
+            {transferList.length > 0 && (
+              <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-4 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">🚗</div>
+                  <h2 className="text-lg font-black text-white">Transfers</h2>
                 </div>
-                <div className="text-sm" style={{ color: MUTED_TEXT }}>
-                  {item.route} • {item.date} • {item.supplier}
-                </div>
-                <div className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>
-                  Vehicle: {item.vehicle} • {item.shared ? "Shared transfer" : "Private transfer"}.
-                </div>
-                {item.images && item.images.length > 0 && (
-                  <div className="pt-4">
-                    <div className="text-xs font-semibold mb-2" style={{ color: MUTED_TEXT }}>Photo gallery</div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {item.images.slice(0, 6).map((src, i) => (
-                        <div key={i} className="aspect-square overflow-hidden rounded-lg">
-                          <button
-                            type="button"
-                            onClick={() => setActivePhoto(src)}
-                            className="h-full w-full"
-                            aria-label={`Enlarge transfer photo ${i + 1}`}
-                          >
-                            <img src={src} alt={`Transfer ${i + 1}`} className="h-full w-full object-cover hover:scale-105 transition-transform" />
-                          </button>
-                        </div>
-                      ))}
+                <div className="p-5 space-y-4">
+                  {transferList.map((item, idx) => (
+                    <div key={`transfer-${idx}-${item?.id || item?.name}`} className="flex gap-4 rounded-xl border border-slate-200 overflow-hidden">
+                      {item.image && (
+                        <button onClick={() => setActivePhoto(item.image)} className="w-32 flex-shrink-0 overflow-hidden">
+                          <img src={item.image} alt={item.name} className="h-full w-full object-cover hover:scale-105 transition-transform" />
+                        </button>
+                      )}
+                      <div className="flex-1 p-4">
+                        <p className="font-black text-slate-900">{item.name}</p>
+                        <p className="text-xs text-slate-500 mt-1">📍 {item.route} · 📅 {item.date} · {item.supplier}</p>
+                        <p className="text-xs text-orange-700 mt-1 font-semibold">{item.shared ? "🚌 Shared transfer" : "🚗 Private transfer"} · {item.vehicle}</p>
+                        {item.price && <p className="text-sm font-black text-orange-600 mt-2">{item.price}</p>}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  ))}
+                </div>
               </section>
-            ))}
+            )}
 
-            <section className="rounded-2xl border border-blue-100 bg-white shadow-sm p-6 space-y-2">
-              <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>Price breakdown</div>
-              <div className="space-y-1">
+            {/* PRICE BREAKDOWN */}
+            <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-slate-900 to-slate-700 px-6 py-4 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">💰</div>
+                <h2 className="text-lg font-black text-white">Price breakdown</h2>
+              </div>
+              <div className="p-5 space-y-3">
                 {breakdown.map((row) => (
-                  <div key={row.label} className="flex items-center justify-between text-sm" style={{ color: TITLE_TEXT }}>
-                    <span>{row.label}</span>
-                    <span className="font-semibold">{row.value}</span>
+                  <div key={row.label} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                    <span className="text-sm text-slate-600">{row.label}</span>
+                    <span className="text-sm font-bold text-slate-900">{row.value}</span>
                   </div>
                 ))}
-              </div>
-              <div className="border-t border-slate-200 pt-2 flex items-center justify-between">
-                <span className="text-sm font-bold" style={{ color: TITLE_TEXT }}>Total</span>
-                <span className="text-xl font-extrabold" style={{ color: PREMIUM_BLUE }}>
-                  {pricing.hasAnyPrice ? formatCurrency(pricing.total) : "On request"}
-                </span>
-              </div>
-              <div className="text-xs" style={{ color: MUTED_TEXT }}>
-                Based on {pricing.travelers} traveler(s) and {pricing.nights} nights. Final pricing is confirmed at payment with live availability.
+                <div className="rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 p-4 flex items-center justify-between mt-2">
+                  <div>
+                    <p className="text-white font-black text-lg">Total</p>
+                    <p className="text-slate-400 text-xs mt-0.5">{pricing.travelers} traveler(s) · {pricing.nights} nights</p>
+                  </div>
+                  <p className="text-3xl font-black" style={{ color: "#E6B85A" }}>
+                    {pricing.hasAnyPrice ? formatCurrency(pricing.total) : "On request"}
+                  </p>
+                </div>
+                <p className="text-xs text-slate-400 text-center">
+                  Final pricing confirmed at payment with live availability.
+                </p>
               </div>
             </section>
           </div>
 
+          {/* ── RIGHT SIDEBAR ── */}
           <aside className="space-y-4 sticky top-4">
-            <div className="rounded-2xl border border-blue-200 bg-white shadow-sm p-5 space-y-2">
-              <div className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>Travel summary</div>
-              <div className="text-sm" style={{ color: TITLE_TEXT }}>
-                {tripDraft?.departureCity || "Departure TBC"} → {tripDraft?.destination || "Destination"}
+            {/* Summary card */}
+            <div className="rounded-2xl bg-gradient-to-b from-slate-900 to-slate-800 border border-slate-700 shadow-xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-slate-700">
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Trip Summary</p>
+                <p className="text-white font-black text-lg mt-0.5">{tripDraft?.destination || "Your Trip"}</p>
               </div>
-              <div className="text-sm" style={{ color: MUTED_TEXT }}>
-                Dates: {tripDraft?.checkIn && tripDraft?.checkOut ? `${tripDraft.checkIn} to ${tripDraft.checkOut}` : "Flexible"}
+              <div className="px-5 py-4 space-y-3">
+                {[
+                  { icon: "📍", label: "Route", value: `${tripDraft?.departureCity || "TBC"} → ${tripDraft?.destination || "Destination"}` },
+                  { icon: "📅", label: "Dates", value: tripDraft?.checkIn && tripDraft?.checkOut ? `${tripDraft.checkIn} → ${tripDraft.checkOut}` : "Flexible" },
+                  { icon: "👥", label: "Travelers", value: `${tripDraft?.adults || "2"} traveler${(tripDraft?.adults || 2) > 1 ? "s" : ""}` },
+                  { icon: "✈️", label: "Flight", value: flight?.airline ? `${flight.airline} · ${flight.route || ""}` : "Selected" },
+                  { icon: "🏨", label: "Stay", value: uniqueHotels[0]?.name || "Selected" },
+                ].map(({ icon, label, value }) => (
+                  <div key={label} className="flex items-start gap-3">
+                    <span className="text-lg flex-shrink-0">{icon}</span>
+                    <div className="min-w-0">
+                      <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">{label}</p>
+                      <p className="text-white text-xs font-semibold truncate mt-0.5">{value}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="text-sm" style={{ color: MUTED_TEXT }}>
-                Travelers: {tripDraft?.adults || "2"}
+
+              {/* Total */}
+              {pricing.hasAnyPrice && (
+                <div className="px-5 pb-4">
+                  <div className="rounded-xl bg-white/10 border border-white/10 px-4 py-3 flex items-center justify-between">
+                    <p className="text-slate-300 text-sm font-bold">Total</p>
+                    <p className="font-black text-xl" style={{ color: "#E6B85A" }}>{formatCurrency(pricing.total)}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* CTA */}
+              <div className="px-5 pb-5 space-y-3">
+                {isAgentMode ? (
+                  <>
+                    <button
+                      onClick={handleShare}
+                      disabled={!allWorkflowComplete}
+                      className="w-full rounded-xl py-3.5 text-sm font-black tracking-wide transition-all disabled:opacity-40 disabled:cursor-not-allowed text-white"
+                      style={{ backgroundColor: "#0F6CF5" }}
+                    >
+                      📤 Send to client for payment
+                    </button>
+                    <button
+                      onClick={onPay}
+                      disabled={!allWorkflowComplete}
+                      className="w-full rounded-xl border border-white/20 bg-white/10 py-3 text-sm font-semibold text-white hover:bg-white/20 transition disabled:opacity-40"
+                    >
+                      👁 Preview payment page
+                    </button>
+                    {shareUrl && (
+                      <div className="rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-[10px] text-slate-400 break-all">
+                        🔗 {shareUrl}{shareStatus ? ` · ${shareStatus}` : ""}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <button
+                    onClick={onPay}
+                    disabled={!allWorkflowComplete}
+                    className="w-full rounded-xl py-3.5 text-sm font-black tracking-wide transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    style={{
+                      background: allWorkflowComplete
+                        ? "linear-gradient(135deg, #E6B85A, #d4a442)"
+                        : "#555",
+                      color: allWorkflowComplete ? "#1a0f00" : "#aaa",
+                      boxShadow: allWorkflowComplete ? "0 4px 15px rgba(230,184,90,0.4)" : "none",
+                    }}
+                  >
+                    {allWorkflowComplete ? "✓ Proceed to payment →" : "Complete checklist first"}
+                  </button>
+                )}
+                <p className="text-center text-slate-500 text-[10px]">🔒 Secure · Cancellation policy applies</p>
               </div>
             </div>
 
-            {isAgentMode ? (
-              <>
-                <button
-                  onClick={handleShare}
-                  disabled={!allWorkflowComplete}
-                  className="w-full rounded-xl px-4 py-3 text-sm font-extrabold text-white"
-                  style={{ backgroundColor: BRAND_BLUE, opacity: allWorkflowComplete ? 1 : 0.6 }}
-                >
-                  Send to client for payment
-                </button>
-                <button
-                  onClick={onPay}
-                  disabled={!allWorkflowComplete}
-                  className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm font-semibold text-blue-700"
-                  style={{ opacity: allWorkflowComplete ? 1 : 0.6 }}
-                >
-                  Preview client payment page
-                </button>
-                <div className="rounded-xl border border-blue-200 bg-white p-3 text-xs" style={{ color: MUTED_TEXT }}>
-                  Share link: {shareUrl || `/checkout/${tripId}`}
-                  {shareStatus ? ` • ${shareStatus}` : ""}
-                </div>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={onPay}
-                  disabled={!allWorkflowComplete}
-                  className="w-full rounded-xl px-4 py-3 text-sm font-extrabold text-white"
-                  style={{ backgroundColor: BRAND_BLUE, opacity: allWorkflowComplete ? 1 : 0.6 }}
-                >
-                  {allWorkflowComplete ? "Proceed to payment" : "Complete required steps first"}
-                </button>
-                <div className="rounded-xl border border-blue-200 bg-white p-3 text-xs" style={{ color: MUTED_TEXT }}>
-                  You can adjust selections before paying. Passenger/passport, seats, bags, and accommodation checks are required.
-                </div>
-              </>
-            )}
+            {/* Trust badges */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="grid grid-cols-3 gap-3 text-center">
+                {[["🔒", "Secure Pay"], ["↩️", "Cancellation"], ["⭐", "Best Rate"]].map(([icon, label]) => (
+                  <div key={label}>
+                    <div className="text-xl mb-1">{icon}</div>
+                    <p className="text-[10px] font-bold text-slate-600">{label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Edit selections shortcut */}
+            <button
+              onClick={() => router.push(`/proposals/${tripId}/select${modeSuffix}`)}
+              className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-sm font-bold text-slate-700 hover:bg-slate-50 transition flex items-center justify-center gap-2"
+            >
+              ✏️ Edit selections
+            </button>
           </aside>
         </div>
       </div>
 
-      {activePhoto ? (
+      {/* Lightbox */}
+      {activePhoto && (
         <div
-          className="fixed inset-0 z-50 bg-black/70 p-4 flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
           onClick={() => setActivePhoto(null)}
-          role="dialog"
-          aria-modal="true"
         >
           <div className="relative max-w-[92vw] max-h-[92vh]" onClick={(e) => e.stopPropagation()}>
-            <img
-              src={activePhoto}
-              alt="Enlarged photo"
-              className="max-w-[92vw] max-h-[92vh] object-contain rounded-xl"
-            />
+            <img src={activePhoto} alt="Enlarged" className="max-w-[92vw] max-h-[92vh] object-contain rounded-2xl shadow-2xl" />
             <button
-              type="button"
               onClick={() => setActivePhoto(null)}
-              className="absolute -top-3 -right-3 h-9 w-9 rounded-full bg-white text-slate-900 border border-slate-200 font-black"
-              aria-label="Close"
+              className="absolute -top-4 -right-4 h-10 w-10 rounded-full bg-white text-slate-900 border border-slate-200 font-black text-lg shadow-lg hover:bg-slate-50 transition"
             >
               ×
             </button>
           </div>
         </div>
-      ) : null}
+      )}
     </main>
   );
 }
