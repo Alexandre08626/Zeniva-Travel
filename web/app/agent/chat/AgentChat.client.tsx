@@ -163,8 +163,10 @@ export default function AgentChatClient() {
     }
   };
 
-  // Poll every 5 seconds
+  // Poll every 5 seconds — wait for user auth to be hydrated first
   useEffect(() => {
+    // Don't start polling until we have a user session (avoids 401 race condition)
+    if (!user?.email) return;
     let active = true;
     void refreshMessages();
     const interval = window.setInterval(() => {
@@ -174,7 +176,7 @@ export default function AgentChatClient() {
       active = false;
       window.clearInterval(interval);
     };
-  }, []);
+  }, [user?.email]); // re-run when user becomes available (after hydrateFromServer)
 
   const history = messages[channelId] || [];
   const totalMessages = Object.values(messages).flat().filter((m, i, arr) => arr.findIndex((x) => x.id === m.id) === i).length;

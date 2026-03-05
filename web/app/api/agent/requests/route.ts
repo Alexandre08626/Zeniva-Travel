@@ -39,6 +39,45 @@ function getCookieValue(cookieHeader: string, name: string) {
   );
 }
 
+async function requireAgentSessionAsync(request: Request) {
+  const cookies = request.headers.get("cookie") || "";
+  const token = getCookieValue(cookies, getSessionCookieName());
+  const session = verifySession(token);
+  if (!session) {
+    return { ok: false as const, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
+  }
+
+  // Use JWT roles first
+  let roles = normalizeRbacRoles(session.roles || []);
+
+  // If JWT doesn't have HQ/admin, check DB directly (role may have been upgraded since last login)
+  const isAdminFromJwt = roles.includes("hq") || roles.includes("admin");
+  if (!isAdminFromJwt && session.email && hasSupabaseEnv()) {
+    try {
+      const client = getSupabaseAdminClient().client;
+      const { data } = await client
+        .from("accounts")
+        .select("role")
+        .eq("email", session.email.toLowerCase())
+        .single();
+      if (data?.role) {
+        const dbRoles = normalizeRbacRoles([data.role]);
+        if (dbRoles.includes("hq") || dbRoles.includes("admin")) {
+          roles = dbRoles;
+        }
+      }
+    } catch { /* ignore */ }
+  }
+
+  if (!roles.length) {
+    return { ok: false as const, error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
+  }
+  const isAdmin = roles.includes("hq") || roles.includes("admin");
+  const isYachtBroker = roles.includes("yacht_broker");
+  return { ok: true as const, session, roles, isAdmin, isYachtBroker };
+}
+
+// Sync wrapper kept for POST/DELETE which don't need DB lookup
 function requireAgentSession(request: Request) {
   const cookies = request.headers.get("cookie") || "";
   const token = getCookieValue(cookies, getSessionCookieName());
@@ -46,16 +85,13 @@ function requireAgentSession(request: Request) {
   if (!session) {
     return { ok: false as const, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
-  // Use JWT roles first, but also check zeniva_roles cookie (updated by hydrateFromServer on page load)
   let roles = normalizeRbacRoles(session.roles || []);
+  // Check zeniva_roles cookie as lightweight upgrade signal
   const rolesCookie = getCookieValue(cookies, "zeniva_roles");
   if (rolesCookie) {
     try {
       const cookieRoles = normalizeRbacRoles(JSON.parse(decodeURIComponent(rolesCookie)));
-      // If cookie has higher privilege than JWT (e.g. role was upgraded in DB), use cookie roles
-      if (cookieRoles.includes("hq") || cookieRoles.includes("admin")) {
-        roles = cookieRoles;
-      }
+      if (cookieRoles.includes("hq") || cookieRoles.includes("admin")) roles = cookieRoles;
     } catch { /* ignore */ }
   }
   if (!roles.length) {
@@ -224,7 +260,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ data: requests });
     }
 
-    const gate = requireAgentSession(request);
+    // Use async version that checks DB role if JWT role is insufficient
+    const gate = await requireAgentSessionAsync(request);
     if (!gate.ok) return gate.error;
 
     const { isAdmin, isYachtBroker, session } = gate;
