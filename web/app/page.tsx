@@ -40,7 +40,7 @@ const SERVICES = [
   { icon: "🛥️", title: "Yachts", desc: "Private charters", href: "/yachts", color: "#E6B85A" },
   { icon: "🚗", title: "Transfers", desc: "Door-to-door service", href: "/chat?prompt=I+need+a+transfer", color: "#ec4899" },
   { icon: "🏖️", title: "Packages", desc: "All-inclusive deals", href: "/packages", color: "#8b5cf6" },
-  { icon: "🏠", title: "Short-term", desc: "Homes & villas", href: "/agent/listings", color: "#f59e0b" },
+  { icon: "🏠", title: "Short-term", desc: "Homes & villas", href: "/residences", color: "#f59e0b" },
 ];
 
 const STATS = [
