@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: 'Password must be at least 6 characters' }, { status: 400 });
     }
 
-    const supabase = getSupabaseAdminClient();
+    const { client: supabase } = getSupabaseAdminClient();
     const normalizedEmail = email.trim().toLowerCase();
 
     // Hash the new password using same algo as login
