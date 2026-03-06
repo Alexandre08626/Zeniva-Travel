@@ -146,8 +146,14 @@ export default function AppShell() {
     <>
       <style>{`
         [data-fullbleed="true"] { display: none !important; }
-        body { background: ${isAgentMode ? "#0A0F1E" : "#030812"} !important; }
+        body { background: ${isAgentMode ? "#040810" : "#030812"} !important; }
         main, #main-content { padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important; }
+        /* Dark agent pages in app mode */
+        .agent-page-wrapper { background: #040810 !important; min-height: 100vh; }
+        @media (display-mode: standalone) {
+          .agent-light-bg { background: #040810 !important; }
+          .agent-light-card { background: rgba(255,255,255,0.04) !important; border-color: rgba(255,255,255,0.07) !important; }
+        }
         @keyframes goldGlow { 0%,100% { filter: drop-shadow(0 0 4px rgba(230,184,90,0.3)); } 50% { filter: drop-shadow(0 0 10px rgba(230,184,90,0.7)); } }
         @keyframes callRingNav { 0% { transform:scale(1);opacity:.8; } 100% { transform:scale(1.5);opacity:0; } }
       `}</style>

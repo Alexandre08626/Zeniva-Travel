@@ -728,6 +728,12 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   );
 }
 
+import AppAgentGate from "../../src/components/AppAgentGate.client";
+
 export default function AgentPage() {
-  return <AgentDashboardPage />;
+  return (
+    <AppAgentGate>
+      <AgentDashboardPage />
+    </AppAgentGate>
+  );
 }
