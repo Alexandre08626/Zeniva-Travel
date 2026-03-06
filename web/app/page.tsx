@@ -7,6 +7,7 @@ import TravelSearchWidget from "../src/components/TravelSearchWidget";
 import LinaAvatar from "../src/components/LinaAvatar";
 import AutoTranslate from "../src/components/AutoTranslate";
 import FeaturedTripsSection from "../src/components/FeaturedTripsSection";
+import AppHomeGate from "../src/components/AppHomeGate.client";
 
 export const metadata: Metadata = {
   title: "Zeniva Travel | #1 AI Travel Concierge USA — Luxury Trips, Custom Vacations & Group Travel",
@@ -64,6 +65,7 @@ export default function HomePage() {
   };
 
   return (
+    <AppHomeGate>
     <main className="min-h-screen m-0 p-0" style={{ backgroundColor: "#F8FAFF" }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
@@ -619,5 +621,6 @@ export default function HomePage() {
         </div>
       </div>
     </main>
+    </AppHomeGate>
   );
 }
