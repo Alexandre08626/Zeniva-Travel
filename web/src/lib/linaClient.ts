@@ -105,6 +105,23 @@ export async function sendMessageToLina(
 
   const tripPatch = extractTripPatch(rawReply);
   const reply = stripTripPatch(rawReply);
+
+  // Notify agents when a client sends a message
+  if (prompt && typeof window !== "undefined") {
+    try {
+      fetch("/api/push/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer zeniva-secret-2025" },
+        body: JSON.stringify({
+          title: "✈️ New message from client",
+          body: prompt.length > 80 ? prompt.slice(0, 80) + "…" : prompt,
+          url: "/agent/chat",
+          tag: "client-message",
+        }),
+      }).catch(() => {}); // fire-and-forget, never block UI
+    } catch { /* ignore */ }
+  }
+
   return { reply, raw: rawReply, tripPatch };
 }
 

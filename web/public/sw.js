@@ -1,122 +1,113 @@
-// Zeniva Travel — Service Worker v1.0
-const CACHE_NAME = "zeniva-v1";
-const OFFLINE_URL = "/offline";
+// Zeniva Travel Service Worker v3.0 — PWA + Push Notifications
+const CACHE_NAME = "zeniva-v3";
+const STATIC_ASSETS = ["/offline", "/branding/lina-avatar.png", "/branding/lina-hero.png", "/icons/icon-192x192.png"];
 
-// Assets à mettre en cache immédiatement
-const PRECACHE_ASSETS = [
-  "/",
-  "/offline",
-  "/branding/logo.png",
-  "/branding/lina-avatar.png",
-  "/icons/icon-192x192.png",
-  "/icons/icon-512x512.png",
-];
-
-// Installation — précache les assets critiques
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_ASSETS).catch(() => {});
-    })
-  );
+// ─── Install ──────────────────────────────────────────────────────────────────
+self.addEventListener("install", (e) => {
+  e.waitUntil(caches.open(CACHE_NAME).then((c) => c.addAll(STATIC_ASSETS).catch(() => {})));
   self.skipWaiting();
 });
 
-// Activation — supprime les anciens caches
-self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
-      )
-    )
+// ─── Activate ─────────────────────────────────────────────────────────────────
+self.addEventListener("activate", (e) => {
+  e.waitUntil(
+    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
   );
   self.clients.claim();
 });
 
-// Fetch — stratégie Network First pour les pages, Cache First pour les assets statiques
-self.addEventListener("fetch", (event) => {
-  const { request } = event;
+// ─── Fetch Strategy ───────────────────────────────────────────────────────────
+self.addEventListener("fetch", (e) => {
+  const { request } = e;
   const url = new URL(request.url);
 
-  // Ignorer les requêtes non-GET et les API
-  if (request.method !== "GET") return;
-  if (url.pathname.startsWith("/api/")) return;
-  if (url.pathname.startsWith("/_next/")) {
-    // Assets Next.js: Cache First
-    event.respondWith(
-      caches.match(request).then((cached) => {
-        if (cached) return cached;
-        return fetch(request).then((response) => {
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          }
-          return response;
-        });
-      })
-    );
-    return;
-  }
-
-  // Images locales: Cache First
+  // Cache First: static assets
   if (
-    url.pathname.startsWith("/branding/") ||
+    url.pathname.startsWith("/_next/static/") ||
     url.pathname.startsWith("/icons/") ||
+    url.pathname.startsWith("/branding/") ||
     url.pathname.startsWith("/yachts/") ||
     url.pathname.startsWith("/residence-photos/")
   ) {
-    event.respondWith(
-      caches.match(request).then((cached) => {
-        if (cached) return cached;
-        return fetch(request).then((response) => {
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          }
-          return response;
-        }).catch(() => cached);
-      })
+    e.respondWith(
+      caches.match(request).then((hit) => hit || fetch(request).then((r) => {
+        if (r.ok) caches.open(CACHE_NAME).then((c) => c.put(request, r.clone()));
+        return r;
+      }))
     );
     return;
   }
 
-  // Pages HTML: Network First avec fallback offline
-  if (request.headers.get("accept")?.includes("text/html")) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          }
-          return response;
-        })
-        .catch(() => {
-          return caches.match(request).then((cached) => {
-            return cached || caches.match(OFFLINE_URL);
-          });
-        })
+  // Network First: HTML, API
+  if (request.mode === "navigate") {
+    e.respondWith(
+      fetch(request).catch(() => caches.match("/offline").then((r) => r || new Response("Offline", { status: 503 })))
     );
+    return;
   }
 });
 
-// Push notifications (pour plus tard)
+// ─── Push Notifications ───────────────────────────────────────────────────────
 self.addEventListener("push", (event) => {
   if (!event.data) return;
-  const data = event.data.json();
-  self.registration.showNotification(data.title || "Zeniva Travel", {
+  let data = {};
+  try { data = event.data.json(); } catch { data = { title: "Zeniva Travel", body: event.data.text() }; }
+
+  const options = {
     body: data.body || "You have a new message",
     icon: "/icons/icon-192x192.png",
     badge: "/icons/icon-96x96.png",
-    data: { url: data.url || "/" },
-  });
+    image: data.image || undefined,
+    tag: data.tag || "zeniva-notification",
+    renotify: true,
+    requireInteraction: false,
+    vibrate: [200, 100, 200],
+    data: { url: data.url || "/", timestamp: Date.now() },
+    actions: data.actions || [
+      { action: "open", title: "Open App" },
+      { action: "dismiss", title: "Dismiss" },
+    ],
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || "✈️ Zeniva Travel", options)
+  );
 });
 
+// ─── Notification Click ───────────────────────────────────────────────────────
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+
+  if (event.action === "dismiss") return;
+
   const url = event.notification.data?.url || "/";
-  event.waitUntil(clients.openWindow(url));
+
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      // Focus existing window if open
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && "focus" in client) {
+          client.focus();
+          client.navigate(url);
+          return;
+        }
+      }
+      // Open new window
+      if (clients.openWindow) return clients.openWindow(url);
+    })
+  );
+});
+
+// ─── Push Subscription Change ─────────────────────────────────────────────────
+self.addEventListener("pushsubscriptionchange", (event) => {
+  event.waitUntil(
+    self.registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: event.oldSubscription?.options?.applicationServerKey,
+    }).then((sub) => fetch("/api/push/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subscription: sub }),
+    }))
+  );
 });
