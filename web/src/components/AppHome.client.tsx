@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore, isAgent } from "../lib/authStore";
+import { useAuthStore, isAgent, logout } from "../lib/authStore";
 
 // ─── Animated particle orb ────────────────────────────────────────────────────
 function Orb({ x, y, size, color, delay }: { x: number; y: number; size: number; color: string; delay: number }) {
@@ -184,7 +184,7 @@ export default function AppHome() {
                     onClick={() => {
                       setShowAccountMenu(false);
                       if (item.action === "logout") {
-                        useAuthStore.getState().logout?.();
+                        logout("/");
                         router.push("/");
                       } else if (item.href) {
                         router.push(item.href);

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore, isAgent } from "../../src/lib/authStore";
+import { useAuthStore, isAgent, logout } from "../../src/lib/authStore";
 import { useTripsStore } from "../../lib/store/tripsStore";
 
 export default function ProfilePage() {
@@ -92,7 +92,7 @@ export default function ProfilePage() {
               }}>Create Account</button>
             </>
           ) : (
-            <button onClick={() => { useAuthStore.getState().logout?.(); router.push("/"); }} style={{
+            <button onClick={() => { logout("/"); }} style={{
               background: "rgba(239,68,68,0.1)",
               border: "1px solid rgba(239,68,68,0.2)",
               borderRadius: 14, padding: "14px",
