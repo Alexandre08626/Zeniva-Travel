@@ -4,6 +4,7 @@ import Link from "next/link";
 // Image from next/image replaced with <img> to avoid double-encoding local paths
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import AppDarkPageWrapper from "../../src/components/AppDarkPageWrapper.client";
 import { GRADIENT_END, GRADIENT_START, LIGHT_BG } from "../../src/design/tokens";
 import Header from "../../src/components/Header";
 import AutoTranslate from "../../src/components/AutoTranslate";
@@ -217,6 +218,7 @@ export default function YachtsPageClient() {
   };
 
     return (
+    <AppDarkPageWrapper title="Yacht Charters" emoji="🛥️" subtitle="YCN Premium Fleet · Miami & Caribbean">
     <main className="min-h-screen bg-slate-50">
       <div className="mx-auto w-full px-4 sm:px-6 pt-5">
         <Header isLoggedIn={isLoggedIn} userEmail={userEmail} />
@@ -403,5 +405,6 @@ export default function YachtsPageClient() {
         )}
       </div>
     </main>
+    </AppDarkPageWrapper>
   );
 }

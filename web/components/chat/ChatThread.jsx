@@ -6,6 +6,7 @@ import { sendMessageToLina } from "../../src/lib/linaClient";
 import Label from "../../src/components/Label";
 import { useAuthStore } from "../../src/lib/authStore";
 import { buildChatChannelId, fetchChatMessages, saveChatMessage } from "../../src/lib/chatPersistence";
+import { useIsApp } from "../../src/hooks/useIsApp";
 const quickPrompts = ["Flights", "Hotels", "All-Inclusive", "Cruise", "Excursions"];
 
 /**
@@ -199,6 +200,7 @@ function createTripFromMergedTrip(mergedTrip, proposalSuffix = "") {
 }
 
 function ChatThread({ tripId, proposalMode = "" }) {
+  const isApp = useIsApp();
   // Ajout : messages automatiques si infos manquantes
   const [promptedForHotelInfo, setPromptedForHotelInfo] = useState(false);
   const [promptedForStayType, setPromptedForStayType] = useState(false);
@@ -562,9 +564,11 @@ function ChatThread({ tripId, proposalMode = "" }) {
   };
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-2xl min-h-[70vh] md:min-h-[80vh] bg-white shadow-xl border border-slate-100">
+    <div className="flex flex-col overflow-hidden rounded-2xl min-h-[70vh] md:min-h-[80vh]"
+      style={{ background: isApp ? "#030812" : "#fff", boxShadow: isApp ? "none" : undefined, border: isApp ? "none" : undefined }}>
       {/* Header */}
-      <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100" style={{ background: "linear-gradient(135deg, #0B1B4D 0%, #0F3A8A 100%)" }}>
+      <div className="flex items-center gap-3 px-5 py-4 border-b"
+        style={{ background: "linear-gradient(135deg, #0B1B4D 0%, #0F3A8A 100%)", borderBottomColor: "rgba(255,255,255,0.08)" }}>
         <div className="relative">
           <img src="/branding/lina-avatar.png" alt="Lina" className="w-11 h-11 rounded-full ring-2 ring-yellow-400/60 object-cover" />
           <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-400 ring-2 ring-white/20" />
@@ -580,14 +584,14 @@ function ChatThread({ tripId, proposalMode = "" }) {
       </div>
 
       {/* Messages */}
-      <div ref={containerRef} className="flex-1 overflow-y-auto px-5 py-5 space-y-4 bg-slate-50" style={{ scrollbarGutter: "stable" }}>
+      <div ref={containerRef} className="flex-1 overflow-y-auto px-5 py-5 space-y-4" style={{ scrollbarGutter: "stable", background: isApp ? "#030812" : "#f8fafc" }}>
         {history.length === 0 && (
           <div className="text-center py-8">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ring-4 ring-blue-100 overflow-hidden">
               <img src="/branding/lina-avatar.png" alt="Lina" className="w-full h-full object-cover" />
             </div>
-            <p className="text-slate-900 font-black text-xl mb-1">Hi, I&apos;m Lina ✈️</p>
-            <p className="text-slate-500 text-sm mb-6">Tell me about your dream trip and I&apos;ll plan everything — flights, hotels, experiences.</p>
+            <p className="font-black text-xl mb-1" style={{ color: isApp ? "#fff" : "#0f172a" }}>Hi, I&apos;m Lina ✈️</p>
+            <p className="text-sm mb-6" style={{ color: isApp ? "rgba(255,255,255,0.45)" : "#64748b" }}>Tell me about your dream trip and I&apos;ll plan everything — flights, hotels, experiences.</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
                 { icon: "🏖️", text: "Plan a 7-day family trip from Montreal to Paris in June under $8k" },
@@ -597,10 +601,11 @@ function ChatThread({ tripId, proposalMode = "" }) {
                 <button
                   key={p.text}
                   onClick={() => handleSend(p.text)}
-                  className="rounded-xl p-4 text-left hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 bg-white border border-slate-200"
+                  className="rounded-xl p-4 text-left hover:-translate-y-0.5 transition-all duration-200"
+                  style={{ background: isApp ? "rgba(255,255,255,0.05)" : "#fff", border: isApp ? "1px solid rgba(255,255,255,0.1)" : "1px solid #e2e8f0" }}
                 >
                   <div className="text-2xl mb-2">{p.icon}</div>
-                  <div className="text-slate-600 text-xs leading-relaxed">{p.text}</div>
+                  <div className="text-xs leading-relaxed" style={{ color: isApp ? "rgba(255,255,255,0.55)" : "#475569" }}>{p.text}</div>
                 </button>
               ))}
             </div>
@@ -615,14 +620,14 @@ function ChatThread({ tripId, proposalMode = "" }) {
             <div
               className="w-full max-w-[85%] rounded-2xl px-4 py-3"
               style={m.role === "assistant"
-                ? { background: "white", border: "1px solid #e2e8f0", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }
+                ? { background: isApp ? "rgba(255,255,255,0.06)" : "white", border: isApp ? "1px solid rgba(255,255,255,0.09)" : "1px solid #e2e8f0", boxShadow: isApp ? "none" : "0 1px 4px rgba(0,0,0,0.06)" }
                 : { background: "linear-gradient(135deg, #0F3A8A, #1a4fad)", border: "none" }
               }
             >
               <div className="text-[10px] font-bold mb-1" style={{ color: m.role === "assistant" ? "#E6B85A" : "rgba(255,255,255,0.6)" }}>
                 {m.role === "assistant" ? "LINA AI" : "YOU"}
               </div>
-              <div className={`text-sm whitespace-pre-line leading-relaxed ${m.role === "assistant" ? "text-slate-800" : "text-white"}`}>{m.content}</div>
+              <div className="text-sm whitespace-pre-line leading-relaxed" style={{ color: m.role === "assistant" ? (isApp ? "rgba(255,255,255,0.85)" : "#1e293b") : "#fff" }}>{m.content}</div>
             </div>
           </div>
         ))}
@@ -630,7 +635,7 @@ function ChatThread({ tripId, proposalMode = "" }) {
         {loading && (
           <div className="flex gap-3 justify-start">
             <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full ring-2 ring-blue-100 object-cover shrink-0 mt-1" />
-            <div className="rounded-2xl px-4 py-3 bg-white border border-slate-200 shadow-sm">
+            <div className="rounded-2xl px-4 py-3 shadow-sm" style={{ background: isApp ? "rgba(255,255,255,0.06)" : "#fff", border: isApp ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e2e8f0" }}>
               <div className="text-[10px] font-bold mb-2" style={{ color: "#E6B85A" }}>LINA AI</div>
               <div className="flex gap-1.5">
                 <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "0ms" }} />
@@ -643,14 +648,20 @@ function ChatThread({ tripId, proposalMode = "" }) {
       </div>
 
       {/* Input area */}
-      <div className="px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] border-t border-slate-100 bg-white">
+      <div className="px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]"
+        style={{ borderTop: isApp ? "1px solid rgba(255,255,255,0.06)" : "1px solid #f1f5f9", background: isApp ? "#040D1A" : "#fff" }}>
         {/* Quick prompts — scroll horizontal on mobile */}
         <div className="flex gap-2 mb-3 overflow-x-auto pb-1 scrollbar-hide">
           {quickPrompts.map((qp) => (
             <button
               key={qp}
               onClick={() => onQuick(qp)}
-              className="flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-blue-700 hover:bg-blue-50 hover:border-blue-200 transition-all border border-slate-200 bg-white"
+              className="flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-all"
+              style={{
+                color: isApp ? "rgba(255,255,255,0.6)" : "#475569",
+                border: isApp ? "1px solid rgba(255,255,255,0.1)" : "1px solid #e2e8f0",
+                background: isApp ? "rgba(255,255,255,0.05)" : "#fff",
+              }}
             >
               {qp === "Flights" ? "✈️ " : qp === "Hotels" ? "🏨 " : qp === "Cruise" ? "🛳️ " : qp === "All-Inclusive" ? "🌴 " : "🎯 "}{qp}
             </button>
@@ -666,8 +677,13 @@ function ChatThread({ tripId, proposalMode = "" }) {
             onKeyDown={onKeyDown}
             placeholder="Tell Lina about your dream trip..."
             rows={3}
-            className="w-full resize-none rounded-2xl px-4 py-3 text-base text-slate-800 placeholder-slate-400 outline-none border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all bg-slate-50"
-            style={{ maxHeight: "160px", minHeight: "80px" }}
+            className="w-full resize-none rounded-2xl px-4 py-3 text-base outline-none transition-all"
+            style={{
+              maxHeight: "160px", minHeight: "80px",
+              background: isApp ? "rgba(255,255,255,0.07)" : "#f8fafc",
+              color: isApp ? "#fff" : "#1e293b",
+              border: isApp ? "1px solid rgba(255,255,255,0.12)" : "1px solid #e2e8f0",
+            }}
           />
 
           {/* Buttons row: Mic + Send — full width on mobile */}
@@ -677,7 +693,8 @@ function ChatThread({ tripId, proposalMode = "" }) {
               type="button"
               onClick={toggleMic}
               title={isListening ? "Stop" : "Voice"}
-              className={`rounded-2xl p-3 transition-all border flex-shrink-0 ${isListening ? "bg-red-500 border-red-500 text-white animate-pulse" : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"}`}
+              className={`rounded-2xl p-3 transition-all flex-shrink-0 ${isListening ? "bg-red-500 text-white animate-pulse" : ""}`}
+              style={!isListening ? { background: isApp ? "rgba(255,255,255,0.07)" : "#fff", border: isApp ? "1px solid rgba(255,255,255,0.12)" : "1px solid #e2e8f0", color: isApp ? "rgba(255,255,255,0.6)" : "#64748b" } : {}}
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
                 <path d="M12 1a4 4 0 0 0-4 4v7a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4ZM6 11a1 1 0 1 0-2 0 8 8 0 0 0 7 7.93V21H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-2.07A8 8 0 0 0 20 11a1 1 0 1 0-2 0 6 6 0 0 1-12 0Z"/>

@@ -8,6 +8,7 @@ import Header from "../../src/components/Header";
 import AutoTranslate from "../../src/components/AutoTranslate";
 import { createTrip, updateSnapshot, applyTripPatch, generateProposal, setProposalSelection } from "../../lib/store/tripsStore";
 import { normalizeListingTitle, normalizePetFriendly } from "../../src/lib/format";
+import AppDarkPageWrapper from "../../src/components/AppDarkPageWrapper.client";
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -189,6 +190,7 @@ export default function AirbnbsPage() {
   };
 
   return (
+    <AppDarkPageWrapper title="Villas & Rentals" emoji="🏡" subtitle="Premium short-term stays worldwide">
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
       <div className="w-screen left-1/2 right-1/2 -translate-x-1/2 relative">
         <div className="mx-auto w-full px-6 pt-5">
@@ -378,5 +380,6 @@ export default function AirbnbsPage() {
         </div>
       </div>
     </main>
+    </AppDarkPageWrapper>
   );
 }
