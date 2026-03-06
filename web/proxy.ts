@@ -125,7 +125,9 @@ export default function proxy(req: NextRequest) {
       if (hasPrefixSegment(pathname, "/api/agent")) {
         return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
       }
-      const redirectUrl = new URL("/", req.url);
+      const redirectUrl = new URL("/login", req.url);
+      redirectUrl.searchParams.set("redirect", pathname);
+      redirectUrl.searchParams.set("space", "agent");
       const res = NextResponse.redirect(redirectUrl);
       res.cookies.set("zeniva_active_space", "traveler", { path: "/", maxAge: 60 * 60 * 24 * 7, sameSite: "lax" });
       return res;

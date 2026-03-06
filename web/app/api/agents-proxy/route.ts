@@ -5,6 +5,16 @@ const VPS_WEBHOOK = "https://vmi3097009.contaboserver.net/webhook/zeniva-lina-ch
 const AUTH = "Bearer zeniva-secret-2025";
 
 export async function GET(req: NextRequest) {
+  // Auth check — require agent session cookie or Bearer token
+  const authHeader = req.headers.get("authorization") || "";
+  const sessionCookie = req.cookies.get("zeniva_session")?.value || "";
+  const rolesCookie = req.cookies.get("zeniva_roles")?.value || "";
+  const isInternalAuth = authHeader === AUTH;
+  const hasAgentSession = sessionCookie.length > 10 && (rolesCookie.includes("hq") || rolesCookie.includes("agent") || rolesCookie.includes("admin") || rolesCookie.includes("broker"));
+  if (!isInternalAuth && !hasAgentSession) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   // Support both ?endpoint=xxx and ?path=admin/xxx
   const pathParam = req.nextUrl.searchParams.get("path");
   if (pathParam) {
