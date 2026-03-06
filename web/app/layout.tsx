@@ -94,10 +94,17 @@ export const metadata: Metadata = {
       "Plan luxury trips with Lina AI. US-based travel agency (Delaware, NY, Virginia) serving all 50 states & Canada.",
     images: ["/branding/lina-avatar.png"],
   },
+  manifest: "/manifest.json",
   icons: {
-    icon: "/branding/logo.png",
-    apple: "/branding/logo.png",
-    shortcut: "/branding/logo.png",
+    icon: [
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/icon-152x152.png", sizes: "152x152", type: "image/png" },
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+    ],
+    shortcut: "/icons/icon-192x192.png",
   },
   category: "travel",
   classification: "Travel Agency",
@@ -117,6 +124,25 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* PWA Meta Tags */}
+        <meta name="application-name" content="Zeniva Travel" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Zeniva" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="theme-color" content="#0B1B4D" />
+        <meta name="msapplication-TileColor" content="#0B1B4D" />
+        <meta name="msapplication-TileImage" content="/icons/icon-144x144.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png" />
+        {/* Service Worker Registration */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+              navigator.serviceWorker.register('/sw.js').catch(function() {});
+            });
+          }
+        `}} />
         {/* Google Ads Tag */}
         {process.env.NEXT_PUBLIC_GOOGLE_ADS_ID && (
           <>
