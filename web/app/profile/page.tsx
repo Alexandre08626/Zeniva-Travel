@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore, isAgent, logout } from "../../src/lib/authStore";
-import { useTripsStore } from "../../lib/store/tripsStore";
+import { useAuthStore, isAgent, logout } from "@/src/lib/authStore";
+import { useTripsStore } from "@/lib/store/tripsStore";
 
 const GOLD = "#E6B85A";
 const BLUE = "#0F6CF5";
