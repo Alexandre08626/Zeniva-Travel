@@ -79,7 +79,7 @@
       "📍 Key West"
     ],
     "specs": null,
-    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/45%20Lagoon%20_%20photo%201.jpeg/:/cr=t:4.77%25",
+    "thumbnail": "/yachts/lagoon-45/photo_001.jpg",
     "images": [
       "/yachts/lagoon-45/photo_001.jpg",
       "/yachts/lagoon-45/photo_002.jpg",
@@ -160,9 +160,10 @@
       "📍 Yaya Restaurant (N. Bay Village)"
     ],
     "specs": null,
-    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/ols/2024%20Jeanneau%20DB-43%20OB-22.jpg/:/cr=t:0%25",
+    "thumbnail": "https://images.unsplash.com/photo-1524508762098-c5b5c9a57ab5?w=1200&q=80",
     "images": [
-      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/ols/2024%20Jeanneau%20DB-43%20OB-22.jpg/:/cr=t:0%25"
+      "https://images.unsplash.com/photo-1524508762098-c5b5c9a57ab5?w=1200&q=80",
+      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&q=80"
     ]
   },
   {
@@ -182,7 +183,7 @@
       "📍 Key West"
     ],
     "specs": null,
-    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/blob-ec942be.jpg/:/cr=t:0%25",
+    "thumbnail": "/yachts/searay-420/photo_001.jpg",
     "images": [
       "/yachts/searay-420/photo_001.jpg",
       "/yachts/searay-420/photo_002.jpg",
@@ -223,7 +224,7 @@
       "📍 Bayshore landing&nbsp;"
     ],
     "specs": null,
-    "thumbnail": "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/yacht-photos/yachts/48ft-sailing-catamaran-1990-2020/48%20Catamaran%20_%20Photo%201.jpg",
+    "thumbnail": "/yachts/BUBBLE/48%20Catamaran%20_%20Photo%201.png",
     "images": [
       "/yachts/BUBBLE/48%20Catamaran%20_%20Photo%201.png",
       "/yachts/BUBBLE/48%20Catamaran%20_%20Photo%2010.jpeg",
@@ -339,7 +340,7 @@
       "📍 Bill Bird Marina"
     ],
     "specs": "3 beds | 2 baths | 6 sleeps + 2 crews",
-    "thumbnail": "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/yacht-photos/yachts/50ft-azimut-50-fly-2017/50%20Azimut%20_%20Kilauea%20_%20Photo%201.jpg",
+    "thumbnail": "/yachts/KILAUEA/50%20Azimut%20_%20Kilauea%20_%20Photo%201.png",
     "images": [
       "/yachts/KILAUEA/50%20Azimut%20_%20Kilauea%20_%20Photo%201.png",
       "/yachts/KILAUEA/50%20Azimut%20_%20Kilauea%20_%20Photo%2010.png",
@@ -407,7 +408,7 @@
       "📍 Yaya restaurant (N. Bay Village)"
     ],
     "specs": "3 beds | 2 baths | 6 sleeps + 2 crews",
-    "thumbnail": "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/yacht-photos/yachts/52ft-prestige-500-fly-2017/52%20Prestige%20_%20Photo%201.jpg",
+    "thumbnail": "/yachts/52ft-prestige-500-fly-2017/photo-001.jpg",
     "images": [
       "/yachts/52ft-prestige-500-fly-2017/photo-001.jpg",
       "/yachts/52ft-prestige-500-fly-2017/photo-002.jpg",
@@ -923,7 +924,7 @@
       "📍Miami Beach Marina"
     ],
     "specs": null,
-    "thumbnail": "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/yacht-photos/yachts/60-azimut-fly-2015/50%20Cantius%20_%20Photo%201.jpg",
+    "thumbnail": "/yachts/TRIFECTA/50%20Cantius%20_%20Photo%201.jpg",
     "images": [
       "/yachts/TRIFECTA/50%20Cantius%20_%20Photo%201.jpg",
       "/yachts/TRIFECTA/50%20Cantius%20_%20Photo%2010.jpg",
@@ -964,9 +965,11 @@
       "📍Miami Beach Marina"
     ],
     "specs": null,
-    "thumbnail": "https://images.unsplash.com/photo-1578662996442-48f60103fc96?auto=format&fit=crop&w=900&q=80",
+    "thumbnail": "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=1200&q=80",
     "images": [
-      "https://images.unsplash.com/photo-1578662996442-48f60103fc96?auto=format&fit=crop&w=900&q=80"
+      "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=1200&q=80",
+      "https://images.unsplash.com/photo-1540946485063-a40da27545f8?w=1200&q=80",
+      "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1200&q=80"
     ]
   },
   {
@@ -1140,9 +1143,11 @@
       "📍 River Landing"
     ],
     "specs": null,
-    "thumbnail": "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?auto=format&fit=crop&w=900&q=80",
+    "thumbnail": "https://images.unsplash.com/photo-1568430462989-44163eb1752f?w=1200&q=80",
     "images": [
-      "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?auto=format&fit=crop&w=900&q=80"
+      "https://images.unsplash.com/photo-1568430462989-44163eb1752f?w=1200&q=80",
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80",
+      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&q=80"
     ]
   },
   {
@@ -1163,9 +1168,11 @@
       "📍 Grove Harbour Marina"
     ],
     "specs": null,
-    "thumbnail": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=80",
+    "thumbnail": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&q=80",
     "images": [
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=80"
+      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&q=80",
+      "https://images.unsplash.com/photo-1590850612516-5c1a8892f8f1?w=1200&q=80",
+      "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&q=80"
     ]
   },
   {
@@ -1186,7 +1193,7 @@
       "📍 Miami Beach Marina"
     ],
     "specs": null,
-    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/Screenshot%202025-08-08%20at%2011.04.48%E2%80%AFAM.jpg/:/cr=t:0%25,l:0.18%25,w:99.64%25,h:100%25/rs=w:360,h:270.6766917293233,cg:true",
+    "thumbnail": "/yachts/princess-88/photo_001.jpg",
     "images": [
       "/yachts/princess-88/photo_001.jpg",
       "/yachts/princess-88/photo_002.jpg",
@@ -1216,9 +1223,11 @@
       "📍 Bayside Marina"
     ],
     "specs": null,
-    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/94%20Azimut%20_%20Rosa%20Yacht.jpg/:/cr=t:5.36%25,l:5.6%25,w:88.79%25,h:89.28%25/rs=w:360,h:270.6766917293233,cg:true,m",
+    "thumbnail": "https://images.unsplash.com/photo-1590850612516-5c1a8892f8f1?w=1200&q=80",
     "images": [
-      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/94%20Azimut%20_%20Rosa%20Yacht.jpg/:/cr=t:5.36%25,l:5.6%25,w:88.79%25,h:89.28%25/rs=w:360,h:270.6766917293233,cg:true,m"
+      "https://images.unsplash.com/photo-1590850612516-5c1a8892f8f1?w=1200&q=80",
+      "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&q=80",
+      "https://images.unsplash.com/photo-1568430462989-44163eb1752f?w=1200&q=80"
     ]
   },
   {
@@ -1239,9 +1248,11 @@
       "📍Miami Beach Marina"
     ],
     "specs": null,
-    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/Screenshot%202025-08-08%20at%2011.18.16%E2%80%AFAM.jpg/:/cr=t:0%25,l:0.18%25,w:99.64%25,h:100%25/rs=w:360,h:270.6766917293233,cg:true",
+    "thumbnail": "https://images.unsplash.com/photo-1502657877623-f66bf489d236?w=1200&q=80",
     "images": [
-      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/Screenshot%202025-08-08%20at%2011.18.16%E2%80%AFAM.jpg/:/cr=t:0%25"
+      "https://images.unsplash.com/photo-1502657877623-f66bf489d236?w=1200&q=80",
+      "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1200&q=80",
+      "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=1200&q=80"
     ]
   },
   {
@@ -1263,9 +1274,11 @@
       "📍 Miami Beach Marina"
     ],
     "specs": "4 beds | 4 baths | 8 sleeps + 4 crews",
-    "thumbnail": "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/97%20San%20Lorenzo%20_%20Astonish.jpg/:/cr=t:10.14%25,l:27.99%25,w:52.19%25,h:80.65%25/rs=w:360,h:270.6766917293233,cg:true,m",
+    "thumbnail": "https://images.unsplash.com/photo-1540946485063-a40da27545f8?w=1200&q=80",
     "images": [
-      "https://img1.wsimg.com/isteam/ip/2dcec7bb-94b3-4a52-97a0-d3fa4d02ba39/97%20San%20Lorenzo%20_%20Astonish.jpg/:/cr=t:10.14%25,l:27.99%25,w:52.19%25,h:80.65%25/rs=w:360,h:270.6766917293233,cg:true,m"
+      "https://images.unsplash.com/photo-1540946485063-a40da27545f8?w=1200&q=80",
+      "https://images.unsplash.com/photo-1524508762098-c5b5c9a57ab5?w=1200&q=80",
+      "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=1200&q=80"
     ]
   },
   {
@@ -1285,7 +1298,7 @@
       "📍Island Gardens Marina"
     ],
     "specs": "5 beds | 5 baths | 11 sleeps + 5 crews",
-    "thumbnail": "https://rvlcgtlcjylozbihtpkr.supabase.co/storage/v1/object/public/yacht-photos/yachts/118-azimut-grande-36-metri-2025/118%20Azimut%20_%20Photo%201.jpg",
+    "thumbnail": "/yachts/TYCOON/118%20Azimut%20_%20Photo%201.png",
     "images": [
       "/yachts/TYCOON/118%20Azimut%20_%20Photo%201.png",
       "/yachts/TYCOON/118%20Azimut%20_%20Photo%2010.png",
