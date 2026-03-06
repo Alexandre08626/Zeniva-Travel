@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "../lib/authStore";
+import { useAuthStore, isAgent } from "../lib/authStore";
 
 // ─── Animated particle orb ────────────────────────────────────────────────────
 function Orb({ x, y, size, color, delay }: { x: number; y: number; size: number; color: string; delay: number }) {
@@ -51,6 +51,8 @@ export default function AppHome() {
   }, []);
 
   const firstName = mounted && authUser?.name ? authUser.name.split(" ")[0] : "";
+  const userIsAgent = mounted && authUser ? isAgent(authUser) : false;
+  const [showAccountMenu, setShowAccountMenu] = useState(false);
 
   const sendChat = (text: string) => {
     if (!text.trim()) return;
@@ -135,21 +137,88 @@ export default function AppHome() {
             </p>
           </div>
 
-          {/* Profile */}
-          <button
-            onClick={() => router.push("/profile")}
-            style={{
-              width: 40, height: 40, borderRadius: "50%",
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer",
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-            </svg>
-          </button>
+          {/* Profile + Agent Mode */}
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={() => setShowAccountMenu(v => !v)}
+              style={{
+                width: 40, height: 40, borderRadius: "50%",
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                cursor: "pointer",
+              }}
+            >
+              {authUser?.name ? (
+                <span style={{ fontSize: 16, fontWeight: 800, color: "white" }}>{authUser.name[0].toUpperCase()}</span>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+                </svg>
+              )}
+            </button>
+            {showAccountMenu && (
+              <div
+                style={{
+                  position: "absolute", top: 48, right: 0,
+                  background: "rgba(11,27,77,0.97)",
+                  backdropFilter: "blur(20px)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: 16,
+                  padding: 8,
+                  minWidth: 200,
+                  zIndex: 999,
+                  boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+                }}
+              >
+                {[
+                  { icon: "👤", label: "My Account", href: "/profile" },
+                  { icon: "💬", label: "Chat History", href: "/chat" },
+                  ...(userIsAgent ? [
+                    { icon: "🏢", label: "Agent Dashboard", href: "/agent", isAgent: true },
+                  ] : []),
+                  { icon: "🔑", label: authUser ? "Sign Out" : "Sign In", href: authUser ? null : "/login", action: authUser ? "logout" : null },
+                ].map((item: any) => (
+                  <button
+                    key={item.label}
+                    onClick={() => {
+                      setShowAccountMenu(false);
+                      if (item.action === "logout") {
+                        useAuthStore.getState().logout?.();
+                        router.push("/");
+                      } else if (item.href) {
+                        router.push(item.href);
+                      }
+                    }}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 10,
+                      width: "100%",
+                      background: item.isAgent ? "rgba(230,184,90,0.08)" : "transparent",
+                      border: item.isAgent ? "1px solid rgba(230,184,90,0.2)" : "none",
+                      borderRadius: 10,
+                      padding: "10px 12px",
+                      cursor: "pointer",
+                      textAlign: "left",
+                    }}
+                  >
+                    <span style={{ fontSize: 16 }}>{item.icon}</span>
+                    <span style={{
+                      fontSize: 13, fontWeight: item.isAgent ? 800 : 600,
+                      color: item.isAgent ? "#E6B85A" : "rgba(255,255,255,0.75)",
+                    }}>{item.label}</span>
+                    {item.isAgent && <span style={{ marginLeft: "auto", fontSize: 10, color: "#E6B85A", fontWeight: 800, letterSpacing: "0.05em" }}>AGENT</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+            {/* Click outside to close */}
+            {showAccountMenu && (
+              <div
+                style={{ position: "fixed", inset: 0, zIndex: 998 }}
+                onClick={() => setShowAccountMenu(false)}
+              />
+            )}
+          </div>
         </div>
 
         {/* ── LINA HERO ─────────────────────────────────────── */}
@@ -404,8 +473,8 @@ export default function AppHome() {
                 border: "rgba(34,197,94,0.15)",
               },
               {
-                emoji: "🤖", title: "AI Agents",
-                sub: "Meet the Zeniva team", href: "/ai-agents",
+                emoji: "🌍", title: "Destinations",
+                sub: "Explore the world", href: "/search",
                 gradient: "linear-gradient(135deg, rgba(168,85,247,0.1), rgba(11,27,77,0.4))",
                 border: "rgba(168,85,247,0.15)",
               },

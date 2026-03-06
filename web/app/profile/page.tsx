@@ -1,13 +1,16 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "../../src/lib/authStore";
+import { useAuthStore, isAgent } from "../../src/lib/authStore";
 import { useTripsStore } from "../../lib/store/tripsStore";
 
 export default function ProfilePage() {
   const router = useRouter();
   const authUser = useAuthStore((s) => s.user);
   const { trips } = useTripsStore((s) => ({ trips: s.trips }));
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const userIsAgent = mounted && authUser ? isAgent(authUser) : false;
 
   return (
     <div style={{
@@ -46,15 +49,15 @@ export default function ProfilePage() {
             { emoji: "📋", label: "My Proposals", sub: `${trips.length} trip(s) in progress`, href: "/chat" },
             { emoji: "🛥️", label: "Yacht Charters", sub: "Browse luxury yachts in Miami", href: "/yachts" },
             { emoji: "🏡", label: "Villas & Rentals", sub: "Premium short-term stays", href: "/residences" },
-            { emoji: "🤖", label: "AI Agents", sub: "Meet the Zeniva team", href: "/ai-agents" },
+            ...(userIsAgent ? [{ emoji: "🏢", label: "Agent Dashboard", sub: "Switch to agent workspace", href: "/agent", isAgent: true }] : []),
           ].map((item) => (
             <button
               key={item.label}
               onClick={() => router.push(item.href)}
               style={{
                 display: "flex", alignItems: "center", gap: 14,
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.07)",
+                background: (item as any).isAgent ? "rgba(230,184,90,0.06)" : "rgba(255,255,255,0.04)",
+                border: (item as any).isAgent ? "1px solid rgba(230,184,90,0.2)" : "1px solid rgba(255,255,255,0.07)",
                 borderRadius: 16, padding: "14px 16px",
                 cursor: "pointer", textAlign: "left",
                 WebkitTapHighlightColor: "transparent",
