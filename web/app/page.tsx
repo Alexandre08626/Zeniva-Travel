@@ -77,7 +77,7 @@ export default function HomePage() {
       ══════════════════════════════════════════ */}
       <section className="sm:hidden" style={{ marginLeft: "calc(-1 * max(0px, (100vw - 100%) / 2))", marginRight: "calc(-1 * max(0px, (100vw - 100%) / 2))", width: "100vw", maxWidth: "100vw" }}>
         {/* Hero mobile */}
-        <div className="relative min-h-screen overflow-hidden" style={{ background: "linear-gradient(160deg, #0F3A8A 0%, #1a4fad 40%, #2563eb 100%)" }}>
+        <div className="relative min-h-screen overflow-hidden" style={{ background: "linear-gradient(160deg, #050E1F 0%, #0A1E4A 40%, #0F3A8A 100%)" }}>
           {/* Animated orbs */}
           <div className="absolute top-[-80px] right-[-60px] w-72 h-72 rounded-full opacity-20" style={{ background: "radial-gradient(circle, #E6B85A, transparent)", filter: "blur(40px)", animation: "pulse 4s ease-in-out infinite" }} />
           <div className="absolute top-[30%] left-[-80px] w-64 h-64 rounded-full opacity-15" style={{ background: "radial-gradient(circle, #6366f1, transparent)", filter: "blur(50px)" }} />
@@ -135,7 +135,7 @@ export default function HomePage() {
                     Travel Genius
                   </span>
                 </h1>
-                <p className="text-white/90 text-sm leading-relaxed max-w-xs mx-auto">
+                <p className="text-white text-sm leading-relaxed max-w-xs mx-auto font-medium">
                   Tell Lina where you want to go. She plans flights, hotels & experiences in seconds.
                 </p>
               </div>
@@ -147,7 +147,7 @@ export default function HomePage() {
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg" style={{ background: "linear-gradient(135deg, #0B1B4D, #0F6CF5)" }}>💬</div>
                     <div>
                       <div className="text-sm font-black text-slate-900">Chat with Lina</div>
-                      <div className="text-xs text-slate-400">Plan your dream trip</div>
+                      <div className="text-xs text-slate-600 font-semibold">Plan your dream trip</div>
                     </div>
                   </div>
                   <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
@@ -155,32 +155,32 @@ export default function HomePage() {
                   </div>
                 </Link>
 
-                <Link href="/call" className="flex items-center justify-between bg-white/20 backdrop-blur border border-white/15 rounded-2xl p-4 active:scale-[0.98] transition-transform">
+                <Link href="/call" className="flex items-center justify-between rounded-2xl p-4 active:scale-[0.98] transition-transform border border-white/30" style={{ background: "rgba(255,255,255,0.18)" }}>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg bg-white/10">📞</div>
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style={{ background: "rgba(255,255,255,0.2)" }}>📞</div>
                     <div>
                       <div className="text-sm font-black text-white">Call Lina</div>
-                      <div className="text-xs text-white/85">Voice AI concierge</div>
+                      <div className="text-xs text-white font-semibold opacity-90">Voice AI concierge</div>
                     </div>
                   </div>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
                 </Link>
               </div>
 
               {/* Quick tags */}
               <div className="mt-6 flex flex-wrap justify-center gap-2">
                 {["🏖️ Beach", "💑 Couples", "👨‍👩‍👧 Family", "🏔️ Adventure", "🛥️ Yacht"].map((t) => (
-                  <Link key={t} href={`/chat?prompt=${encodeURIComponent(t.split(" ")[1] + " trip")}`} className="rounded-full bg-white/25 border border-white/10 px-3 py-1.5 text-xs font-semibold text-white/85 active:bg-white/15">{t}</Link>
+                  <Link key={t} href={`/chat?prompt=${encodeURIComponent(t.split(" ")[1] + " trip")}`} className="rounded-full border border-white/40 px-3 py-1.5 text-xs font-bold text-white active:bg-white/20" style={{ background: "rgba(255,255,255,0.22)" }}>{t}</Link>
                 ))}
               </div>
             </div>
 
             {/* Stats bar */}
-            <div className="mt-8 grid grid-cols-4 gap-2 bg-white/25 backdrop-blur rounded-2xl p-4 border border-white/10">
+            <div className="mt-8 grid grid-cols-4 gap-2 rounded-2xl p-4 border border-white/30" style={{ background: "rgba(255,255,255,0.20)" }}>
               {STATS.map((s) => (
                 <div key={s.value} className="text-center">
                   <div className="text-base font-black text-white">{s.value}</div>
-                  <div className="text-[9px] text-white/85 mt-0.5">{s.label}</div>
+                  <div className="text-[9px] text-white font-semibold mt-0.5 opacity-90">{s.label}</div>
                 </div>
               ))}
             </div>
@@ -196,7 +196,7 @@ export default function HomePage() {
                 <img src={d.img} alt={d.name} className="w-full h-44 object-cover" />
                 <div className="absolute inset-0" style={{ background: "linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 60%)" }} />
                 <div className="absolute bottom-0 left-0 p-3">
-                  <div className="text-xs font-bold text-white/85">{d.country}</div>
+                  <div className="text-xs font-bold text-white opacity-95">{d.country}</div>
                   <div className="text-sm font-black text-white">{d.name}</div>
                   <span className="inline-block mt-1 rounded-full px-2 py-0.5 text-[9px] font-bold text-white" style={{ backgroundColor: d.color + "90" }}>{d.tag}</span>
                 </div>
@@ -219,7 +219,7 @@ export default function HomePage() {
             <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full" />
             <span className="text-white font-black">Zeniva Travel</span>
           </div>
-          <div className="flex flex-wrap gap-4 text-white/85 text-xs mb-4">
+          <div className="flex flex-wrap gap-4 text-white text-xs mb-4 font-semibold opacity-90">
             <Link href="/about">About</Link>
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
