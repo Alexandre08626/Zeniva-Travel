@@ -226,24 +226,40 @@ function ChatThread({ tripId, proposalMode = "" }) {
     containerRef.current.scrollTop = containerRef.current.scrollHeight;
   }, [history]);
 
+  // Poll for new messages (including agent replies) every 8 seconds
   useEffect(() => {
     if (!accountChannelId) return;
     let active = true;
+    const seenIds = new Set();
+
     const load = async () => {
-      const rows = await fetchChatMessages(accountChannelId);
-      if (!active || !rows.length) return;
-      const mapped = rows.map((row) => {
-        const createdAt = row?.createdAt || row?.created_at || new Date().toISOString();
-        const sender = row?.senderRole || row?.sender_role;
-        const role = sender === "lina" || sender === "agent" || sender === "hq" ? "assistant" : "user";
-        const content = String(row?.message || "").trim() || "Message";
-        return { id: String(row?.id || createdAt), role, content, createdAt };
-      });
-      mergeTripMessages(tripId, mapped);
+      try {
+        const rows = await fetchChatMessages(accountChannelId);
+        if (!active || !rows.length) return;
+        const newRows = rows.filter((row) => {
+          const id = String(row?.id || "");
+          if (!id || seenIds.has(id)) return false;
+          seenIds.add(id);
+          return true;
+        });
+        if (!newRows.length) return;
+        const mapped = newRows.map((row) => {
+          const createdAt = row?.createdAt || row?.created_at || new Date().toISOString();
+          const sender = row?.senderRole || row?.sender_role;
+          const role = sender === "lina" || sender === "agent" || sender === "hq" ? "assistant" : "user";
+          const content = String(row?.message || "").trim() || "Message";
+          return { id: String(row?.id || createdAt), role, content, createdAt };
+        });
+        mergeTripMessages(tripId, mapped);
+      } catch { /* ignore */ }
     };
+
     void load();
+    // Poll every 8s for agent replies
+    const iv = setInterval(() => { if (active) void load(); }, 8000);
     return () => {
       active = false;
+      clearInterval(iv);
     };
   }, [accountChannelId, tripId]);
 

@@ -297,7 +297,9 @@ export async function GET(request: Request) {
 
     // Allow public read for a specific non-hq channel (client chat history)
     // Clients can read their own channel without agent auth
-    const isPublicChannelRead = channelId && channelId !== "hq" && channelId.startsWith("agent-");
+    // Allow clients to read their own chat history (acct- channels) without auth
+    // Also allow reading agent- channels without auth
+    const isPublicChannelRead = channelId && channelId !== "hq" && (channelId.startsWith("agent-") || channelId.startsWith("acct-") || channelId.startsWith("contact-"));
     if (isPublicChannelRead) {
       if (hasSupabaseEnv()) {
         const requests = await readRequestsFromSupabaseByContains(channelId);
@@ -366,23 +368,20 @@ export async function POST(request: Request) {
       // Try x-user-email header first (used by AgentChat.client.tsx — bypasses JWT timing)
       const emailHeader = (request.headers.get("x-user-email") || "").toLowerCase().trim();
       if (emailHeader) {
-        // Verify HQ role via DB
+        // Verify agent role via DB (any agent role can post)
         const { client: adminClient } = getSupabaseAdminClient();
         const { data: acct } = await adminClient.from("accounts").select("role").eq("email", emailHeader).maybeSingle();
         const dbRole = acct?.role || "";
-        const isHqViaHeader = ["hq", "admin", "super_admin"].includes(dbRole);
-        if (!isHqViaHeader) {
+        const validAgentRoles = ["hq", "admin", "super_admin", "travel_agent", "yacht_broker", "influencer"];
+        if (!validAgentRoles.includes(dbRole)) {
           return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
-        // HQ via header — all good, no channel restriction
+        // Agent via header — allow posting to any channel (they're replying to client channels)
       } else {
         const gate = await requireAgentSessionAsync(request);
         if (!gate.ok) return gate.error;
-        // Non-admin agents are locked to their own channel (plus HQ)
-        if (!gate.isAdmin) {
-          const agentChannel = toAgentChannelIdFromEmail(gate.session.email);
-          body.channelIds = [agentChannel, "hq"];
-        }
+        // Agents can post to the channel specified in the request (client channel)
+        // Do NOT overwrite channelIds — agents reply into the client's channel
       }
     }
 
@@ -454,7 +453,7 @@ export async function POST(request: Request) {
 <p>Hi ${clientInfo.name},</p>
 <p>Our team has replied to your message:</p>
 <blockquote style="border-left:4px solid #E6B85A;padding:12px 16px;margin:16px 0;color:#333;">${msgText.replace(/\n/g,"<br/>")}</blockquote>
-<p><a href="https://www.zenivatravel.com/chat/agent" style="background:#0B1B4D;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;">Reply in chat →</a></p>
+<p><a href="https://www.zenivatravel.com/chat" style="background:#0B1B4D;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;">View your conversation →</a></p>
 <p style="color:#888;font-size:12px">— The Zeniva Travel Team</p>
 </div>`,
               });

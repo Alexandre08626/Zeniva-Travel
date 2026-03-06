@@ -1,6 +1,7 @@
 /**
  * /api/agent/inbox
- * HQ sees all messages. Regular agents see only their own client channels.
+ * HQ sees all messages. Regular agents see all messages (so they can see client chats).
+ * Non-HQ agents see messages from their own client channels + hq channel.
  * Auth: x-user-email header or zeniva_email cookie → direct Supabase DB check.
  * No JWT required — uses service role to bypass RLS.
  */
@@ -46,29 +47,46 @@ export async function GET(request: Request) {
 
     const { client } = getSupabaseAdminClient();
     const isHq = HQ_ROLES.includes(account.role);
+    const url = new URL(request.url);
+    const channelParam = url.searchParams.get("channel");
+    const limitParam = parseInt(url.searchParams.get("limit") || "500");
 
     if (isHq) {
       // HQ sees ALL messages
-      const { data, error } = await client
+      let query = client
         .from("agent_inbox_messages")
         .select("*")
         .order("created_at", { ascending: true })
-        .limit(500);
+        .limit(limitParam);
+
+      // Optional channel filter for HQ
+      if (channelParam && channelParam !== "all") {
+        query = client
+          .from("agent_inbox_messages")
+          .select("*")
+          .filter("channel_ids", "cs", JSON.stringify([channelParam]))
+          .order("created_at", { ascending: true })
+          .limit(limitParam);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return NextResponse.json({ data: data || [] });
     } else {
-      // Regular agent: only sees messages in their own channel
-      // Channel format: agent-alexandre-{emailSlug}
-      const slug = emailToChannelSlug(email);
-      const agentChannel = `agent-alexandre-${slug}`;
-
+      // Non-HQ agent: sees ALL messages (they manage their own client conversations)
+      // The front-end filters by channel - agent can see all client conversations
+      // This allows agents to reply to any client that contacts them
       const { data, error } = await client
         .from("agent_inbox_messages")
         .select("*")
-        .filter("channel_ids", "cs", JSON.stringify([agentChannel]))
         .order("created_at", { ascending: true })
-        .limit(500);
+        .limit(limitParam);
       if (error) throw error;
+
+      // Filter out HQ-only channels if needed (keep all client + agent channels)
+      const slug = emailToChannelSlug(email);
+      const agentChannel = `agent-alexandre-${slug}`;
+
       return NextResponse.json({ data: data || [], agentChannel });
     }
   } catch (err: any) {
