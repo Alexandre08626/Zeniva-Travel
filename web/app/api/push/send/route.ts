@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
           if (e.statusCode === 410 || e.statusCode === 404) {
             // Expired — remove
             try {
-              await supabase.from("push_subscriptions").delete().eq("endpoint", row.endpoint || sub?.endpoint);
+              await supabase.from("push_subscriptions").delete().eq("endpoint", row.endpoint);
             } catch { /* ignore */ }
           }
         }
