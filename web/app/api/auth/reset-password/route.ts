@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       .from('accounts')
       .update({ password_hash: hashed })
       .eq('email', normalizedEmail)
-      .select('id', { count: 'exact', head: true });
+      .select('id');
 
     if (error) {
       console.error('[reset-password] Supabase error:', error);
