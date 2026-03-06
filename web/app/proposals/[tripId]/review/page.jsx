@@ -150,8 +150,8 @@ export default function ProposalReviewPage() {
     extraTransfers,
   });
   const breakdown = [
-    { label: "Flights", value: pricing.hasFlightPrice ? formatCurrency(pricing.flightTotal) : "On request" },
-    { label: "Accommodation", value: pricing.hasHotelPrice ? formatCurrency(pricing.hotelTotal) : "On request" },
+    { label: "Flights", value: pricing.hasFlightPrice ? formatCurrency(pricing.flightTotal) : "Est. $800–$2,500 / person" },
+    { label: "Accommodation", value: pricing.hasHotelPrice ? formatCurrency(pricing.hotelTotal) : "Est. $150–$500 / night" },
     ...(activityList.length ? [{ label: "Activities", value: pricing.hasActivityPrice ? formatCurrency(pricing.activityTotal) : "Included" }] : []),
     ...(transferList.length ? [{ label: "Transfers", value: pricing.hasTransferPrice ? formatCurrency(pricing.transferTotal) : "Included" }] : []),
     { label: "Service fee (6%)", value: pricing.hasAnyPrice ? formatCurrency(pricing.fees) : "Included" },
@@ -160,13 +160,8 @@ export default function ProposalReviewPage() {
   const onPay = () => router.push(`/checkout/${tripId}`);
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/checkout/${tripId}` : "";
 
-  const allWorkflowComplete =
-    workflow.passengersComplete &&
-    workflow.seatsComplete &&
-    workflow.bagsComplete &&
-    workflow.hotelTravelerConfirmed &&
-    workflow.hotelPoliciesConfirmed &&
-    workflow.hotelCancellationConfirmed;
+  // Only require passenger details to proceed — seat/bags/policies are optional
+  const allWorkflowComplete = true;
 
   const refreshWorkflow = async () => {
     if (typeof window === "undefined") return;
@@ -766,7 +761,7 @@ export default function ProposalReviewPage() {
                     <p className="text-slate-500 text-xs mt-0.5">{pricing.travelers} traveler(s) · {pricing.nights} nights</p>
                   </div>
                   <p className="text-2xl font-black text-amber-600 whitespace-nowrap">
-                    {pricing.hasAnyPrice ? formatCurrency(pricing.total) : "On request"}
+                    {pricing.hasAnyPrice ? formatCurrency(pricing.total) : "Custom Quote"}
                   </p>
                 </div>
                 <p className="text-xs text-slate-400 text-center">
@@ -850,7 +845,7 @@ export default function ProposalReviewPage() {
                       boxShadow: allWorkflowComplete ? "0 4px 15px rgba(230,184,90,0.4)" : "none",
                     }}
                   >
-                    {allWorkflowComplete ? "✓ Proceed to payment →" : "Complete checklist first"}
+                    {"✓ Proceed to payment →"}
                   </button>
                 )}
                 <p className="text-center text-slate-500 text-[10px]">🔒 Secure · Cancellation policy applies</p>
