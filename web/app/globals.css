@@ -625,3 +625,22 @@ section[data-fullbleed="true"] div {
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
+
+/* ── MOBILE UX FIXES (Audit 2026-03-06) ── */
+/* Minimum touch target size on mobile */
+@media (max-width: 640px) {
+  /* Minimum font sizes — no text smaller than 11px on mobile */
+  .text-\[9px\]  { font-size: 11px !important; }
+  .text-\[10px\] { font-size: 12px !important; }
+  .text-\[11px\] { font-size: 12px !important; }
+
+  /* Minimum touch targets for links and buttons */
+  a.mobile-menu-btn,
+  button.mobile-menu-btn {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}

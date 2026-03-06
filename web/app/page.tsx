@@ -10,14 +10,14 @@ import FeaturedTripsSection from "../src/components/FeaturedTripsSection";
 import AppHomeGate from "../src/components/AppHomeGate.client";
 
 export const metadata: Metadata = {
-  title: "Zeniva Travel | #1 AI Travel Concierge USA — Luxury Trips, Custom Vacations & Group Travel",
+  title: "#1 AI Travel Concierge USA — Luxury Trips & Custom Vacations",
   description: "Zeniva Travel — America's AI travel agency. Plan luxury vacations, custom trips & group travel with Lina AI, available 24/7. Incorporated in Delaware. Start planning in seconds.",
   alternates: {
     canonical: "https://zenivatravel.com",
     languages: { "en-US": "https://zenivatravel.com", "fr-CA": "https://zenivatravel.com/fr" },
   },
   openGraph: {
-    title: "Zeniva Travel | AI Travel Concierge USA",
+    title: "AI Travel Concierge USA",
     description: "America's AI travel agency. Luxury vacations, custom trips, yacht charters — planned by Lina AI in seconds.",
     url: "https://zenivatravel.com",
     siteName: "Zeniva Travel",
@@ -70,7 +70,7 @@ export default function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
       {/* ── HEADER ── */}
-      <div className="hidden sm:block w-full px-6 bg-white border-b border-slate-100 shadow-sm sticky top-0 z-50" data-fullbleed="true">
+      <div className="w-full px-4 sm:px-6 bg-white border-b border-slate-100 shadow-sm sticky top-0 z-50" data-fullbleed="true">
         <Header isLoggedIn={isLoggedIn} userEmail={userEmail} />
       </div>
 
@@ -131,12 +131,12 @@ export default function HomePage() {
                 <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur rounded-full px-4 py-1.5 mb-4 border border-white/15">
                   <span className="text-[10px] font-bold text-yellow-300 uppercase tracking-widest">✨ AI-Powered Travel</span>
                 </div>
-                <h1 className="text-4xl font-black text-white leading-none tracking-tight mb-3">
+                <p className="text-4xl font-black text-white leading-none tracking-tight mb-3" role="heading" aria-level={1}>
                   Your Personal<br/>
                   <span style={{ background: "linear-gradient(90deg, #E6B85A, #fff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                     Travel Genius
                   </span>
-                </h1>
+                </p>
                 <p className="text-white text-sm leading-relaxed max-w-xs mx-auto font-medium">
                   Tell Lina where you want to go. She plans flights, hotels & experiences in seconds.
                 </p>
