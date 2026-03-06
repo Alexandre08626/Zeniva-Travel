@@ -1386,52 +1386,51 @@ export default function ProposalSelectPage() {
                   return (
                     <div key={f.id} className={`rounded-2xl border-2 transition-all ${active ? "border-blue-500 bg-blue-50 shadow-md" : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"}`}>
                       <button onClick={() => onSelectFlight(f)} className="w-full text-left p-4">
-                        <div className="flex items-center gap-4">
-                          {/* Airline logo */}
-                          <div className="flex-shrink-0">
-                            {airlineLogo ? (
-                              <img src={airlineLogo} alt={f.airline} className="h-12 w-12 rounded-full border border-slate-200 bg-white p-1 object-contain shadow-sm" loading="lazy" />
-                            ) : (
-                              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-lg font-black text-blue-700">{(f.airline || "A")[0]}</div>
-                            )}
-                          </div>
-
-                          {/* Flight info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-sm font-bold text-slate-900">{f.airline}</span>
-                              {f.flightNumber && <span className="text-xs text-slate-400 bg-slate-100 rounded px-1.5 py-0.5">{f.flightNumber}</span>}
-                              {f.layovers === 0 && <span className="text-[10px] font-bold bg-green-100 text-green-700 rounded-full px-2 py-0.5">DIRECT</span>}
-                              {f.layovers > 0 && <span className="text-[10px] font-bold bg-orange-100 text-orange-700 rounded-full px-2 py-0.5">{f.layovers} stop{f.layovers > 1 ? "s" : ""}</span>}
+                        {/* Row 1: logo + airline + price */}
+                        <div className="flex items-center justify-between gap-3 mb-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="flex-shrink-0">
+                              {airlineLogo ? (
+                                <img src={airlineLogo} alt={f.airline} className="h-10 w-10 rounded-full border border-slate-200 bg-white p-1 object-contain shadow-sm" loading="lazy" />
+                              ) : (
+                                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-base font-black text-blue-700">{(f.airline || "A")[0]}</div>
+                              )}
                             </div>
-                            {/* Timeline */}
-                            <div className="flex items-center gap-2">
-                              <div className="text-center">
-                                <p className="text-lg font-black text-slate-900">{depTime?.trim() || "–"}</p>
-                                <p className="text-xs text-slate-500">{f.originName || ""}</p>
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <span className="text-sm font-bold text-slate-900 truncate">{f.airline}</span>
+                                {f.flightNumber && <span className="text-xs text-slate-400 bg-slate-100 rounded px-1.5 py-0.5 flex-shrink-0">{f.flightNumber}</span>}
+                                {f.layovers === 0 && <span className="text-[10px] font-bold bg-green-100 text-green-700 rounded-full px-2 py-0.5 flex-shrink-0">DIRECT</span>}
+                                {f.layovers > 0 && <span className="text-[10px] font-bold bg-orange-100 text-orange-700 rounded-full px-2 py-0.5 flex-shrink-0">{f.layovers} stop{f.layovers > 1 ? "s" : ""}</span>}
                               </div>
-                              <div className="flex-1 relative flex items-center">
-                                <div className="h-px flex-1 bg-slate-300" />
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <span className="bg-white px-2 text-[10px] text-slate-400 font-medium">{f.duration}</span>
-                                </div>
-                              </div>
-                              <div className="text-center">
-                                <p className="text-lg font-black text-slate-900">{arrTime?.trim() || "–"}</p>
-                                <p className="text-xs text-slate-500">{f.destinationName || ""}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs text-slate-500">{f.fare}</span>
-                              {f.bags && <span className="text-xs text-slate-400">· {f.bags}</span>}
                             </div>
                           </div>
-
-                          {/* Price */}
                           <div className="text-right flex-shrink-0">
-                            <p className="text-xl font-black text-blue-600">{f.price}</p>
-                            {active && <p className="text-[10px] font-bold text-blue-500 mt-1">✓ Selected</p>}
+                            <p className="text-lg font-black text-blue-600 whitespace-nowrap">{f.price}</p>
+                            {active && <p className="text-[10px] font-bold text-blue-500">✓ Selected</p>}
                           </div>
+                        </div>
+                        {/* Row 2: full-width timeline */}
+                        <div className="flex items-center gap-2 w-full">
+                          <div className="text-center flex-shrink-0">
+                            <p className="text-base font-black text-slate-900">{depTime?.trim() || "–"}</p>
+                            <p className="text-[10px] text-slate-500 max-w-[60px] truncate">{f.originName || ""}</p>
+                          </div>
+                          <div className="flex-1 relative flex items-center min-w-0">
+                            <div className="h-px w-full bg-slate-300" />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="bg-white px-1 text-[10px] text-slate-400 font-medium whitespace-nowrap">{f.duration}</span>
+                            </div>
+                          </div>
+                          <div className="text-center flex-shrink-0">
+                            <p className="text-base font-black text-slate-900">{arrTime?.trim() || "–"}</p>
+                            <p className="text-[10px] text-slate-500 max-w-[60px] truncate">{f.destinationName || ""}</p>
+                          </div>
+                        </div>
+                        {/* Row 3: fare info */}
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-xs text-slate-500">{f.fare}</span>
+                          {f.bags && <span className="text-xs text-slate-400">· {f.bags}</span>}
                         </div>
                       </button>
 
@@ -1730,8 +1729,8 @@ export default function ProposalSelectPage() {
             {/* Timeline */}
             <div className="px-6 py-5 bg-blue-50 border-b border-blue-100">
               <div className="flex items-center gap-4">
-                <div className="text-center min-w-[80px]">
-                  <p className="text-3xl font-black text-slate-900">{(flightModal.times || "").split("–")[0]?.trim()}</p>
+                <div className="text-center flex-shrink-0">
+                  <p className="text-xl font-black text-slate-900 whitespace-nowrap">{(flightModal.times || "").split("–")[0]?.trim()}</p>
                   <p className="text-xs font-bold text-slate-600 mt-1">{flightModal.route?.split("→")[0]?.trim() || "Departure"}</p>
                   {flightModal.date && <p className="text-[10px] text-slate-400 mt-0.5">{flightModal.date}</p>}
                 </div>
@@ -1743,8 +1742,8 @@ export default function ProposalSelectPage() {
                     </div>
                   </div>
                 </div>
-                <div className="text-center min-w-[80px]">
-                  <p className="text-3xl font-black text-slate-900">{(flightModal.times || "").split("–")[1]?.trim()}</p>
+                <div className="text-center flex-shrink-0">
+                  <p className="text-xl font-black text-slate-900 whitespace-nowrap">{(flightModal.times || "").split("–")[1]?.trim()}</p>
                   <p className="text-xs font-bold text-slate-600 mt-1">{flightModal.route?.split("→")[1]?.trim() || "Arrival"}</p>
                 </div>
               </div>

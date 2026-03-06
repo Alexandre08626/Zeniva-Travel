@@ -589,19 +589,19 @@ export default function ProposalReviewPage() {
                     </div>
                     {/* Timeline */}
                     {flight.times && (
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="text-center">
-                          <p className="text-2xl font-black text-slate-900">{flight.times.split("–")[0]?.trim()}</p>
+                      <div className="flex items-center gap-2 mb-2 w-full">
+                        <div className="text-center flex-shrink-0">
+                          <p className="text-lg font-black text-slate-900 whitespace-nowrap">{flight.times.split("–")[0]?.trim()}</p>
                           <p className="text-xs text-slate-500">Departure</p>
                         </div>
-                        <div className="flex-1 relative flex items-center">
+                        <div className="flex-1 relative flex items-center min-w-0">
                           <div className="h-px w-full bg-slate-200" />
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="bg-white px-2 text-[10px] text-slate-400">{flight.duration}</span>
+                            <span className="bg-white px-1 text-[10px] text-slate-400 whitespace-nowrap">{flight.duration}</span>
                           </div>
                         </div>
-                        <div className="text-center">
-                          <p className="text-2xl font-black text-slate-900">{flight.times.split("–")[1]?.trim()}</p>
+                        <div className="text-center flex-shrink-0">
+                          <p className="text-lg font-black text-slate-900 whitespace-nowrap">{flight.times.split("–")[1]?.trim()}</p>
                           <p className="text-xs text-slate-500">Arrival</p>
                         </div>
                       </div>
@@ -765,7 +765,7 @@ export default function ProposalReviewPage() {
                     <p className="text-slate-900 font-black text-lg">Total</p>
                     <p className="text-slate-500 text-xs mt-0.5">{pricing.travelers} traveler(s) · {pricing.nights} nights</p>
                   </div>
-                  <p className="text-3xl font-black text-amber-600">
+                  <p className="text-2xl font-black text-amber-600 whitespace-nowrap">
                     {pricing.hasAnyPrice ? formatCurrency(pricing.total) : "On request"}
                   </p>
                 </div>
