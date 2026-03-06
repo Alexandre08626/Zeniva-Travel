@@ -1,17 +1,17 @@
 "use client";
 export const dynamic = "force-dynamic";
 import Link from "next/link";
-import { useEffect, useState, FormEvent } from "react";
+import { useEffect, useState, useMemo, FormEvent } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore, isHQ, logout, hasPermission } from "../../src/lib/authStore";
 import { normalizeRbacRole } from "../../src/lib/rbac";
 import { toAgentWorkspaceId } from "../../src/lib/agent/agentWorkspace";
+import LinaAvatar from "../../src/components/LinaAvatar";
 
 const AUTH = "Bearer zeniva-secret-2025";
-const GOLD  = "#E6B85A";
-const BLUE  = "#0F6CF5";
-const GREEN = "#10B981";
-const RED   = "#ef4444";
+const PREMIUM_BLUE = "#0B1B4D";
+const BRAND_BLUE = "#0F6CF5";
+const ACCENT_GOLD = "#E6B85A";
 const IMPERSONATE_KEY = "zeniva_impersonating";
 
 type AgentStatus = "live" | "active" | "idle" | "error";
@@ -22,593 +22,702 @@ type AIAgent = {
 };
 
 const AI_AGENTS: AIAgent[] = [
-  { id:"lina",  name:"Lina",  emoji:"🤖", avatar:"/agents/lina.png",  status:"live",   type:"AI Travel Concierge · GPT-4o",    schedule:"24/7 Real-time", color:"#6366f1", description:"Polyglot AI travel concierge. Qualifies leads, quotes packages, saves to Supabase.", features:["GPT-4o","Multi-language","Lead extraction","Supabase sync","24/7"], lastAction:"Chat replied 2min ago" },
-  { id:"marco", name:"Marco", emoji:"🔥", avatar:"/agents/marco.png", status:"active", type:"Lead Hunter · 5-Engine Scraper",   schedule:"Every 2h",      color:"#ef4444", description:"5 scraping engines: Reddit, competitors, social, SEO intent, deep web.", features:["Reddit","Competitors","Social","SEO","Deep web"], lastAction:"3 leads qualified" },
-  { id:"sofia", name:"Sofia", emoji:"📬", avatar:"/agents/sofia.png", status:"active", type:"Email Marketing · AI Writer",      schedule:"Every 6h",      color:"#ec4899", description:"Sends personalized AI-written invite emails to every new lead. EN/FR/ES/AR.", features:["AI emails","EN/FR/ES/AR","Smart timing","Conversion","Unique copy"], lastAction:"39 emails sent" },
-  { id:"noah",  name:"Noah",  emoji:"📧", avatar:"/agents/noah.png",  status:"active", type:"Follow-up Specialist · AI",        schedule:"Every 6h",      color:"#f59e0b", description:"Smart follow-up system. New leads get follow-up within 6h. Re-engagement after 72h.", features:["AI copy","Multi-language","Smart cadence","Re-engagement","Dossier sync"], lastAction:"Follow-up sent" },
-  { id:"luna",  name:"Luna",  emoji:"📞", avatar:"/agents/luna.png",  status:"live",   type:"Voice & SMS · Real-time",          schedule:"24/7 Real-time", color:"#06b6d4", description:"Real-time phone and SMS powered by AI. Answers calls, sends SMS, delivers quotes.", features:["Inbound SMS","Outbound SMS","Voice calls","AI responses","Twilio"], lastAction:"4 SMS Sent" },
-  { id:"atlas", name:"Atlas", emoji:"🛡️",avatar:"/agents/atlas.png", status:"active", type:"Security Guardian · 24/7",         schedule:"Every hour",    color:"#64748b", description:"24/7 security watchdog. Monitors all services, SSL, disk, RAM, SSH, Docker.", features:["Services","SSL certs","SSH detect","Disk/RAM","Auto-restart"], lastAction:"Scan OK 14:00" },
-  { id:"mia",   name:"Mia",   emoji:"📱", avatar:"/agents/mia.png",   status:"idle",   type:"Social Media Manager · AI",        schedule:"Daily",         color:"#a855f7", description:"5 travel posts/day with AI captions. Auto-posts to Instagram, TikTok, Facebook.", features:["AI captions","Visual","Instagram","TikTok","Approval flow"], lastAction:"Awaiting TikTok" },
-  { id:"leo",   name:"Leo",   emoji:"📊", avatar:"/agents/leo.png",   status:"active", type:"Analytics · Real-time",            schedule:"Real-time",     color:"#8b5cf6", description:"Analyzes conversions, pipeline velocity, agent ROI, and client LTV.", features:["Conversions","Pipeline","Agent ROI","Client LTV","Real-time"], lastAction:"Report updated" },
+  { id: "lina", name: "Lina", emoji: "🤖", avatar: "/agents/lina.png", status: "live", type: "AI Travel Concierge · GPT-4o", schedule: "24/7 Real-time", color: "#6366f1", description: "Polyglot AI travel concierge. Qualifies leads, quotes packages, saves to Supabase. Speaks every language your clients do.", features: ["GPT-4o", "Multi-language", "Lead extraction", "Supabase sync", "24/7"], lastAction: "Chat replied 2min ago" },
+  { id: "marco", name: "Marco", emoji: "🔥", avatar: "/agents/marco.png", status: "active", type: "Lead Hunter · 5-Engine Scraper", schedule: "Every 2h", color: "#ef4444", description: "5 scraping engines running 24/7: Reddit travel subs, competitor sites, social signals, SEO intent keywords, and deep web scraping.", features: ["Reddit", "Competitors", "Social", "SEO", "Deep web"], lastAction: "3 leads qualified" },
+  { id: "sofia", name: "Sofia", emoji: "📬", avatar: "/agents/sofia.png", status: "active", type: "Email Marketing · AI Writer", schedule: "Every 6h", color: "#ec4899", description: "Sends personalized AI-written invite emails to every new lead. Detects their language and writes in EN, FR, ES, or AR. Not templates — every email is unique.", features: ["AI emails", "EN/FR/ES/AR", "Smart timing", "Conversion tracking", "Unique copy"], lastAction: "39 emails sent" },
+  { id: "noah", name: "Noah", emoji: "📧", avatar: "/agents/noah.png", status: "active", type: "Follow-up Specialist · AI", schedule: "Every 6h", color: "#f59e0b", description: "Smart follow-up system. New leads get a follow-up within 6 hours. Quoted leads get re-engaged after 72 hours. All personalized, all multi-language.", features: ["AI copy", "Multi-language", "Smart cadence", "Re-engagement", "Dossier sync"], lastAction: "Follow-up sent" },
+  { id: "luna", name: "Luna", emoji: "📞", avatar: "/agents/luna.png", status: "live", type: "Voice & SMS · Real-time", schedule: "24/7 Real-time", color: "#06b6d4", description: "Real-time phone and SMS powered by AI. Lina answers calls and texts, sends follow-up SMS, delivers quotes by text, and handles voice conversations naturally.", features: ["Inbound SMS", "Outbound SMS", "Voice calls", "AI responses", "Twilio"], lastAction: "4 SMS Sent" },
+  { id: "atlas", name: "Atlas", emoji: "🛡️", avatar: "/agents/atlas.png", status: "active", type: "Security Guardian · 24/7", schedule: "Every hour", color: "#64748b", description: "24/7 security watchdog. Monitors all services, SSL certificates, disk usage, RAM, SSH logins, and Docker containers. Auto-restarts any failures.", features: ["Services", "SSL certs", "SSH detect", "Disk/RAM", "Auto-restart"], lastAction: "Scan OK 14:00" },
+  { id: "mia", name: "Mia", emoji: "📱", avatar: "/agents/mia.png", status: "idle", type: "Social Media Manager · AI", schedule: "Daily", color: "#a855f7", description: "Generates 5 travel posts per day with AI captions and stunning visuals. Auto-posts to Instagram, TikTok, and Facebook — after your approval.", features: ["AI captions", "Visual creation", "Instagram", "TikTok", "Approval flow"], lastAction: "Awaiting TikTok" },
+  { id: "leo", name: "Leo", emoji: "📊", avatar: "/agents/leo.png", status: "active", type: "Analytics · Real-time", schedule: "Real-time", color: "#8b5cf6", description: "Analyzes conversions, pipeline velocity, agent ROI, and client LTV. Feeds insights back to all other agents for smarter decisions.", features: ["Conversions", "Pipeline", "Agent ROI", "Client LTV", "Real-time"], lastAction: "Report updated" },
 ];
 
-const STATUS_CFG: Record<AgentStatus, { label:string; color:string }> = {
-  live:   { label:"LIVE",   color:GREEN },
-  active: { label:"ACTIVE", color:BLUE  },
-  idle:   { label:"IDLE",   color:GOLD  },
-  error:  { label:"ERROR",  color:RED   },
+const STATUS_CFG: Record<AgentStatus, { label: string; dot: string; badge: string }> = {
+  live: { label: "LIVE", dot: "bg-emerald-500 animate-pulse", badge: "bg-emerald-100 text-emerald-700" },
+  active: { label: "Active", dot: "bg-blue-500", badge: "bg-blue-100 text-blue-700" },
+  idle: { label: "Idle", dot: "bg-amber-400", badge: "bg-amber-100 text-amber-700" },
+  error: { label: "Erreur", dot: "bg-red-500", badge: "bg-red-100 text-red-700" },
 };
 
 const NAV_LINKS = [
-  { label:"Dashboard",       href:"/agent",              icon:"🏠" },
-  { label:"Chat Hub",        href:"/agent/chat",         icon:"💬" },
-  { label:"Clients",         href:"/agent/clients",      icon:"👥" },
-  { label:"Leads",           href:"/agent/leads",        icon:"🎯" },
-  { label:"Proposals",       href:"/agent/proposals",    icon:"📋" },
-  { label:"Bookings",        href:"/agent/bookings",     icon:"✈️" },
-  { label:"Commissions",     href:"/agent/commissions",  icon:"💰" },
-  { label:"Chat with Lina",  href:"/agent/lina",         icon:"lina" },
-  { label:"Listings",        href:"/agent/listings",     icon:"🏨" },
-  { label:"Partners",        href:"/agent/partners",     icon:"🤝" },
-  { label:"Control Tower",   href:"/agent/control-tower",icon:"🗼" },
-  { label:"Settings",        href:"/agent/settings",     icon:"⚙️" },
+  { label: "Dashboard", href: "/agent", icon: "🏠" },
+  { label: "Clients", href: "/agent/clients", icon: "👥" },
+  { label: "Leads", href: "/agent/leads", icon: "🎯" },
+  { label: "Proposals", href: "/agent/proposals", icon: "📋" },
+  { label: "Bookings", href: "/agent/bookings", icon: "✈️" },
+  { label: "Commissions", href: "/agent/commissions", icon: "💰" },
+  { label: "Chat Hub", href: "/agent/chat", icon: "💬" },
+  { label: "Chat with Lina", href: "/agent/lina", icon: "lina" },
+  { label: "Listings", href: "/agent/listings", icon: "🏨" },
+  { label: "Partners", href: "/agent/partners", icon: "🤝" },
+  { label: "Control Tower", href: "/agent/control-tower", icon: "🗼" },
+  { label: "Settings", href: "/agent/settings", icon: "⚙️" },
 ];
 
 const HQ_LINKS = [
-  { label:"Agent Command",   href:"/agent/agents",       icon:"🎯" },
-  { label:"Agent Requests",  href:"/agent/requests",     icon:"📨" },
-  { label:"Influencer",      href:"/agent/influencer",   icon:"⭐" },
-  { label:"AI Agents Hub",   href:"/ai-agents",          icon:"🤖" },
-  { label:"Finance",         href:"/agent/finance",      icon:"📊" },
+  { label: "Agent Command", href: "/agent/agents", icon: "🎯" },
+  { label: "Agent Requests", href: "/agent/requests", icon: "📨" },
+  { label: "Influencer", href: "/agent/influencer", icon: "⭐" },
+  { label: "AI Agents Hub", href: "/ai-agents", icon: "🤖" },
+  { label: "Finance", href: "/agent/finance", icon: "📊" },
 ];
 
-/* ── Small components ─────────────────────────────────── */
-function StatCard({ icon, label, value, sub, color, href }: any) {
-  return (
-    <Link href={href||"#"} style={{
-      display:"block", textDecoration:"none",
-      background:"rgba(255,255,255,.04)", border:`1px solid ${color}22`,
-      borderRadius:18, padding:"18px 16px",
-      transition:"transform .15s, background .15s",
-    }}
-    onMouseEnter={e=>(e.currentTarget.style.background=`${color}0A`)}
-    onMouseLeave={e=>(e.currentTarget.style.background="rgba(255,255,255,.04)")}>
-      <div style={{fontSize:24,marginBottom:8}}>{icon}</div>
-      <div style={{fontSize:26,fontWeight:900,color,lineHeight:1,marginBottom:4}}>{value??<span style={{color:"rgba(255,255,255,.2)"}}>—</span>}</div>
-      <div style={{fontSize:11,fontWeight:800,color:"#fff",marginBottom:2}}>{label}</div>
-      {sub && <div style={{fontSize:10,color:"rgba(255,255,255,.3)"}}>{sub}</div>}
-    </Link>
-  );
-}
-
-function AgentChip({ agent }: { agent:AIAgent }) {
-  const cfg = STATUS_CFG[agent.status];
-  return (
-    <div style={{
-      background:"rgba(255,255,255,.03)", border:`1px solid ${agent.color}25`,
-      borderRadius:16, padding:"14px", display:"flex", flexDirection:"column", gap:10,
-      cursor:"pointer", transition:"transform .15s",
-    }}
-    onMouseEnter={e=>(e.currentTarget.style.transform="translateY(-3px)")}
-    onMouseLeave={e=>(e.currentTarget.style.transform="translateY(0)")}>
-      {/* Avatar */}
-      <div style={{display:"flex",alignItems:"center",gap:10}}>
-        <div style={{width:44,height:44,borderRadius:12,overflow:"hidden",background:`${agent.color}18`,border:`1px solid ${agent.color}33`,flexShrink:0}}>
-          {agent.avatar
-            ? <img src={agent.avatar} alt={agent.name} style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"top"}} onError={e=>{(e.target as HTMLImageElement).style.display="none";}}/>
-            : <div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{agent.emoji}</div>
-          }
-        </div>
-        <div style={{flex:1,minWidth:0}}>
-          <div style={{fontSize:13,fontWeight:900,color:"#fff"}}>{agent.name}</div>
-          <div style={{fontSize:9,color:"rgba(255,255,255,.35)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{agent.type.split(" · ")[0]}</div>
-        </div>
-        <div style={{display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
-          <div style={{width:6,height:6,borderRadius:"50%",background:cfg.color,animation:agent.status==="live"?"blink2 1s ease infinite":"none"}}/>
-          <span style={{fontSize:8,fontWeight:900,color:cfg.color,letterSpacing:"0.1em"}}>{cfg.label}</span>
-        </div>
-      </div>
-      <div style={{fontSize:10,color:"rgba(255,255,255,.4)",lineHeight:1.5}}>{agent.description.slice(0,72)}…</div>
-      {agent.lastAction && (
-        <div style={{fontSize:9,fontWeight:700,color:agent.color,background:`${agent.color}10`,borderRadius:8,padding:"4px 8px",width:"fit-content"}}>{agent.lastAction}</div>
-      )}
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════════ */
 export function AgentDashboardPage({ agentId }: { agentId?: string }) {
-  const router   = useRouter();
+  const router = useRouter();
   const pathname = usePathname();
-  const user     = useAuthStore((s) => s.user);
-  const hq       = isHQ(user);
+  const user = useAuthStore((s) => s.user);
+  const hq = isHQ(user);
 
-  const [impersonation, setImpersonation] = useState<any>(null);
-  useEffect(()=>{
-    if(typeof window==="undefined") return;
+  // Impersonation — HQ can view portal as any agent
+  const [impersonation, setImpersonation] = useState<{agentEmail: string; agentName: string; originalEmail: string} | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     const raw = localStorage.getItem(IMPERSONATE_KEY);
-    if(raw){ try{ setImpersonation(JSON.parse(raw)); }catch{} }
-  },[]);
+    if (raw) { try { setImpersonation(JSON.parse(raw)); } catch {} }
+  }, []);
+  const effectiveEmail = impersonation?.agentEmail || user?.email || "";
+  const roles = user?.roles?.length ? user.roles : user?.role ? [user.role] : [];
+  const effectiveRole = normalizeRbacRole(user?.effectiveRole) || normalizeRbacRole(roles[0]);
+  const isHQorAdmin = effectiveRole === "hq" || effectiveRole === "admin" || hq;
+  const canTripSearch = !!user && hasPermission(user, "sales:all");
+  const resolvedAgentId = agentId || toAgentWorkspaceId(user);
 
-  const effectiveEmail    = impersonation?.agentEmail || user?.email || "";
-  const roles             = user?.roles?.length ? user.roles : user?.role ? [user.role] : [];
-  const effectiveRole     = normalizeRbacRole(user?.effectiveRole) || normalizeRbacRole(roles[0]);
-  const isHQorAdmin       = effectiveRole==="hq" || effectiveRole==="admin" || hq;
-  const canTripSearch     = !!user && hasPermission(user,"sales:all");
-  const resolvedAgentId   = agentId || toAgentWorkspaceId(user);
 
-  const [navBadges, setNavBadges]         = useState<Record<string,number>>({});
-  const [dashStats, setDashStats]         = useState<any>(null);
-  const [vpsStats, setVpsStats]           = useState<any>(null);
-  const [activity, setActivity]           = useState<any[]>([]);
-  const [agentRequests, setAgentRequests] = useState<any[]>([]);
-  const [navOpen, setNavOpen]             = useState(true);
-  const [searchOpen, setSearchOpen]       = useState(false);
-  const [query, setQuery]                 = useState("");
-  const [activeSearchTab, setActiveSearchTab] = useState<"flights"|"hotels"|"transfers">("flights");
-  const [clock, setClock]                 = useState("");
-  const [greeting, setGreeting]           = useState("Good morning");
-  const [mounted, setMounted]             = useState(false);
+  // Notification badges for sidebar
+  const [navBadges, setNavBadges] = useState<Record<string, number>>({});
 
-  useEffect(()=>{
-    setMounted(true);
-    const h = new Date().getHours();
-    setGreeting(h<12?"Good morning":h<18?"Good afternoon":"Good evening");
-    const tick = () => setClock(new Date().toLocaleTimeString("en",{hour:"2-digit",minute:"2-digit",second:"2-digit"}));
-    tick();
-    const iv = setInterval(tick,1000);
-    return ()=>clearInterval(iv);
-  },[]);
-
-  const fetchAll = async () => {
+  const fetchNavBadges = async () => {
+    if (!effectiveEmail) return;
     try {
-      const agentParam = isHQorAdmin?"":` &agent_email=${encodeURIComponent(effectiveEmail)}`;
-      const actParam   = effectiveEmail?`?agent_email=${encodeURIComponent(effectiveEmail)}`:"";
-      const [dashRes, statsRes, actRes] = await Promise.all([
-        fetch(`/api/agents-proxy?path=admin/dashboard-stats${agentParam}`,{headers:{Authorization:AUTH}}),
-        fetch("/api/agents-proxy?endpoint=stats",{headers:{Authorization:AUTH}}),
-        fetch(`/api/agents-proxy?path=admin/activity-log${actParam}`,{headers:{Authorization:AUTH}}),
-      ]);
-      if(dashRes.ok) setDashStats(await dashRes.json());
-      if(statsRes.ok) setVpsStats(await statsRes.json());
-      if(actRes.ok){ const d=await actRes.json(); setActivity(d?.activities||d?.activity||[]); }
-    } catch{}
-    if(hq){
-      try{
-        const rr = await fetch("/api/agent-requests");
-        if(rr.ok){ const d=await rr.json(); setAgentRequests((d?.data||[]).filter((r:any)=>r.status==="pending").slice(0,5)); }
-      }catch{}
-    }
-    // Inbox badge
-    try{
-      const lastSeen = (typeof window!=="undefined"?localStorage.getItem("zeniva_inbox_last_seen"):null)||"1970-01-01";
-      const ir = await fetch("/api/agent/inbox",{cache:"no-store",headers:effectiveEmail?{"x-user-email":effectiveEmail}:{}});
-      if(ir.ok){
-        const d = await ir.json();
-        const rows:any[] = Array.isArray(d?.data)?d.data:[];
-        const unread = rows.filter(row=>{
-          const role = row?.sender_role;
-          if(role==="hq"||role==="agent"||role==="lina"||role==="system") return false;
-          return (row?.created_at||"1970-01-01")>lastSeen;
-        }).length;
-        if(unread>0) setNavBadges(p=>({...p,"/agent/chat":unread}));
+      // Fetch dashboard stats to compute badges
+      const agentParam = isHQorAdmin ? "" : `&agent_email=${encodeURIComponent(effectiveEmail)}`;
+      const r = await fetch(`/api/agents-proxy?path=admin/dashboard-stats${agentParam}`, {
+        headers: { Authorization: "Bearer zeniva-secret-2025" },
+      });
+      const badges: Record<string, number> = {};
+      if (r.ok) {
+        const d = await r.json();
+        if (d.clients_today > 0) badges["/agent/clients"] = d.clients_today;
+        if (d.open_dossiers > 0) badges["/agent/dossiers"] = d.open_dossiers;
+        if (d.followups_due > 0) badges["/agent/commissions"] = d.followups_due;
+        if (d.leads_today > 0) badges["/agent"] = d.leads_today;
       }
-    }catch{}
+
+      // Fetch unread inbox count — all agents get badge for new client messages
+      {
+        const lastSeenKey = "zeniva_inbox_last_seen";
+        const lastSeen = typeof window !== "undefined" ? (localStorage.getItem(lastSeenKey) || "1970-01-01") : "1970-01-01";
+        const inboxResp = await fetch("/api/agent/inbox", {
+          cache: "no-store",
+          headers: effectiveEmail ? { "x-user-email": effectiveEmail } : {},
+        });
+        if (inboxResp.ok) {
+          const inboxData = await inboxResp.json();
+          const rows: any[] = Array.isArray(inboxData?.data) ? inboxData.data : [];
+          const unread = rows.filter((row) => {
+            const role = row?.sender_role;
+            if (role === "hq" || role === "agent" || role === "lina" || role === "system") return false;
+            const ts = row?.created_at || row?.createdAt || "1970-01-01";
+            return ts > lastSeen;
+          }).length;
+          if (unread > 0) badges["/agent/chat"] = unread;
+        }
+      }
+
+      setNavBadges(badges);
+    } catch {}
   };
 
-  useEffect(()=>{
-    if(!effectiveEmail) return;
+  // Real-time stats
+  const [dashStats, setDashStats] = useState<any>(null);
+  const [vpsStats, setVpsStats] = useState<any>(null);
+  const [recentTravelers, setRecentTravelers] = useState<any[]>([]);
+  const [recentPartners, setRecentPartners] = useState<any[]>([]);
+  const [agentRequests, setAgentRequests] = useState<any[]>([]);
+  const [activity, setActivity] = useState<any[]>([]);
+  const [selectedAgent, setSelectedAgent] = useState<AIAgent | null>(null);
+  const [navOpen, setNavOpen] = useState(true); // open by default — labels visible
+
+  // Trip search
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [activeSearchTab, setActiveSearchTab] = useState<"flights"|"hotels"|"transfers">("flights");
+
+  const fetchAll = async () => {
+      fetchNavBadges();
+    try {
+      // Pass agent_email to scope data — HQ sees all, agents see only their data
+      const agentEmailParam = effectiveEmail ? `&agent_email=${encodeURIComponent(effectiveEmail)}` : "";
+      const actEmailParam = effectiveEmail ? `?agent_email=${encodeURIComponent(effectiveEmail)}` : "";
+      const [dashRes, statsRes, accountsRes, actRes] = await Promise.all([
+        fetch(`/api/agents-proxy?path=admin/dashboard-stats${agentEmailParam}`, { headers: { Authorization: AUTH } }),
+        fetch("/api/agents-proxy?endpoint=stats", { headers: { Authorization: AUTH } }),
+        hq ? fetch("/api/accounts") : Promise.resolve(null),
+        fetch(`/api/agents-proxy?path=admin/activity-log${actEmailParam}`, { headers: { Authorization: AUTH } }),
+      ]);
+      if (dashRes.ok) setDashStats(await dashRes.json());
+      if (statsRes.ok) setVpsStats(await statsRes.json());
+      if (actRes.ok) { const d = await actRes.json(); setActivity(d?.activities || d?.activity || []); }
+      if (accountsRes?.ok) {
+        const d = await accountsRes.json();
+        const accounts = Array.isArray(d?.data) ? d.data : [];
+        setRecentTravelers(accounts.filter((a: any) => (a.roles || [a.role]).includes("traveler")).slice(0, 5));
+        setRecentPartners(accounts.filter((a: any) => (a.roles || [a.role]).some((r: string) => r?.includes("partner"))).slice(0, 4));
+      }
+    } catch {}
+    if (hq) {
+      try {
+        const reqRes = await fetch("/api/agent-requests");
+        if (reqRes.ok) { const d = await reqRes.json(); setAgentRequests((d?.data || []).filter((r: any) => r.status === "pending").slice(0, 5)); }
+      } catch {}
+    }
+  };
+
+  useEffect(() => {
+    if (!effectiveEmail) return; // Wait for user to load before fetching
     fetchAll();
-    const iv = setInterval(fetchAll,30000);
-    return ()=>clearInterval(iv);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[hq,effectiveEmail]);
+    const iv = setInterval(fetchAll, 30000);
+    return () => clearInterval(iv);
+  }, [hq, effectiveEmail, user?.email]);
 
-  useEffect(()=>{
-    if(resolvedAgentId){ try{ window.localStorage.setItem("zeniva_agent_workspace",resolvedAgentId); }catch{} }
-  },[resolvedAgentId]);
+  useEffect(() => {
+    if (resolvedAgentId) {
+      try { window.localStorage.setItem("zeniva_agent_workspace", resolvedAgentId); } catch {}
+    }
+  }, [resolvedAgentId]);
 
-  const handleSearch = (e:FormEvent) => {
+  const handleSearch = (e: FormEvent) => {
     e.preventDefault();
-    if(!query.trim()) return;
+    if (!query.trim()) return;
     router.push(`/agent/proposals?q=${encodeURIComponent(query.trim())}`);
   };
 
-  const name = mounted && user?.name ? user.name.split(" ")[0] : "";
   const kpis = [
-    { icon:"👥", label:"Active Clients",    value:dashStats?.active_clients??vpsStats?.total_clients,   sub:`${dashStats?.open_dossiers??0} dossiers`,      color:BLUE,  href:"/agent/clients" },
-    { icon:"🎯", label:"Total Leads",       value:isHQorAdmin?(vpsStats?.total_leads):(dashStats?.active_clients??0), sub:isHQorAdmin?`+${vpsStats?.leads_today??0} today`:"Your pipeline", color:"#a855f7",href:"/agent/leads" },
-    { icon:"📧", label:"Emails Sent",       value:isHQorAdmin?vpsStats?.emails_sent:null, sub:isHQorAdmin?`+${vpsStats?.emails_today??0} today`:"HQ only",  color:GREEN, href:"/agent" },
-    { icon:"📱", label:"SMS Sent",          value:isHQorAdmin?vpsStats?.sms_sent:null,    sub:isHQorAdmin?`+${vpsStats?.sms_today??0} today`:"HQ only",      color:GOLD,  href:"/agent" },
-    { icon:"💰", label:"Comm. Pipeline",    value:dashStats?`$${(dashStats.commission_pipeline||0).toLocaleString()}`:null, sub:`${dashStats?.followups_due??0} follow-ups`, color:"#06b6d4",href:"/agent/commissions" },
-    { icon:"💬", label:"Lina Chats",        value:isHQorAdmin?vpsStats?.total_messages:null, sub:"Total conversations",  color:"#ec4899",href:"/agent/chat" },
+    { label: "Active Clients", value: dashStats?.active_clients ?? vpsStats?.total_clients ?? "—", icon: "👥", color: "bg-blue-50 border-blue-200", sub: `${dashStats?.open_dossiers ?? 0} dossiers` },
+    { label: "Total Leads", value: isHQorAdmin ? (vpsStats?.total_leads ?? "—") : (dashStats?.active_clients ?? 0), icon: "🎯", color: "bg-purple-50 border-purple-200", sub: isHQorAdmin ? `+${vpsStats?.leads_today ?? 0} today` : "Your pipeline" },
+    { label: "Emails Sent", value: isHQorAdmin ? (vpsStats?.emails_sent ?? "—") : "—", icon: "📧", color: "bg-emerald-50 border-emerald-200", sub: isHQorAdmin ? `+${vpsStats?.emails_today ?? 0} today` : "Coming soon" },
+    { label: "SMS Sent", value: isHQorAdmin ? (vpsStats?.sms_sent ?? "—") : "—", icon: "📱", color: "bg-amber-50 border-amber-200", sub: isHQorAdmin ? `+${vpsStats?.sms_today ?? 0} today` : "Coming soon" },
+    { label: "Comm. Pipeline", value: dashStats ? `$${dashStats.commission_pipeline.toLocaleString()}` : "—", icon: "💰", color: "bg-rose-50 border-rose-200", sub: `${dashStats?.followups_due ?? 0} follow-ups` },
+    { label: "Lina Chats", value: isHQorAdmin ? (vpsStats?.total_messages ?? "—") : "—", icon: "💬", color: "bg-indigo-50 border-indigo-200", sub: "Total conversations" },
   ];
 
   return (
-    <div style={{minHeight:"100vh",display:"flex",background:"#02060F",fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif",color:"#fff"}}>
-      <style>{`
-        @keyframes blink2{0%,100%{opacity:1;}50%{opacity:.15;}}
-        @keyframes scanD{0%{top:-100%;}100%{top:200%;}}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
-        .mc-link:hover{background:rgba(255,255,255,.06)!important;}
-        .mc-row:hover{background:rgba(15,108,245,.06)!important;}
-      `}</style>
-
-      {/* Ambient */}
-      <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
-        <div style={{position:"absolute",top:"-15%",left:"-10%",width:500,height:500,borderRadius:"50%",background:"rgba(15,108,245,.5)",filter:"blur(120px)",opacity:.12}}/>
-        <div style={{position:"absolute",bottom:"-10%",right:"-10%",width:400,height:400,borderRadius:"50%",background:"rgba(230,184,90,.4)",filter:"blur(120px)",opacity:.1}}/>
-        <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(15,108,245,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(15,108,245,.03) 1px,transparent 1px)",backgroundSize:"48px 48px"}}/>
-        <div style={{position:"absolute",left:0,right:0,height:1,background:"linear-gradient(90deg,transparent,rgba(15,108,245,.06),transparent)",animation:"scanD 5s linear infinite",pointerEvents:"none"}}/>
-      </div>
-
-      {/* ══ SIDEBAR ═══════════════════════════════════════════════ */}
-      <aside style={{
-        position:"fixed",inset:"0 auto 0 0",zIndex:40,
-        width:navOpen?240:64,
-        display:"flex",flexDirection:"column",
-        background:"rgba(2,6,15,.95)",backdropFilter:"blur(20px)",
-        borderRight:"1px solid rgba(255,255,255,.06)",
-        transition:"width .3s ease",
-      }}>
-        {/* Logo */}
-        <div style={{display:"flex",alignItems:"center",gap:10,padding:"16px 12px",borderBottom:"1px solid rgba(255,255,255,.06)"}}>
-          <button onClick={()=>setNavOpen(v=>!v)} style={{
-            width:40,height:40,borderRadius:12,flexShrink:0,
-            background:`${BLUE}22`,border:`1px solid ${BLUE}33`,
-            display:"flex",alignItems:"center",justifyContent:"center",
-            cursor:"pointer",fontSize:16,color:BLUE,
-          }}>{navOpen?"◀":"☰"}</button>
+    <div className="min-h-screen flex" style={{ background: "#0B1B4D" }}>
+      {/* Impersonation banner */}
+      {impersonation && (
+        <div className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-6 py-2.5 text-sm font-bold text-white" style={{ background: "linear-gradient(90deg, #7c3aed, #ec4899)" }}>
+          <span>👁️ Viewing as: <span className="underline">{impersonation.agentName}</span> ({impersonation.agentEmail})</span>
+          <button
+            onClick={() => {
+              localStorage.removeItem(IMPERSONATE_KEY);
+              setImpersonation(null);
+              window.location.href = "/agent/agents";
+            }}
+            className="bg-white/20 hover:bg-white/30 rounded-full px-4 py-1 font-black transition-all text-xs"
+          >
+            ← Return to HQ
+          </button>
+        </div>
+      )}
+      {/* SIDEBAR */}
+      <aside className={`fixed inset-y-0 left-0 z-40 flex flex-col transition-all duration-300 bg-white border-r border-slate-200 shadow-lg ${navOpen ? "w-64" : "w-16"}`}>
+        {/* Logo + Toggle button at top */}
+        <div className="flex items-center gap-2 px-2 py-3 border-b border-slate-200">
+          <button
+            onClick={() => setNavOpen(!navOpen)}
+            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-blue-600 hover:bg-blue-500 transition-colors text-white text-xl font-bold"
+            title={navOpen ? "Hide labels" : "Show labels"}
+          >
+            {navOpen ? "◀" : "☰"}
+          </button>
           {navOpen && (
             <div>
-              <div style={{fontWeight:900,fontSize:13,color:"#fff"}}>Zeniva</div>
-              <div style={{fontSize:9,color:"rgba(255,255,255,.3)",letterSpacing:"0.06em"}}>MISSION CONTROL</div>
+              <p className="text-slate-900 font-black text-sm">Zeniva</p>
+              <p className="text-slate-500 text-xs">Agent Portal</p>
             </div>
           )}
         </div>
 
         {/* Nav */}
-        <nav style={{flex:1,overflowY:"auto",padding:"8px"}}>
-          {NAV_LINKS.map((link)=>{
-            const active = pathname===link.href||(link.href!=="/agent"&&pathname?.startsWith(link.href));
+        <nav className="flex-1 overflow-y-auto py-4 space-y-1 px-2">
+          {NAV_LINKS.map((link) => {
+            const active = pathname === link.href || (link.href !== "/agent" && pathname?.startsWith(link.href));
             return (
-              <div key={link.href} style={{position:"relative",marginBottom:2}}>
-                <Link href={link.href} onClick={()=>{
-                  if(link.href==="/agent/chat"&&typeof window!=="undefined"){
-                    localStorage.setItem("zeniva_inbox_last_seen",new Date().toISOString());
-                    setNavBadges(p=>{const n={...p};delete n["/agent/chat"];return n;});
-                  }
-                }} className="mc-link" style={{
-                  display:"flex",alignItems:"center",gap:10,borderRadius:12,
-                  padding:"9px 10px",textDecoration:"none",
-                  background:active?`${BLUE}22`:"transparent",
-                  border:active?`1px solid ${BLUE}33`:"1px solid transparent",
-                  transition:"background .15s",
-                }}>
-                  {link.icon==="lina"
-                    ? <img src="/branding/lina-avatar.png" alt="Lina" style={{width:20,height:20,borderRadius:"50%",objectFit:"cover",flexShrink:0,border:"1px solid rgba(255,255,255,.2)"}}/>
-                    : <span style={{fontSize:16,flexShrink:0,width:20,textAlign:"center"}}>{link.icon}</span>
-                  }
-                  {navOpen && <span style={{flex:1,fontSize:12,fontWeight:700,color:active?"#fff":"rgba(255,255,255,.6)",whiteSpace:"nowrap"}}>{link.label}</span>}
-                  {navBadges[link.href]>0 && (
-                    <span style={{width:16,height:16,borderRadius:"50%",background:RED,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,fontWeight:900,color:"#fff",flexShrink:0}}>{navBadges[link.href]}</span>
+              <div key={link.href} className="relative group">
+                <Link href={link.href}
+                  onClick={() => {
+                    // Clear inbox unread count when clicking Chat Hub
+                    if (link.href === "/agent/chat" && typeof window !== "undefined") {
+                      localStorage.setItem("zeniva_inbox_last_seen", new Date().toISOString());
+                      setNavBadges((prev) => { const n = { ...prev }; delete n["/agent/chat"]; return n; });
+                    }
+                  }}
+                  className={`flex items-center gap-3 rounded-xl px-2 py-2 text-sm font-semibold transition-all ${active ? "bg-blue-600 text-white" : "text-slate-700 hover:bg-blue-50 hover:text-blue-700"}`}>
+                  {link.icon === "lina" ? (
+                    <img src="/branding/lina-avatar.png" alt="Lina" className="shrink-0 w-6 h-6 rounded-full object-cover border border-indigo-300" />
+                  ) : (
+                    <span className="text-base shrink-0 w-6 text-center">{link.icon}</span>
                   )}
+                  {navOpen && <span className="flex-1">{link.label}</span>}
+                  {navBadges[link.href] ? (
+                    <span className="ml-auto rounded-full bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center px-1 shrink-0">
+                      {navBadges[link.href]}
+                    </span>
+                  ) : null}
                 </Link>
+                {/* Tooltip when collapsed */}
+                {!navOpen && (
+                  <div className="absolute left-14 top-1/2 -translate-y-1/2 z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                    <div className="bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl border border-slate-700">
+                      {link.label}
+                      <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800" />
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
-
           {isHQorAdmin && (
             <>
-              <div style={{padding:"10px 8px 6px",fontSize:8,fontWeight:800,color:"rgba(255,255,255,.2)",letterSpacing:"0.12em",textTransform:"uppercase"}}>HQ ONLY</div>
-              {HQ_LINKS.map((link)=>(
-                <div key={link.href} style={{marginBottom:2}}>
-                  <Link href={link.href} className="mc-link" style={{
-                    display:"flex",alignItems:"center",gap:10,borderRadius:12,
-                    padding:"9px 10px",textDecoration:"none",transition:"background .15s",
-                  }}>
-                    <span style={{fontSize:16,flexShrink:0,width:20,textAlign:"center"}}>{link.icon}</span>
-                    {navOpen && <span style={{fontSize:12,fontWeight:700,color:`${GOLD}99`,whiteSpace:"nowrap"}}>{link.label}</span>}
+              <div className="pt-2 pb-1">
+                {navOpen
+                  ? <p className="text-xs font-bold text-slate-500 uppercase tracking-widest px-2">HQ</p>
+                  : <div className="border-t border-slate-200 mx-2 my-1" />
+                }
+              </div>
+              {HQ_LINKS.map((link) => (
+                <div key={link.href} className="relative group">
+                  <Link href={link.href}
+                    className="flex items-center gap-3 rounded-xl px-2 py-2 text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
+                    <span className="text-base shrink-0 w-6 text-center">{link.icon}</span>
+                    {navOpen && <span>{link.label}</span>}
                   </Link>
+                  {!navOpen && (
+                    <div className="absolute left-14 top-1/2 -translate-y-1/2 z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                      <div className="bg-amber-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl border border-amber-600">
+                        HQ · {link.label}
+                        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-amber-800" />
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </>
           )}
         </nav>
 
-        {/* User */}
-        <div style={{padding:"8px",borderTop:"1px solid rgba(255,255,255,.06)"}}>
+        {/* Toggle + user */}
+        <div className="border-t border-slate-700/50 p-2 space-y-2">
+
           {navOpen && user && (
-            <div style={{background:"rgba(255,255,255,.04)",borderRadius:12,padding:"10px 12px"}}>
-              <div style={{fontSize:12,fontWeight:800,color:"#fff",marginBottom:2}}>{user.name||user.email}</div>
-              <div style={{fontSize:9,color:"rgba(255,255,255,.3)",marginBottom:6,letterSpacing:"0.06em"}}>{effectiveRole?.toUpperCase()}</div>
-              <button onClick={()=>logout()} style={{fontSize:10,fontWeight:700,color:RED,background:"transparent",border:"none",cursor:"pointer",padding:0}}>Sign out</button>
+            <div className="rounded-xl bg-slate-50 border border-slate-200 p-2">
+              <p className="text-slate-800 text-xs font-semibold truncate">{user.name || user.email}</p>
+              <p className="text-slate-500 text-xs truncate">{effectiveRole}</p>
+              <button onClick={() => logout()} className="text-rose-400 text-xs mt-1 hover:text-rose-300">Déconnexion</button>
             </div>
           )}
         </div>
       </aside>
 
-      {/* ══ MAIN ═════════════════════════════════════════════════ */}
-      <main style={{flex:1,marginLeft:navOpen?240:64,transition:"margin-left .3s ease",minHeight:"100vh",position:"relative",zIndex:1}}>
-        <div style={{maxWidth:1400,margin:"0 auto",padding:"28px 28px 60px"}}>
+      {/* MAIN CONTENT */}
+      <main className={`flex-1 transition-all duration-300 min-h-screen ${navOpen ? "ml-64" : "ml-16"}`} style={{ background: "#F3F6FB" }}>
+        <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
 
-          {/* Impersonation banner */}
-          {impersonation && (
-            <div style={{
-              marginBottom:20,borderRadius:14,padding:"12px 20px",
-              background:"linear-gradient(90deg,#7c3aed,#ec4899)",
-              display:"flex",alignItems:"center",justifyContent:"space-between",
-            }}>
-              <span style={{fontSize:13,fontWeight:700}}>👁️ Viewing as: <strong>{impersonation.agentName}</strong> ({impersonation.agentEmail})</span>
-              <button onClick={()=>{localStorage.removeItem(IMPERSONATE_KEY);setImpersonation(null);window.location.href="/agent/agents";}} style={{
-                background:"rgba(255,255,255,.2)",border:"none",borderRadius:999,padding:"5px 14px",
-                fontSize:11,fontWeight:800,color:"#fff",cursor:"pointer",
-              }}>← Return to HQ</button>
-            </div>
-          )}
-
-          {/* ── Header ─────────────────────────────────────────── */}
-          <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:16,marginBottom:28,animation:"fadeIn .4s ease both"}}>
+          {/* TOP HEADER */}
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-                <div style={{width:7,height:7,borderRadius:"50%",background:GREEN,animation:"blink2 1s ease infinite"}}/>
-                <span style={{fontSize:9,fontWeight:900,color:"rgba(255,255,255,.4)",letterSpacing:"0.14em"}}>ZENIVA MISSION CONTROL · AGENT PORTAL</span>
-              </div>
-              <h1 style={{fontSize:32,fontWeight:900,letterSpacing:"-0.03em",lineHeight:1,marginBottom:6}}>
-                {greeting}{name?`, ${name}`:""} 👋
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Zeniva Travel · Agent Portal</p>
+              <h1 className="text-4xl font-black mt-1" style={{ color: PREMIUM_BLUE }}>
+                Good morning{user?.name ? `, ${user.name.split(" ")[0]}` : ""} 👋
               </h1>
-              <div style={{fontSize:13,color:"rgba(255,255,255,.4)"}}>Your AI command center — all systems live</div>
+              <p className="text-slate-500 text-sm mt-1">Your command cockpit — fully real-time</p>
             </div>
-            <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:8}}>
-              {/* Clock */}
-              <div style={{fontSize:20,fontWeight:900,color:GREEN,fontFamily:"monospace",letterSpacing:"0.06em",fontVariantNumeric:"tabular-nums"}}>{mounted?clock:"--:--:--"}</div>
-              <div style={{display:"flex",gap:8}}>
-                {canTripSearch && (
-                  <button onClick={()=>setSearchOpen(true)} style={{
-                    background:`linear-gradient(135deg,${BLUE},#0948CC)`,border:"none",borderRadius:999,
-                    padding:"10px 20px",fontSize:12,fontWeight:800,color:"#fff",cursor:"pointer",
-                    display:"flex",alignItems:"center",gap:6,
-                  }}>✈️ Trip Search</button>
-                )}
-                <Link href="/agent/clients" style={{
-                  background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",
-                  borderRadius:999,padding:"10px 20px",fontSize:12,fontWeight:800,color:"#fff",
-                  textDecoration:"none",display:"flex",alignItems:"center",gap:6,
-                }}>👥 Clients</Link>
+            <div className="flex gap-3">
+              {canTripSearch && (
+                <button onClick={() => setSearchOpen(true)}
+                  className="rounded-full px-5 py-2.5 text-sm font-bold text-white shadow-lg flex items-center gap-2"
+                  style={{ background: `linear-gradient(135deg, ${BRAND_BLUE}, ${PREMIUM_BLUE})` }}>
+                  ✈️ Trip Search
+                </button>
+              )}
+              <Link href="/agent/clients"
+                className="rounded-full px-5 py-2.5 text-sm font-bold border-2 flex items-center gap-2"
+                style={{ borderColor: PREMIUM_BLUE, color: PREMIUM_BLUE }}>
+                👥 Clients
+              </Link>
+            </div>
+          </div>
+
+          {/* KPI CARDS */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {kpis.map((k) => (
+              <div key={k.label} className={`rounded-2xl border p-4 bg-white ${k.color} shadow-sm`}>
+                <p className="text-2xl">{k.icon}</p>
+                <p className="text-2xl font-black mt-1" style={{ color: PREMIUM_BLUE }}>{k.value}</p>
+                <p className="text-xs font-semibold text-slate-600 mt-0.5">{k.label}</p>
+                <p className="text-xs text-slate-400">{k.sub}</p>
               </div>
-            </div>
-          </div>
-
-          {/* ── Status bar ─────────────────────────────────────── */}
-          <div style={{
-            background:"rgba(16,185,129,.06)",border:"1px solid rgba(16,185,129,.2)",
-            borderRadius:14,padding:"10px 18px",marginBottom:24,
-            display:"flex",alignItems:"center",gap:10,
-            animation:"fadeIn .4s ease .05s both",
-          }}>
-            <div style={{width:7,height:7,borderRadius:"50%",background:GREEN,animation:"blink2 .8s ease infinite",flexShrink:0}}/>
-            <div style={{flex:1,fontSize:12,fontWeight:700,color:GREEN,letterSpacing:"0.04em"}}>ALL SYSTEMS OPERATIONAL — Lina AI is online and processing client requests in real-time</div>
-            <Link href="/agent/chat" style={{
-              background:`${BLUE}22`,border:`1px solid ${BLUE}44`,borderRadius:10,
-              padding:"5px 14px",fontSize:10,fontWeight:800,color:BLUE,textDecoration:"none",flexShrink:0,
-            }}>LIVE INBOX →</Link>
-          </div>
-
-          {/* ── KPI Grid ───────────────────────────────────────── */}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:12,marginBottom:24,animation:"fadeIn .4s ease .1s both"}}>
-            {kpis.map(k=>(
-              <StatCard key={k.label} {...k}/>
             ))}
           </div>
 
-          {/* ── Main 3-col grid ────────────────────────────────── */}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 340px",gap:20}}>
+          {/* MAIN GRID */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            {/* ── COL 1: AI Agents ─────────────────────────────── */}
-            <div style={{animation:"fadeIn .4s ease .15s both"}}>
-              <div style={{
-                background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.06)",
-                borderRadius:20,overflow:"hidden",
-              }}>
-                <div style={{
-                  padding:"16px 20px",borderBottom:"1px solid rgba(255,255,255,.06)",
-                  background:`linear-gradient(135deg,${BLUE}18,rgba(255,255,255,.02))`,
-                  display:"flex",alignItems:"center",justifyContent:"space-between",
-                }}>
+            {/* LEFT: AI AGENTS */}
+            <div className="lg:col-span-2 space-y-6">
+
+              {/* AI AGENTS SECTION */}
+              <div className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100" style={{ background: `linear-gradient(135deg, ${PREMIUM_BLUE} 0%, ${BRAND_BLUE} 100%)` }}>
                   <div>
-                    <div style={{fontSize:9,fontWeight:800,color:"rgba(255,255,255,.3)",letterSpacing:"0.12em",marginBottom:3}}>ARTIFICIAL INTELLIGENCE</div>
-                    <div style={{fontSize:16,fontWeight:900}}>Your AI Agent Team</div>
+                    <p className="text-xs font-bold uppercase tracking-widest text-blue-200">Artificial Intelligence</p>
+                    <h2 className="text-xl font-black text-white">Your AI Agent Team</h2>
                   </div>
-                  <Link href="/ai-agents" style={{fontSize:11,fontWeight:800,color:BLUE,textDecoration:"none",background:`${BLUE}18`,border:`1px solid ${BLUE}33`,borderRadius:999,padding:"5px 12px"}}>Full view →</Link>
+                  <button onClick={() => window.location.href = "/ai-agents"} className="rounded-full px-4 py-1.5 text-xs font-bold bg-white/20 text-white hover:bg-white/30 transition border border-white/30">
+                    Full view →
+                  </button>
                 </div>
-                <div style={{padding:16,display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-                  {(isHQorAdmin?AI_AGENTS:AI_AGENTS.filter(a=>["lina","marco","sofia","luna"].includes(a.id))).map(agent=>(
-                    <AgentChip key={agent.id} agent={agent}/>
-                  ))}
+                <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {(isHQorAdmin ? AI_AGENTS : AI_AGENTS.filter(a => ["lina","marco","sofia","luna"].includes(a.id))).map((agent) => {
+                    const cfg = STATUS_CFG[agent.status];
+                    const isAlive = agent.status === "live" || agent.status === "active";
+                    const accentColor = agent.color;
+                    return (
+                      <div key={agent.id} onClick={() => setSelectedAgent(agent)}
+                        className="group relative bg-white rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-gray-300/50 hover:-translate-y-2 border border-gray-200">
+                        {/* Character image area */}
+                        <div className="relative w-full aspect-square overflow-hidden flex items-end justify-center"
+                          style={{ background: `linear-gradient(135deg, ${accentColor}08, ${accentColor}15)` }}>
+                          {agent.avatar ? (
+                            <img src={agent.avatar} alt={agent.name}
+                              className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-8xl"
+                              style={{ background: `linear-gradient(135deg, ${accentColor}10, ${accentColor}05)` }}>
+                              {agent.emoji}
+                            </div>
+                          )}
+                          {/* Status dot only */}
+                          <div className="absolute top-4 right-4">
+                            <span className={`flex items-center justify-center w-6 h-6 rounded-full bg-white/90 shadow-md border border-gray-200`}>
+                              <span className={`h-2.5 w-2.5 rounded-full ${cfg.dot} ${isAlive ? 'animate-pulse' : ''}`} />
+                            </span>
+                          </div>
+                          {/* Gradient fade */}
+                          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white via-white/80 to-transparent" />
+                        </div>
+                        {/* Info */}
+                        <div className="px-4 pb-4 -mt-8 relative z-10">
+                          <h3 className="text-lg font-black text-gray-900 tracking-tight">{agent.name}</h3>
+                          <p className="text-xs font-semibold mt-0.5 mb-2 line-clamp-1" style={{ color: accentColor }}>{agent.type}</p>
+                          <p className="text-xs text-gray-500 leading-relaxed mb-3 line-clamp-2">{agent.description}</p>
+                          {/* Feature pills */}
+                          <div className="flex flex-wrap gap-1 mb-3">
+                            {agent.features.slice(0, 3).map(f => (
+                              <span key={f} className="text-[9px] font-semibold px-2 py-0.5 rounded-lg border"
+                                style={{ background: `${accentColor}08`, borderColor: `${accentColor}25`, color: accentColor }}>{f}</span>
+                            ))}
+                            {agent.features.length > 3 && (
+                              <span className="text-[9px] font-semibold px-2 py-0.5 rounded-lg bg-gray-50 text-gray-400 border border-gray-200">+{agent.features.length - 3} more</span>
+                            )}
+                          </div>
+                          {/* Discover button */}
+                          <div className="flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all duration-300 group-hover:gap-3"
+                            style={{ background: `${accentColor}10`, color: accentColor, border: `1px solid ${accentColor}25` }}>
+                            Discover {agent.name}
+                            <svg className="h-3 w-3 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            </div>
 
-            {/* ── COL 2: Activity + Clients ────────────────────── */}
-            <div style={{display:"flex",flexDirection:"column",gap:16,animation:"fadeIn .4s ease .2s both"}}>
-
-              {/* Live Activity */}
-              <div style={{background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.06)",borderRadius:20,overflow:"hidden",flex:1}}>
-                <div style={{padding:"14px 18px",borderBottom:"1px solid rgba(255,255,255,.06)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:6}}>
-                    <div style={{width:6,height:6,borderRadius:"50%",background:RED,animation:"blink2 .7s ease infinite"}}/>
-                    <span style={{fontSize:13,fontWeight:900}}>Live Activity</span>
-                  </div>
-                  <span style={{fontSize:9,fontWeight:800,color:GREEN,letterSpacing:"0.08em"}}>● AUTO-REFRESH 30s</span>
+              {/* CLIENTS 360 */}
+              <div className="rounded-2xl bg-white border border-slate-200 shadow-sm">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                  <h2 className="font-black text-lg" style={{ color: PREMIUM_BLUE }}>Client 360°</h2>
+                  <Link href="/agent/clients" className="text-sm font-bold" style={{ color: BRAND_BLUE }}>View all →</Link>
                 </div>
-                <div style={{maxHeight:220,overflowY:"auto"}}>
-                  {activity.length===0
-                    ? <div style={{padding:"20px",textAlign:"center",fontSize:12,color:"rgba(255,255,255,.2)"}}>No recent activity</div>
-                    : activity.slice(0,12).map((a:any,i:number)=>(
-                      <div key={i} className="mc-row" style={{display:"flex",alignItems:"flex-start",gap:10,padding:"10px 18px",borderBottom:"1px solid rgba(255,255,255,.04)",transition:"background .15s"}}>
-                        <span style={{fontSize:16,flexShrink:0,marginTop:1}}>
-                          {a.type==="email"?"📧":a.type==="sms"?"📱":a.type==="chat"?"💬":a.type==="lead_new"?"🎯":a.type==="client_converted"?"🏆":"⚡"}
+                <div className="p-4">
+                  {dashStats?.recent_clients?.length > 0 ? (
+                    <div className="space-y-2">
+                      {dashStats.recent_clients.slice(0, 5).map((c: any) => (
+                        <div key={c.id} className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 hover:border-blue-200 hover:bg-blue-50 transition cursor-pointer" onClick={() => window.location.href = "/agent/clients"}>
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-black text-white"
+                              style={{ background: `linear-gradient(135deg, ${BRAND_BLUE}, ${PREMIUM_BLUE})` }}>
+                              {(c.name || "?")[0].toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold" style={{ color: PREMIUM_BLUE }}>{c.name}</p>
+                              <p className="text-xs text-slate-500">{c.email}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            {c.destination && <p className="text-xs font-semibold text-blue-600">✈️ {c.destination}</p>}
+                            <p className="text-xs text-slate-400">{c.last_contact}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-400 text-center py-4">No clients yet — <Link href="/agent/clients" className="text-blue-600 font-semibold">Add a client</Link></p>
+                  )}
+                </div>
+              </div>
+
+              {/* ACTIVITY FEED */}
+              <div className="rounded-2xl bg-white border border-slate-200 shadow-sm">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                  <h2 className="font-black text-lg" style={{ color: PREMIUM_BLUE }}>Live Activity</h2>
+                  <span className="flex items-center gap-1 text-xs text-emerald-600 font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Live · 30s
+                  </span>
+                </div>
+                <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
+                  {activity.length === 0 ? (
+                    <p className="px-6 py-4 text-sm text-slate-400">No recent activity.</p>
+                  ) : (
+                    activity.slice(0, 15).map((a: any, i: number) => (
+                      <div key={i} className="flex items-start gap-3 px-6 py-3">
+                        <span className="text-base mt-0.5">
+                          {a.type === "email" ? "📧" : a.type === "sms" ? "📱" : a.type === "chat" ? "💬" : a.type === "lead_new" ? "🎯" : a.type === "client_converted" ? "🏆" : "⚡"}
                         </span>
-                        <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,.8)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.client_name||a.description||a.action||"—"}</div>
-                          <div style={{fontSize:10,color:"rgba(255,255,255,.35)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.message||a.destination||a.details||""}</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-slate-800 truncate">{a.client_name || a.description || a.action}</p>
+                          <p className="text-xs text-slate-400 truncate">{a.message || a.destination || a.details || ""}</p>
                         </div>
-                        <span style={{fontSize:9,color:"rgba(255,255,255,.25)",flexShrink:0}}>{a.time_ago||a.time||""}</span>
+                        <p className="text-xs text-slate-400 shrink-0">{a.time_ago || a.time || ""}</p>
                       </div>
                     ))
-                  }
-                </div>
-              </div>
-
-              {/* Client 360 */}
-              <div style={{background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.06)",borderRadius:20,overflow:"hidden"}}>
-                <div style={{padding:"14px 18px",borderBottom:"1px solid rgba(255,255,255,.06)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                  <span style={{fontSize:13,fontWeight:900}}>Client 360°</span>
-                  <Link href="/agent/clients" style={{fontSize:10,fontWeight:800,color:BLUE,textDecoration:"none"}}>View all →</Link>
-                </div>
-                <div style={{padding:"0 4px"}}>
-                  {dashStats?.recent_clients?.length>0
-                    ? dashStats.recent_clients.slice(0,4).map((c:any)=>(
-                      <div key={c.id} className="mc-row" onClick={()=>router.push("/agent/clients")} style={{display:"flex",alignItems:"center",gap:12,padding:"11px 14px",borderBottom:"1px solid rgba(255,255,255,.04)",cursor:"pointer",transition:"background .15s"}}>
-                        <div style={{width:34,height:34,borderRadius:"50%",background:`linear-gradient(135deg,${BLUE},#0948CC)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:900,color:"#fff",flexShrink:0}}>
-                          {(c.name||"?")[0].toUpperCase()}
-                        </div>
-                        <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:12,fontWeight:800,color:"rgba(255,255,255,.85)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.name}</div>
-                          <div style={{fontSize:10,color:"rgba(255,255,255,.3)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.email}</div>
-                        </div>
-                        {c.destination && <span style={{fontSize:10,color:BLUE,fontWeight:700,flexShrink:0}}>✈️ {c.destination}</span>}
-                      </div>
-                    ))
-                    : <div style={{padding:"20px",textAlign:"center",fontSize:12,color:"rgba(255,255,255,.2)"}}>No clients yet</div>
-                  }
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* ── COL 3: Quick actions + pipeline ─────────────── */}
-            <div style={{display:"flex",flexDirection:"column",gap:16,animation:"fadeIn .4s ease .25s both"}}>
+            {/* RIGHT PANEL */}
+            <div className="space-y-6">
 
-              {/* Quick actions */}
-              <div style={{background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.06)",borderRadius:20,padding:"16px"}}>
-                <div style={{fontSize:11,fontWeight:900,color:"rgba(255,255,255,.4)",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:12}}>Quick Actions</div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              {/* QUICK ACTIONS */}
+              <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5">
+                <h2 className="font-black text-lg mb-4" style={{ color: PREMIUM_BLUE }}>Quick Actions</h2>
+                <div className="grid grid-cols-2 gap-2">
                   {[
-                    {label:"New Client",   href:"/agent/clients",    icon:"👥", color:BLUE},
-                    {label:"New Dossier",  href:"/agent/clients",    icon:"📁", color:"#6366f1"},
-                    {label:"Proposal",     href:"/agent/proposals",  icon:"📋", color:"#a855f7"},
-                    {label:"Chat Lina",    href:"/agent/lina",       icon:"lina",color:GREEN},
-                    {label:"Booking",      href:"/agent/bookings",   icon:"✈️", color:GOLD},
-                    {label:"Commissions",  href:"/agent/commissions",icon:"💰", color:"#ec4899"},
-                  ].map((a:any)=>(
-                    <Link key={a.label} href={a.href} style={{
-                      background:`${a.color}18`,border:`1px solid ${a.color}30`,
-                      borderRadius:12,padding:"10px 10px",
-                      display:"flex",alignItems:"center",gap:6,
-                      textDecoration:"none",color:"#fff",fontSize:11,fontWeight:800,
-                      transition:"background .15s",
-                    }}
-                    onMouseEnter={e=>(e.currentTarget.style.background=`${a.color}28`)}
-                    onMouseLeave={e=>(e.currentTarget.style.background=`${a.color}18`)}>
-                      {a.icon==="lina"
-                        ? <img src="/branding/lina-avatar.png" alt="" style={{width:18,height:18,borderRadius:"50%",objectFit:"cover",flexShrink:0}}/>
-                        : <span style={{fontSize:16}}>{a.icon}</span>
-                      }
+                    { label: "New Client", href: "/agent/clients", icon: "👥", color: "bg-blue-600" },
+                    { label: "New Dossier", href: "/agent/clients", icon: "📁", color: "bg-indigo-600" },
+                    { label: "Proposal", href: "/agent/proposals", icon: "📋", color: "bg-purple-600" },
+                    { label: "Chat Lina", href: "/agent/lina", icon: "lina", color: "bg-emerald-600" },
+                    { label: "Booking", href: "/agent/bookings", icon: "✈️", color: "bg-amber-600" },
+                    { label: "Commissions", href: "/agent/commissions", icon: "💰", color: "bg-rose-600" },
+                  ].map((a) => (
+                    <Link key={a.label} href={a.href}
+                      className={`${a.color} rounded-xl px-3 py-3 text-white text-xs font-bold flex items-center gap-2 hover:opacity-90 transition`}>
+                      {a.icon === "lina" ? (
+                        <img src="/branding/lina-avatar.png" alt="Lina" className="w-5 h-5 rounded-full object-cover border border-white/40" />
+                      ) : (
+                        <span className="text-base">{a.icon}</span>
+                      )}
                       {a.label}
                     </Link>
                   ))}
                 </div>
               </div>
 
-              {/* Dossier pipeline */}
-              <div style={{background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.06)",borderRadius:20,padding:"16px",flex:1}}>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-                  <div style={{fontSize:11,fontWeight:900,color:"rgba(255,255,255,.4)",letterSpacing:"0.1em",textTransform:"uppercase"}}>Dossier Pipeline</div>
-                  <Link href="/agent/clients" style={{fontSize:10,fontWeight:800,color:BLUE,textDecoration:"none"}}>Create →</Link>
-                </div>
-                {dashStats?.recent_dossiers?.length>0
-                  ? dashStats.recent_dossiers.map((d:any)=>(
-                    <div key={d.id} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:12,padding:"10px 12px",marginBottom:8}}>
-                      <div style={{fontSize:12,fontWeight:800,color:"rgba(255,255,255,.8)",marginBottom:2}}>{d.title}</div>
-                      <div style={{fontSize:10,color:"rgba(255,255,255,.35)"}}>{d.client_name} · {d.destination||"—"}</div>
-                      <div style={{fontSize:9,fontWeight:800,color:BLUE,marginTop:4}}>{d.status}</div>
-                    </div>
-                  ))
-                  : <div style={{border:"2px dashed rgba(255,255,255,.08)",borderRadius:12,padding:"20px",textAlign:"center"}}>
-                      <div style={{fontSize:11,color:"rgba(255,255,255,.2)",marginBottom:6}}>No open dossiers</div>
-                      <Link href="/agent/clients" style={{fontSize:11,fontWeight:800,color:BLUE,textDecoration:"none"}}>Create a dossier →</Link>
-                    </div>
-                }
-              </div>
-
-              {/* HQ: Agent requests */}
-              {isHQorAdmin && agentRequests.length>0 && (
-                <div style={{background:"rgba(230,184,90,.04)",border:"1px solid rgba(230,184,90,.2)",borderRadius:20,padding:"16px"}}>
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-                    <div style={{fontSize:11,fontWeight:900,color:GOLD,letterSpacing:"0.08em",textTransform:"uppercase"}}>⚡ Agent Requests</div>
-                    <Link href="/agent/requests" style={{fontSize:10,fontWeight:800,color:GOLD,textDecoration:"none"}}>View all</Link>
+              {/* HQ: NEW TRAVELERS */}
+              {isHQorAdmin && (
+                <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="font-black text-base" style={{ color: PREMIUM_BLUE }}>New Travelers</h2>
+                    <Link href="/agent/clients" className="text-xs font-bold" style={{ color: BRAND_BLUE }}>View all</Link>
                   </div>
-                  {agentRequests.map(r=>(
-                    <div key={r.id} style={{background:"rgba(230,184,90,.06)",border:"1px solid rgba(230,184,90,.15)",borderRadius:12,padding:"10px 12px",marginBottom:6}}>
-                      <div style={{fontSize:12,fontWeight:800,color:"rgba(255,255,255,.8)"}}>{r.name}</div>
-                      <div style={{fontSize:10,color:"rgba(255,255,255,.35)"}}>{r.email} · {r.role||"agent"}</div>
-                      <Link href="/agent/requests" style={{fontSize:10,fontWeight:800,color:GOLD,textDecoration:"none",marginTop:4,display:"block"}}>Approve →</Link>
+                  {recentTravelers.length === 0 ? (
+                    <p className="text-xs text-slate-400">Aucun nouveau voyageur.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {recentTravelers.map((t: any) => (
+                        <div key={t.id} className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black text-white shrink-0"
+                            style={{ background: BRAND_BLUE }}>
+                            {(t.name || t.email || "?")[0].toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold truncate" style={{ color: PREMIUM_BLUE }}>{t.name || "—"}</p>
+                            <p className="text-xs text-slate-400 truncate">{t.email}</p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
 
-              {/* Agent tools */}
-              <div style={{background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.06)",borderRadius:20,padding:"16px"}}>
-                <div style={{fontSize:11,fontWeight:900,color:"rgba(255,255,255,.4)",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10}}>Agent Tools</div>
-                {[
-                  {label:"📊 AI Agents Dashboard", href:"/ai-agents"},
-                  {label:"🗂️ Client Profiles",      href:"/agent/clients"},
-                  {label:"📋 Bookings Center",       href:"/agent/bookings"},
-                  {label:"💰 Commissions",           href:"/agent/commissions"},
-                  {label:"📄 Documents",             href:"/agent/documents"},
-                ].map(t=>(
-                  <Link key={t.href} href={t.href} className="mc-link" style={{
-                    display:"flex",alignItems:"center",gap:8,borderRadius:10,
-                    padding:"8px 10px",textDecoration:"none",
-                    fontSize:11,fontWeight:700,color:"rgba(255,255,255,.6)",
-                    marginBottom:2,transition:"background .15s",
-                  }}>{t.label}</Link>
-                ))}
+              {/* HQ: AGENT REQUESTS */}
+              {isHQorAdmin && (
+                <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="font-black text-base" style={{ color: PREMIUM_BLUE }}>Agent Requests</h2>
+                    <Link href="/agent/requests" className="text-xs font-bold" style={{ color: BRAND_BLUE }}>View all</Link>
+                  </div>
+                  {agentRequests.length === 0 ? (
+                    <p className="text-xs text-slate-400">No pending requests.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {agentRequests.map((r: any) => (
+                        <div key={r.id} className="rounded-lg border border-amber-200 bg-amber-50 p-2">
+                          <p className="text-xs font-semibold" style={{ color: PREMIUM_BLUE }}>{r.name}</p>
+                          <p className="text-xs text-slate-500">{r.email} · {r.role || "agent"}</p>
+                          <Link href="/agent/requests" className="text-xs font-bold text-amber-700 mt-1 block">Approve →</Link>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* DOSSIERS EN COURS */}
+              <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-black text-base" style={{ color: PREMIUM_BLUE }}>Dossier Pipeline</h2>
+                  <Link href="/agent/clients" className="text-xs font-bold" style={{ color: BRAND_BLUE }}>Create →</Link>
+                </div>
+                {dashStats?.recent_dossiers?.length > 0 ? (
+                  <div className="space-y-2">
+                    {dashStats.recent_dossiers.map((d: any) => (
+                      <div key={d.id} className="rounded-lg border border-slate-100 bg-slate-50 p-3">
+                        <p className="text-xs font-bold" style={{ color: PREMIUM_BLUE }}>{d.title}</p>
+                        <p className="text-xs text-slate-500">{d.client_name} · {d.destination || "—"}</p>
+                        <span className="text-xs font-semibold text-blue-600 mt-1 inline-block">{d.status}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-xl border-2 border-dashed border-slate-200 p-4 text-center">
+                    <p className="text-xs text-slate-400">No open dossiers.</p>
+                    <Link href="/agent/clients" className="text-xs font-bold text-blue-600 mt-1 block">Create a dossier →</Link>
+                  </div>
+                )}
+              </div>
+
+              {/* OUTILS */}
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
+                <h2 className="font-black text-base mb-3" style={{ color: PREMIUM_BLUE }}>Agent Tools</h2>
+                <div className="space-y-1.5">
+                  {[
+                    { label: "📊 AI Agents Dashboard", href: "/ai-agents" },
+                    { label: "🗂️ Client Profiles", href: "/agent/clients" },
+                    { label: "📋 Bookings Center", href: "/agent/bookings" },
+                    { label: "💰 Commissions", href: "/agent/commissions" },
+                    { label: "📄 Documents", href: "/agent/documents" },
+                  ].map((t) => (
+                    <Link key={t.href} href={t.href} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition">
+                      {t.label}
+                    </Link>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </main>
 
-      {/* ── Trip Search Modal ─────────────────────────────────── */}
-      {searchOpen && (
-        <div style={{position:"fixed",inset:0,zIndex:50,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,.7)",backdropFilter:"blur(8px)",padding:16}}>
-          <div style={{width:"100%",maxWidth:580,borderRadius:24,overflow:"hidden",background:"#080E1E",border:"1px solid rgba(255,255,255,.1)",boxShadow:"0 32px 80px rgba(0,0,0,.7)"}}>
-            <div style={{padding:"20px 24px",borderBottom:"1px solid rgba(255,255,255,.08)",display:"flex",alignItems:"center",justifyContent:"space-between",background:`linear-gradient(135deg,${BLUE}22,rgba(255,255,255,.02))`}}>
-              <div style={{fontSize:18,fontWeight:900}}>✈️ Trip Search</div>
-              <button onClick={()=>setSearchOpen(false)} style={{background:"rgba(255,255,255,.1)",border:"none",borderRadius:999,padding:"6px 10px",color:"#fff",cursor:"pointer",fontSize:12}}>✕</button>
+      {/* AGENT DETAIL PANEL */}
+      {selectedAgent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl overflow-hidden shadow-2xl">
+            <div className="p-6 text-white" style={{ background: `linear-gradient(135deg, ${selectedAgent.color}, ${PREMIUM_BLUE})` }}>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-white/30 bg-white/10">
+                    {selectedAgent.avatar
+                      ? <img src={selectedAgent.avatar} alt={selectedAgent.name} className="w-full h-full object-cover" />
+                      : <div className="w-full h-full flex items-center justify-center text-3xl">{selectedAgent.emoji}</div>
+                    }
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black">{selectedAgent.name}</h2>
+                    <p className="text-sm opacity-80">{selectedAgent.type}</p>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full mt-1 inline-block ${STATUS_CFG[selectedAgent.status].badge}`}>
+                      {STATUS_CFG[selectedAgent.status].label}
+                    </span>
+                  </div>
+                </div>
+                <button onClick={() => setSelectedAgent(null)} className="rounded-full p-1.5 bg-white/20 hover:bg-white/30 text-white text-sm">✕</button>
+              </div>
             </div>
-            <div style={{padding:24}}>
-              <div style={{display:"flex",gap:8,marginBottom:16}}>
-                {(["flights","hotels","transfers"] as const).map(t=>(
-                  <button key={t} onClick={()=>setActiveSearchTab(t)} style={{
-                    padding:"8px 16px",borderRadius:999,fontSize:12,fontWeight:800,cursor:"pointer",border:"none",
-                    background:activeSearchTab===t?BLUE:"rgba(255,255,255,.08)",
-                    color:activeSearchTab===t?"#fff":"rgba(255,255,255,.5)",
-                  }}>
-                    {t==="flights"?"✈️ Flights":t==="hotels"?"🏨 Hotels":"🚗 Transfers"}
+            <div className="p-6 bg-white space-y-4">
+              <p className="text-sm text-slate-700">{selectedAgent.description}</p>
+              <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Statut</span>
+                  <span className="font-bold" style={{ color: PREMIUM_BLUE }}>{STATUS_CFG[selectedAgent.status].label}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Planification</span>
+                  <span className="font-bold" style={{ color: PREMIUM_BLUE }}>{selectedAgent.schedule}</span>
+                </div>
+                {selectedAgent.lastAction && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500">Dernière action</span>
+                    <span className="font-semibold text-emerald-600">{selectedAgent.lastAction}</span>
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Link href="/ai-agents" onClick={() => setSelectedAgent(null)}
+                  className="flex-1 rounded-full py-2.5 text-sm font-bold text-white text-center"
+                  style={{ background: selectedAgent.color }}>
+                  Voir détails →
+                </Link>
+                <button onClick={() => setSelectedAgent(null)} className="rounded-full px-4 py-2.5 text-sm font-semibold border border-slate-200 text-slate-700">
+                  Fermer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TRIP SEARCH MODAL */}
+      {searchOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl overflow-hidden">
+            <div className="p-6 text-white" style={{ background: `linear-gradient(135deg, ${BRAND_BLUE}, ${PREMIUM_BLUE})` }}>
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-black">✈️ Trip Search</h2>
+                <button onClick={() => setSearchOpen(false)} className="rounded-full p-1.5 bg-white/20 hover:bg-white/30 text-white">✕</button>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="flex gap-2 border-b border-slate-200 pb-4">
+                {(["flights", "hotels", "transfers"] as const).map((t) => (
+                  <button key={t} onClick={() => setActiveSearchTab(t)}
+                    className={`px-4 py-2 rounded-full text-sm font-bold capitalize transition ${activeSearchTab === t ? "text-white" : "bg-slate-100 text-slate-600"}`}
+                    style={activeSearchTab === t ? { background: BRAND_BLUE } : {}}>
+                    {t === "flights" ? "✈️ Vols" : t === "hotels" ? "🏨 Hôtels" : "🚗 Transfers"}
                   </button>
                 ))}
               </div>
-              <form onSubmit={handleSearch}>
-                <textarea value={query} onChange={e=>setQuery(e.target.value)} rows={3}
-                  placeholder={activeSearchTab==="flights"?"Ex: MTL → Cancún, Jul 15, 2 adults, economy…":activeSearchTab==="hotels"?"Ex: 5-star hotel Cancún, Jul 15-22, 2 adults…":"Ex: Airport → hotel Cancún, Jul 15 14:00…"}
-                  style={{width:"100%",background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",borderRadius:14,padding:"14px 16px",fontSize:13,color:"#fff",resize:"none",outline:"none",boxSizing:"border-box",marginBottom:12}}
+              <form onSubmit={handleSearch} className="space-y-4">
+                <textarea
+                  value={query} onChange={(e) => setQuery(e.target.value)}
+                  rows={3}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm resize-none focus:outline-none focus:border-blue-400"
+                  placeholder={activeSearchTab === "flights" ? "Ex: Vol Montréal → Cancún, 15 juillet, 2 personnes, économique..." : activeSearchTab === "hotels" ? "Ex: Hôtel 5 étoiles Cancún, 15-22 juillet, 2 adultes..." : "Ex: Transfer aéroport → hôtel Cancún, 15 juillet 14h..."}
                 />
-                <div style={{display:"flex",gap:10}}>
-                  <button type="submit" style={{flex:1,background:`linear-gradient(135deg,${BLUE},#0948CC)`,border:"none",borderRadius:999,padding:"12px",fontSize:13,fontWeight:800,color:"#fff",cursor:"pointer"}}>🔍 Search with Lina</button>
-                  <button type="button" onClick={()=>setSearchOpen(false)} style={{padding:"12px 20px",background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",borderRadius:999,fontSize:13,fontWeight:700,color:"rgba(255,255,255,.6)",cursor:"pointer"}}>Cancel</button>
+                <div className="flex gap-3">
+                  <button type="submit" className="flex-1 rounded-full py-3 text-sm font-bold text-white"
+                    style={{ background: `linear-gradient(135deg, ${BRAND_BLUE}, ${PREMIUM_BLUE})` }}>
+                    🔍 Rechercher avec Lina
+                  </button>
+                  <button type="button" onClick={() => setSearchOpen(false)} className="rounded-full px-5 py-3 text-sm font-semibold border border-slate-200 text-slate-700">
+                    Annuler
+                  </button>
                 </div>
               </form>
             </div>
@@ -620,6 +729,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
 }
 
 import AppAgentGate from "../../src/components/AppAgentGate.client";
+
 export default function AgentPage() {
   return (
     <AppAgentGate>
