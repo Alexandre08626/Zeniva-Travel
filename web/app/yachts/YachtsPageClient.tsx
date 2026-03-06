@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+// Image from next/image replaced with <img> to avoid double-encoding local paths
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { GRADIENT_END, GRADIENT_START, LIGHT_BG } from "../../src/design/tokens";
@@ -328,14 +328,12 @@ export default function YachtsPageClient() {
                 <div key={p.slug} className="group bg-white rounded-3xl shadow-md overflow-hidden flex flex-col transition hover:shadow-xl hover:-translate-y-1">
                   {/* Photo */}
                   <div className="relative h-56 w-full overflow-hidden">
-                    <Image
+                    <img
                       src={p.image}
                       alt={p.title}
-                      width={800}
-                      height={520}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
-                      priority={false}
+                      loading="lazy"
+                      onError={(e) => { (e.target as HTMLImageElement).src = "/branding/lina-hero.png"; }}
                     />
                     {/* Price badge */}
                     {p.price && (
