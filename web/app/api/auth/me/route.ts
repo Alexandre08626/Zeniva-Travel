@@ -107,6 +107,23 @@ export async function GET(request: Request) {
         maxAge: 60 * 60 * 24 * 30,
         ...(cookieDomain ? { domain: cookieDomain } : {}),
       });
+      // Also refresh zeniva_roles cookie (used by middleware) with current DB roles
+      response.cookies.set("zeniva_roles", encodeURIComponent(JSON.stringify(normalizedRoles)), {
+        httpOnly: false,
+        sameSite: "lax",
+        secure: secureCookies,
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30,
+        ...(cookieDomain ? { domain: cookieDomain } : {}),
+      });
+      response.cookies.set("zeniva_email", encodeURIComponent(account.email), {
+        httpOnly: false,
+        sameSite: "lax",
+        secure: secureCookies,
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30,
+        ...(cookieDomain ? { domain: cookieDomain } : {}),
+      });
     } catch { /* ignore refresh errors */ }
 
     return response;
