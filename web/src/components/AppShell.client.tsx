@@ -24,6 +24,14 @@ const CLIENT_TABS = [
   },
   { id: "call", label: "Call Lina", href: "/call", isCenter: true },
   {
+    id: "trips", label: "My Trips", href: "/trips",
+    icon: (a: boolean) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={a ? "#E6B85A" : "rgba(255,255,255,0.35)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.59 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.5 0h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 7.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 14.92z"/>
+      </svg>
+    ),
+  },
+  {
     id: "explore", label: "Explore", href: "/yachts",
     icon: (a: boolean) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={a ? "#E6B85A" : "rgba(255,255,255,0.35)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -112,6 +120,7 @@ export default function AppShell() {
     if (path === "/" || path === "") return "home";
     if (path.startsWith("/chat")) return "chat";
     if (path.startsWith("/call")) return "call";
+    if (path.startsWith("/trips") || path.startsWith("/proposals")) return "trips";
     if (path.startsWith("/yachts") || path.startsWith("/residences") || path.startsWith("/airbnbs") || path.startsWith("/search")) return "explore";
     if (path.startsWith("/profile")) return "account";
     return "";
@@ -147,7 +156,9 @@ export default function AppShell() {
       <style>{`
         [data-fullbleed="true"] { display: none !important; }
         body { background: ${isAgentMode ? "#040810" : "#030812"} !important; }
-        main, #main-content { padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important; }
+        main, #main-content { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
+        /* Ensure scroll containers also clear the nav bar */
+        [class*="overflow-y-auto"], [class*="overflow-auto"] { scroll-padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
         /* Dark agent pages in app mode */
         .agent-page-wrapper { background: #040810 !important; min-height: 100vh; }
         @media (display-mode: standalone) {

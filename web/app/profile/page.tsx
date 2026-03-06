@@ -2,105 +2,174 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore, isAgent, logout } from "../../src/lib/authStore";
-import { useTripsStore } from "../../lib/store/tripsStore";
+import { useTripsStore } from "../../src/lib/tripsStore";
+
+const GOLD = "#E6B85A";
+const BLUE = "#0F6CF5";
+const GREEN = "#10B981";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const authUser = useAuthStore((s) => s.user);
-  const { trips } = useTripsStore((s) => ({ trips: s.trips }));
+  const user = useAuthStore((s) => s.user);
+  const { trips, loadTrips } = useTripsStore();
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  const userIsAgent = mounted && authUser ? isAgent(authUser) : false;
+  const [showSignIn, setShowSignIn] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    loadTrips();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const userIsAgent = mounted && user ? isAgent(user) : false;
+  const initials = user?.name ? user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) : "✈️";
 
   return (
     <div style={{
-      minHeight: "100dvh",
-      background: "#030812",
-      color: "white",
-      paddingTop: "calc(env(safe-area-inset-top) + 16px)",
-      paddingBottom: "calc(80px + env(safe-area-inset-bottom))",
+      minHeight: "100vh", background: "#030812",
+      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
+      paddingTop: "calc(env(safe-area-inset-top) + 40px)",
+      color: "#fff",
     }}>
-      <div style={{ padding: "0 20px" }}>
-        {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 28 }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: "50%",
-            background: "linear-gradient(135deg, #0F6CF5, #0B1B4D)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 24, border: "2px solid rgba(15,108,245,0.4)",
-          }}>
-            {authUser?.name?.[0]?.toUpperCase() || "✈️"}
-          </div>
-          <div>
-            <h1 style={{ fontSize: 20, fontWeight: 900, margin: 0, color: "white" }}>
-              {authUser?.name || "My Account"}
-            </h1>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>
-              {authUser?.email || "Sign in to access your trips"}
-            </p>
-          </div>
-        </div>
+      <style>{`
+        @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .menu-row:active { background: rgba(255,255,255,0.06) !important; transform: scale(0.98); }
+      `}</style>
 
-        {/* Quick links */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
-          {[
-            { emoji: "💬", label: "Chat with Lina", sub: "Start planning your trip", href: "/chat" },
-            { emoji: "📞", label: "Call Lina", sub: "Live video + voice concierge", href: "/call" },
-            { emoji: "📋", label: "My Proposals", sub: `${trips.length} trip(s) in progress`, href: "/chat" },
-            { emoji: "🛥️", label: "Yacht Charters", sub: "Browse luxury yachts in Miami", href: "/yachts" },
-            { emoji: "🏡", label: "Villas & Rentals", sub: "Premium short-term stays", href: "/residences" },
-            ...(userIsAgent ? [{ emoji: "🏢", label: "Agent Dashboard", sub: "Switch to agent workspace", href: "/agent", isAgent: true }] : []),
-          ].map((item) => (
-            <button
-              key={item.label}
-              onClick={() => router.push(item.href)}
-              style={{
-                display: "flex", alignItems: "center", gap: 14,
-                background: (item as any).isAgent ? "rgba(230,184,90,0.06)" : "rgba(255,255,255,0.04)",
-                border: (item as any).isAgent ? "1px solid rgba(230,184,90,0.2)" : "1px solid rgba(255,255,255,0.07)",
-                borderRadius: 16, padding: "14px 16px",
-                cursor: "pointer", textAlign: "left",
-                WebkitTapHighlightColor: "transparent",
-              }}
-            >
-              <span style={{ fontSize: 24, flexShrink: 0 }}>{item.emoji}</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 14, fontWeight: 700, color: "white", margin: "0 0 2px" }}>{item.label}</p>
-                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: 0 }}>{item.sub}</p>
+      {/* Header */}
+      <div style={{ padding: "0 20px 28px", textAlign: "center" }}>
+        {/* Avatar */}
+        <div style={{
+          width: 80, height: 80, borderRadius: "50%", margin: "0 auto 14px",
+          background: `linear-gradient(135deg, ${BLUE}, #0B3FAA)`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 28, fontWeight: 900, color: "#fff",
+          border: `3px solid rgba(230,184,90,0.2)`,
+          boxShadow: `0 0 30px rgba(15,108,245,0.3)`,
+        }}>
+          {initials}
+        </div>
+        {user ? (
+          <>
+            <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 4 }}>{user.name || "Traveler"}</div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>{user.email}</div>
+            {userIsAgent && (
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 5,
+                background: "rgba(230,184,90,0.1)", border: "1px solid rgba(230,184,90,0.25)",
+                borderRadius: 30, padding: "4px 12px", marginTop: 8,
+              }}>
+                <span style={{ width: 5, height: 5, borderRadius: "50%", background: GREEN, display: "block" }} />
+                <span style={{ fontSize: 10, fontWeight: 800, color: GOLD, letterSpacing: "0.06em" }}>AGENT</span>
               </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                <polyline points="9,18 15,12 9,6" />
-              </svg>
-            </button>
-          ))}
-        </div>
+            )}
+          </>
+        ) : (
+          <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>Not signed in</div>
+        )}
+      </div>
 
-        {/* Account actions */}
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
-          {!authUser ? (
+      {/* Menu sections */}
+      <div style={{ padding: "0 16px", display: "flex", flexDirection: "column", gap: 12 }}>
+
+        {/* ── My Travel ── */}
+        <MenuSection title="My Travel">
+          <MenuRow icon="✈️" label="My Trips" sub={`${trips.length} trip${trips.length !== 1 ? "s" : ""}`} onClick={() => router.push("/trips")} />
+          <MenuRow icon="📋" label="My Proposals" sub="View & review your proposals" onClick={() => router.push("/trips")} />
+          <MenuRow icon="💬" label="Chat with Lina" sub="Continue planning your trip" onClick={() => router.push("/chat")} />
+          <MenuRow icon="📞" label="Call Lina" sub="Live AI video concierge" onClick={() => router.push("/call")} last />
+        </MenuSection>
+
+        {/* ── Explore ── */}
+        <MenuSection title="Explore">
+          <MenuRow icon="🛥️" label="Yacht Charters" sub="Luxury boats in Miami" onClick={() => router.push("/yachts")} />
+          <MenuRow icon="🏡" label="Villas & Rentals" sub="Premium short-term stays" onClick={() => router.push("/residences")} last />
+        </MenuSection>
+
+        {/* ── Agent Dashboard (agents only) ── */}
+        {userIsAgent && (
+          <MenuSection title="Agent Workspace">
+            <MenuRow icon="⚡" label="Agent Dashboard" sub="Clients · Leads · Inbox" onClick={() => router.push("/agent")} gold />
+            <MenuRow icon="💬" label="Client Inbox" sub="Messages from your clients" onClick={() => router.push("/agent/chat")} />
+            <MenuRow icon="👥" label="Clients" sub="Manage your accounts" onClick={() => router.push("/agent/clients")} last />
+          </MenuSection>
+        )}
+
+        {/* ── Account ── */}
+        <MenuSection title="Account">
+          {user ? (
             <>
-              <button onClick={() => router.push("/login")} style={{
-                background: "linear-gradient(135deg, #E6B85A, #c89b2a)",
-                border: "none", borderRadius: 14, padding: "14px",
-                color: "#0B1B4D", fontWeight: 800, fontSize: 15, cursor: "pointer",
-              }}>Sign In</button>
-              <button onClick={() => router.push("/signup")} style={{
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: 14, padding: "14px",
-                color: "rgba(255,255,255,0.7)", fontWeight: 600, fontSize: 14, cursor: "pointer",
-              }}>Create Account</button>
+              <MenuRow icon="⚙️" label="Settings" sub="Preferences & notifications" onClick={() => router.push("/agent/settings")} />
+              <MenuRow icon="🔐" label="Sign Out" sub="Log out of your account" onClick={async () => { await logout("/"); }} danger last />
             </>
           ) : (
-            <button onClick={() => { logout("/"); }} style={{
-              background: "rgba(239,68,68,0.1)",
-              border: "1px solid rgba(239,68,68,0.2)",
-              borderRadius: 14, padding: "14px",
-              color: "#ef4444", fontWeight: 700, fontSize: 14, cursor: "pointer",
-            }}>Sign Out</button>
+            <>
+              <MenuRow icon="🔑" label="Sign In" sub="Access your trips & proposals" onClick={() => router.push("/login")} gold />
+              <MenuRow icon="✨" label="Create Account" sub="Join Zeniva Travel" onClick={() => router.push("/register")} last />
+            </>
           )}
+        </MenuSection>
+
+        {/* App version */}
+        <div style={{ textAlign: "center", padding: "8px 0 4px", fontSize: 10, color: "rgba(255,255,255,0.15)", letterSpacing: "0.05em" }}>
+          ZENIVA TRAVEL · v2.0 PWA
         </div>
       </div>
     </div>
+  );
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function MenuSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8, paddingLeft: 4 }}>
+        {title}
+      </div>
+      <div style={{
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.07)",
+        borderRadius: 18, overflow: "hidden",
+      }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function MenuRow({ icon, label, sub, onClick, gold, danger, last }: {
+  icon: string; label: string; sub?: string; onClick: () => void;
+  gold?: boolean; danger?: boolean; last?: boolean;
+}) {
+  return (
+    <button className="menu-row" onClick={onClick} style={{
+      display: "flex", alignItems: "center", gap: 14,
+      width: "100%", padding: "14px 16px",
+      background: gold ? "rgba(230,184,90,0.04)" : "transparent",
+      border: "none",
+      borderBottom: last ? "none" : "1px solid rgba(255,255,255,0.05)",
+      cursor: "pointer", textAlign: "left",
+      WebkitTapHighlightColor: "transparent",
+      transition: "background 0.15s ease, transform 0.1s ease",
+    }}>
+      <div style={{
+        width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+        background: danger ? "rgba(239,68,68,0.1)" : gold ? "rgba(230,184,90,0.1)" : "rgba(255,255,255,0.06)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 20,
+        border: gold ? "1px solid rgba(230,184,90,0.2)" : danger ? "1px solid rgba(239,68,68,0.2)" : "1px solid rgba(255,255,255,0.06)",
+      }}>
+        {icon}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: danger ? "#ef4444" : gold ? GOLD : "#fff", marginBottom: 1 }}>
+          {label}
+        </div>
+        {sub && <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{sub}</div>}
+      </div>
+      <div style={{ color: "rgba(255,255,255,0.2)", fontSize: 16, flexShrink: 0 }}>›</div>
+    </button>
   );
 }
