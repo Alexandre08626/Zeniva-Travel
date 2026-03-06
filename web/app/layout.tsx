@@ -8,6 +8,7 @@ import BackButton from "../src/components/BackButton.client";
 import LinaAssistantDock from "../src/components/LinaAssistantDock";
 import CookieConsent from "../src/components/legal/CookieConsent.client";
 import PlatformOsTag from "../src/components/PlatformOsTag.client";
+import PWAInstallBanner from "../src/components/PWAInstallBanner.client";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -309,6 +310,7 @@ export default function RootLayout({
           <BackButton />
           <LinaAssistantDock />
           {children}
+          <PWAInstallBanner />
           <CookieConsent />
         </Providers>
       </body>
