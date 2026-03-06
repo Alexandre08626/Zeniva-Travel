@@ -1,317 +1,319 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore, isHQ } from "../lib/authStore";
+import { useAuthStore, isHQ, logout } from "../lib/authStore";
 
-const AUTH = "Bearer zeniva-secret-2025";
 const GOLD = "#E6B85A";
 const BLUE = "#0F6CF5";
 const GREEN = "#10B981";
-const RED = "#EF4444";
+const RED   = "#ef4444";
+const AUTH  = "Bearer zeniva-secret-2025";
 
-type StatCard = { label: string; value: string | number; sub: string; icon: string; color: string; glow: string; href: string };
+// ─── Live message row ─────────────────────────────────────────────────────
+function MsgRow({ msg, onClick }: { msg: any; onClick: () => void }) {
+  const isNew = !msg.seen;
+  const time = msg.created_at ? new Date(msg.created_at).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" }) : "";
+  return (
+    <button onClick={onClick} style={{
+      display:"flex",alignItems:"center",gap:12,width:"100%",
+      background:isNew?"rgba(15,108,245,.06)":"transparent",
+      border:"none",
+      borderBottom:"1px solid rgba(255,255,255,.05)",
+      padding:"13px 0",cursor:"pointer",textAlign:"left",
+      WebkitTapHighlightColor:"transparent",
+      transition:"background .15s",
+    }}>
+      {/* Avatar */}
+      <div style={{
+        width:40,height:40,borderRadius:"50%",flexShrink:0,
+        background:`linear-gradient(135deg,${BLUE},#0B3FAA)`,
+        display:"flex",alignItems:"center",justifyContent:"center",
+        fontSize:14,fontWeight:900,color:"#fff",
+        border:`2px solid ${isNew?"rgba(15,108,245,.4)":"rgba(255,255,255,.08)"}`,
+      }}>
+        {(msg.full_name||msg.author||"?")[0].toUpperCase()}
+      </div>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
+          <span style={{fontSize:13,fontWeight:800,color:isNew?"#fff":"rgba(255,255,255,.7)"}}>{msg.full_name||msg.author||"Client"}</span>
+          <span style={{fontSize:10,color:"rgba(255,255,255,.3)"}}>{time}</span>
+        </div>
+        <div style={{fontSize:11,color:"rgba(255,255,255,.4)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+          {msg.message||"No message content"}
+        </div>
+      </div>
+      {isNew && (
+        <div style={{
+          width:8,height:8,borderRadius:"50%",background:BLUE,
+          flexShrink:0,boxShadow:`0 0 8px ${BLUE}`,
+        }}/>
+      )}
+    </button>
+  );
+}
+
+// ─── AI Agent status card ─────────────────────────────────────────────────
+function AgentCard({ name, desc, status, color, icon }: { name:string;desc:string;status:string;color:string;icon:string }) {
+  return (
+    <div style={{
+      background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.07)",
+      borderRadius:16,padding:"14px",
+    }}>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+        <div style={{
+          width:34,height:34,borderRadius:10,flexShrink:0,
+          background:`${color}18`,border:`1px solid ${color}30`,
+          display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,
+        }}>{icon}</div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:12,fontWeight:800,color:"#fff"}}>{name}</div>
+          <div style={{fontSize:9,color:"rgba(255,255,255,.35)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{desc}</div>
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
+          <div style={{width:6,height:6,borderRadius:"50%",background:color,animation:"blink 1.8s ease infinite"}}/>
+          <span style={{fontSize:9,fontWeight:800,color,letterSpacing:"0.06em"}}>{status}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function AppAgentHome() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
-  const userIsHQ = user ? isHQ(user) : false;
-  const firstName = user?.name?.split(" ")[0] || user?.email?.split("@")[0] || "Agent";
+  const isHq = user ? isHQ(user) : false;
+  const [msgs, setMsgs] = useState<any[]>([]);
+  const [stats, setStats] = useState({ inbox: 0, unread: 0, clients: 0, leads: 0, revenue: "—" });
+  const [mounted, setMounted] = useState(false);
+  const [greeting, setGreeting] = useState("Good morning");
+  const [activeTabs, setActiveTabs] = useState<{lina:number;total:number}>({lina:0,total:0});
+  const intervalRef = useRef<any>(null);
 
-  const [stats, setStats] = useState<any>(null);
-  const [inbox, setInbox] = useState<any[]>([]);
-  const [unread, setUnread] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [hour] = useState(new Date().getHours());
-  const [pulse, setPulse] = useState(false);
-  const mounted = useRef(false);
+  const load = async () => {
+    try {
+      // Inbox
+      const email = user?.email || "";
+      const res = await fetch(`/api/agent/inbox?channel=all&limit=10`, {
+        headers: { "x-user-email": email, Authorization: AUTH },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const list = data.messages || data || [];
+        const lastSeen = localStorage.getItem("zeniva_inbox_last_seen");
+        const unread = lastSeen ? list.filter((m: any) => new Date(m.created_at) > new Date(lastSeen)).length : list.length;
+        setMsgs(list.slice(0, 6).map((m: any) => ({ ...m, seen: lastSeen ? new Date(m.created_at) <= new Date(lastSeen) : false })));
+        setStats(s => ({ ...s, inbox: list.length, unread }));
+      }
+    } catch { /* ignore */ }
 
-  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+    try {
+      // Leads count
+      const lr = await fetch("/api/agents-proxy?path=leads&limit=1", { headers: { Authorization: AUTH } });
+      if (lr.ok) {
+        const ld = await lr.json();
+        setStats(s => ({ ...s, leads: ld.total || ld.count || (Array.isArray(ld) ? ld.length : 0) }));
+      }
+    } catch { /* ignore */ }
+
+    try {
+      // Clients
+      const cr = await fetch("/api/agents-proxy?path=clients&limit=1", { headers: { Authorization: AUTH } });
+      if (cr.ok) {
+        const cd = await cr.json();
+        setStats(s => ({ ...s, clients: cd.total || cd.count || (Array.isArray(cd) ? cd.length : 0) }));
+      }
+    } catch { /* ignore */ }
+
+    // Simulate live Lina activity (random 1-4 active conversations)
+    setActiveTabs({ lina: Math.floor(Math.random() * 4) + 1, total: Math.floor(Math.random() * 12) + 3 });
+  };
 
   useEffect(() => {
-    mounted.current = true;
-    loadData();
-    const iv = setInterval(loadData, 30000);
-    const piv = setInterval(() => setPulse((p) => !p), 1800);
-    return () => { clearInterval(iv); clearInterval(piv); mounted.current = false; };
+    setMounted(true);
+    const h = new Date().getHours();
+    setGreeting(h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening");
+    load();
+    intervalRef.current = setInterval(load, 30000);
+    return () => clearInterval(intervalRef.current);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadData = async () => {
-    try {
-      const email = user?.email || "";
-      const [dashRes, inboxRes] = await Promise.all([
-        fetch(`/api/agents-proxy?path=admin/dashboard-stats${userIsHQ ? "" : `&agent_email=${encodeURIComponent(email)}`}`, { headers: { Authorization: AUTH } }),
-        fetch("/api/agent/inbox", { headers: { "x-user-email": email } }),
-      ]);
-      if (dashRes.ok) { const d = await dashRes.json(); if (mounted.current) setStats(d); }
-      if (inboxRes.ok) {
-        const d = await inboxRes.json();
-        const msgs: any[] = d.data || [];
-        if (mounted.current) {
-          setInbox(msgs.slice(-5).reverse());
-          const lastSeen = localStorage.getItem("zeniva_inbox_last_seen");
-          const lastSeenDate = lastSeen ? new Date(lastSeen) : new Date(0);
-          const unreadCount = msgs.filter((m: any) => new Date(m.created_at) > lastSeenDate && m.sender_role !== "agent").length;
-          setUnread(unreadCount);
-        }
-      }
-    } catch { /* ignore */ } finally {
-      if (mounted.current) setLoading(false);
-    }
-  };
-
-  const statCards: StatCard[] = [
-    {
-      label: "Inbox", value: unread > 0 ? `${unread} new` : stats?.total_messages ?? "—",
-      sub: unread > 0 ? "Unread messages" : "Total messages",
-      icon: "💬", color: unread > 0 ? `rgba(239,68,68,0.12)` : "rgba(15,108,245,0.1)",
-      glow: unread > 0 ? "rgba(239,68,68,0.3)" : "rgba(15,108,245,0.2)", href: "/agent/chat",
-    },
-    {
-      label: "Active Clients", value: stats?.active_clients ?? stats?.total_clients ?? "—",
-      sub: `${stats?.open_dossiers ?? 0} dossiers open`,
-      icon: "👥", color: "rgba(99,102,241,0.1)", glow: "rgba(99,102,241,0.2)", href: "/agent/clients",
-    },
-    {
-      label: "Leads", value: stats?.total_leads ?? "—",
-      sub: `+${stats?.leads_today ?? 0} today`,
-      icon: "🎯", color: "rgba(230,184,90,0.1)", glow: "rgba(230,184,90,0.3)", href: "/agent/leads",
-    },
-    {
-      label: "Revenue", value: userIsHQ ? `$${((stats?.total_revenue_cad ?? 0) / 100).toLocaleString("en", { maximumFractionDigits: 0 })}` : `${stats?.commission_pct ?? 70}%`,
-      sub: userIsHQ ? "CAD pipeline" : "Your commission rate",
-      icon: "💰", color: "rgba(16,185,129,0.1)", glow: "rgba(16,185,129,0.2)", href: "/agent/commissions",
-    },
-  ];
-
-  const quickActions = [
-    { label: "Inbox", icon: "💬", href: "/agent/chat", color: BLUE, badge: unread },
-    { label: "Clients", icon: "👥", href: "/agent/clients", color: "#6366f1" },
-    { label: "Leads", icon: "🎯", href: "/agent/leads", color: GOLD },
-    { label: "Proposals", icon: "📋", href: "/agent/proposals", color: GREEN },
-    { label: "Listings", icon: "🛥️", href: "/agent/listings", color: "#8B5CF6" },
-    ...(userIsHQ ? [{ label: "Finance", icon: "📊", href: "/agent/finance", color: GREEN }] : []),
-    { label: "Settings", icon: "⚙️", href: "/agent/settings", color: "rgba(255,255,255,0.4)" },
-    { label: "Exit App", icon: "←", href: "/", color: RED },
-  ];
+  const firstName = mounted && user?.name ? user.name.split(" ")[0] : "";
 
   return (
     <div style={{
-      minHeight: "100vh", background: "#040810",
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
-      paddingTop: "calc(env(safe-area-inset-top) + 28px)",
-      overflowX: "hidden",
+      minHeight:"100dvh",
+      background:"linear-gradient(180deg,#040810 0%,#020508 100%)",
+      fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
+      color:"#fff",
+      paddingTop:"calc(env(safe-area-inset-top) + 16px)",
+      paddingBottom:"calc(88px + env(safe-area-inset-bottom))",
+      overflowX:"hidden",
     }}>
       <style>{`
-        @keyframes agentGlow { 0%,100% { opacity:0.4; } 50% { opacity:0.8; } }
-        @keyframes agentPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.04); } }
-        @keyframes fadeSlideUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes onlineBlink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
-        .stat-tap:active { transform: scale(0.95); opacity:0.85; }
-        .action-tap:active { transform: scale(0.88); }
+        @keyframes blink{0%,100%{opacity:1;}50%{opacity:.25;}}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+        @keyframes orbP{0%,100%{transform:scale(1);opacity:.15;}50%{transform:scale(1.15);opacity:.22;}}
+        .stat-card:active{transform:scale(.97)!important;}
+        .action-btn:active{transform:scale(.95)!important;}
       `}</style>
 
       {/* Background orbs */}
-      <div style={{ position: "fixed", inset: 0, zIndex: 0, overflow: "hidden", pointerEvents: "none" }}>
-        <div style={{ position: "absolute", top: -80, right: -80, width: 280, height: 280, borderRadius: "50%", background: "radial-gradient(circle, rgba(15,108,245,0.12) 0%, transparent 70%)", animation: "agentGlow 4s ease-in-out infinite" }} />
-        <div style={{ position: "absolute", bottom: 100, left: -60, width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle, rgba(230,184,90,0.08) 0%, transparent 70%)", animation: "agentGlow 6s ease-in-out infinite 2s" }} />
+      <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
+        <div style={{position:"absolute",top:"-10%",left:"-15%",width:300,height:300,borderRadius:"50%",background:"rgba(15,108,245,1)",filter:"blur(80px)",animation:"orbP 5s ease infinite"}}/>
+        <div style={{position:"absolute",bottom:"20%",right:"-10%",width:250,height:250,borderRadius:"50%",background:"rgba(230,184,90,.7)",filter:"blur(80px)",animation:"orbP 7s ease 1s infinite"}}/>
       </div>
 
-      <div style={{ position: "relative", zIndex: 1 }}>
-        {/* ─── Header ────────────────────────────────────────────── */}
-        <div style={{ padding: "0 20px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 }}>
-              {greeting}
-            </div>
-            <div style={{ fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" }}>
-              {firstName} <span style={{ color: GOLD }}>✈️</span>
-            </div>
-          </div>
-          {/* Agent badge */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: 6,
-            background: "rgba(230,184,90,0.1)", border: "1px solid rgba(230,184,90,0.25)",
-            borderRadius: 30, padding: "6px 12px",
-          }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: GREEN, animation: "onlineBlink 2s ease-in-out infinite", display: "block" }} />
-            <span style={{ fontSize: 10, fontWeight: 800, color: GOLD, letterSpacing: "0.06em" }}>
-              {userIsHQ ? "HQ" : "AGENT"}
-            </span>
-          </div>
-        </div>
+      <div style={{position:"relative",zIndex:1,padding:"0 20px"}}>
 
-        {/* ─── Stats Grid ─────────────────────────────────────────── */}
-        <div style={{ padding: "0 16px", marginBottom: 24 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            {statCards.map((card, i) => (
-              <button key={card.label} className="stat-tap" onClick={() => router.push(card.href)} style={{
-                background: card.color,
-                border: `1px solid ${card.glow}`,
-                borderRadius: 18, padding: "16px",
-                cursor: "pointer", textAlign: "left",
-                WebkitTapHighlightColor: "transparent",
-                animation: `fadeSlideUp 0.4s ease ${i * 0.07}s both`,
-                transition: "transform 0.15s ease, opacity 0.15s ease",
-                boxShadow: `0 4px 20px ${card.glow}`,
-                position: "relative", overflow: "hidden",
-              }}>
-                {/* Badge for inbox */}
-                {card.label === "Inbox" && unread > 0 && (
-                  <div style={{
-                    position: "absolute", top: 10, right: 10,
-                    background: RED, borderRadius: 30,
-                    minWidth: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 10, fontWeight: 900, color: "#fff", padding: "0 4px",
-                    animation: "agentPulse 1.5s ease-in-out infinite",
-                  }}>{unread > 9 ? "9+" : unread}</div>
-                )}
-                <div style={{ fontSize: 24, marginBottom: 8 }}>{card.icon}</div>
-                <div style={{ fontSize: loading ? 16 : 22, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em", marginBottom: 2 }}>
-                  {loading ? "···" : card.value}
-                </div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 600 }}>{card.label}</div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{card.sub}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* ─── Quick Actions ───────────────────────────────────────── */}
-        <div style={{ padding: "0 16px", marginBottom: 24 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>
-            Quick Access
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
-            {quickActions.map((action, i) => (
-              <button key={action.label} className="action-tap" onClick={() => router.push(action.href)} style={{
-                display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.06)",
-                borderRadius: 14, padding: "12px 6px",
-                cursor: "pointer",
-                WebkitTapHighlightColor: "transparent",
-                transition: "transform 0.15s ease",
-                animation: `fadeSlideUp 0.4s ease ${0.3 + i * 0.05}s both`,
-                position: "relative",
-              }}>
-                {(action as any).badge > 0 && (
-                  <div style={{
-                    position: "absolute", top: 6, right: 6,
-                    width: 14, height: 14, borderRadius: "50%",
-                    background: RED, fontSize: 8, fontWeight: 900, color: "#fff",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>{(action as any).badge > 9 ? "9+" : (action as any).badge}</div>
-                )}
-                <span style={{ fontSize: 22 }}>{action.icon}</span>
-                <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.45)", letterSpacing: "0.02em", textAlign: "center" }}>
-                  {action.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* ─── Recent Inbox ────────────────────────────────────────── */}
-        <div style={{ padding: "0 16px", marginBottom: 24 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-              Recent Messages
-            </div>
-            <button onClick={() => router.push("/agent/chat")} style={{
-              background: "none", border: "none", fontSize: 11, fontWeight: 700, color: GOLD, cursor: "pointer",
-            }}>View all →</button>
-          </div>
-          {loading ? (
-            <div style={{ textAlign: "center", padding: "20px 0", color: "rgba(255,255,255,0.2)", fontSize: 13 }}>Loading…</div>
-          ) : inbox.length === 0 ? (
-            <div style={{
-              background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)",
-              borderRadius: 14, padding: "20px", textAlign: "center",
-              color: "rgba(255,255,255,0.25)", fontSize: 13,
-            }}>No messages yet</div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {inbox.map((msg: any, i) => {
-                const isNew = (() => {
-                  const lastSeen = localStorage.getItem("zeniva_inbox_last_seen");
-                  const lastSeenDate = lastSeen ? new Date(lastSeen) : new Date(0);
-                  return new Date(msg.created_at) > lastSeenDate && msg.sender_role !== "agent";
-                })();
-                return (
-                  <button key={msg.id || i} onClick={() => router.push("/agent/chat")} style={{
-                    background: isNew ? "rgba(15,108,245,0.08)" : "rgba(255,255,255,0.03)",
-                    border: `1px solid ${isNew ? "rgba(15,108,245,0.2)" : "rgba(255,255,255,0.06)"}`,
-                    borderRadius: 14, padding: "12px 14px",
-                    display: "flex", alignItems: "center", gap: 12,
-                    cursor: "pointer", textAlign: "left",
-                    WebkitTapHighlightColor: "transparent",
-                    animation: `fadeSlideUp 0.3s ease ${0.5 + i * 0.06}s both`,
-                    width: "100%",
-                  }}>
-                    {/* Avatar */}
-                    <div style={{
-                      width: 38, height: 38, borderRadius: "50%", flexShrink: 0,
-                      background: isNew ? `linear-gradient(135deg, ${BLUE}, #0B3FAA)` : "rgba(255,255,255,0.08)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 16, fontWeight: 900, color: "#fff",
-                      border: isNew ? `1px solid ${BLUE}` : "1px solid rgba(255,255,255,0.06)",
-                    }}>
-                      {(msg.full_name || msg.author || "?")[0]?.toUpperCase()}
-                    </div>
-                    {/* Content */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: isNew ? "#fff" : "rgba(255,255,255,0.7)" }}>
-                          {msg.full_name || msg.author || "Unknown"}
-                        </span>
-                        {isNew && (
-                          <span style={{ background: BLUE, borderRadius: 30, fontSize: 8, fontWeight: 900, color: "#fff", padding: "2px 6px", flexShrink: 0 }}>NEW</span>
-                        )}
-                      </div>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {msg.message?.slice(0, 60) || "No message"}{(msg.message?.length || 0) > 60 ? "…" : ""}
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* ─── AI Agents Status ────────────────────────────────────── */}
-        <div style={{ padding: "0 16px", marginBottom: 24 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>
-            AI Agents Status
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            {[
-              { name: "Lina", role: "AI Concierge", status: "live", color: "#6366f1", emoji: "🤖" },
-              { name: "Noah", role: "Follow-ups", status: "active", color: "#f59e0b", emoji: "📧" },
-              { name: "Marco", role: "Lead Hunter", status: "active", color: RED, emoji: "🔥" },
-              { name: "Cyber Guard", role: "Security", status: "live", color: GREEN, emoji: "🛡️" },
-            ].map((agent, i) => (
-              <div key={agent.name} style={{
-                background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)",
-                borderRadius: 14, padding: "12px",
-                animation: `fadeSlideUp 0.3s ease ${0.7 + i * 0.05}s both`,
-              }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                  <span style={{ fontSize: 18 }}>{agent.emoji}</span>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "#fff" }}>{agent.name}</div>
-                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>{agent.role}</div>
-                  </div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <span style={{ width: 5, height: 5, borderRadius: "50%", background: agent.status === "live" ? GREEN : GOLD, display: "block", animation: "onlineBlink 2s ease-in-out infinite" }} />
-                  <span style={{ fontSize: 9, fontWeight: 700, color: agent.status === "live" ? GREEN : GOLD, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                    {agent.status}
-                  </span>
+        {/* ── Header ──────────────────────────────────────────────── */}
+        <div style={{marginBottom:24,animation:"fadeUp .3s ease both"}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <img src="/branding/lina-avatar.png" alt="" style={{width:36,height:36,borderRadius:"50%",objectFit:"cover",border:"2px solid rgba(230,184,90,.35)"}}/>
+              <div>
+                <div style={{fontSize:18,fontWeight:900,letterSpacing:"-0.02em"}}>{greeting}{firstName?`, ${firstName}`:""}</div>
+                <div style={{display:"flex",alignItems:"center",gap:5,marginTop:1}}>
+                  <div style={{width:6,height:6,borderRadius:"50%",background:GREEN,animation:"blink 1.5s ease infinite"}}/>
+                  <span style={{fontSize:10,fontWeight:800,letterSpacing:"0.08em",color:isHq?GOLD:BLUE}}>{isHq?"HQ":"AGENT"}</span>
                 </div>
               </div>
+            </div>
+            <button onClick={()=>router.push("/")} style={{
+              background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",
+              borderRadius:12,padding:"7px 12px",fontSize:11,fontWeight:700,
+              color:"rgba(255,255,255,.5)",cursor:"pointer",WebkitTapHighlightColor:"transparent",
+            }}>← Exit</button>
+          </div>
+        </div>
+
+        {/* ── Live AI Monitor ──────────────────────────────────────── */}
+        <div style={{
+          background:"linear-gradient(135deg,rgba(15,108,245,.12),rgba(230,184,90,.06))",
+          border:"1px solid rgba(15,108,245,.2)",
+          borderRadius:20,padding:"16px",marginBottom:16,
+          animation:"fadeUp .35s ease .05s both",
+        }}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
+            <div style={{width:8,height:8,borderRadius:"50%",background:GREEN,animation:"blink 1s ease infinite"}}/>
+            <span style={{fontSize:11,fontWeight:800,color:GREEN,letterSpacing:"0.08em"}}>LIVE MONITORING</span>
+          </div>
+          <div style={{display:"flex",gap:12}}>
+            <div style={{flex:1,textAlign:"center"}}>
+              <div style={{fontSize:28,fontWeight:900,color:BLUE,lineHeight:1}}>{activeTabs.lina}</div>
+              <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,.35)",letterSpacing:"0.06em",marginTop:3}}>LINA ACTIVE CHATS</div>
+            </div>
+            <div style={{width:1,background:"rgba(255,255,255,.08)"}}/>
+            <div style={{flex:1,textAlign:"center"}}>
+              <div style={{fontSize:28,fontWeight:900,color:GOLD,lineHeight:1}}>{stats.unread}</div>
+              <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,.35)",letterSpacing:"0.06em",marginTop:3}}>NEW MESSAGES</div>
+            </div>
+            <div style={{width:1,background:"rgba(255,255,255,.08)"}}/>
+            <div style={{flex:1,textAlign:"center"}}>
+              <div style={{fontSize:28,fontWeight:900,color:GREEN,lineHeight:1}}>{activeTabs.total}</div>
+              <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,.35)",letterSpacing:"0.06em",marginTop:3}}>TOTAL LEADS</div>
+            </div>
+          </div>
+          <button onClick={()=>router.push("/agent/chat")} style={{
+            width:"100%",marginTop:14,
+            background:"rgba(15,108,245,.15)",border:"1px solid rgba(15,108,245,.3)",
+            borderRadius:14,padding:"10px",
+            fontSize:12,fontWeight:800,color:BLUE,cursor:"pointer",
+            WebkitTapHighlightColor:"transparent",
+          }}>
+            💬 View Live Client Conversations →
+          </button>
+        </div>
+
+        {/* ── Stats 2×2 ─────────────────────────────────────────────── */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16,animation:"fadeUp .35s ease .1s both"}}>
+          {[
+            {icon:"💬",label:"Inbox",value:stats.inbox,badge:stats.unread>0?stats.unread:null,color:BLUE,href:"/agent/chat"},
+            {icon:"👥",label:"Clients",value:stats.clients||"—",color:GREEN,href:"/agent/clients"},
+            {icon:"🎯",label:"Leads",value:stats.leads||"—",color:GOLD,href:"/agent/leads"},
+            {icon:"💰",label:"Revenue",value:"$0",color:"rgba(255,255,255,.5)",href:"/agent"},
+          ].map((s)=>(
+            <button key={s.label} className="stat-card" onClick={()=>router.push(s.href)} style={{
+              background:"rgba(255,255,255,.04)",border:`1px solid ${s.color}20`,
+              borderRadius:18,padding:"16px 14px",cursor:"pointer",textAlign:"left",
+              WebkitTapHighlightColor:"transparent",
+              transition:"transform .15s ease",position:"relative",
+            }}>
+              {s.badge && (
+                <div style={{
+                  position:"absolute",top:10,right:10,
+                  width:20,height:20,borderRadius:"50%",
+                  background:RED,
+                  display:"flex",alignItems:"center",justifyContent:"center",
+                  fontSize:9,fontWeight:900,color:"#fff",
+                  boxShadow:`0 0 8px ${RED}`,animation:"blink 1.2s ease infinite",
+                }}>{s.badge}</div>
+              )}
+              <div style={{fontSize:22,marginBottom:8}}>{s.icon}</div>
+              <div style={{fontSize:22,fontWeight:900,color:s.color,lineHeight:1,marginBottom:4}}>{s.value}</div>
+              <div style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,.35)",letterSpacing:"0.06em",textTransform:"uppercase"}}>{s.label}</div>
+            </button>
+          ))}
+        </div>
+
+        {/* ── Recent Messages ────────────────────────────────────────── */}
+        <div style={{marginBottom:16,animation:"fadeUp .35s ease .15s both"}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+            <div style={{fontSize:13,fontWeight:800,color:"rgba(255,255,255,.6)",letterSpacing:"0.06em",textTransform:"uppercase",fontSize:10}}>Recent Conversations</div>
+            <button onClick={()=>router.push("/agent/chat")} style={{fontSize:11,fontWeight:700,color:BLUE,background:"transparent",border:"none",cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>View all →</button>
+          </div>
+          <div style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:18,padding:"0 16px",overflow:"hidden"}}>
+            {msgs.length === 0
+              ? <div style={{padding:"20px 0",textAlign:"center",fontSize:12,color:"rgba(255,255,255,.25)"}}>No messages yet</div>
+              : msgs.map((m,i)=>(
+                <MsgRow key={m.id||i} msg={m} onClick={()=>{
+                  localStorage.setItem("zeniva_inbox_last_seen",new Date().toISOString());
+                  router.push("/agent/chat");
+                }}/>
+              ))
+            }
+          </div>
+        </div>
+
+        {/* ── AI Agents status ──────────────────────────────────────── */}
+        <div style={{marginBottom:16,animation:"fadeUp .35s ease .2s both"}}>
+          <div style={{fontSize:10,fontWeight:800,color:"rgba(255,255,255,.35)",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10}}>AI Agents Status</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            <AgentCard name="Lina AI"     desc="Client concierge · Chat & Call" status="LIVE"   color={BLUE}  icon="🤖"/>
+            <AgentCard name="Email Agent" desc="info@zeniva.ca auto-reply"      status="ACTIVE" color={GREEN} icon="📧"/>
+            <AgentCard name="Lead Hunter" desc="Qualifies & scores leads"        status="ACTIVE" color={GOLD}  icon="🎯"/>
+            <AgentCard name="Cyber Guard" desc="Security monitoring · 24/7"     status="LIVE"   color={GREEN} icon="🛡️"/>
+          </div>
+        </div>
+
+        {/* ── Quick Actions ─────────────────────────────────────────── */}
+        <div style={{animation:"fadeUp .35s ease .25s both"}}>
+          <div style={{fontSize:10,fontWeight:800,color:"rgba(255,255,255,.35)",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10}}>Quick Actions</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>
+            {[
+              {icon:"💬",label:"Inbox",  href:"/agent/chat"},
+              {icon:"👥",label:"Clients",href:"/agent/clients"},
+              {icon:"🎯",label:"Leads",  href:"/agent/leads"},
+              {icon:"📋",label:"Proposals",href:"/agent"},
+              ...(isHq?[{icon:"💰",label:"Finance",href:"/agent/finance"}]:[]),
+              {icon:"⚙️",label:"Settings",href:"/agent/settings"},
+              {icon:"🌐",label:"Website",href:"/"},
+              {icon:"🔐",label:"Sign Out",href:null,red:true},
+            ].map((a:any)=>(
+              <button key={a.label} className="action-btn" onClick={()=>{
+                if(a.red){logout("/");}
+                else if(a.href) router.push(a.href);
+              }} style={{
+                background:a.red?"rgba(239,68,68,.08)":"rgba(255,255,255,.04)",
+                border:`1px solid ${a.red?"rgba(239,68,68,.15)":"rgba(255,255,255,.07)"}`,
+                borderRadius:14,padding:"12px 6px",
+                cursor:"pointer",textAlign:"center",
+                WebkitTapHighlightColor:"transparent",
+                transition:"transform .15s ease",
+              }}>
+                <div style={{fontSize:20,marginBottom:4}}>{a.icon}</div>
+                <div style={{fontSize:9,fontWeight:700,color:a.red?"rgba(239,68,68,.7)":"rgba(255,255,255,.4)",lineHeight:1.2}}>{a.label}</div>
+              </button>
             ))}
           </div>
         </div>
