@@ -263,6 +263,19 @@ function ChatThread({ tripId, proposalMode = "" }) {
     return () => media.removeEventListener?.("change", sync);
   }, []);
 
+  // Ref for auto-send ?q= param (populated after handleSend is defined)
+  const pendingQRef = useRef(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q");
+    if (!q) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("q");
+    window.history.replaceState({}, "", url.toString());
+    pendingQRef.current = q;
+  }, [tripId]);
+
   useEffect(() => {
     if (!userHasInteracted) return;
     if (
@@ -387,6 +400,16 @@ function ChatThread({ tripId, proposalMode = "" }) {
       setLoading(false);
     }
   };
+
+  // Fire pending ?q= message now that handleSend is defined
+  useEffect(() => {
+    if (!pendingQRef.current) return;
+    const q = pendingQRef.current;
+    pendingQRef.current = null;
+    const timer = setTimeout(() => handleSend(q), 600);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tripId]);
 
   const onSubmit = (e) => {
     e.preventDefault();

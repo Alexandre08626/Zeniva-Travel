@@ -9,8 +9,10 @@ function ChatRedirect() {
 
   useEffect(() => {
     const qp = searchParams?.get("tripId");
+    const q = searchParams?.get("q"); // initial message from app quick prompts
     const next = qp || ensureSeedTrip();
-    router.replace(`/chat/${next}`);
+    const url = q ? `/chat/${next}?q=${encodeURIComponent(q)}` : `/chat/${next}`;
+    router.replace(url);
   }, [router, searchParams]);
 
   return null;
