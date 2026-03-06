@@ -111,6 +111,9 @@ function LoginContent() {
           <button type="submit" className="w-full py-2 px-3 bg-black text-white rounded hover:bg-gray-800">
             Sign in
           </button>
+          <div className="text-right">
+            <a href="/reset-password" className="text-xs text-blue-600 hover:underline">Forgot password?</a>
+          </div>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
