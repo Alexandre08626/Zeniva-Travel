@@ -259,7 +259,7 @@ export default function AppAgentHome() {
         {/* ── Recent Messages ────────────────────────────────────────── */}
         <div style={{marginBottom:16,animation:"fadeUp .35s ease .15s both"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-            <div style={{fontSize:13,fontWeight:800,color:"rgba(255,255,255,.6)",letterSpacing:"0.06em",textTransform:"uppercase",fontSize:10}}>Recent Conversations</div>
+            <div style={{fontSize:10,fontWeight:800,color:"rgba(255,255,255,.6)",letterSpacing:"0.06em",textTransform:"uppercase"}}>Recent Conversations</div>
             <button onClick={()=>router.push("/agent/chat")} style={{fontSize:11,fontWeight:700,color:BLUE,background:"transparent",border:"none",cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>View all →</button>
           </div>
           <div style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:18,padding:"0 16px",overflow:"hidden"}}>
