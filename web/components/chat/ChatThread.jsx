@@ -620,56 +620,61 @@ function ChatThread({ tripId, proposalMode = "" }) {
       </div>
 
       {/* Input area */}
-      <div className="px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] border-t border-slate-100 bg-white">
-        {/* Quick prompts */}
-        <div className="flex flex-wrap gap-2 mb-3">
+      <div className="px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] border-t border-slate-100 bg-white">
+        {/* Quick prompts — scroll horizontal on mobile */}
+        <div className="flex gap-2 mb-3 overflow-x-auto pb-1 scrollbar-hide">
           {quickPrompts.map((qp) => (
             <button
               key={qp}
               onClick={() => onQuick(qp)}
-              className="rounded-full px-3 py-1 text-xs font-semibold text-slate-600 hover:text-blue-700 hover:bg-blue-50 hover:border-blue-200 transition-all border border-slate-200 bg-white"
+              className="flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-blue-700 hover:bg-blue-50 hover:border-blue-200 transition-all border border-slate-200 bg-white"
             >
               {qp === "Flights" ? "✈️ " : qp === "Hotels" ? "🏨 " : qp === "Cruise" ? "🛳️ " : qp === "All-Inclusive" ? "🌴 " : "🎯 "}{qp}
             </button>
           ))}
         </div>
 
-        <form onSubmit={onSubmit} className="flex items-end gap-2">
+        <form onSubmit={onSubmit}>
+          {/* Textarea — full width, taller on mobile */}
           <textarea
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKeyDown}
             placeholder="Tell Lina about your dream trip..."
-            rows={1}
-            className="flex-1 min-w-0 resize-none rounded-2xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all bg-slate-50"
-            style={{ maxHeight: "120px" }}
+            rows={3}
+            className="w-full resize-none rounded-2xl px-4 py-3 text-base text-slate-800 placeholder-slate-400 outline-none border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all bg-slate-50"
+            style={{ maxHeight: "160px", minHeight: "80px" }}
           />
 
-          {/* Mic button */}
-          <button
-            type="button"
-            onClick={toggleMic}
-            title={isListening ? "Stop" : "Voice"}
-            className={`rounded-2xl p-3 transition-all border ${isListening ? "bg-red-500 border-red-500 text-white animate-pulse" : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"}`}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-              <path d="M12 1a4 4 0 0 0-4 4v7a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4ZM6 11a1 1 0 1 0-2 0 8 8 0 0 0 7 7.93V21H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-2.07A8 8 0 0 0 20 11a1 1 0 1 0-2 0 6 6 0 0 1-12 0Z"/>
-            </svg>
-          </button>
+          {/* Buttons row: Mic + Send — full width on mobile */}
+          <div className="flex gap-2 mt-2">
+            {/* Mic button */}
+            <button
+              type="button"
+              onClick={toggleMic}
+              title={isListening ? "Stop" : "Voice"}
+              className={`rounded-2xl p-3 transition-all border flex-shrink-0 ${isListening ? "bg-red-500 border-red-500 text-white animate-pulse" : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"}`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                <path d="M12 1a4 4 0 0 0-4 4v7a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4ZM6 11a1 1 0 1 0-2 0 8 8 0 0 0 7 7.93V21H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-2.07A8 8 0 0 0 20 11a1 1 0 1 0-2 0 6 6 0 0 1-12 0Z"/>
+              </svg>
+            </button>
 
-          {/* Send button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-2xl px-5 py-3 text-sm font-black text-white transition-all hover:scale-105 disabled:opacity-50"
-            style={{ background: "linear-gradient(135deg, #0F3A8A, #1a4fad)" }}
-          >
-            {loading ? "..." : "Send →"}
-          </button>
+            {/* Send button — takes remaining space */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 rounded-2xl py-3 text-sm font-black text-white transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+              style={{ background: "linear-gradient(135deg, #0F3A8A, #1a4fad)" }}
+            >
+              {loading ? "⏳ Thinking..." : "Send ✈️"}
+            </button>
+          </div>
         </form>
 
-        <div className="mt-3 flex items-center gap-3">
+        {/* Generate Proposal — always full width */}
+        <div className="mt-2.5 flex items-center gap-3">
           <button
             onClick={() => {
               const { generateProposal } = require("../../lib/store/tripsStore");
@@ -678,7 +683,7 @@ function ChatThread({ tripId, proposalMode = "" }) {
                 window.location.href = `/proposals/${tripId}/select`;
               }
             }}
-            className="flex-1 rounded-2xl px-5 py-3 text-sm font-black text-[#0B1B4D] hover:scale-105 transition-all shadow-md"
+            className="flex-1 rounded-2xl px-5 py-3.5 text-sm font-black text-[#0B1B4D] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md"
             style={{ background: "linear-gradient(90deg, #E6B85A, #f0c96b)" }}
           >
             🚀 Generate Proposal
