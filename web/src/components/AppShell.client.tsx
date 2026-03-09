@@ -85,10 +85,10 @@ const AGENT_TABS = [
     ),
   },
   {
-    id: "exit", label: "Exit", href: "/",
+    id: "exit", label: "←", href: "/",
     icon: (a: boolean) => (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(239,68,68,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(100,116,139,0.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="15,18 9,12 15,6"/>
       </svg>
     ),
   },
@@ -298,7 +298,7 @@ export default function AppShell() {
                 </div>
                 <span style={{
                   fontSize: 9, fontWeight: active ? 800 : 500,
-                  color: isExitTab ? "rgba(239,68,68,0.6)" : active ? "#E6B85A" : "rgba(255,255,255,0.3)",
+                  color: isExitTab ? "rgba(255,255,255,0.25)" : active ? "#E6B85A" : "rgba(255,255,255,0.3)",
                   letterSpacing: "0.02em", transition: "color 0.2s ease",
                 }}>
                   {tab.label}

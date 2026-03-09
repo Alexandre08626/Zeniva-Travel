@@ -117,7 +117,7 @@ export default function AppAgentDashboard() {
           {[
             { label: "Conversations", val: convCount, color: BLUE },
             { label: "Unread", val: unread, color: unread > 0 ? RED : "#64748b" },
-            { label: "AI Agents", val: 8, color: "#8b5cf6" },
+            { label: "Clients", val: convCount, color: GREEN },
           ].map(s => (
             <div key={s.label} style={{ flex: 1, background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: "8px 6px", textAlign: "center" }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: s.color }}>{s.val}</div>
