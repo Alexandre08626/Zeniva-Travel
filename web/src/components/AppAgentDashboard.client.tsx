@@ -10,14 +10,14 @@ const GOLD = "#E6B85A";
 const SEEN_KEY = "zeniva_agent_seen_v2";
 
 const AI_AGENTS = [
-  { name: "Lina",  role: "AI Concierge",    color: "#6366f1", icon: "✈️", status: "live"   },
-  { name: "Marco", role: "Lead Hunter",      color: "#ef4444", icon: "🎯", status: "live"   },
-  { name: "Sofia", role: "Email Marketing",  color: "#ec4899", icon: "📧", status: "active" },
-  { name: "Noah",  role: "Follow-up",        color: "#f59e0b", icon: "🔔", status: "active" },
-  { name: "Luna",  role: "Voice & SMS",      color: "#06b6d4", icon: "📞", status: "active" },
-  { name: "Atlas", role: "Cyber Guard",      color: "#64748b", icon: "🛡️", status: "live"   },
-  { name: "Mia",   role: "Social Media",     color: "#a855f7", icon: "📱", status: "active" },
-  { name: "Leo",   role: "Analytics",        color: "#8b5cf6", icon: "📊", status: "active" },
+  { name: "Lina",  role: "AI Concierge",    color: "#6366f1", icon: "✈️", status: "live",   photo: "/agents/lina.png"  },
+  { name: "Marco", role: "Lead Hunter",      color: "#ef4444", icon: "🎯", status: "live",   photo: "/agents/marco.png" },
+  { name: "Sofia", role: "Email Marketing",  color: "#ec4899", icon: "📧", status: "active", photo: "/agents/sofia.png" },
+  { name: "Noah",  role: "Follow-up",        color: "#f59e0b", icon: "🔔", status: "active", photo: "/agents/noah.png"  },
+  { name: "Luna",  role: "Voice & SMS",      color: "#06b6d4", icon: "📞", status: "active", photo: "/agents/luna.png"  },
+  { name: "Atlas", role: "Cyber Guard",      color: "#64748b", icon: "🛡️", status: "live",   photo: "/agents/atlas.png" },
+  { name: "Mia",   role: "Social Media",     color: "#a855f7", icon: "📱", status: "active", photo: "/agents/mia.png"   },
+  { name: "Leo",   role: "Analytics",        color: "#8b5cf6", icon: "📊", status: "active", photo: "/agents/leo.png"   },
 ];
 
 function QBtn({ icon, label, badge, onClick }: { icon: string; label: string; badge?: number; onClick: () => void }) {
@@ -126,33 +126,48 @@ export default function AppAgentDashboard() {
           </button>
         )}
 
-        {/* ── AI AGENTS — GRID 2×4 VISIBLE ── */}
+        {/* ── AI AGENTS — PHOTOS WOW ── */}
         <div style={{ background: "white", border: "1.5px solid #e2e8f0", borderRadius: 20, overflow: "hidden", marginBottom: 14 }}>
-          <div style={{ padding: "14px 16px 10px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: "#0f172a" }}>🤖 AI Agents</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 5, background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 20, padding: "4px 10px" }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: GREEN }} />
-              <span style={{ fontSize: 10, fontWeight: 700, color: "#15803d" }}>8 ACTIVE</span>
+          <div style={{ padding: "14px 16px 12px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a" }}>🤖 AI Agents</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 5, background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 20, padding: "5px 12px" }}>
+              <div style={{ width: 7, height: 7, borderRadius: "50%", background: GREEN }} />
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#15803d" }}>8 ACTIVE</span>
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "#f1f5f9" }}>
-            {AI_AGENTS.map((agent, i) => (
-              <div key={agent.name} style={{ background: "white", padding: "14px 16px", display: "flex", alignItems: "center", gap: 12 }}>
-                {/* Big colored icon circle */}
-                <div style={{
-                  width: 44, height: 44, borderRadius: 14, flexShrink: 0,
-                  background: `linear-gradient(135deg, ${agent.color}22, ${agent.color}44)`,
-                  border: `2px solid ${agent.color}55`,
-                  display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20,
-                }}>
-                  {agent.icon}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "#f1f5f9" }}>
+            {AI_AGENTS.map((agent) => (
+              <div key={agent.name} style={{ background: "white", padding: "14px 14px", display: "flex", alignItems: "center", gap: 11 }}>
+                {/* Real photo with colored border + live pulse */}
+                <div style={{ position: "relative", flexShrink: 0 }}>
+                  <div style={{
+                    width: 52, height: 52, borderRadius: 16,
+                    border: `2.5px solid ${agent.color}`,
+                    overflow: "hidden",
+                    boxShadow: `0 2px 12px ${agent.color}44`,
+                  }}>
+                    <img
+                      src={agent.photo}
+                      alt={agent.name}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    />
+                  </div>
+                  {/* Status dot */}
+                  <div style={{
+                    position: "absolute", bottom: -2, right: -2,
+                    width: 14, height: 14, borderRadius: "50%",
+                    background: agent.status === "live" ? GREEN : GOLD,
+                    border: "2px solid white",
+                  }} />
                 </div>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ color: "#0f172a", fontWeight: 700, fontSize: 13 }}>{agent.name}</div>
-                  <div style={{ color: "#94a3b8", fontSize: 10, marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{agent.role}</div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
-                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: agent.status === "live" ? GREEN : GOLD }} />
-                    <span style={{ fontSize: 9, fontWeight: 700, color: agent.status === "live" ? "#15803d" : "#92400e", textTransform: "uppercase" }}>{agent.status}</span>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ color: "#0f172a", fontWeight: 700, fontSize: 14, marginBottom: 2 }}>{agent.name}</div>
+                  <div style={{ color: "#94a3b8", fontSize: 11, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{agent.role}</div>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 5, background: agent.status === "live" ? "#f0fdf4" : "#fffbeb", borderRadius: 10, padding: "2px 8px" }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: agent.status === "live" ? "#15803d" : "#92400e", textTransform: "uppercase" }}>
+                      {agent.status === "live" ? "● LIVE" : "● ACTIVE"}
+                    </span>
                   </div>
                 </div>
               </div>
