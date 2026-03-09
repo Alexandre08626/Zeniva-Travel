@@ -42,6 +42,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // ─── SEARCH ───────────────────────────────────────
     { url: `${BASE_URL}/search/flights`, lastModified: NOW, changeFrequency: "daily", priority: 0.85 },
 
+    // ─── SEO LANDING PAGES ────────────────────────────
+    { url: `${BASE_URL}/florida-villas`, lastModified: NOW, changeFrequency: "weekly", priority: 0.92 },
+    { url: `${BASE_URL}/ai-travel-agent`, lastModified: NOW, changeFrequency: "weekly", priority: 0.92 },
+
     // ─── DEALS ────────────────────────────────────────
     { url: `${BASE_URL}/deals`, lastModified: NOW, changeFrequency: "daily", priority: 0.85 },
 
