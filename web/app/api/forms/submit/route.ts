@@ -8,6 +8,33 @@ import { sendPushToHQ } from "../../../../src/lib/server/pushNotify";
 const DEFAULT_OWNER_EMAIL = "info@zenivatravel.com";
 const VPS_API_URL = process.env.LINA_API_URL || "https://vmi3097009.contaboserver.net";
 
+// ── Twilio SMS helper ──────────────────────────────────────────────────────
+async function sendWelcomeSMS(phone: string, name: string, destination: string) {
+  try {
+    if (!phone || phone.length < 8) return;
+    const sid = process.env.TWILIO_ACCOUNT_SID;
+    const auth = process.env.TWILIO_AUTH_TOKEN;
+    const from = process.env.TWILIO_PHONE || "+13322900021";
+    if (!sid || !auth) { console.warn("[sms-welcome] Twilio env missing"); return; }
+    const firstName = name.split(" ")[0];
+    const cleanPhone = phone.replace(/\D/g, "");
+    const toPhone = cleanPhone.startsWith("1") ? `+${cleanPhone}` : `+1${cleanPhone}`;
+    const smsBody = `Hi ${firstName}! 👋 Welcome to Zeniva Travel!\n\nLina is already working on your trip to ${destination}. Log in to chat with her:\nhttps://zenivatravel.com/login\n\nZeniva Travel ✈️`;
+    const resp = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
+      method: "POST",
+      headers: {
+        Authorization: "Basic " + Buffer.from(`${sid}:${auth}`).toString("base64"),
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({ From: from, To: toPhone, Body: smsBody }).toString(),
+    });
+    const d = await resp.json();
+    console.log("[sms-welcome]", d.sid || d.message);
+  } catch (e) {
+    console.error("[sms-welcome]", e);
+  }
+}
+
 // ── Email helpers ──────────────────────────────────────────────────────────
 let _mailer: any = null;
 function getMailer() {
@@ -40,8 +67,8 @@ async function sendWelcomeEmail(name: string, email: string, destination: string
           <p style="color:#94a3b8;text-align:center;font-size:15px;margin-bottom:24px">Your Zeniva Travel account is ready. Lina is already working on your trip to <strong style="color:white">${destination}</strong>!</p>
           <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:20px;margin-bottom:24px">
             <p style="color:#64748b;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px">YOUR ACCOUNT</p>
-            <p style="color:white;margin:4px 0;font-size:14px">📧 Email: <strong>${email}</strong></p>
-            <p style="color:#94a3b8;margin:8px 0 0;font-size:13px">To access your account and chat with Lina, visit the link below and sign in (or set your password).</p>
+            <p style="color:white;margin:4px 0;font-size:14px">📍 Destination: <strong>${destination}</strong></p>
+            <p style="color:#94a3b8;margin:8px 0 0;font-size:13px">Click the button below to access your account, set your password, and start chatting with Lina!</p>
           </div>
           <div style="text-align:center;margin-bottom:24px">
             <a href="https://zenivatravel.com/login?email=${encodeURIComponent(email)}" style="display:inline-block;background:linear-gradient(135deg,#0F6CF5,#0851c4);color:white;border-radius:50px;padding:14px 32px;font-weight:700;font-size:15px;text-decoration:none">💬 Access my account & chat with Lina</a>
@@ -282,6 +309,10 @@ export async function POST(request: Request) {
         const setupExp = Math.floor(Date.now() / 1000) + 60 * 60 * 2;
         const setupToken = signSession({ email, roles: ["traveler"], exp: setupExp, type: "setup" } as any);
         const setupUrl = `/api/auth/auto-login?token=${encodeURIComponent(setupToken)}&redirect=${encodeURIComponent("/set-password?new=1")}`;
+        const HQ_ALL_EMAILS2 = ["info@zeniva.ca", "info@zenivatravel.com", "info@zeniva.com"];
+        if (!HQ_ALL_EMAILS2.includes(email.toLowerCase()) && body?.phone) {
+          sendWelcomeSMS(String(body.phone), saved.name, body?.destination || "travel").catch(() => {});
+        }
         notifyVpsNewLead(saved, body).catch(() => {});
         return NextResponse.json({ data: saved, updated: true, setupUrl });
       }
@@ -338,7 +369,12 @@ export async function POST(request: Request) {
     if (email) {
       await ensureTravelerAccount(email, saved.name, form.division);
       // Send welcome email to new client (fire and forget)
-      sendWelcomeEmail(saved.name, email, body?.destination || "your dream destination").catch(() => {});
+      const HQ_ALL_EMAILS = ["info@zeniva.ca", "info@zenivatravel.com", "info@zeniva.com"];
+      if (!HQ_ALL_EMAILS.includes(email.toLowerCase())) {
+        const dest = body?.destination || "your dream destination";
+        sendWelcomeEmail(saved.name, email, dest).catch(() => {});
+        if (body?.phone) sendWelcomeSMS(String(body.phone), saved.name, dest).catch(() => {});
+      }
 
       // Generate a one-time setup token so the client can auto-login + set password
       const setupExp = Math.floor(Date.now() / 1000) + 60 * 60 * 2; // 2h
