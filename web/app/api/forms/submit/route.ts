@@ -6,6 +6,53 @@ import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../../src/lib/s
 const DEFAULT_OWNER_EMAIL = "info@zenivatravel.com";
 const VPS_API_URL = process.env.LINA_API_URL || "https://vmi3097009.contaboserver.net";
 
+// ── Email helpers ──────────────────────────────────────────────────────────
+let _mailer: any = null;
+function getMailer() {
+  if (_mailer) return _mailer;
+  try {
+    const nodemailer = require("nodemailer");
+    _mailer = nodemailer.createTransport({
+      host: "smtp.gmail.com", port: 465, secure: true,
+      auth: { user: "info@zeniva.ca", pass: "zsyqqdjltafwhlyc" },
+    });
+  } catch {}
+  return _mailer;
+}
+
+async function sendWelcomeEmail(name: string, email: string, destination: string) {
+  try {
+    const mailer = getMailer();
+    if (!mailer) return;
+    const firstName = name.split(" ")[0];
+    await mailer.sendMail({
+      from: '"Lina · Zeniva Travel" <info@zeniva.ca>',
+      to: email,
+      subject: `✈️ Welcome ${firstName} — Your trip to ${destination} starts now!`,
+      html: `
+        <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 20px;background:#040d1f;color:white;border-radius:16px">
+          <div style="text-align:center;margin-bottom:24px">
+            <img src="https://zenivatravel.com/branding/lina-avatar.png" width="72" height="72" style="border-radius:50%;border:3px solid #E6B85A" alt="Lina"/>
+          </div>
+          <h1 style="text-align:center;font-size:22px;font-weight:900;color:white;margin-bottom:8px">Welcome, ${firstName}! 🎉</h1>
+          <p style="color:#94a3b8;text-align:center;font-size:15px;margin-bottom:24px">Your Zeniva Travel account is ready. Lina is already working on your trip to <strong style="color:white">${destination}</strong>!</p>
+          <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:20px;margin-bottom:24px">
+            <p style="color:#64748b;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px">YOUR ACCOUNT</p>
+            <p style="color:white;margin:4px 0;font-size:14px">📧 Email: <strong>${email}</strong></p>
+            <p style="color:#94a3b8;margin:8px 0 0;font-size:13px">To access your account and chat with Lina, visit the link below and sign in (or set your password).</p>
+          </div>
+          <div style="text-align:center;margin-bottom:24px">
+            <a href="https://zenivatravel.com/login?email=${encodeURIComponent(email)}" style="display:inline-block;background:linear-gradient(135deg,#0F6CF5,#0851c4);color:white;border-radius:50px;padding:14px 32px;font-weight:700;font-size:15px;text-decoration:none">💬 Access my account & chat with Lina</a>
+          </div>
+          <p style="color:#475569;font-size:12px;text-align:center">Zeniva Travel · AI-Powered Travel Concierge · <a href="https://zenivatravel.com" style="color:#0F6CF5">zenivatravel.com</a></p>
+        </div>
+      `,
+    });
+  } catch (e) {
+    console.error("[welcome-email]", e);
+  }
+}
+
 async function notifyVpsNewLead(clientData: any, formFields: Record<string, any>) {
   try {
     const referredBy = formFields.agentEmail || formFields.referredBy || "";
@@ -277,6 +324,8 @@ export async function POST(request: Request) {
     console.log(`CLIENT CREATED: id=${saved.id} email=${saved.email || ""}`);
     if (email) {
       await ensureTravelerAccount(email, saved.name, form.division);
+      // Send welcome email to new client (fire and forget)
+      sendWelcomeEmail(saved.name, email, body?.destination || "your dream destination").catch(() => {});
     }
     // Notify VPS for lead capture + email notification
     notifyVpsNewLead(saved, body).catch(() => {});

@@ -54,17 +54,36 @@ export default function TravelFormClient() {
   if (status === "success") {
     return (
       <main style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(160deg, #040d1f 0%, #0B1B4D 60%, #040d1f 100%)", padding: "24px 20px" }}>
-        <div style={{ maxWidth: 420, width: "100%", textAlign: "center" }}>
+        <div style={{ maxWidth: 440, width: "100%", textAlign: "center" }}>
           <div style={{ width: 80, height: 80, borderRadius: "50%", border: `3px solid ${GOLD}`, overflow: "hidden", margin: "0 auto 20px", background: "#0B1B4D" }}>
             <img src="/branding/lina-avatar.png" alt="Lina" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </div>
           <div style={{ fontSize: 32, marginBottom: 8 }}>🎉</div>
-          <h1 style={{ color: "white", fontSize: 26, fontWeight: 900, marginBottom: 10 }}>You're in! Welcome, {name.split(" ")[0]}!</h1>
-          <p style={{ color: "#94a3b8", fontSize: 15, marginBottom: 24, lineHeight: 1.6 }}>
-            Lina is already working on your trip to <strong style={{ color: "white" }}>{destination}</strong>.<br />Check your email for next steps!
+          <h1 style={{ color: "white", fontSize: 26, fontWeight: 900, marginBottom: 10 }}>
+            Welcome, {name.split(" ")[0]}!
+          </h1>
+          <p style={{ color: "#94a3b8", fontSize: 15, marginBottom: 8, lineHeight: 1.6 }}>
+            Your account has been created. Lina is already working on your trip to{" "}
+            <strong style={{ color: "white" }}>{destination}</strong>! ✈️
           </p>
-          <a href="/chat" style={{ display: "inline-block", background: `linear-gradient(135deg, ${BLUE}, #0851c4)`, color: "white", borderRadius: 50, padding: "14px 32px", fontWeight: 700, fontSize: 15, textDecoration: "none" }}>
-            💬 Chat with Lina now
+          <p style={{ color: "#64748b", fontSize: 14, marginBottom: 28, lineHeight: 1.6 }}>
+            📧 Check your email <strong style={{ color: "#94a3b8" }}>{email}</strong> — we sent you a confirmation with next steps and a link to access your account.
+          </p>
+          {/* Steps */}
+          <div style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18, padding: "20px 24px", textAlign: "left", marginBottom: 28 }}>
+            {[
+              { icon: "📧", text: "Check your email for your account link" },
+              { icon: "💬", text: "Chat with Lina to plan your perfect trip" },
+              { icon: "✈️", text: "Receive personalized travel proposals" },
+            ].map((s, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: i < 2 ? 12 : 0 }}>
+                <span style={{ fontSize: 20 }}>{s.icon}</span>
+                <span style={{ color: "#94a3b8", fontSize: 14 }}>{s.text}</span>
+              </div>
+            ))}
+          </div>
+          <a href="https://zenivatravel.com" style={{ display: "inline-block", background: `linear-gradient(135deg, ${BLUE}, #0851c4)`, color: "white", borderRadius: 50, padding: "14px 32px", fontWeight: 700, fontSize: 15, textDecoration: "none" }}>
+            🌍 Explore destinations
           </a>
         </div>
       </main>
