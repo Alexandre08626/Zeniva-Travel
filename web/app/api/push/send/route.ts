@@ -3,17 +3,23 @@ import { createClient } from "@supabase/supabase-js";
 import webpush from "web-push";
 import fs from "fs";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy — avoids module-level crash during build
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
 
-const VAPID_PUBLIC = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
-const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY!;
-const VAPID_SUBJECT = process.env.VAPID_SUBJECT || "mailto:info@zeniva.ca";
-
-if (VAPID_PUBLIC && VAPID_PRIVATE) {
-  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
+function getVapid() {
+  const pub = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const priv = process.env.VAPID_PRIVATE_KEY;
+  const sub = process.env.VAPID_SUBJECT || "mailto:info@zeniva.ca";
+  if (pub && priv) {
+    webpush.setVapidDetails(sub, pub, priv);
+    return true;
+  }
+  return false;
 }
 
 const SUBS_FILE = "/tmp/zeniva_push_subs.json";
@@ -30,9 +36,13 @@ export async function POST(req: NextRequest) {
 
     const { title, body, url, targetEmail, icon, tag } = await req.json();
 
+    getVapid();
+    const supabase = getSupabase();
+
     // Get subscriptions from Supabase
     let subs: any[] = [];
     try {
+      if (!supabase) throw new Error("no supabase");
       let query = supabase.from("push_subscriptions").select("*");
       if (targetEmail) query = query.eq("user_email", targetEmail);
       const { data } = await query;
@@ -68,7 +78,7 @@ export async function POST(req: NextRequest) {
           if (e.statusCode === 410 || e.statusCode === 404) {
             // Expired — remove
             try {
-              await supabase.from("push_subscriptions").delete().eq("endpoint", row.endpoint);
+              if (supabase) await supabase.from("push_subscriptions").delete().eq("endpoint", row.endpoint);
             } catch { /* ignore */ }
           }
         }

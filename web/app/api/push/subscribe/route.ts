@@ -3,10 +3,13 @@ import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
 import path from "path";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy client — avoids module-level crash during build when env vars aren't available
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
 
 // Fallback file storage if Supabase table doesn't exist yet
 const SUBS_FILE = "/tmp/zeniva_push_subs.json";
@@ -25,7 +28,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Try Supabase first
+    const supabase = getSupabase();
     try {
+      if (!supabase) throw new Error("no supabase");
       const { error } = await supabase
         .from("push_subscriptions")
         .upsert({
