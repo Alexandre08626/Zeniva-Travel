@@ -93,30 +93,11 @@ export default function TravelFormClient() {
     <main style={{ minHeight: "100dvh", background: "linear-gradient(160deg, #040d1f 0%, #0B1B4D 60%, #040d1f 100%)", padding: "32px 20px 48px" }}>
       <div style={{ maxWidth: 460, margin: "0 auto" }}>
 
-        {/* ── DISCOUNT BANNER ── */}
-        <div style={{
-          background: `linear-gradient(135deg, ${GOLD}, #C9941F)`,
-          borderRadius: 18, padding: "14px 20px", marginBottom: 24,
-          display: "flex", alignItems: "center", gap: 14,
-          boxShadow: `0 8px 32px ${GOLD}44`,
-          animation: "pulse 2s ease-in-out infinite",
-        }}>
-          <style>{`
-            @keyframes pulse { 0%,100% { box-shadow: 0 8px 32px rgba(230,184,90,0.3); } 50% { box-shadow: 0 8px 40px rgba(230,184,90,0.6); } }
+        <style>{`
             @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
             input::placeholder { color: rgba(255,255,255,0.25) !important; }
             input:-webkit-autofill { -webkit-box-shadow: 0 0 0 1000px rgba(15,108,245,0.15) inset !important; -webkit-text-fill-color: white !important; }
-          `}</style>
-          <div style={{ fontSize: 36, lineHeight: 1 }}>🎁</div>
-          <div>
-            <div style={{ color: "#0B1B4D", fontWeight: 900, fontSize: 17, lineHeight: 1.2 }}>15% OFF your first trip!</div>
-            <div style={{ color: "#0B1B4D", fontSize: 13, opacity: 0.8, marginTop: 3 }}>Create your free account below to claim it</div>
-          </div>
-          <div style={{ marginLeft: "auto", background: "#0B1B4D", borderRadius: 12, padding: "6px 12px", flexShrink: 0 }}>
-            <div style={{ color: GOLD, fontSize: 11, fontWeight: 900, textAlign: "center" }}>LIMITED</div>
-            <div style={{ color: "white", fontSize: 10, textAlign: "center", opacity: 0.7 }}>OFFER</div>
-          </div>
-        </div>
+        `}</style>
 
         {/* ── HEADER ── */}
         <div style={{ textAlign: "center", marginBottom: 24, animation: "fadeUp 0.4s ease both" }}>
@@ -147,12 +128,6 @@ export default function TravelFormClient() {
 
         {/* ── FORM CARD ── */}
         <form onSubmit={handleSubmit} style={{ background: "rgba(255,255,255,0.04)", border: "1.5px solid rgba(15,108,245,0.3)", borderRadius: 24, padding: "28px 24px", backdropFilter: "blur(16px)", display: "flex", flexDirection: "column", gap: 16, marginBottom: 28, animation: "fadeUp 0.5s ease 0.1s both" }}>
-
-          {/* Promo reminder inside form */}
-          <div style={{ background: `linear-gradient(135deg, ${GOLD}15, transparent)`, border: `1px solid ${GOLD}33`, borderRadius: 14, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 20 }}>🎁</span>
-            <span style={{ color: GOLD, fontSize: 13, fontWeight: 700 }}>15% discount applied automatically on account creation</span>
-          </div>
 
           {/* Name */}
           <Field label="Full name" icon="👤">
@@ -215,7 +190,7 @@ export default function TravelFormClient() {
             boxShadow: allFilled ? `0 8px 32px ${GOLD}55` : "none",
             letterSpacing: "-0.01em",
           }}>
-            {status === "sending" ? "⏳ Creating your account…" : "🎁 Claim my 15% discount →"}
+            {status === "sending" ? "⏳ Creating your account…" : "🚀 Start planning my trip →"}
           </button>
 
           <p style={{ textAlign: "center", color: "rgba(255,255,255,0.2)", fontSize: 11, margin: 0 }}>

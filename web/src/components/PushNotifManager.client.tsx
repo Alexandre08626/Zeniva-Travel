@@ -56,10 +56,13 @@ export default function PushNotifManager() {
       setStatus("unsupported"); return;
     }
 
+    // Only show prompt on mobile — not on desktop
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth <= 768;
+
     const perm = Notification.permission;
 
     if (perm === "granted") {
-      // Auto-renew subscription silently — works in both PWA and browser
+      // Auto-renew subscription silently — mobile only for prompts, but renewal works everywhere
       const email = user?.email || null;
       doSubscribe(email).then(() => setStatus("granted"));
       return;
@@ -69,7 +72,8 @@ export default function PushNotifManager() {
       setStatus("denied"); return;
     }
 
-    // Not yet asked — show prompt after 3s (only once)
+    // Not yet asked — show prompt only on mobile
+    if (!isMobile) return;
     const seen = localStorage.getItem("zeniva_push_prompted");
     if (seen) return;
     setTimeout(() => setVisible(true), 3000);
