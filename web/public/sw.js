@@ -1,5 +1,5 @@
-// Zeniva Travel Service Worker v3.0 — PWA + Push Notifications
-const CACHE_NAME = "zeniva-v3";
+// Zeniva Travel Service Worker v3.1 — PWA + Push Notifications
+const CACHE_NAME = "zeniva-v4";
 const STATIC_ASSETS = ["/offline", "/branding/lina-avatar.png", "/branding/lina-hero.png", "/icons/icon-192x192.png"];
 
 // ─── Install ──────────────────────────────────────────────────────────────────
