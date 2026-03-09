@@ -155,7 +155,7 @@ function mapClientRow(row: any): ClientRecord {
     ownerEmail: row.owner_email,
     phone: row.phone || undefined,
     origin: row.origin || "house",
-    assignedAgents: row.assigned_agents || [],
+    assignedAgents: (() => { const v = row.assigned_agents; if (!v) return []; if (Array.isArray(v)) return v; try { return JSON.parse(v); } catch { return []; } })(),
     primaryDivision: row.primary_division || undefined,
     leadSource: row.lead_source || undefined,
     notes: row.notes || undefined,
