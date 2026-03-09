@@ -225,7 +225,10 @@ export async function POST(request: Request) {
       const assigned = (existing.assignedAgents || []).map((a) => normalizeEmail(a));
       const division = String(existing.primaryDivision || "").toUpperCase();
 
-      if (existingOwner && existingOwner !== ownerEmail) {
+      // HQ emails are all equivalent — same owner
+      const HQ_ALL = ["info@zeniva.ca", "info@zenivatravel.com", "info@zeniva.com"];
+      const bothHQ = HQ_ALL.includes(existingOwner) && HQ_ALL.includes(ownerEmail);
+      if (existingOwner && existingOwner !== ownerEmail && !bothHQ) {
         return NextResponse.json({ error: "Lead belongs to another agent." }, { status: 403 });
       }
       if (assigned.length && !assigned.includes(ownerEmail)) {
