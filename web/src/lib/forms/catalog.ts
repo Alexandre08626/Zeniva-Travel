@@ -50,12 +50,7 @@ export const FORM_DEFINITIONS: FormDefinition[] = [
       { id: "name", label: "Full name", type: "text", placeholder: "John Smith", required: true },
       { id: "email", label: "Email", type: "email", placeholder: "you@email.com", required: true },
       { id: "phone", label: "Phone number", type: "tel", placeholder: "+1 (555) 555-5555", required: true },
-      { id: "destination", label: "Dream destination", type: "text", placeholder: "Bali, Japan, Italy..." },
-      { id: "departureDate", label: "Departure date", type: "date" },
-      { id: "returnDate", label: "Return date", type: "date" },
-      { id: "pax", label: "Number of travelers", type: "number", placeholder: "2" },
-      { id: "budget", label: "Budget per person (USD)", type: "select", options: ["Under $2,000", "$2,000 - $5,000", "$5,000 - $10,000", "$10,000+", "Flexible"] },
-      { id: "tripType", label: "Trip type", type: "select", options: ["Leisure", "Honeymoon", "Business", "Family", "Adventure", "Luxury", "All-Inclusive"] },
+      { id: "destination", label: "Dream destination", type: "text", placeholder: "Bali, Japan, Italy, Caribbean…", required: true },
     ],
   },
 ];
