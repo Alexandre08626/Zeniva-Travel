@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { FORM_DEFINITIONS } from "../../../../src/lib/forms/catalog";
 import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../../src/lib/server/db";
 import { signSession } from "../../../../src/lib/server/auth";
+import { sendPushToHQ } from "../../../../src/lib/server/pushNotify";
 
 const DEFAULT_OWNER_EMAIL = "info@zenivatravel.com";
 const VPS_API_URL = process.env.LINA_API_URL || "https://vmi3097009.contaboserver.net";
@@ -337,6 +338,14 @@ export async function POST(request: Request) {
       const setupExp = Math.floor(Date.now() / 1000) + 60 * 60 * 2; // 2h
       const setupToken = signSession({ email, roles: ["traveler"], exp: setupExp, type: "setup" } as any);
       const setupUrl = `/api/auth/auto-login?token=${encodeURIComponent(setupToken)}&redirect=${encodeURIComponent("/set-password?new=1")}`;
+
+      // Push notification to HQ — new lead!
+      sendPushToHQ({
+        title: "🆕 New Lead!",
+        body: `${saved.name} is interested in ${body?.destination || "travel"}`,
+        url: "/agent/clients",
+        tag: "new-lead",
+      }).catch(() => {});
 
       // Notify VPS for lead capture + email notification
       notifyVpsNewLead(saved, body).catch(() => {});

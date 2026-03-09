@@ -22,10 +22,13 @@ function writeSubs(subs: any[]) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { subscription, userEmail } = await req.json();
+    const { subscription, userEmail: bodyEmail } = await req.json();
     if (!subscription?.endpoint) {
       return NextResponse.json({ error: "Invalid subscription" }, { status: 400 });
     }
+    // Also try to get email from cookie
+    const cookieEmail = req.cookies.get("zeniva_email")?.value || null;
+    const userEmail = bodyEmail || cookieEmail || null;
 
     // Try Supabase first
     const supabase = getSupabase();

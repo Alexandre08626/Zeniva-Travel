@@ -5,6 +5,7 @@ import nodemailer from "nodemailer";
 import { getSupabaseAdminClient, getSupabaseAnonClient } from "../../../../src/lib/supabase/server";
 import { getSessionCookieName, verifySession } from "../../../../src/lib/server/auth";
 import { normalizeRbacRoles } from "../../../../src/lib/rbac";
+import { sendPushToHQ } from "../../../../src/lib/server/pushNotify";
 
 // ── Email helpers ────────────────────────────────────────────────────────────
 const smtpTransporter = nodemailer.createTransport({
@@ -416,6 +417,14 @@ export async function POST(request: Request) {
       const isSenderAgent = senderRole === "hq" || senderRole === "agent";
 
       if (isSenderClient && msgText && clientEmail) {
+        // Push notification to HQ — new client message
+        sendPushToHQ({
+          title: `💬 ${clientName}`,
+          body: msgText.slice(0, 100),
+          url: "/agent/chat",
+          tag: "new-message",
+        }).catch(() => {});
+
         // 1. Notify agent inbox (info@zeniva.ca) — confirmation to client
         void sendEmailNotification({
           to: "info@zeniva.ca",

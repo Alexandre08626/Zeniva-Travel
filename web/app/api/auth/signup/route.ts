@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { sendPushToHQ } from "../../../../src/lib/server/pushNotify";
 
 import { assertBackendEnv, normalizeEmail, dbQuery } from "../../../../src/lib/server/db";
 import { normalizeRbacRole } from "../../../../src/lib/rbac";
@@ -359,6 +360,14 @@ export async function POST(request: Request) {
         }
       }
     }
+
+    // Push notification to HQ — new account created
+    sendPushToHQ({
+      title: "🆕 New Account!",
+      body: `${account.name || account.email} just created an account`,
+      url: "/agent/clients",
+      tag: "new-account",
+    }).catch(() => {});
 
     // ---- Create session cookie (your custom token)
     const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30;
