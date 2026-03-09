@@ -229,14 +229,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ data: saved, updated: true });
     }
 
-    // Build assigned agents list: always include Zeniva owner + referring agent if present
+    // HQ emails — never treated as "referring agents", these are the owner
+    const HQ_EMAILS = ["info@zeniva.ca", "info@zenivatravel.com"];
+    const isHqReferrer = HQ_EMAILS.includes(referringAgent);
+
+    // Build assigned agents list: only include real external referring agents
     const assignedAgentsList = [ownerEmail];
-    if (referringAgent && referringAgent !== ownerEmail) {
+    if (referringAgent && referringAgent !== ownerEmail && !isHqReferrer) {
       assignedAgentsList.push(referringAgent);
     }
 
-    // Add commission note if referred by agent
-    const commissionNote = referringAgent && referringAgent !== ownerEmail
+    // Add commission note only for real external agents (not HQ)
+    const commissionNote = referringAgent && referringAgent !== ownerEmail && !isHqReferrer
       ? `[REFERRAL] Referred by agent: ${referringAgent} | Commission: 5% of net profit`
       : "";
 
