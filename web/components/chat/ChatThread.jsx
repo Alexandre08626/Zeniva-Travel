@@ -664,8 +664,8 @@ function ChatThread({ tripId, proposalMode = "" }) {
       </div>
 
       {/* Input area */}
-      <div className="px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]"
-        style={{ borderTop: isApp ? "1px solid rgba(255,255,255,0.06)" : "1px solid #f1f5f9", background: isApp ? "#040D1A" : "#fff" }}>
+      <div className="px-4 pt-3"
+        style={{ borderTop: isApp ? "1px solid rgba(255,255,255,0.06)" : "1px solid #f1f5f9", background: isApp ? "#040D1A" : "#fff", paddingBottom: isApp ? "calc(90px + env(safe-area-inset-bottom))" : "calc(env(safe-area-inset-bottom) + 12px)" }}>
         {/* Quick prompts — scroll horizontal on mobile */}
         <div className="flex gap-2 mb-3 overflow-x-auto pb-1 scrollbar-hide">
           {quickPrompts.map((qp) => (

@@ -84,11 +84,33 @@ export default function AppAgentInbox() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const activeIdRef = useRef<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   // Persist seenIds across remounts via localStorage
   const seenIds = useRef<Set<string>>(new Set());
 
   // Initialize from localStorage once on mount
   useEffect(() => { seenIds.current = loadSeen(); }, []);
+
+  // ── iOS keyboard handler — resize container when keyboard opens ───────────
+  useEffect(() => {
+    if (!activeId || typeof window === "undefined") return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      if (containerRef.current) {
+        containerRef.current.style.height = vv.height + "px";
+        containerRef.current.style.top = vv.pageTop + "px";
+      }
+      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+    };
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    update();
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, [activeId]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs, activeId]);
 
@@ -245,7 +267,7 @@ export default function AppAgentInbox() {
   // ══════════════════════════════════════════════════════════════════════════
   if (activeId) {
     return (
-      <div style={{ position: "fixed", inset: 0, background: "#f8fafc", display: "flex", flexDirection: "column", zIndex: 100 }}>
+      <div ref={containerRef} style={{ position: "fixed", top: 0, left: 0, right: 0, height: "100dvh", background: "#f8fafc", display: "flex", flexDirection: "column", zIndex: 100 }}>
         {/* Header */}
         <div style={{ background: "white", borderBottom: "1.5px solid #e2e8f0", padding: "0 16px 12px", paddingTop: "max(12px, env(safe-area-inset-top))", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
           <button onClick={goBack} style={{ background: "none", border: "none", color: BLUE, fontSize: 28, cursor: "pointer", padding: "8px 8px 0 0", lineHeight: 1 }}>←</button>
@@ -304,7 +326,7 @@ export default function AppAgentInbox() {
         </div>
 
         {/* Reply bar */}
-        <div style={{ background: "white", borderTop: "1.5px solid #e2e8f0", padding: "12px 16px", paddingBottom: "max(16px, env(safe-area-inset-bottom))", flexShrink: 0 }}>
+        <div style={{ background: "white", borderTop: "1.5px solid #e2e8f0", padding: "12px 16px", paddingBottom: "max(20px, env(safe-area-inset-bottom))", flexShrink: 0, position: "relative", zIndex: 2 }}>
           {isClosed ? (
             <div style={{ textAlign: "center", color: "#94a3b8", fontSize: 13, padding: "8px 0" }}>Conversation resolved — tap Reopen to reply</div>
           ) : (
@@ -314,9 +336,15 @@ export default function AppAgentInbox() {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+                onFocus={() => {
+                  setTimeout(() => {
+                    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+                    inputRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                  }, 350);
+                }}
                 placeholder="Write a reply…"
                 rows={1}
-                style={{ flex: 1, background: "#f1f5f9", border: "1.5px solid #e2e8f0", borderRadius: 22, padding: "11px 16px", color: "#0f172a", fontSize: 15, resize: "none", outline: "none", maxHeight: 120, lineHeight: 1.4, fontFamily: "inherit" }}
+                style={{ flex: 1, background: "#f1f5f9", border: "1.5px solid #e2e8f0", borderRadius: 22, padding: "11px 16px", color: "#0f172a", fontSize: 16, resize: "none", outline: "none", maxHeight: 120, lineHeight: 1.4, fontFamily: "inherit" }}
                 onInput={e => { const t = e.target as HTMLTextAreaElement; t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 120) + "px"; }}
               />
               <button

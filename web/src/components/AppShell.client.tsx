@@ -172,8 +172,16 @@ export default function AppShell() {
         [data-fullbleed="true"] { display: none !important; }
         body { background: ${isAgentMode ? "#040810" : "#030812"} !important; }
         main, #main-content { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
-        /* Ensure scroll containers also clear the nav bar */
+        /* Ensure ALL page content clears the bottom nav */
+        .min-h-screen:not([data-no-pad]), .min-h-dvh:not([data-no-pad]) { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
+        /* Scroll containers */
         [class*="overflow-y-auto"], [class*="overflow-auto"] { scroll-padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+        /* Agent page wrappers */
+        .agent-wrap, [class*="agent-page"] { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
+        /* Proposal / booking pages — ensure Generate Proposal button is reachable */
+        .proposal-page, .booking-page, .review-page { padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important; }
+        /* Any flex column root div */
+        body > #__next > div:not([data-no-pad]) { min-height: 100dvh; }
         /* Dark agent pages in app mode */
         .agent-page-wrapper { background: #040810 !important; min-height: 100vh; }
         @media (display-mode: standalone) {

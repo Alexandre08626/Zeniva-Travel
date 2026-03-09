@@ -216,7 +216,7 @@ export default function HelpCenterButton() {
         className="help-float"
         aria-label={`Help via ${COMPANY_INFO.name} chat`}
       >
-        Help
+        💬 Help
       </button>
 
       {showModal && (
@@ -381,23 +381,24 @@ export default function HelpCenterButton() {
       <style>{`
         .help-float {
           position: fixed;
-          bottom: max(24px, env(safe-area-inset-bottom));
-          right: max(24px, env(safe-area-inset-right));
-          z-index: 80;
+          bottom: 24px;
+          right: 24px;
+          z-index: 9990;
           background: #f8fafc;
           color: #0f172a;
           border: 1px solid #e2e8f0;
           border-radius: 999px;
           box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
-          padding: 12px 22px;
+          padding: 11px 20px;
           font-weight: 600;
-          font-size: 16px;
+          font-size: 15px;
           letter-spacing: 0.3px;
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
           transition: transform 0.2s ease, box-shadow 0.2s ease;
+          gap: 6px;
         }
         .help-float:hover {
           transform: translateY(-1px);
@@ -406,44 +407,35 @@ export default function HelpCenterButton() {
         .help-float:active {
           transform: translateY(1px);
         }
-        @media (max-width: 1400px), (max-height: 900px) {
+        /* Mobile — always visible, blue, bottom right */
+        @media (max-width: 768px) {
           .help-float {
-            bottom: max(16px, env(safe-area-inset-bottom));
-            right: max(16px, env(safe-area-inset-right));
-            padding: 10px 18px;
-            font-size: 14px;
-          }
-        }
-        @media (max-width: 1280px), (max-height: 800px) {
-          .help-float {
-            left: max(16px, env(safe-area-inset-left));
-            right: auto;
-          }
-        }
-        @media (max-width: 640px) {
-          .help-float {
-            bottom: 16px !important;
+            bottom: 20px !important;
             right: 16px !important;
             left: auto !important;
-            padding: 12px 20px !important;
-            font-size: 15px !important;
+            padding: 12px 18px !important;
+            font-size: 14px !important;
             font-weight: 700 !important;
             background: #0F6CF5 !important;
             color: white !important;
             border: none !important;
-            box-shadow: 0 4px 16px rgba(15,108,245,0.35) !important;
+            box-shadow: 0 4px 20px rgba(15,108,245,0.4) !important;
+            z-index: 9990 !important;
           }
         }
-        /* In PWA app mode — above the bottom nav bar (80px) */
+        /* PWA app mode — above the bottom nav bar */
         @media (display-mode: standalone) {
           .help-float {
-            bottom: calc(88px + env(safe-area-inset-bottom)) !important;
+            bottom: calc(92px + env(safe-area-inset-bottom)) !important;
             right: 16px !important;
             left: auto !important;
             background: #0F6CF5 !important;
             color: white !important;
             border: none !important;
-            box-shadow: 0 4px 16px rgba(15,108,245,0.35) !important;
+            box-shadow: 0 4px 20px rgba(15,108,245,0.4) !important;
+            z-index: 1200 !important;
+            padding: 10px 16px !important;
+            font-size: 13px !important;
           }
         }
       `}</style>
