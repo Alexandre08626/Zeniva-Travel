@@ -46,6 +46,7 @@ export default function AppAgentDashboard() {
   const [unread, setUnread] = useState(0);
   const [convCount, setConvCount] = useState(0);
   const [recentMsgs, setRecentMsgs] = useState<{ author: string; text: string; time: string; cid: string }[]>([]);
+  const [showAllMenu, setShowAllMenu] = useState(false);
   const firstName = user?.name?.split(" ")[0] || "Agent";
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
@@ -176,7 +177,10 @@ export default function AppAgentDashboard() {
         </div>
 
         {/* ── QUICK ACCESS ── */}
-        <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 10 }}>Quick Access</div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.07em" }}>Quick Access</div>
+          <button onClick={() => setShowAllMenu(true)} style={{ background: BLUE, border: "none", borderRadius: 20, padding: "5px 14px", color: "white", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>View All ▾</button>
+        </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 10 }}>
           <QBtn icon="💬" label="Inbox" badge={unread} onClick={() => router.push("/agent/chat")} />
           <QBtn icon="👥" label="Clients" onClick={() => router.push("/agent/clients")} />
@@ -188,6 +192,56 @@ export default function AppAgentDashboard() {
             <QBtn icon="💰" label="Finance" onClick={() => router.push("/agent/finance")} />
             <QBtn icon="🌐" label="Website" onClick={() => router.push("/")} />
             <QBtn icon="⚙️" label="Settings" onClick={() => router.push("/agent/settings")} />
+          </div>
+        )}
+
+        {/* ── FULL MENU BOTTOM SHEET ── */}
+        {showAllMenu && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 999, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+            <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)" }} onClick={() => setShowAllMenu(false)} />
+            <div style={{ position: "relative", background: "white", borderRadius: "24px 24px 0 0", padding: "8px 0 40px", maxHeight: "85vh", overflowY: "auto" }}>
+              <div style={{ width: 40, height: 4, background: "#e2e8f0", borderRadius: 2, margin: "10px auto 20px" }} />
+              <div style={{ padding: "0 20px 12px", fontSize: 18, fontWeight: 800, color: "#0f172a" }}>All Sections</div>
+              {[
+                { section: "📨 Messages", items: [
+                  { icon: "💬", label: "Inbox", sub: "Client conversations", href: "/agent/chat" },
+                ]},
+                { section: "👥 Clients & Leads", items: [
+                  { icon: "👥", label: "Clients", sub: "All client accounts", href: "/agent/clients" },
+                  { icon: "🎯", label: "Leads", sub: "Sales pipeline", href: "/agent/leads" },
+                  { icon: "📋", label: "Proposals", sub: "Trip proposals", href: "/agent/proposals" },
+                ]},
+                { section: "🛫 Operations", items: [
+                  { icon: "📅", label: "Bookings", sub: "Active reservations", href: "/agent/bookings" },
+                  { icon: "🤖", label: "AI Agents", sub: "Automation status", href: "/ai-agents" },
+                  { icon: "📝", label: "Forms", sub: "Lead capture forms", href: "/forms/travel" },
+                ]},
+                ...(canHQ ? [{ section: "💼 HQ Only", items: [
+                  { icon: "💰", label: "Finance", sub: "Revenue & invoices", href: "/agent/finance" },
+                  { icon: "👔", label: "Agent Team", sub: "Manage agents", href: "/agent/team" },
+                  { icon: "⚙️", label: "Settings", sub: "Account & config", href: "/agent/settings" },
+                  { icon: "🌐", label: "Website", sub: "View live site", href: "/" },
+                ]}] : []),
+                { section: "👤 Account", items: [
+                  { icon: "🙍", label: "Profile", sub: "Your account", href: "/profile" },
+                ]},
+              ].map(group => (
+                <div key={group.section}>
+                  <div style={{ padding: "10px 20px 6px", fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.07em" }}>{group.section}</div>
+                  {group.items.map(item => (
+                    <button key={item.href} onClick={() => { setShowAllMenu(false); router.push(item.href); }}
+                      style={{ display: "flex", alignItems: "center", gap: 16, width: "100%", padding: "14px 20px", background: "transparent", border: "none", borderBottom: "1px solid #f8fafc", cursor: "pointer", textAlign: "left" }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 14, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>{item.icon}</div>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 15, color: "#0f172a" }}>{item.label}</div>
+                        <div style={{ fontSize: 13, color: "#94a3b8" }}>{item.sub}</div>
+                      </div>
+                      <div style={{ marginLeft: "auto", color: "#cbd5e1", fontSize: 18 }}>›</div>
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
