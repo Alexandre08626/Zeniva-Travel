@@ -60,6 +60,7 @@ const HQ_LINKS = [
   { label: "Influencer", href: "/agent/influencer", icon: "⭐" },
   { label: "AI Agents Hub", href: "/ai-agents", icon: "🤖" },
   { label: "Finance", href: "/agent/finance", icon: "📊" },
+  { label: "Invoices", href: "/agent/invoices", icon: "🧾" },
 ];
 
 export function AgentDashboardPage({ agentId }: { agentId?: string }) {
