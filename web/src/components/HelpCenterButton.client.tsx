@@ -213,7 +213,7 @@ export default function HelpCenterButton() {
             window.location.href = "/chat/agent?channel=agent-alexandre&source=/documents";
           }
         }}
-        className="help-float hidden sm:flex"
+        className="help-float"
         aria-label={`Help via ${COMPANY_INFO.name} chat`}
       >
         Help
@@ -422,15 +422,28 @@ export default function HelpCenterButton() {
         }
         @media (max-width: 640px) {
           .help-float {
-            bottom: 72px !important;
+            bottom: 16px !important;
             right: 16px !important;
-            padding: 12px 20px 12px 16px !important;
-            font-size: 16px !important;
+            left: auto !important;
+            padding: 12px 20px !important;
+            font-size: 15px !important;
+            font-weight: 700 !important;
+            background: #0F6CF5 !important;
+            color: white !important;
+            border: none !important;
+            box-shadow: 0 4px 16px rgba(15,108,245,0.35) !important;
           }
-          .help-float svg {
-            width: 24px !important;
-            height: 24px !important;
-            margin-right: 8px !important;
+        }
+        /* In PWA app mode — above the bottom nav bar (80px) */
+        @media (display-mode: standalone) {
+          .help-float {
+            bottom: calc(88px + env(safe-area-inset-bottom)) !important;
+            right: 16px !important;
+            left: auto !important;
+            background: #0F6CF5 !important;
+            color: white !important;
+            border: none !important;
+            box-shadow: 0 4px 16px rgba(15,108,245,0.35) !important;
           }
         }
       `}</style>

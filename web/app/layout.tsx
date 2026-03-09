@@ -11,6 +11,7 @@ import PlatformOsTag from "../src/components/PlatformOsTag.client";
 import PWAInstallBanner from "../src/components/PWAInstallBanner.client";
 import AppShell from "../src/components/AppShell.client";
 import PushNotifManager from "../src/components/PushNotifManager.client";
+import HelpCenterButton from "../src/components/HelpCenterButton.client";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -313,6 +314,7 @@ export default function RootLayout({
           <LinaAssistantDock />
           <AppShell />
           <PushNotifManager />
+          <HelpCenterButton />
           {children}
           <PWAInstallBanner />
           <CookieConsent />
