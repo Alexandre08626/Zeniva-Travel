@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { getAuthUser } from "@/src/lib/authStore";
+// auth not needed client-side for this page
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 type InvoiceItem = { description: string; qty: number; unitPrice: number };

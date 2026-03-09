@@ -79,10 +79,10 @@ async function scanGmail(limit = 100): Promise<Array<{
     for (const kw of searches) {
       try {
         const results = await client.search({ subject: kw }, { uid: true });
-        results.forEach(uid => uids.add(uid as number));
+        if (Array.isArray(results)) results.forEach((uid: any) => uids.add(Number(uid)));
         // Also search body
         const bodyResults = await client.search({ body: kw }, { uid: true });
-        bodyResults.forEach(uid => uids.add(uid as number));
+        if (Array.isArray(bodyResults)) bodyResults.forEach((uid: any) => uids.add(Number(uid)));
       } catch {}
     }
 
