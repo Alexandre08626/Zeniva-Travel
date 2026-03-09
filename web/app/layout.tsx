@@ -309,7 +309,7 @@ export default function RootLayout({
         />
       </head>
       <Script
-        src="https://www.googletagmanager.com/gtag/js?id=G-08KJG7GKP1"
+        src="https://www.googletagmanager.com/gtag/js?id=G-JB30PQXZD1"
         strategy="afterInteractive"
       />
       <Script id="ga4-init" strategy="afterInteractive">
@@ -317,7 +317,7 @@ export default function RootLayout({
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', 'G-08KJG7GKP1', {
+          gtag('config', 'G-JB30PQXZD1', {
             page_path: window.location.pathname,
           });
         `}
