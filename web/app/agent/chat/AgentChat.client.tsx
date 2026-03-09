@@ -48,6 +48,8 @@ export default function AgentChatClient() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
   const activeChannelRef = useRef(channelId);
+  // Track which message IDs have been seen — fixes "stays unread after opening"
+  const seenMsgIds = useRef<Set<string>>(new Set());
   const nonDeletableChannels = useMemo(() => new Set(["hq"]), []);
 
   // Auto-scroll
@@ -71,6 +73,11 @@ export default function AgentChatClient() {
   useEffect(() => {
     setChannels((prev) => prev.map((ch) => (ch.id === channelId ? { ...ch, unread: 0 } : ch)));
     activeChannelRef.current = channelId;
+    // Mark all current messages in this channel as seen
+    setMessages((prev) => {
+      (prev[channelId] || []).forEach((m) => seenMsgIds.current.add(m.id));
+      return prev;
+    });
   }, [channelId]);
 
   const buildMessageFromRow = (row: any): ChatMessage => {
@@ -161,22 +168,38 @@ export default function AgentChatClient() {
           Object.entries(channelMap).forEach(([cid, msgs]) => {
             if (cid === "hq") return;
             const clientMsgs = msgs.filter((m) => m.role === "client");
-            const label = clientMsgs[0]?.author || cid.replace("agent-alexandre-", "").replace(/-/g, " ");
+            // Clean label: remove all channel prefixes, show real name
+            const authorName = clientMsgs[0]?.author;
+            const cleanCid = cid
+              .replace(/^acct-/, "")
+              .replace(/^contact-/, "")
+              .replace(/^agent-alexandre-/, "")
+              .replace(/^agent-/, "")
+              .replace(/-trip-[a-z0-9]+$/, "")
+              .replace(/-/g, " ")
+              .replace(/\b\w/g, (c) => c.toUpperCase())
+              .trim();
+            const label = authorName || cleanCid || "Client";
             const existing = updated.find((c) => c.id === cid);
             const closed = isChannelClosed(msgs);
+            // FIX: count only messages NOT yet seen (not read)
+            const unreadCount = cid === activeId
+              ? 0
+              : clientMsgs.filter((m) => !seenMsgIds.current.has(m.id)).length;
             if (!existing) {
-              updated.push({ id: cid, label: `💬 ${label}`, scope: "Client", unread: cid !== activeId ? clientMsgs.length : 0, closed });
+              updated.push({ id: cid, label: `💬 ${label}`, scope: "Client", unread: unreadCount, closed });
             } else {
               existing.label = `💬 ${label}`;
               existing.closed = closed;
-              if (cid !== activeId) {
-                const prevCount = existing.unread;
-                existing.unread = Math.max(prevCount, clientMsgs.length);
-              }
+              existing.unread = unreadCount;
             }
           });
           return updated;
         });
+        // Also mark active channel messages as seen immediately
+        if (activeChannelRef.current && channelMap[activeChannelRef.current]) {
+          channelMap[activeChannelRef.current].forEach((m) => seenMsgIds.current.add(m.id));
+        }
       } catch {
         // ignore network errors
       }
