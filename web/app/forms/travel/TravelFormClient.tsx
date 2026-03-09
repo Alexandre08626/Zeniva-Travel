@@ -39,9 +39,14 @@ export default function TravelFormClient() {
           ...(agentEmail ? { agentEmail, referredBy: agentEmail } : {}),
         }),
       });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const p = await res.json().catch(() => ({}));
-        throw new Error(p?.error || "Submission failed");
+        throw new Error(data?.error || "Submission failed");
+      }
+      // Auto-login the new client and redirect to set-password page
+      if (data?.setupUrl) {
+        window.location.href = data.setupUrl;
+        return;
       }
       setStatus("success");
     } catch (err: any) {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { FORM_DEFINITIONS } from "../../../../src/lib/forms/catalog";
 import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../../src/lib/server/db";
+import { signSession } from "../../../../src/lib/server/auth";
 
 const DEFAULT_OWNER_EMAIL = "info@zenivatravel.com";
 const VPS_API_URL = process.env.LINA_API_URL || "https://vmi3097009.contaboserver.net";
@@ -331,10 +332,19 @@ export async function POST(request: Request) {
       await ensureTravelerAccount(email, saved.name, form.division);
       // Send welcome email to new client (fire and forget)
       sendWelcomeEmail(saved.name, email, body?.destination || "your dream destination").catch(() => {});
-    }
-    // Notify VPS for lead capture + email notification
-    notifyVpsNewLead(saved, body).catch(() => {});
 
+      // Generate a one-time setup token so the client can auto-login + set password
+      const setupExp = Math.floor(Date.now() / 1000) + 60 * 60 * 2; // 2h
+      const setupToken = signSession({ email, roles: ["traveler"], exp: setupExp, type: "setup" } as any);
+      const setupUrl = `/api/auth/auto-login?token=${encodeURIComponent(setupToken)}&redirect=${encodeURIComponent("/set-password?new=1")}`;
+
+      // Notify VPS for lead capture + email notification
+      notifyVpsNewLead(saved, body).catch(() => {});
+
+      return NextResponse.json({ data: saved, created: true, setupUrl }, { status: 201 });
+    }
+    // Notify VPS for lead capture + email notification (fallback if no email)
+    notifyVpsNewLead(saved, body).catch(() => {});
     return NextResponse.json({ data: saved, created: true }, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to submit form" }, { status: 500 });
