@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 
-const EXCLUDED_PATHS = new Set(["/", "/agent", "/partner/dashboard"]);
+const EXCLUDED_PATHS = new Set(["/", "/agent", "/partner/dashboard", "/forms/travel"]);
 
 export default function BackButton() {
   const pathname = usePathname();

@@ -284,6 +284,8 @@ export default function PWAInstallBanner() {
   useEffect(() => {
     if (!isMobile()) return;
     if (isStandalone()) return;
+    // Never show on the travel form page
+    if (typeof window !== "undefined" && window.location.pathname.startsWith("/forms/")) return;
 
     setIos(isIOS());
 
