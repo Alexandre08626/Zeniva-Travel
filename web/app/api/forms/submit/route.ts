@@ -278,6 +278,12 @@ export async function POST(request: Request) {
       const saved = mapClientRow(rows[0]);
       if (email) {
         await ensureTravelerAccount(email, name || saved.name || "Traveler", form.division);
+        // Generate setup token for existing client too — lets them set/update password
+        const setupExp = Math.floor(Date.now() / 1000) + 60 * 60 * 2;
+        const setupToken = signSession({ email, roles: ["traveler"], exp: setupExp, type: "setup" } as any);
+        const setupUrl = `/api/auth/auto-login?token=${encodeURIComponent(setupToken)}&redirect=${encodeURIComponent("/set-password?new=1")}`;
+        notifyVpsNewLead(saved, body).catch(() => {});
+        return NextResponse.json({ data: saved, updated: true, setupUrl });
       }
       notifyVpsNewLead(saved, body).catch(() => {});
       return NextResponse.json({ data: saved, updated: true });
