@@ -94,9 +94,22 @@ export default function AppAgentDashboard() {
             <div style={{ color: "#64748b", fontSize: 13 }}>{greeting},</div>
             <div style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", marginTop: 1 }}>{firstName} ✈️</div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 5, background: "#f0fdf4", border: "1.5px solid #86efac", borderRadius: 20, padding: "6px 12px" }}>
-            <div style={{ width: 7, height: 7, borderRadius: "50%", background: GREEN }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: "#15803d" }}>ONLINE</span>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={async () => {
+              try {
+                await fetch("/api/push/send", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", "Authorization": "Bearer zeniva-secret-2025" },
+                  body: JSON.stringify({ title: "🔔 Notifications actives!", body: "Tu vas recevoir toutes les alertes messages.", url: "/agent/chat", tag: "test" }),
+                });
+              } catch {}
+            }} style={{ background: "#f0fdf4", border: "1.5px solid #86efac", borderRadius: 20, padding: "6px 12px", cursor: "pointer", fontSize: 11, fontWeight: 700, color: "#15803d" }}>
+              🔔 Test
+            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 5, background: "#f0fdf4", border: "1.5px solid #86efac", borderRadius: 20, padding: "6px 12px" }}>
+              <div style={{ width: 7, height: 7, borderRadius: "50%", background: GREEN }} />
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#15803d" }}>ONLINE</span>
+            </div>
           </div>
         </div>
         {/* Stats */}
