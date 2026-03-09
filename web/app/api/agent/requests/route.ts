@@ -417,17 +417,33 @@ export async function POST(request: Request) {
       const isSenderAgent = senderRole === "hq" || senderRole === "agent";
 
       if (isSenderClient && msgText && clientEmail) {
-        // Push notification to HQ — new client message
-        sendPushToHQ({
-          title: `💬 ${clientName}`,
-          body: msgText.slice(0, 100),
-          url: "/agent/chat",
-          tag: "new-message",
-        }).catch(() => {});
+        // ── Find owner of this client — send push ONLY to the right agent ──
+        (async () => {
+          try {
+            const { client: adminClient } = getSupabaseAdminClient();
+            // Find owner_email from clients table using client email
+            const { data: clientRow } = await adminClient
+              .from("clients")
+              .select("owner_email")
+              .eq("email", clientEmail)
+              .maybeSingle();
+            const ownerEmail = clientRow?.owner_email || "info@zeniva.ca";
+            // Send push only to the owner agent
+            const { sendPush } = await import("../../../../src/lib/server/pushNotify");
+            sendPush({ title: `💬 ${clientName}`, body: msgText.slice(0, 100), url: "/agent/chat", tag: "new-message", targetEmail: ownerEmail }).catch(() => {});
+          } catch {
+            // Fallback to HQ
+            sendPushToHQ({ title: `💬 ${clientName}`, body: msgText.slice(0, 100), url: "/agent/chat", tag: "new-message" }).catch(() => {});
+          }
+        })();
 
-        // 1. Notify agent inbox (info@zeniva.ca) — confirmation to client
+        // 1. Notify correct agent inbox — confirmation to client
+        // Find owner for email notification
+        const { client: ac } = getSupabaseAdminClient();
+        const { data: cr } = await ac.from("clients").select("owner_email").eq("email", clientEmail).maybeSingle();
+        const notifyEmail = cr?.owner_email || "info@zeniva.ca";
         void sendEmailNotification({
-          to: "info@zeniva.ca",
+          to: notifyEmail,
           subject: `💬 New message from ${clientName}`,
           html: `<p><strong>${clientName}</strong> (${clientEmail}) sent a message via the Help chat:</p>
 <blockquote style="border-left:4px solid #0F6CF5;padding:12px 16px;margin:16px 0;color:#333;">${msgText.replace(/\n/g,"<br/>")}</blockquote>
