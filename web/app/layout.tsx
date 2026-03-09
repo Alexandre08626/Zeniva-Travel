@@ -311,7 +311,6 @@ export default function RootLayout({
         <Providers>
           <PlatformOsTag />
           <BackButton />
-          <LinaAssistantDock />
           <AppShell />
           <PushNotifManager />
           <HelpCenterButton />
