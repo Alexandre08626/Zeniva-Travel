@@ -70,8 +70,36 @@ self.addEventListener("push", (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title || "✈️ Zeniva Travel", options)
+    Promise.all([
+      self.registration.showNotification(data.title || "✈️ Zeniva Travel", options),
+      // Increment badge count on app icon
+      (async () => {
+        try {
+          const stored = await caches.open("zeniva-badge-v1");
+          const resp = await stored.match("badge-count");
+          const current = resp ? parseInt(await resp.text(), 10) : 0;
+          const next = current + 1;
+          await stored.put("badge-count", new Response(String(next)));
+          if ("setAppBadge" in self.navigator) {
+            await self.navigator.setAppBadge(next);
+          }
+        } catch (e) {}
+      })(),
+    ])
   );
+});
+
+// ─── Clear badge when app focused ────────────────────────────────────────────
+self.addEventListener("message", (event) => {
+  if (event.data === "CLEAR_BADGE") {
+    (async () => {
+      try {
+        const stored = await caches.open("zeniva-badge-v1");
+        await stored.put("badge-count", new Response("0"));
+        if ("clearAppBadge" in self.navigator) await self.navigator.clearAppBadge();
+      } catch (e) {}
+    })();
+  }
 });
 
 // ─── Notification Click ───────────────────────────────────────────────────────

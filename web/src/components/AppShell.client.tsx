@@ -103,7 +103,22 @@ export default function AppShell() {
   const [inboxBadge, setInboxBadge] = useState(0);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+    // Clear app badge when app is opened/focused
+    const clearBadge = () => {
+      try {
+        if ("clearAppBadge" in navigator) (navigator as any).clearAppBadge().catch(() => {});
+        if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage("CLEAR_BADGE");
+        }
+      } catch (e) {}
+    };
+    clearBadge();
+    window.addEventListener("focus", clearBadge);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) clearBadge(); });
+    return () => { window.removeEventListener("focus", clearBadge); };
+  }, []);
 
   const isAgentMode = pathname.startsWith("/agent");
   const userIsAgent = mounted && authUser ? isAgent(authUser) : false;
