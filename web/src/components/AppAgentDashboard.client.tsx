@@ -86,7 +86,7 @@ export default function AppAgentDashboard() {
   const ACOLORS = ["#6366f1", BLUE, GREEN, GOLD, RED, "#8b5cf6", "#06b6d4", "#ec4899"];
 
   return (
-    <div style={{ minHeight: "100dvh", background: "#f1f5f9", fontFamily: "inherit" }}>
+    <div style={{ minHeight: "100dvh", background: "#f8fafc", fontFamily: "inherit", overflowX: "hidden" }}>
       {/* ── HEADER ── */}
       <div style={{ background: "white", borderBottom: "1.5px solid #e2e8f0", padding: "18px 20px 16px", paddingTop: "max(18px, env(safe-area-inset-top))" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -114,7 +114,7 @@ export default function AppAgentDashboard() {
         </div>
       </div>
 
-      <div style={{ padding: "14px 14px 0" }}>
+      <div style={{ padding: "14px 14px 0", overflowX: "hidden" }}>
 
         {/* ── UNREAD ALERT ── */}
         {unread > 0 && (
@@ -181,7 +181,7 @@ export default function AppAgentDashboard() {
           <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.07em" }}>Quick Access</div>
           <button onClick={() => setShowAllMenu(true)} style={{ background: BLUE, border: "none", borderRadius: 20, padding: "5px 14px", color: "white", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>View All ▾</button>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10, marginBottom: 10 }}>
           <QBtn icon="💬" label="Inbox" badge={unread} onClick={() => router.push("/agent/chat")} />
           <QBtn icon="👥" label="Clients" onClick={() => router.push("/agent/clients")} />
           <QBtn icon="🎯" label="Leads" onClick={() => router.push("/agent/leads")} />

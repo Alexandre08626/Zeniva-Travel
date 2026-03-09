@@ -170,7 +170,9 @@ export default function AppShell() {
     <>
       <style>{`
         [data-fullbleed="true"] { display: none !important; }
-        body { background: ${isAgentMode ? "#040810" : "#030812"} !important; }
+        /* White background for all pages except home */
+        body { background: #f8fafc !important; overflow-x: hidden !important; }
+        html { overflow-x: hidden !important; }
         main, #main-content { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
         /* Ensure ALL page content clears the bottom nav */
         .min-h-screen:not([data-no-pad]), .min-h-dvh:not([data-no-pad]) { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
@@ -178,55 +180,16 @@ export default function AppShell() {
         [class*="overflow-y-auto"], [class*="overflow-auto"] { scroll-padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
         /* Agent page wrappers */
         .agent-wrap, [class*="agent-page"] { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
-        /* Proposal / booking pages — ensure Generate Proposal button is reachable */
+        /* Proposal / booking pages */
         .proposal-page, .booking-page, .review-page { padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important; }
-        /* Any flex column root div */
-        body > #__next > div:not([data-no-pad]) { min-height: 100dvh; }
-        /* Dark agent pages in app mode */
-        .agent-page-wrapper { background: #040810 !important; min-height: 100vh; }
-        @media (display-mode: standalone) {
-          .agent-light-bg { background: #040810 !important; }
-          .agent-light-card { background: rgba(255,255,255,0.04) !important; border-color: rgba(255,255,255,0.07) !important; }
-
-          /* ─── Dark all content pages in app mode ─── */
-          main.min-h-screen { background: #030812 !important; }
-
-          /* Yachts & Residences — card dark */
-          .bg-white.rounded-3xl { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.08) !important; }
-          .bg-white.rounded-3xl h2 { color: #fff !important; }
-          .bg-white.rounded-3xl p { color: rgba(255,255,255,0.5) !important; }
-          .bg-white.rounded-3xl .text-slate-900 { color: #fff !important; }
-          .bg-white.rounded-3xl .text-slate-500 { color: rgba(255,255,255,0.45) !important; }
-          .bg-white.rounded-3xl .border-slate-200 { border-color: rgba(255,255,255,0.1) !important; }
-          .bg-white.rounded-3xl .text-slate-700 { color: rgba(255,255,255,0.7) !important; }
-          .bg-white.rounded-3xl .bg-slate-100 { background: rgba(255,255,255,0.08) !important; }
-          .bg-white.rounded-3xl .text-slate-600 { color: rgba(255,255,255,0.5) !important; }
-
-          /* Page titles & headings */
-          .text-slate-900 { color: #fff !important; }
-          .text-slate-700 { color: rgba(255,255,255,0.75) !important; }
-          .text-slate-600 { color: rgba(255,255,255,0.55) !important; }
-          .text-slate-500 { color: rgba(255,255,255,0.45) !important; }
-          .text-slate-400 { color: rgba(255,255,255,0.35) !important; }
-
-          /* Filters & selects */
-          .bg-white.px-4.py-2, select.bg-white { background: rgba(255,255,255,0.07) !important; color: #fff !important; border-color: rgba(255,255,255,0.12) !important; }
-          .bg-white.px-8.py-3 { background: rgba(255,255,255,0.06) !important; color: #fff !important; border-color: rgba(255,255,255,0.1) !important; }
-          .bg-slate-50 { background: #030812 !important; }
-
-          /* Chat page */
-          .chat-container-bg { background: #030812 !important; }
-          .chat-header-bg { background: rgba(4,13,26,0.95) !important; border-bottom-color: rgba(255,255,255,0.06) !important; }
-          .chat-input-bg { background: rgba(4,13,26,0.98) !important; border-top-color: rgba(255,255,255,0.06) !important; }
-          .chat-bubble-user { background: #0F6CF5 !important; color: #fff !important; }
-          .chat-bubble-lina { background: rgba(255,255,255,0.06) !important; color: #fff !important; border: 1px solid rgba(255,255,255,0.08) !important; }
-        }
+        /* Prevent horizontal overflow everywhere */
+        * { max-width: 100vw; box-sizing: border-box; }
         @keyframes goldGlow { 0%,100% { filter: drop-shadow(0 0 4px rgba(230,184,90,0.3)); } 50% { filter: drop-shadow(0 0 10px rgba(230,184,90,0.7)); } }
         @keyframes callRingNav { 0% { transform:scale(1);opacity:.8; } 100% { transform:scale(1.5);opacity:0; } }
       `}</style>
 
-      {/* Safe area top */}
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: "env(safe-area-inset-top)", background: isAgentMode ? "#0A0F1E" : "#030812", zIndex: 9998 }} />
+      {/* Safe area top — white */}
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: "env(safe-area-inset-top)", background: "#f8fafc", zIndex: 9998 }} />
 
       {/* Agent mode pill indicator */}
       {isAgentMode && (

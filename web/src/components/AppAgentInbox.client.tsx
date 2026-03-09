@@ -267,7 +267,7 @@ export default function AppAgentInbox() {
   // ══════════════════════════════════════════════════════════════════════════
   if (activeId) {
     return (
-      <div ref={containerRef} style={{ position: "fixed", top: 0, left: 0, right: 0, height: "100dvh", background: "#f8fafc", display: "flex", flexDirection: "column", zIndex: 100 }}>
+      <div ref={containerRef} style={{ position: "fixed", top: 0, left: 0, right: 0, height: "100dvh", background: "#f8fafc", display: "flex", flexDirection: "column", zIndex: 10000 }}>
         {/* Header */}
         <div style={{ background: "white", borderBottom: "1.5px solid #e2e8f0", padding: "0 16px 12px", paddingTop: "max(12px, env(safe-area-inset-top))", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
           <button onClick={goBack} style={{ background: "none", border: "none", color: BLUE, fontSize: 28, cursor: "pointer", padding: "8px 8px 0 0", lineHeight: 1 }}>←</button>
@@ -326,7 +326,7 @@ export default function AppAgentInbox() {
         </div>
 
         {/* Reply bar */}
-        <div style={{ background: "white", borderTop: "1.5px solid #e2e8f0", padding: "12px 16px", paddingBottom: "max(20px, env(safe-area-inset-bottom))", flexShrink: 0, position: "relative", zIndex: 2 }}>
+        <div style={{ background: "white", borderTop: "1.5px solid #e2e8f0", padding: "12px 16px", paddingBottom: "max(24px, env(safe-area-inset-bottom))", flexShrink: 0, position: "relative", zIndex: 2 }}>
           {isClosed ? (
             <div style={{ textAlign: "center", color: "#94a3b8", fontSize: 13, padding: "8px 0" }}>Conversation resolved — tap Reopen to reply</div>
           ) : (
