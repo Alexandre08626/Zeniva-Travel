@@ -100,7 +100,7 @@ async function ensureTravelerAccount(email: string, name: string, division: stri
   const id = `acct-${normalized.replace(/[^a-z0-9]/gi, "-")}`;
   await dbQuery(
     "INSERT INTO accounts (id, name, email, role, roles, divisions, status, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7, now())",
-    [id, name || "Traveler", normalized, "traveler", ["traveler"], [division], "active"]
+    [id, name || "Traveler", normalized, "traveler", JSON.stringify(["traveler"]), JSON.stringify([division]), "active"]
   );
   console.log(`ACCOUNT CREATED: id=${id} email=${normalized}`);
 }
