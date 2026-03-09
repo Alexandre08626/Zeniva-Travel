@@ -99,7 +99,7 @@ export default function AppHome() {
             />
             <div>
               <div style={{fontSize:15,fontWeight:900,letterSpacing:"-0.02em",lineHeight:1}}>
-                Zeniva<span style={{color:"#E6B85A"}}>✈</span>
+                Zeniva <span style={{color:"#E6B85A"}}>Travel</span> ✈️
               </div>
               <div style={{fontSize:10,color:"rgba(255,255,255,.35)",fontWeight:600,letterSpacing:"0.04em"}}>
                 {greeting}{firstName?`, ${firstName}`:""}
@@ -333,12 +333,91 @@ export default function AppHome() {
           </div>
         </div>
 
+        {/* ── Explore section ──────────────────────────────────────── */}
+        <div style={{padding:"20px 20px 0"}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+            <div>
+              <div style={{fontSize:11,fontWeight:800,color:"rgba(255,255,255,.3)",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:3}}>EXPLORE</div>
+              <div style={{fontSize:20,fontWeight:900,letterSpacing:"-0.02em"}}>Our Collections</div>
+            </div>
+          </div>
+
+          {/* 3 big category cards */}
+          <div style={{display:"flex",flexDirection:"column",gap:12}}>
+            {/* Yachts */}
+            <button onClick={()=>go("/yachts")} style={{
+              display:"flex",alignItems:"center",gap:16,
+              background:"linear-gradient(135deg,rgba(15,108,245,.12) 0%,rgba(11,27,77,.4) 100%)",
+              border:"1px solid rgba(15,108,245,.25)",
+              borderRadius:20,padding:"16px 18px",
+              cursor:"pointer",textAlign:"left",
+              WebkitTapHighlightColor:"transparent",
+            }}>
+              <div style={{
+                width:54,height:54,borderRadius:16,flexShrink:0,overflow:"hidden",
+                border:"1.5px solid rgba(15,108,245,.3)",
+              }}>
+                <img src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=200&q=80" alt="Yachts" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+              </div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:16,fontWeight:900,color:"#fff",marginBottom:3}}>⛵ Yacht Charters</div>
+                <div style={{fontSize:12,color:"rgba(255,255,255,.45)"}}>Luxury yachts in Miami, Bahamas & more</div>
+              </div>
+              <div style={{fontSize:20,color:"rgba(255,255,255,.3)"}}>›</div>
+            </button>
+
+            {/* Luxury Resorts */}
+            <button onClick={()=>go("/partners/resorts")} style={{
+              display:"flex",alignItems:"center",gap:16,
+              background:"linear-gradient(135deg,rgba(230,184,90,.1) 0%,rgba(11,27,77,.4) 100%)",
+              border:"1px solid rgba(230,184,90,.2)",
+              borderRadius:20,padding:"16px 18px",
+              cursor:"pointer",textAlign:"left",
+              WebkitTapHighlightColor:"transparent",
+            }}>
+              <div style={{
+                width:54,height:54,borderRadius:16,flexShrink:0,overflow:"hidden",
+                border:"1.5px solid rgba(230,184,90,.3)",
+              }}>
+                <img src="https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=200&q=80" alt="Resorts" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+              </div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:16,fontWeight:900,color:"#fff",marginBottom:3}}>🏨 Luxury Resorts</div>
+                <div style={{fontSize:12,color:"rgba(255,255,255,.45)"}}>5-star partner hotels & all-inclusive</div>
+              </div>
+              <div style={{fontSize:20,color:"rgba(255,255,255,.3)"}}>›</div>
+            </button>
+
+            {/* Villas & Residences */}
+            <button onClick={()=>go("/residences")} style={{
+              display:"flex",alignItems:"center",gap:16,
+              background:"linear-gradient(135deg,rgba(16,185,129,.1) 0%,rgba(11,27,77,.4) 100%)",
+              border:"1px solid rgba(16,185,129,.2)",
+              borderRadius:20,padding:"16px 18px",
+              cursor:"pointer",textAlign:"left",
+              WebkitTapHighlightColor:"transparent",
+            }}>
+              <div style={{
+                width:54,height:54,borderRadius:16,flexShrink:0,overflow:"hidden",
+                border:"1.5px solid rgba(16,185,129,.3)",
+              }}>
+                <img src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=200&q=80" alt="Villas" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+              </div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:16,fontWeight:900,color:"#fff",marginBottom:3}}>🏡 Villas & Residences</div>
+                <div style={{fontSize:12,color:"rgba(255,255,255,.45)"}}>Private Florida villas, beach houses</div>
+              </div>
+              <div style={{fontSize:20,color:"rgba(255,255,255,.3)"}}>›</div>
+            </button>
+          </div>
+        </div>
+
         {/* ── Quick links row ──────────────────────────────────────── */}
-        <div style={{display:"flex",gap:10,padding:"20px 20px 8px"}}>
+        <div style={{display:"flex",gap:10,padding:"16px 20px 8px"}}>
           {[
-            {icon:"🛥️",label:"Yachts",href:"/yachts"},
-            {icon:"🏡",label:"Villas",href:"/residences"},
             {icon:"✈️",label:"My Trips",href:"/trips"},
+            {icon:"💬",label:"Chat Lina",href:"/chat"},
+            {icon:"👤",label:"Profile",href:"/profile"},
           ].map((item)=>(
             <button key={item.label} onClick={()=>go(item.href)} style={{
               flex:1,background:"rgba(255,255,255,.05)",
