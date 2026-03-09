@@ -231,7 +231,9 @@ export async function POST(request: Request) {
       if (existingOwner && existingOwner !== ownerEmail && !bothHQ) {
         return NextResponse.json({ error: "Lead belongs to another agent." }, { status: 403 });
       }
-      if (assigned.length && !assigned.includes(ownerEmail)) {
+      // HQ equivalence for assigned_agents too
+      const assignedHqOk = HQ_ALL.includes(ownerEmail) && assigned.some(a => HQ_ALL.includes(a));
+      if (assigned.length && !assigned.includes(ownerEmail) && !assignedHqOk) {
         return NextResponse.json({ error: "Lead assigned to another agent." }, { status: 403 });
       }
       if (division && division !== form.division) {
