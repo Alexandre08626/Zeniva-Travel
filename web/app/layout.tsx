@@ -2,6 +2,7 @@
 import React from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { Providers } from "./providers";
 import BackButton from "../src/components/BackButton.client";
@@ -307,6 +308,20 @@ export default function RootLayout({
           }}
         />
       </head>
+      <Script
+        src="https://www.googletagmanager.com/gtag/js?id=G-08KJG7GKP1"
+        strategy="afterInteractive"
+      />
+      <Script id="ga4-init" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-08KJG7GKP1', {
+            page_path: window.location.pathname,
+          });
+        `}
+      </Script>
       <body data-brand="blue" className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Providers>
           <PlatformOsTag />
