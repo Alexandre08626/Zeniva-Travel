@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 const BLUE = "#0F6CF5";
 const GOLD = "#E6B85A";
 const DARK = "#040d1f";
 
-export default function SetPasswordPage() {
+function SetPasswordForm() {
   const params = useSearchParams();
   const router = useRouter();
   const isNew = params?.get("new") === "1";
@@ -160,5 +160,17 @@ export default function SetPasswordPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight: "100vh", background: DARK, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ color: "#64748b", fontSize: 14 }}>Loading…</div>
+      </div>
+    }>
+      <SetPasswordForm />
+    </Suspense>
   );
 }
