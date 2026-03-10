@@ -279,17 +279,17 @@ export default function AppHome() {
               <div style={{fontSize:11,fontWeight:800,color:"rgba(255,255,255,.3)",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:3}}>FEATURED</div>
               <div style={{fontSize:20,fontWeight:900,letterSpacing:"-0.02em"}}>Dream Destinations</div>
             </div>
-            <button onClick={()=>go("/chat?q=Show me featured destinations")} style={{
+            <button onClick={()=>go("/destinations")} style={{
               fontSize:12,fontWeight:700,color:"#E6B85A",background:"transparent",border:"none",cursor:"pointer",
               WebkitTapHighlightColor:"transparent",
-            }}>See all →</button>
+            }}>View All →</button>
           </div>
 
           {/* Horizontal scroll cards */}
           <div style={{display:"flex",gap:14,overflowX:"auto",scrollbarWidth:"none",paddingBottom:4,marginLeft:-20,marginRight:-20,paddingLeft:20,paddingRight:20}}>
             {DESTINATIONS.map((d,i)=>(
               <button key={d.id} className="dest-card"
-                onClick={()=>chat(`Plan a trip to ${d.name}: ${d.sub}`)}
+                onClick={()=>go(`/destinations/${d.name.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"")}`)}
                 style={{
                   flexShrink:0,width:200,borderRadius:22,overflow:"hidden",
                   background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.07)",
