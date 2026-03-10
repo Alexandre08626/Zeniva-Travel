@@ -153,7 +153,7 @@ export default function BookingsPage() {
                   <th className="px-5 py-3">Travelers</th>
                   <th className="px-5 py-3">Revenue</th>
                   <th className="px-5 py-3">Status</th>
-                  <th className="px-5 py-3">Actions</th>
+                  <th className="px-5 py-3">Actions & Documents</th>
                 </tr>
               </thead>
               <tbody>
@@ -171,7 +171,7 @@ export default function BookingsPage() {
                       <td className="px-5 py-3 font-bold text-emerald-700">${(b.total_price || 0).toLocaleString()}</td>
                       <td className="px-5 py-3"><span className={`text-xs font-bold px-2.5 py-1 rounded-full ${sc.bg} ${sc.text}`}>{sc.label}</span></td>
                       <td className="px-5 py-3">
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 flex-wrap">
                           {b.status === "pending_payment" && (
                             <button disabled={actionId === b.id+"confirmed"} onClick={() => updateStatus(b.id, "confirmed")} className="text-xs bg-emerald-500 text-white px-2 py-1 rounded-lg font-bold hover:bg-emerald-600 disabled:opacity-50">
                               ✓ Confirm
@@ -182,6 +182,39 @@ export default function BookingsPage() {
                               Cancel
                             </button>
                           )}
+                          {/* ── Document buttons ── */}
+                          <a
+                            href={`/api/documents/generate?type=invoice&ref=INV-${b.id?.slice(0,8).toUpperCase()}&client=${encodeURIComponent(b.client_name||"")}&email=${encodeURIComponent(b.client_email||"")}&destination=${encodeURIComponent(b.destination||"")}&total=${b.total_price||0}&departure=${encodeURIComponent(b.departure_date||"")}&travelers=${b.travelers||1}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs px-2 py-1 rounded-lg font-bold"
+                            style={{ background: "#0B1B4D", color: "#E6B85A" }}
+                            title="View Invoice"
+                          >🧾 Invoice</a>
+                          <a
+                            href={`/api/documents/generate?type=invoice&ref=INV-${b.id?.slice(0,8).toUpperCase()}&client=${encodeURIComponent(b.client_name||"")}&email=${encodeURIComponent(b.client_email||"")}&destination=${encodeURIComponent(b.destination||"")}&total=${b.total_price||0}&departure=${encodeURIComponent(b.departure_date||"")}&travelers=${b.travelers||1}&download=1`}
+                            className="text-xs px-2 py-1 rounded-lg font-bold"
+                            style={{ background: "#E6B85A", color: "#0B1B4D" }}
+                            title="Download Invoice"
+                          >⬇ Save</a>
+                          <a
+                            href={`/api/documents/generate?type=flight&ref=ZNV-${b.id?.slice(0,8).toUpperCase()}&passenger=${encodeURIComponent(b.client_name||"")}&to=${encodeURIComponent(b.destination?.split(",")[0]?.substring(0,3).toUpperCase()||"CDG")}&toCity=${encodeURIComponent(b.destination||"")}&price=${b.total_price||0}&depart=${encodeURIComponent(b.departure_date||"")}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs px-2 py-1 rounded-lg font-bold"
+                            style={{ background: "#0F6CF5", color: "#fff" }}
+                            title="View Flight Confirmation"
+                          >✈️ Flight</a>
+                          <button
+                            onClick={() => {
+                              const url = `/api/documents/generate?type=invoice&ref=INV-${b.id?.slice(0,8).toUpperCase()}&client=${encodeURIComponent(b.client_name||"")}&email=${encodeURIComponent(b.client_email||"")}&destination=${encodeURIComponent(b.destination||"")}&total=${b.total_price||0}&departure=${encodeURIComponent(b.departure_date||"")}&travelers=${b.travelers||1}`;
+                              const w = window.open(url, "_blank");
+                              if (w) setTimeout(() => w.print(), 1500);
+                            }}
+                            className="text-xs px-2 py-1 rounded-lg font-bold"
+                            style={{ background: "#f1f5f9", color: "#475569", border: "1px solid #e2e8f0" }}
+                            title="Print Invoice"
+                          >🖨️ Print</button>
                         </div>
                       </td>
                     </tr>
