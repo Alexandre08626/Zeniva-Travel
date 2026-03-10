@@ -446,7 +446,10 @@ export default function DocumentsPage() {
           <div className="px-6 py-8 sm:py-10">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
               <div className="text-white">
-                <p className="text-xs font-bold uppercase tracking-[0.25em] text-white/70 mb-2">✈️ Traveler Cockpit</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <img src="/branding/lina-avatar.png" alt="Lina" style={{ width: 22, height: 22, borderRadius: "50%", border: "1.5px solid rgba(230,184,90,0.7)", objectFit: "cover" }} />
+                  <p className="text-xs font-bold uppercase tracking-[0.25em] text-white/70">Traveler Cockpit</p>
+                </div>
                 <h1 className="text-3xl sm:text-4xl font-black">Your Travel Hub</h1>
                 <p className="text-white/80 mt-2 text-sm max-w-lg">
                   Track bookings, manage documents, and chat with Lina or a Zeniva expert — all in one place.
