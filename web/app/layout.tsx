@@ -333,7 +333,6 @@ export default function RootLayout({
           <PWAPromptAfterLogin />
           <WelcomeBanner />
           {children}
-          <PWAInstallBanner />
           <CookieConsent />
         </Providers>
       </body>
