@@ -117,13 +117,15 @@ function TripCard({
                   </div>
 
                   <div className="flex-shrink-0">
-                    <Link
-                      href={`/test/duffel-stays/confirmation?docId=${encodeURIComponent(d.id)}`}
+                    <a
+                      href={`/api/documents/generate?type=${d.type === "confirmation" ? "flight" : d.type}&ref=${encodeURIComponent(d.confirmationNumber || d.id)}&passenger=${encodeURIComponent(userId || "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="rounded-full px-3 py-1 text-xs font-bold text-white"
                       style={{ backgroundColor: PREMIUM_BLUE }}
                     >
-                      View confirmation
-                    </Link>
+                      👁 View
+                    </a>
                   </div>
                 </li>
               ))}
@@ -148,15 +150,22 @@ function TripCard({
                         {d.provider || "Provider"} · Ref: {d.confirmationNumber || "TBC"}
                       </div>
                     </div>
-                    <a
-                      href={href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="rounded-full px-3 py-1 text-xs font-bold text-white"
-                      style={{ backgroundColor: PREMIUM_BLUE }}
-                    >
-                      View / Download
-                    </a>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <a
+                        href={`/api/documents/generate?type=${d.type === "confirmation" ? "flight" : (d.type || "invoice")}&ref=${encodeURIComponent(d.confirmationNumber || d.id)}&client=${encodeURIComponent(userId || "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ background: PREMIUM_BLUE, color: "#fff", borderRadius: 20, padding: "5px 12px", fontSize: 11, fontWeight: 700, textDecoration: "none" }}
+                      >
+                        👁 View
+                      </a>
+                      <a
+                        href={`/api/documents/generate?type=${d.type === "confirmation" ? "flight" : (d.type || "invoice")}&ref=${encodeURIComponent(d.confirmationNumber || d.id)}&client=${encodeURIComponent(userId || "")}&download=1`}
+                        style={{ background: "#E6B85A", color: "#0B1B4D", borderRadius: 20, padding: "5px 12px", fontSize: 11, fontWeight: 700, textDecoration: "none" }}
+                      >
+                        ⬇ Save
+                      </a>
+                    </div>
                   </li>
                 );
               })}
