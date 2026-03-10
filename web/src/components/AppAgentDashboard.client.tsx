@@ -129,6 +129,22 @@ export default function AppAgentDashboard() {
 
       <div style={{ padding: "14px 14px 0", overflowX: "hidden" }}>
 
+        {/* ── PROMO CODE ── */}
+        <div style={{ background: "linear-gradient(135deg, rgba(230,184,90,0.12), rgba(230,184,90,0.05))", border: "1.5px solid rgba(230,184,90,0.35)", borderRadius: 18, padding: "14px 18px", marginBottom: 14, display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ fontSize: 28, flexShrink: 0 }}>🎁</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ color: "#0B1B4D", fontWeight: 800, fontSize: 13, marginBottom: 2 }}>15% OFF — Promo Code</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ background: "#0B1B4D", borderRadius: 8, padding: "4px 12px", color: "#E6B85A", fontWeight: 900, fontSize: 16, letterSpacing: "0.08em", fontFamily: "monospace" }}>WELCOME15</div>
+              <button onClick={() => { if (typeof navigator !== "undefined") navigator.clipboard.writeText("WELCOME15"); }}
+                style={{ background: "rgba(230,184,90,0.2)", border: "1px solid rgba(230,184,90,0.4)", borderRadius: 8, padding: "4px 10px", color: "#92400e", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+                Copy
+              </button>
+            </div>
+            <div style={{ color: "#92400e", fontSize: 11, marginTop: 4 }}>Villa · Yacht · Hotel · Flight · All-inclusive</div>
+          </div>
+        </div>
+
         {/* ── UNREAD ALERT ── */}
         {unread > 0 && (
           <button onClick={() => router.push("/agent/chat")} style={{ width: "100%", background: "#fff7ed", border: "1.5px solid #fed7aa", borderRadius: 18, padding: "14px 18px", display: "flex", alignItems: "center", gap: 14, cursor: "pointer", marginBottom: 14 }}>

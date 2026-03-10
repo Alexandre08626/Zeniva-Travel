@@ -101,7 +101,27 @@ function PaymentContent() {
   const baseRate = hasCustomPrice ? (price as number) : 1700;
   const gratuity = hasCustomPrice ? 0 : 255;
   const taxes = hasCustomPrice ? 0 : 68;
-  const totalDue = hasCustomPrice ? baseRate : baseRate + gratuity + taxes;
+  const rawTotal = hasCustomPrice ? baseRate : baseRate + gratuity + taxes;
+
+  // ── Promo code ──────────────────────────────────────────────────────────
+  const [promoCode, setPromoCode] = useState("");
+  const [promoApplied, setPromoApplied] = useState(false);
+  const [promoError, setPromoError] = useState("");
+  const VALID_PROMOS: Record<string, number> = { "WELCOME15": 0.15, "ZENIVA15": 0.15, "LINA15": 0.15 };
+  const discount = promoApplied && VALID_PROMOS[promoCode.toUpperCase()] ? rawTotal * VALID_PROMOS[promoCode.toUpperCase()] : 0;
+  const totalDue = rawTotal - discount;
+
+  const applyPromo = () => {
+    const code = promoCode.trim().toUpperCase();
+    if (VALID_PROMOS[code]) {
+      setPromoApplied(true);
+      setPromoError("");
+    } else {
+      setPromoError("Invalid promo code. Try WELCOME15.");
+      setPromoApplied(false);
+    }
+  };
+
   const bookingType = isFlight ? "zeniva_managed" : "yacht";
 
   const formatMoney = (value: number) => new Intl.NumberFormat("en-US", {
@@ -226,7 +246,29 @@ function PaymentContent() {
                 <div className="flex justify-between"><span>Base rate</span><span>{formatMoney(baseRate)}</span></div>
                 <div className="flex justify-between"><span>Gratuity</span><span>{formatMoney(gratuity)}</span></div>
                 <div className="flex justify-between"><span>Taxes & fees</span><span>{formatMoney(taxes)}</span></div>
+                {discount > 0 && <div className="flex justify-between font-semibold" style={{ color: "#10b981" }}><span>🎁 Promo ({promoCode.toUpperCase()})</span><span>-{formatMoney(discount)}</span></div>}
                 <div className="flex justify-between font-bold text-slate-900"><span>Total due</span><span>{formatMoney(totalDue)}</span></div>
+                {/* Promo code field */}
+                <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px dashed #e2e8f0" }}>
+                  {!promoApplied ? (
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <input type="text" value={promoCode} onChange={e => { setPromoCode(e.target.value); setPromoError(""); }}
+                        placeholder="Promo code (ex: WELCOME15)"
+                        style={{ flex: 1, border: "1.5px solid #e2e8f0", borderRadius: 10, padding: "8px 12px", fontSize: 13, outline: "none", color: "#0B1B4D" }} />
+                      <button onClick={applyPromo}
+                        style={{ background: "#0F6CF5", color: "white", border: "none", borderRadius: 10, padding: "8px 14px", fontWeight: 700, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>
+                        Apply
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#10b981", fontSize: 13, fontWeight: 700 }}>
+                      <span>✅ 15% discount applied!</span>
+                      <button onClick={() => { setPromoApplied(false); setPromoCode(""); }}
+                        style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: 12 }}>Remove</button>
+                    </div>
+                  )}
+                  {promoError && <div style={{ color: "#ef4444", fontSize: 12, marginTop: 4 }}>{promoError}</div>}
+                </div>
               </div>
               <div className="rounded-lg bg-white border border-slate-200 p-3 text-xs text-slate-600">
                 Need changes? Contact concierge before paying. Funds are held until charter confirmation.
