@@ -62,7 +62,7 @@ export default function WelcomeBanner() {
         </div>
 
         {/* CTA */}
-        <Link href="/forms/travel?agent=info%40zeniva.ca"
+        <Link href="/signup"
           style={{ flexShrink: 0, background: `linear-gradient(135deg, ${GOLD}, #C9941F)`, color: "#0B1B4D", borderRadius: 50, padding: "9px 16px", fontWeight: 900, fontSize: 13, textDecoration: "none", whiteSpace: "nowrap" }}>
           Claim →
         </Link>
