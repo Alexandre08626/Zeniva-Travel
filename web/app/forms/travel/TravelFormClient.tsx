@@ -27,9 +27,10 @@ const REVIEWS = [
 export default function TravelFormClient() {
   const searchParams = useSearchParams();
   const agentEmail = searchParams.get("agent") || "";
+  const prefilledDest = searchParams.get("destination") || "";
 
-  const [step, setStep] = useState(1);
-  const [destination, setDestination] = useState("");
+  const [step, setStep] = useState(prefilledDest ? 2 : 1);
+  const [destination, setDestination] = useState(prefilledDest);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
