@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useAuthStore } from "@/lib/authStore";
+import { useAuthStore } from "../lib/authStore";
 
 function isIOS() { return /iphone|ipad|ipod/i.test(typeof navigator !== "undefined" ? navigator.userAgent : ""); }
 function isStandalone() {
