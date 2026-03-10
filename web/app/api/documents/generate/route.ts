@@ -63,7 +63,7 @@ function docHeader(type: string, ref: string) {
   return `
     <div class="header">
       <div class="logo-area">
-        <div class="logo-icon">✈️</div>
+        <img src="https://www.zenivatravel.com/branding/lina-avatar.png" alt="Lina" style="width:40px;height:40px;border-radius:50%;border:2px solid rgba(230,184,90,0.8);object-fit:cover;" />
         <div class="logo-text">
           <div class="name">Zeniva Travel</div>
           <div class="tag">AI-Powered Luxury Travel</div>
