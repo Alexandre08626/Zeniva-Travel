@@ -54,6 +54,18 @@ const IMPERSONATE_KEY = "zeniva_impersonating";
 export default function AgentCommandPage() {
   const user = useAuthStore((s) => s.user);
   const hq = isHQ(user);
+
+  const deleteAgent = async (agentId: string, email: string) => {
+    if (!confirm(`Remove agent ${email}? They will lose agent access.`)) return;
+    await fetch(`/api/agents-proxy?path=admin/agents/${agentId}`, {
+      method: "DELETE",
+      headers: { Authorization: "Bearer zeniva-secret-2025" },
+    });
+    setAgents((prev) => prev.filter((a) => a.id !== agentId));
+    setSelected(null);
+    setDetail(null);
+  };
+
   const [agents, setAgents] = useState<AgentEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<AgentEntry | null>(null);
@@ -301,6 +313,13 @@ export default function AgentCommandPage() {
                     >
                       🔀 Switch Account
                     </button>
+                    {hq && agent.id !== "hq-zeniva" && (
+                      <button
+                        onClick={e => { e.stopPropagation(); void deleteAgent(agent.id, agent.email); }}
+                        className="text-xs bg-red-50 text-red-600 border border-red-200 px-2.5 py-1.5 rounded-xl font-semibold hover:bg-red-100 transition-all"
+                        title="Remove agent"
+                      >🗑️</button>
+                    )}
                   </div>
                 </div>
               );

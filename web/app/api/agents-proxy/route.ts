@@ -140,4 +140,24 @@ export async function POST(req: NextRequest) {
   }
 }
 
+export async function DELETE(req: NextRequest) {
+  const sessionCookie = req.cookies.get("zeniva_session")?.value || "";
+  const rolesCookie = req.cookies.get("zeniva_roles")?.value || "";
+  const isHQ = rolesCookie.includes("hq") || rolesCookie.includes("admin");
+  if (!isHQ && sessionCookie.length < 10) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const pathParam = req.nextUrl.searchParams.get("path");
+  if (!pathParam) return NextResponse.json({ error: "No path" }, { status: 400 });
+  try {
+    const r = await fetch(`${VPS_BASE}/${pathParam}`, {
+      method: "DELETE",
+      headers: { Authorization: AUTH },
+    });
+    return NextResponse.json(await r.json());
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message }, { status: 502 });
+  }
+}
+
 export const runtime = "nodejs";

@@ -2,7 +2,7 @@
 export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useAuthStore } from "../../../src/lib/authStore";
+import { useAuthStore, isHQ } from "../../../src/lib/authStore";
 import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
 
 const AUTH = "Bearer zeniva-secret-2025";
@@ -86,6 +86,18 @@ function Avatar({ name, email, size = 48 }: { name: string; email: string; size?
 export default function ClientsPage() {
   useRequireAnyPermission(["clients:all", "clients:own"], "/agent");
   const user = useAuthStore((s) => s.user);
+  const canDelete = isHQ(user);
+
+  const deleteClient = async (email: string) => {
+    if (!confirm(`Delete client ${email}? This cannot be undone.`)) return;
+    await fetch(`/api/agents-proxy?path=admin/clients/${encodeURIComponent(email)}`, {
+      method: "DELETE",
+      headers: { Authorization: "Bearer zeniva-secret-2025" },
+    });
+    setClients((prev) => prev.filter((c) => c.email !== email));
+    setFiltered((prev) => prev.filter((c) => c.email !== email));
+    setSelectedClient(null);
+  };
 
   const [clients, setClients] = useState<Client[]>([]);
   const [filtered, setFiltered] = useState<Client[]>([]);
@@ -397,7 +409,16 @@ export default function ClientsPage() {
 
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                     <span className="text-xs text-slate-400">{c.source || "signup"}</span>
-                    <span className="text-xs font-bold text-blue-600 group-hover:underline">Open 360° →</span>
+                    <div className="flex items-center gap-2">
+                      {canDelete && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); void deleteClient(c.email); }}
+                          className="text-xs font-bold text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-0.5 rounded"
+                          title="Delete client"
+                        >🗑️</button>
+                      )}
+                      <span className="text-xs font-bold text-blue-600 group-hover:underline">Open 360° →</span>
+                    </div>
                   </div>
                 </div>
               );

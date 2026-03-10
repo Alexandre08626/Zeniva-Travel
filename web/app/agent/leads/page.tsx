@@ -39,6 +39,16 @@ function Avatar({ name, email }: { name: string; email: string }) {
 export default function LeadsPage() {
   const user = useAuthStore((s) => s.user);
   const hq = isHQ(user);
+
+  const deleteLead = async (leadId: string, email: string) => {
+    if (!confirm(`Delete lead ${email}? This cannot be undone.`)) return;
+    await fetch(`/api/agents-proxy?path=admin/leads/${leadId}`, {
+      method: "DELETE",
+      headers: { Authorization: "Bearer zeniva-secret-2025" },
+    });
+    setLeads((prev) => prev.filter((l) => l.id !== leadId));
+  };
+
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -187,6 +197,13 @@ export default function LeadsPage() {
                   <button className="flex-1 text-xs bg-slate-50 hover:bg-slate-100 text-slate-600 font-semibold py-1.5 rounded-lg transition-colors">
                     💬 Chat
                   </button>
+                  {hq && (
+                    <button
+                      onClick={() => void deleteLead(lead.id, lead.email)}
+                      className="text-xs bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-2.5 py-1.5 rounded-lg transition-colors"
+                      title="Delete lead"
+                    >🗑️</button>
+                  )}
                 </div>
               </div>
             );
