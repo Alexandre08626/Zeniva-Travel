@@ -111,8 +111,9 @@ function getDestination(slug: string) {
   return DESTINATIONS[key] || DESTINATIONS[slug.toLowerCase()] || null;
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const dest = getDestination(params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const dest = getDestination(slug);
   if (!dest) return { title: "Destination — Zeniva Travel" };
   return {
     title: `${dest.name}, ${dest.country} — Zeniva Travel`,
@@ -120,11 +121,12 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default function DestinationPage({ params }: { params: { slug: string } }) {
-  const dest = getDestination(params.slug);
+export default async function DestinationPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const dest = getDestination(slug);
 
   // Generic fallback for destinations not in the detail list
-  const destName = params.slug.charAt(0).toUpperCase() + params.slug.slice(1).replace(/-/g, " ");
+  const destName = slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, " ");
 
   const GOLD = "#E6B85A";
   const BLUE = "#0F6CF5";
