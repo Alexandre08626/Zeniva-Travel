@@ -36,7 +36,23 @@ function ConfirmationContent() {
     const ref = `ZNV-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
     setBookingRef(ref);
 
-    // 1 — Create booking in VPS
+    // 1a — Create booking in Supabase (traveler dashboard)
+    fetch("/api/my-bookings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        clientEmail: clientEmail,
+        clientName: clientName || clientEmail,
+        destination,
+        departure,
+        returnDate,
+        travelers,
+        totalPrice,
+        notes: `Square order: ${orderId || ref} | ${description}`,
+      }),
+    }).catch(() => undefined);
+
+    // 1b — Create booking in VPS (agent dashboard)
     fetch(`${VPS}/admin/bookings`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: AUTH },

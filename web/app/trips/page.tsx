@@ -8,11 +8,34 @@ const GOLD = "#E6B85A";
 const BLUE = "#0F6CF5";
 const GREEN = "#10B981";
 
+interface RealBooking {
+  id: string;
+  destination: string;
+  departure_date?: string;
+  return_date?: string;
+  travelers?: number;
+  total_price?: number;
+  status: string;
+  payment_status?: string;
+  notes?: string;
+  created_at: string;
+}
+
 export default function TripsPage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const { trips } = useTripsStore((s: any) => ({ trips: s.trips }));
   const [mounted, setMounted] = useState(false);
+  const [realBookings, setRealBookings] = useState<RealBooking[]>([]);
+
+  // Load real bookings from Supabase
+  useEffect(() => {
+    if (!user?.email) return;
+    fetch("/api/my-bookings")
+      .then(r => r.json())
+      .then(d => { if (d.bookings?.length) setRealBookings(d.bookings); })
+      .catch(() => undefined);
+  }, [user?.email]);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -90,6 +113,46 @@ export default function TripsPage() {
                 <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.05em", textTransform: "uppercase", marginTop: 2 }}>{stat.label}</div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* ── Real confirmed bookings from Supabase ── */}
+        {realBookings.length > 0 && (
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>CONFIRMED BOOKINGS</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {realBookings.map(b => (
+                <div key={b.id} style={{
+                  background: "#fff", border: "1.5px solid #d1fae5",
+                  borderRadius: 20, padding: "18px 20px",
+                  boxShadow: "0 2px 12px rgba(16,185,129,0.08)",
+                  animation: "fadeUp 0.4s ease both",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                    <div style={{ fontSize: 16, fontWeight: 900, color: "#0B1B4D" }}>{b.destination || "Trip"}</div>
+                    <div style={{ background: "#d1fae5", color: "#065f46", fontSize: 11, fontWeight: 800, borderRadius: 20, padding: "4px 12px" }}>
+                      ✓ Confirmed
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 12, color: "#64748b", marginBottom: 12 }}>
+                    {b.departure_date ? `Depart: ${new Date(b.departure_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}` : "Dates TBD"}
+                    {b.return_date ? ` · Return: ${new Date(b.return_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : ""}
+                    {b.travelers ? ` · ${b.travelers} traveler${b.travelers > 1 ? "s" : ""}` : ""}
+                    {b.total_price ? ` · $${Number(b.total_price).toLocaleString()}` : ""}
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button onClick={() => router.push("/documents")} style={{
+                      background: `linear-gradient(135deg, ${GOLD}, #C9941F)`, border: "none", borderRadius: 12,
+                      padding: "10px 16px", fontSize: 12, fontWeight: 800, color: "#0B1B4D", cursor: "pointer", flex: 1,
+                    }}>📄 Documents</button>
+                    <button onClick={() => router.push("/chat")} style={{
+                      background: BLUE, border: "none", borderRadius: 12,
+                      padding: "10px 16px", fontSize: 12, fontWeight: 800, color: "#fff", cursor: "pointer", flex: 1,
+                    }}>💬 Lina</button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

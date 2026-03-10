@@ -201,6 +201,16 @@ export default function DocumentsPage() {
   const hasSyncedRef = useRef(false);
   const [remoteDocsByTrip, setRemoteDocsByTrip] = useState<Record<string, DocumentRecord[]>>({});
   const [loadingRemote, setLoadingRemote] = useState(false);
+  const [realBookings, setRealBookings] = useState<any[]>([]);
+
+  // Load real confirmed bookings from Supabase
+  useEffect(() => {
+    if (!userId) return;
+    fetch("/api/my-bookings")
+      .then(r => r.json())
+      .then(d => { if (d.bookings?.length) setRealBookings(d.bookings); })
+      .catch(() => undefined);
+  }, [userId]);
   const documents = useDocumentsStore((s) => (userId ? s.documents[userId] || {} : {}));
   const localDocuments = useDocumentsStore((s) => s.documents['__local__'] || {});
 
@@ -561,6 +571,71 @@ export default function DocumentsPage() {
                   </div>
                 </div>
               </section>
+            </div>
+          )}
+
+          {/* ── Real confirmed bookings ── */}
+          {!loggedOut && realBookings.length > 0 && (
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 2 }}>✅ CONFIRMED BOOKINGS</p>
+                  <h2 style={{ fontSize: 22, fontWeight: 900, color: "#0B1B4D", margin: 0 }}>Your Trips</h2>
+                </div>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {realBookings.map((b: any) => (
+                  <div key={b.id} style={{
+                    background: "#fff", border: "1.5px solid #d1fae5", borderRadius: 20,
+                    padding: "20px 22px", boxShadow: "0 2px 16px rgba(16,185,129,0.08)",
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, flexWrap: "wrap", gap: 8 }}>
+                      <div>
+                        <div style={{ fontSize: 18, fontWeight: 900, color: "#0B1B4D" }}>{b.destination || "Trip"}</div>
+                        <div style={{ fontSize: 12, color: "#64748b", marginTop: 3 }}>
+                          {b.departure_date ? new Date(b.departure_date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "Dates TBD"}
+                          {b.travelers ? ` · ${b.travelers} traveler${b.travelers > 1 ? "s" : ""}` : ""}
+                          {b.total_price ? ` · $${Number(b.total_price).toLocaleString()} paid` : ""}
+                        </div>
+                        <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
+                          Zeniva support: <a href="mailto:info@zeniva.ca" style={{ color: "#0F6CF5" }}>info@zeniva.ca</a> · <a href="tel:+13322900021" style={{ color: "#0F6CF5" }}>+1 (332) 290-0021</a> (24/7)
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                        <span style={{ background: "#d1fae5", color: "#065f46", fontSize: 11, fontWeight: 800, borderRadius: 20, padding: "5px 14px" }}>✓ Confirmed</span>
+                        <span style={{ background: "#dbeafe", color: "#1e40af", fontSize: 11, fontWeight: 800, borderRadius: 20, padding: "5px 14px" }}>💳 Paid</span>
+                      </div>
+                    </div>
+                    {/* Document sections */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 12 }}>
+                      {[
+                        { icon: "✈️", label: "Flight tickets", sub: "PNR, e-tickets, baggage" },
+                        { icon: "🏨", label: "Hotel voucher", sub: "Booking #, check-in info" },
+                        { icon: "🚗", label: "Transfers & extras", sub: "Transfers, excursions" },
+                      ].map(item => (
+                        <div key={item.label} style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 14, padding: "12px 14px" }}>
+                          <div style={{ fontSize: 18, marginBottom: 4 }}>{item.icon}</div>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: "#0B1B4D", marginBottom: 2 }}>{item.label}</div>
+                          <div style={{ fontSize: 10, color: "#94a3b8" }}>{item.sub}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 14, padding: "12px 16px", marginBottom: 12 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "#0369a1", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>📋 What's next</div>
+                      {["Your agent is preparing your full documents", "Flight & hotel confirmations will appear here soon", "Chat with Lina for any questions or changes"].map(s => (
+                        <div key={s} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#075985", marginBottom: 3 }}>
+                          <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#0ea5e9", flexShrink: 0 }} />
+                          {s}
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <a href="/chat" style={{ flex: 1, background: "#0F6CF5", color: "#fff", borderRadius: 14, padding: "12px", fontWeight: 800, fontSize: 13, textDecoration: "none", textAlign: "center" as const }}>💬 Chat with Lina</a>
+                      <a href="/chat" style={{ flex: 1, background: "linear-gradient(135deg, #E6B85A, #C9941F)", color: "#0B1B4D", borderRadius: 14, padding: "12px", fontWeight: 800, fontSize: 13, textDecoration: "none", textAlign: "center" as const }}>🧑‍💼 Expert support</a>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
