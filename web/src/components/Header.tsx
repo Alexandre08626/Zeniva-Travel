@@ -250,15 +250,82 @@ export default function Header({
       </div>
 
       {menuOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50" onClick={() => setMenuOpen(false)}>
-          <div className="fixed bottom-0 left-0 right-0 bg-white p-6 rounded-t-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex flex-col gap-4">
-              <Link href="/signup" className="text-center py-3 bg-blue-500 text-white rounded-lg font-semibold" onClick={() => setMenuOpen(false)}>
-                <AutoTranslate text="Sign up" className="inline" />
-              </Link>
-              <Link href="/login" className="text-center py-3 border border-slate-300 rounded-lg font-semibold" onClick={() => setMenuOpen(false)}>
-                <AutoTranslate text="Log in" className="inline" />
-              </Link>
+        <div className="fixed inset-0 z-50" style={{ background: "rgba(0,0,0,0.55)" }} onClick={() => setMenuOpen(false)}>
+          <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl" style={{ maxHeight: "90vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
+            {/* Handle */}
+            <div style={{ display: "flex", justifyContent: "center", paddingTop: 12, paddingBottom: 4 }}>
+              <div style={{ width: 36, height: 4, borderRadius: 99, background: "#e2e8f0" }} />
+            </div>
+
+            <div style={{ padding: "12px 20px 32px" }}>
+              {/* Header */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid #f1f5f9" }}>
+                <img src="/branding/lina-avatar.png" alt="Lina" style={{ width: 44, height: 44, borderRadius: "50%", border: "2px solid #E6B85A", objectFit: "cover" }} />
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: 16, color: "#0B1B4D" }}>
+                    {loggedIn ? (authUser?.name?.split(" ")[0] || "Mon compte") : "Zeniva Travel"}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#64748b" }}>
+                    {loggedIn ? email : "AI Travel Concierge"}
+                  </div>
+                </div>
+                <button onClick={() => setMenuOpen(false)} style={{ marginLeft: "auto", background: "#f1f5f9", border: "none", borderRadius: "50%", width: 32, height: 32, cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+              </div>
+
+              {/* Nav links */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 2, marginBottom: 20 }}>
+                {[
+                  { href: "/", icon: "🏠", label: "Home" },
+                  { href: "/destinations", icon: "🌍", label: "Destinations" },
+                  { href: "/yachts", icon: "⛵", label: "Yachts & Charters" },
+                  { href: "/partners/resorts", icon: "🏨", label: "Luxury Hotels" },
+                  { href: "/residences", icon: "🏠", label: "Villas & Rentals" },
+                  { href: "/chat", icon: "💬", label: "Chat with Lina" },
+                  { href: "/call", icon: "📞", label: "Call Lina" },
+                ].map(item => (
+                  <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)}
+                    style={{ display: "flex", alignItems: "center", gap: 14, padding: "13px 12px", borderRadius: 14, textDecoration: "none", color: "#0B1B4D", fontSize: 15, fontWeight: 600 }}>
+                    <span style={{ fontSize: 20, width: 28, textAlign: "center" }}>{item.icon}</span>
+                    {item.label}
+                    <span style={{ marginLeft: "auto", color: "#cbd5e1", fontSize: 16 }}>›</span>
+                  </Link>
+                ))}
+
+                {/* Agent links — only if agent */}
+                {agent && (
+                  <Link href="/agent" onClick={() => setMenuOpen(false)}
+                    style={{ display: "flex", alignItems: "center", gap: 14, padding: "13px 12px", borderRadius: 14, textDecoration: "none", color: "#0F6CF5", fontSize: 15, fontWeight: 700, background: "rgba(15,108,245,0.06)" }}>
+                    <span style={{ fontSize: 20, width: 28, textAlign: "center" }}>🏢</span>
+                    Agent Dashboard
+                    <span style={{ marginLeft: "auto", color: "#0F6CF5", fontSize: 16 }}>›</span>
+                  </Link>
+                )}
+              </div>
+
+              {/* CTA Buttons */}
+              {!loggedIn ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <Link href="/forms/travel?agent=info%40zeniva.ca" onClick={() => setMenuOpen(false)}
+                    style={{ display: "block", textAlign: "center", background: "linear-gradient(135deg, #E6B85A, #C9941F)", color: "#0B1B4D", borderRadius: 50, padding: "14px", fontWeight: 900, fontSize: 15, textDecoration: "none" }}>
+                    🎁 Get 15% OFF — Start Planning
+                  </Link>
+                  <Link href="/login" onClick={() => setMenuOpen(false)}
+                    style={{ display: "block", textAlign: "center", background: "#f8fafc", border: "1.5px solid #e2e8f0", color: "#0B1B4D", borderRadius: 50, padding: "13px", fontWeight: 700, fontSize: 15, textDecoration: "none" }}>
+                    Log in
+                  </Link>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <Link href="/trips" onClick={() => setMenuOpen(false)}
+                    style={{ display: "block", textAlign: "center", background: "linear-gradient(135deg, #0F6CF5, #0851c4)", color: "white", borderRadius: 50, padding: "14px", fontWeight: 800, fontSize: 15, textDecoration: "none" }}>
+                    ✈️ My Trips
+                  </Link>
+                  <button onClick={() => { logout(); setMenuOpen(false); }}
+                    style={{ width: "100%", background: "#f8fafc", border: "1.5px solid #e2e8f0", color: "#64748b", borderRadius: 50, padding: "13px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+                    Sign Out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
