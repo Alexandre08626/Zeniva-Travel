@@ -24,6 +24,7 @@ function TripCard({
   dates,
   travelers,
   docs,
+  clientEmail,
 }: {
   tripId: string;
   title: string;
@@ -31,6 +32,7 @@ function TripCard({
   dates?: string;
   travelers?: string;
   docs: DocumentRecord[];
+  clientEmail?: string;
 }) {
   const confirmations = docs.filter((d) => d.type === "confirmation" || d.type === "hotel" || d.type === "transfer" || d.type === "excursion");
   const files = docs.filter((d) => d.type !== "confirmation");
@@ -118,7 +120,7 @@ function TripCard({
 
                   <div className="flex-shrink-0">
                     <a
-                      href={`/api/documents/generate?type=${d.type === "confirmation" ? "flight" : d.type}&ref=${encodeURIComponent(d.confirmationNumber || d.id)}&passenger=${encodeURIComponent(userId || "")}`}
+                      href={`/api/documents/generate?type=${d.type === "confirmation" ? "flight" : d.type}&ref=${encodeURIComponent(d.confirmationNumber || d.id)}&passenger=${encodeURIComponent(clientEmail || "")}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="rounded-full px-3 py-1 text-xs font-bold text-white"
@@ -152,7 +154,7 @@ function TripCard({
                     </div>
                     <div style={{ display: "flex", gap: 6 }}>
                       <a
-                        href={`/api/documents/generate?type=${d.type === "confirmation" ? "flight" : (d.type || "invoice")}&ref=${encodeURIComponent(d.confirmationNumber || d.id)}&client=${encodeURIComponent(userId || "")}`}
+                        href={`/api/documents/generate?type=${d.type === "confirmation" ? "flight" : (d.type || "invoice")}&ref=${encodeURIComponent(d.confirmationNumber || d.id)}&client=${encodeURIComponent(clientEmail || "")}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{ background: PREMIUM_BLUE, color: "#fff", borderRadius: 20, padding: "5px 12px", fontSize: 11, fontWeight: 700, textDecoration: "none" }}
@@ -160,7 +162,7 @@ function TripCard({
                         👁 View
                       </a>
                       <a
-                        href={`/api/documents/generate?type=${d.type === "confirmation" ? "flight" : (d.type || "invoice")}&ref=${encodeURIComponent(d.confirmationNumber || d.id)}&client=${encodeURIComponent(userId || "")}&download=1`}
+                        href={`/api/documents/generate?type=${d.type === "confirmation" ? "flight" : (d.type || "invoice")}&ref=${encodeURIComponent(d.confirmationNumber || d.id)}&client=${encodeURIComponent(clientEmail || "")}&download=1`}
                         style={{ background: "#E6B85A", color: "#0B1B4D", borderRadius: 20, padding: "5px 12px", fontSize: 11, fontWeight: 700, textDecoration: "none" }}
                       >
                         ⬇ Save
@@ -495,7 +497,7 @@ export default function DocumentsPage() {
                   <p className="text-sm text-slate-600 mb-4">Documents saved locally. <strong>Log in to sync to your account.</strong></p>
                   <div className="space-y-4">
                     {Object.entries(localDocuments).map(([tripId, docs]) => (
-                      <TripCard key={`local-${tripId}`} tripId={tripId} title={trips.find((t: any) => t.id === tripId)?.title || 'Trip'} docs={docs} />
+                      <TripCard key={`local-${tripId}`} tripId={tripId} title={trips.find((t: any) => t.id === tripId)?.title || 'Trip'} docs={docs} clientEmail={userId} />
                     ))}
                   </div>
                 </div>
@@ -668,7 +670,7 @@ export default function DocumentsPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {list.map((trip) => <TripCard key={trip.tripId} {...trip} />)}
+                  {list.map((trip) => <TripCard key={trip.tripId} {...trip} clientEmail={userId} />)}
                 </div>
               )}
             </div>
