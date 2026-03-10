@@ -74,9 +74,16 @@ function SetPasswordForm() {
               <h1 style={{ color: "white", fontSize: 24, fontWeight: 900, margin: "0 0 8px" }}>
                 Welcome{email ? `, ${displayName}` : ""}! 🎉
               </h1>
-              <p style={{ color: "#94a3b8", fontSize: 14, margin: 0 }}>
-                Your account is ready. Create your password to<br />access your Zeniva Travel dashboard.
+              <p style={{ color: "#94a3b8", fontSize: 14, margin: "0 0 16px" }}>
+                Your account is ready — create your password to access your Zeniva dashboard.
               </p>
+              {/* 15% discount banner */}
+              <div style={{ background: `linear-gradient(135deg, ${GOLD}22, ${GOLD}11)`, border: `1.5px solid ${GOLD}55`, borderRadius: 14, padding: "12px 16px", marginBottom: 4 }}>
+                <div style={{ color: GOLD, fontWeight: 900, fontSize: 15, marginBottom: 3 }}>🎁 Your 15% discount is confirmed!</div>
+                <div style={{ color: "rgba(255,255,255,0.55)", fontSize: 12, lineHeight: 1.5 }}>
+                  It will be automatically applied to your first booking — no code needed.
+                </div>
+              </div>
             </>
           ) : (
             <>

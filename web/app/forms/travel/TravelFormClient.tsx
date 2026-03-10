@@ -91,8 +91,11 @@ export default function TravelFormClient() {
         <div style={{ maxWidth: 420, width: "100%", textAlign: "center" }}>
           <div style={{ fontSize: 72, marginBottom: 16 }}>🎉</div>
           <div style={{ background: `linear-gradient(135deg, ${GOLD}33, ${GOLD}11)`, border: `2px solid ${GOLD}66`, borderRadius: 20, padding: "20px 24px", marginBottom: 24 }}>
-            <div style={{ color: GOLD, fontSize: 24, fontWeight: 900 }}>🎁 Your 15% is locked in!</div>
-            <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, marginTop: 8 }}>Check your inbox — your trip plan is on the way</div>
+            <div style={{ color: GOLD, fontSize: 22, fontWeight: 900 }}>🎁 Your 15% discount is confirmed!</div>
+            <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 14, marginTop: 8, lineHeight: 1.6 }}>
+              It will be <strong style={{ color: "white" }}>automatically applied</strong> to your first booking — no code needed.<br />
+              Check your inbox for your account link + trip plan.
+            </div>
           </div>
           <h1 style={{ color: "white", fontSize: 22, fontWeight: 900, marginBottom: 8 }}>Welcome, {name.split(" ")[0]}! ✈️</h1>
           <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.6, marginBottom: 28 }}>
