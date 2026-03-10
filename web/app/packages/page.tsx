@@ -149,6 +149,65 @@ export default function PackagesPage() {
           </div>
         </section>
 
+        {/* ── 30 Destinations Grid ── */}
+        <section className="py-16 px-6 bg-gray-50">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-full px-4 py-2 text-sm font-semibold text-blue-600 mb-4">🌍 World-Class Destinations</div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-3">Top 30 Destinations</h2>
+              <p className="text-gray-500 max-w-xl mx-auto">From overwater bungalows in the Maldives to safari camps in Kenya — Lina AI plans every detail for you.</p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {[
+                { name:"Maldives", slug:"maldives", emoji:"🏝️", img:"https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=400&q=75", tag:"Paradise" },
+                { name:"Santorini", slug:"santorini", emoji:"🌅", img:"https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=400&q=75", tag:"Romantic" },
+                { name:"Bali", slug:"bali", emoji:"🌴", img:"https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400&q=75", tag:"Adventure" },
+                { name:"Dubai", slug:"dubai", emoji:"🏙️", img:"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400&q=75", tag:"Luxury" },
+                { name:"Cancún", slug:"cancun", emoji:"🏖️", img:"https://images.unsplash.com/photo-1533104816931-20fa691ff6ca?w=400&q=75", tag:"Beach" },
+                { name:"Tokyo", slug:"tokyo", emoji:"🗼", img:"https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&q=75", tag:"Culture" },
+                { name:"Paris", slug:"paris", emoji:"🥐", img:"https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&q=75", tag:"Romantic" },
+                { name:"Amalfi Coast", slug:"amalfi-coast", emoji:"🍋", img:"https://images.unsplash.com/photo-1633321088355-d338f27f6b40?w=400&q=75", tag:"Scenic" },
+                { name:"Bora Bora", slug:"bora-bora", emoji:"🌺", img:"https://images.unsplash.com/photo-1589979481223-deb893043163?w=400&q=75", tag:"Paradise" },
+                { name:"New York", slug:"new-york", emoji:"🗽", img:"https://images.unsplash.com/photo-1534430480872-3498386e7856?w=400&q=75", tag:"City" },
+                { name:"Maui", slug:"maui", emoji:"🌊", img:"https://images.unsplash.com/photo-1542259009477-d625272157b7?w=400&q=75", tag:"Beach" },
+                { name:"Swiss Alps", slug:"swiss-alps", emoji:"⛷️", img:"https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=400&q=75", tag:"Ski" },
+                { name:"Kenya Safari", slug:"kenya-safari", emoji:"🦁", img:"https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=400&q=75", tag:"Wildlife" },
+                { name:"Barcelona", slug:"barcelona", emoji:"🎨", img:"https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=400&q=75", tag:"Culture" },
+                { name:"Kyoto", slug:"kyoto", emoji:"⛩️", img:"https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=400&q=75", tag:"Culture" },
+                { name:"Phuket", slug:"phuket", emoji:"🌴", img:"https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?w=400&q=75", tag:"Beach" },
+                { name:"Cape Town", slug:"cape-town", emoji:"🏔️", img:"https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=400&q=75", tag:"Adventure" },
+                { name:"Tuscany", slug:"tuscany", emoji:"🍷", img:"https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=400&q=75", tag:"Romance" },
+                { name:"Iceland", slug:"iceland", emoji:"🌌", img:"https://images.unsplash.com/photo-1476610182048-b716b8518aae?w=400&q=75", tag:"Aurora" },
+                { name:"Mykonos", slug:"mykonos", emoji:"🌊", img:"https://images.unsplash.com/photo-1601581875309-fafbf2d3ed3a?w=400&q=75", tag:"Luxury" },
+                { name:"Miami", slug:"miami", emoji:"🌴", img:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=75", tag:"Beach" },
+                { name:"Rio de Janeiro", slug:"rio", emoji:"🎉", img:"https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=400&q=75", tag:"Vibrant" },
+                { name:"Côte d'Azur", slug:"cote-dazur", emoji:"⛵", img:"https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&q=75", tag:"Luxury" },
+                { name:"Queenstown", slug:"queenstown", emoji:"🪂", img:"https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=400&q=75", tag:"Adventure" },
+                { name:"Marrakech", slug:"marrakech", emoji:"🕌", img:"https://images.unsplash.com/photo-1597212618440-806262de4f3b?w=400&q=75", tag:"Culture" },
+                { name:"Seychelles", slug:"seychelles", emoji:"🏝️", img:"https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=400&q=75", tag:"Paradise" },
+                { name:"Costa Rica", slug:"costa-rica", emoji:"🦜", img:"https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=400&q=75", tag:"Nature" },
+                { name:"Tanzania", slug:"tanzania", emoji:"🦒", img:"https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=400&q=75", tag:"Safari" },
+                { name:"Lisbon", slug:"lisbon", emoji:"🚋", img:"https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?w=400&q=75", tag:"Culture" },
+                { name:"Zanzibar", slug:"zanzibar", emoji:"🌊", img:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400&q=75", tag:"Beach" },
+              ].map((d) => (
+                <Link key={d.slug} href={`/destinations/${d.slug}`} className="group relative overflow-hidden rounded-2xl aspect-square shadow-sm hover:shadow-xl transition-all hover:-translate-y-1" style={{ textDecoration: "none" }}>
+                  <img src={d.img} alt={d.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                  <div className="absolute top-2 left-2 bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5 text-white text-xs font-bold">{d.tag}</div>
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <div className="text-white font-bold text-sm leading-tight">{d.emoji} {d.name}</div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <div className="text-center mt-10">
+              <Link href="/chat" className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-800 text-white font-bold px-8 py-4 rounded-2xl text-lg hover:opacity-90 transition-opacity shadow-lg" style={{ textDecoration: "none" }}>
+                💬 Plan any destination with Lina →
+              </Link>
+            </div>
+          </div>
+        </section>
+
         {/* Lina CTA */}
         <section className="py-16 px-6 bg-gradient-to-br from-blue-700 to-blue-900 text-white text-center">
           <div className="max-w-2xl mx-auto">

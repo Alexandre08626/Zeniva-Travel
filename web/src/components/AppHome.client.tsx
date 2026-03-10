@@ -18,11 +18,36 @@ function Orb({ x, y, size, color, delay }: { x:number;y:number;size:number;color
 
 // ─── Featured destination card ─────────────────────────────────────────────
 const DESTINATIONS = [
-  { id:1, name:"Maldives", sub:"Overwater Villas · 7 nights", badge:"✨ Popular", img:"https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=600&q=75", from:"From $3,200" },
-  { id:2, name:"Santorini", sub:"Luxury Suites · 5 nights", badge:"🔥 Trending", img:"https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=600&q=75", from:"From $2,800" },
-  { id:3, name:"Bali", sub:"Private Villas · 10 nights", badge:"🌿 Nature", img:"https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600&q=75", from:"From $1,900" },
-  { id:4, name:"Miami Yachts", sub:"Luxury Charter · 1 day", badge:"⛵ New", img:"https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&q=75", from:"From $800" },
-  { id:5, name:"Paris", sub:"Grand Hotel · 4 nights", badge:"🗼 Classic", img:"https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600&q=75", from:"From $2,100" },
+  { id:1,  name:"Maldives",       slug:"maldives",       sub:"Overwater Villas · 7 nights",       badge:"✨ Popular",   img:"https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=600&q=75",        from:"From $3,200" },
+  { id:2,  name:"Santorini",      slug:"santorini",      sub:"Luxury Suites · 5 nights",           badge:"🔥 Trending",  img:"https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=600&q=75",        from:"From $2,800" },
+  { id:3,  name:"Bali",           slug:"bali",           sub:"Private Villas · 10 nights",         badge:"🌿 Nature",    img:"https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600&q=75",        from:"From $1,900" },
+  { id:4,  name:"Dubai",          slug:"dubai",          sub:"Skyscraper Hotels · 5 nights",       badge:"💎 Luxury",    img:"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&q=75",        from:"From $2,400" },
+  { id:5,  name:"Paris",          slug:"paris",          sub:"Grand Hotel · 4 nights",             badge:"🗼 Classic",   img:"https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600&q=75",        from:"From $2,100" },
+  { id:6,  name:"Tokyo",          slug:"tokyo",          sub:"Luxury Ryokan · 7 nights",           badge:"🇯🇵 Culture",  img:"https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&q=75",        from:"From $2,900" },
+  { id:7,  name:"Cancún",         slug:"cancun",         sub:"All-Inclusive · 7 nights",           badge:"🏖️ Beach",     img:"https://images.unsplash.com/photo-1533104816931-20fa691ff6ca?w=600&q=75",        from:"From $1,200" },
+  { id:8,  name:"Miami",          slug:"miami",          sub:"Ocean Drive · 4 nights",             badge:"🌴 Hot",       img:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=75",        from:"From $1,800" },
+  { id:9,  name:"Amalfi Coast",   slug:"amalfi-coast",   sub:"Clifftop Villas · 6 nights",        badge:"🍋 Italy",     img:"https://images.unsplash.com/photo-1633321088355-d338f27f6b40?w=600&q=75",        from:"From $2,400" },
+  { id:10, name:"Bora Bora",      slug:"bora-bora",      sub:"Overwater Bungalows · 8 nights",    badge:"🌺 Paradise",  img:"https://images.unsplash.com/photo-1589979481223-deb893043163?w=600&q=75",        from:"From $4,500" },
+  { id:11, name:"New York",       slug:"new-york",       sub:"5-Star Hotels · 4 nights",          badge:"🗽 City",      img:"https://images.unsplash.com/photo-1534430480872-3498386e7856?w=600&q=75",        from:"From $2,200" },
+  { id:12, name:"Maui",           slug:"maui",           sub:"Beachfront Resorts · 6 nights",     badge:"🌊 Hawaii",    img:"https://images.unsplash.com/photo-1542259009477-d625272157b7?w=600&q=75",        from:"From $2,800" },
+  { id:13, name:"Swiss Alps",     slug:"swiss-alps",     sub:"Mountain Chalets · 5 nights",       badge:"⛷️ Ski",       img:"https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=600&q=75",        from:"From $3,200" },
+  { id:14, name:"Kenya Safari",   slug:"kenya-safari",   sub:"Tented Camps · 8 nights",           badge:"🦁 Wildlife",  img:"https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=600&q=75",        from:"From $4,000" },
+  { id:15, name:"Barcelona",      slug:"barcelona",      sub:"Boutique Hotels · 5 nights",        badge:"🎨 Culture",   img:"https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=600&q=75",        from:"From $1,800" },
+  { id:16, name:"Kyoto",          slug:"kyoto",          sub:"Traditional Ryokan · 5 nights",     badge:"⛩️ Culture",   img:"https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=600&q=75",        from:"From $2,400" },
+  { id:17, name:"Phuket",         slug:"phuket",         sub:"Beach Resorts · 7 nights",          badge:"🌴 Beach",     img:"https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?w=600&q=75",        from:"From $1,400" },
+  { id:18, name:"Cape Town",      slug:"cape-town",      sub:"Ocean Views · 6 nights",            badge:"🏔️ Scenic",    img:"https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=600&q=75",        from:"From $2,600" },
+  { id:19, name:"Tuscany",        slug:"tuscany",        sub:"Vineyard Villas · 7 nights",        badge:"🍷 Romance",   img:"https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=600&q=75",        from:"From $2,200" },
+  { id:20, name:"Iceland",        slug:"iceland",        sub:"Northern Lights · 5 nights",        badge:"🌌 Aurora",    img:"https://images.unsplash.com/photo-1476610182048-b716b8518aae?w=600&q=75",        from:"From $3,000" },
+  { id:21, name:"Mykonos",        slug:"mykonos",        sub:"Island Villas · 5 nights",          badge:"🌊 Greece",    img:"https://images.unsplash.com/photo-1601581875309-fafbf2d3ed3a?w=600&q=75",        from:"From $2,800" },
+  { id:22, name:"Rio de Janeiro", slug:"rio",            sub:"Ocean View Hotels · 5 nights",      badge:"🎉 Vibrant",   img:"https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=600&q=75",        from:"From $2,200" },
+  { id:23, name:"Côte d'Azur",   slug:"cote-dazur",     sub:"Riviera Villas · 6 nights",         badge:"⛵ Luxury",    img:"https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=600&q=75",        from:"From $3,200" },
+  { id:24, name:"Queenstown",     slug:"queenstown",     sub:"Adventure Lodge · 6 nights",        badge:"🪂 Adventure", img:"https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=600&q=75",        from:"From $2,800" },
+  { id:25, name:"Marrakech",      slug:"marrakech",      sub:"Luxury Riads · 5 nights",           badge:"🕌 Culture",   img:"https://images.unsplash.com/photo-1597212618440-806262de4f3b?w=600&q=75",        from:"From $1,600" },
+  { id:26, name:"Seychelles",     slug:"seychelles",     sub:"Private Islands · 8 nights",        badge:"🏝️ Paradise",  img:"https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=600&q=75",        from:"From $4,200" },
+  { id:27, name:"Costa Rica",     slug:"costa-rica",     sub:"Eco Lodges · 8 nights",             badge:"🦜 Nature",    img:"https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=600&q=75",        from:"From $2,000" },
+  { id:28, name:"Tanzania",       slug:"tanzania",       sub:"Safari Camps · 10 nights",          badge:"🦒 Safari",    img:"https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=600&q=75",        from:"From $4,500" },
+  { id:29, name:"Lisbon",         slug:"lisbon",         sub:"Heritage Hotels · 4 nights",        badge:"🚋 Culture",   img:"https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?w=600&q=75",        from:"From $1,600" },
+  { id:30, name:"Zanzibar",       slug:"zanzibar",       sub:"Spice Island · 7 nights",           badge:"🌊 Beach",     img:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&q=75",        from:"From $2,200" },
 ];
 
 const QUICK_CHIPS = [
@@ -289,7 +314,7 @@ export default function AppHome() {
           <div style={{display:"flex",gap:14,overflowX:"auto",scrollbarWidth:"none",paddingBottom:4,marginLeft:-20,marginRight:-20,paddingLeft:20,paddingRight:20}}>
             {DESTINATIONS.map((d,i)=>(
               <button key={d.id} className="dest-card"
-                onClick={()=>go(`/destinations/${d.name.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"")}`)}
+                onClick={()=>go(`/destinations/${d.slug}`)}
                 style={{
                   flexShrink:0,width:200,borderRadius:22,overflow:"hidden",
                   background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.07)",
