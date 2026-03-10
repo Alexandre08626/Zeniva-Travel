@@ -273,7 +273,7 @@ function SignupContent() {
         </div>
 
         <div style={{ textAlign: "center", marginTop: 24, fontSize: 12, color: "rgba(255,255,255,0.3)" }}>
-          🔒 Secure · Zeniva Travel © 2025 · Delaware, USA
+          🔒 Secure · Zeniva Travel © 2026 · Delaware, USA
         </div>
       </div>
     </div>
