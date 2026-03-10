@@ -70,7 +70,34 @@ export default function AgentCommandPage() {
     try {
       const r = await fetch("/api/agents-proxy?path=admin/agents-list");
       const d = await r.json();
-      setAgents(d?.agents || []);
+      const agentList = d?.agents || [];
+
+      // Ajouter HQ en tête de liste s'il n'est pas déjà là
+      const alreadyHQ = agentList.some((a: any) => a.email === "info@zeniva.ca");
+      if (!alreadyHQ) {
+        // Charger le vrai compte de leads HQ
+        let hqLeads = 0;
+        try {
+          const lr = await fetch("/api/agents-proxy?path=admin/leads&agent_email=info%40zeniva.ca");
+          const ld = await lr.json();
+          hqLeads = ld?.total || ld?.leads?.length || 0;
+        } catch {}
+        const hqEntry = {
+          id: "hq-zeniva",
+          email: "info@zeniva.ca",
+          first_name: "Zeniva",
+          last_name: "HQ",
+          name: "Zeniva HQ",
+          agent_type: "hq",
+          status: "active",
+          commission_rate: 30,
+          ref_code: "hq",
+          leads_count: hqLeads,
+        };
+        setAgents([hqEntry, ...agentList]);
+      } else {
+        setAgents(agentList);
+      }
     } catch {}
     setLoading(false);
   };
