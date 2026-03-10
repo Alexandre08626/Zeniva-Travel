@@ -12,11 +12,15 @@ export default function BackButton() {
     return null;
   }
 
+  // Pages with a tall hero (Lina face) — push button lower
+  const lowPages = new Set(["/packages", "/destinations", "/yachts", "/residences"]);
+  const topClass = lowPages.has(pathname) || pathname.startsWith("/destinations/") ? "top-20" : "top-4";
+
   return (
     <button
       type="button"
       onClick={() => router.back()}
-      className="fixed left-4 top-4 z-50 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
+      className={`fixed left-4 ${topClass} z-50 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50`}
       aria-label="Go back"
     >
       <span aria-hidden>←</span>
