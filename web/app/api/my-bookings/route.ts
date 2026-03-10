@@ -1,20 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { verifyJwt } from "@/src/lib/server/jwt";
+import { getSessionCookieName, verifySession } from "../../../src/lib/server/auth";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+function getEmailFromRequest(req: NextRequest): string | null {
+  try {
+    const cookieName = getSessionCookieName();
+    const token = req.cookies.get(cookieName)?.value || "";
+    if (!token) return null;
+    const payload = verifySession(token);
+    return payload?.email || null;
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(req: NextRequest) {
   try {
-    // Auth via JWT cookie
-    const token = req.cookies.get("zeniva_token")?.value || req.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return NextResponse.json({ bookings: [] });
-
-    const payload = await verifyJwt(token).catch(() => null);
-    const email = payload?.email as string | undefined;
+    const email = getEmailFromRequest(req);
     if (!email) return NextResponse.json({ bookings: [] });
 
     const { data, error } = await supabase
@@ -33,15 +40,14 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const token = req.cookies.get("zeniva_token")?.value;
-    const payload = token ? await verifyJwt(token).catch(() => null) : null;
+    const email = getEmailFromRequest(req);
     const body = await req.json();
 
     const { data, error } = await supabase
       .from("bookings")
       .insert({
-        client_email:   body.clientEmail || payload?.email,
-        client_name:    body.clientName || "",
+        client_email:   body.clientEmail || email || "",
+        client_name:    body.clientName  || "",
         destination:    body.destination || "",
         departure_date: body.departure   || null,
         return_date:    body.returnDate  || null,
