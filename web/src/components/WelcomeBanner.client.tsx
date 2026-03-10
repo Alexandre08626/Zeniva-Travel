@@ -29,10 +29,15 @@ export default function WelcomeBanner() {
   const GOLD = "#E6B85A";
 
   return (
-    <div style={{
+    <div className="zeniva-welcome-wrap" style={{
       position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 4000,
       padding: "0 12px 20px", pointerEvents: "none",
     }}>
+      <style>{`
+        @media (max-width: 639px) {
+          .zeniva-welcome-wrap { padding-bottom: 80px !important; padding-right: 70px !important; }
+        }
+      `}</style>
       <div style={{
         background: "white",
         borderRadius: 20,
