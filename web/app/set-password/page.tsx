@@ -100,18 +100,8 @@ function SetPasswordForm() {
           </div>
         ) : (
           <form onSubmit={onSubmit}>
-            {/* Email (readonly if auto-filled) */}
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: "block", color: "#64748b", fontSize: 12, fontWeight: 600, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="your@email.com"
-                readOnly={!!email}
-                style={{ width: "100%", background: email ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.07)", border: "1.5px solid rgba(255,255,255,0.12)", borderRadius: 12, padding: "12px 16px", color: email ? "#64748b" : "white", fontSize: 15, outline: "none", boxSizing: "border-box" }}
-              />
-            </div>
+            {/* Email hidden — already collected in form */}
+            <input type="hidden" value={email} />
 
             {/* Password */}
             <div style={{ marginBottom: 14 }}>
