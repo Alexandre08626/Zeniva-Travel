@@ -10,6 +10,7 @@ import LinaAssistantDock from "../src/components/LinaAssistantDock";
 import CookieConsent from "../src/components/legal/CookieConsent.client";
 import PlatformOsTag from "../src/components/PlatformOsTag.client";
 import PWAInstallBanner from "../src/components/PWAInstallBanner.client";
+import PWAPromptAfterLogin from "../src/components/PWAPromptAfterLogin.client";
 import AppShell from "../src/components/AppShell.client";
 import PushNotifManager from "../src/components/PushNotifManager.client";
 import HelpCenterButton from "../src/components/HelpCenterButton.client";
@@ -329,6 +330,7 @@ export default function RootLayout({
           <AppShell />
           <PushNotifManager />
           <HelpCenterButton />
+          <PWAPromptAfterLogin />
           {children}
           <PWAInstallBanner />
           <CookieConsent />

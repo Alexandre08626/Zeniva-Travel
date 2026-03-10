@@ -191,7 +191,10 @@ export default function HomePage() {
 
         {/* Mobile destinations */}
         <div className="bg-[#0A1628] px-5 py-8">
-          <h2 className="text-xl font-black text-white mb-4">Top Destinations</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-black text-white">Top Destinations</h2>
+            <Link href="/destinations" className="text-xs font-bold px-3 py-1.5 rounded-full" style={{ background: "rgba(15,108,245,0.2)", color: "#60a5fa", border: "1px solid rgba(15,108,245,0.3)" }}>View All →</Link>
+          </div>
           <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
             {DESTINATIONS.map((d) => (
               <Link key={d.name} href={`/chat?prompt=I want to go to ${d.name}`} className="flex-shrink-0 w-36 rounded-2xl overflow-hidden relative active:scale-95 transition-transform">
