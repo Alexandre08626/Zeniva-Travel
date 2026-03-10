@@ -22,6 +22,8 @@ export default function WelcomeBanner() {
     return () => clearTimeout(t);
   }, [user?.email]);
 
+  // Always hide if logged in (auth may load after timer)
+  if (user?.email) return null;
   if (!show || dismissed) return null;
 
   const GOLD = "#E6B85A";

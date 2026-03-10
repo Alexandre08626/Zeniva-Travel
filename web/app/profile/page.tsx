@@ -110,6 +110,25 @@ export default function ProfilePage() {
         {/* ── Sections ─────────────────────────────────────── */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
+          {/* 🎁 Promo Code — traveler only, logged in */}
+          {user && !userIsAgent && (
+            <div style={{ background: "linear-gradient(135deg, rgba(230,184,90,0.12), rgba(230,184,90,0.05))", border: "1.5px solid rgba(230,184,90,0.4)", borderRadius: 18, padding: "18px 20px" }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "#92400e", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>🎁 Your Welcome Discount</div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: "#0B1B4D", letterSpacing: "0.05em", fontFamily: "monospace" }}>WELCOME15</div>
+                  <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>15% OFF — Villa · Yacht · Hotel · Flight</div>
+                </div>
+                <button
+                  onClick={() => { navigator.clipboard?.writeText("WELCOME15"); }}
+                  style={{ background: "linear-gradient(135deg, #E6B85A, #C9941F)", color: "#0B1B4D", border: "none", borderRadius: 50, padding: "10px 18px", fontWeight: 900, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>
+                  Copy 📋
+                </button>
+              </div>
+              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 8 }}>Enter at checkout · Valid on your first booking</div>
+            </div>
+          )}
+
           {/* My Travel */}
           <Section title="My Travel">
             <Row icon="✈️" label="My Trips" sub={`${mounted ? trips.length : "—"} trip${trips.length !== 1 ? "s" : ""} in progress`} onClick={() => router.push("/trips")} />
