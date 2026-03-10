@@ -65,7 +65,7 @@ export default function DestinationsPage() {
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 16px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
           {ALL_DESTINATIONS.map((d, i) => (
-            <Link key={d.name} href={`/forms/travel?agent=info%40zeniva.ca&destination=${encodeURIComponent(d.name)}`} style={{ textDecoration: "none", display: "block", borderRadius: 20, overflow: "hidden", position: "relative", aspectRatio: "4/3" }}>
+            <Link key={d.name} href={`/destinations/${d.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}`} style={{ textDecoration: "none", display: "block", borderRadius: 20, overflow: "hidden", position: "relative", aspectRatio: "4/3" }}>
               <img src={d.img} alt={d.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
               <div style={{ position: "absolute", inset: 0, background: "linear-gradient(0deg, rgba(0,0,0,0.75) 0%, transparent 55%)" }} />
               {/* Rank */}
