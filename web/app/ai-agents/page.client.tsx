@@ -900,9 +900,10 @@ export default function AIAgentsPageClient() {
     } catch { setApiHealth("offline"); setDbHealth("offline"); }
 
     try {
-      const r = await fetch("/api/agents-proxy?endpoint=webhook-test");
+      // Check Lina health via VPS /health — no message sent to Lina
+      const r = await fetch("/api/agents-proxy?endpoint=health");
       const d = await r.json();
-      const ok = !!d?.response;
+      const ok = d?.status === "healthy" || d?.status === "online";
       setLinaHealth(ok ? "online" : "offline");
       linaStatusRef.current = ok ? "live" : "error";
     } catch { setLinaHealth("offline"); linaStatusRef.current = "error"; }

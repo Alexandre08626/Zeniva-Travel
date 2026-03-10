@@ -43,11 +43,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(await r.json());
     }
     if (endpoint === "webhook-test") {
-      const r = await fetch(`${VPS_BASE}/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: "health-check", sessionId: "dashboard-monitor" }),
-      });
+      // Replaced: no longer sends messages to Lina — use /health instead
+      const r = await fetch(`${VPS_BASE}/`, { next: { revalidate: 0 } });
       return NextResponse.json(await r.json());
     }
     if (endpoint === "leads") {
