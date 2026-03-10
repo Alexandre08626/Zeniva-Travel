@@ -9,21 +9,19 @@ const BRAND_BLUE = "#0F6CF5";
 const PREMIUM_BLUE = "#0B1B4D";
 const GOLD = "#E6B85A";
 
-// ─── Approved videos (add more as boss approves them) ───────────────────────
-const APPROVED_VIDEOS = [
-  {
-    id: "lina2",
-    title: "Lina AI — Your Travel Concierge",
-    description: "Lina qualifies your leads, creates quotes and books for you. Share this video with your audience to automatically generate leads.",
-    thumbnail: "https://img.youtube.com/vi/r_8eucGLNxY/maxresdefault.jpg",
-    youtubeId: "r_8eucGLNxY",
-    tags: ["Lina AI", "Concierge", "Travel Tech"],
-    approved: true,
-    approvedDate: "2026-03-04",
-    category: "AI Agents",
-  },
-  // Add more approved videos here
-];
+// ─── Approved videos loaded dynamically from video queue ────────────────────
+type ApprovedVideo = {
+  id: string;
+  title: string;
+  description: string;
+  thumbnail: string;
+  youtubeId: string;
+  youtubeUrl: string;
+  tags: string[];
+  approved: boolean;
+  approvedDate: string;
+  category: string;
+};
 
 type Tab = "videos" | "mylinks" | "leads" | "commissions" | "brandkit" | "howto";
 
@@ -48,6 +46,7 @@ export default function InfluencerPage() {
   const [copied, setCopied] = useState<string | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [stats, setStats] = useState({ clicks: 0, leads: 0, bookings: 0, commissionTotal: 0, commissionPending: 0, referralCode: "" });
+  const [approvedVideos, setApprovedVideos] = useState<ApprovedVideo[]>([]);
 
   const siteBase = "https://www.zenivatravel.com";
   const refCode = stats.referralCode || (user?.email?.split("@")[0] ?? "ref");
@@ -71,6 +70,28 @@ export default function InfluencerPage() {
           setStats(p.data);
           setLeads(p.data.leadsList || []);
         }
+      })
+      .catch(() => {});
+
+    // Load published YouTube videos from queue
+    fetch("/api/agents-proxy?endpoint=video-queue", { cache: "no-store" })
+      .then(r => r.json())
+      .then(d => {
+        const published = (d?.videos || [])
+          .filter((v: any) => v.youtube_video_id && (v.status === "published" || v.status === "approved"))
+          .map((v: any) => ({
+            id: v.id,
+            title: v.title || "Zeniva Travel Video",
+            description: v.description || "Share this video with your audience to generate travel leads for your referral link.",
+            thumbnail: `https://img.youtube.com/vi/${v.youtube_video_id}/maxresdefault.jpg`,
+            youtubeId: v.youtube_video_id,
+            youtubeUrl: v.youtube_url || `https://www.youtube.com/watch?v=${v.youtube_video_id}`,
+            tags: ["Zeniva Travel", "Luxury Travel", "AI Travel"],
+            approved: true,
+            approvedDate: (v.actioned_at || v.generated_at || "").split("T")[0],
+            category: "Travel",
+          }));
+        setApprovedVideos(published);
       })
       .catch(() => {});
   }, [user]);
@@ -177,13 +198,20 @@ export default function InfluencerPage() {
               </div>
               {isHQ && (
                 <span className="rounded-full border border-yellow-400/30 bg-yellow-400/10 px-3 py-1.5 text-xs font-bold text-yellow-300">
-                  HQ: {APPROVED_VIDEOS.length} approved video(s)
+                  HQ: {approvedVideos.length} approved video(s)
                 </span>
               )}
             </div>
 
+            {approvedVideos.length === 0 && (
+              <div className="rounded-3xl border border-white/10 bg-white/5 p-12 text-center">
+                <div className="text-5xl mb-3">🎬</div>
+                <p className="text-white font-bold text-lg">No videos available yet</p>
+                <p className="text-slate-400 text-sm mt-2">Videos will appear here once the boss approves them in the AI Agents panel.</p>
+              </div>
+            )}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {APPROVED_VIDEOS.map(video => (
+              {approvedVideos.map(video => (
                 <div
                   key={video.id}
                   className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-400/30 hover:shadow-2xl hover:shadow-blue-500/10"
@@ -251,6 +279,14 @@ export default function InfluencerPage() {
                     </div>
 
                     {/* Actions */}
+                    <a
+                      href={video.youtubeUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 py-2.5 text-sm font-bold text-red-300 transition-all hover:bg-red-500/20 mb-2"
+                    >
+                      ▶ Watch on YouTube
+                    </a>
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         onClick={() => copy(videoShareLink(video.id), video.id)}
@@ -323,7 +359,7 @@ export default function InfluencerPage() {
                 <p className="mt-2 text-sm text-slate-500">New approved videos appear here automatically. Stay tuned!</p>
                 {isHQ && (
                   <div className="mt-4 rounded-xl border border-yellow-400/20 bg-yellow-400/10 p-3 text-xs text-yellow-300">
-                    HQ: To add a video, edit <code>APPROVED_VIDEOS</code> in this page's code.
+                    HQ: Approve videos in <a href="/ai-agents#approvals" className="underline">AI Agents → Approvals</a> — they appear here automatically.
                   </div>
                 )}
               </div>
@@ -348,7 +384,7 @@ export default function InfluencerPage() {
               </div>
 
               {/* Form links for each video */}
-              {APPROVED_VIDEOS.map(video => (
+              {approvedVideos.map(video => (
                 <div key={video.id} className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
                   <div className="text-xs font-bold uppercase tracking-widest text-slate-500">Formulaire — {video.title}</div>
                   <div className="mt-2 font-mono text-sm text-blue-300 break-all">{videoShareLink(video.id)}</div>
