@@ -76,9 +76,27 @@ export async function GET(req: Request) {
     const result = await searchDuffelOffers(body);
     return NextResponse.json({ ok: true, result });
   } catch (e: any) {
-    // If Duffel not configured, return a helpful mock fallback
+    // If Duffel not configured, return rich mock flights
     if (!duffelIsConfigured()) {
-      return NextResponse.json({ ok: true, mock: true, message: 'Duffel not configured', sample: { offers: [] } });
+      const dest = (body?.slices?.[0]?.destination || "CUN").toUpperCase();
+      const orig = (body?.slices?.[0]?.origin || "JFK").toUpperCase();
+      const depDate = body?.slices?.[0]?.departure_date || new Date().toISOString().slice(0,10);
+      const pax = body?.passengers?.length || 1;
+      const AIRLINES: Record<string, { name: string; iata: string }> = {
+        "CUN": { name: "American Airlines", iata: "AA" }, "MIA": { name: "Delta Air Lines", iata: "DL" },
+        "CDG": { name: "Air France", iata: "AF" }, "LHR": { name: "British Airways", iata: "BA" },
+        "DXB": { name: "Emirates", iata: "EK" }, "BKK": { name: "Thai Airways", iata: "TG" },
+        "NRT": { name: "Japan Airlines", iata: "JL" }, "GRU": { name: "LATAM", iata: "LA" },
+        "SYD": { name: "Qantas", iata: "QF" }, "SIN": { name: "Singapore Airlines", iata: "SQ" },
+      };
+      const al = AIRLINES[dest] || { name: "United Airlines", iata: "UA" };
+      const basePrice = { "CUN": 380, "MIA": 290, "CDG": 720, "LHR": 680, "DXB": 1100, "NRT": 1400, "BKK": 1300 }[dest] || 450;
+      const mockOffers = [
+        { id: `mock-${dest}-1`, owner: { name: al.name, iata_code: al.iata }, total_amount: String(Math.round(basePrice * pax)), total_currency: "USD", base_amount: String(Math.round(basePrice * pax * 0.8)), slices: [{ segments: [{ origin: { iata_code: orig }, destination: { iata_code: dest }, departing_at: `${depDate}T08:00:00`, arriving_at: `${depDate}T13:30:00`, operating_carrier: { name: al.name, iata_code: al.iata }, operating_carrier_flight_number: `${al.iata}${Math.floor(100 + Math.random()*900)}`, passengers: Array(pax).fill({ cabin_class_marketing_name: "Economy" }) }] }] },
+        { id: `mock-${dest}-2`, owner: { name: "Delta Air Lines", iata_code: "DL" }, total_amount: String(Math.round((basePrice + 60) * pax)), total_currency: "USD", base_amount: String(Math.round((basePrice + 60) * pax * 0.8)), slices: [{ segments: [{ origin: { iata_code: orig }, destination: { iata_code: dest }, departing_at: `${depDate}T11:00:00`, arriving_at: `${depDate}T16:45:00`, operating_carrier: { name: "Delta Air Lines", iata_code: "DL" }, operating_carrier_flight_number: `DL${Math.floor(100 + Math.random()*900)}`, passengers: Array(pax).fill({ cabin_class_marketing_name: "Economy" }) }] }] },
+        { id: `mock-${dest}-3`, owner: { name: "Air Canada", iata_code: "AC" }, total_amount: String(Math.round((basePrice + 30) * pax)), total_currency: "USD", base_amount: String(Math.round((basePrice + 30) * pax * 0.8)), slices: [{ segments: [{ origin: { iata_code: orig }, destination: { iata_code: dest }, departing_at: `${depDate}T06:30:00`, arriving_at: `${depDate}T12:00:00`, operating_carrier: { name: "Air Canada", iata_code: "AC" }, operating_carrier_flight_number: `AC${Math.floor(100 + Math.random()*900)}`, passengers: Array(pax).fill({ cabin_class_marketing_name: "Economy" }) }] }] },
+      ];
+      return NextResponse.json({ ok: true, mock: true, result: { data: { offers: mockOffers } } });
     }
 
     // Include useful debug information for 4xx errors returned by Duffel
