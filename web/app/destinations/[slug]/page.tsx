@@ -308,12 +308,11 @@ export default async function DestinationPage({ params }: { params: Promise<{ sl
   const BLUE = "#0F6CF5";
 
   if (!dest) {
-    // Generic page for destinations without detailed data
     return (
-      <main style={{ minHeight: "100dvh", background: "#040d1f" }}>
-        <div style={{ maxWidth: 640, margin: "0 auto", padding: "48px 20px", textAlign: "center" }}>
+      <main style={{ minHeight: "100dvh", background: "#f8fafc" }}>
+        <div style={{ maxWidth: 640, margin: "0 auto", padding: "80px 20px", textAlign: "center" }}>
           <div style={{ fontSize: 64, marginBottom: 16 }}>🌍</div>
-          <h1 style={{ color: "white", fontSize: 32, fontWeight: 900, marginBottom: 12 }}>{destName}</h1>
+          <h1 style={{ color: "#0B1B4D", fontSize: 32, fontWeight: 900, marginBottom: 12 }}>{destName}</h1>
           <p style={{ color: "#64748b", fontSize: 16, marginBottom: 32 }}>Let Lina plan your perfect trip to {destName} — flights, hotels, transfers all included.</p>
           <Link href={`/chat?prompt=I want to plan a trip to ${destName}`} style={{ display: "inline-block", background: `linear-gradient(135deg, ${GOLD}, #C9941F)`, color: "#0B1B4D", borderRadius: 50, padding: "16px 36px", fontWeight: 900, fontSize: 16, textDecoration: "none" }}>
             💬 Plan with Lina →
@@ -324,23 +323,24 @@ export default async function DestinationPage({ params }: { params: Promise<{ sl
   }
 
   return (
-    <main style={{ minHeight: "100dvh", background: "#040d1f", paddingBottom: 60 }}>
+    <main style={{ minHeight: "100dvh", background: "#f8fafc", paddingBottom: 60 }}>
+
       {/* ── HERO ── */}
       <div style={{ position: "relative", height: 380, overflow: "hidden" }}>
         <img src={dest.hero} alt={dest.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(4,13,31,0.9) 100%)" }} />
-        {/* Back button */}
-        <Link href="/destinations" style={{ position: "absolute", top: 20, left: 20, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)", borderRadius: 50, padding: "8px 16px", color: "white", textDecoration: "none", fontSize: 14, fontWeight: 600 }}>
-          ← All Destinations
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 100%)" }} />
+        {/* Back */}
+        <Link href="/destinations" style={{ position: "absolute", top: 20, left: 20, background: "rgba(255,255,255,0.9)", backdropFilter: "blur(8px)", borderRadius: 50, padding: "8px 16px", color: "#0B1B4D", textDecoration: "none", fontSize: 14, fontWeight: 700 }}>
+          ← Destinations
         </Link>
         {/* Tag */}
-        <div style={{ position: "absolute", top: 20, right: 20, background: dest.tagColor + "cc", borderRadius: 30, padding: "6px 14px", color: "white", fontSize: 12, fontWeight: 700 }}>
+        <div style={{ position: "absolute", top: 20, right: 20, background: dest.tagColor, borderRadius: 30, padding: "6px 14px", color: "white", fontSize: 12, fontWeight: 700 }}>
           {dest.tag}
         </div>
         {/* Title */}
         <div style={{ position: "absolute", bottom: 28, left: 20, right: 20 }}>
-          <div style={{ color: "rgba(255,255,255,0.65)", fontSize: 14, marginBottom: 4 }}>{dest.emoji} {dest.country}</div>
-          <h1 style={{ color: "white", fontSize: 38, fontWeight: 900, lineHeight: 1.1, margin: 0 }}>{dest.name}</h1>
+          <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 14, marginBottom: 4 }}>{dest.emoji} {dest.country}</div>
+          <h1 style={{ color: "white", fontSize: 38, fontWeight: 900, lineHeight: 1.1, margin: 0, textShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>{dest.name}</h1>
         </div>
       </div>
 
@@ -354,30 +354,30 @@ export default async function DestinationPage({ params }: { params: Promise<{ sl
             { icon: "⏱️", label: "Ideal Duration", val: dest.duration },
             { icon: "🗣️", label: "Language", val: dest.language },
           ].map(i => (
-            <div key={i.label} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "14px 16px" }}>
+            <div key={i.label} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 14, padding: "14px 16px", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
               <div style={{ fontSize: 18, marginBottom: 4 }}>{i.icon}</div>
-              <div style={{ color: "#64748b", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>{i.label}</div>
-              <div style={{ color: "white", fontSize: 14, fontWeight: 700 }}>{i.val}</div>
+              <div style={{ color: "#94a3b8", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>{i.label}</div>
+              <div style={{ color: "#0B1B4D", fontSize: 14, fontWeight: 700 }}>{i.val}</div>
             </div>
           ))}
         </div>
 
         {/* ── DESCRIPTION ── */}
-        <p style={{ color: "#94a3b8", fontSize: 15, lineHeight: 1.75, marginBottom: 28 }}>{dest.description}</p>
+        <p style={{ color: "#475569", fontSize: 15, lineHeight: 1.8, marginBottom: 28 }}>{dest.description}</p>
 
         {/* ── HIGHLIGHTS ── */}
         <div style={{ marginBottom: 28 }}>
-          <h2 style={{ color: "white", fontSize: 18, fontWeight: 800, marginBottom: 14 }}>✨ Highlights</h2>
+          <h2 style={{ color: "#0B1B4D", fontSize: 18, fontWeight: 800, marginBottom: 14 }}>✨ Highlights</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {dest.highlights.map((h, i) => (
-              <div key={i} style={{ background: "rgba(15,108,245,0.08)", border: "1px solid rgba(15,108,245,0.2)", borderRadius: 12, padding: "12px 16px", color: "white", fontSize: 14, fontWeight: 600 }}>{h}</div>
+              <div key={i} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 12, padding: "12px 16px", color: "#0B1B4D", fontSize: 14, fontWeight: 600, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>{h}</div>
             ))}
           </div>
         </div>
 
         {/* ── PHOTO GALLERY ── */}
         <div style={{ marginBottom: 32 }}>
-          <h2 style={{ color: "white", fontSize: 18, fontWeight: 800, marginBottom: 14 }}>📸 Gallery</h2>
+          <h2 style={{ color: "#0B1B4D", fontSize: 18, fontWeight: 800, marginBottom: 14 }}>📸 Gallery</h2>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             {dest.photos.map((p, i) => (
               <div key={i} style={{ borderRadius: 14, overflow: "hidden", aspectRatio: i === 0 ? "16/9" : "4/3", gridColumn: i === 0 ? "1 / -1" : undefined }}>
@@ -388,16 +388,16 @@ export default async function DestinationPage({ params }: { params: Promise<{ sl
         </div>
 
         {/* ── CTA ── */}
-        <div style={{ background: `linear-gradient(135deg, rgba(230,184,90,0.12), rgba(230,184,90,0.05))`, border: `1.5px solid ${GOLD}33`, borderRadius: 24, padding: "28px 24px", textAlign: "center", marginBottom: 20 }}>
+        <div style={{ background: "white", border: `2px solid ${GOLD}55`, borderRadius: 24, padding: "28px 24px", textAlign: "center", marginBottom: 20, boxShadow: "0 4px 20px rgba(230,184,90,0.12)" }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>✈️</div>
-          <h2 style={{ color: "white", fontSize: 22, fontWeight: 900, marginBottom: 8 }}>Ready to go to {dest.name}?</h2>
-          <p style={{ color: "#94a3b8", fontSize: 14, marginBottom: 20, lineHeight: 1.5 }}>
+          <h2 style={{ color: "#0B1B4D", fontSize: 22, fontWeight: 900, marginBottom: 8 }}>Ready to go to {dest.name}?</h2>
+          <p style={{ color: "#64748b", fontSize: 14, marginBottom: 20, lineHeight: 1.5 }}>
             Lina will plan your full trip — flights, hotel, transfers & activities.<br />100% free, personalized, instant.
           </p>
           <Link href={`/chat?prompt=I want to plan a trip to ${dest.name}, ${dest.country}`} style={{ display: "block", background: `linear-gradient(135deg, ${GOLD}, #C9941F)`, color: "#0B1B4D", borderRadius: 50, padding: "17px", fontWeight: 900, fontSize: 17, textDecoration: "none", marginBottom: 12 }}>
             💬 Plan my {dest.name} trip with Lina →
           </Link>
-          <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 11 }}>🎁 15% OFF your first booking · No credit card needed</p>
+          <p style={{ color: "#94a3b8", fontSize: 12 }}>🎁 15% OFF your first booking · No credit card needed</p>
         </div>
 
       </div>
