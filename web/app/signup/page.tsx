@@ -136,9 +136,24 @@ function SignupContent() {
 
       <div style={{ width: "100%", maxWidth: 420, position: "relative", zIndex: 1 }}>
         {/* Logo */}
-        <div style={{ textAlign: "center", marginBottom: 28 }}>
+        {/* Desktop logo */}
+        <div className="hidden sm:block" style={{ textAlign: "center", marginBottom: 28 }}>
           <img src="/branding/lina-avatar.png" alt="Lina" style={{ width: 64, height: 64, borderRadius: "50%", border: `2px solid ${GOLD}`, marginBottom: 12 }} />
           <div style={{ fontSize: 24, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}>
+            Zeniva <span style={{ color: GOLD }}>Travel</span>
+          </div>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 4 }}>AI-Powered Luxury Travel</div>
+        </div>
+
+        {/* Mobile / App — big Lina face */}
+        <div className="sm:hidden" style={{ textAlign: "center", marginBottom: 32 }}>
+          {/* Glow ring */}
+          <div style={{ position: "relative", display: "inline-block", marginBottom: 16 }}>
+            <div style={{ position: "absolute", inset: -8, borderRadius: "50%", background: `radial-gradient(circle, rgba(230,184,90,0.35) 0%, transparent 70%)`, filter: "blur(8px)" }} />
+            <img src="/branding/lina-avatar.png" alt="Lina"
+              style={{ width: 100, height: 100, borderRadius: "50%", border: `3px solid ${GOLD}`, objectFit: "cover", position: "relative", zIndex: 1, boxShadow: `0 0 32px rgba(230,184,90,0.4)` }} />
+          </div>
+          <div style={{ fontSize: 26, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" }}>
             Zeniva <span style={{ color: GOLD }}>Travel</span>
           </div>
           <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 4 }}>AI-Powered Luxury Travel</div>
