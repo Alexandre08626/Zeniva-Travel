@@ -68,7 +68,7 @@ function TripCard({
             {destination || "Destination"} • {dates || "Dates TBC"} • Travelers: {travelers || "n/a"}
           </div>
           <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
-            Zeniva support: concierge@zeniva.travel · +1 (844) 000-0000 (24/7)
+            Zeniva support: info@zeniva.ca · +1 (332) 290-0021 (24/7)
           </div>
         </div>
         <Link
@@ -400,6 +400,25 @@ export default function DocumentsPage() {
     <main className="min-h-screen bg-slate-50">
       <div className="mx-auto w-full max-w-none px-4 sm:px-6 pb-14 pt-6 space-y-0">
         <Header isLoggedIn={!!userId} userEmail={userId} hideAgentWorkspaceSwitch />
+
+        {/* ── PROMO CODE — traveler only ── */}
+        {userId && (
+          <div style={{ background: "linear-gradient(135deg, rgba(230,184,90,0.12), rgba(230,184,90,0.06))", border: "1.5px solid rgba(230,184,90,0.45)", borderRadius: 18, padding: "14px 20px", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <span style={{ fontSize: 28 }}>🎁</span>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 800, color: "#92400e", letterSpacing: "0.08em", textTransform: "uppercase" }}>Your Welcome Discount</div>
+                <div style={{ fontSize: 22, fontWeight: 900, color: "#0B1B4D", letterSpacing: "0.05em", fontFamily: "monospace" }}>WELCOME15</div>
+                <div style={{ fontSize: 11, color: "#64748b" }}>15% OFF — Enter at checkout · Villa · Yacht · Hotel · Flight</div>
+              </div>
+            </div>
+            <button
+              onClick={() => { navigator.clipboard?.writeText("WELCOME15"); }}
+              style={{ background: "linear-gradient(135deg, #E6B85A, #C9941F)", color: "#0B1B4D", border: "none", borderRadius: 50, padding: "10px 20px", fontWeight: 900, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>
+              Copy Code 📋
+            </button>
+          </div>
+        )}
 
         {/* ── HERO ── */}
         <div className="rounded-3xl overflow-hidden shadow-xl mb-6 mt-4" style={{ background: `linear-gradient(135deg, ${GRADIENT_START} 0%, #1a3a7a 50%, ${GRADIENT_END} 100%)` }}>

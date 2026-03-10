@@ -24,6 +24,20 @@ function SquarePayButton({ amount, description, referenceId }: { amount: number;
       });
       const data = await res.json();
       if (data.paymentUrl) {
+        // Save pending booking details for confirmation page
+        try {
+          const urlParams = new URLSearchParams(window.location.search);
+          localStorage.setItem("zeniva_pending_booking", JSON.stringify({
+            clientEmail: (window as any).__zenivaUser?.email || "",
+            clientName: (window as any).__zenivaUser?.name || "",
+            destination: urlParams.get("to") || urlParams.get("destination") || description,
+            totalPrice: String(amount),
+            travelers: urlParams.get("passengers") || "1",
+            departure: urlParams.get("depart") || "",
+            returnDate: urlParams.get("return") || "",
+            description,
+          }));
+        } catch { /* noop */ }
         window.location.href = data.paymentUrl;
       } else {
         setError(data.error || "Payment error. Please try again.");
