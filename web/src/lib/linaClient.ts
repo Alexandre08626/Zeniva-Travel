@@ -60,18 +60,17 @@ export async function sendMessageToLina(
     } catch {}
   }
 
+  const history = Array.isArray(historyOrPrompt)
+    ? historyOrPrompt
+        .filter((m) => m?.role && (m?.text || m?.content))
+        .slice(-20)
+        .map((m: any) => ({ role: m.role === "lina" ? "assistant" : m.role, content: m.content || m.text || "" }))
+    : [];
+
   const body: any = {
-    message: prompt,
+    prompt,           // /api/lina expects `prompt` not `message`
     sessionId,
-    source: "zenivatravel.com",
-    language: "fr",
-    ...(agentEmail && { agentEmail, agentRole }),
-    history: Array.isArray(historyOrPrompt)
-      ? historyOrPrompt
-          .filter((m) => m?.role && (m?.text || m?.content))
-          .slice(-20)
-          .map((m: any) => ({ role: m.role === "lina" ? "assistant" : m.role, text: m.text || m.content }))
-      : [],
+    history,          // history items must have `content` not `text`
   };
 
   const url = "/api/lina";  // Always route through Next.js API → VPS /chat
