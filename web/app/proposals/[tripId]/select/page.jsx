@@ -638,14 +638,34 @@ export default function ProposalSelectPage() {
       applyTripPatch(tripId, { accommodationType: "Hotel" });
     }
 
+    // Normalize date to YYYY-MM-DD format (handles "22 mars 2026", "March 22 2026", etc.)
+    const normalizeDate = (raw) => {
+      if (!raw) return raw;
+      // Already in YYYY-MM-DD format
+      if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+      // Try to parse any format
+      const d = new Date(raw);
+      if (!isNaN(d.getTime())) return d.toISOString().split("T")[0];
+      // French month names
+      const frMonths = {"janvier":1,"février":2,"mars":3,"avril":4,"mai":5,"juin":6,"juillet":7,"août":8,"septembre":9,"octobre":10,"novembre":11,"décembre":12};
+      const m = raw.toLowerCase().match(/(\d{1,2})\s+(\w+)\s+(\d{4})/);
+      if (m) {
+        const month = frMonths[m[2]] || parseInt(m[2]);
+        if (month) return `${m[3]}-${String(month).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;
+      }
+      return raw;
+    };
+    const normalizedCheckIn = normalizeDate(checkIn);
+    const normalizedCheckOut = normalizeDate(checkOut);
+
     const run = async () => {
       setLoadingHotels(true);
       setErrorHotels(null);
       try {
         const qs = new URLSearchParams({
           destination: String(destination),
-          checkIn,
-          checkOut,
+          checkIn: normalizedCheckIn,
+          checkOut: normalizedCheckOut,
           guests: String(tripDraft?.adults || 2),
           rooms: "1",
         }).toString();
