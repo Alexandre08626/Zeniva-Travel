@@ -126,13 +126,13 @@ export default function HomePage() {
                   <span className="text-[10px] font-bold text-yellow-300 uppercase tracking-widest">✨ AI-Powered Travel</span>
                 </div>
                 <p className="text-4xl font-black text-white leading-none tracking-tight mb-3" role="heading" aria-level={1}>
-                  Your Personal<br/>
+                  Plan your entire trip<br/>
                   <span style={{ background: "linear-gradient(90deg, #E6B85A, #fff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                    Travel Genius
+                    in seconds with AI
                   </span>
                 </p>
                 <p className="text-white text-sm leading-relaxed max-w-xs mx-auto font-medium">
-                  Tell Lina where you want to go. She plans flights, hotels & experiences in seconds.
+                  Tell Lina where you want to go and she instantly builds your flights, hotels, and experiences.
                 </p>
               </div>
 
@@ -142,8 +142,8 @@ export default function HomePage() {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg" style={{ background: "linear-gradient(135deg, #0B1B4D, #0F6CF5)" }}>💬</div>
                     <div>
-                      <div className="text-sm font-black text-slate-900">Chat with Lina</div>
-                      <div className="text-xs text-slate-600 font-semibold">Plan your dream trip</div>
+                      <div className="text-sm font-black text-slate-900">Start planning my trip</div>
+                      <div className="text-xs text-slate-600 font-semibold">Free to try • No account required</div>
                     </div>
                   </div>
                   <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
@@ -156,20 +156,26 @@ export default function HomePage() {
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style={{ background: "rgba(255,255,255,0.2)" }}>📞</div>
                     <div>
                       <div className="text-sm font-black text-white">Call Lina</div>
-                      <div className="text-xs text-white font-semibold opacity-90">Voice AI concierge</div>
+                      <div className="text-xs text-white font-semibold opacity-90">Speak with your AI travel agent and plan your trip by voice</div>
                     </div>
                   </div>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
                 </Link>
               </div>
 
+              {/* Trust microcopy */}
+              <p className="mt-4 text-center text-[11px] text-white/70 font-medium">Create a free account and get 15% off your first booking.</p>
+
               {/* Quick tags */}
-              <div className="mt-6 flex flex-wrap justify-center gap-2">
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
                 {["🏖️ Beach", "💑 Couples", "👨‍👩‍👧 Family", "🏔️ Adventure", "🛥️ Yacht"].map((t) => (
                   <Link key={t} href={`/chat?prompt=${encodeURIComponent(t.split(" ")[1] + " trip")}`} className="rounded-full border border-white/40 px-3 py-1.5 text-xs font-bold text-white active:bg-white/20" style={{ background: "rgba(255,255,255,0.22)" }}>{t}</Link>
                 ))}
               </div>
             </div>
+
+            {/* Powered by AI trust line */}
+            <p className="text-center text-[10px] text-white/50 font-medium mt-2">Powered by AI travel planning • No booking fees</p>
 
             {/* Stats bar */}
             <div className="mt-8 grid grid-cols-4 gap-2 rounded-2xl p-4 border border-white/30" style={{ background: "rgba(255,255,255,0.20)" }}>
@@ -462,7 +468,7 @@ export default function HomePage() {
 
                 <div className="mt-10 flex gap-4">
                   <Link href="/chat" className="inline-flex items-center gap-2 rounded-2xl px-7 py-4 text-sm font-black text-slate-900 hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(90deg, #E6B85A, #f7d98a)" }}>
-                    <span>Chat with Lina</span>
+                    <span>Build my trip with Lina</span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
                   </Link>
                   <Link href="/call" className="inline-flex items-center gap-2 rounded-2xl px-7 py-4 text-sm font-black text-white border border-white/20 hover:bg-white/20 transition-colors">
@@ -602,7 +608,7 @@ export default function HomePage() {
                 </p>
                 <div className="flex items-center justify-center gap-4">
                   <Link href="/chat" className="inline-flex items-center gap-2 rounded-2xl px-8 py-4 text-base font-black text-slate-900 hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(90deg, #E6B85A, #f7d98a)" }}>
-                    💬 Chat with Lina — Free
+                    💬 Start planning my trip — Free
                   </Link>
                   <Link href="/call" className="inline-flex items-center gap-2 rounded-2xl px-8 py-4 text-base font-black text-white border-2 border-white/20 hover:bg-white/20 transition-colors">
                     📞 Call Lina
