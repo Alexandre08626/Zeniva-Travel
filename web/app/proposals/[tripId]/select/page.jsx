@@ -1288,6 +1288,7 @@ export default function ProposalSelectPage() {
               </div>
 
               {/* Activities */}
+              {tripDraft?.includeActivities !== false && (
               <div className="space-y-2.5">
                 <div className="flex items-center gap-2">
                   <span className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-[10px]">🎯</span>
@@ -1306,8 +1307,10 @@ export default function ProposalSelectPage() {
                   </select>
                 </div>
               </div>
+              )}
 
               {/* Transfers */}
+              {tripDraft?.includeTransfers !== false && (
               <div className="space-y-2.5">
                 <div className="flex items-center gap-2">
                   <span className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center text-[10px]">🚗</span>
@@ -1323,6 +1326,7 @@ export default function ProposalSelectPage() {
                   <input type="number" min={0} value={filters.transferMaxPrice} onChange={(e) => setFilters((prev) => ({ ...prev, transferMaxPrice: e.target.value }))} placeholder="Max price" className="rounded-lg border border-slate-200 px-3 py-2 text-sm bg-slate-50" />
                 </div>
               </div>
+              )}
 
               <button
                 onClick={() => setFilters({ flightQuery: "", flightDirectOnly: false, flightMaxStops: "", flightMaxPrice: "", flightCabin: "all", flightSort: "best", selectedAirlines: [], hotelQuery: "", hotelProvider: "all", hotelType: "all", hotelMaxPrice: "", hotelMinRating: "", activityQuery: "", activitySupplier: "all", activityMaxPrice: "", activityWhen: "any", transferQuery: "", transferSupplier: "all", transferType: "any", transferMaxPrice: "" })}
@@ -1538,6 +1542,7 @@ export default function ProposalSelectPage() {
             </section>
 
             {/* ACTIVITIES */}
+            {tripDraft?.includeActivities !== false && (
             <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
               <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">🎯</div>
@@ -1580,8 +1585,10 @@ export default function ProposalSelectPage() {
                 )}
               </div>
             </section>
+            )}
 
             {/* TRANSFERS */}
+            {tripDraft?.includeTransfers !== false && (
             <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
               <div className="bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-4 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">🚗</div>
@@ -1625,6 +1632,7 @@ export default function ProposalSelectPage() {
                 )}
               </div>
             </section>
+            )}
           </div>
 
           {/* ── RIGHT: Summary ── */}
