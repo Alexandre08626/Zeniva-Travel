@@ -689,6 +689,17 @@ export default function ProposalSelectPage() {
     run();
   }, [tripDraft?.accommodationType, tripDraft?.destination, tripDraft?.checkIn, tripDraft?.checkOut, tripDraft?.adults, tripDraft?.budget, tripId, selection?.hotel?.location]);
 
+  // Listen for addon enable events from SelectedSummary
+  useEffect(() => {
+    const handleAddon = (e) => {
+      const type = e.detail?.type;
+      if (type === "activities") applyTripPatch(tripId, { includeActivities: true });
+      if (type === "transfers") applyTripPatch(tripId, { includeTransfers: true });
+    };
+    window.addEventListener("zeniva:enable-addon", handleAddon);
+    return () => window.removeEventListener("zeniva:enable-addon", handleAddon);
+  }, [tripId]);
+
   // Load activities from Amadeus (Tours & Activities)
   useEffect(() => {
     const destination = String(tripDraft?.destination || selection?.hotel?.location || "").trim();
