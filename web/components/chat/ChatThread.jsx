@@ -435,7 +435,7 @@ function ChatThread({ tripId, proposalMode = "" }) {
   };
 
   const onKeyDown = (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend(input);
     }
