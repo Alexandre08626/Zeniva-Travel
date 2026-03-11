@@ -188,7 +188,7 @@ function SignupContent() {
             {/* Name */}
             <div>
               <label style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 8 }}>Full name</label>
-              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="John Smith" style={inp()} />
+              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="John Smith" autoComplete="name" style={inp()} />
             </div>
 
             {/* Agent extras */}
@@ -245,14 +245,14 @@ function SignupContent() {
             {/* Email */}
             <div>
               <label style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 8 }}>Email</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="your@email.com" style={inp()} />
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="your@email.com" autoComplete="email" inputMode="email" style={inp()} />
             </div>
 
             {/* Password */}
             {(mode !== "agent" || agentStep === "signup") && (
               <div>
                 <label style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 8 }}>Password</label>
-                <input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" style={inp()} />
+                <input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" autoComplete="new-password" style={inp()} />
               </div>
             )}
 

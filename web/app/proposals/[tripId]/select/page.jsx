@@ -762,7 +762,14 @@ export default function ProposalSelectPage() {
           location: destination,
           date: checkIn,
           time: "10:00",
-          price: a?.price?.currency && Number.isFinite(Number(a?.price?.amount)) ? `${a.price.currency} ${a.price.amount}` : "Price on request",
+          price: (() => {
+            if (!a?.price?.currency || !Number.isFinite(Number(a?.price?.amount))) return "Price on request";
+            const raw = Number(a.price.amount);
+            const cur = String(a.price.currency).toUpperCase();
+            // Convert EUR → USD (approx rate 1.08)
+            const usdAmount = cur === "EUR" ? Math.round(raw * 1.08) : cur === "GBP" ? Math.round(raw * 1.27) : Math.round(raw);
+            return `USD ${usdAmount}`;
+          })(),
           supplier: "amadeus",
           provider: "amadeus",
           rating: 4.6,
@@ -869,12 +876,9 @@ export default function ProposalSelectPage() {
         setTransfers(mapped);
 
         if (mapped.length === 0) {
-          const originCode = String(data?.resolved?.originCode || "").trim();
-          const destinationCode = String(data?.resolved?.destinationCode || "").trim();
-          const hint = originCode || destinationCode
-            ? `No transfers returned for ${originCode || arrivalAirport || destination} → ${destinationCode || destination}.`
-            : "No transfers returned for this route.";
-          setErrorTransfers(hint);
+          // No transfers = hide section gracefully, don't show scary error
+          setErrorTransfers(null);
+          setTransfers([]);
         }
 
         if (mapped.length > 0 && !selection?.transfer) {
@@ -1631,7 +1635,7 @@ export default function ProposalSelectPage() {
 
               <div className="p-4 space-y-3 max-h-[380px] overflow-y-auto">
                 {loadingTransfers && <div className="flex items-center gap-3 rounded-xl bg-orange-50 border border-orange-100 px-4 py-3"><div className="w-5 h-5 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" /><span className="text-sm text-orange-700">Loading transfers…</span></div>}
-                {errorTransfers && <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">⚠️ {errorTransfers}</div>}
+                {errorTransfers && !errorTransfers.includes("No transfers") && <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">⚠️ {errorTransfers}</div>}
 
                 {filteredTransfers.map((t) => {
                   const transferKey = t.id || `${t.supplier || "transfer"}-${t.name || "item"}-${t.date || ""}`;

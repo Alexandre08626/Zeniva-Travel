@@ -349,6 +349,9 @@ export default function CheckoutPage() {
                     <input
                       className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
                       placeholder={label}
+                      type={label === "Email" ? "email" : label === "Phone" ? "tel" : "text"}
+                      inputMode={label === "Email" ? "email" : label === "Phone" ? "tel" : "text"}
+                      autoComplete={label === "First name" ? "given-name" : label === "Last name" ? "family-name" : label === "Email" ? "email" : "tel"}
                       value={
                         label === "First name"
                           ? travelerForm.firstName
@@ -498,8 +501,13 @@ export default function CheckoutPage() {
             )}
 
             {/* Square Payment Button */}
+            {!pricing.hasAnyPrice && (
+              <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 mb-3">
+                💡 <strong>Price on request</strong> — Our team will confirm exact pricing within 24h and send you a payment link.
+              </div>
+            )}
             <SquarePayButton
-              amount={pricing.hasAnyPrice ? pricing.total : 100}
+              amount={pricing.hasAnyPrice ? pricing.total : 500}
               description={`Zeniva Travel — ${tripDraft?.destination || "Trip"} (${tripDraft?.adults || 1} travelers)`}
               referenceId={proposalId}
               disabled={!travelerForm.firstName.trim() || !travelerForm.email.trim()}
