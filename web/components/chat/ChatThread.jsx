@@ -213,6 +213,38 @@ function ChatThread({ tripId, proposalMode = "" }) {
   const [userHasInteracted, setUserHasInteracted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [showEmailCapture, setShowEmailCapture] = useState(false);
+  const [captureEmail, setCaptureEmail] = useState("");
+  const [captureEmailSaving, setCaptureEmailSaving] = useState(false);
+
+  const handleEmailCapture = async () => {
+    if (!captureEmail.includes("@")) return;
+    setCaptureEmailSaving(true);
+    try {
+      // Save as lead on VPS
+      const trip = trips.find(t => t.id === tripId);
+      const snap = snapshots[tripId] || {};
+      await fetch("http://217.216.88.202:8000/admin/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer zeniva-secret-2025" },
+        body: JSON.stringify({
+          email: captureEmail,
+          destination: snap.destination || trip?.title || "",
+          source: "chat-generate-proposal",
+          status: "new",
+        }),
+      }).catch(() => {});
+      // Also save via VPS API
+      await fetch("/api/lina-lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: captureEmail, destination: snap.destination || "", tripId }),
+      }).catch(() => {});
+    } catch {}
+    setCaptureEmailSaving(false);
+    setShowEmailCapture(false);
+    window.location.href = `/proposals/${tripId}/select`;
+  };
   const recognitionRef = useRef(null);
 
   const history = useMemo(() => messages[tripId] || [], [messages, tripId]);
@@ -746,7 +778,12 @@ function ChatThread({ tripId, proposalMode = "" }) {
                     const { generateProposal } = require("../../lib/store/tripsStore");
                     if (typeof window !== "undefined") {
                       generateProposal(tripId);
-                      window.location.href = `/proposals/${tripId}/select`;
+                      // If anonymous user, show email capture popup first
+                      if (!user?.email) {
+                        setShowEmailCapture(true);
+                      } else {
+                        window.location.href = `/proposals/${tripId}/select`;
+                      }
                     }
                   }}
                   className={`flex-1 rounded-2xl px-5 py-3.5 text-sm font-black text-[#0B1B4D] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md ${isReady ? "animate-pulse shadow-yellow-400/60 shadow-lg" : ""}`}
@@ -759,6 +796,44 @@ function ChatThread({ tripId, proposalMode = "" }) {
             </div>
           );
         })()}
+      {/* Email Capture Modal */}
+      {showEmailCapture && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
+          <div className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-sm mx-auto">
+            <div className="text-center mb-4">
+              <div className="text-4xl mb-2">✈️</div>
+              <h2 className="text-xl font-black text-slate-900">Save your trip</h2>
+              <p className="text-sm text-slate-500 mt-1">Enter your email to see your personalized proposal and receive it by email.</p>
+            </div>
+            <input
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              placeholder="your@email.com"
+              value={captureEmail}
+              onChange={e => setCaptureEmail(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") handleEmailCapture(); }}
+              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              autoFocus
+            />
+            <button
+              disabled={!captureEmail.includes("@") || captureEmailSaving}
+              onClick={handleEmailCapture}
+              className="w-full rounded-xl py-3 text-sm font-black text-white mb-2 disabled:opacity-50"
+              style={{ background: "linear-gradient(135deg, #0F6CF5, #0B1B4D)" }}
+            >
+              {captureEmailSaving ? "Saving…" : "See my proposal →"}
+            </button>
+            <button
+              onClick={() => { setShowEmailCapture(false); window.location.href = `/proposals/${tripId}/select`; }}
+              className="w-full text-xs text-slate-400 hover:text-slate-600 py-1"
+            >
+              Skip for now
+            </button>
+            <p className="text-xs text-center text-slate-400 mt-2">🔒 No spam. We only send your proposal.</p>
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );
