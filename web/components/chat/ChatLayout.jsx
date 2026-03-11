@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { deleteTrip as deleteTripFromStore, useTripsStore } from "../../lib/store/tripsStore";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -142,6 +143,7 @@ async function pullTripsFromServer(email) {
 }
 
 function useTrips() {
+  const tripsFromStore = useTripsStore((s) => s.trips);
   const [trips, setTrips] = useState([]);
   const [userEmail, setUserEmail] = useState("");
 
@@ -240,7 +242,11 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
     e.preventDefault();
     e.stopPropagation();
     if (!confirm("Delete this trip conversation? This cannot be undone.")) return;
+    // Update in-memory Zustand store + local state (instant UI) + localStorage
+    deleteTripFromStore(deletedTripId);
     deleteTripFromStorage(deletedTripId, userEmail);
+    setTrips((prev) => prev.filter((t) => t.id !== deletedTripId));
+    setTripsOpen(true); // keep dropdown open to show updated list
     // If deleting active trip, go to new trip
     if (deletedTripId === tripId) {
       const id = createNewTrip();
