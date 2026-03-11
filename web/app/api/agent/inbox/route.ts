@@ -99,7 +99,11 @@ export async function GET(request: Request) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return NextResponse.json({ data: data || [] });
+      // Exclude forwarded email notifications (they clutter the inbox)
+      const filtered = (data || []).filter((msg: any) =>
+        !String(msg.message || "").match(/^Email from .+:/i)
+      );
+      return NextResponse.json({ data: filtered });
 
     } else {
       // 🔒 Non-HQ agent: ONLY their own clients' messages
@@ -142,7 +146,11 @@ export async function GET(request: Request) {
         return NextResponse.json({ data: channelFiltered });
       }
 
-      return NextResponse.json({ data: filtered });
+      // Exclude forwarded email notifications
+      const emailFiltered = filtered.filter((msg: any) =>
+        !String(msg.message || "").match(/^Email from .+:/i)
+      );
+      return NextResponse.json({ data: emailFiltered });
     }
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed" }, { status: 500 });
