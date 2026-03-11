@@ -67,6 +67,8 @@ export default function LeadsPage() {
       setLoading(false);
     };
     fetchLeads();
+    const interval = setInterval(fetchLeads, 30000);
+    return () => clearInterval(interval);
   }, [user?.email]);
 
   const filtered = leads.filter(l => {

@@ -167,6 +167,9 @@ export default function ClientsPage() {
   useEffect(() => {
     if (!user?.email) return;
     fetchClients();
+    // Auto-refresh every 30s so new signups appear immediately
+    const interval = setInterval(fetchClients, 30000);
+    return () => clearInterval(interval);
   }, [user?.email]);
 
   useEffect(() => {
