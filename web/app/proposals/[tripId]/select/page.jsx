@@ -1288,7 +1288,7 @@ export default function ProposalSelectPage() {
               </div>
 
               {/* Activities */}
-              {tripDraft?.includeActivities !== false && (
+              {tripDraft?.includeActivities === true && (
               <div className="space-y-2.5">
                 <div className="flex items-center gap-2">
                   <span className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-[10px]">🎯</span>
@@ -1310,7 +1310,7 @@ export default function ProposalSelectPage() {
               )}
 
               {/* Transfers */}
-              {tripDraft?.includeTransfers !== false && (
+              {tripDraft?.includeTransfers === true && (
               <div className="space-y-2.5">
                 <div className="flex items-center gap-2">
                   <span className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center text-[10px]">🚗</span>
@@ -1542,7 +1542,7 @@ export default function ProposalSelectPage() {
             </section>
 
             {/* ACTIVITIES */}
-            {tripDraft?.includeActivities !== false && (
+            {tripDraft?.includeActivities === true && (
             <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
               <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">🎯</div>
@@ -1588,7 +1588,7 @@ export default function ProposalSelectPage() {
             )}
 
             {/* TRANSFERS */}
-            {tripDraft?.includeTransfers !== false && (
+            {tripDraft?.includeTransfers === true && (
             <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
               <div className="bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-4 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">🚗</div>
