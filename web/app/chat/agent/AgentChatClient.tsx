@@ -346,6 +346,14 @@ export default function TravelerAgentChatClient() {
               </div>
             </div>
           </div>
+
+          {/* Company contact info */}
+          <div className="border-t border-slate-100 px-4 py-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
+            <span className="flex items-center gap-1">📧 <a href="mailto:info@zeniva.ca" className="hover:text-blue-600">info@zeniva.ca</a></span>
+            <span className="flex items-center gap-1">📞 <a href="tel:+13322900021" className="hover:text-blue-600">+1 (332) 290-0021</a></span>
+            <span className="flex items-center gap-1">📱 <a href="tel:+15817487017" className="hover:text-blue-600">+1 (581) 748-7017</a></span>
+            <span className="flex items-center gap-1">🌐 Delaware, USA</span>
+          </div>
         </div>
 
         {/* Tab switcher */}
@@ -548,7 +556,7 @@ export default function TravelerAgentChatClient() {
 
         {/* Footer note */}
         <p className="text-center text-xs text-slate-400 pb-4">
-          Zeniva Travel · Delaware, USA · info@zeniva.ca ·{" "}
+          Zeniva Travel · Delaware, USA · info@zeniva.ca · +1 (332) 290-0021 · Cell: +1 (581) 748-7017 ·{" "}
           <Link href="/privacy-policy" className="underline hover:text-slate-600">Privacy Policy</Link>
         </p>
       </div>
