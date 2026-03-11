@@ -30,9 +30,13 @@ function normalizeLiteApiBaseUrl(raw: string) {
   return url.toString().replace(/\/+$/, "");
 }
 
+// Production defaults — overridden by Vercel env vars if present
+const LITEAPI_DEFAULT_BASE_URL = "https://api.liteapi.travel/v3.0";
+const LITEAPI_DEFAULT_KEY = "prod_69b4e3d9-bb6f-40eb-8cc0-3be0f8a57b6e";
+
 function getLiteApiConfig(): LiteApiConfig {
-  const baseUrl = normalizeLiteApiBaseUrl(process.env.LITEAPI_API_BASE_URL || process.env.LITEAPI_BASE_URL || "");
-  const apiKey = (process.env.LITEAPI_API_KEY || "").trim();
+  const baseUrl = normalizeLiteApiBaseUrl(process.env.LITEAPI_API_BASE_URL || process.env.LITEAPI_BASE_URL || LITEAPI_DEFAULT_BASE_URL);
+  const apiKey = (process.env.LITEAPI_API_KEY || LITEAPI_DEFAULT_KEY).trim();
   const keyHeader = (process.env.LITEAPI_API_KEY_HEADER || "X-API-Key").trim() || "X-API-Key";
   const keyPrefix = (process.env.LITEAPI_API_KEY_PREFIX || "").trim() || undefined;
 
@@ -44,7 +48,8 @@ function getLiteApiConfig(): LiteApiConfig {
 }
 
 export function liteApiIsConfigured() {
-  return Boolean(normalizeLiteApiBaseUrl(process.env.LITEAPI_API_BASE_URL || process.env.LITEAPI_BASE_URL || "") && (process.env.LITEAPI_API_KEY || "").trim());
+  // Always configured — defaults are hardcoded above
+  return true;
 }
 
 function buildAuthValue(apiKey: string, prefix?: string) {
