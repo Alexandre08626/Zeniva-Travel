@@ -1,16 +1,23 @@
 "use client";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 
+const HIDDEN_PATHS = /^\/(chat|call|agent|payment|forms|set-password|login|signup)/;
+
 export default function LinaFloatingChat() {
+  const pathname = usePathname();
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [bubbleOpen, setBubbleOpen] = useState(false);
 
   useEffect(() => {
-    // Don't show on chat/call/agent/payment/forms pages
-    const path = window.location.pathname;
-    if (/^\/(chat|call|agent|payment|forms|set-password|login|signup)/.test(path)) return;
+    // Hide on agent/chat/call/payment/forms/auth pages — re-checked on every navigation
+    if (HIDDEN_PATHS.test(pathname)) {
+      setVisible(false);
+      setBubbleOpen(false);
+      return;
+    }
     // Don't show if dismissed this session
     if (sessionStorage.getItem("lina_bubble_dismissed")) return;
     // Appear after 8 seconds
@@ -18,7 +25,7 @@ export default function LinaFloatingChat() {
     // Auto-open bubble after 10 seconds
     const t2 = setTimeout(() => setBubbleOpen(true), 10000);
     return () => { clearTimeout(t); clearTimeout(t2); };
-  }, []);
+  }, [pathname]);
 
   const dismiss = () => {
     setDismissed(true);
