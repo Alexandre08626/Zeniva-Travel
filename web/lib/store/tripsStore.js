@@ -241,9 +241,14 @@ export function mergeTripMessages(tripId, incoming = []) {
   setState((s) => {
     const existing = s.messages[ensuredId] || [];
     const byId = new Map(existing.map((msg) => [msg.id, msg]));
+    // Also build a set of "content signatures" to prevent duplicates with different IDs
+    const contentSigs = new Set(existing.map((msg) => `${msg.role}||${(msg.content || "").trim().slice(0, 120)}`));
     incoming.forEach((msg) => {
       if (!msg || !msg.id) return;
+      const sig = `${msg.role}||${(msg.content || "").trim().slice(0, 120)}`;
+      if (contentSigs.has(sig)) return; // already in local state with different ID — skip
       byId.set(msg.id, msg);
+      contentSigs.add(sig);
     });
     const merged = Array.from(byId.values());
     merged.sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());

@@ -4,7 +4,7 @@ export async function sendMessageToLina(
   historyOrPrompt: any
 ): Promise<{ reply: string; raw: string; tripPatch: any | null }> {
   const WEBHOOK_FALLBACK =
-    "https://vmi3097009.contaboserver.net/chat";
+    "/api/lina";  // Route through Next.js API → VPS /chat (correct prompt)
 
   // build prompt and optional history/session
   let prompt = "";
@@ -74,7 +74,7 @@ export async function sendMessageToLina(
       : [],
   };
 
-  const url = process.env.NEXT_PUBLIC_LINA_API_URL || process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || WEBHOOK_FALLBACK;
+  const url = "/api/lina";  // Always route through Next.js API → VPS /chat
   console.log("Lina webhook URL:", url);
 
   const controller = new AbortController();
@@ -95,7 +95,7 @@ export async function sendMessageToLina(
       rawReply = "Lina est momentanément indisponible. Contactez-nous à info@zeniva.ca";
     } else {
       const json = await res.json();
-      rawReply = String(json?.response || json?.reply || "");
+      rawReply = String(json?.reply || json?.response || "");
     }
   } catch (err: any) {
     clearTimeout(timeout);
