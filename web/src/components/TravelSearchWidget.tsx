@@ -315,8 +315,8 @@ export default function TravelSearchWidget() {
       {/* Desktop: formulaire de recherche classique et tabs */}
       <div className="hidden sm:block">
         <div className="mb-5 text-center">
-          <h2 className="text-2xl font-black text-slate-900">{tx("Plan your perfect trip with Lina AI")}</h2>
-          <p className="text-slate-500 mt-1 text-sm">{tx("Your personal travel concierge powered by AI")}</p>
+          <h2 className="text-2xl font-black text-slate-900">{tx("Plan your entire trip in seconds with AI")}</h2>
+          <p className="text-slate-700 mt-1 text-sm font-semibold">{tx("Your personal travel concierge powered by AI")}</p>
         </div>
 
         {/* Tabs (desktop) — premium icons */}
@@ -332,7 +332,7 @@ export default function TravelSearchWidget() {
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold whitespace-nowrap transition-all border ${tab === t.key ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-200' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-600'}`}
+              className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold whitespace-nowrap transition-all border ${tab === t.key ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-200' : 'bg-white text-slate-800 border-slate-300 hover:border-blue-300 hover:text-blue-600 font-bold'}`}
             >
               <span>{t.icon}</span>
               <span>{t.label}</span>
@@ -364,8 +364,8 @@ export default function TravelSearchWidget() {
       <div className="hidden sm:block">
         {tab === "flights" && (
           <form onSubmit={searchFlights} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <input value={from} onChange={(e) => setFrom(e.target.value)} placeholder={tx("From (airport/city)")} required className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
-            <input value={to} onChange={(e) => setTo(e.target.value)} placeholder={tx("To (airport/city)")} required className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
+            <input value={from} onChange={(e) => setFrom(e.target.value)} placeholder={tx("From (airport/city)")} required className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" />
+            <input value={to} onChange={(e) => setTo(e.target.value)} placeholder={tx("To (airport/city)")} required className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" />
             <input
               type="date"
               value={depart}
@@ -376,7 +376,7 @@ export default function TravelSearchWidget() {
               min={today}
               placeholder="Departure date"
               required
-              className="w-full rounded-2xl bg-slate-50 px-4 py-3"
+              className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500"
             />
             <div className="flex gap-2">
               <input
@@ -385,15 +385,15 @@ export default function TravelSearchWidget() {
                 onChange={(e) => setRet(e.target.value)}
                 placeholder="Return date"
                 min={returnMin}
-                className="flex-1 rounded-2xl bg-slate-50 px-4 py-3"
+                className="flex-1 rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500"
                 disabled={oneWay}
               />
-              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={oneWay} onChange={(e) => { setOneWay(e.target.checked); if (e.target.checked) setRet(""); }} /> {tx("One-way")}</label>
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-800"><input type="checkbox" checked={oneWay} onChange={(e) => { setOneWay(e.target.checked); if (e.target.checked) setRet(""); }} /> {tx("One-way")}</label>
             </div>
-            <select value={passengers} onChange={(e) => setPassengers(Number(e.target.value))} className="w-full rounded-2xl bg-slate-50 px-4 py-3" aria-label="Passengers" data-nosnippet>
+            <select value={passengers} onChange={(e) => setPassengers(Number(e.target.value))} className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" aria-label="Passengers" data-nosnippet>
               {[1,2,3,4,5,6].map(n=>(<option key={n} value={n}>{n}</option>))}
             </select>
-            <select value={cabin} onChange={(e)=>setCabin(e.target.value)} className="w-full rounded-2xl bg-slate-50 px-4 py-3">
+            <select value={cabin} onChange={(e)=>setCabin(e.target.value)} className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500">
               {['Economy','Premium Economy','Business','First'].map(c=>(<option key={c} value={c}>{tx(c)}</option>))}
             </select>
 
@@ -405,14 +405,14 @@ export default function TravelSearchWidget() {
 
         {tab === "hotels" && (
           <form onSubmit={searchHotels} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <input value={hotelDestination} onChange={(e)=>setHotelDestination(e.target.value)} placeholder={tx("Destination")} className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
-            <input value={checkIn} onChange={(e)=>setCheckIn(e.target.value)} placeholder={tx("Check-in")} className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
-            <input value={checkOut} onChange={(e)=>setCheckOut(e.target.value)} placeholder={tx("Check-out")} className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
+            <input value={hotelDestination} onChange={(e)=>setHotelDestination(e.target.value)} placeholder={tx("Destination")} className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" />
+            <input value={checkIn} onChange={(e)=>setCheckIn(e.target.value)} placeholder={tx("Check-in")} className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" />
+            <input value={checkOut} onChange={(e)=>setCheckOut(e.target.value)} placeholder={tx("Check-out")} className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" />
             <div className="flex gap-2">
-              <input value={guests} onChange={(e)=>setGuests(Number(e.target.value))} placeholder="Guests" className="w-24 rounded-2xl bg-slate-50 px-4 py-3" type="number" data-nosnippet />
-              <input value={rooms} onChange={(e)=>setRooms(Number(e.target.value))} placeholder="Rooms" className="w-24 rounded-2xl bg-slate-50 px-4 py-3" type="number" data-nosnippet />
+              <input value={guests} onChange={(e)=>setGuests(Number(e.target.value))} placeholder="Guests" className="w-24 rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" type="number" data-nosnippet />
+              <input value={rooms} onChange={(e)=>setRooms(Number(e.target.value))} placeholder="Rooms" className="w-24 rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" type="number" data-nosnippet />
             </div>
-            <input value={budget} onChange={(e)=>setBudget(e.target.value)} placeholder="Budget (optional)" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
+            <input value={budget} onChange={(e)=>setBudget(e.target.value)} placeholder="Budget (optional)" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" />
 
             <div className="md:col-span-2 flex justify-end">
               <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>{tx("Search hotels")}</button>
@@ -422,15 +422,15 @@ export default function TravelSearchWidget() {
 
         {tab === "cruises" && (
           <form onSubmit={searchCruises} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <select value={region} onChange={(e)=>setRegion(e.target.value)} className="w-full rounded-2xl bg-slate-50 px-4 py-3">
+            <select value={region} onChange={(e)=>setRegion(e.target.value)} className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500">
               <option value="">Region</option>
               <option>Caribbean</option>
               <option>Mediterranean</option>
               <option>Alaska</option>
             </select>
-            <input value={departureMonth} onChange={(e)=>setDepartureMonth(e.target.value)} placeholder={tx("Departure month")} className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
-            <input value={duration} onChange={(e)=>setDuration(e.target.value)} placeholder="Duration (nights)" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
-            <input value={cruiseGuests} onChange={(e)=>setCruiseGuests(Number(e.target.value))} placeholder="Guests" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="number" data-nosnippet />
+            <input value={departureMonth} onChange={(e)=>setDepartureMonth(e.target.value)} placeholder={tx("Departure month")} className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" />
+            <input value={duration} onChange={(e)=>setDuration(e.target.value)} placeholder="Duration (nights)" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" />
+            <input value={cruiseGuests} onChange={(e)=>setCruiseGuests(Number(e.target.value))} placeholder="Guests" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" type="number" data-nosnippet />
 
             <div className="md:col-span-2 flex justify-end">
               <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>{tx("Search cruises")}</button>
@@ -440,10 +440,10 @@ export default function TravelSearchWidget() {
 
         {tab === "experiences" && (
           <form onSubmit={searchExperiences} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <input value={expDestination} onChange={(e)=>setExpDestination(e.target.value)} placeholder="City / Destination" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
-            <input value={expDate} onChange={(e)=>setExpDate(e.target.value)} placeholder="Date" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
-            <input value={expTravelers} onChange={(e)=>setExpTravelers(Number(e.target.value))} placeholder="Travelers" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="number" data-nosnippet />
-            <select value={category} onChange={(e)=>setCategory(e.target.value)} className="w-full rounded-2xl bg-slate-50 px-4 py-3">
+            <input value={expDestination} onChange={(e)=>setExpDestination(e.target.value)} placeholder="City / Destination" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" />
+            <input value={expDate} onChange={(e)=>setExpDate(e.target.value)} placeholder="Date" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" />
+            <input value={expTravelers} onChange={(e)=>setExpTravelers(Number(e.target.value))} placeholder="Travelers" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" type="number" data-nosnippet />
+            <select value={category} onChange={(e)=>setCategory(e.target.value)} className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500">
               <option value="">Category</option>
               <option>Adventure</option>
               <option>Relax</option>
@@ -459,10 +459,10 @@ export default function TravelSearchWidget() {
 
         {tab === "transfers" && (
           <form onSubmit={searchTransfers} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <input value={transferPickup} onChange={(e)=>setTransferPickup(e.target.value)} placeholder={tx("Pickup location")} className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
-            <input value={transferDropoff} onChange={(e)=>setTransferDropoff(e.target.value)} placeholder="Drop-off location" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
-            <input value={transferDate} onChange={(e)=>setTransferDate(e.target.value)} placeholder="Date" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="date" />
-            <input value={transferPassengers} onChange={(e)=>setTransferPassengers(Number(e.target.value))} placeholder="Passengers" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="number" data-nosnippet />
+            <input value={transferPickup} onChange={(e)=>setTransferPickup(e.target.value)} placeholder={tx("Pickup location")} className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" />
+            <input value={transferDropoff} onChange={(e)=>setTransferDropoff(e.target.value)} placeholder="Drop-off location" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" />
+            <input value={transferDate} onChange={(e)=>setTransferDate(e.target.value)} placeholder="Date" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" type="date" />
+            <input value={transferPassengers} onChange={(e)=>setTransferPassengers(Number(e.target.value))} placeholder="Passengers" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" type="number" data-nosnippet />
 
             <div className="md:col-span-2 flex justify-end">
               <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>{tx("Search transfers")}</button>
@@ -472,10 +472,10 @@ export default function TravelSearchWidget() {
 
         {tab === "cars" && (
           <form onSubmit={searchCars} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <input value={carPickup} onChange={(e)=>setCarPickup(e.target.value)} placeholder={tx("Pickup location")} className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
-            <input value={carPickupDate} onChange={(e)=>setCarPickupDate(e.target.value)} placeholder={tx("Pickup date")} className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="date" />
-            <input value={carDropoffDate} onChange={(e)=>setCarDropoffDate(e.target.value)} placeholder="Dropoff date" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="date" />
-            <input value={carDrivers} onChange={(e)=>setCarDrivers(Number(e.target.value))} placeholder="Drivers" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="number" data-nosnippet />
+            <input value={carPickup} onChange={(e)=>setCarPickup(e.target.value)} placeholder={tx("Pickup location")} className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" />
+            <input value={carPickupDate} onChange={(e)=>setCarPickupDate(e.target.value)} placeholder={tx("Pickup date")} className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" type="date" />
+            <input value={carDropoffDate} onChange={(e)=>setCarDropoffDate(e.target.value)} placeholder="Dropoff date" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" type="date" />
+            <input value={carDrivers} onChange={(e)=>setCarDrivers(Number(e.target.value))} placeholder="Drivers" className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500" type="number" data-nosnippet />
 
             <div className="md:col-span-2 flex justify-end">
               <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>{tx("Search cars")}</button>
@@ -488,7 +488,7 @@ export default function TravelSearchWidget() {
             <select
               value={yachtCountry}
               onChange={(e) => setYachtCountry(e.target.value)}
-              className="w-full rounded-2xl bg-slate-50 px-4 py-3"
+              className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500"
             >
               <option value="">Country</option>
               {countryOptions.map((c) => (
@@ -508,7 +508,7 @@ export default function TravelSearchWidget() {
             <select
               value={residenceCountry}
               onChange={(e) => setResidenceCountry(e.target.value)}
-              className="w-full rounded-2xl bg-slate-50 px-4 py-3"
+              className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-slate-800 font-medium placeholder:text-slate-500"
             >
               <option value="">Country</option>
               {countryOptions.map((c) => (
