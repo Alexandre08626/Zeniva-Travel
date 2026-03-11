@@ -5,6 +5,13 @@ const rootDir = path.resolve(__dirname);
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  env: {
+    // LiteAPI Production credentials — server-only (not prefixed with NEXT_PUBLIC)
+    LITEAPI_API_BASE_URL: process.env.LITEAPI_API_BASE_URL || "https://api.liteapi.travel/v3.0",
+    LITEAPI_API_KEY: process.env.LITEAPI_API_KEY || "prod_69b4e3d9-bb6f-40eb-8cc0-3be0f8a57b6e",
+    LITEAPI_API_KEY_HEADER: process.env.LITEAPI_API_KEY_HEADER || "X-API-Key",
+    LITEAPI_BOOK_BASE_URL: process.env.LITEAPI_BOOK_BASE_URL || "https://book.liteapi.travel/v3.0",
+  },
   // Turbopack root forced to the `web` directory to avoid workspace-root resolution
   // when multiple lockfiles exist in the repository root.
   // Use an absolute path so Vercel's build (e.g. /vercel/path0/web) matches outputFileTracingRoot.
