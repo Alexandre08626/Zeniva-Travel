@@ -71,6 +71,7 @@ async function pushTripsToServer(email) {
   try {
     await fetch("/api/user-data", {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, tripsState: getTripsStateSnapshot() }),
     });
@@ -125,20 +126,35 @@ export async function syncTripsFromServer(email) {
   if (typeof window === "undefined" || !email) return;
   activeUserEmail = String(email).trim().toLowerCase();
   try {
-    const res = await fetch("/api/user-data");
+    const res = await fetch("/api/user-data", { credentials: "include" });
     if (!res.ok) return;
     const payload = await res.json();
     const tripsState = payload?.tripsState;
     if (tripsState && typeof tripsState === "object") {
-      setState((s) => ({
-        ...s,
-        trips: tripsState.trips || s.trips,
-        messages: tripsState.messages || s.messages,
-        snapshots: tripsState.snapshots || s.snapshots,
-        tripDrafts: tripsState.tripDrafts || s.tripDrafts,
-        proposals: tripsState.proposals || s.proposals,
-        selections: tripsState.selections || s.selections,
-      }));
+      setState((s) => {
+        // Merge trips: combine server + local, deduplicate by id (server wins on conflict)
+        const serverTrips = Array.isArray(tripsState.trips) ? tripsState.trips : [];
+        const localTrips = Array.isArray(s.trips) ? s.trips : [];
+        const serverIds = new Set(serverTrips.map((t) => t.id));
+        // Keep local trips not already on server, then append server trips
+        const localOnly = localTrips.filter((t) => !serverIds.has(t.id));
+        const mergedTrips = [...localOnly, ...serverTrips];
+
+        // Merge messages: combine both, server wins for same tripId
+        const serverMessages = tripsState.messages && typeof tripsState.messages === "object" ? tripsState.messages : {};
+        const localMessages = s.messages && typeof s.messages === "object" ? s.messages : {};
+        const mergedMessages = { ...localMessages, ...serverMessages };
+
+        return {
+          ...s,
+          trips: mergedTrips,
+          messages: mergedMessages,
+          snapshots: { ...(s.snapshots || {}), ...(tripsState.snapshots || {}) },
+          tripDrafts: { ...(s.tripDrafts || {}), ...(tripsState.tripDrafts || {}) },
+          proposals: { ...(s.proposals || {}), ...(tripsState.proposals || {}) },
+          selections: { ...(s.selections || {}), ...(tripsState.selections || {}) },
+        };
+      });
     }
   } catch (_) {
     // ignore
