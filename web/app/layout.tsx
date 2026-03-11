@@ -14,6 +14,7 @@ import WelcomeBanner from "../src/components/WelcomeBanner.client";
 import AppShell from "../src/components/AppShell.client";
 import PushNotifManager from "../src/components/PushNotifManager.client";
 import HelpCenterButton from "../src/components/HelpCenterButton.client";
+import LinaFloatingChat from "../components/LinaFloatingChat";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -329,6 +330,7 @@ export default function RootLayout({
           <BackButton />
           <AppShell />
           <PushNotifManager />
+          <LinaFloatingChat />
           <HelpCenterButton />
           <PWAPromptAfterLogin />
           <WelcomeBanner />

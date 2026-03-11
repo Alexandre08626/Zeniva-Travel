@@ -10,7 +10,7 @@ import { z } from "zod";
 
 const ZENIVA_API_URL =
   process.env.ZENIVA_API_URL ||
-  "https://vmi3097009.contaboserver.net/webhook/zeniva-lina-chat";
+  "http://217.216.88.202:8000/chat";
 
 const SYSTEM_PROMPT = `
 Tu es Lina, concierge IA de Zeniva Travel (zenivatravel.com).
@@ -86,10 +86,11 @@ async function callZenivaAPI(
       body: JSON.stringify({
         message: prompt,
         sessionId: requestId,
+        source: "zenivatravel.com",
         language: "fr",
         history: history.slice(-20).map((m) => ({
           role: m.role === "assistant" ? "assistant" : m.role,
-          text: m.content,
+          content: m.content,
         })),
       }),
       signal: controller.signal,
