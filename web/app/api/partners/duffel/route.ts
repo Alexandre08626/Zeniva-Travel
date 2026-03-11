@@ -33,17 +33,102 @@ export async function GET(req: Request) {
 
   // Small helper to normalize common city names to a 3-letter IATA code
   const iataMap: Record<string, string> = {
-    "Quebec": "YQB",
-    "Québec": "YQB",
-    "Montreal": "YUL",
-    "Montréal": "YUL",
+    // Canada
+    "Quebec": "YQB", "Québec": "YQB",
+    "Montreal": "YUL", "Montréal": "YUL",
     "Toronto": "YYZ",
     "Vancouver": "YVR",
+    "Calgary": "YYC",
+    "Ottawa": "YOW",
+    "Edmonton": "YEG",
+    // USA
     "Miami": "MIA",
-    "Paris": "PAR",
-    "New York": "JFK",
-    "London": "LON",
-    "Cancun": "CUN",
+    "New York": "JFK", "New York City": "JFK",
+    "Los Angeles": "LAX",
+    "Chicago": "ORD",
+    "San Francisco": "SFO",
+    "Las Vegas": "LAS",
+    "Orlando": "MCO",
+    "Boston": "BOS",
+    "Seattle": "SEA",
+    "Houston": "IAH",
+    "Atlanta": "ATL",
+    "Dallas": "DFW",
+    // Europe
+    "Paris": "CDG",
+    "London": "LHR",
+    "Rome": "FCO", "Roma": "FCO",
+    "Barcelona": "BCN",
+    "Madrid": "MAD",
+    "Amsterdam": "AMS",
+    "Frankfurt": "FRA",
+    "Lisbon": "LIS", "Lisbonne": "LIS",
+    "Dublin": "DUB",
+    "Athens": "ATH", "Athènes": "ATH",
+    "Greece": "ATH", "Grèce": "ATH", "Grece": "ATH", "GRÈ": "ATH",
+    "Santorini": "JTR",
+    "Mykonos": "JMK",
+    "Crete": "HER", "Crète": "HER", "Heraklion": "HER",
+    "Rhodes": "RHO",
+    "Corfu": "CFU", "Corfou": "CFU",
+    "Vienna": "VIE", "Vienne": "VIE",
+    "Prague": "PRG",
+    "Budapest": "BUD",
+    "Warsaw": "WAW", "Varsovie": "WAW",
+    "Brussels": "BRU", "Bruxelles": "BRU",
+    "Copenhagen": "CPH", "Copenhague": "CPH",
+    "Stockholm": "ARN",
+    "Oslo": "OSL",
+    "Helsinki": "HEL",
+    "Zurich": "ZRH",
+    "Geneva": "GVA", "Genève": "GVA",
+    "Milan": "MXP", "Milano": "MXP",
+    "Venice": "VCE", "Venise": "VCE",
+    "Florence": "FLR", "Firenze": "FLR",
+    "Istanbul": "IST",
+    "Dubrovnik": "DBV",
+    // Caribbean / Latin America
+    "Cancun": "CUN", "Cancún": "CUN",
+    "Punta Cana": "PUJ",
+    "Havana": "HAV", "La Havane": "HAV",
+    "Nassau": "NAS",
+    "Montego Bay": "MBJ",
+    "San Jose": "SJO", "San José": "SJO",
+    "Mexico City": "MEX", "Mexico": "MEX",
+    "Bogota": "BOG", "Bogotá": "BOG",
+    "Lima": "LIM",
+    "Buenos Aires": "EZE",
+    "Rio de Janeiro": "GIG", "Rio": "GIG",
+    "São Paulo": "GRU", "Sao Paulo": "GRU",
+    // Asia
+    "Tokyo": "NRT",
+    "Osaka": "KIX",
+    "Bangkok": "BKK",
+    "Bali": "DPS",
+    "Singapore": "SIN",
+    "Hong Kong": "HKG",
+    "Seoul": "ICN",
+    "Beijing": "PEK",
+    "Shanghai": "PVG",
+    "Dubai": "DXB",
+    "Abu Dhabi": "AUH",
+    "Doha": "DOH",
+    "Maldives": "MLE", "Maldives (Male)": "MLE",
+    "Phuket": "HKT",
+    "Kuala Lumpur": "KUL",
+    "Manila": "MNL",
+    // Africa / Middle East
+    "Cairo": "CAI", "Le Caire": "CAI",
+    "Marrakech": "RAK",
+    "Casablanca": "CMN",
+    "Nairobi": "NBO",
+    "Cape Town": "CPT", "Le Cap": "CPT",
+    "Johannesburg": "JNB",
+    // Oceania
+    "Sydney": "SYD",
+    "Melbourne": "MEL",
+    "Auckland": "AKL",
+    "Fiji": "NAN",
   };
 
   function resolveIATA(val: string | null) {
@@ -55,8 +140,8 @@ export async function GET(req: Request) {
     for (const [k, v] of Object.entries(iataMap)) {
       if (k.toLowerCase() === s.toLowerCase() || s.toLowerCase().includes(k.toLowerCase())) return v;
     }
-    // Fallback: use first three letters uppercased (not ideal, but explicit)
-    return s.toUpperCase().slice(0, 3);
+    // Fallback: return empty string (will trigger validation error with clear message)
+    return "";
   }
 
   const origin = resolveIATA(originInput);
