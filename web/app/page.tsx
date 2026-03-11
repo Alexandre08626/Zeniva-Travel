@@ -274,7 +274,7 @@ export default function HomePage() {
                       Travel AI
                     </h1>
                     <p className="text-base text-white/90 font-medium">
-                      <AutoTranslate text="Your personal AI travel concierge" className="inline" />
+                      <AutoTranslate text="Tell Lina where you want to go and she instantly builds your flights, hotels, and experiences." className="inline" />
                     </p>
                   </div>
                 </div>
@@ -283,7 +283,7 @@ export default function HomePage() {
                 <div className="bg-white rounded-3xl shadow-2xl p-5 overflow-hidden" style={{ boxShadow: "0 25px 80px rgba(0,0,0,0.4)" }}>
                   <div className="flex items-center gap-2 mb-3">
                     <img src="/branding/lina-avatar.png" alt="Lina" className="w-6 h-6 rounded-full border-2 border-yellow-400/40" />
-                    <span className="text-sm font-bold text-slate-700"><AutoTranslate text="Plan your perfect trip with Lina AI" className="inline" /></span>
+                    <span className="text-sm font-bold text-slate-700"><AutoTranslate text="Plan your entire trip in seconds with AI" className="inline" /></span>
                     <span className="ml-auto text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full flex-shrink-0">LIVE</span>
                   </div>
                   <div className="w-full overflow-hidden">
@@ -386,9 +386,10 @@ export default function HomePage() {
               </Link>
               <Link href="/chat" className="flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-white shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-200 text-base" style={{ background: "linear-gradient(135deg, #0F3A8A, #1a4fad)" }}>
                 <img src="/branding/lina-avatar.png" alt="Lina" className="w-7 h-7 rounded-full border-2 border-white/40" />
-                Chat Lina
+                Start planning my trip
               </Link>
             </div>
+            <p className="text-center text-xs text-slate-400 mt-2">Free to start • No account required • 15% off your first booking</p>
 
             <div className="text-center mb-8">
               <h2 className="text-3xl font-black text-slate-900">
@@ -442,10 +443,10 @@ export default function HomePage() {
                 </div>
                 <h2 className="text-5xl font-black text-white leading-tight mb-6">
                   Meet <span style={{ background: "linear-gradient(90deg, #E6B85A, #f7d98a)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Lina</span>,<br/>
-                  Your Travel<br/>Concierge
+                  Your AI Travel<br/>Concierge
                 </h2>
                 <p className="text-white/90 text-lg leading-relaxed mb-8">
-                  <AutoTranslate text="Lina is the world's most advanced AI travel concierge. She speaks your language, understands your budget, and builds perfect custom trips in seconds — 24/7." className="inline" />
+                  <AutoTranslate text="Lina is your AI travel concierge that plans your entire trip in seconds. She understands your destination, budget, and travel style to instantly create the perfect itinerary." className="inline" />
                 </p>
 
                 {/* Features */}
@@ -601,19 +602,20 @@ export default function HomePage() {
               <div className="relative z-10 text-center py-20 px-8">
                 <img src="/branding/lina-avatar.png" alt="Lina" className="w-20 h-20 rounded-full border-4 mx-auto mb-6 shadow-2xl" style={{ borderColor: "rgba(230,184,90,0.5)" }} />
                 <h2 className="text-5xl font-black text-white mb-4">
-                  <AutoTranslate text="Ready to travel smarter?" className="inline" />
+                  <AutoTranslate text="Start planning your trip with AI" className="inline" />
                 </h2>
                 <p className="text-white/90 text-lg max-w-xl mx-auto mb-10">
-                  <AutoTranslate text="Join thousands of travelers who let Lina plan their perfect trips. Free to start. No credit card required." className="inline" />
+                  <AutoTranslate text="Tell Lina where you want to go and she will instantly create your perfect trip." className="inline" />
                 </p>
                 <div className="flex items-center justify-center gap-4">
                   <Link href="/chat" className="inline-flex items-center gap-2 rounded-2xl px-8 py-4 text-base font-black text-slate-900 hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(90deg, #E6B85A, #f7d98a)" }}>
-                    💬 Start planning my trip — Free
+                    💬 Start planning my trip
                   </Link>
                   <Link href="/call" className="inline-flex items-center gap-2 rounded-2xl px-8 py-4 text-base font-black text-white border-2 border-white/20 hover:bg-white/20 transition-colors">
                     📞 Call Lina
                   </Link>
                 </div>
+                <p className="text-white/60 text-xs mt-4">Free to start • No credit card required • 15% off your first booking</p>
               </div>
             </div>
           </div>
