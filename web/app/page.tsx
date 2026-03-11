@@ -126,9 +126,9 @@ export default function HomePage() {
                   <span className="text-[10px] font-bold text-yellow-300 uppercase tracking-widest">✨ AI-Powered Travel</span>
                 </div>
                 <p className="text-4xl font-black text-white leading-none tracking-tight mb-3" role="heading" aria-level={1}>
-                  Plan your entire trip<br/>
+                  Your Personal<br/>
                   <span style={{ background: "linear-gradient(90deg, #E6B85A, #fff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                    in seconds with Lina AI
+                    Travel Genius
                   </span>
                 </p>
                 <p className="text-white text-sm leading-relaxed max-w-xs mx-auto font-medium">
