@@ -22,18 +22,19 @@ export async function sendMessageToLina(
   }
 
   // Persistent session ID per browser tab — keeps n8n memory across messages
-  let sessionId =
-    (Array.isArray(historyOrPrompt) &&
-      (((historyOrPrompt as any).sessionId ||
-        ((historyOrPrompt as any).sessionId === 0 &&
-          String((historyOrPrompt as any).sessionId))))) || "";
-  if (!sessionId && typeof window !== "undefined") {
-    const stored = sessionStorage.getItem("lina-session-id");
+  // Derive sessionId from tripId in the URL (persisted per-trip in localStorage)
+  let sessionId = "";
+  if (typeof window !== "undefined") {
+    // Get tripId from URL: /chat/<tripId>
+    const tripIdMatch = window.location.pathname.match(/\/chat\/([^/?#]+)/);
+    const tripId = tripIdMatch ? tripIdMatch[1] : null;
+    const storageKey = tripId ? `lina-session-${tripId}` : "lina-session-id";
+    const stored = localStorage.getItem(storageKey);
     if (stored) {
       sessionId = stored;
     } else {
       sessionId = `web-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-      sessionStorage.setItem("lina-session-id", sessionId);
+      localStorage.setItem(storageKey, sessionId);
     }
   }
   if (!sessionId) {
