@@ -729,23 +729,36 @@ function ChatThread({ tripId, proposalMode = "" }) {
           </div>
         </form>
 
-        {/* Generate Proposal — always full width */}
-        <div className="mt-2.5 flex items-center gap-3">
-          <button
-            onClick={() => {
-              const { generateProposal } = require("../../lib/store/tripsStore");
-              if (typeof window !== "undefined") {
-                generateProposal(tripId);
-                window.location.href = `/proposals/${tripId}/select`;
-              }
-            }}
-            className="flex-1 rounded-2xl px-5 py-3.5 text-sm font-black text-[#0B1B4D] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md"
-            style={{ background: "linear-gradient(90deg, #E6B85A, #f0c96b)" }}
-          >
-            🚀 Generate Proposal
-          </button>
-          <span className="text-slate-400 text-xs hidden sm:block">Powered by Zeniva AI</span>
-        </div>
+        {/* Generate Proposal — always full width, pulses when Lina is ready */}
+        {(() => {
+          const lastLinaMsg = [...history].reverse().find(m => m.role === "assistant")?.content || "";
+          const isReady = /generate proposal|proposal.*ready|voir vos options|vos options de voyage|appuyez sur le bouton|click the gold|botón dorado|votre proposition est pr/i.test(lastLinaMsg);
+          return (
+            <div className="mt-2.5">
+              {isReady && (
+                <div className="mb-2 flex items-center justify-center gap-2 animate-bounce">
+                  <span className="text-[#E6B85A] text-sm font-black">👇 Click below to see your trip options!</span>
+                </div>
+              )}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    const { generateProposal } = require("../../lib/store/tripsStore");
+                    if (typeof window !== "undefined") {
+                      generateProposal(tripId);
+                      window.location.href = `/proposals/${tripId}/select`;
+                    }
+                  }}
+                  className={`flex-1 rounded-2xl px-5 py-3.5 text-sm font-black text-[#0B1B4D] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md ${isReady ? "animate-pulse shadow-yellow-400/60 shadow-lg" : ""}`}
+                  style={{ background: "linear-gradient(90deg, #E6B85A, #f0c96b)" }}
+                >
+                  🚀 Generate Proposal
+                </button>
+                <span className="text-slate-400 text-xs hidden sm:block">Powered by Zeniva AI</span>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
