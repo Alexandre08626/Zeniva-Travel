@@ -670,12 +670,34 @@ export default function ProposalSelectPage() {
           rooms: "1",
         }).toString();
 
-        const res = await fetch(`/api/partners/liteapi/hotels/search?${qs}`);
-        const json = await res.json().catch(() => null);
-        if (!res.ok || !json?.ok) throw new Error(json?.error || res.statusText);
+        // Fetch LiteAPI + Amadeus in parallel
+        const [liteRes, amadeusRes] = await Promise.allSettled([
+          fetch(`/api/partners/liteapi/hotels/search?${qs}`).then(r => r.json()).catch(() => null),
+          fetch(`/api/amadeus/hotels/search?${qs}`).then(r => r.json()).catch(() => null),
+        ]);
 
-        const list = Array.isArray(json?.offers) ? json.offers : [];
-        const normalizedHotels = list.map((h) => ({
+        const liteList = liteRes.status === "fulfilled" && liteRes.value?.ok
+          ? (liteRes.value.offers || []).map((h) => ({
+              id: h.id,
+              name: h.name,
+              location: h.location,
+              price: h.price,
+              room: h.room || "Room",
+              rating: Number(h.rating || 0),
+              badge: h.badge,
+              image: h.image,
+              images: [h.image].filter(Boolean),
+              type: "hotel",
+              provider: "liteapi",
+              perks: Array.isArray(h.perks) ? h.perks : [],
+            }))
+          : [];
+
+        const amadeusRaw = amadeusRes.status === "fulfilled" && amadeusRes.value?.ok
+          ? (amadeusRes.value.hotels || [])
+          : [];
+
+        const amadeusNormalized = amadeusRaw.map((h) => ({
           id: h.id,
           name: h.name,
           location: h.location,
@@ -683,12 +705,22 @@ export default function ProposalSelectPage() {
           room: h.room || "Room",
           rating: Number(h.rating || 0),
           badge: h.badge,
-          image: h.image,
-          images: [h.image].filter(Boolean),
+          image: h.image || "/branding/hotel-placeholder.jpg",
+          images: h.images || [],
           type: "hotel",
-          provider: "liteapi",
+          provider: "amadeus",
           perks: Array.isArray(h.perks) ? h.perks : [],
         }));
+
+        // Deduplicate: if same hotel name exists in both, keep LiteAPI version (usually has better image/data)
+        const liteNames = new Set(liteList.map(h => h.name.toLowerCase().trim()));
+        const uniqueAmadeus = amadeusNormalized.filter(h => !liteNames.has(h.name.toLowerCase().trim()));
+
+        // Merge + sort by price ascending
+        const combined = [...liteList, ...uniqueAmadeus].sort((a, b) => (a.price || 0) - (b.price || 0));
+        const normalizedHotels = combined.slice(0, 25);
+
+        if (normalizedHotels.length === 0) throw new Error("No hotels found");
 
         setHotels(normalizedHotels);
         const currentId = String(selection?.hotel?.id || "").trim();
