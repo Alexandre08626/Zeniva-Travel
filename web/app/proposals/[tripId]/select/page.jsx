@@ -898,7 +898,7 @@ export default function ProposalSelectPage() {
         const hotelName = selection?.hotel?.name || "";
         const hotelLocation = selection?.hotel?.location || destination;
         
-        const qsParams: Record<string, string> = {
+        const qsParams = {
           origin: originAirport || destination,
           destination: hotelLocation,
           dateTime,
