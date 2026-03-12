@@ -26,10 +26,17 @@ export async function GET(req: NextRequest) {
   const guests = parseInt(searchParams.get("guests") || "2");
   const propertyType = (searchParams.get("type") || "shortterm").toLowerCase(); // villa | condo | shortterm | all
 
-  // Default dates
+  // Default dates — if dates are in the past, shift to 30 days from now
   const today = new Date();
-  const arrivalDate = checkIn || new Date(today.getTime() + 30 * 86400000).toISOString().split("T")[0];
-  const departureDate = checkOut || new Date(today.getTime() + 37 * 86400000).toISOString().split("T")[0];
+  const todayStr = today.toISOString().split("T")[0];
+  let arrivalDate = checkIn || new Date(today.getTime() + 30 * 86400000).toISOString().split("T")[0];
+  let departureDate = checkOut || new Date(today.getTime() + 37 * 86400000).toISOString().split("T")[0];
+  // If dates are in the past, use future dates
+  if (arrivalDate < todayStr) {
+    const nights = Math.max(1, Math.round((new Date(departureDate).getTime() - new Date(arrivalDate).getTime()) / 86400000));
+    arrivalDate = new Date(today.getTime() + 30 * 86400000).toISOString().split("T")[0];
+    departureDate = new Date(today.getTime() + (30 + nights) * 86400000).toISOString().split("T")[0];
+  }
   const nights = Math.max(1, Math.round(
     (new Date(departureDate).getTime() - new Date(arrivalDate).getTime()) / 86400000
   ));

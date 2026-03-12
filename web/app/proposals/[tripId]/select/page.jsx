@@ -989,7 +989,7 @@ export default function ProposalSelectPage() {
       })
       .catch(() => setErrorVillas("Unable to load villas."))
       .finally(() => setLoadingVillas(false));
-  }, [tripDraft?.includeVillas, tripDraft?.villaType, tripDraft?.destination, tripDraft?.checkIn, tripDraft?.checkOut, tripDraft?.adults, tripId]);
+  }, [tripDraft?.includeVillas, tripDraft?.villaType, tripDraft?.destination, tripDraft?.checkIn, tripDraft?.checkOut, tripDraft?.adults, tripId, showVillasOverride]);
 
   const onSelectFlight = (flight) => {
     const parsePrice = (raw) => {
@@ -2021,7 +2021,7 @@ export default function ProposalSelectPage() {
                   { icon: "🎯", label: "Activity", item: selection?.activity, getValue: (a) => a?.name, optional: true },
                   { icon: "🚗", label: "Transfer", item: selection?.transfer, getValue: (t) => t?.name, optional: true },
                   { icon: "🚙", label: "Rental Car", item: selection?.car, getValue: (c) => c?.name || c?.category, optional: true },
-                  { icon: "🏠", label: "Villa", item: selection?.villa, getValue: (v) => v?.name, optional: true },
+                  { icon: "🏠", label: "Airbnb", item: selection?.villa, getValue: (v) => v?.name, optional: true },
                 ].map(({ icon, label, item, getValue, optional }) => (
                   <div key={label} className={`flex items-start gap-3 rounded-xl p-3 ${item ? "bg-white/10 border border-white/10" : "border border-dashed border-white/10"}`}>
                     <span className="text-lg flex-shrink-0">{icon}</span>
