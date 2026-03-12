@@ -717,10 +717,20 @@ export default function ProposalSelectPage() {
         const uniqueAmadeus = amadeusNormalized.filter(h => !liteNames.has(h.name.toLowerCase().trim()));
 
         // Merge + sort by price ascending
-        const combined = [...liteList, ...uniqueAmadeus].sort((a, b) => (a.price || 0) - (b.price || 0));
+        const extractPriceNum = (p) => {
+          if (!p) return 9999999;
+          const m = String(p).replace(/,/g, "").match(/([0-9]+(?:\.[0-9]+)?)/);
+          return m ? parseFloat(m[1]) : 9999999;
+        };
+        const combined = [...liteList, ...uniqueAmadeus].sort((a, b) => extractPriceNum(a.price) - extractPriceNum(b.price));
         const normalizedHotels = combined.slice(0, 25);
 
-        if (normalizedHotels.length === 0) throw new Error("No hotels found");
+        if (normalizedHotels.length === 0) {
+          setHotels([]);
+          setErrorHotels("No hotels available for these dates — try adjusting your travel dates");
+          setLoadingHotels(false);
+          return;
+        }
 
         setHotels(normalizedHotels);
         const currentId = String(selection?.hotel?.id || "").trim();
