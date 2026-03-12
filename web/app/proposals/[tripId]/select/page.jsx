@@ -774,15 +774,21 @@ export default function ProposalSelectPage() {
       setLoadingActivities(true);
       setErrorActivities(null);
       try {
+        // Use Booking.com activities (reliable, global coverage, real photos + prices)
         const qs = new URLSearchParams({
-          keyword: destination,
-          radius: "6",
+          destination,
           limit: "20",
         }).toString();
 
-        const res = await fetch(`/api/amadeus/activities/search?${qs}`);
+        const res = await fetch(`/api/booking/activities/search?${qs}`);
         const data = await res.json().catch(() => null);
-        if (!res.ok || !data?.ok) throw new Error(data?.message || data?.error || res.statusText);
+        if (!res.ok || !data?.ok) {
+          // Silent graceful fail — no scary error message
+          setActivities([]);
+          setErrorActivities(null);
+          setLoadingActivities(false);
+          return;
+        }
 
         const mapped = (data.activities || []).map((a) => ({
           id: a.id,
@@ -790,24 +796,17 @@ export default function ProposalSelectPage() {
           location: destination,
           date: checkIn,
           time: "10:00",
-          price: (() => {
-            if (!a?.price?.currency || !Number.isFinite(Number(a?.price?.amount))) return "Price on request";
-            const raw = Number(a.price.amount);
-            const cur = String(a.price.currency).toUpperCase();
-            // Convert EUR → USD (approx rate 1.08)
-            const usdAmount = cur === "EUR" ? Math.round(raw * 1.08) : cur === "GBP" ? Math.round(raw * 1.27) : Math.round(raw);
-            return `USD ${usdAmount}`;
-          })(),
-          supplier: "amadeus",
-          provider: "amadeus",
-          rating: 4.6,
+          price: a.price || "Price on request",
+          priceNum: a.priceNum || 0,
+          supplier: "Booking.com",
+          provider: "booking",
+          rating: a.rating || 4.5,
+          reviewCount: a.reviewCount || 0,
           category: "activity",
           description: a.description || a.name,
-          image: a.pictures?.[0] || "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=80",
-          images: Array.isArray(a.pictures) ? a.pictures : [],
+          image: a.image || "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=80",
+          images: a.images || [],
           type: "activity",
-          bookingLink: a.bookingLink,
-          rawPayload: a.raw || a,
         }));
 
         setActivities(mapped);
@@ -910,7 +909,13 @@ export default function ProposalSelectPage() {
 
         const res = await fetch(`/api/booking/transfers/search?${qs}`);
         const data = await res.json().catch(() => null);
-        if (!res.ok || !data?.ok) throw new Error(data?.message || data?.error || res.statusText);
+        // Gracefully handle no coverage — don't throw, just show empty
+        if (!res.ok || !data?.ok) {
+          setTransfers([]);
+          setErrorTransfers(null); // Silent — no scary error
+          setLoadingTransfers(false);
+          return;
+        }
 
         const mapped = (data.transfers || []).map((t, idx) => ({
           id: t.id || `transfer-${idx}`,
@@ -1809,9 +1814,13 @@ export default function ProposalSelectPage() {
                 })}
 
                 {!loadingTransfers && filteredTransfers.length === 0 && !errorTransfers && (
-                  <div className="rounded-2xl border-2 border-dashed border-slate-200 p-6 text-center">
-                    <div className="text-3xl mb-2">🚌</div>
-                    <p className="text-sm text-slate-500">No transfers for this route</p>
+                  <div className="col-span-2 rounded-2xl border-2 border-dashed border-slate-200 p-6 text-center">
+                    <div className="text-3xl mb-2">🚗</div>
+                    <p className="text-sm font-semibold text-slate-700 mb-1">Transfer not available online for this destination</p>
+                    <p className="text-xs text-slate-500 mb-3">Our team will arrange your airport transfer manually.</p>
+                    <a href="mailto:info@zeniva.ca?subject=Transfer request" className="inline-block rounded-xl bg-orange-500 text-white text-xs font-bold px-4 py-2 hover:bg-orange-600 transition">
+                      📧 Request transfer via email
+                    </a>
                   </div>
                 )}
               </div>
