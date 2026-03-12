@@ -1825,19 +1825,20 @@ export default function ProposalSelectPage() {
               <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">🏠</div>
                 <div>
-                  <h2 className="text-lg font-black text-white">
-                    {tripDraft?.accommodationType === "Condo" ? "Condos & Apartments" 
-                     : tripDraft?.accommodationType === "Villa" ? "Villas" 
-                     : "Short-term Rentals"}
+                  <h2 className="text-lg font-black text-white flex items-center gap-2">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF5A5F"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm.75 18.75c-.75 1.5-2.25 1.5-3 0l-4.5-9c-.375-.75-.375-1.5.375-1.875.75-.375 1.5 0 1.875.75L11.25 15l4.5-9c.375-.75 1.125-1.125 1.875-.75.75.375.75 1.125.375 1.875l-4.5 9z"/></svg>
+                    {tripDraft?.accommodationType === "Condo" ? "Airbnb Condos" 
+                     : tripDraft?.accommodationType === "Villa" ? "Airbnb Villas" 
+                     : "Airbnb"}
                   </h2>
                   <p className="text-purple-100 text-xs">{villas.length > 0 ? `${villas.length} properties available` : "Searching..."}</p>
                 </div>
               </div>
-              <div className="p-4 space-y-3 max-h-[600px] overflow-y-auto">
+              <div className="p-4 max-h-[700px] overflow-y-auto">
                 {loadingVillas && (
-                  <div className="flex items-center gap-3 rounded-xl bg-purple-50 border border-purple-100 px-4 py-3">
+                  <div className="flex items-center gap-3 rounded-xl bg-purple-50 border border-purple-100 px-4 py-3 mb-3">
                     <div className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
-                    <span className="text-sm text-purple-700">Searching villas & vacation rentals…</span>
+                    <span className="text-sm text-purple-700">Searching Airbnb listings…</span>
                   </div>
                 )}
                 {!loadingVillas && villas.length === 0 && (
@@ -1847,6 +1848,7 @@ export default function ProposalSelectPage() {
                     <p className="text-xs text-slate-400 mt-1">Try a different destination or contact us at info@zeniva.ca</p>
                   </div>
                 )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {villas.map((villa, i) => {
                   const villaKey = villa.id || `villa-${i}`;
                   const active = selection?.villa?.id === villaKey;
@@ -1938,6 +1940,7 @@ export default function ProposalSelectPage() {
                     </div>
                   );
                 })}
+                </div>
               </div>
             </section>
             )}
