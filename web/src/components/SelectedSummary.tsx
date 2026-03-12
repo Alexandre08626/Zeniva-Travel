@@ -132,7 +132,7 @@ export default function SelectedSummary({ flight, hotel, activity, transfer, tri
                 }}
                 className="flex items-center gap-1.5 rounded-full border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-semibold text-purple-700 hover:bg-purple-100 transition"
               >
-                🏠 + Add Villa
+                🏠 + Add Airbnb
               </button>
             )}
           </div>

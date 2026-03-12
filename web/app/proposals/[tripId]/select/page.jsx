@@ -1895,7 +1895,7 @@ export default function ProposalSelectPage() {
                           <a href={villa.bookUrl} target="_blank" rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()}
                             className="flex-1 text-center text-xs font-semibold text-purple-600 border border-purple-200 rounded-xl py-2 hover:bg-purple-50 transition">
-                            View on Booking.com →
+                            View on Airbnb →
                           </a>
                           {active ? (
                             <button onClick={(e) => { e.stopPropagation(); setProposalSelection(tripId, { villa: null }); }}
