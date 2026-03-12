@@ -982,12 +982,11 @@ export default function ProposalSelectPage() {
       ...(tripDraft?.checkOut && { checkOut: tripDraft.checkOut }),
       ...(tripDraft?.adults && { guests: String(tripDraft.adults) }),
     });
-    const villaType = tripDraft?.accommodationType === "Airbnb" ? "short-term rental"
-      : tripDraft?.accommodationType === "Villa" ? "villa"
+    const villaType = tripDraft?.villaType || (
+      tripDraft?.accommodationType === "Villa" ? "villa"
       : tripDraft?.accommodationType === "Condo" ? "condo"
-      : "short-term rental";
-    if (villaType) params.append("type", villaType);
-    const villaType = tripDraft?.villaType || "shortterm";
+      : "shortterm"
+    );
     params.append("type", villaType);
     fetch(`/api/airbnb/villas/search?${params}`)
       .then((r) => r.json())
