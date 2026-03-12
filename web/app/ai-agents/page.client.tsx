@@ -122,6 +122,36 @@ function AgentCard({ agent, onSelect }: { agent: AgentDef; onSelect: (id: string
   const sc = STATUS_CFG[agent.status];
   const isAlive = agent.status === "live" || agent.status === "active";
   const accentColor = agent.color || "#6366f1";
+  const [panelTab, setPanelTab] = useState<"info"|"chat">("info");
+  const [cmdMessages, setCmdMessages] = useState<{role:string;content:string}[]>([]);
+  const [cmdInput, setCmdInput] = useState("");
+  const [cmdLoading, setCmdLoading] = useState(false);
+  const cmdEndRef = useRef<HTMLDivElement>(null);
+
+  const sendCommand = async () => {
+    if (!cmdInput.trim() || cmdLoading) return;
+    const userMsg = cmdInput.trim();
+    setCmdInput("");
+    const newHistory = [...cmdMessages, {role:"user", content: userMsg}];
+    setCmdMessages(newHistory);
+    setCmdLoading(true);
+    try {
+      const res = await fetch("http://217.216.88.202:8000/agent-command", {
+        method: "POST",
+        headers: {"Content-Type":"application/json","Authorization":"Bearer zeniva-secret-2025"},
+        body: JSON.stringify({agent_id: agent.id, agent_name: agent.name, message: userMsg, history: cmdMessages.slice(-10)}),
+      });
+      const d = await res.json();
+      setCmdMessages([...newHistory, {role:"assistant", content: d.reply || "..."}]);
+    } catch {
+      setCmdMessages([...newHistory, {role:"assistant", content:"Connection error. Check VPS."}]);
+    }
+    setCmdLoading(false);
+  };
+
+  useEffect(() => {
+    cmdEndRef.current?.scrollIntoView({behavior:"smooth"});
+  }, [cmdMessages, cmdLoading]);
 
   return (
     <div
@@ -209,6 +239,36 @@ function AgentDetailPanel({ agent, onClose, onToggle }: {
   const sc = STATUS_CFG[agent.status];
   const isAlive = agent.status === "live" || agent.status === "active";
   const accentColor = agent.color || "#6366f1";
+  const [panelTab, setPanelTab] = useState<"info"|"chat">("info");
+  const [cmdMessages, setCmdMessages] = useState<{role:string;content:string}[]>([]);
+  const [cmdInput, setCmdInput] = useState("");
+  const [cmdLoading, setCmdLoading] = useState(false);
+  const cmdEndRef = useRef<HTMLDivElement>(null);
+
+  const sendCommand = async () => {
+    if (!cmdInput.trim() || cmdLoading) return;
+    const userMsg = cmdInput.trim();
+    setCmdInput("");
+    const newHistory = [...cmdMessages, {role:"user", content: userMsg}];
+    setCmdMessages(newHistory);
+    setCmdLoading(true);
+    try {
+      const res = await fetch("http://217.216.88.202:8000/agent-command", {
+        method: "POST",
+        headers: {"Content-Type":"application/json","Authorization":"Bearer zeniva-secret-2025"},
+        body: JSON.stringify({agent_id: agent.id, agent_name: agent.name, message: userMsg, history: cmdMessages.slice(-10)}),
+      });
+      const d = await res.json();
+      setCmdMessages([...newHistory, {role:"assistant", content: d.reply || "..."}]);
+    } catch {
+      setCmdMessages([...newHistory, {role:"assistant", content:"Connection error. Check VPS."}]);
+    }
+    setCmdLoading(false);
+  };
+
+  useEffect(() => {
+    cmdEndRef.current?.scrollIntoView({behavior:"smooth"});
+  }, [cmdMessages, cmdLoading]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -293,11 +353,85 @@ function AgentDetailPanel({ agent, onClose, onToggle }: {
                 <span className="font-medium">{agent.intro}</span>
               </p>
             </div>
+            {/* Tab switcher */}
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={() => setPanelTab("info")}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${panelTab==="info" ? "text-white shadow-md" : "text-gray-500 hover:text-gray-700"}`}
+                style={panelTab==="info" ? {background: accentColor} : {background: "rgba(0,0,0,0.05)"}}
+              >📊 Overview</button>
+              <button
+                onClick={() => setPanelTab("chat")}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${panelTab==="chat" ? "text-white shadow-md" : "text-gray-500 hover:text-gray-700"}`}
+                style={panelTab==="chat" ? {background: accentColor} : {background: "rgba(0,0,0,0.05)"}}
+              >💬 Give Orders</button>
+            </div>
           </div>
         </div>
 
         {/* Scrollable body */}
         <div className="overflow-y-auto flex-1 px-6 py-5 space-y-6 bg-white">
+
+          {/* ── CHAT TAB ── */}
+          {panelTab === "chat" && (
+            <div className="flex flex-col h-full min-h-[400px]">
+              <div className="flex-1 space-y-3 overflow-y-auto pb-2 max-h-64">
+                {cmdMessages.length === 0 && (
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-2">{agent.emoji}</div>
+                    <p className="text-sm font-semibold text-gray-700">Ready for orders, Boss.</p>
+                    <p className="text-xs text-gray-400 mt-1">Tell {agent.name} what to do</p>
+                    <div className="mt-4 space-y-2">
+                      {agent.scenarios.slice(0,2).map((s,i) => (
+                        <button key={i} onClick={() => setCmdInput(s.title)}
+                          className="block w-full text-left text-xs text-gray-500 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl px-3 py-2 transition">
+                          {s.icon} {s.title}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {cmdMessages.map((m,i) => (
+                  <div key={i} className={`flex gap-2 ${m.role==="user" ? "flex-row-reverse" : "flex-row"}`}>
+                    <div className={`text-xl shrink-0 mt-0.5`}>{m.role==="user" ? "👤" : agent.emoji}</div>
+                    <div className={`rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed max-w-[80%] whitespace-pre-wrap ${m.role==="user" ? "text-white" : "text-gray-700 bg-gray-50 border border-gray-100"}`}
+                      style={m.role==="user" ? {background: accentColor} : {}}>
+                      {m.content}
+                    </div>
+                  </div>
+                ))}
+                {cmdLoading && (
+                  <div className="flex gap-2 items-center">
+                    <div className="text-xl">{agent.emoji}</div>
+                    <div className="flex gap-1 bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3">
+                      {[0,1,2].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{animationDelay:`${i*0.15}s`}} />)}
+                    </div>
+                  </div>
+                )}
+                <div ref={cmdEndRef} />
+              </div>
+              {/* Input */}
+              <div className="flex gap-2 mt-3 sticky bottom-0 bg-white pt-2">
+                <input
+                  value={cmdInput}
+                  onChange={e => setCmdInput(e.target.value)}
+                  onKeyDown={e => { if(e.key==="Enter" && !e.shiftKey){e.preventDefault();sendCommand();}}}
+                  placeholder={`Tell ${agent.name} what to do…`}
+                  className="flex-1 rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+                  style={{"--tw-ring-color":accentColor} as any}
+                />
+                <button
+                  onClick={sendCommand}
+                  disabled={!cmdInput.trim() || cmdLoading}
+                  className="px-4 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-40 transition"
+                  style={{background: accentColor}}
+                >→</button>
+              </div>
+            </div>
+          )}
+
+          {/* ── INFO TAB ── */}
+          {panelTab === "info" && <>
 
           {/* Live Metrics */}
           <div>
@@ -396,6 +530,8 @@ function AgentDetailPanel({ agent, onClose, onToggle }: {
           </div>
 
           <div className="pb-2" />
+          </>
+          }
         </div>
       </div>
     </div>
