@@ -726,8 +726,8 @@ export default function ProposalSelectPage() {
     const checkIn = String(tripDraft?.checkIn || "").trim();
     const checkOut = String(tripDraft?.checkOut || "").trim();
 
-    // Default ON unless explicitly disabled.
-    if (tripDraft?.includeActivities === false) {
+    // Only load when explicitly enabled
+    if (tripDraft?.includeActivities !== true) {
       setActivities([]);
       setLoadingActivities(false);
       setErrorActivities(null);
@@ -824,8 +824,8 @@ export default function ProposalSelectPage() {
       return String(flightSearchContext?.destination || "").trim();
     };
 
-    // Default ON unless explicitly disabled.
-    if (tripDraft?.includeTransfers === false) {
+    // Only load when explicitly enabled
+    if (tripDraft?.includeTransfers !== true) {
       setTransfers([]);
       setLoadingTransfers(false);
       setErrorTransfers(null);
