@@ -898,37 +898,39 @@ export default function ProposalSelectPage() {
         const hotelName = selection?.hotel?.name || "";
         const hotelLocation = selection?.hotel?.location || destination;
         
-        const qsParams = {
+        // Use Booking.com transfers (real cars, real photos)
+        const qs = new URLSearchParams({
           origin: originAirport || destination,
           destination: hotelLocation,
-          dateTime,
+          date: checkIn,
+          time: "10:00",
           passengers: String(tripDraft?.adults || 2),
-        };
-        if (hotelName) {
-          qsParams.endName = hotelName;
-          qsParams.endCity = hotelLocation;
-          qsParams.endCountryCode = "US";
-        }
-        const qs = new URLSearchParams(qsParams).toString();
+          hotelName: hotelName || "",
+        }).toString();
 
-        const res = await fetch(`/api/amadeus/transfers/search?${qs}`);
+        const res = await fetch(`/api/booking/transfers/search?${qs}`);
         const data = await res.json().catch(() => null);
         if (!res.ok || !data?.ok) throw new Error(data?.message || data?.error || res.statusText);
 
-        const mapped = (data.offers || []).map((t, idx) => ({
+        const mapped = (data.transfers || []).map((t, idx) => ({
           id: t.id || `transfer-${idx}`,
-          name: t.vehicle?.description || t.vehicle?.category || "Transfer",
-          route: `${t.origin} → ${t.destination}`,
+          name: t.category || "Transfer",
+          description: t.description,
+          route: `Airport → Hotel`,
           date: checkIn,
-          price: t?.price?.currency && Number.isFinite(Number(t?.price?.amount)) ? `${t.price.currency} ${t.price.amount}` : "Price on request",
-          supplier: "amadeus",
-          provider: "amadeus",
-          vehicle: t.vehicle?.description || t.vehicle?.category,
-          shared: String(t.transferType || "").toUpperCase().includes("SHARED"),
-          image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=900&q=80",
-          images: [],
+          price: t.priceText || "Price on request",
+          priceNum: t.price || 0,
+          supplier: t.supplier || "Booking.com",
+          provider: "booking",
+          vehicle: t.category,
+          imageUrl: t.imageUrl,
+          seats: t.seats,
+          bags: t.bags,
+          duration: t.duration,
+          distance: t.distance,
+          cancellable: t.cancellable,
+          meetGreet: t.meetGreet,
           type: "transfer",
-          rawPayload: t.raw || t,
         }));
 
         setTransfers(mapped);
@@ -1760,29 +1762,49 @@ export default function ProposalSelectPage() {
                 </div>
               </div>
 
-              <div className="p-4 space-y-3 max-h-[380px] overflow-y-auto">
-                {loadingTransfers && <div className="flex items-center gap-3 rounded-xl bg-orange-50 border border-orange-100 px-4 py-3"><div className="w-5 h-5 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" /><span className="text-sm text-orange-700">Loading transfers…</span></div>}
+              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto">
+                {loadingTransfers && <div className="col-span-2 flex items-center gap-3 rounded-xl bg-orange-50 border border-orange-100 px-4 py-3"><div className="w-5 h-5 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" /><span className="text-sm text-orange-700">Loading transfers…</span></div>}
                 {errorTransfers && !errorTransfers.includes("No transfers") && <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">⚠️ {errorTransfers}</div>}
 
                 {filteredTransfers.map((t) => {
                   const transferKey = t.id || `${t.supplier || "transfer"}-${t.name || "item"}-${t.date || ""}`;
                   const active = selectedTransferKey ? selectedTransferKey === transferKey : selection?.transfer?.id === transferKey;
+                  const carImg = t.imageUrl || t.image || "https://cdn.rideways.com/images/cars/standard.jpg";
                   return (
-                    <button key={transferKey} onClick={() => onSelectTransfer({ ...t, id: transferKey })}
-                      className={`w-full text-left rounded-2xl border-2 overflow-hidden shadow-sm transition-all hover:shadow-md flex ${active ? "border-orange-500" : "border-slate-200"}`}>
-                      <div className="w-28 h-24 flex-shrink-0 overflow-hidden">
-                        <img src={t.image} alt={t.name} className="h-full w-full object-cover" loading="lazy" />
+                    <div key={transferKey}
+                      className={`rounded-2xl border-2 overflow-hidden shadow-sm transition-all hover:shadow-lg cursor-pointer ${active ? "border-orange-500 shadow-orange-100 shadow-md" : "border-slate-200 hover:border-orange-300"}`}
+                      onClick={() => onSelectTransfer({ ...t, id: transferKey })}>
+                      {/* Car photo */}
+                      <div className="h-36 overflow-hidden relative bg-slate-100">
+                        <img src={carImg} alt={t.name} className="w-full h-full object-cover" loading="lazy" onError={(e) => { e.target.src = "https://cdn.rideways.com/images/cars/standard.jpg"; }} />
+                        {active && <div className="absolute top-2 right-2 bg-orange-500 text-white text-[10px] font-bold rounded-full px-2 py-0.5">✓ Selected</div>}
+                        {t.cancellable && <div className="absolute bottom-2 left-2 bg-green-600/90 text-white text-[10px] font-bold rounded-full px-2 py-0.5">Free cancellation</div>}
+                        {t.meetGreet && <div className="absolute bottom-2 right-2 bg-blue-600/90 text-white text-[10px] font-bold rounded-full px-2 py-0.5">Meet & Greet</div>}
                       </div>
-                      <div className="flex-1 p-3 flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="font-bold text-slate-900 text-sm truncate">{t.name}</p>
-                          <p className="text-xs text-slate-500 mt-0.5">{t.route}</p>
-                          <p className="text-xs text-slate-400 mt-0.5">{t.shared ? "🚌 Shared" : "🚗 Private"} · {t.supplier}</p>
-                          {active && <span className="inline-flex mt-1 text-[10px] font-bold text-orange-700 bg-orange-100 rounded-full px-2 py-0.5">✓ Selected</span>}
+                      {/* Info */}
+                      <div className="p-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="font-bold text-slate-900 text-sm">{t.name}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">{t.description || "Private transfer"}</p>
+                            <div className="flex gap-2 mt-1.5 flex-wrap">
+                              <span className="text-[10px] bg-slate-100 text-slate-600 rounded px-1.5 py-0.5">👤 {t.seats || 3} passengers</span>
+                              <span className="text-[10px] bg-slate-100 text-slate-600 rounded px-1.5 py-0.5">🧳 {t.bags || 2} bags</span>
+                              {t.duration && <span className="text-[10px] bg-slate-100 text-slate-600 rounded px-1.5 py-0.5">⏱ {t.duration} min</span>}
+                              {t.distance && <span className="text-[10px] bg-slate-100 text-slate-600 rounded px-1.5 py-0.5">📍 {t.distance} km</span>}
+                            </div>
+                            <p className="text-[10px] text-slate-400 mt-1">by {t.supplier}</p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="font-black text-orange-600 text-lg">{t.price}</p>
+                            <button className={`mt-1 text-xs font-bold rounded-xl px-3 py-1 transition-colors ${active ? "bg-orange-500 text-white" : "bg-slate-100 text-slate-700 hover:bg-orange-50 hover:text-orange-700"}`}
+                              onClick={e => { e.stopPropagation(); onSelectTransfer({ ...t, id: transferKey }); }}>
+                              {active ? "✓ Selected" : "Select"}
+                            </button>
+                          </div>
                         </div>
-                        <p className="font-black text-orange-600 text-sm flex-shrink-0">{t.price}</p>
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
 
@@ -1816,14 +1838,13 @@ export default function ProposalSelectPage() {
                   return (
                     <div key={carKey} className={`rounded-2xl border-2 overflow-hidden transition-all hover:shadow-lg cursor-pointer ${active ? "border-blue-500 shadow-blue-100 shadow-md" : "border-slate-200 hover:border-blue-300"}`}
                       onClick={() => setProposalSelection(tripId, { car: { id: carKey, name: car.name, category: car.category, provider: car.provider, price: car.totalText } })}>
-                      {/* Car visual header */}
-                      <div className={`h-28 flex items-center justify-center relative ${active ? "bg-gradient-to-br from-blue-50 to-indigo-50" : "bg-gradient-to-br from-slate-50 to-slate-100"}`}>
-                        <div className="text-6xl">{car.emoji || "🚗"}</div>
-                        <div className="absolute top-2 left-3 flex items-center gap-1.5">
-                          <span className="text-lg">{logo}</span>
-                          <span className="text-xs font-bold text-slate-700 bg-white/80 rounded-full px-2 py-0.5">{car.provider}</span>
+                      {/* Car photo */}
+                      <div className="h-36 overflow-hidden relative bg-slate-100">
+                        <img src={car.imageUrl} alt={car.name} className="w-full h-full object-cover" loading="lazy" />
+                        <div className="absolute top-2 left-2 flex items-center gap-1.5">
+                          <span className="text-sm font-bold text-slate-800 bg-white/90 rounded-full px-2 py-0.5">{car.provider}</span>
                         </div>
-                        {active && <div className="absolute top-2 right-3 bg-blue-600 text-white text-[10px] font-bold rounded-full px-2 py-0.5">✓ Selected</div>}
+                        {active && <div className="absolute top-2 right-2 bg-blue-600 text-white text-[10px] font-bold rounded-full px-2 py-0.5">✓ Selected</div>}
                       </div>
                       {/* Car info */}
                       <div className="p-3">
