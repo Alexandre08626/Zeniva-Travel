@@ -118,11 +118,17 @@ export async function GET(req: Request) {
     });
 
     let hotelIds: string[] = [];
+    const starsByHotelId = new Map<string, number>();
     if (hotelListRes.ok) {
       const items: any[] = Array.isArray(hotelListRes.data?.data)
         ? hotelListRes.data.data
         : Array.isArray(hotelListRes.data) ? hotelListRes.data : [];
       hotelIds = items.map((h: any) => getStr(h?.id, h?.hotelId)).filter(Boolean).slice(0, 25);
+      // Capture stars from /data/hotels (this endpoint has proper stars field)
+      for (const item of items) {
+        const id = getStr(item?.id, item?.hotelId);
+        if (id) starsByHotelId.set(id, getNum(item?.stars) || 0);
+      }
     }
 
     if (hotelIds.length === 0) {
@@ -180,7 +186,7 @@ export async function GET(req: Request) {
         const location = [cityStr, countryStr].filter(Boolean).join(", ") || city;
         const image = getStr(meta?.main_photo, meta?.mainPhoto, meta?.thumbnail)
           || "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80";
-        const rating = getNum(meta?.stars) || 0; // stars = 1-5 hotel classification, not review score
+        const rating = starsByHotelId.get(hotelId) || getNum(meta?.stars) || 0; // stars from /data/hotels
         const room = getStr(rt?.rates?.[0]?.name, rt?.name, rt?.roomTypeName) || "Room";
         const perNight = Math.round(priceAmount / nights);
 

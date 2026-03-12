@@ -1576,7 +1576,7 @@ export default function ProposalSelectPage() {
 
               <div className="p-4">
                 {loadingHotels && <div className="flex items-center gap-3 rounded-xl bg-purple-50 border border-purple-100 px-4 py-3 mb-3"><div className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" /><span className="text-sm text-purple-700 font-medium">Loading stays…</span></div>}
-                {{errorHotels && hotels.length === 0 && rrorHotels && <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800 mb-3">⚠️ {errorHotels}</div>}
+                {errorHotels && hotels.length === 0 && <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800 mb-3">⚠️ {errorHotels}</div>}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[520px] overflow-y-auto pr-1">
                   {filteredHotels.map((h) => {
