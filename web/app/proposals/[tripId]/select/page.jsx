@@ -1852,61 +1852,84 @@ export default function ProposalSelectPage() {
                   const active = selection?.villa?.id === villaKey;
                   return (
                     <div key={villaKey}
-                      className={`rounded-2xl border transition-all cursor-pointer overflow-hidden ${active ? "border-purple-400 ring-2 ring-purple-200 shadow-lg" : "border-slate-200 hover:border-purple-200 hover:shadow-md"}`}
-                      onClick={() => setProposalSelection(tripId, { villa: { id: villaKey, name: villa.name, city: villa.city, price: villa.priceTotal, pricePerNight: villa.pricePerNight, photo: villa.photo, bookUrl: villa.bookUrl } })}>
-                      {/* Photo */}
-                      <div className="relative h-44 overflow-hidden bg-slate-100">
+                      className={`rounded-2xl border-2 transition-all overflow-hidden shadow-sm hover:shadow-lg ${active ? "border-purple-400 ring-2 ring-purple-100" : "border-slate-200 hover:border-purple-300"}`}>
+                      {/* Photo principale grande */}
+                      <div className="relative h-52 overflow-hidden bg-slate-100 cursor-pointer"
+                        onClick={() => setVillaPhotoModal(villa)}>
                         {villa.photo ? (
-                          <img src={villa.photo} alt={villa.name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display='none'; }} />
+                          <img src={villa.photo} alt={villa.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" onError={(e) => { e.currentTarget.style.display='none'; }} />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-4xl">🏠</div>
+                          <div className="w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-purple-50 to-pink-50">🏠</div>
                         )}
+                        {/* Airbnb badge */}
+                        <div className="absolute top-3 left-3 bg-white rounded-full px-2.5 py-1 flex items-center gap-1.5 shadow-md">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="#FF5A5F"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm.75 18.75c-.75 1.5-2.25 1.5-3 0l-4.5-9c-.375-.75-.375-1.5.375-1.875.75-.375 1.5 0 1.875.75L11.25 15l4.5-9c.375-.75 1.125-1.125 1.875-.75.75.375.75 1.125.375 1.875l-4.5 9z"/></svg>
+                          <span className="text-[10px] font-bold text-slate-700">Airbnb</span>
+                        </div>
+                        {/* Selected badge */}
                         {active && (
-                          <div className="absolute top-3 right-3 bg-purple-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">✓ Selected</div>
+                          <div className="absolute top-3 right-3 bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow">✓ Selected</div>
                         )}
-                        {villa.stars > 0 && (
-                          <div className="absolute top-3 left-3 bg-black/60 text-yellow-300 text-xs font-bold px-2 py-1 rounded-full">
-                            {"★".repeat(Math.min(villa.stars, 5))}
+                        {/* Photo count */}
+                        {villa.photos?.length > 1 && (
+                          <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
+                            📷 {villa.photos.length}
+                          </div>
+                        )}
+                        {/* Superhost badge */}
+                        {villa.superhost && (
+                          <div className="absolute bottom-3 left-3 bg-white text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded-full shadow flex items-center gap-1">
+                            🏆 Superhost
                           </div>
                         )}
                       </div>
+                      {/* Mini photos strip */}
+                      {villa.photos?.length > 1 && (
+                        <div className="flex gap-1 px-3 pt-2">
+                          {villa.photos.slice(1, 5).map((p, pi) => (
+                            <button key={pi} onClick={() => setVillaPhotoModal(villa)}
+                              className="flex-1 h-12 overflow-hidden rounded-lg bg-slate-100">
+                              <img src={p} alt="" className="w-full h-full object-cover hover:scale-110 transition-transform duration-300" onError={(e) => { e.currentTarget.parentElement.style.display='none'; }} />
+                            </button>
+                          ))}
+                        </div>
+                      )}
                       {/* Info */}
                       <div className="p-4">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
-                            <p className="font-bold text-slate-800 leading-tight">{villa.name}</p>
-                            <p className="text-xs text-slate-500 mt-0.5">{villa.city}</p>
+                            <p className="font-bold text-slate-900 text-sm leading-tight line-clamp-2">{villa.name}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">📍 {villa.city}</p>
                             <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                               {villa.rating && (
-                                <span className="flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                                <span className="flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
                                   ★ {villa.rating}
-                                  {villa.reviewLabel && <span className="font-normal text-amber-500">· {villa.reviewLabel}</span>}
                                 </span>
                               )}
                               {villa.reviews > 0 && <span className="text-xs text-slate-400">({villa.reviews.toLocaleString()} reviews)</span>}
+                              {villa.bedrooms && <span className="text-xs text-slate-400">· {villa.bedrooms} bed</span>}
+                              {villa.bathrooms && <span className="text-xs text-slate-400">· {villa.bathrooms} bath</span>}
                             </div>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <p className="text-base font-black text-purple-700">{villa.priceTotal}</p>
-                            <p className="text-xs text-slate-400">{villa.pricePerNight}/night</p>
+                            <p className="text-lg font-black text-purple-700">{villa.priceTotal}</p>
+                            <p className="text-xs text-slate-500 font-semibold">{villa.pricePerNight}/night</p>
                             <p className="text-xs text-slate-400">{villa.nights} nights</p>
                           </div>
                         </div>
                         <div className="mt-3 flex gap-2">
-                          {villa.photos?.length > 1 && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); setVillaPhotoModal(villa); }}
-                              className="flex-1 text-center text-xs font-semibold text-purple-600 border border-purple-200 rounded-xl py-2 hover:bg-purple-50 transition">
-                              📷 {villa.photos.length} photos
-                            </button>
-                          )}
+                          <button onClick={() => setVillaPhotoModal(villa)}
+                            className="flex-1 text-center text-xs font-semibold text-purple-600 border border-purple-200 rounded-xl py-2.5 hover:bg-purple-50 transition">
+                            View details
+                          </button>
                           {active ? (
-                            <button onClick={(e) => { e.stopPropagation(); setProposalSelection(tripId, { villa: null }); }}
-                              className="text-xs font-semibold text-slate-500 border border-slate-200 rounded-xl px-3 py-2 hover:bg-slate-50 transition">
+                            <button onClick={() => setProposalSelection(tripId, { villa: null })}
+                              className="text-xs font-semibold text-slate-500 border border-slate-200 rounded-xl px-4 py-2.5 hover:bg-slate-50 transition">
                               Remove
                             </button>
                           ) : (
-                            <button className="text-xs font-bold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-4 py-2 hover:opacity-90 transition">
+                            <button onClick={() => setProposalSelection(tripId, { villa: { id: villaKey, name: villa.name, city: villa.city, price: villa.priceTotal, pricePerNight: villa.pricePerNight, photo: villa.photo } })}
+                              className="text-xs font-bold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-5 py-2.5 hover:opacity-90 transition shadow">
                               Select
                             </button>
                           )}
