@@ -61,7 +61,7 @@ function RentalsContent() {
       <div className="bg-gradient-to-r from-purple-700 to-pink-600 text-white py-10 px-4">
         <div className="max-w-6xl mx-auto">
           <Link href="/" className="text-purple-200 text-sm mb-4 inline-block hover:text-white">← Back to home</Link>
-          <h1 className="text-3xl font-black mb-2">🏠 Short-term Rentals</h1>
+          <h1 className="text-3xl font-black mb-2">🏠 Zeniva Homes</h1>
           <p className="text-purple-100">Villas, condos, apartments & vacation rentals worldwide</p>
 
           {/* Search form */}

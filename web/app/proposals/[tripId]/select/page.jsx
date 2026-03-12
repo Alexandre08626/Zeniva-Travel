@@ -300,8 +300,8 @@ export default function ProposalSelectPage() {
   const showHotels = (tripDraft?.accommodationType === "Hotel" || tripDraft?.accommodationType === "Yacht") || showHotelsOverride;
   const showVillas = tripDraft?.includeVillas === true
     || tripDraft?.accommodationType === "Villa"
-    || tripDraft?.accommodationType === "Airbnb"
-    || tripDraft?.accommodationType === "Short-term rental"
+    || tripDraft?.accommodationType === "Zeniva Home"
+    || tripDraft?.accommodationType === "Zeniva Home"
     || tripDraft?.accommodationType === "Condo"
     || tripDraft?.accommodationType === "Residence"
     || showVillasOverride;
@@ -605,7 +605,7 @@ export default function ProposalSelectPage() {
 
     const normalizedStyle = (style || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     // Residence/Airbnb/STR is handled by the Villa section (Airbnb13 API) — skip hotel fetch
-    if (accommodationType === "Residence" || accommodationType === "Airbnb" || accommodationType === "Short-term rental" || accommodationType === "Villa" || accommodationType === "Condo") {
+    if (accommodationType === "Residence" || accommodationType === "Zeniva Home" || accommodationType === "Zeniva Home" || accommodationType === "Villa" || accommodationType === "Condo") {
       setHotels([]);
       setLoadingHotels(false);
       return;
@@ -995,8 +995,8 @@ export default function ProposalSelectPage() {
   useEffect(() => {
     const shouldLoadVillas = tripDraft?.includeVillas === true
       || tripDraft?.accommodationType === "Villa"
-      || tripDraft?.accommodationType === "Airbnb"
-      || tripDraft?.accommodationType === "Short-term rental"
+      || tripDraft?.accommodationType === "Zeniva Home"
+      || tripDraft?.accommodationType === "Zeniva Home"
       || tripDraft?.accommodationType === "Condo"
       || tripDraft?.accommodationType === "Residence"
       || showVillasOverride;
@@ -1939,10 +1939,10 @@ export default function ProposalSelectPage() {
                 <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">🏠</div>
                 <div>
                   <h2 className="text-lg font-black text-white flex items-center gap-2">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF5A5F"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm.75 18.75c-.75 1.5-2.25 1.5-3 0l-4.5-9c-.375-.75-.375-1.5.375-1.875.75-.375 1.5 0 1.875.75L11.25 15l4.5-9c.375-.75 1.125-1.125 1.875-.75.75.375.75 1.125.375 1.875l-4.5 9z"/></svg>
-                    {tripDraft?.accommodationType === "Condo" ? "Airbnb Condos" 
-                     : tripDraft?.accommodationType === "Villa" ? "Airbnb Villas" 
-                     : "Airbnb"}
+                    <span class="font-black text-white bg-blue-600 rounded-full px-1.5 py-0 text-xs">Z</span>
+                    {tripDraft?.accommodationType === "Condo" ? "Zeniva Home Condos" 
+                     : tripDraft?.accommodationType === "Villa" ? "Zeniva Home Villas" 
+                     : "Zeniva Home"}
                   </h2>
                   <p className="text-purple-100 text-xs">{villas.length > 0 ? `${villas.length} properties available` : "Searching..."}</p>
                 </div>
@@ -1951,7 +1951,7 @@ export default function ProposalSelectPage() {
                 {loadingVillas && (
                   <div className="flex items-center gap-3 rounded-xl bg-purple-50 border border-purple-100 px-4 py-3 mb-3">
                     <div className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
-                    <span className="text-sm text-purple-700">Searching Airbnb listings…</span>
+                    <span className="text-sm text-purple-700">Searching Zeniva Home listings…</span>
                   </div>
                 )}
                 {!loadingVillas && villas.length === 0 && (
@@ -1978,8 +1978,8 @@ export default function ProposalSelectPage() {
                         )}
                         {/* Airbnb badge */}
                         <div className="absolute top-3 left-3 bg-white rounded-full px-2.5 py-1 flex items-center gap-1.5 shadow-md">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="#FF5A5F"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm.75 18.75c-.75 1.5-2.25 1.5-3 0l-4.5-9c-.375-.75-.375-1.5.375-1.875.75-.375 1.5 0 1.875.75L11.25 15l4.5-9c.375-.75 1.125-1.125 1.875-.75.75.375.75 1.125.375 1.875l-4.5 9z"/></svg>
-                          <span className="text-[10px] font-bold text-slate-700">Airbnb</span>
+                          <span class="font-black text-white bg-blue-600 rounded-full px-1 text-[10px]">Z</span>
+                          <span className="text-[10px] font-bold text-slate-700">Zeniva Home</span>
                         </div>
                         {/* Selected badge */}
                         {active && (
@@ -2060,12 +2060,12 @@ export default function ProposalSelectPage() {
             {/* ── ADD TO YOUR TRIP ── */}
             {(() => {
               const showAddFlights = !showFlights;
-              const showAddHotels = !showHotels && tripDraft?.accommodationType !== "Villa" && tripDraft?.accommodationType !== "Airbnb" && tripDraft?.accommodationType !== "Residence" && tripDraft?.accommodationType !== "Condo";
-              const showAddAirbnb = !showVillas;
+              const showAddHotels = !showHotels && tripDraft?.accommodationType !== "Villa" && tripDraft?.accommodationType !== "Zeniva Home" && tripDraft?.accommodationType !== "Residence" && tripDraft?.accommodationType !== "Condo";
+              const showAddZenivaHome = !showVillas;
               const showAddActivities = tripDraft?.includeActivities !== true;
               const showAddTransfers = tripDraft?.includeTransfers !== true;
               const showAddCars = tripDraft?.includeRentalCar !== true;
-              const hasAnything = showAddFlights || showAddHotels || showAddAirbnb || showAddActivities || showAddTransfers || showAddCars;
+              const hasAnything = showAddFlights || showAddHotels || showAddZenivaHome || showAddActivities || showAddTransfers || showAddCars;
               if (!hasAnything) return null;
               return (
                 <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5">
@@ -2083,10 +2083,10 @@ export default function ProposalSelectPage() {
                         🏨 + Add Hotels
                       </button>
                     )}
-                    {showAddAirbnb && (
+                    {showAddZenivaHome && (
                       <button onClick={() => setShowVillasOverride(true)}
                         className="flex items-center gap-1.5 rounded-full border border-pink-200 bg-pink-50 px-4 py-2 text-xs font-bold text-pink-700 hover:bg-pink-100 transition">
-                        🏠 + Add Airbnb
+                        🏠 + Add Zeniva Home
                       </button>
                     )}
                     {showAddActivities && (
@@ -2128,7 +2128,7 @@ export default function ProposalSelectPage() {
                   { icon: "🎯", label: "Activity", item: selection?.activity, getValue: (a) => a?.name, optional: true },
                   { icon: "🚗", label: "Transfer", item: selection?.transfer, getValue: (t) => t?.name, optional: true },
                   { icon: "🚙", label: "Rental Car", item: selection?.car, getValue: (c) => c?.name || c?.category, optional: true },
-                  { icon: "🏠", label: "Airbnb", item: selection?.villa, getValue: (v) => v?.name, optional: true },
+                  { icon: "🏠", label: "Zeniva Home", item: selection?.villa, getValue: (v) => v?.name, optional: true },
                 ].map(({ icon, label, item, getValue, optional }) => (
                   <div key={label} className={`flex items-start gap-3 rounded-xl p-3 ${item ? "bg-white/10 border border-white/10" : "border border-dashed border-white/10"}`}>
                     <span className="text-lg flex-shrink-0">{icon}</span>
@@ -2414,7 +2414,7 @@ export default function ProposalSelectPage() {
             {/* Header */}
             <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-5 flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <p className="text-white/70 text-xs font-bold uppercase tracking-widest">Short-term Rental</p>
+                <p className="text-white/70 text-xs font-bold uppercase tracking-widest">Zeniva Home</p>
                 <h2 className="text-xl font-black text-white truncate">{villaPhotoModal.name}</h2>
                 <p className="text-purple-200 text-sm mt-0.5">{villaPhotoModal.city}</p>
               </div>

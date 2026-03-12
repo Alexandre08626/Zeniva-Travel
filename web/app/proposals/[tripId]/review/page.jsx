@@ -649,7 +649,7 @@ export default function ProposalReviewPage() {
             {/* STAYS */}
             {uniqueHotels.map((stay, idx) => {
               const type = getAccommodationType(stay);
-              const label = type === "Yacht" ? "Yacht" : type === "Residence" ? "Short-term rental" : "Hotel";
+              const label = type === "Yacht" ? "Yacht" : type === "Residence" ? "Zeniva Home" : "Hotel";
               const icon = type === "Yacht" ? "⛵" : type === "Residence" ? "🏡" : "🏨";
               const stayImages = getAccommodationImages(stay, type);
               const stayKey = String(stay?.id || stay?.name || idx);
@@ -816,7 +816,7 @@ export default function ProposalReviewPage() {
                   { icon: "📅", label: "Dates", value: tripDraft?.checkIn && tripDraft?.checkOut ? `${tripDraft.checkIn} → ${tripDraft.checkOut}` : "Flexible" },
                   { icon: "👥", label: "Travelers", value: `${tripDraft?.adults || "2"} traveler${(tripDraft?.adults || 2) > 1 ? "s" : ""}` },
                   { icon: "✈️", label: "Flight", value: flight?.airline ? `${flight.airline} · ${flight.route || ""}` : "Selected" },
-                  { icon: isAirbnbStay ? "🏡" : "🏨", label: isAirbnbStay ? "Airbnb" : "Stay", value: uniqueHotels[0]?.name || "Selected" },
+                  { icon: isAirbnbStay ? "🏡" : "🏨", label: isAirbnbStay ? "Zeniva Home" : "Stay", value: uniqueHotels[0]?.name || "Selected" },
                 ].map(({ icon, label, value }) => (
                   <div key={label} className="flex items-start gap-3">
                     <span className="text-lg flex-shrink-0">{icon}</span>

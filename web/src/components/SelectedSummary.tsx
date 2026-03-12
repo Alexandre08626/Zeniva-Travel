@@ -10,7 +10,7 @@ export default function SelectedSummary({ flight, hotel, activity, transfer, tri
     .filter(Boolean);
 
   const accommodationLabel = tripDraft?.accommodationType === "Yacht" ? "Yacht" :
-                             (tripDraft?.accommodationType === "Airbnb" || tripDraft?.accommodationType === "Residence") ? "Short-term rental" :
+                             (tripDraft?.accommodationType === "Zeniva Home" || tripDraft?.accommodationType === "Residence") ? "Zeniva Home" :
                              "Hotel";
 
   return (

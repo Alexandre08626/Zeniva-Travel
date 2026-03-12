@@ -17,7 +17,7 @@ const WIDGET_TRANSLATIONS: Record<string, Record<string, string>> = {
     "Experience": "Expérience",
     "Cruise": "Croisière",
     "Yacht": "Yacht",
-    "Short‑term rentals": "Locations courte durée",
+    "Zeniva Home": "Zeniva Home",
     "From (airport/city)": "Départ (aéroport/ville)",
     "To (airport/city)": "Arrivée (aéroport/ville)",
     "One-way": "Aller simple",
@@ -65,7 +65,7 @@ const WIDGET_TRANSLATIONS: Record<string, Record<string, string>> = {
     "Experience": "Experiencia",
     "Cruise": "Crucero",
     "Yacht": "Yate",
-    "Short‑term rentals": "Alquileres corto plazo",
+    "Zeniva Home": "Zeniva Home",
     "From (airport/city)": "Desde (aeropuerto/ciudad)",
     "To (airport/city)": "Hasta (aeropuerto/ciudad)",
     "One-way": "Solo ida",
@@ -328,7 +328,7 @@ export default function TravelSearchWidget() {
             { key: 'cars', label: tx('Rental Car'), icon: '🚗' },
             { key: 'experiences', label: tx('Experience'), icon: '🎯' },
             { key: 'cruises', label: tx('Cruise'), icon: '🚢' },
-            { key: 'rentals', label: tx('Short‑term rentals'), icon: '🏠' },
+            { key: 'rentals', label: 'Zeniva Home', icon: '🏠' },
           ].map((t: any) => (
             <button
               key={t.key}

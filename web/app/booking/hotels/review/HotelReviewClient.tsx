@@ -422,7 +422,7 @@ export default function HotelReviewClient() {
                       <span className="font-bold text-lg text-amber-400">{(draft as any)?.priceText || "Price on request"}</span>
                     </div>
                     <div className="rounded-xl bg-slate-700/50 border border-slate-600 px-3 py-2 text-xs text-slate-300">
-                      🏡 Airbnb booking — final price confirmed by Zeniva Travel. Includes Zeniva service.
+                      🏡 Zeniva Home booking — final price confirmed by Zeniva Travel. Includes Zeniva service.
                     </div>
                   </>
                 ) : (
@@ -452,7 +452,7 @@ export default function HotelReviewClient() {
                     boxShadow: acceptedTerms ? "0 4px 15px rgba(230,184,90,0.4)" : "none",
                   }}
                 >
-                  {isAirbnb ? (proposalTripId ? "✓ Confirm Airbnb & return to proposal →" : "✓ Request Airbnb booking →") : (proposalTripId ? "✓ Confirm & return to proposal →" : "✓ Continue to payment →")}
+                  {isAirbnb ? (proposalTripId ? "✓ Confirm Airbnb & return to proposal →" : "✓ Request Zeniva Home booking →") : (proposalTripId ? "✓ Confirm & return to proposal →" : "✓ Continue to payment →")}
                 </button>
                 <p className="text-center text-slate-500 text-[10px] mt-2">🔒 Secure booking · No payment now</p>
               </div>

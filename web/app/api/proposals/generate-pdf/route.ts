@@ -94,9 +94,9 @@ function generateProposalHTML(proposal: ProposalData): string {
         ? "Residence"
         : "Hotel";
     const rawType = item?.accommodationType || tripDraft?.accommodationType || inferredType;
-    const type = rawType === "Airbnb" ? "Residence" : rawType;
+    const type = rawType === "Zeniva Home" ? "Residence" : rawType;
     const isResidence = type === "Residence";
-    const label = type === "Yacht" ? "Yacht" : isResidence ? "Short-term rental" : "Hotel";
+    const label = type === "Yacht" ? "Yacht" : isResidence ? "Zeniva Home" : "Hotel";
     const images = item?.images || (item?.image ? [item.image] : []);
     return `
       <section class="card">

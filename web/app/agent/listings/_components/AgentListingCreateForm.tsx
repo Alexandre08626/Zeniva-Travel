@@ -159,7 +159,7 @@ export default function AgentListingCreateForm({
               onClick={() => setForm((prev) => ({ ...prev, type }))}
               className={`rounded-full border px-4 py-2 text-sm font-semibold ${form.type === type ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-700"}`}
             >
-              {type === "home" ? "Short-term rental" : type.charAt(0).toUpperCase() + type.slice(1)}
+              {type === "home" ? "Zeniva Home" : type.charAt(0).toUpperCase() + type.slice(1)}
             </button>
           ))}
         </div>
