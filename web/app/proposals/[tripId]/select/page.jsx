@@ -252,6 +252,10 @@ export default function ProposalSelectPage() {
   const [errorHotels, setErrorHotels] = useState(null);
   const [errorActivities, setErrorActivities] = useState(null);
   const [errorTransfers, setErrorTransfers] = useState(null);
+  // Section visibility overrides (allow adding sections not requested by Lina)
+  const [showFlightsOverride, setShowFlightsOverride] = useState(false);
+  const [showHotelsOverride, setShowHotelsOverride] = useState(false);
+  const [showVillasOverride, setShowVillasOverride] = useState(false);
   const [selectedTransferKey, setSelectedTransferKey] = useState("");
   const [expandedFlightId, setExpandedFlightId] = useState("");
   const [flightModal, setFlightModal] = useState(null);
@@ -287,6 +291,17 @@ export default function ProposalSelectPage() {
     tripDraft: s.tripDrafts[tripId] || {},
     snapshot: s.snapshots[tripId] || {},
   }));
+
+  // Derived section visibility — show section if Lina requested it OR user manually added it
+  const showFlights = tripDraft?.transportationType === "Flights" || showFlightsOverride;
+  const showHotels = (tripDraft?.accommodationType === "Hotel" || tripDraft?.accommodationType === "Yacht") || showHotelsOverride;
+  const showVillas = tripDraft?.includeVillas === true
+    || tripDraft?.accommodationType === "Villa"
+    || tripDraft?.accommodationType === "Airbnb"
+    || tripDraft?.accommodationType === "Short-term rental"
+    || tripDraft?.accommodationType === "Condo"
+    || tripDraft?.accommodationType === "Residence"
+    || showVillasOverride;
 
   // Recover trip data from server if localStorage is empty
   useEffect(() => {
@@ -585,44 +600,9 @@ export default function ProposalSelectPage() {
     }
 
     const normalizedStyle = (style || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-    if (accommodationType === "Residence" || accommodationType === "Airbnb" || normalizedStyle.includes('private') || normalizedStyle.includes('residence')) {
-      // Load residences linked to trip destination only
-      const filteredResidences = residencesData.filter((residence) =>
-        residenceMatchesDestination(residence, destination)
-      );
-      const mappedResidences = filteredResidences.map(a => {
-        const desc = a.description;
-        const bedroomsMatch = desc.match(/Bedrooms\s*\n\s*(\d+)/i);
-        const bathroomsMatch = desc.match(/Bathrooms\s*\n\s*(\d+)/i);
-        const bedrooms = bedroomsMatch ? bedroomsMatch[1] : '?';
-        const bathrooms = bathroomsMatch ? bathroomsMatch[1] : '?';
-        return {
-          id: a.id,
-          name: a.title,
-          location: a.location,
-          price: "Price on request", // or parse from description
-          rating: 4.8,
-          provider: "Airbnb",
-          type: "residence",
-          room: `${bedrooms} bed • ${bathrooms} bath`,
-          image: a.images?.[0] || a.thumbnail,
-        };
-      });
-      setHotels(mappedResidences);
-      const currentId = String(selection?.hotel?.id || "").trim();
-      const stillExists = currentId ? mappedResidences.some((h) => String(h?.id || "").trim() === currentId) : false;
-      if (!selection?.hotel || !stillExists) {
-        setProposalSelection(tripId, { hotel: mappedResidences[0] || null });
-      }
-      // Ensure accommodationType is set to "Residence" in trip draft
-      if (tripDraft?.accommodationType !== "Residence") {
-        applyTripPatch(tripId, { accommodationType: "Residence" });
-      }
-      if (mappedResidences.length === 0) {
-        setErrorHotels(`No short-term rentals found for ${destination}.`);
-      } else {
-        setErrorHotels(null);
-      }
+    // Residence/Airbnb/STR is handled by the Villa section (Airbnb13 API) — skip hotel fetch
+    if (accommodationType === "Residence" || accommodationType === "Airbnb" || accommodationType === "Short-term rental" || accommodationType === "Villa" || accommodationType === "Condo") {
+      setHotels([]);
       setLoadingHotels(false);
       return;
     }
@@ -1484,7 +1464,7 @@ export default function ProposalSelectPage() {
           <div className="space-y-6">
 
             {/* FLIGHTS */}
-            <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+            {showFlights && <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">✈️</div>
@@ -1605,10 +1585,10 @@ export default function ProposalSelectPage() {
                   </div>
                 )}
               </div>
-            </section>
+            </section>}
 
             {/* HOTELS / STAYS */}
-            <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+            {showHotels && <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
               <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">{staysKind === "yacht" ? "⛵" : staysKind === "villa" ? "🏡" : "🏨"}</div>
                 <div>
@@ -1684,7 +1664,7 @@ export default function ProposalSelectPage() {
                   )}
                 </div>
               </div>
-            </section>
+            </section>}
 
             {/* ACTIVITIES */}
             {tripDraft?.includeActivities === true && (
