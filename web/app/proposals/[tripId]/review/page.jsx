@@ -62,35 +62,57 @@ export default function ProposalReviewPage() {
   const extraActivities = tripDraft?.extraActivities || [];
   const extraTransfers = tripDraft?.extraTransfers || [];
 
-  const allHotels = [selection?.hotel, ...extraHotels].filter(Boolean);
+  // Include villa/Airbnb selection as accommodation when no hotel is selected
+  const primaryAccommodation = selection?.hotel || selection?.villa || null;
+  const allHotels = [primaryAccommodation, ...extraHotels].filter(Boolean);
   const uniqueHotels = allHotels.filter((item, idx, arr) => {
     const key = `${item?.id || item?.name || idx}`;
     return arr.findIndex((h) => `${h?.id || h?.name || idx}` === key) === idx;
   });
 
+  // Is the primary accommodation an Airbnb/villa?
+  const isAirbnbStay = Boolean(!selection?.hotel && selection?.villa) ||
+    Boolean(selection?.hotel?.provider === "airbnb") ||
+    Boolean(["airbnb", "villa", "short-term rental", "condo", "residence"].includes(
+      String(selection?.hotel?.accommodationType || selection?.villa?.accommodationType || "").toLowerCase()
+    ));
+
   const getAccommodationType = (item) => {
-    const rawType = item?.accommodationType || tripDraft?.accommodationType || "";
-    if (typeof rawType === "string" && rawType.toLowerCase() === "airbnb") return "Residence";
-    return rawType || (item?.room?.toLowerCase?.().includes("yacht") ? "Yacht" : item?.room?.toLowerCase?.().includes("residence") ? "Residence" : "Hotel");
+    // Check if this item is the selected villa
+    const isVilla = item?.id && selection?.villa?.id === item?.id;
+    if (isVilla) return "Residence";
+    const rawType = String(item?.accommodationType || tripDraft?.accommodationType || "").toLowerCase();
+    if (["airbnb", "villa", "short-term rental", "condo", "residence"].includes(rawType)) return "Residence";
+    if (rawType === "yacht") return "Yacht";
+    return item?.room?.toLowerCase?.().includes("yacht") ? "Yacht" : item?.room?.toLowerCase?.().includes("residence") ? "Residence" : "Hotel";
   };
 
   const getAccommodationImages = (item, type) => {
     const provider = String(item?.provider || "").trim().toLowerCase();
+
+    // Airbnb villa: use images array directly (from API response)
+    if (provider === "airbnb" || type === "Residence") {
+      if (Array.isArray(item?.images) && item.images.length > 0) return item.images;
+      if (item?.image) return [item.image];
+      // Fallback: check airbnbs.json static data
+      const airbnb = airbnbsData.find((a) => a.id === item?.id || a.title === item?.name);
+      if (airbnb?.images?.length) return airbnb.images;
+      if (airbnb?.image) return [airbnb.image];
+    }
+
     if (provider === "liteapi") {
       const id = String(item?.id || "").trim();
       const photos = id ? liteApiHotelPhotosById?.[id] : null;
       if (Array.isArray(photos) && photos.length > 0) return photos;
     }
 
-    if (item?.images && item.images.length) return item.images;
-    if (type === 'Yacht') {
+    if (Array.isArray(item?.images) && item.images.length > 0) return item.images;
+
+    if (type === "Yacht") {
       const yacht = yachtsData.find((y) => y.id === item?.id || y.title === item?.name);
       return yacht?.images || [item?.image].filter(Boolean);
     }
-    if (type === 'Residence') {
-      const airbnb = airbnbsData.find((a) => a.id === item?.id || a.title === item?.name);
-      return airbnb?.images || [item?.image].filter(Boolean);
-    }
+
     const fallback = getPartnerHotelImages(tripDraft?.destination || item?.location || item?.name);
     return fallback.length ? fallback : [item?.image].filter(Boolean);
   };
@@ -335,16 +357,17 @@ export default function ProposalReviewPage() {
   };
 
   const openHotelStep = () => {
-    const destination = String(tripDraft?.destination || "").trim();
+    const dest = String(tripDraft?.destination || "").trim();
     const checkIn = String(tripDraft?.checkIn || "").trim();
     const checkOut = String(tripDraft?.checkOut || "").trim();
     const guests = String(tripDraft?.adults || 1);
     const rooms = "1";
     const budget = String(tripDraft?.budget || "");
-    const selectedStay = selection?.hotel || uniqueHotels?.[0] || null;
+    const selectedStay = selection?.hotel || selection?.villa || uniqueHotels?.[0] || null;
+    const isVilla = isAirbnbStay || String(selectedStay?.provider || "").toLowerCase() === "airbnb";
 
     if (typeof window !== "undefined" && selectedStay) {
-      const rawPrice = String(selectedStay?.price || "");
+      const rawPrice = String(selectedStay?.price || selectedStay?.priceText || "");
       const priceMatch = rawPrice.match(/([A-Z]{3})\s*([0-9.,]+)/i);
       const totalCurrency = priceMatch?.[1]?.toUpperCase() || "USD";
       const totalAmount = priceMatch?.[2]?.replace(/,/g, "") || "0.00";
@@ -352,35 +375,43 @@ export default function ProposalReviewPage() {
       const draft = {
         selectedSearchResult: {
           id: selectedStay?.id,
-          name: selectedStay?.name || "Selected stay",
-          location: selectedStay?.location || destination,
-          room: selectedStay?.room || "Room",
-          image: selectedStay?.image || "",
+          name: selectedStay?.name || selectedStay?.title || "Selected property",
+          location: selectedStay?.location || selectedStay?.city || dest,
+          room: selectedStay?.room || selectedStay?.roomType || (isVilla ? "Private rental" : "Room"),
+          image: selectedStay?.image || (Array.isArray(selectedStay?.images) ? selectedStay.images[0] : ""),
           photos: Array.isArray(selectedStay?.images) ? selectedStay.images : [selectedStay?.image].filter(Boolean),
-          provider: selectedStay?.provider || "liteapi",
+          provider: isVilla ? "airbnb" : (selectedStay?.provider || "liteapi"),
+          rating: selectedStay?.rating,
+          superhost: selectedStay?.superhost,
+          bedrooms: selectedStay?.bedrooms,
+          bathrooms: selectedStay?.bathrooms,
+          guests: selectedStay?.guests,
         },
         selectedRateId: `proposal-rate-${tripId}`,
         selectedRate: {
           id: `proposal-rate-${tripId}`,
-          room_type: { name: selectedStay?.room || "Room" },
-          refundable: false,
-          conditions: "Selected from proposal review. Final partner terms apply.",
+          room_type: { name: selectedStay?.room || selectedStay?.roomType || (isVilla ? "Private rental" : "Room") },
+          refundable: isVilla ? true : false,
+          conditions: isVilla
+            ? "Airbnb cancellation policy applies. Contact info@zeniva.ca for assistance."
+            : "Selected from proposal review. Final partner terms apply.",
           cancellation_timeline: [],
         },
-        quote: {
+        quote: isVilla ? null : {
           id: `proposal-quote-${tripId}`,
           total_amount: totalAmount,
           total_currency: totalCurrency,
           refundable: false,
         },
+        priceText: rawPrice || null,
+        isAirbnb: isVilla,
         searchContext: {
-          destination,
+          destination: dest,
           checkIn,
           checkOut,
           guests,
           rooms,
           budget,
-          nights: tripDraft?.checkIn && tripDraft?.checkOut ? null : null,
           proposalTripId: String(tripId || ""),
           proposalMode: isAgentMode ? "agent" : "",
         },
@@ -389,7 +420,7 @@ export default function ProposalReviewPage() {
       window.sessionStorage.setItem("hotel_booking_draft_v1", JSON.stringify(draft));
     }
 
-    const search = new URLSearchParams({ destination, checkIn, checkOut, guests, rooms, budget, proposalTripId: String(tripId || "") });
+    const search = new URLSearchParams({ destination: dest, checkIn, checkOut, guests, rooms, budget, proposalTripId: String(tripId || "") });
     if (isAgentMode) search.set("mode", "agent");
     router.push(`/booking/hotels/review?${search.toString()}`);
   };
@@ -527,11 +558,11 @@ export default function ProposalReviewPage() {
                   </div>
                 </div>
 
-                {/* Hotel checklist */}
+                {/* Hotel/Airbnb checklist */}
                 <div className="rounded-xl border border-slate-200 overflow-hidden">
                   <div className="bg-purple-50 border-b border-purple-100 px-4 py-3 flex items-center gap-2">
-                    <span className="text-base">🏨</span>
-                    <p className="font-bold text-slate-800 text-sm">Accommodation</p>
+                    <span className="text-base">{isAirbnbStay ? "🏡" : "🏨"}</span>
+                    <p className="font-bold text-slate-800 text-sm">{isAirbnbStay ? "Airbnb / Rental" : "Accommodation"}</p>
                   </div>
                   <div className="p-4 space-y-3">
                     {[
@@ -548,7 +579,7 @@ export default function ProposalReviewPage() {
                       </label>
                     ))}
                     <button onClick={openHotelStep} className="w-full mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition">
-                      Validate hotel details →
+                      {isAirbnbStay ? "Confirm Airbnb details →" : "Validate hotel details →"}
                     </button>
                   </div>
                 </div>
@@ -785,7 +816,7 @@ export default function ProposalReviewPage() {
                   { icon: "📅", label: "Dates", value: tripDraft?.checkIn && tripDraft?.checkOut ? `${tripDraft.checkIn} → ${tripDraft.checkOut}` : "Flexible" },
                   { icon: "👥", label: "Travelers", value: `${tripDraft?.adults || "2"} traveler${(tripDraft?.adults || 2) > 1 ? "s" : ""}` },
                   { icon: "✈️", label: "Flight", value: flight?.airline ? `${flight.airline} · ${flight.route || ""}` : "Selected" },
-                  { icon: "🏨", label: "Stay", value: uniqueHotels[0]?.name || "Selected" },
+                  { icon: isAirbnbStay ? "🏡" : "🏨", label: isAirbnbStay ? "Airbnb" : "Stay", value: uniqueHotels[0]?.name || "Selected" },
                 ].map(({ icon, label, value }) => (
                   <div key={label} className="flex items-start gap-3">
                     <span className="text-lg flex-shrink-0">{icon}</span>

@@ -178,13 +178,15 @@ export default function HotelReviewClient() {
     return String(value);
   };
 
-  if (!draft || !quote) {
+  const isAirbnb = Boolean(draft?.isAirbnb) || draft?.selectedSearchResult?.provider === "airbnb";
+
+  if (!draft || (!quote && !isAirbnb)) {
     return (
       <main className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
         <div className="text-center max-w-sm">
           <div className="text-6xl mb-4">🏨</div>
-          <h1 className="text-2xl font-black text-slate-900 mb-2">No hotel selected</h1>
-          <p className="text-slate-500 text-sm mb-6">Please search for and select a hotel first.</p>
+          <h1 className="text-2xl font-black text-slate-900 mb-2">No accommodation selected</h1>
+          <p className="text-slate-500 text-sm mb-6">Please go back and select a hotel or Airbnb.</p>
           <Link href="/search/hotels" className="rounded-2xl bg-blue-600 px-6 py-3 text-sm font-black text-white hover:bg-blue-500 transition">
             Search hotels →
           </Link>
@@ -193,8 +195,10 @@ export default function HotelReviewClient() {
     );
   }
 
-  const hotelName = selectedSearchResult?.name || "Your hotel";
-  const heroPhoto = hotelPhotos[0] || "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80";
+  const hotelName = selectedSearchResult?.name || (isAirbnb ? "Your Airbnb" : "Your hotel");
+  const heroPhoto = hotelPhotos[0] || (isAirbnb
+    ? "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=80"
+    : "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80");
   const isRefundable = Boolean(selectedRate?.refundable ?? quote?.refundable);
 
   return (
@@ -208,7 +212,7 @@ export default function HotelReviewClient() {
           ← Back
         </Link>
         <div className="absolute bottom-0 left-0 right-0 px-6 pb-6">
-          <p className="text-white/70 text-xs font-bold uppercase tracking-widest mb-1">Hotel Review</p>
+          <p className="text-white/70 text-xs font-bold uppercase tracking-widest mb-1">{isAirbnb ? "Airbnb Review" : "Hotel Review"}</p>
           <h1 className="text-3xl font-black text-white drop-shadow">{hotelName}</h1>
           <div className="flex flex-wrap gap-2 mt-2">
             {destination && <span className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-3 py-1 text-xs font-semibold text-white">📍 {destination}</span>}
@@ -257,18 +261,20 @@ export default function HotelReviewClient() {
           <div className="space-y-5">
             {/* Stay details */}
             <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-4 flex items-center gap-3">
-                <span className="text-lg">🏨</span>
-                <h2 className="font-black text-white">Stay details</h2>
+              <div className={`bg-gradient-to-r px-5 py-4 flex items-center gap-3 ${isAirbnb ? "from-orange-500 to-amber-600" : "from-blue-600 to-blue-700"}`}>
+                <span className="text-lg">{isAirbnb ? "🏡" : "🏨"}</span>
+                <h2 className="font-black text-white">{isAirbnb ? "Property details" : "Stay details"}</h2>
               </div>
               <div className="p-5 grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {[
                   { icon: "📍", label: "Location", val: selectedSearchResult?.location || destination },
-                  { icon: "🛏", label: "Room", val: selectedRate?.room_type?.name || selectedSearchResult?.room || "Room" },
+                  { icon: isAirbnb ? "🏠" : "🛏", label: isAirbnb ? "Type" : "Room", val: selectedRate?.room_type?.name || selectedSearchResult?.room || (isAirbnb ? "Private rental" : "Room") },
                   { icon: "📅", label: "Check-in", val: checkIn },
                   { icon: "📅", label: "Check-out", val: checkOut },
                   { icon: "👥", label: "Guests", val: summary.guestLabel },
                   ...(nights ? [{ icon: "🌙", label: "Nights", val: `${nights} night${nights === 1 ? "" : "s"}` }] : []),
+                  ...(isAirbnb && (selectedSearchResult as any)?.bedrooms ? [{ icon: "🛏", label: "Bedrooms", val: String((selectedSearchResult as any).bedrooms) }] : []),
+                  ...(isAirbnb && (selectedSearchResult as any)?.rating ? [{ icon: "⭐", label: "Rating", val: String((selectedSearchResult as any).rating) }] : []),
                 ].map(({ icon, label, val }) => val ? (
                   <div key={label} className="rounded-xl bg-slate-50 border border-slate-200 p-3">
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{icon} {label}</p>
@@ -407,17 +413,29 @@ export default function HotelReviewClient() {
                 <p className="text-white font-black text-lg mt-0.5">{hotelName}</p>
               </div>
               <div className="px-5 py-4 space-y-3">
-                {[
-                  { label: "Total", val: formatAmount(quote?.total_amount, quote?.total_currency), highlight: true },
-                  { label: "Taxes", val: formatAmount(quote?.tax_amount || quote?.taxes_total || quote?.tax, quote?.total_currency) },
-                  { label: "Fees", val: formatAmount(quote?.fee_amount || quote?.fees_total || quote?.fees, quote?.total_currency) },
-                  { label: "Due at property", val: formatAmount(quote?.due_at_property_amount || quote?.due_at_accommodation_amount || quote?.due_at_property, quote?.total_currency) },
-                ].map(({ label, val, highlight }) => val && val !== "N/A" ? (
-                  <div key={label} className={`flex items-center justify-between ${highlight ? "border-t border-slate-600 pt-3 mt-3" : ""}`}>
-                    <span className={`text-sm ${highlight ? "text-white font-black" : "text-slate-400"}`}>{label}</span>
-                    <span className={`font-bold text-sm ${highlight ? "text-amber-400 text-lg" : "text-white"}`}>{val}</span>
-                  </div>
-                ) : null)}
+                {isAirbnb ? (
+                  <>
+                    <div className="flex items-center justify-between border-t border-slate-600 pt-3 mt-3">
+                      <span className="text-sm text-white font-black">Estimated total</span>
+                      <span className="font-bold text-lg text-amber-400">{(draft as any)?.priceText || "Price on request"}</span>
+                    </div>
+                    <div className="rounded-xl bg-slate-700/50 border border-slate-600 px-3 py-2 text-xs text-slate-300">
+                      🏡 Airbnb booking — final price confirmed by Zeniva Travel. Includes Zeniva service.
+                    </div>
+                  </>
+                ) : (
+                  [
+                    { label: "Total", val: formatAmount(quote?.total_amount, quote?.total_currency), highlight: true },
+                    { label: "Taxes", val: formatAmount(quote?.tax_amount || quote?.taxes_total || quote?.tax, quote?.total_currency) },
+                    { label: "Fees", val: formatAmount(quote?.fee_amount || quote?.fees_total || quote?.fees, quote?.total_currency) },
+                    { label: "Due at property", val: formatAmount(quote?.due_at_property_amount || quote?.due_at_accommodation_amount || quote?.due_at_property, quote?.total_currency) },
+                  ].map(({ label, val, highlight }: any) => val && val !== "N/A" ? (
+                    <div key={label} className={`flex items-center justify-between ${highlight ? "border-t border-slate-600 pt-3 mt-3" : ""}`}>
+                      <span className={`text-sm ${highlight ? "text-white font-black" : "text-slate-400"}`}>{label}</span>
+                      <span className={`font-bold text-sm ${highlight ? "text-amber-400 text-lg" : "text-white"}`}>{val}</span>
+                    </div>
+                  ) : null)
+                )}
               </div>
 
               <div className="px-5 pb-5">
@@ -432,7 +450,7 @@ export default function HotelReviewClient() {
                     boxShadow: acceptedTerms ? "0 4px 15px rgba(230,184,90,0.4)" : "none",
                   }}
                 >
-                  {proposalTripId ? "✓ Confirm & return to proposal →" : "✓ Continue to payment →"}
+                  {isAirbnb ? (proposalTripId ? "✓ Confirm Airbnb & return to proposal →" : "✓ Request Airbnb booking →") : (proposalTripId ? "✓ Confirm & return to proposal →" : "✓ Continue to payment →")}
                 </button>
                 <p className="text-center text-slate-500 text-[10px] mt-2">🔒 Secure booking · No payment now</p>
               </div>
