@@ -422,9 +422,9 @@ export default function TravelSearchWidget() {
         )}
 
         {tab === "rentals" && (
-          <form onSubmit={(e) => { e.preventDefault(); const p = new URLSearchParams({ destination: destination || "Miami", checkin: checkIn, checkout: checkOut, guests: String(guests), type: "short-term rental" }); router.push(`/rentals?${p.toString()}`); }} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <form onSubmit={(e) => { e.preventDefault(); const p = new URLSearchParams({ destination: expDestination || "Miami", checkin: checkIn, checkout: checkOut, guests: String(guests), type: "short-term rental" }); router.push(`/rentals?${p.toString()}`); }} className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="md:col-span-2">
-              <input value={destination} onChange={e => setDestination(e.target.value)} placeholder="Where are you going?" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              <input value={expDestination} onChange={e => setExpDestination(e.target.value)} placeholder="Where are you going?" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <input type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400" />
             <input type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400" />
