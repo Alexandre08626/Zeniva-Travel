@@ -762,6 +762,7 @@ export default function ProposalSelectPage() {
       if (type === "activities") applyTripPatch(tripId, { includeActivities: true });
       if (type === "transfers") applyTripPatch(tripId, { includeTransfers: true });
       if (type === "rentalcar") applyTripPatch(tripId, { includeRentalCar: true });
+      if (type === "villas") applyTripPatch(tripId, { includeVillas: true });
     };
     window.addEventListener("zeniva:enable-addon", handleAddon);
     return () => window.removeEventListener("zeniva:enable-addon", handleAddon);
@@ -946,6 +947,9 @@ export default function ProposalSelectPage() {
   // ── Rental Cars (Amadeus) ──────────────────────────────────────────────────
   const [cars, setCars] = useState([]);
   const [loadingCars, setLoadingCars] = useState(false);
+  const [villas, setVillas] = useState([]);
+  const [loadingVillas, setLoadingVillas] = useState(false);
+  const [errorVillas, setErrorVillas] = useState(null);
   useEffect(() => {
     if (tripDraft?.includeRentalCar !== true) { setCars([]); setLoadingCars(false); return; }
     const destination = String(tripDraft?.destination || "").trim();
@@ -964,6 +968,34 @@ export default function ProposalSelectPage() {
     };
     run();
   }, [tripDraft?.includeRentalCar, tripDraft?.destination, tripDraft?.checkIn, tripDraft?.checkOut, tripId]);
+
+  // ── Villas (Airbnb/InsideBnB) ─────────────────────────────────────────────
+  useEffect(() => {
+    if (tripDraft?.includeVillas !== true) { setVillas([]); setLoadingVillas(false); return; }
+    const dest = tripDraft?.destination;
+    if (!dest) return;
+    setLoadingVillas(true);
+    setErrorVillas(null);
+    const params = new URLSearchParams({
+      destination: dest,
+      ...(tripDraft?.checkIn && { checkIn: tripDraft.checkIn }),
+      ...(tripDraft?.checkOut && { checkOut: tripDraft.checkOut }),
+      ...(tripDraft?.adults && { guests: String(tripDraft.adults) }),
+    });
+    fetch(`/api/airbnb/villas/search?${params}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.villas && data.villas.length > 0) {
+          setVillas(data.villas);
+          setErrorVillas(null);
+        } else {
+          setVillas([]);
+          setErrorVillas("No villas available for this destination.");
+        }
+      })
+      .catch(() => setErrorVillas("Unable to load villas."))
+      .finally(() => setLoadingVillas(false));
+  }, [tripDraft?.includeVillas, tripDraft?.destination, tripDraft?.checkIn, tripDraft?.checkOut, tripDraft?.adults, tripId]);
 
   const onSelectFlight = (flight) => {
     const parsePrice = (raw) => {
@@ -1798,6 +1830,100 @@ export default function ProposalSelectPage() {
               </div>
             </section>
             )}
+
+            {/* VILLAS */}
+            {tripDraft?.includeVillas === true && (
+            <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">🏠</div>
+                <div>
+                  <h2 className="text-lg font-black text-white">Villas & Vacation Rentals</h2>
+                  <p className="text-purple-100 text-xs">{villas.length > 0 ? `${villas.length} properties available` : "Searching..."}</p>
+                </div>
+              </div>
+              <div className="p-4 space-y-3 max-h-[600px] overflow-y-auto">
+                {loadingVillas && (
+                  <div className="flex items-center gap-3 rounded-xl bg-purple-50 border border-purple-100 px-4 py-3">
+                    <div className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+                    <span className="text-sm text-purple-700">Searching villas & vacation rentals…</span>
+                  </div>
+                )}
+                {!loadingVillas && villas.length === 0 && (
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-3">🏠</div>
+                    <p className="text-sm font-semibold text-slate-600">No properties found for this destination</p>
+                    <p className="text-xs text-slate-400 mt-1">Try a different destination or contact us at info@zeniva.ca</p>
+                  </div>
+                )}
+                {villas.map((villa, i) => {
+                  const villaKey = villa.id || `villa-${i}`;
+                  const active = selection?.villa?.id === villaKey;
+                  return (
+                    <div key={villaKey}
+                      className={`rounded-2xl border transition-all cursor-pointer overflow-hidden ${active ? "border-purple-400 ring-2 ring-purple-200 shadow-lg" : "border-slate-200 hover:border-purple-200 hover:shadow-md"}`}
+                      onClick={() => setProposalSelection(tripId, { villa: { id: villaKey, name: villa.name, city: villa.city, price: villa.priceTotal, pricePerNight: villa.pricePerNight, photo: villa.photo, bookUrl: villa.bookUrl } })}>
+                      {/* Photo */}
+                      <div className="relative h-44 overflow-hidden bg-slate-100">
+                        {villa.photo ? (
+                          <img src={villa.photo} alt={villa.name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display='none'; }} />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-4xl">🏠</div>
+                        )}
+                        {active && (
+                          <div className="absolute top-3 right-3 bg-purple-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">✓ Selected</div>
+                        )}
+                        {villa.stars > 0 && (
+                          <div className="absolute top-3 left-3 bg-black/60 text-yellow-300 text-xs font-bold px-2 py-1 rounded-full">
+                            {"★".repeat(Math.min(villa.stars, 5))}
+                          </div>
+                        )}
+                      </div>
+                      {/* Info */}
+                      <div className="p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-slate-800 leading-tight">{villa.name}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">{villa.city}</p>
+                            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                              {villa.rating && (
+                                <span className="flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                                  ★ {villa.rating}
+                                  {villa.reviewLabel && <span className="font-normal text-amber-500">· {villa.reviewLabel}</span>}
+                                </span>
+                              )}
+                              {villa.reviews > 0 && <span className="text-xs text-slate-400">({villa.reviews.toLocaleString()} reviews)</span>}
+                            </div>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-base font-black text-purple-700">{villa.priceTotal}</p>
+                            <p className="text-xs text-slate-400">{villa.pricePerNight}/night</p>
+                            <p className="text-xs text-slate-400">{villa.nights} nights</p>
+                          </div>
+                        </div>
+                        <div className="mt-3 flex gap-2">
+                          <a href={villa.bookUrl} target="_blank" rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex-1 text-center text-xs font-semibold text-purple-600 border border-purple-200 rounded-xl py-2 hover:bg-purple-50 transition">
+                            View on Booking.com →
+                          </a>
+                          {active ? (
+                            <button onClick={(e) => { e.stopPropagation(); setProposalSelection(tripId, { villa: null }); }}
+                              className="text-xs font-semibold text-slate-500 border border-slate-200 rounded-xl px-3 py-2 hover:bg-slate-50 transition">
+                              Remove
+                            </button>
+                          ) : (
+                            <button className="text-xs font-bold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-4 py-2 hover:opacity-90 transition">
+                              Select
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+            )}
           </div>
 
           {/* ── RIGHT: Summary ── */}
@@ -1815,6 +1941,7 @@ export default function ProposalSelectPage() {
                   { icon: "🎯", label: "Activity", item: selection?.activity, getValue: (a) => a?.name, optional: true },
                   { icon: "🚗", label: "Transfer", item: selection?.transfer, getValue: (t) => t?.name, optional: true },
                   { icon: "🚙", label: "Rental Car", item: selection?.car, getValue: (c) => c?.name || c?.category, optional: true },
+                  { icon: "🏠", label: "Villa", item: selection?.villa, getValue: (v) => v?.name, optional: true },
                 ].map(({ icon, label, item, getValue, optional }) => (
                   <div key={label} className={`flex items-start gap-3 rounded-xl p-3 ${item ? "bg-white/10 border border-white/10" : "border border-dashed border-white/10"}`}>
                     <span className="text-lg flex-shrink-0">{icon}</span>
