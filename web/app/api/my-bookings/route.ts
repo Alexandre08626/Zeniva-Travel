@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getSessionCookieName, verifySession } from "../../../src/lib/server/auth";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://rvlcgtlcjylozbihtpkr.supabase.co";
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+
+function getSupabase() {
+  return createClient(SUPABASE_URL, SUPABASE_KEY);
+}
 
 function getEmailFromRequest(req: NextRequest): string | null {
   try {
@@ -24,6 +26,7 @@ export async function GET(req: NextRequest) {
     const email = getEmailFromRequest(req);
     if (!email) return NextResponse.json({ bookings: [] });
 
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("bookings")
       .select("*")
@@ -43,6 +46,7 @@ export async function POST(req: NextRequest) {
     const email = getEmailFromRequest(req);
     const body = await req.json();
 
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from("bookings")
       .insert({
