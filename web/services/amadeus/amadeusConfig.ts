@@ -22,9 +22,9 @@ function stripUrlNoise(raw: string): string {
 }
 
 // Hardcoded defaults — same pattern as LiteAPI (env vars not reliable in Next.js API routes)
-const AMADEUS_DEFAULT_CLIENT_ID = "c8SQQ2cDcHbo4odOGvb45CTUkNmv1GTB";
-const AMADEUS_DEFAULT_CLIENT_SECRET = "9wRTOco5jA8eJTTk";
-const AMADEUS_DEFAULT_BASE_URL = "https://test.api.amadeus.com";
+const AMADEUS_DEFAULT_CLIENT_ID = "b7G7B6u4SjPNTMrpvjeYcjF1G8ioBBUD";
+const AMADEUS_DEFAULT_CLIENT_SECRET = "R04GEKtgQIdyOQNi";
+const AMADEUS_DEFAULT_BASE_URL = "https://api.amadeus.com";
 
 export function getAmadeusConfig(): AmadeusConfig {
   const env = normalizeEnv(process.env.AMADEUS_ENV || process.env.AMADEUS_MODE);
