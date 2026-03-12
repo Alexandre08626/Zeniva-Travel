@@ -320,7 +320,7 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
                 {/* Header */}
                 <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">My Conversations</span>
-                  <span className="text-xs text-slate-400">{trips.length}/10</span>
+                  <span className="text-xs text-slate-400">{trips.length} conversations</span>
                 </div>
 
                 {/* Trip list */}
@@ -358,7 +358,7 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
                         {/* Delete button */}
                         <button
                           onClick={(e) => handleDeleteTrip(e, trip.id)}
-                          className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition opacity-0 group-hover:opacity-100 mr-2"
+                          className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 active:bg-red-100 transition mr-2"
                           title="Delete this trip"
                         >
                           ×
@@ -372,11 +372,11 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
                 <div className="p-3 border-t border-slate-100">
                   <button
                     onClick={handleNewTrip}
-                    disabled={trips.length >= 10}
+                    disabled={trips.length >= 50}
                     className="w-full py-2.5 rounded-xl text-sm font-bold text-white transition disabled:opacity-40"
                     style={{ background: "linear-gradient(90deg, #0F3A8A, #1a4fad)" }}
                   >
-                    {trips.length >= 10 ? "Max 10 trips reached" : "+ New Trip Conversation"}
+                    {trips.length >= 50 ? "Max 50 reached" : "+ New Trip Conversation"}
                   </button>
                   {trips.length >= 10 && (
                     <p className="text-center text-xs text-slate-400 mt-1">Delete a trip to add a new one</p>
