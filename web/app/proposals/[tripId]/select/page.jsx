@@ -1383,7 +1383,7 @@ export default function ProposalSelectPage() {
           {/* ── LEFT: Filters ── */}
           <aside
             id="advanced-filters"
-            className={`${mobileFiltersOpen ? "block" : "hidden"} xl:block xl:sticky xl:top-4 rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden`}
+            className={`${mobileFiltersOpen ? "block" : "hidden"} xl:block xl:sticky xl:top-4 self-start rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden max-h-[calc(100vh-32px)] overflow-y-auto`}
           >
             <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-5 py-4">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Zeniva Travel</p>
@@ -2084,7 +2084,7 @@ export default function ProposalSelectPage() {
           </div>
 
           {/* ── RIGHT: Summary ── */}
-          <aside className="space-y-4 sticky top-4">
+          <aside className="space-y-4 sticky top-4 self-start max-h-[calc(100vh-32px)] overflow-y-auto">
             {/* Premium summary card */}
             <div className="rounded-2xl bg-gradient-to-b from-slate-900 to-slate-800 border border-slate-700 shadow-xl overflow-hidden">
               <div className="px-5 py-4 border-b border-slate-700">
