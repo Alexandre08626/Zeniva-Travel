@@ -930,6 +930,7 @@ export default function ProposalSelectPage() {
   const [villas, setVillas] = useState([]);
   const [loadingVillas, setLoadingVillas] = useState(false);
   const [errorVillas, setErrorVillas] = useState(null);
+  const [villaPhotoModal, setVillaPhotoModal] = useState(null); // { villa } for photo gallery modal
   useEffect(() => {
     if (tripDraft?.includeRentalCar !== true) { setCars([]); setLoadingCars(false); return; }
     const destination = String(tripDraft?.destination || "").trim();
@@ -1892,11 +1893,13 @@ export default function ProposalSelectPage() {
                           </div>
                         </div>
                         <div className="mt-3 flex gap-2">
-                          <a href={villa.bookUrl} target="_blank" rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="flex-1 text-center text-xs font-semibold text-purple-600 border border-purple-200 rounded-xl py-2 hover:bg-purple-50 transition">
-                            View on Airbnb →
-                          </a>
+                          {villa.photos?.length > 1 && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setVillaPhotoModal(villa); }}
+                              className="flex-1 text-center text-xs font-semibold text-purple-600 border border-purple-200 rounded-xl py-2 hover:bg-purple-50 transition">
+                              📷 {villa.photos.length} photos
+                            </button>
+                          )}
                           {active ? (
                             <button onClick={(e) => { e.stopPropagation(); setProposalSelection(tripId, { villa: null }); }}
                               className="text-xs font-semibold text-slate-500 border border-slate-200 rounded-xl px-3 py-2 hover:bg-slate-50 transition">
@@ -2209,6 +2212,74 @@ export default function ProposalSelectPage() {
           </div>
         );
       })()}
+      {/* ── VILLA PHOTO GALLERY MODAL ── */}
+      {villaPhotoModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-3 sm:p-6"
+          onClick={() => setVillaPhotoModal(null)}>
+          <div className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-5 flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <p className="text-white/70 text-xs font-bold uppercase tracking-widest">Short-term Rental</p>
+                <h2 className="text-xl font-black text-white truncate">{villaPhotoModal.name}</h2>
+                <p className="text-purple-200 text-sm mt-0.5">{villaPhotoModal.city}</p>
+              </div>
+              <button onClick={() => setVillaPhotoModal(null)}
+                className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-white font-black text-lg hover:bg-white/30 flex-shrink-0 ml-3">×</button>
+            </div>
+            {/* Photo grid */}
+            <div className="p-4">
+              {villaPhotoModal.photos?.length > 0 ? (
+                <div className="grid grid-cols-2 gap-2">
+                  {villaPhotoModal.photos.map((photo, i) => (
+                    <div key={i} className={`overflow-hidden rounded-xl ${i === 0 ? "col-span-2 h-64" : "h-40"}`}>
+                      <img src={photo} alt={`${villaPhotoModal.name} photo ${i + 1}`}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="h-48 flex items-center justify-center text-6xl">🏠</div>
+              )}
+            </div>
+            {/* Details */}
+            <div className="px-6 pb-4 grid grid-cols-2 gap-3">
+              {[
+                villaPhotoModal.bedrooms && { icon: "🛏", label: "Bedrooms", val: villaPhotoModal.bedrooms },
+                villaPhotoModal.bathrooms && { icon: "🚿", label: "Bathrooms", val: villaPhotoModal.bathrooms },
+                villaPhotoModal.maxGuests && { icon: "👥", label: "Max guests", val: villaPhotoModal.maxGuests },
+                villaPhotoModal.propertyType && { icon: "🏠", label: "Type", val: villaPhotoModal.propertyType },
+                villaPhotoModal.rating && { icon: "⭐", label: "Rating", val: `${villaPhotoModal.rating} (${villaPhotoModal.reviews?.toLocaleString()} reviews)` },
+                villaPhotoModal.superhost && { icon: "🏆", label: "Status", val: "Superhost" },
+              ].filter(Boolean).map(({ icon, label, val }) => (
+                <div key={label} className="rounded-xl bg-slate-50 border border-slate-200 p-3">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{icon} {label}</p>
+                  <p className="text-sm font-bold text-slate-800 mt-0.5">{val}</p>
+                </div>
+              ))}
+            </div>
+            {/* CTA */}
+            <div className="px-6 pb-6 flex items-center justify-between gap-4 border-t border-slate-100 pt-4">
+              <div>
+                <p className="text-xs text-slate-400">Total price</p>
+                <p className="text-2xl font-black text-purple-600">{villaPhotoModal.priceTotal}</p>
+                <p className="text-xs text-slate-400">{villaPhotoModal.pricePerNight}/night · {villaPhotoModal.nights} nights</p>
+              </div>
+              <button
+                onClick={() => {
+                  setProposalSelection(tripId, { villa: { id: villaPhotoModal.id, name: villaPhotoModal.name, city: villaPhotoModal.city, price: villaPhotoModal.priceTotal, pricePerNight: villaPhotoModal.pricePerNight, photo: villaPhotoModal.photo } });
+                  setVillaPhotoModal(null);
+                }}
+                className="rounded-2xl px-8 py-3 font-black text-sm transition shadow-lg"
+                style={{ background: "linear-gradient(135deg, #9333ea, #7c3aed)", color: "white" }}>
+                {selection?.villa?.id === villaPhotoModal.id ? "✓ Selected" : "Select this property →"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

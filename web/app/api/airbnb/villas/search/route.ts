@@ -86,6 +86,11 @@ export async function GET(req: NextRequest) {
       const priceTotal = priceInfo.total || priceInfo.rate || 0;
       const perNight = priceTotal ? Math.round(priceTotal / nights) : 0;
 
+      // Apply 10% Zeniva markup on all Airbnb prices
+      const markupFactor = 1.10;
+      const markedUpTotal = priceTotal > 0 ? Math.round(priceTotal * markupFactor) : 0;
+      const markedUpPerNight = perNight > 0 ? Math.round(perNight * markupFactor) : 0;
+
       return {
         id: String(r.id || ""),
         name: r.name || "Property",
@@ -98,13 +103,13 @@ export async function GET(req: NextRequest) {
         rating: r.rating ? Number(r.rating).toFixed(2) : null,
         reviews: r.reviewsCount || 0,
         photo: images[0] || null,
-        photos: images.slice(0, 5),
-        pricePerNight: perNight > 0 ? `USD ${perNight.toLocaleString()}` : "Price on request",
-        priceTotal: priceTotal > 0 ? `USD ${Math.round(priceTotal).toLocaleString()}` : "Price on request",
+        photos: images.slice(0, 12), // Up to 12 photos for gallery
+        pricePerNight: markedUpPerNight > 0 ? `USD ${markedUpPerNight.toLocaleString()}` : "Price on request",
+        priceTotal: markedUpTotal > 0 ? `USD ${markedUpTotal.toLocaleString()}` : "Price on request",
         nights,
         superhost: r.isSuperhost || false,
         instantBook: r.isInstantBook || false,
-        bookUrl: r.url || r.deeplink || `https://www.airbnb.com/s/${encodeURIComponent(destination)}/homes?checkin=${arrivalDate}&checkout=${departureDate}&adults=${guests}`,
+        bookUrl: null, // Keep clients on Zeniva — no external links
       };
     });
 
