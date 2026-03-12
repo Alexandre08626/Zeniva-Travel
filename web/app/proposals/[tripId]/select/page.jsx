@@ -982,6 +982,11 @@ export default function ProposalSelectPage() {
       ...(tripDraft?.checkOut && { checkOut: tripDraft.checkOut }),
       ...(tripDraft?.adults && { guests: String(tripDraft.adults) }),
     });
+    const villaType = tripDraft?.accommodationType === "Airbnb" ? "short-term rental"
+      : tripDraft?.accommodationType === "Villa" ? "villa"
+      : tripDraft?.accommodationType === "Condo" ? "condo"
+      : "short-term rental";
+    if (villaType) params.append("type", villaType);
     fetch(`/api/airbnb/villas/search?${params}`)
       .then((r) => r.json())
       .then((data) => {
@@ -1837,7 +1842,11 @@ export default function ProposalSelectPage() {
               <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">🏠</div>
                 <div>
-                  <h2 className="text-lg font-black text-white">Villas & Vacation Rentals</h2>
+                  <h2 className="text-lg font-black text-white">
+                    {tripDraft?.accommodationType === "Condo" ? "Condos & Apartments" 
+                     : tripDraft?.accommodationType === "Villa" ? "Villas" 
+                     : "Short-term Rentals"}
+                  </h2>
                   <p className="text-purple-100 text-xs">{villas.length > 0 ? `${villas.length} properties available` : "Searching..."}</p>
                 </div>
               </div>

@@ -160,7 +160,7 @@ const WIDGET_TRANSLATIONS: Record<string, Record<string, string>> = {
   }
 `}</style>
 
-type Tab = "flights" | "hotels" | "cruises" | "experiences" | "transfers" | "cars" | "yachts" | "residences";
+type Tab = "flights" | "hotels" | "cruises" | "experiences" | "transfers" | "cars" | "yachts" | "residences" | "rentals";
 
 export default function TravelSearchWidget() {
   const { locale } = useI18n();
@@ -328,6 +328,7 @@ export default function TravelSearchWidget() {
             { key: 'cars', label: tx('Rental Car'), icon: '🚗' },
             { key: 'experiences', label: tx('Experience'), icon: '🎯' },
             { key: 'cruises', label: tx('Cruise'), icon: '🚢' },
+            { key: 'rentals', label: tx('Short‑term rentals'), icon: '🏠' },
           ].map((t: any) => (
             <button
               key={t.key}
@@ -416,6 +417,27 @@ export default function TravelSearchWidget() {
 
             <div className="md:col-span-2 flex justify-end">
               <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>{tx("Search hotels")}</button>
+            </div>
+          </form>
+        )}
+
+        {tab === "rentals" && (
+          <form onSubmit={(e) => { e.preventDefault(); const p = new URLSearchParams({ destination: destination || "Miami", checkin: checkIn, checkout: checkOut, guests: String(guests), type: "short-term rental" }); router.push(`/rentals?${p.toString()}`); }} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="md:col-span-2">
+              <input value={destination} onChange={e => setDestination(e.target.value)} placeholder="Where are you going?" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+            <input type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            <input type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            <div className="md:col-span-2 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-bold text-slate-600">Guests</span>
+                <div className="flex items-center gap-2 bg-slate-100 rounded-xl px-3 py-1.5">
+                  <button type="button" onClick={() => setGuests(Math.max(1, guests-1))} className="w-6 h-6 flex items-center justify-center text-blue-600 font-black text-lg">−</button>
+                  <span className="w-5 text-center text-sm font-bold">{guests}</span>
+                  <button type="button" onClick={() => setGuests(guests+1)} className="w-6 h-6 flex items-center justify-center text-blue-600 font-black text-lg">+</button>
+                </div>
+              </div>
+              <button type="submit" className="rounded-2xl px-6 py-3 text-sm font-extrabold text-white flex-1 max-w-[200px]" style={{ background: `linear-gradient(90deg, #8B5CF6 0%, #EC4899 100%)` }}>🏠 Search Rentals</button>
             </div>
           </form>
         )}
