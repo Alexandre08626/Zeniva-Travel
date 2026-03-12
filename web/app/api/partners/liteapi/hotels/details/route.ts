@@ -41,6 +41,7 @@ function extractPhotoUrls(payload: any): string[] {
         continue;
       }
       if (item && typeof item === "object") {
+        pushUrl(item.urlHd || item.url);  // prefer HD
         pushUrl(item.url);
         pushUrl(item.src);
         pushUrl(item.href);
@@ -56,6 +57,8 @@ function extractPhotoUrls(payload: any): string[] {
   pushUrl(root?.main_photo);
   pushUrl(root?.mainPhoto);
 
+  // LiteAPI v3 uses "hotelImages" array of { url, urlHd, caption }
+  collectFromArray(root?.hotelImages);
   collectFromArray(root?.images);
   collectFromArray(root?.photos);
   collectFromArray(root?.gallery);

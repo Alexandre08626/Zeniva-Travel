@@ -293,7 +293,12 @@ export async function GET(req: Request) {
         const cityStr = getStr(meta?.city);
         const countryStr = getStr(meta?.country);
         const location = [cityStr, countryStr].filter(Boolean).join(", ") || city;
-        const image = getStr(meta?.main_photo, meta?.mainPhoto, meta?.thumbnail)
+        // Extract images from hotelImages array (LiteAPI v3 format)
+        const hotelImagesArr: string[] = Array.isArray(meta?.hotelImages)
+          ? meta.hotelImages.slice(0, 8).map((img: any) => img?.urlHd || img?.url || "").filter(Boolean)
+          : [];
+        const image = hotelImagesArr[0]
+          || getStr(meta?.main_photo, meta?.mainPhoto, meta?.thumbnail)
           || "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80";
         const rating = starsByHotelId.get(hotelId) || getNum(meta?.stars) || 0; // stars from /data/hotels
         const room = getStr(rt?.rates?.[0]?.name, rt?.name, rt?.roomTypeName) || "Room";
@@ -316,6 +321,7 @@ export async function GET(req: Request) {
           rating,
           badge: rating >= 5 ? "5★" : rating >= 4 ? "4★ Premium" : undefined,
           image,
+          images: hotelImagesArr.length > 0 ? hotelImagesArr : [image],
           provider: "liteapi",
         };
       })
