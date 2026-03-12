@@ -260,6 +260,8 @@ export default function ProposalSelectPage() {
   const [selectedCarKey, setSelectedCarKey] = useState("");
   const [expandedFlightId, setExpandedFlightId] = useState("");
   const [flightModal, setFlightModal] = useState(null);
+  const [showMoreFlights, setShowMoreFlights] = useState(false);
+  const FLIGHTS_PAGE_SIZE = 20;
   const [hotelModal, setHotelModal] = useState(null);
   const [departureCityInput, setDepartureCityInput] = useState("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -546,6 +548,7 @@ export default function ProposalSelectPage() {
     const next = flightLeg === "return" ? returnFlights : outboundFlights;
     setFlights(Array.isArray(next) ? next : []);
     setExpandedFlightId("");
+    setShowMoreFlights(false); // reset pagination on leg switch
   }, [flightLeg, outboundFlights, returnFlights]);
 
   // Auto-select first outbound option for the user.
@@ -1139,8 +1142,21 @@ export default function ProposalSelectPage() {
   );
 
   const filteredFlights = useMemo(() => {
+    const reqOrigin = flightSearchContext.origin.toUpperCase();
+    const reqDest = (flightLeg === "return" ? flightSearchContext.origin : flightSearchContext.destination).toUpperCase();
+
     const list = flights
       .filter((flight) => {
+        // ── Route guard: only show flights matching the requested route ──
+        if (reqOrigin && reqDest) {
+          const route = String(flight.route || "");
+          const [fOrigin, fDest] = route.split("→").map(s => s.trim().toUpperCase());
+          // Allow if route matches OR if origin matches (some offers show city pair differently)
+          const originMatch = !fOrigin || fOrigin === reqOrigin || fOrigin.startsWith(reqOrigin.slice(0,2));
+          const destMatch = !fDest || fDest === reqDest || fDest.startsWith(reqDest.slice(0,2));
+          if (!originMatch || !destMatch) return false;
+        }
+
         const query = filters.flightQuery.trim().toLowerCase();
         if (query) {
           const hay = `${flight.airline} ${flight.route} ${flight.flightNumber} ${flight.fare}`.toLowerCase();
@@ -1166,7 +1182,7 @@ export default function ProposalSelectPage() {
     }
 
     return list;
-  }, [flights, filters]);
+  }, [flights, filters, flightSearchContext.origin, flightSearchContext.destination, flightLeg]);
 
   const fmtTime = (iso) => {
     if (!iso) return "";
@@ -1389,7 +1405,7 @@ export default function ProposalSelectPage() {
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Zeniva Travel</p>
               <h2 className="text-lg font-black text-white mt-0.5">Filters</h2>
               <p className="text-xs text-slate-400 mt-1">
-                {filteredFlights.length} flights · {filteredHotels.length} stays · {filteredActivities.length} exp.
+                {Math.min(filteredFlights.length, showMoreFlights ? filteredFlights.length : FLIGHTS_PAGE_SIZE)} of {filteredFlights.length} flights · {filteredHotels.length} stays · {filteredActivities.length} exp.
               </p>
             </div>
 
@@ -1559,7 +1575,7 @@ export default function ProposalSelectPage() {
                   </div>
                 )}
 
-                {filteredFlights.map((f) => {
+                {(showMoreFlights ? filteredFlights : filteredFlights.slice(0, FLIGHTS_PAGE_SIZE)).map((f) => {
                   const selectedFlightId = selection?.flight?.inbound?.id || selection?.flight?.outbound?.id || selection?.flight?.id;
                   const active = selectedFlightId === f.id;
                   const airlineLogo = f.carrierLogo || getAirlineLogoFromFlight(f);
@@ -1628,6 +1644,20 @@ export default function ProposalSelectPage() {
                     </div>
                   );
                 })}
+
+                {/* Show more / show less */}
+                {!loadingFlights && filteredFlights.length > FLIGHTS_PAGE_SIZE && (
+                  <div className="flex justify-center pt-2 pb-1">
+                    <button
+                      onClick={() => setShowMoreFlights(v => !v)}
+                      className="rounded-full border border-slate-200 bg-white px-5 py-2 text-xs font-bold text-slate-600 hover:border-blue-300 hover:text-blue-700 transition shadow-sm"
+                    >
+                      {showMoreFlights
+                        ? `▲ Show fewer flights`
+                        : `▼ Show all ${filteredFlights.length} flights`}
+                    </button>
+                  </div>
+                )}
 
                 {!loadingFlights && filteredFlights.length === 0 && !errorFlights && (
                   <div className="rounded-2xl border-2 border-dashed border-slate-200 p-8 text-center">
