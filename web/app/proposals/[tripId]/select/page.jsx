@@ -1749,23 +1749,37 @@ export default function ProposalSelectPage() {
                 {cars.map((car, i) => {
                   const carKey = car.id || `car-${i}`;
                   const active = selection?.car?.id === carKey;
-                  const name = car.vehicle?.description || car.category || car.type || "Vehicle";
-                  const provider = car.provider?.name || car.supplier || "Partner";
-                  const price = car.price?.total ? `$${Number(car.price.total).toFixed(0)}` : car.priceText || "—";
                   return (
-                    <button key={carKey} onClick={() => { const sel = { id: carKey, name, category: car.category, provider, price }; useTripsStore.getState().setSelection?.(tripId, "car", sel) || (window.__carSel = sel); }}
-                      className={`w-full text-left rounded-2xl border-2 overflow-hidden shadow-sm transition-all hover:shadow-md ${active ? "border-blue-500" : "border-slate-200"}`}>
-                      <div className="p-4 flex items-center justify-between gap-3">
-                        <div className="w-16 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-3xl flex-shrink-0">🚙</div>
+                    <div key={carKey}
+                      className={`w-full rounded-2xl border-2 overflow-hidden shadow-sm transition-all hover:shadow-md ${active ? "border-blue-500" : "border-slate-200"}`}>
+                      <button className="w-full text-left p-4 flex items-center gap-3"
+                        onClick={() => setProposalSelection(tripId, { car: { id: carKey, name: car.name, category: car.category, provider: car.provider, price: car.totalText } })}>
+                        <div className="w-14 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-2xl flex-shrink-0">{car.logo || "🚙"}</div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-slate-900 text-sm truncate">{name}</p>
-                          <p className="text-xs text-slate-500 mt-0.5">{provider}</p>
-                          {car.seats && <p className="text-xs text-slate-400">{car.seats} seats · {car.transmission || "Auto"}</p>}
+                          <div className="flex items-center gap-2">
+                            <p className="font-bold text-slate-900 text-sm">{car.name}</p>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">{car.provider}</span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-0.5">{car.seats} seats · {car.transmission}</p>
+                          <div className="flex gap-1 mt-1 flex-wrap">
+                            {(car.features || []).map((f, fi) => <span key={fi} className="text-[10px] bg-slate-100 text-slate-600 rounded px-1.5 py-0.5">{f}</span>)}
+                          </div>
                           {active && <span className="inline-flex mt-1 text-[10px] font-bold text-blue-700 bg-blue-100 rounded-full px-2 py-0.5">✓ Selected</span>}
                         </div>
-                        <p className="font-black text-blue-600 text-base flex-shrink-0">{price}</p>
-                      </div>
-                    </button>
+                        <div className="text-right flex-shrink-0">
+                          <p className="font-black text-blue-600 text-base">{car.priceText}</p>
+                          <p className="text-xs text-slate-400">{car.totalText}</p>
+                        </div>
+                      </button>
+                      {car.bookUrl && (
+                        <div className="border-t border-slate-100 px-4 py-2 flex justify-end">
+                          <a href={car.bookUrl} target="_blank" rel="noopener noreferrer"
+                            className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                            Book on {car.provider} →
+                          </a>
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
                 {!loadingCars && cars.length === 0 && (
