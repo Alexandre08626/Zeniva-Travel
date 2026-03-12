@@ -257,6 +257,7 @@ export default function ProposalSelectPage() {
   const [showHotelsOverride, setShowHotelsOverride] = useState(false);
   const [showVillasOverride, setShowVillasOverride] = useState(false);
   const [selectedTransferKey, setSelectedTransferKey] = useState("");
+  const [selectedCarKey, setSelectedCarKey] = useState("");
   const [expandedFlightId, setExpandedFlightId] = useState("");
   const [flightModal, setFlightModal] = useState(null);
   const [hotelModal, setHotelModal] = useState(null);
@@ -1096,6 +1097,16 @@ export default function ProposalSelectPage() {
     }
   }, [selection?.transfer?.id]);
 
+  // Sync selectedCarKey with store on load
+  useEffect(() => {
+    if (selection?.car?.id) {
+      setSelectedCarKey(selection.car.id);
+    } else {
+      // Clear local key if store is cleared
+      setSelectedCarKey("");
+    }
+  }, [selection?.car?.id]);
+
   // Auto-select the first loaded flight if none chosen yet so the summary shows the live route/pricing.
   useEffect(() => {
     if (!selection?.flight && flights.length > 0) {
@@ -1841,15 +1852,19 @@ export default function ProposalSelectPage() {
                 {loadingCars && <div className="col-span-2 flex items-center gap-3 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3"><div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" /><span className="text-sm text-blue-700">Searching vehicles…</span></div>}
                 {cars.map((car, i) => {
                   const carKey = car.id || `car-${i}`;
-                  const active = selection?.car?.id === carKey;
-                  const LOGOS = { "Hertz": "🔴", "Avis": "🔵", "Enterprise": "🟢", "Budget": "🟡", "Sixt": "🟠" };
-                  const logo = LOGOS[car.provider] || "🚙";
+                  // Use local selectedCarKey state to avoid stale store comparisons
+                  const active = selectedCarKey ? selectedCarKey === carKey : (selection?.car?.id === carKey && !!carKey && carKey !== "");
+                  const onSelectCar = (e) => {
+                    if (e) e.stopPropagation();
+                    setSelectedCarKey(carKey);
+                    setProposalSelection(tripId, { car: { id: carKey, name: car.name, category: car.category, provider: car.provider, price: car.totalText } });
+                  };
                   return (
                     <div key={carKey} className={`rounded-2xl border-2 overflow-hidden transition-all hover:shadow-lg cursor-pointer ${active ? "border-blue-500 shadow-blue-100 shadow-md" : "border-slate-200 hover:border-blue-300"}`}
-                      onClick={() => setProposalSelection(tripId, { car: { id: carKey, name: car.name, category: car.category, provider: car.provider, price: car.totalText } })}>
+                      onClick={onSelectCar}>
                       {/* Car photo */}
                       <div className="h-36 overflow-hidden relative bg-slate-100">
-                        <img src={car.imageUrl} alt={car.name} className="w-full h-full object-cover" loading="lazy" />
+                        <img src={car.imageUrl} alt={car.name} className="w-full h-full object-cover" loading="lazy" onError={e => { e.target.src = "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=800&q=80"; }} />
                         <div className="absolute top-2 left-2 flex items-center gap-1.5">
                           <span className="text-sm font-bold text-slate-800 bg-white/90 rounded-full px-2 py-0.5">{car.provider}</span>
                         </div>
@@ -1868,7 +1883,7 @@ export default function ProposalSelectPage() {
                             <p className="text-xs text-slate-400">{car.totalText}</p>
                           </div>
                           <button className={`text-xs font-bold rounded-xl px-3 py-1.5 transition-colors ${active ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-700 hover:bg-blue-50 hover:text-blue-700"}`}
-                            onClick={e => { e.stopPropagation(); setProposalSelection(tripId, { car: { id: carKey, name: car.name, category: car.category, provider: car.provider, price: car.totalText } }); }}>
+                            onClick={onSelectCar}>
                             {active ? "✓ Selected" : "Select"}
                           </button>
                         </div>
