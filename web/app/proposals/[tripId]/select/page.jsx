@@ -987,6 +987,8 @@ export default function ProposalSelectPage() {
       : tripDraft?.accommodationType === "Condo" ? "condo"
       : "short-term rental";
     if (villaType) params.append("type", villaType);
+    const villaType = tripDraft?.villaType || "shortterm";
+    params.append("type", villaType);
     fetch(`/api/airbnb/villas/search?${params}`)
       .then((r) => r.json())
       .then((data) => {
@@ -1000,7 +1002,7 @@ export default function ProposalSelectPage() {
       })
       .catch(() => setErrorVillas("Unable to load villas."))
       .finally(() => setLoadingVillas(false));
-  }, [tripDraft?.includeVillas, tripDraft?.destination, tripDraft?.checkIn, tripDraft?.checkOut, tripDraft?.adults, tripId]);
+  }, [tripDraft?.includeVillas, tripDraft?.villaType, tripDraft?.destination, tripDraft?.checkIn, tripDraft?.checkOut, tripDraft?.adults, tripId]);
 
   const onSelectFlight = (flight) => {
     const parsePrice = (raw) => {
