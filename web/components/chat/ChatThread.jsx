@@ -215,6 +215,7 @@ function ChatThread({ tripId, proposalMode = "" }) {
   const [isListening, setIsListening] = useState(false);
   const [showEmailCapture, setShowEmailCapture] = useState(false);
   const [captureEmail, setCaptureEmail] = useState("");
+  const [captureName, setCaptureName] = useState("");
   const [captureEmailSaving, setCaptureEmailSaving] = useState(false);
 
   const handleEmailCapture = async () => {
@@ -229,9 +230,12 @@ function ChatThread({ tripId, proposalMode = "" }) {
         headers: { "Content-Type": "application/json", "Authorization": "Bearer zeniva-secret-2025" },
         body: JSON.stringify({
           email: captureEmail,
+          first_name: captureName.split(" ")[0] || "",
+          last_name: captureName.split(" ").slice(1).join(" ") || "",
           destination: snap.destination || trip?.title || "",
           source: "chat-generate-proposal",
           status: "new",
+          source_ref: tripId,
         }),
       }).catch(() => {});
       // Also save via VPS API
@@ -808,6 +812,15 @@ function ChatThread({ tripId, proposalMode = "" }) {
               <p className="text-sm text-slate-500 mt-1">Enter your email to see your personalized proposal and receive it by email.</p>
             </div>
             <input
+              type="text"
+              autoComplete="name"
+              placeholder="Your name"
+              value={captureName}
+              onChange={e => setCaptureName(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              autoFocus
+            />
+            <input
               type="email"
               inputMode="email"
               autoComplete="email"
@@ -816,7 +829,6 @@ function ChatThread({ tripId, proposalMode = "" }) {
               onChange={e => setCaptureEmail(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter") handleEmailCapture(); }}
               className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              autoFocus
             />
             <button
               disabled={!captureEmail.includes("@") || captureEmailSaving}
