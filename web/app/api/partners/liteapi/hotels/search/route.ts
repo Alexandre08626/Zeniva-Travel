@@ -66,17 +66,127 @@ const CITY_MAP: Record<string, { city: string; country: string }> = {
   "mexico city": { city: "Mexico City", country: "MX" },
   "costa rica": { city: "San Jose", country: "CR" },
   "puerto rico": { city: "San Juan", country: "PR" },
+  // Asia
+  beijing: { city: "Beijing", country: "CN" },
+  shanghai: { city: "Shanghai", country: "CN" },
+  china: { city: "Beijing", country: "CN" },
+  "hong kong": { city: "Hong Kong", country: "HK" },
+  seoul: { city: "Seoul", country: "KR" },
+  "south korea": { city: "Seoul", country: "KR" },
+  osaka: { city: "Osaka", country: "JP" },
+  kyoto: { city: "Kyoto", country: "JP" },
+  "kuala lumpur": { city: "Kuala Lumpur", country: "MY" },
+  malaysia: { city: "Kuala Lumpur", country: "MY" },
+  vietnam: { city: "Ho Chi Minh City", country: "VN" },
+  "ho chi minh": { city: "Ho Chi Minh City", country: "VN" },
+  hanoi: { city: "Hanoi", country: "VN" },
+  philippines: { city: "Manila", country: "PH" },
+  manila: { city: "Manila", country: "PH" },
+  taiwan: { city: "Taipei", country: "TW" },
+  taipei: { city: "Taipei", country: "TW" },
+  india: { city: "Mumbai", country: "IN" },
+  mumbai: { city: "Mumbai", country: "IN" },
+  delhi: { city: "Delhi", country: "IN" },
+  "new delhi": { city: "New Delhi", country: "IN" },
+  goa: { city: "Goa", country: "IN" },
+  // Middle East & Africa
+  riyadh: { city: "Riyadh", country: "SA" },
+  doha: { city: "Doha", country: "QA" },
+  "abu dhabi": { city: "Abu Dhabi", country: "AE" },
+  cairo: { city: "Cairo", country: "EG" },
+  egypt: { city: "Cairo", country: "EG" },
+  morocco: { city: "Marrakech", country: "MA" },
+  marrakech: { city: "Marrakech", country: "MA" },
+  casablanca: { city: "Casablanca", country: "MA" },
+  "cape town": { city: "Cape Town", country: "ZA" },
+  nairobi: { city: "Nairobi", country: "KE" },
+  kenya: { city: "Nairobi", country: "KE" },
+  "south africa": { city: "Cape Town", country: "ZA" },
+  // Europe
+  prague: { city: "Prague", country: "CZ" },
+  vienna: { city: "Vienna", country: "AT" },
+  zurich: { city: "Zurich", country: "CH" },
+  switzerland: { city: "Geneva", country: "CH" },
+  geneva: { city: "Geneva", country: "CH" },
+  milan: { city: "Milan", country: "IT" },
+  venice: { city: "Venice", country: "IT" },
+  florence: { city: "Florence", country: "IT" },
+  madrid: { city: "Madrid", country: "ES" },
+  seville: { city: "Seville", country: "ES" },
+  berlin: { city: "Berlin", country: "DE" },
+  munich: { city: "Munich", country: "DE" },
+  germany: { city: "Berlin", country: "DE" },
+  brussels: { city: "Brussels", country: "BE" },
+  copenhagen: { city: "Copenhagen", country: "DK" },
+  stockholm: { city: "Stockholm", country: "SE" },
+  oslo: { city: "Oslo", country: "NO" },
+  helsinki: { city: "Helsinki", country: "FI" },
+  warsaw: { city: "Warsaw", country: "PL" },
+  budapest: { city: "Budapest", country: "HU" },
+  zagreb: { city: "Zagreb", country: "HR" },
+  dubrovnik: { city: "Dubrovnik", country: "HR" },
+  porto: { city: "Porto", country: "PT" },
+  edinburgh: { city: "Edinburgh", country: "GB" },
+  // Caribbean & Latin America
+  jamaica: { city: "Montego Bay", country: "JM" },
+  "montego bay": { city: "Montego Bay", country: "JM" },
+  bahamas: { city: "Nassau", country: "BS" },
+  nassau: { city: "Nassau", country: "BS" },
+  barbados: { city: "Bridgetown", country: "BB" },
+  "trinidad and tobago": { city: "Port of Spain", country: "TT" },
+  "saint lucia": { city: "Castries", country: "LC" },
+  argentina: { city: "Buenos Aires", country: "AR" },
+  "buenos aires": { city: "Buenos Aires", country: "AR" },
+  brazil: { city: "Rio de Janeiro", country: "BR" },
+  "rio de janeiro": { city: "Rio de Janeiro", country: "BR" },
+  "sao paulo": { city: "Sao Paulo", country: "BR" },
+  peru: { city: "Lima", country: "PE" },
+  lima: { city: "Lima", country: "PE" },
+  colombia: { city: "Bogota", country: "CO" },
+  bogota: { city: "Bogota", country: "CO" },
+  cartagena: { city: "Cartagena", country: "CO" },
+  cuba: { city: "Havana", country: "CU" },
+  havana: { city: "Havana", country: "CU" },
+  chile: { city: "Santiago", country: "CL" },
+  santiago: { city: "Santiago", country: "CL" },
+  // Oceania
+  "new zealand": { city: "Auckland", country: "NZ" },
+  auckland: { city: "Auckland", country: "NZ" },
+  fiji: { city: "Nadi", country: "FJ" },
+  // US
+  "san francisco": { city: "San Francisco", country: "US" },
+  chicago: { city: "Chicago", country: "US" },
+  boston: { city: "Boston", country: "US" },
+  seattle: { city: "Seattle", country: "US" },
+  denver: { city: "Denver", country: "US" },
+  nashville: { city: "Nashville", country: "US" },
+  "new orleans": { city: "New Orleans", country: "US" },
+  miami: { city: "Miami", country: "US" },
+  "miami beach": { city: "Miami Beach", country: "US" },
+  "fort lauderdale": { city: "Fort Lauderdale", country: "US" },
+  "palm beach": { city: "Palm Beach", country: "US" },
+  "key west": { city: "Key West", country: "US" },
+  tampa: { city: "Tampa", country: "US" },
+  phoenix: { city: "Phoenix", country: "US" },
+  "san diego": { city: "San Diego", country: "US" },
+  atlanta: { city: "Atlanta", country: "US" },
+  dallas: { city: "Dallas", country: "US" },
+  houston: { city: "Houston", country: "US" },
 };
 
 function resolveCityAndCountry(destination: string): { city: string; country: string } {
   const key = destination.toLowerCase().replace(/-/g, " ").trim();
   if (CITY_MAP[key]) return CITY_MAP[key];
-  // Try partial match
+  // Try partial match — exact word boundary
   for (const [k, v] of Object.entries(CITY_MAP)) {
-    if (key.includes(k) || k.includes(key.split(" ")[0])) return v;
+    if (key === k || key.startsWith(k + " ") || key.endsWith(" " + k) || key.includes(" " + k + " ")) return v;
   }
-  // Default: use destination as city name, US as country
-  return { city: destination, country: "US" };
+  // Try looser partial match
+  for (const [k, v] of Object.entries(CITY_MAP)) {
+    if (key.includes(k) || k.includes(key)) return v;
+  }
+  // Default: use destination as city name WITHOUT defaulting to US — let LiteAPI figure out country
+  return { city: destination, country: "" };
 }
 
 function formatPrice(amount: number, nights: number): string {
@@ -113,7 +223,7 @@ export async function GET(req: Request) {
     const hotelListRes = await liteApiFetchJson<any>({
       path: "/data/hotels",
       method: "GET",
-      query: { cityName: city, countryCode: country, limit: 20 },
+      query: country ? { cityName: city, countryCode: country, limit: 20 } : { cityName: city, limit: 20 },
       timeoutMs: 15000,
     });
 
