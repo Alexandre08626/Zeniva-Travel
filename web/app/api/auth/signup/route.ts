@@ -369,6 +369,13 @@ export async function POST(request: Request) {
       tag: "new-account",
     }).catch(() => {});
 
+    // Send welcome email via VPS
+    fetch("http://217.216.88.202:8000/admin/send-welcome", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer zeniva-secret-2025" },
+      body: JSON.stringify({ email: account.email, name: account.name || "", language: "en" }),
+    }).catch(() => {});
+
     // ---- Create session cookie (your custom token)
     const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30;
     const token = signSession({ email: account.email, roles: normalizedRoles, exp });
