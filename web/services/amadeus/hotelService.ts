@@ -68,7 +68,7 @@ export async function searchAmadeusHotels(params: {
     const offer = item.offers?.[0] || {};
     const price = Number(offer.price?.total || offer.price?.base || 0);
     const name = hotel.name || "Hotel";
-    const stars = hotel.rating ? Number(hotel.rating) : 0;
+    const stars = hotel.rating ? Math.min(5, Number(hotel.rating)) : 0;
     const room = offer.room?.description?.text || offer.room?.type || "Standard Room";
     const nights = Math.max(1, Math.round((new Date(params.checkOut).getTime() - new Date(params.checkIn).getTime()) / 86400000));
     const perNight = nights > 0 ? price / nights : price;

@@ -180,7 +180,7 @@ export async function GET(req: Request) {
         const location = [cityStr, countryStr].filter(Boolean).join(", ") || city;
         const image = getStr(meta?.main_photo, meta?.mainPhoto, meta?.thumbnail)
           || "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80";
-        const rating = getNum(meta?.rating, meta?.stars) || 0;
+        const rating = getNum(meta?.stars) || 0; // stars = 1-5 hotel classification, not review score
         const room = getStr(rt?.rates?.[0]?.name, rt?.name, rt?.roomTypeName) || "Room";
         const perNight = Math.round(priceAmount / nights);
 
