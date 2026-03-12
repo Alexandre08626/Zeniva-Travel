@@ -971,7 +971,8 @@ export default function ProposalSelectPage() {
 
   // ── Villas (Airbnb/InsideBnB) ─────────────────────────────────────────────
   useEffect(() => {
-    if (tripDraft?.includeVillas !== true) { setVillas([]); setLoadingVillas(false); return; }
+    const showVillas = tripDraft?.includeVillas === true || tripDraft?.accommodationType === "Villa" || tripDraft?.accommodationType === "Airbnb" || tripDraft?.accommodationType === "Short-term rental";
+    if (!showVillas) { setVillas([]); setLoadingVillas(false); return; }
     const dest = tripDraft?.destination;
     if (!dest) return;
     setLoadingVillas(true);
@@ -1838,7 +1839,7 @@ export default function ProposalSelectPage() {
             )}
 
             {/* VILLAS */}
-            {tripDraft?.includeVillas === true && (
+            {(tripDraft?.includeVillas === true || tripDraft?.accommodationType === "Villa" || tripDraft?.accommodationType === "Airbnb" || tripDraft?.accommodationType === "Short-term rental") && (
             <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
               <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">🏠</div>
@@ -1972,19 +1973,17 @@ export default function ProposalSelectPage() {
               <div className="px-5 pb-5">
                 <button
                   onClick={onContinue}
-                  disabled={!selection?.flight || !selection?.hotel}
+                  disabled={!selection?.flight && !selection?.hotel && !selection?.villa && !selection?.shortterm}
                   className="w-full rounded-xl py-3.5 text-sm font-black tracking-wide transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   style={{
-                    background: selection?.flight && selection?.hotel
+                    background: (selection?.flight || selection?.hotel || selection?.villa || selection?.shortterm)
                       ? "linear-gradient(135deg, #E6B85A, #d4a442)"
                       : "#555",
                     color: "#1a0f00",
-                    boxShadow: selection?.flight && selection?.hotel ? "0 4px 15px rgba(230,184,90,0.4)" : "none"
+                    boxShadow: (selection?.flight || selection?.hotel || selection?.villa || selection?.shortterm) ? "0 4px 15px rgba(230,184,90,0.4)" : "none"
                   }}
                 >
-                  {!selection?.flight && !selection?.hotel ? "Select flight + stay to continue →" :
-                   !selection?.flight ? "Select a flight to continue →" :
-                   !selection?.hotel ? `Select a ${staysTitleLower} to continue →` :
+                  {!selection?.flight && !selection?.hotel && !selection?.villa && !selection?.shortterm ? "Select at least one option to continue →" :
                    "✓ Continue to Review →"}
                 </button>
                 <p className="text-center text-slate-500 text-[10px] mt-2">🔒 Selections saved automatically</p>
