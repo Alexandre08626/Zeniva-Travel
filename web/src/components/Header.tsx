@@ -86,7 +86,9 @@ export default function Header({
           read: readIds.has(String(row?.id || createdAt)),
         };
       });
-      setNotifications(mapped.filter((item: any) => !item.read).slice(0, 8));
+      // Only notify client when a HUMAN agent writes (not Lina AI, not their own messages)
+      const agentOnly = mapped.filter((item: any) => !item.read && (item.title === "Message from agent"));
+      setNotifications(agentOnly.slice(0, 8));
     } catch {
       setNotifications([]);
     }
