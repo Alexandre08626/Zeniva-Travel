@@ -940,7 +940,7 @@ export default function ProposalSelectPage() {
     setLoadingCars(true);
     const run = async () => {
       try {
-        const params = new URLSearchParams({ pickup: destination, startDate: checkIn, endDate: checkOut });
+        const params = new URLSearchParams({ destination, checkIn, checkOut, guests: String(tripDraft?.adults || 2) });
         const res = await fetch(`/api/amadeus/cars/search?${params}`);
         const data = await res.json();
         setCars((data.offers || []).slice(0, 6));
@@ -950,10 +950,16 @@ export default function ProposalSelectPage() {
     run();
   }, [tripDraft?.includeRentalCar, tripDraft?.destination, tripDraft?.checkIn, tripDraft?.checkOut, tripId]);
 
-  // ── Villas (Airbnb/InsideBnB) ─────────────────────────────────────────────
+  // ── Villas (Airbnb) ─────────────────────────────────────────────────────
   useEffect(() => {
-    const showVillas = tripDraft?.includeVillas === true || tripDraft?.accommodationType === "Villa" || tripDraft?.accommodationType === "Airbnb" || tripDraft?.accommodationType === "Short-term rental";
-    if (!showVillas) { setVillas([]); setLoadingVillas(false); return; }
+    const shouldLoadVillas = tripDraft?.includeVillas === true
+      || tripDraft?.accommodationType === "Villa"
+      || tripDraft?.accommodationType === "Airbnb"
+      || tripDraft?.accommodationType === "Short-term rental"
+      || tripDraft?.accommodationType === "Condo"
+      || tripDraft?.accommodationType === "Residence"
+      || showVillasOverride;
+    if (!shouldLoadVillas) { setVillas([]); setLoadingVillas(false); return; }
     const dest = tripDraft?.destination;
     if (!dest) return;
     setLoadingVillas(true);
@@ -1820,7 +1826,7 @@ export default function ProposalSelectPage() {
             )}
 
             {/* VILLAS */}
-            {(tripDraft?.includeVillas === true || tripDraft?.accommodationType === "Villa" || tripDraft?.accommodationType === "Airbnb" || tripDraft?.accommodationType === "Short-term rental") && (
+            {showVillas && (
             <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
               <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">🏠</div>

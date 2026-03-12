@@ -423,24 +423,27 @@ export function getProposal(tripId) {
   return state.proposals[tripId];
 }
 
-export function setProposalSelection(tripId, { flight, hotel, activity, transfer } = {}) {
+export function setProposalSelection(tripId, { flight, hotel, activity, transfer, villa, car, shortterm } = {}) {
   const ensuredId = ensureTrip(tripId);
   setState((s) => ({
     ...s,
     selections: {
       ...s.selections,
       [ensuredId]: {
-        flight: flight ?? s.selections[ensuredId]?.flight ?? null,
-        hotel: hotel ?? s.selections[ensuredId]?.hotel ?? null,
-        activity: activity ?? s.selections[ensuredId]?.activity ?? null,
-        transfer: transfer ?? s.selections[ensuredId]?.transfer ?? null,
+        flight: flight !== undefined ? flight : (s.selections[ensuredId]?.flight ?? null),
+        hotel: hotel !== undefined ? hotel : (s.selections[ensuredId]?.hotel ?? null),
+        activity: activity !== undefined ? activity : (s.selections[ensuredId]?.activity ?? null),
+        transfer: transfer !== undefined ? transfer : (s.selections[ensuredId]?.transfer ?? null),
+        villa: villa !== undefined ? villa : (s.selections[ensuredId]?.villa ?? null),
+        car: car !== undefined ? car : (s.selections[ensuredId]?.car ?? null),
+        shortterm: shortterm !== undefined ? shortterm : (s.selections[ensuredId]?.shortterm ?? null),
       },
     },
   }));
 }
 
 export function getProposalSelection(tripId) {
-  return state.selections[tripId] || { flight: null, hotel: null, activity: null, transfer: null };
+  return state.selections[tripId] || { flight: null, hotel: null, activity: null, transfer: null, villa: null, car: null, shortterm: null };
 }
 
 export function ensureSeedTrip() {
