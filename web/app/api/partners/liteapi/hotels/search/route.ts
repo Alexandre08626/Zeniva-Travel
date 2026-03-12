@@ -3,281 +3,90 @@ import { z } from "zod";
 import { liteApiFetchJson, liteApiIsConfigured } from "../../../../../../src/lib/liteapiClient";
 import { applyHotelMarkupLabel } from "../../../../../../src/lib/partnerMarkup";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const schema = z.object({
-  destination: z.string().trim().min(1, "destination required"),
-  checkIn: z.string().trim().min(1, "checkIn required"),
-  checkOut: z.string().trim().min(1, "checkOut required"),
-  guests: z.string().trim().default("2"),
-  rooms: z.string().trim().default("1"),
+  destination: z.string().trim().min(1),
+  checkIn: z.string().trim().min(1),
+  checkOut: z.string().trim().min(1),
+  guests: z.coerce.number().int().min(1).default(2),
+  rooms: z.coerce.number().int().min(1).default(1),
 });
 
-function pickArray(payload: any): any[] {
-  const candidates = [payload?.data?.results, payload?.data?.hotels, payload?.results, payload?.hotels, payload?.data, payload];
-  for (const c of candidates) {
-    if (Array.isArray(c)) return c;
-  }
-  return [];
-}
-
-function pickFirstObject(payload: any): any {
-  const candidates = [payload?.data, payload];
-  for (const c of candidates) {
-    if (c && typeof c === "object" && !Array.isArray(c)) return c;
-  }
-  return null;
-}
-
-function getFirstString(...values: any[]): string {
-  for (const value of values) {
-    if (typeof value === "string" && value.trim()) return value.trim();
-  }
+function getStr(...vals: any[]): string {
+  for (const v of vals) if (typeof v === "string" && v.trim()) return v.trim();
   return "";
 }
-
-function getFirstNumber(...values: any[]): number | null {
-  for (const value of values) {
-    if (typeof value === "number" && Number.isFinite(value)) return value;
-    if (typeof value === "string" && value.trim() && Number.isFinite(Number(value))) return Number(value);
+function getNum(...vals: any[]): number | null {
+  for (const v of vals) {
+    const n = Number(v);
+    if (Number.isFinite(n) && n > 0) return n;
   }
   return null;
 }
 
-function mapRatesToOffer(input: {
-  idx: number;
-  hotelId: string;
-  ratesItem: any;
-  hotelMeta?: any;
-  semanticMeta?: any;
-}) {
-  const { idx, hotelId, ratesItem, hotelMeta, semanticMeta } = input;
+// Map common city names to LiteAPI-compatible names + country codes
+const CITY_MAP: Record<string, { city: string; country: string }> = {
+  miami: { city: "Miami", country: "US" },
+  paris: { city: "Paris", country: "FR" },
+  london: { city: "London", country: "GB" },
+  tokyo: { city: "Tokyo", country: "JP" },
+  barcelona: { city: "Barcelona", country: "ES" },
+  rome: { city: "Rome", country: "IT" },
+  dubai: { city: "Dubai", country: "AE" },
+  "new york": { city: "New York", country: "US" },
+  cancun: { city: "Cancun", country: "MX" },
+  tulum: { city: "Tulum", country: "MX" },
+  phuket: { city: "Phuket", country: "TH" },
+  bali: { city: "Bali", country: "ID" },
+  maldives: { city: "Male", country: "MV" },
+  punta_cana: { city: "Punta Cana", country: "DO" },
+  "punta cana": { city: "Punta Cana", country: "DO" },
+  "republique dominicaine": { city: "Punta Cana", country: "DO" },
+  "republic dominicaine": { city: "Punta Cana", country: "DO" },
+  "dominican republic": { city: "Punta Cana", country: "DO" },
+  amsterdam: { city: "Amsterdam", country: "NL" },
+  lisbon: { city: "Lisbon", country: "PT" },
+  sydney: { city: "Sydney", country: "AU" },
+  toronto: { city: "Toronto", country: "CA" },
+  montreal: { city: "Montreal", country: "CA" },
+  singapore: { city: "Singapore", country: "SG" },
+  bangkok: { city: "Bangkok", country: "TH" },
+  "los angeles": { city: "Los Angeles", country: "US" },
+  "las vegas": { city: "Las Vegas", country: "US" },
+  orlando: { city: "Orlando", country: "US" },
+  hawaii: { city: "Honolulu", country: "US" },
+  maui: { city: "Maui", country: "US" },
+  athens: { city: "Athens", country: "GR" },
+  mykonos: { city: "Mykonos", country: "GR" },
+  santorini: { city: "Santorini", country: "GR" },
+  istanbul: { city: "Istanbul", country: "TR" },
+  mexico: { city: "Mexico City", country: "MX" },
+  "mexico city": { city: "Mexico City", country: "MX" },
+  "costa rica": { city: "San Jose", country: "CR" },
+  "puerto rico": { city: "San Juan", country: "PR" },
+};
 
-  const hotelName = getFirstString(hotelMeta?.name, semanticMeta?.name) || `Hotel ${idx + 1}`;
-  const city = getFirstString(hotelMeta?.city, semanticMeta?.city);
-  const country = getFirstString(hotelMeta?.country, semanticMeta?.country);
-  const address = getFirstString(hotelMeta?.address, semanticMeta?.address);
-  const location = [city, country].filter(Boolean).join(", ") || address || "";
-
-  const image =
-    getFirstString(hotelMeta?.main_photo, hotelMeta?.mainPhoto, semanticMeta?.main_photo, semanticMeta?.mainPhoto) ||
-    "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80";
-
-  const rating = getFirstNumber(hotelMeta?.rating, semanticMeta?.rating) || 0;
-
-  const firstRoomType = Array.isArray(ratesItem?.roomTypes) ? ratesItem.roomTypes[0] : null;
-  const firstRate = firstRoomType?.rates?.[0] || null;
-
-  const priceObj = firstRoomType?.suggestedSellingPrice || firstRoomType?.offerRetailRate || firstRoomType?.offerInitialPrice || null;
-  const priceAmount = priceObj ? getFirstNumber(priceObj?.amount) : null;
-  const priceCurrency = priceObj ? getFirstString(priceObj?.currency) : "";
-  const rawPrice = priceAmount !== null ? `${priceCurrency || "USD"} ${priceAmount}` : "Price on request";
-  const price = rawPrice === "Price on request" ? rawPrice : applyHotelMarkupLabel(rawPrice);
-
-  const perksFromTags = Array.isArray(semanticMeta?.tags)
-    ? semanticMeta.tags.filter((t: any) => typeof t === "string" && t.trim()).slice(0, 5)
-    : [];
-
-  const room = getFirstString(firstRate?.name, firstRoomType?.name, firstRoomType?.roomTypeName) || "Room";
-
-  return {
-    id: hotelId,
-    name: hotelName,
-    location,
-    price,
-    room,
-    perks: perksFromTags,
-    rating,
-    badge: firstRate?.cancellationPolicies?.refundableTag === "RFN" ? "Free cancel" : undefined,
-    image,
-    provider: "liteapi",
-  };
-}
-
-function mapSemanticToBaseOffer(semantic: any, idx: number) {
-  const id = getFirstString(semantic?.id, semantic?.hotelId, semantic?.hotel_id, semantic?.code) || `liteapi-hotel-${idx}`;
-  const name = getFirstString(semantic?.name) || `Hotel ${idx + 1}`;
-  const image = getFirstString(semantic?.main_photo, semantic?.mainPhoto) || "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80";
-  const location = [getFirstString(semantic?.city), getFirstString(semantic?.country)].filter(Boolean).join(", ") || getFirstString(semantic?.address) || "";
-  const perks = Array.isArray(semantic?.tags)
-    ? semantic.tags.filter((t: any) => typeof t === "string" && t.trim()).slice(0, 5)
-    : [];
-  return {
-    id,
-    name,
-    location,
-    price: "Price on request",
-    room: "Room",
-    perks,
-    rating: getFirstNumber(semantic?.rating) || 0,
-    badge: undefined,
-    image,
-    provider: "liteapi",
-  };
-}
-
-function pickMostCommonCountryCode(items: any[]): string {
-  const counts = new Map<string, number>();
-  for (const item of items) {
-    const raw = getFirstString(item?.country, item?.countryCode, item?.country_code);
-    if (!raw) continue;
-    const code = raw.trim().toUpperCase();
-    if (!code) continue;
-    counts.set(code, (counts.get(code) || 0) + 1);
+function resolveCityAndCountry(destination: string): { city: string; country: string } {
+  const key = destination.toLowerCase().replace(/-/g, " ").trim();
+  if (CITY_MAP[key]) return CITY_MAP[key];
+  // Try partial match
+  for (const [k, v] of Object.entries(CITY_MAP)) {
+    if (key.includes(k) || k.includes(key.split(" ")[0])) return v;
   }
-
-  let best = "";
-  let bestCount = 0;
-  for (const [code, count] of counts.entries()) {
-    if (count > bestCount) {
-      best = code;
-      bestCount = count;
-    }
-  }
-  return best;
+  // Default: use destination as city name, US as country
+  return { city: destination, country: "US" };
 }
 
-function safeOneLine(input: string, maxLen = 240) {
-  const s = String(input || "")
-    .replace(/[\r\n\t]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  if (!s) return "";
-  return s.length <= maxLen ? s : `${s.slice(0, maxLen - 1)}…`;
-}
-
-function extractUpstreamError(res: { status: number; data?: any; text?: string }) {
-  const fromText = typeof res.text === "string" ? safeOneLine(res.text) : "";
-  const fromData = safeOneLine(
-    res.data?.error?.message ||
-      res.data?.message ||
-      res.data?.error ||
-      (typeof res.data === "string" ? res.data : ""),
-  );
-  const detail = fromText || fromData;
-  return detail ? ` (upstream: ${detail})` : "";
-}
-
-function pickRatesPayload(payload: any) {
-  // LiteAPI v3 can return different shapes depending on query type.
-  // - When searching by filters (aiSearch/city/etc), the payload may be: { data: [ { hotelId, roomTypes } ], ... }
-  // - When searching by hotelIds (and/or includeHotelData=true), it may be: { data: { data: [...], hotels: [...] } }
-  // We return the most useful object root while avoiding arrays.
-  return pickFirstObject(payload);
-}
-
-function pickRatesList(ratesPayload: any): any[] {
-  const candidates = [ratesPayload?.data?.data, ratesPayload?.data, ratesPayload?.results];
-  for (const c of candidates) {
-    if (Array.isArray(c)) return c;
-  }
-  return [];
-}
-
-function pickHotelsMetaList(ratesPayload: any): any[] {
-  const candidates = [ratesPayload?.data?.hotels, ratesPayload?.hotels];
-  for (const c of candidates) {
-    if (Array.isArray(c)) return c;
-  }
-  return [];
-}
-
-function extractHotelIdsFromRatesPayload(ratesPayload: any): string[] {
-  const ids = new Set<string>();
-  for (const item of pickRatesList(ratesPayload)) {
-    const hotelId = getFirstString(item?.hotelId, item?.id);
-    if (hotelId) ids.add(hotelId);
-  }
-  return Array.from(ids);
-}
-
-function mapRatesPayloadToOffers(ratesPayload: any, input?: { fallbackMetaById?: Map<string, any> }) {
-  const hotelMetaList = pickHotelsMetaList(ratesPayload);
-  const hotelMetaById = new Map<string, any>();
-  for (const h of hotelMetaList) {
-    const id = getFirstString(h?.id, h?.hotelId, h?.hotel_id);
-    if (id) hotelMetaById.set(id, h);
-  }
-
-  const ratesList = pickRatesList(ratesPayload);
-  return ratesList
-    .map((item: any, idx: number) => {
-      const hotelId = getFirstString(item?.hotelId, item?.id);
-      if (!hotelId) return null;
-      return mapRatesToOffer({
-        idx,
-        hotelId,
-        ratesItem: item,
-        hotelMeta: hotelMetaById.get(hotelId),
-        semanticMeta: input?.fallbackMetaById?.get(hotelId),
-      });
-    })
-    .filter(Boolean);
-}
-
-async function getHotelsMetaByIds(hotelIds: string[]) {
-  const ids = (hotelIds || []).filter((x) => typeof x === "string" && x.trim());
-  if (ids.length === 0) return { ok: false as const, byId: new Map<string, any>() };
-
-  const res = await liteApiFetchJson<any>({
-    path: "/data/hotels",
-    method: "GET",
-    query: {
-      hotelIds: ids.join(","),
-      limit: Math.min(ids.length, 200),
-    },
-    timeoutMs: 20000,
-  });
-
-  const byId = new Map<string, any>();
-  if (res.ok) {
-    const items = pickArray(res.data);
-    for (const item of items) {
-      const id = getFirstString(item?.id, item?.hotelId, item?.hotel_id);
-      if (id) byId.set(id, item);
-    }
-  }
-
-  return { ok: res.ok as boolean, byId, res };
-}
-
-async function getSemanticHotels(destination: string) {
-  // LiteAPI has had a few path variants across versions; try a short list.
-  const paths = [
-    "/data/hotels/semantic-search",
-    "/data/hotels/semantic_search",
-    "/hotels/semantic-search",
-    "/hotels/semantic_search",
-  ];
-
-  const attempts: Array<{ path: string; status: number; ok: boolean }> = [];
-  let last: any = null;
-  for (const path of paths) {
-    const res = await liteApiFetchJson<any>({
-      path,
-      method: "GET",
-      query: { query: destination, limit: 100, min_rating: 0 },
-      timeoutMs: 20000,
-    });
-    attempts.push({ path, status: res.status, ok: res.ok });
-    last = res;
-    if (res.ok) return { res, attempts };
-  }
-
-  return { res: last, attempts };
+function formatPrice(amount: number, nights: number): string {
+  const total = Math.round(amount);
+  return `USD ${total}`;
 }
 
 export async function GET(req: Request) {
   if (!liteApiIsConfigured()) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "LiteAPI env not configured",
-        missing: {
-          LITEAPI_API_BASE_URL: !process.env.LITEAPI_API_BASE_URL && !process.env.LITEAPI_BASE_URL,
-          LITEAPI_API_KEY: !process.env.LITEAPI_API_KEY,
-        },
-      },
-      { status: 500 },
-    );
+    return NextResponse.json({ ok: false, error: "LiteAPI not configured" }, { status: 500 });
   }
 
   const url = new URL(req.url);
@@ -290,76 +99,123 @@ export async function GET(req: Request) {
   });
 
   if (!parsed.success) {
-    return NextResponse.json({ ok: false, error: "invalid params", issues: parsed.error.issues }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "invalid params" }, { status: 400 });
   }
 
   const { destination, checkIn, checkOut, guests, rooms } = parsed.data;
-
-  const adults = Math.max(1, Number(guests) || 1);
-  const roomsCount = Math.max(1, Number(rooms) || 1);
+  const nights = Math.max(1, Math.round(
+    (new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000
+  ));
+  const { city, country } = resolveCityAndCountry(destination);
 
   try {
-    // Primary strategy: use LiteAPI v3 rates endpoint for listing pages (returns pricing + hotel data).
-    const occupancies = Array.from({ length: roomsCount }, () => ({ adults, children: [] }));
-    const baseRatesBody: Record<string, any> = {
-      occupancies,
-      guestNationality: "US",
-      currency: "USD",
-      checkin: checkIn,
-      checkout: checkOut,
-      maxRatesPerHotel: 1,
-      includeHotelData: true,
-      roomMapping: true,
-      limit: 100,
-    };
+    // ── Step 1: Get hotel IDs for the city ────────────────────────────────
+    const hotelListRes = await liteApiFetchJson<any>({
+      path: "/data/hotels",
+      method: "GET",
+      query: { cityName: city, countryCode: country, limit: 30 },
+      timeoutMs: 15000,
+    });
 
-    const aiSearchCandidates = [
-      `hotels in ${destination}`,
-      destination,
-    ];
-
-    for (const aiSearch of aiSearchCandidates) {
-      const rates = await liteApiFetchJson<any>({
-        path: "/hotels/rates",
-        method: "POST",
-        query: { rm: true },
-        body: { ...baseRatesBody, aiSearch },
-        timeoutMs: 30000,
-      });
-
-      if (!rates.ok) continue;
-
-      const ratesPayload = pickRatesPayload(rates.data);
-      const hotelIdsFromRates = extractHotelIdsFromRatesPayload(ratesPayload);
-
-      let fallbackMetaById: Map<string, any> | undefined = undefined;
-      const hotelsMetaPresent = pickHotelsMetaList(ratesPayload).length > 0;
-      if (!hotelsMetaPresent && hotelIdsFromRates.length > 0) {
-        const meta = await getHotelsMetaByIds(hotelIdsFromRates);
-        if (meta.byId.size > 0) fallbackMetaById = meta.byId;
-      }
-
-      const offers = mapRatesPayloadToOffers(ratesPayload, { fallbackMetaById });
-      if (offers.length > 0) {
-        return NextResponse.json({ ok: true, offers, rawCount: offers.length, source: "rates" });
-      }
+    let hotelIds: string[] = [];
+    if (hotelListRes.ok) {
+      const items: any[] = Array.isArray(hotelListRes.data?.data)
+        ? hotelListRes.data.data
+        : Array.isArray(hotelListRes.data) ? hotelListRes.data : [];
+      hotelIds = items.map((h: any) => getStr(h?.id, h?.hotelId)).filter(Boolean).slice(0, 25);
     }
 
-    // Fallback: semantic-search (content-only) if rates returns no availability
-    const { res: semantic, attempts } = await getSemanticHotels(destination);
-    if (!semantic?.ok) {
-      const status = semantic?.status || 502;
-      const detail = semantic ? extractUpstreamError(semantic) : "";
-      const msg = `LiteAPI semantic search failed (HTTP ${status})${detail}`;
-      return NextResponse.json({ ok: false, error: msg, status, attempts }, { status });
+    if (hotelIds.length === 0) {
+      return NextResponse.json({ ok: true, offers: [], source: "no-hotels" });
     }
 
-    const semanticResults = pickArray(semantic.data);
-    const baseOffers = semanticResults.map((item: any, idx: number) => mapSemanticToBaseOffer(item, idx));
-    return NextResponse.json({ ok: true, offers: baseOffers, rawCount: baseOffers.length, source: "semantic" });
+    // ── Step 2: Get rates for those hotels ────────────────────────────────
+    const occupancies = Array.from({ length: rooms }, () => ({ adults: guests, children: [] }));
+    const ratesRes = await liteApiFetchJson<any>({
+      path: "/hotels/rates",
+      method: "POST",
+      body: {
+        hotelIds,
+        occupancies,
+        guestNationality: "US",
+        currency: "USD",
+        checkin: checkIn,
+        checkout: checkOut,
+        maxRatesPerHotel: 1,
+        includeHotelData: true,
+      },
+      timeoutMs: 30000,
+    });
+
+    if (!ratesRes.ok) {
+      return NextResponse.json({ ok: false, error: `Rates failed: ${ratesRes.status}`, offers: [] });
+    }
+
+    const ratesData: any[] = Array.isArray(ratesRes.data?.data) ? ratesRes.data.data : [];
+    const hotelsMeta: any[] = Array.isArray(ratesRes.data?.hotels) ? ratesRes.data.hotels : [];
+    const metaById = new Map<string, any>();
+    for (const h of hotelsMeta) {
+      const id = getStr(h?.id, h?.hotelId);
+      if (id) metaById.set(id, h);
+    }
+
+    const offers = ratesData
+      .map((item: any, idx: number) => {
+        const hotelId = getStr(item?.hotelId, item?.id);
+        if (!hotelId) return null;
+        const meta = metaById.get(hotelId);
+        const rt = Array.isArray(item?.roomTypes) ? item.roomTypes[0] : null;
+        if (!rt) return null;
+
+        const priceObj = rt?.suggestedSellingPrice || rt?.offerRetailRate || rt?.offerInitialPrice;
+        const priceAmount = getNum(priceObj?.amount);
+        if (priceAmount === null) return null; // Skip hotels with no price
+
+        const rawPrice = formatPrice(priceAmount, nights);
+        const price = applyHotelMarkupLabel(rawPrice);
+
+        const name = getStr(meta?.name) || `Hotel ${idx + 1}`;
+        const cityStr = getStr(meta?.city);
+        const countryStr = getStr(meta?.country);
+        const location = [cityStr, countryStr].filter(Boolean).join(", ") || city;
+        const image = getStr(meta?.main_photo, meta?.mainPhoto, meta?.thumbnail)
+          || "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80";
+        const rating = getNum(meta?.rating, meta?.stars) || 0;
+        const room = getStr(rt?.rates?.[0]?.name, rt?.name, rt?.roomTypeName) || "Room";
+        const perNight = Math.round(priceAmount / nights);
+
+        const perks: string[] = [
+          `$${perNight}/night`,
+          `${nights} night${nights > 1 ? "s" : ""}`,
+          rt?.rates?.[0]?.boardName || "",
+          rt?.rates?.[0]?.cancellationPolicies?.refundableTag === "RFN" ? "Free cancellation" : "",
+        ].filter(Boolean).slice(0, 4);
+
+        return {
+          id: hotelId,
+          name,
+          location,
+          price,
+          room: room.slice(0, 60),
+          perks,
+          rating,
+          badge: rating >= 5 ? "5★" : rating >= 4 ? "4★ Premium" : undefined,
+          image,
+          provider: "liteapi",
+        };
+      })
+      .filter(Boolean);
+
+    // Sort by price ascending
+    offers.sort((a: any, b: any) => {
+      const pa = getNum(a?.price?.replace(/[^0-9.]/g, "")) || 0;
+      const pb = getNum(b?.price?.replace(/[^0-9.]/g, "")) || 0;
+      return pa - pb;
+    });
+
+    return NextResponse.json({ ok: true, offers, rawCount: offers.length, source: "rates" });
+
   } catch (err: any) {
-    return NextResponse.json({ ok: false, error: err?.message || String(err) }, { status: 502 });
+    return NextResponse.json({ ok: false, error: err?.message || String(err), offers: [] }, { status: 502 });
   }
 }
-
-export const runtime = "nodejs";
