@@ -28,7 +28,7 @@ MANDATORY DATA TO COLLECT:
 4) Adults count
 5) Children + ages
 6) Budget range (USD)
-7) Accommodation type (Hotel, Resort, Villa, Short-term rental, Yacht)
+7) Accommodation type (Hotel, Resort, Villa, Zeniva Home, Yacht)
 8) Transportation (Flights / No Flights)
 
 RULES:

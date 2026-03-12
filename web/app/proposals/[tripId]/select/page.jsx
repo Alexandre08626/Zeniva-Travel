@@ -1976,7 +1976,7 @@ export default function ProposalSelectPage() {
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-purple-50 to-pink-50">🏠</div>
                         )}
-                        {/* Airbnb badge */}
+                        {/* Zeniva Home badge */}
                         <div className="absolute top-3 left-3 bg-white rounded-full px-2.5 py-1 flex items-center gap-1.5 shadow-md">
                           <span class="font-black text-white bg-blue-600 rounded-full px-1 text-[10px]">Z</span>
                           <span className="text-[10px] font-bold text-slate-700">Zeniva Home</span>
