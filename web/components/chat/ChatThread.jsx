@@ -214,6 +214,7 @@ function ChatThread({ tripId, proposalMode = "" }) {
   const [isMobile, setIsMobile] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [showEmailCapture, setShowEmailCapture] = useState(false);
+  const [autoGreetSent, setAutoGreetSent] = useState(false);
   const [captureEmail, setCaptureEmail] = useState("");
   const [captureEmailSaving, setCaptureEmailSaving] = useState(false);
 
@@ -457,6 +458,29 @@ function ChatThread({ tripId, proposalMode = "" }) {
     const q = pendingQRef.current;
     pendingQRef.current = null;
     const timer = setTimeout(() => handleSend(q), 600);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tripId]);
+
+  // Auto-greeting: Lina says hello when chat is empty and no ?q= param
+  useEffect(() => {
+    if (autoGreetSent) return;
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("q")) return; // ?q= will trigger its own message
+    // Wait a bit for history to load, then check
+    const timer = setTimeout(() => {
+      const currentHistory = useTripsStore.getState().messages?.[tripId] || [];
+      if (currentHistory.length === 0) {
+        setAutoGreetSent(true);
+        // Add Lina's greeting directly as a message (no API call)
+        const { addMessage } = require("../../lib/store/tripsStore");
+        addMessage(tripId, {
+          role: "assistant",
+          content: "👋 Hi! I'm Lina, your AI travel concierge. Where would you like to go? Just tell me your destination, dates, and I'll build your perfect trip in seconds! ✈️",
+        });
+      }
+    }, 1200);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tripId]);

@@ -20,10 +20,10 @@ export default function LinaFloatingChat() {
     }
     // Don't show if dismissed this session
     if (sessionStorage.getItem("lina_bubble_dismissed")) return;
-    // Appear after 8 seconds
-    const t = setTimeout(() => setVisible(true), 8000);
-    // Auto-open bubble after 10 seconds
-    const t2 = setTimeout(() => setBubbleOpen(true), 10000);
+    // Appear after 3 seconds
+    const t = setTimeout(() => setVisible(true), 3000);
+    // Auto-open bubble after 5 seconds
+    const t2 = setTimeout(() => setBubbleOpen(true), 5000);
     return () => { clearTimeout(t); clearTimeout(t2); };
   }, [pathname]);
 

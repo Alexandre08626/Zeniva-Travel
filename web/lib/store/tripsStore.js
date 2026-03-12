@@ -445,7 +445,7 @@ export function getProposalSelection(tripId) {
 
 export function ensureSeedTrip() {
   if (state.trips.length > 0) return state.trips[0].id;
-  return createTrip({ title: "Mediterranean Escape", destination: "Mallorca", style: "Boutique" });
+  return createTrip({ title: "New Trip" });
 }
 
 export function clearStore() {
