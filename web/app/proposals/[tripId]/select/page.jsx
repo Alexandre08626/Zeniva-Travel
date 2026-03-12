@@ -1062,6 +1062,14 @@ export default function ProposalSelectPage() {
       };
     };
 
+    // Toggle: click same flight again → deselect (outbound only for simplicity)
+    const currentFlightId = selection?.flight?.outbound?.id || selection?.flight?.id;
+    if (!hasReturnLeg && currentFlightId && currentFlightId === flight?.id) {
+      setSelectedOutbound(null);
+      setProposalSelection(tripId, { flight: null });
+      return;
+    }
+
     if (hasReturnLeg && flightLeg === "outbound") {
       setSelectedOutbound(flight);
       setProposalSelection(tripId, { flight });
@@ -1078,11 +1086,21 @@ export default function ProposalSelectPage() {
   };
 
   const onSelectHotel = (hotel) => {
-    setProposalSelection(tripId, { hotel });
+    // Toggle: click same hotel again → deselect
+    if (selection?.hotel?.id && selection.hotel.id === hotel?.id) {
+      setProposalSelection(tripId, { hotel: null });
+    } else {
+      setProposalSelection(tripId, { hotel });
+    }
   };
 
   const onSelectActivity = (activity) => {
-    setProposalSelection(tripId, { activity });
+    // Toggle: click same activity again → deselect
+    if (selection?.activity?.id && selection.activity.id === activity?.id) {
+      setProposalSelection(tripId, { activity: null });
+    } else {
+      setProposalSelection(tripId, { activity });
+    }
   };
 
   const onSelectTransfer = (transfer) => {
@@ -1090,8 +1108,14 @@ export default function ProposalSelectPage() {
       ...transfer,
       id: transfer?.id || `${transfer?.supplier || "transfer"}-${transfer?.name || "item"}-${transfer?.date || Date.now()}`,
     };
-    setSelectedTransferKey(normalizedTransfer.id);
-    setProposalSelection(tripId, { transfer: normalizedTransfer });
+    // Toggle: click same transfer again → deselect
+    if (selectedTransferKey && selectedTransferKey === normalizedTransfer.id) {
+      setSelectedTransferKey("");
+      setProposalSelection(tripId, { transfer: null });
+    } else {
+      setSelectedTransferKey(normalizedTransfer.id);
+      setProposalSelection(tripId, { transfer: normalizedTransfer });
+    }
   };
 
   useEffect(() => {
@@ -1637,8 +1661,8 @@ export default function ProposalSelectPage() {
                         <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setFlightModal(f); }} className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 transition bg-blue-50 hover:bg-blue-100 rounded-full px-3 py-1.5">
                           🔍 Flight details
                         </button>
-                        <button type="button" onClick={() => onSelectFlight(f)} className={`ml-auto text-xs font-bold rounded-full px-4 py-1.5 transition ${active ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-700 hover:bg-blue-100"}`}>
-                          {active ? "✓ Selected" : "Select"}
+                        <button type="button" onClick={() => onSelectFlight(f)} className={`ml-auto text-xs font-bold rounded-full px-4 py-1.5 transition ${active ? "bg-blue-600 text-white hover:bg-red-500" : "bg-slate-100 text-slate-700 hover:bg-blue-100"}`}>
+                          {active ? "✓ Selected — click to remove" : "Select"}
                         </button>
                       </div>
                     </div>
@@ -1717,7 +1741,10 @@ export default function ProposalSelectPage() {
                             </p>
                           </div>
                           {active && (
-                            <div className="absolute top-3 left-3 bg-purple-600 text-white text-[10px] font-black rounded-full px-3 py-1 shadow">✓ Selected</div>
+                            <div className="absolute top-3 left-3 group/badge">
+                              <span className="block group-hover/badge:hidden bg-purple-600 text-white text-[10px] font-black rounded-full px-3 py-1 shadow">✓ Selected</span>
+                              <span className="hidden group-hover/badge:block bg-red-500 text-white text-[10px] font-black rounded-full px-3 py-1 shadow cursor-pointer">✕ Remove</span>
+                            </div>
                           )}
                         </div>
                         {/* Info */}
@@ -1779,7 +1806,7 @@ export default function ProposalSelectPage() {
                           <p className="font-bold text-slate-900 text-sm leading-tight truncate">{a.name}</p>
                           <p className="text-xs text-slate-500 mt-0.5">{a.date} at {a.time}</p>
                           <p className="text-xs text-slate-400 mt-0.5">{a.supplier}</p>
-                          {active && <span className="inline-flex mt-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 rounded-full px-2 py-0.5">✓ Selected</span>}
+                          {active && <span className="inline-flex mt-1 text-[10px] font-bold text-red-600 bg-red-50 rounded-full px-2 py-0.5 hover:bg-red-100 transition">✓ Selected — click to remove</span>}
                         </div>
                         <p className="font-black text-emerald-700 text-sm flex-shrink-0">{a.price}</p>
                       </div>
@@ -1886,8 +1913,14 @@ export default function ProposalSelectPage() {
                   const active = selectedCarKey ? selectedCarKey === carKey : (selection?.car?.id === carKey && !!carKey && carKey !== "");
                   const onSelectCar = (e) => {
                     if (e) e.stopPropagation();
-                    setSelectedCarKey(carKey);
-                    setProposalSelection(tripId, { car: { id: carKey, name: car.name, category: car.category, provider: car.provider, price: car.totalText } });
+                    // Toggle: click same car again → deselect
+                    if (active) {
+                      setSelectedCarKey("");
+                      setProposalSelection(tripId, { car: null });
+                    } else {
+                      setSelectedCarKey(carKey);
+                      setProposalSelection(tripId, { car: { id: carKey, name: car.name, category: car.category, provider: car.provider, price: car.totalText } });
+                    }
                   };
                   return (
                     <div key={carKey} className={`rounded-2xl border-2 overflow-hidden transition-all hover:shadow-lg cursor-pointer ${active ? "border-blue-500 shadow-blue-100 shadow-md" : "border-slate-200 hover:border-blue-300"}`}
