@@ -113,7 +113,7 @@ export async function GET(req: Request) {
     const hotelListRes = await liteApiFetchJson<any>({
       path: "/data/hotels",
       method: "GET",
-      query: { cityName: city, countryCode: country, limit: 30 },
+      query: { cityName: city, countryCode: country, limit: 20 },
       timeoutMs: 15000,
     });
 
@@ -123,7 +123,7 @@ export async function GET(req: Request) {
       const items: any[] = Array.isArray(hotelListRes.data?.data)
         ? hotelListRes.data.data
         : Array.isArray(hotelListRes.data) ? hotelListRes.data : [];
-      hotelIds = items.map((h: any) => getStr(h?.id, h?.hotelId)).filter(Boolean).slice(0, 25);
+      hotelIds = items.map((h: any) => getStr(h?.id, h?.hotelId)).filter(Boolean).slice(0, 15);
       // Capture stars from /data/hotels (this endpoint has proper stars field)
       for (const item of items) {
         const id = getStr(item?.id, item?.hotelId);

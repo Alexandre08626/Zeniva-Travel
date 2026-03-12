@@ -670,10 +670,14 @@ export default function ProposalSelectPage() {
           rooms: "1",
         }).toString();
 
-        // Fetch LiteAPI + Amadeus in parallel
+        // Fetch LiteAPI first (primary), Amadeus with 4s timeout (supplementary)
+        const amadeusTimeout = new Promise((resolve) => setTimeout(() => resolve(null), 4000));
         const [liteRes, amadeusRes] = await Promise.allSettled([
           fetch(`/api/partners/liteapi/hotels/search?${qs}`).then(r => r.json()).catch(() => null),
-          fetch(`/api/amadeus/hotels/search?${qs}`).then(r => r.json()).catch(() => null),
+          Promise.race([
+            fetch(`/api/amadeus/hotels/search?${qs}`).then(r => r.json()).catch(() => null),
+            amadeusTimeout,
+          ]),
         ]);
 
         const liteList = liteRes.status === "fulfilled" && liteRes.value?.ok
@@ -1604,7 +1608,9 @@ export default function ProposalSelectPage() {
                           )}
                           {/* Price overlay */}
                           <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-lg">
-                            <p className="text-sm font-black text-purple-700">{h.price}</p>
+                            <p className="text-sm font-black text-purple-700">
+                              {h.price && !String(h.price).startsWith("USD") && !String(h.price).startsWith("Price") ? `USD ${h.price}` : h.price}
+                            </p>
                           </div>
                           {active && (
                             <div className="absolute top-3 left-3 bg-purple-600 text-white text-[10px] font-black rounded-full px-3 py-1 shadow">✓ Selected</div>
