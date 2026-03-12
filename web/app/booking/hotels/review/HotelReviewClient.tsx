@@ -41,6 +41,8 @@ type DraftData = {
     refundable?: boolean;
   } | null;
   pendingBooking?: any;
+  isAirbnb?: boolean;
+  priceText?: string | null;
   searchContext?: {
     destination?: string;
     checkIn?: string;
