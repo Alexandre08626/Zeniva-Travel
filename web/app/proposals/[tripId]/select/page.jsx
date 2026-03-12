@@ -715,6 +715,7 @@ export default function ProposalSelectPage() {
       const type = e.detail?.type;
       if (type === "activities") applyTripPatch(tripId, { includeActivities: true });
       if (type === "transfers") applyTripPatch(tripId, { includeTransfers: true });
+      if (type === "rentalcar") applyTripPatch(tripId, { includeRentalCar: true });
     };
     window.addEventListener("zeniva:enable-addon", handleAddon);
     return () => window.removeEventListener("zeniva:enable-addon", handleAddon);
@@ -895,6 +896,28 @@ export default function ProposalSelectPage() {
 
     run();
   }, [tripDraft?.includeTransfers, tripDraft?.destination, tripDraft?.checkIn, tripDraft?.adults, tripId, selection?.hotel?.location, selection?.flight, flightSearchContext?.destination]);
+
+  // ── Rental Cars (Amadeus) ──────────────────────────────────────────────────
+  const [cars, setCars] = useState([]);
+  const [loadingCars, setLoadingCars] = useState(false);
+  useEffect(() => {
+    if (tripDraft?.includeRentalCar !== true) { setCars([]); setLoadingCars(false); return; }
+    const destination = String(tripDraft?.destination || "").trim();
+    const checkIn = tripDraft?.checkIn;
+    const checkOut = tripDraft?.checkOut;
+    if (!destination || !checkIn || !checkOut) return;
+    setLoadingCars(true);
+    const run = async () => {
+      try {
+        const params = new URLSearchParams({ pickup: destination, startDate: checkIn, endDate: checkOut });
+        const res = await fetch(`/api/amadeus/cars/search?${params}`);
+        const data = await res.json();
+        setCars((data.offers || []).slice(0, 6));
+      } catch { setCars([]); }
+      setLoadingCars(false);
+    };
+    run();
+  }, [tripDraft?.includeRentalCar, tripDraft?.destination, tripDraft?.checkIn, tripDraft?.checkOut, tripId]);
 
   const onSelectFlight = (flight) => {
     const parsePrice = (raw) => {
@@ -1668,6 +1691,51 @@ export default function ProposalSelectPage() {
               </div>
             </section>
             )}
+
+            {/* RENTAL CAR */}
+            {tripDraft?.includeRentalCar === true && (
+            <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">🚙</div>
+                <div>
+                  <h2 className="text-lg font-black text-white">Rental Cars</h2>
+                  <p className="text-blue-100 text-xs">{cars.length} vehicles available</p>
+                </div>
+              </div>
+              <div className="p-4 space-y-3 max-h-[380px] overflow-y-auto">
+                {loadingCars && <div className="flex items-center gap-3 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3"><div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" /><span className="text-sm text-blue-700">Searching vehicles…</span></div>}
+                {cars.map((car, i) => {
+                  const carKey = car.id || `car-${i}`;
+                  const active = selection?.car?.id === carKey;
+                  const name = car.vehicle?.description || car.category || car.type || "Vehicle";
+                  const provider = car.provider?.name || car.supplier || "Partner";
+                  const price = car.price?.total ? `$${Number(car.price.total).toFixed(0)}` : car.priceText || "—";
+                  return (
+                    <button key={carKey} onClick={() => { const sel = { id: carKey, name, category: car.category, provider, price }; useTripsStore.getState().setSelection?.(tripId, "car", sel) || (window.__carSel = sel); }}
+                      className={`w-full text-left rounded-2xl border-2 overflow-hidden shadow-sm transition-all hover:shadow-md ${active ? "border-blue-500" : "border-slate-200"}`}>
+                      <div className="p-4 flex items-center justify-between gap-3">
+                        <div className="w-16 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-3xl flex-shrink-0">🚙</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-slate-900 text-sm truncate">{name}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">{provider}</p>
+                          {car.seats && <p className="text-xs text-slate-400">{car.seats} seats · {car.transmission || "Auto"}</p>}
+                          {active && <span className="inline-flex mt-1 text-[10px] font-bold text-blue-700 bg-blue-100 rounded-full px-2 py-0.5">✓ Selected</span>}
+                        </div>
+                        <p className="font-black text-blue-600 text-base flex-shrink-0">{price}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+                {!loadingCars && cars.length === 0 && (
+                  <div className="rounded-2xl border-2 border-dashed border-slate-200 p-6 text-center">
+                    <div className="text-3xl mb-2">🚙</div>
+                    <p className="text-sm text-slate-500">No rental cars available for this destination</p>
+                    <p className="text-xs text-slate-400 mt-1">Try searching with an airport code (e.g. MIA, CDG)</p>
+                  </div>
+                )}
+              </div>
+            </section>
+            )}
           </div>
 
           {/* ── RIGHT: Summary ── */}
@@ -1684,6 +1752,7 @@ export default function ProposalSelectPage() {
                   { icon: "🏨", label: staysTitle, item: selection?.hotel, getValue: (h) => h?.name },
                   { icon: "🎯", label: "Activity", item: selection?.activity, getValue: (a) => a?.name, optional: true },
                   { icon: "🚗", label: "Transfer", item: selection?.transfer, getValue: (t) => t?.name, optional: true },
+                  { icon: "🚙", label: "Rental Car", item: selection?.car, getValue: (c) => c?.name || c?.category, optional: true },
                 ].map(({ icon, label, item, getValue, optional }) => (
                   <div key={label} className={`flex items-start gap-3 rounded-xl p-3 ${item ? "bg-white/10 border border-white/10" : "border border-dashed border-white/10"}`}>
                     <span className="text-lg flex-shrink-0">{icon}</span>

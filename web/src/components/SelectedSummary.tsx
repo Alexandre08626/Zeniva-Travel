@@ -109,6 +109,19 @@ export default function SelectedSummary({ flight, hotel, activity, transfer, tri
                 🚗 + Add Transfers
               </button>
             )}
+            {!(tripDraft as any)?.includeRentalCar && (
+              <button
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    const event = new CustomEvent("zeniva:enable-addon", { detail: { type: "rentalcar" } });
+                    window.dispatchEvent(event);
+                  }
+                }}
+                className="flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition"
+              >
+                🚙 + Add Rental Car
+              </button>
+            )}
           </div>
         </div>
       )}
