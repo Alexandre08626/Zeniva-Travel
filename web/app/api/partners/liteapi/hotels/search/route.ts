@@ -153,7 +153,7 @@ const CITY_MAP: Record<string, { city: string; country: string }> = {
   "new zealand": { city: "Auckland", country: "NZ" },
   auckland: { city: "Auckland", country: "NZ" },
   fiji: { city: "Nadi", country: "FJ" },
-  // US
+  // US (additional — miami already defined above)
   "san francisco": { city: "San Francisco", country: "US" },
   chicago: { city: "Chicago", country: "US" },
   boston: { city: "Boston", country: "US" },
@@ -161,7 +161,6 @@ const CITY_MAP: Record<string, { city: string; country: string }> = {
   denver: { city: "Denver", country: "US" },
   nashville: { city: "Nashville", country: "US" },
   "new orleans": { city: "New Orleans", country: "US" },
-  miami: { city: "Miami", country: "US" },
   "miami beach": { city: "Miami Beach", country: "US" },
   "fort lauderdale": { city: "Fort Lauderdale", country: "US" },
   "palm beach": { city: "Palm Beach", country: "US" },
