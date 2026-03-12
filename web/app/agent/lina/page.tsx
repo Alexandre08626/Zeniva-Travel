@@ -15,14 +15,14 @@ interface ChatMessage {
 
 // Command chips — Lina can execute these
 const COMMANDS = [
-  { label: "📋 My leads today",      msg: "Show me all new leads from today" },
-  { label: "📊 Daily summary",       msg: "Give me a summary of today's activity: new leads, messages, and pending follow-ups" },
-  { label: "✉️ Draft proposal",      msg: "Help me write a travel proposal for a client" },
-  { label: "🔔 Follow up clients",   msg: "Which clients haven't been contacted in the last 7 days? Create follow-up messages for them" },
-  { label: "🤝 Assign to Marco",     msg: "Ask Marco to hunt for new leads in the luxury travel segment" },
-  { label: "📧 Ask Sofia to email",  msg: "Tell Sofia to send personalized follow-up emails to all new leads from this week" },
-  { label: "🌍 Hot destinations",    msg: "What are the most requested travel destinations this month?" },
-  { label: "💰 Commission status",   msg: "What is my current commission pipeline and which bookings are pending payment?" },
+  { label: "📋 New leads today",      msg: "Show me all new leads from today with their destination and budget" },
+  { label: "📊 Daily report",         msg: "Give me a full summary: new leads, messages, bookings, and revenue today" },
+  { label: "✈️ Create proposal",      msg: "Create a travel proposal for a client. I'll give you the details: client name, destination, dates, number of travelers, and budget." },
+  { label: "💰 Generate invoice",     msg: "Generate an invoice for a client booking. Tell me the client name, destination, dates, and total amount." },
+  { label: "📧 Luna: send email",     msg: "Tell Luna to send a follow-up email to all new leads from this week" },
+  { label: "🌟 Sofia: upsell",        msg: "Tell Sofia to contact all clients who booked in the last 30 days with upgrade offers" },
+  { label: "🔔 Follow-up needed",     msg: "Which clients haven't responded in the last 7 days? Draft personalized follow-up messages for each." },
+  { label: "💸 Commission pipeline",  msg: "Show me my current commission pipeline and which bookings are pending payment" },
 ];
 
 function fmtTime(d: string) {

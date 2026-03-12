@@ -888,10 +888,10 @@ export default function AIAgentsPageClient() {
       logs: ["Reddit r/travel: 12 intent signals found", "Expedia competitor scan complete", "8 leads auto-qualified and saved"],
     },
     {
-      id: "converter", name: "Sofia", emoji: "📬", avatar: "/agents/sofia.png",
-      status: "active", type: "Email Marketing · AI Writer",
+      id: "converter", name: "Sofia", emoji: "🌟", avatar: "/agents/sofia.png",
+      status: "active", type: "Client Success & Upsell · AI",
       schedule: "Daily 9 AM", color: "#3b82f6",
-      description: "Sends personalized AI-written invite emails to every new lead. Detects their language and writes in EN, FR, ES, or AR. Not templates — every email is unique.",
+      description: "After a booking is confirmed, Sofia upsells: business class upgrades, private villas, exclusive tours. Also collects reviews after each trip. Increases revenue per client by 20-40%.",
       intro: "I turn cold leads into warm conversations! Every morning at 9 AM, I craft personalized emails for each new lead — in their language, about their dream destination. No templates, pure AI creativity.",
       features: ["AI emails", "EN/FR/ES/AR", "Smart timing", "Open tracking", "Supabase sync", "A/B testing"],
       scenarios: [
@@ -1001,9 +1001,9 @@ export default function AIAgentsPageClient() {
     },
     {
       id: "twilio", name: "Luna", emoji: "📞", avatar: "/agents/luna.png",
-      status: "live", type: "Voice & SMS · Real-time",
+      status: "live", type: "Email + SMS + Voice · All-in-One",
       schedule: "Real-time (inbound/outbound)", color: "#06b6d4",
-      description: "Real-time phone and SMS powered by AI. Lina answers calls and texts, sends follow-up SMS, delivers quotes by text, and handles voice conversations naturally.",
+      description: "Luna handles ALL client communications: emails at info@zeniva.ca, SMS via Twilio, and voice calls. She replies to clients, sends follow-ups, and is the main post-Lina contact point.",
       intro: "I'm the voice and SMS gateway! When someone calls or texts your Zeniva number, I connect them with Lina's AI brain. Inbound calls get a natural voice conversation, texts get instant AI responses.",
       features: ["Inbound SMS", "Outbound SMS", "Voice calls", "AI responses", "Quote SMS", "Alerts"],
       scenarios: [
