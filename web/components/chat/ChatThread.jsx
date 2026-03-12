@@ -473,12 +473,12 @@ function ChatThread({ tripId, proposalMode = "" }) {
       const currentHistory = useTripsStore.getState().messages?.[tripId] || [];
       if (currentHistory.length === 0) {
         setAutoGreetSent(true);
-        // Add Lina's greeting directly as a message (no API call)
-        const { addMessage } = require("../../lib/store/tripsStore");
-        addMessage(tripId, {
-          role: "assistant",
-          content: "👋 Hi! I'm Lina, your AI travel concierge. Where would you like to go? Just tell me your destination, dates, and I'll build your perfect trip in seconds! ✈️",
-        });
+        // addMessage(tripId, role, content) — 3 args
+        addMessage(
+          tripId,
+          "assistant",
+          "👋 Hi! I'm Lina, your AI travel concierge. Where would you like to go? Just tell me your destination, dates, and I'll build your perfect trip in seconds! ✈️"
+        );
       }
     }, 1200);
     return () => clearTimeout(timer);
