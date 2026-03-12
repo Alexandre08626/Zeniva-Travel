@@ -1944,6 +1944,60 @@ export default function ProposalSelectPage() {
               </div>
             </section>
             )}
+            {/* ── ADD TO YOUR TRIP ── */}
+            {(() => {
+              const showAddFlights = !showFlights;
+              const showAddHotels = !showHotels && tripDraft?.accommodationType !== "Villa" && tripDraft?.accommodationType !== "Airbnb" && tripDraft?.accommodationType !== "Residence" && tripDraft?.accommodationType !== "Condo";
+              const showAddAirbnb = !showVillas;
+              const showAddActivities = tripDraft?.includeActivities !== true;
+              const showAddTransfers = tripDraft?.includeTransfers !== true;
+              const showAddCars = tripDraft?.includeRentalCar !== true;
+              const hasAnything = showAddFlights || showAddHotels || showAddAirbnb || showAddActivities || showAddTransfers || showAddCars;
+              if (!hasAnything) return null;
+              return (
+                <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">✨ Add to your trip</p>
+                  <div className="flex flex-wrap gap-2">
+                    {showAddFlights && (
+                      <button onClick={() => setShowFlightsOverride(true)}
+                        className="flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-xs font-bold text-sky-700 hover:bg-sky-100 transition">
+                        ✈️ + Add Flights
+                      </button>
+                    )}
+                    {showAddHotels && (
+                      <button onClick={() => setShowHotelsOverride(true)}
+                        className="flex items-center gap-1.5 rounded-full border border-violet-200 bg-violet-50 px-4 py-2 text-xs font-bold text-violet-700 hover:bg-violet-100 transition">
+                        🏨 + Add Hotels
+                      </button>
+                    )}
+                    {showAddAirbnb && (
+                      <button onClick={() => setShowVillasOverride(true)}
+                        className="flex items-center gap-1.5 rounded-full border border-pink-200 bg-pink-50 px-4 py-2 text-xs font-bold text-pink-700 hover:bg-pink-100 transition">
+                        🏠 + Add Airbnb
+                      </button>
+                    )}
+                    {showAddActivities && (
+                      <button onClick={() => { const e = new CustomEvent("zeniva:enable-addon", { detail: { type: "activities" } }); window.dispatchEvent(e); }}
+                        className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition">
+                        🎯 + Add Experiences
+                      </button>
+                    )}
+                    {showAddTransfers && (
+                      <button onClick={() => { const e = new CustomEvent("zeniva:enable-addon", { detail: { type: "transfers" } }); window.dispatchEvent(e); }}
+                        className="flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-xs font-bold text-orange-700 hover:bg-orange-100 transition">
+                        🚗 + Add Transfers
+                      </button>
+                    )}
+                    {showAddCars && (
+                      <button onClick={() => { const e = new CustomEvent("zeniva:enable-addon", { detail: { type: "rentalcar" } }); window.dispatchEvent(e); }}
+                        className="flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-bold text-blue-700 hover:bg-blue-100 transition">
+                        🚙 + Add Rental Car
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* ── RIGHT: Summary ── */}

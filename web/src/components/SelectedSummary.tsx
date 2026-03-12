@@ -77,67 +77,7 @@ export default function SelectedSummary({ flight, hotel, activity, transfer, tri
         </div>
       </div>
 
-      {/* Add-ons: Show only if not already included */}
-      {(!tripDraft?.includeActivities || !tripDraft?.includeTransfers || !(tripDraft as any)?.includeRentalCar || !(tripDraft as any)?.includeVillas) && (
-        <div className="mt-4 border-t border-slate-100 pt-3">
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Add to your trip</p>
-          <div className="flex flex-wrap gap-2">
-            {!tripDraft?.includeActivities && (
-              <button
-                onClick={() => {
-                  if (typeof window !== "undefined") {
-                    // Enable activities and reload to show section
-                    const event = new CustomEvent("zeniva:enable-addon", { detail: { type: "activities" } });
-                    window.dispatchEvent(event);
-                  }
-                }}
-                className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition"
-              >
-                🎯 + Add Experiences
-              </button>
-            )}
-            {!tripDraft?.includeTransfers && (
-              <button
-                onClick={() => {
-                  if (typeof window !== "undefined") {
-                    const event = new CustomEvent("zeniva:enable-addon", { detail: { type: "transfers" } });
-                    window.dispatchEvent(event);
-                  }
-                }}
-                className="flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100 transition"
-              >
-                🚗 + Add Transfers
-              </button>
-            )}
-            {!(tripDraft as any)?.includeRentalCar && (
-              <button
-                onClick={() => {
-                  if (typeof window !== "undefined") {
-                    const event = new CustomEvent("zeniva:enable-addon", { detail: { type: "rentalcar" } });
-                    window.dispatchEvent(event);
-                  }
-                }}
-                className="flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition"
-              >
-                🚙 + Add Rental Car
-              </button>
-            )}
-            {!(tripDraft as any)?.includeVillas && (
-              <button
-                onClick={() => {
-                  if (typeof window !== "undefined") {
-                    const event = new CustomEvent("zeniva:enable-addon", { detail: { type: "villas" } });
-                    window.dispatchEvent(event);
-                  }
-                }}
-                className="flex items-center gap-1.5 rounded-full border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-semibold text-purple-700 hover:bg-purple-100 transition"
-              >
-                🏠 + Add Airbnb
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Note: "Add to your trip" buttons are in the main page content above, not here */}
 
       <div className="mt-4 flex items-center justify-end">
         <button className="bg-slate-900 text-white px-4 py-2 rounded-md font-bold" onClick={onProceed}>
