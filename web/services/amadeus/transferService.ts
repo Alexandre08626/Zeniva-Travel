@@ -6,6 +6,12 @@ export type TransferSearchParams = {
   dateTime: string;
   passengers?: number;
   currency?: string;
+  endAddress?: string;
+  endCity?: string;
+  endCountryCode?: string;
+  endZip?: string;
+  endName?: string;
+  endGeoCode?: string;
 };
 
 export type NormalizedTransferOffer = {
@@ -30,17 +36,33 @@ export type NormalizedTransferOffer = {
 export async function searchTransfers(params: TransferSearchParams, requestId: string) {
   const currency = params.currency || "USD";
 
-  // Transfer Search is a POST upstream; we expose a GET with query params as requested.
-  const payload = {
-    data: {
-      type: "transfer-offers",
-      startLocationCode: params.origin,
-      endLocationCode: params.destination,
-      startDateTime: params.dateTime,
-      passengers: params.passengers || 1,
-      currency,
-    },
+  // Amadeus Transfer API — flat payload (NOT wrapped in data.type)
+  // origin = IATA airport code (e.g. MIA), destination = city name or hotel address
+  const payload: any = {
+    startLocationCode: params.origin,
+    startDateTime: params.dateTime,
+    passengers: params.passengers || 1,
+    currency,
+    transferType: "PRIVATE",
+    stopOvers: [],
   };
+
+  // If destination looks like a city name (not IATA), use address fields
+  if (params.endAddress) {
+    payload.endAddressLine = params.endAddress;
+    payload.endCityName = params.endCity || params.destination;
+    payload.endCountryCode = params.endCountryCode || "US";
+    if (params.endZip) payload.endZipCode = params.endZip;
+    if (params.endName) payload.endName = params.endName;
+    if (params.endGeoCode) payload.endGeoCode = params.endGeoCode;
+  } else if (/^[A-Z]{3}$/i.test(params.destination)) {
+    // IATA to IATA
+    payload.endLocationCode = params.destination.toUpperCase();
+  } else {
+    // City name fallback
+    payload.endCityName = params.destination;
+    payload.endCountryCode = params.endCountryCode || "US";
+  }
 
   const upstream: any = await amadeusJson({
     requestId,

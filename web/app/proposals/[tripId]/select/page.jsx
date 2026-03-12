@@ -874,12 +874,42 @@ export default function ProposalSelectPage() {
       try {
         const dateTime = `${checkIn}T10:00:00`;
         const arrivalAirport = getArrivalAirport();
-        const qs = new URLSearchParams({
-          origin: arrivalAirport || destination,
-          destination,
+        // IATA map fallback for origin airport
+        const IATA_MAP = {
+          "miami": "MIA", "paris": "CDG", "london": "LHR", "new york": "JFK",
+          "los angeles": "LAX", "toronto": "YYZ", "montreal": "YUL", "cancun": "CUN",
+          "punta cana": "PUJ", "rome": "FCO", "barcelona": "BCN", "madrid": "MAD",
+          "amsterdam": "AMS", "dubai": "DXB", "tokyo": "NRT", "bangkok": "BKK",
+          "bali": "DPS", "mexico city": "MEX", "havana": "HAV", "nassau": "NAS",
+          "montego bay": "MBJ", "san jose": "SJO", "bogota": "BOG", "lima": "LIM",
+          "buenos aires": "EZE", "rio de janeiro": "GIG", "sao paulo": "GRU",
+          "cape town": "CPT", "nairobi": "NBO", "marrakech": "RAK",
+          "istanbul": "IST", "athens": "ATH", "prague": "PRG", "vienna": "VIE",
+          "zurich": "ZRH", "milan": "MXP", "munich": "MUC", "frankfurt": "FRA",
+          "lisbon": "LIS", "porto": "OPO", "singapore": "SIN", "hong kong": "HKG",
+          "seoul": "ICN", "sydney": "SYD", "melbourne": "MEL", "auckland": "AKL",
+          "maldives": "MLE", "male": "MLE", "mauritius": "MRU",
+        };
+        const destLower = destination.toLowerCase();
+        const iataFallback = IATA_MAP[destLower] || "";
+        const originAirport = arrivalAirport || iataFallback;
+        
+        // Pass hotel info as destination address if hotel is selected
+        const hotelName = selection?.hotel?.name || "";
+        const hotelLocation = selection?.hotel?.location || destination;
+        
+        const qsParams: Record<string, string> = {
+          origin: originAirport || destination,
+          destination: hotelLocation,
           dateTime,
           passengers: String(tripDraft?.adults || 2),
-        }).toString();
+        };
+        if (hotelName) {
+          qsParams.endName = hotelName;
+          qsParams.endCity = hotelLocation;
+          qsParams.endCountryCode = "US";
+        }
+        const qs = new URLSearchParams(qsParams).toString();
 
         const res = await fetch(`/api/amadeus/transfers/search?${qs}`);
         const data = await res.json().catch(() => null);
@@ -1776,49 +1806,51 @@ export default function ProposalSelectPage() {
                   <p className="text-blue-100 text-xs">{cars.length} vehicles available</p>
                 </div>
               </div>
-              <div className="p-4 space-y-3 max-h-[380px] overflow-y-auto">
-                {loadingCars && <div className="flex items-center gap-3 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3"><div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" /><span className="text-sm text-blue-700">Searching vehicles…</span></div>}
+              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[480px] overflow-y-auto">
+                {loadingCars && <div className="col-span-2 flex items-center gap-3 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3"><div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" /><span className="text-sm text-blue-700">Searching vehicles…</span></div>}
                 {cars.map((car, i) => {
                   const carKey = car.id || `car-${i}`;
                   const active = selection?.car?.id === carKey;
+                  const LOGOS = { "Hertz": "🔴", "Avis": "🔵", "Enterprise": "🟢", "Budget": "🟡", "Sixt": "🟠" };
+                  const logo = LOGOS[car.provider] || "🚙";
                   return (
-                    <div key={carKey}
-                      className={`w-full rounded-2xl border-2 overflow-hidden shadow-sm transition-all hover:shadow-md ${active ? "border-blue-500" : "border-slate-200"}`}>
-                      <button className="w-full text-left p-4 flex items-center gap-3"
-                        onClick={() => setProposalSelection(tripId, { car: { id: carKey, name: car.name, category: car.category, provider: car.provider, price: car.totalText } })}>
-                        <div className="w-14 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-2xl flex-shrink-0">{car.logo || "🚙"}</div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="font-bold text-slate-900 text-sm">{car.name}</p>
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">{car.provider}</span>
+                    <div key={carKey} className={`rounded-2xl border-2 overflow-hidden transition-all hover:shadow-lg cursor-pointer ${active ? "border-blue-500 shadow-blue-100 shadow-md" : "border-slate-200 hover:border-blue-300"}`}
+                      onClick={() => setProposalSelection(tripId, { car: { id: carKey, name: car.name, category: car.category, provider: car.provider, price: car.totalText } })}>
+                      {/* Car visual header */}
+                      <div className={`h-28 flex items-center justify-center relative ${active ? "bg-gradient-to-br from-blue-50 to-indigo-50" : "bg-gradient-to-br from-slate-50 to-slate-100"}`}>
+                        <div className="text-6xl">{car.emoji || "🚗"}</div>
+                        <div className="absolute top-2 left-3 flex items-center gap-1.5">
+                          <span className="text-lg">{logo}</span>
+                          <span className="text-xs font-bold text-slate-700 bg-white/80 rounded-full px-2 py-0.5">{car.provider}</span>
+                        </div>
+                        {active && <div className="absolute top-2 right-3 bg-blue-600 text-white text-[10px] font-bold rounded-full px-2 py-0.5">✓ Selected</div>}
+                      </div>
+                      {/* Car info */}
+                      <div className="p-3">
+                        <p className="font-bold text-slate-900 text-sm truncate">{car.name}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{car.seats} seats · {car.transmission} · {car.ac ? "A/C" : "No A/C"}</p>
+                        <div className="flex gap-1 mt-2 flex-wrap">
+                          {(car.features || []).slice(0,3).map((f, fi) => <span key={fi} className="text-[10px] bg-slate-100 text-slate-600 rounded px-1.5 py-0.5">{f}</span>)}
+                        </div>
+                        <div className="mt-3 flex items-end justify-between">
+                          <div>
+                            <p className="font-black text-blue-600 text-lg">{car.priceText}</p>
+                            <p className="text-xs text-slate-400">{car.totalText}</p>
                           </div>
-                          <p className="text-xs text-slate-500 mt-0.5">{car.seats} seats · {car.transmission}</p>
-                          <div className="flex gap-1 mt-1 flex-wrap">
-                            {(car.features || []).map((f, fi) => <span key={fi} className="text-[10px] bg-slate-100 text-slate-600 rounded px-1.5 py-0.5">{f}</span>)}
-                          </div>
-                          {active && <span className="inline-flex mt-1 text-[10px] font-bold text-blue-700 bg-blue-100 rounded-full px-2 py-0.5">✓ Selected</span>}
+                          <button className={`text-xs font-bold rounded-xl px-3 py-1.5 transition-colors ${active ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-700 hover:bg-blue-50 hover:text-blue-700"}`}
+                            onClick={e => { e.stopPropagation(); setProposalSelection(tripId, { car: { id: carKey, name: car.name, category: car.category, provider: car.provider, price: car.totalText } }); }}>
+                            {active ? "✓ Selected" : "Select"}
+                          </button>
                         </div>
-                        <div className="text-right flex-shrink-0">
-                          <p className="font-black text-blue-600 text-base">{car.priceText}</p>
-                          <p className="text-xs text-slate-400">{car.totalText}</p>
-                        </div>
-                      </button>
-                      {car.bookUrl && (
-                        <div className="border-t border-slate-100 px-4 py-2 flex justify-end">
-                          <a href={car.bookUrl} target="_blank" rel="noopener noreferrer"
-                            className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                            Book on {car.provider} →
-                          </a>
-                        </div>
-                      )}
+                      </div>
                     </div>
                   );
                 })}
                 {!loadingCars && cars.length === 0 && (
-                  <div className="rounded-2xl border-2 border-dashed border-slate-200 p-6 text-center">
+                  <div className="col-span-2 rounded-2xl border-2 border-dashed border-slate-200 p-6 text-center">
                     <div className="text-3xl mb-2">🚙</div>
-                    <p className="text-sm text-slate-500">No rental cars available for this destination</p>
-                    <p className="text-xs text-slate-400 mt-1">Try searching with an airport code (e.g. MIA, CDG)</p>
+                    <p className="text-sm font-semibold text-slate-700">Rental cars available</p>
+                    <p className="text-xs text-slate-400 mt-1">Contact us at <span className="text-blue-600">info@zeniva.ca</span> for vehicle availability</p>
                   </div>
                 )}
               </div>

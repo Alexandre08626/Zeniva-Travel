@@ -46,6 +46,12 @@ const searchSchema = z.object({
   destination: z.string().min(3),
   dateTime: z.string().min(10),
   passengers: z.coerce.number().int().min(1).max(9).optional(),
+  endAddress: z.string().optional(),
+  endCity: z.string().optional(),
+  endCountryCode: z.string().optional(),
+  endZip: z.string().optional(),
+  endName: z.string().optional(),
+  endGeoCode: z.string().optional(),
 });
 
 export async function handleTransfersSearch(req: Request, requestId: string): Promise<RouteResult> {
@@ -55,6 +61,12 @@ export async function handleTransfersSearch(req: Request, requestId: string): Pr
     destination: url.searchParams.get("destination") || "",
     dateTime: url.searchParams.get("dateTime") || "",
     passengers: url.searchParams.get("passengers") || undefined,
+    endAddress: url.searchParams.get("endAddress") || undefined,
+    endCity: url.searchParams.get("endCity") || undefined,
+    endCountryCode: url.searchParams.get("endCountryCode") || undefined,
+    endZip: url.searchParams.get("endZip") || undefined,
+    endName: url.searchParams.get("endName") || undefined,
+    endGeoCode: url.searchParams.get("endGeoCode") || undefined,
   });
 
   if (!parsed.success) {
@@ -94,6 +106,12 @@ export async function handleTransfersSearch(req: Request, requestId: string): Pr
         ...parsed.data,
         origin: originCode || parsed.data.origin,
         destination: destinationCode || parsed.data.destination,
+        endAddress: parsed.data.endAddress,
+        endCity: parsed.data.endCity,
+        endCountryCode: parsed.data.endCountryCode,
+        endZip: parsed.data.endZip,
+        endName: parsed.data.endName,
+        endGeoCode: parsed.data.endGeoCode,
       },
       requestId
     );
