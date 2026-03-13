@@ -8,6 +8,7 @@ import LinaAvatar from "../src/components/LinaAvatar";
 import AutoTranslate from "../src/components/AutoTranslate";
 import FeaturedTripsSection from "../src/components/FeaturedTripsSection";
 import AppHomeGate from "../src/components/AppHomeGate.client";
+import MobilePromoBadge from "../src/components/MobilePromoBadge.client";
 
 export const metadata: Metadata = {
   title: "#1 AI Travel Concierge USA — Luxury Trips & Custom Vacations",
@@ -109,11 +110,8 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* Promo badge */}
-            <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-4 border border-amber-200" style={{ background: "linear-gradient(90deg, #FFF8E6, #FFF3CC)" }}>
-              <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse" />
-              <span className="text-[11px] font-black text-amber-700 uppercase tracking-widest">🔥 15% OFF — Code WELCOME15</span>
-            </div>
+            {/* Promo badge — anonymous only */}
+            <MobilePromoBadge />
 
             {/* Headline */}
             <h1 className="text-[2.4rem] font-black text-[#0B1B4D] leading-none tracking-tight text-center mb-3">
