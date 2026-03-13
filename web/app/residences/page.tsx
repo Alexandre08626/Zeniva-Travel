@@ -1,1 +1,1 @@
-export { default } from "../airbnbs/page";
+export { default } from "../rentals/page";
