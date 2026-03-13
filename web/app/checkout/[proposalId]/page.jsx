@@ -63,7 +63,7 @@ function SquarePayButton({ amount, description, referenceId, disabled }) {
 import { BRAND_BLUE, LIGHT_BG, MUTED_TEXT, TITLE_TEXT } from "../../../src/design/tokens";
 import { useTripsStore, createTrip } from "../../../lib/store/tripsStore";
 import { getImagesForDestination, getPartnerHotelImages } from "../../../src/lib/images";
-import { computePrice, formatCurrency } from "../../../src/lib/pricing";
+import { computePrice, formatCurrency, parseMoney } from "../../../src/lib/pricing";
 import { useAuthStore } from "../../../src/lib/authStore";
 import { getDocumentsForUser, upsertDocuments } from "../../../src/lib/documentsStore";
 
@@ -125,6 +125,39 @@ export default function CheckoutPage() {
     extraActivities,
     extraTransfers,
   });
+
+  // Compute TRUE total including villa/car/shortterm (same logic as SelectedSummary)
+  const trueTotal = useMemo(() => {
+    // Flight total
+    let flightTotal = 0;
+    const fl = selection?.flight;
+    if (fl?.outbound && fl?.inbound) {
+      flightTotal = (parseMoney(fl.outbound.price) ?? 0) + (parseMoney(fl.inbound.price) ?? 0);
+    } else if (fl) {
+      flightTotal = parseMoney(fl.price) ?? 0;
+    }
+    // Hotel total
+    const hotelTotal = (() => {
+      const h = selection?.hotel;
+      if (!h) return 0;
+      const nightly = parseMoney(h.price) ?? 0;
+      const nights = parseMoney(h.nights) ?? parseMoney(tripDraft?.nights) ?? 5;
+      return nightly > 0 ? nightly * nights : 0;
+    })();
+    // Villa/ZeniStay total (price = priceTotal already)
+    const villaTotal = parseMoney(selection?.villa?.price) ?? parseMoney(selection?.shortterm?.price) ?? 0;
+    // Activity
+    const activityTotal = parseMoney(selection?.activity?.price) ?? 0;
+    // Transfer
+    const transferTotal = parseMoney(selection?.transfer?.price) ?? 0;
+    // Car
+    const carTotal = parseMoney(selection?.car?.price) ?? 0;
+
+    const subtotal = flightTotal + hotelTotal + villaTotal + activityTotal + transferTotal + carTotal;
+    if (subtotal === 0) return pricing.total || 0; // fallback to computePrice
+    const fee = Math.round(subtotal * 0.06 * 100) / 100;
+    return Math.round((subtotal + fee) * 100) / 100;
+  }, [selection, tripDraft, pricing]);
 
   if (!proposalId) return null;
 
@@ -457,7 +490,7 @@ export default function CheckoutPage() {
                 <div className="border-t border-slate-200 pt-2 flex items-center justify-between">
                   <span className="font-bold">Total (est.)</span>
                   <span className="text-lg font-extrabold" style={{ color: BRAND_BLUE }}>
-                    {pricing.hasAnyPrice ? formatCurrency(pricing.total) : "On request"}
+                    {trueTotal > 0 ? formatCurrency(trueTotal) : (pricing.hasAnyPrice ? formatCurrency(pricing.total) : "On request")}
                   </span>
                 </div>
               </div>
@@ -507,7 +540,7 @@ export default function CheckoutPage() {
               </div>
             )}
             <SquarePayButton
-              amount={pricing.hasAnyPrice ? pricing.total : 500}
+              amount={trueTotal > 0 ? trueTotal : (pricing.hasAnyPrice ? pricing.total : 500)}
               description={`Zeniva Travel — ${tripDraft?.destination || "Trip"} (${tripDraft?.adults || 1} travelers)`}
               referenceId={proposalId}
               disabled={!travelerForm.firstName.trim() || !travelerForm.email.trim()}
