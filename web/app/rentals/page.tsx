@@ -238,15 +238,39 @@ function RentalsContent() {
                       </div>
 
                       {/* CTA buttons — NO external links */}
-                      <div className="mt-3 grid grid-cols-2 gap-2">
-                        <button onClick={() => chatWithLina(villa)}
-                          className="rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-black py-2.5 hover:opacity-90 transition shadow">
-                          💬 Ask Lina
+                      <div className="mt-3 space-y-2">
+                        <button onClick={() => {
+                          const p = new URLSearchParams({
+                            name: villa.name || "",
+                            price: villa.pricePerNight || "",
+                            priceNum: String(villa.rawPrice || villa.pricePerNightNum || 0),
+                            location: villa.location || villa.city || "",
+                            guests: searchParams.get("guests") || "1",
+                            bedrooms: String(villa.bedrooms || ""),
+                            bathrooms: String(villa.bathrooms || ""),
+                            checkin: searchParams.get("checkin") || "",
+                            checkout: searchParams.get("checkout") || "",
+                            rating: String(villa.rating || ""),
+                            reviews: String(villa.reviewCount || ""),
+                            type: villa.type || "Vacation Rental",
+                            photos: encodeURIComponent(JSON.stringify(villa.photos || (villa.photo ? [villa.photo] : []))),
+                            amenities: encodeURIComponent(JSON.stringify(villa.amenities || [])),
+                          });
+                          router.push(`/rentals/${villa.id || villaId}?${p.toString()}`);
+                        }}
+                          className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-black py-3 hover:opacity-90 transition shadow">
+                          🏠 View details & book
                         </button>
-                        <button onClick={() => requestBooking(villa)}
-                          className="rounded-xl border-2 border-blue-200 text-blue-700 text-xs font-black py-2.5 hover:bg-blue-50 transition">
-                          📧 Request booking
-                        </button>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button onClick={() => chatWithLina(villa)}
+                            className="rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-black py-2.5 hover:opacity-90 transition shadow">
+                            💬 Ask Lina
+                          </button>
+                          <button onClick={() => requestBooking(villa)}
+                            className="rounded-xl border-2 border-blue-200 text-blue-700 text-xs font-black py-2.5 hover:bg-blue-50 transition">
+                            📧 Request
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
