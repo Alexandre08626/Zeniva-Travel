@@ -17,10 +17,15 @@ export function useIsApp(): boolean | null {
     // 3. localStorage — persists across navigations once PWA is detected
     const remembered = localStorage.getItem("zeniva_pwa_mode") === "1";
 
-    const result = urlParam || standalone || remembered;
+    // 4. Mobile browser + logged-in client → app experience
+    const isMobile = window.innerWidth < 768;
+    const isLoggedIn = !!localStorage.getItem("zeniva_token") || !!document.cookie.includes("zeniva_token");
+    const mobileClient = isMobile && isLoggedIn;
 
-    // Save PWA mode so internal navigation keeps app UI
-    if (result) {
+    const result = urlParam || standalone || remembered || mobileClient;
+
+    // Persist PWA mode (only for actual PWA, not just mobile+logged-in)
+    if (urlParam || standalone) {
       localStorage.setItem("zeniva_pwa_mode", "1");
     }
 
