@@ -15,46 +15,78 @@ const quickPrompts = ["Flights", "Hotels", "All-Inclusive", "Cruise", "Excursion
  */
 function extractTripInfoFromConversation(allMessages) {
   const patch = {};
-  // Combine all text for scanning
-  const fullText = allMessages.map((m) => m.content || "").join("\n");
+  // Only use the LAST 6 messages to avoid polluting with old session data
+  const recentMessages = allMessages.slice(-6);
+  const fullText = recentMessages.map((m) => m.content || "").join("\n");
+  const currentYear = new Date().getFullYear();
 
-  // Destination
-  const destMatch = fullText.match(/(?:destination|going to|travel(?:ling)? to|trip to|voyage (?:à|au|en|aux))\s*[:=]?\s*([A-Za-zÀ-ÿ\s-]+)/i)
-    || fullText.match(/•\s*Destination\s*[:=]?\s*([A-Za-zÀ-ÿ\s-]+)/i);
+  // Destination — use strict patterns only, avoid matching common words like "aujourd'hui"
+  // Priority: TRIP_PATCH "destination" field > explicit keyword patterns > bullet points
+  const tripPatchDestMatch = fullText.match(/["']destination["']\s*:\s*["']([A-Za-zÀ-ÿ\s,'-]+?)["']/i);
+  const destKeywordMatch = fullText.match(/(?:^|\n)\s*(?:•\s*)?(?:Destination|destination)\s*[:=]\s*([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{1,30})/im)
+    || fullText.match(/\bvoyage (?:à|au|en|aux)\s+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{1,25})\b/i)
+    || fullText.match(/\b(?:going to|trip to|travel to)\s+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{1,25})\b/i);
+  const destMatch = tripPatchDestMatch || destKeywordMatch;
   if (destMatch) {
     const dest = destMatch[1].trim().replace(/\s+/g, " ").split(/[,\n•]/)[0].trim();
-    if (dest.length >= 2 && dest.length <= 50) patch.destination = dest;
+    // Reject common French words that might be falsely matched
+    const blacklist = /^(aujourd|jourd|hui|maintenant|bientot|bientôt|demain|hier|toujours|jamais)/i;
+    if (dest.length >= 3 && dest.length <= 40 && !blacklist.test(dest)) {
+      patch.destination = dest;
+    }
   }
 
   // Departure / origin
-  const depMatch = fullText.match(/(?:departure|departing from|from|départ de|aéroport de départ|depar de)\s*[:=]?\s*([A-Za-zÀ-ÿ\s-]{2,30})/i)
-    || fullText.match(/(?:je suis (?:à|a))\s+([A-Z]{3})\b/i)
-    || fullText.match(/\b(YUL|YYZ|YVR|JFK|LAX|SFO|MIA|ORD|CDG|LHR)\b/i);
+  const depMatch = fullText.match(/\b(YUL|YYZ|YVR|JFK|LAX|SFO|MIA|ORD|CDG|LHR|YOW|YHZ)\b/)
+    || fullText.match(/(?:départ de|departure from|departing from|depart de|depart montreal|from montreal|from toronto)\s*[:=]?\s*([A-Za-zÀ-ÿ\s-]{2,20})/i)
+    || fullText.match(/["']departureCity["']\s*:\s*["']([A-Za-zÀ-ÿ\s-]+?)["']/i);
   if (depMatch) {
     const dep = depMatch[1].trim();
     if (dep.length >= 2) patch.departure = dep.toUpperCase().length === 3 ? dep.toUpperCase() : dep;
   }
 
-  // Dates (check-in / check-out)
-  const dateMatches = fullText.match(/\d{4}-\d{2}-\d{2}/g)
-    || fullText.match(/\d{1,2}\s+(?:janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre|december|january|february|march|april|may|june|july|august|september|october|november)\s*\d{0,4}/gi);
-  if (dateMatches && dateMatches.length >= 1) {
-    // Try to find "26 février" style and convert
-    const isoDate = (s) => {
-      if (/\d{4}-\d{2}-\d{2}/.test(s)) return s;
-      return s; // keep as-is for display
-    };
-    patch.dates = dateMatches.length >= 2 ? `${isoDate(dateMatches[0])} → ${isoDate(dateMatches[1])}` : isoDate(dateMatches[0]);
+  // Dates — only accept YYYY-MM-DD format AND only future years (currentYear or later)
+  const isoDateMatches = fullText.match(/\b(\d{4}-\d{2}-\d{2})\b/g) || [];
+  const futureDates = isoDateMatches.filter(d => {
+    const year = parseInt(d.slice(0, 4));
+    return year >= currentYear; // reject 2024 and older
+  });
+  if (futureDates.length >= 2) {
+    patch.dates = `${futureDates[0]} → ${futureDates[1]}`;
+  } else if (futureDates.length === 1) {
+    patch.dates = futureDates[0];
   }
-  // Also detect "X semaine(s)" or "X weeks" for duration
-  const durationMatch = fullText.match(/(\d+)\s*semaine/i) || fullText.match(/(\d+)\s*week/i);
-  const startDateMatch = fullText.match(/(\d{1,2})\s*(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre)/i);
-  if (durationMatch && startDateMatch && !patch.dates) {
+
+  // French date format: "22 mars" → convert to ISO
+  if (!patch.dates) {
     const months = { janvier: "01", février: "02", fevrier: "02", mars: "03", avril: "04", mai: "05", juin: "06", juillet: "07", août: "08", aout: "08", septembre: "09", octobre: "10", novembre: "11", décembre: "12" };
+    const frDateMatch = fullText.match(/\b(\d{1,2})\s+(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre)\b/gi) || [];
+    if (frDateMatch.length > 0) {
+      const convertFrDate = (s) => {
+        const m = s.match(/(\d{1,2})\s+(\w+)/i);
+        if (!m) return null;
+        const mon = months[m[2].toLowerCase()];
+        if (!mon) return null;
+        const day = m[1].padStart(2, "0");
+        // Use next occurrence of this date (if already passed this year, use next year)
+        const yr = currentYear;
+        const candidate = `${yr}-${mon}-${day}`;
+        return candidate;
+      };
+      const dates = frDateMatch.map(convertFrDate).filter(Boolean);
+      if (dates.length >= 2) patch.dates = `${dates[0]} → ${dates[1]}`;
+      else if (dates.length === 1) patch.dates = dates[0];
+    }
+  }
+
+  // Duration: "X semaine(s)" from a start date
+  const durationMatch = fullText.match(/(\d+)\s*semaine/i) || fullText.match(/(\d+)\s*week/i);
+  const startDateMatch = fullText.match(/\b(\d{1,2})\s*(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre)/i);
+  if (durationMatch && startDateMatch && !patch.dates) {
+    const months2 = { janvier: "01", février: "02", fevrier: "02", mars: "03", avril: "04", mai: "05", juin: "06", juillet: "07", août: "08", aout: "08", septembre: "09", octobre: "10", novembre: "11", décembre: "12" };
     const day = startDateMatch[1].padStart(2, "0");
-    const month = months[startDateMatch[2].toLowerCase()] || "01";
-    const year = new Date().getFullYear();
-    const start = `${year}-${month}-${day}`;
+    const month = months2[startDateMatch[2].toLowerCase()] || "01";
+    const start = `${currentYear}-${month}-${day}`;
     const weeks = parseInt(durationMatch[1]);
     const endDate = new Date(start);
     endDate.setDate(endDate.getDate() + weeks * 7);
