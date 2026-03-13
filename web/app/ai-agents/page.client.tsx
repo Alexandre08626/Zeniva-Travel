@@ -294,7 +294,7 @@ function AgentCard({ agent, onSelect }: { agent: AgentDef; onSelect: (id: string
     setCmdMessages(newHistory);
     setCmdLoading(true);
     try {
-      const res = await fetch("http://217.216.88.202:8000/agent-command", {
+      const res = await fetch("/api/agents-proxy?endpoint=agent-command", {
         method: "POST",
         headers: {"Content-Type":"application/json","Authorization":"Bearer zeniva-secret-2025"},
         body: JSON.stringify({agent_id: agent.id, agent_name: agent.name, message: userMsg, history: cmdMessages.slice(-10)}),
@@ -411,7 +411,7 @@ function AgentDetailPanel({ agent, onClose, onToggle }: {
     setCmdMessages(newHistory);
     setCmdLoading(true);
     try {
-      const res = await fetch("http://217.216.88.202:8000/agent-command", {
+      const res = await fetch("/api/agents-proxy?endpoint=agent-command", {
         method: "POST",
         headers: {"Content-Type":"application/json","Authorization":"Bearer zeniva-secret-2025"},
         body: JSON.stringify({agent_id: agent.id, agent_name: agent.name, message: userMsg, history: cmdMessages.slice(-10)}),

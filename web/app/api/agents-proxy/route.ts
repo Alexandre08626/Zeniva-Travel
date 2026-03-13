@@ -131,6 +131,11 @@ export async function POST(req: NextRequest) {
       const r = await fetch(`${VPS_BASE}/social-queue`, { method: "POST", headers: { Authorization: AUTH, "Content-Type": "application/json" }, body: JSON.stringify(body) });
       return NextResponse.json(await r.json());
     }
+    if (endpoint === "agent-command") {
+      const body = await req.json();
+      const r = await fetch(`${VPS_BASE}/agent-command`, { method: "POST", headers: { Authorization: AUTH, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      return NextResponse.json(await r.json());
+    }
     if (endpoint === "social-leads-scan") {
       const body = await req.json();
       const r = await fetch(`${VPS_BASE}/social-leads/scan`, { method: "POST", headers: { Authorization: AUTH, "Content-Type": "application/json" }, body: JSON.stringify(body) });
