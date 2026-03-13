@@ -63,12 +63,12 @@ export default function AITravelAgentPage() {
           <h2 style={{ fontSize: 36, fontWeight: 800, marginBottom: 40 }}>What Lina Can Plan For You</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(180px,1fr))", gap: 16 }}>
             {[
-              { icon: "✈️", label: "Flights" },
+              { icon: "✈️", label: "ZeniFlights" },
               { icon: "🏨", label: "Hotels & Resorts" },
               { icon: "🏠", label: "Luxury Villas" },
               { icon: "⛵", label: "Yacht Charters" },
               { icon: "🚗", label: "Car Rentals" },
-              { icon: "🚌", label: "Transfers" },
+              { icon: "🚌", label: "ZeniTransfers" },
               { icon: "🎭", label: "Experiences" },
               { icon: "🛳️", label: "ZeniCruise" },
               { icon: "🎽", label: "ZeniGroup" },

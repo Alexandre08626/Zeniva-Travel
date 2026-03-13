@@ -10,7 +10,7 @@ const WIDGET_TRANSLATIONS: Record<string, Record<string, string>> = {
   fr: {
     "Plan your perfect trip with Lina AI": "Planifiez votre voyage parfait avec Lina AI",
     "Your personal travel concierge powered by AI": "Votre conseiller voyage personnel propulsé par l'IA",
-    "Flights": "Vols",
+    "ZeniFlights": "ZeniFlights",
     "ZeniHotel": "ZeniHotel",
     "Transfers": "Transferts",
     "Rental Car": "Location de voiture",
@@ -58,7 +58,7 @@ const WIDGET_TRANSLATIONS: Record<string, Record<string, string>> = {
   es: {
     "Plan your perfect trip with Lina AI": "Planifica tu viaje perfecto con Lina AI",
     "Your personal travel concierge powered by AI": "Tu asistente de viaje personal impulsado por IA",
-    "Flights": "Vuelos",
+    "ZeniFlights": "ZeniFlights",
     "ZeniHotel": "ZeniHotel",
     "Transfers": "Traslados",
     "Rental Car": "Coche de alquiler",
@@ -322,7 +322,7 @@ export default function TravelSearchWidget() {
         {/* Tabs (desktop) — premium icons */}
         <div className="mb-5 flex items-center justify-center gap-2 flex-wrap">
           {[
-            { key: 'flights', label: tx('Flights'), icon: '✈️' },
+            { key: 'flights', label: 'ZeniFlights', icon: '✈️' },
             { key: 'hotels', label: tx('Hotels'), icon: '🏨' },
             { key: 'transfers', label: tx('Transfers'), icon: '🚐' },
             { key: 'cars', label: tx('Rental Car'), icon: '🚗' },

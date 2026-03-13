@@ -131,7 +131,7 @@ export default function AboutPage() {
               {[
                 { icon: "✈️", title: "Custom Trip Planning", desc: "AI-powered custom vacation planning for individuals, couples, and families. Any destination, any budget." },
                 { icon: "🛥️", title: "ZeniYacht", desc: "Private yacht charters worldwide. Lina AI finds the perfect vessel and itinerary for your group." },
-                { icon: "🏖️", title: "All-Inclusive Vacations", desc: "Curated all-inclusive resort packages to top destinations — Mexico, Caribbean, Europe, and beyond." },
+                { icon: "🏖️", title: "ZeniPackages", desc: "Curated all-inclusive resort packages to top destinations — Mexico, Caribbean, Europe, and beyond." },
                 { icon: "👥", title: "ZeniGroup", desc: "Stress-free group trip planning for corporate retreats, weddings, bachelor/bachelorette parties, and more." },
                 { icon: "🏡", title: "Luxury Rentals", desc: "Private villas, chalets, and short-term luxury rentals curated by Zeniva concierge experts." },
                 { icon: "🤖", title: "Lina AI — 24/7 Concierge", desc: "Our AI travel concierge is available around the clock. Ask anything — she'll plan your dream trip in minutes." },

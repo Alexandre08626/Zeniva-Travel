@@ -221,7 +221,7 @@ export default function RootLayout({
                   "All-Inclusive Vacations",
                   "Flight Booking",
                   "Hotel Booking",
-                  "Transfer Services",
+                  "ZeniTransfers",
                   "Travel Packages"
                 ],
                 "sameAs": [

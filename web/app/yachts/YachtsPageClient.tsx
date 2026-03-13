@@ -301,7 +301,7 @@ export default function YachtsPageClient() {
               { label: "Hotels & Resorts", href: "/partners/resorts" },
               { label: "⛵ Yachts", href: "/yachts", active: true },
               { label: "🏠 Short-term Rentals", href: "/residences" },
-              { label: "✈️ Flights", href: "/" },
+              { label: "✈️ ZeniFlights", href: "/" },
             ].map(({ label, href, active }) => (
               <Link key={href} href={href}
                 className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${active ? "bg-white text-slate-900" : "bg-white/15 text-white hover:bg-white/25"}`}>

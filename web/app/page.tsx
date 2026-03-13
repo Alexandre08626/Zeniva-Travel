@@ -37,11 +37,11 @@ const DESTINATIONS = [
 ];
 
 const SERVICES = [
-  { icon: "✈️", title: "Flights", desc: "Best fares worldwide", href: "/search/flights", color: "#0F6CF5" },
+  { icon: "✈️", title: "ZeniFlights", desc: "Best fares worldwide", href: "/search/flights", color: "#0F6CF5" },
   { icon: "🏨", title: "ZeniHotel", desc: "Curated luxury stays", href: "/partners/resorts", color: "#10b981" },
   { icon: "🛥️", title: "ZeniYacht", desc: "Private charters", href: "/yachts", color: "#E6B85A" },
-  { icon: "🚗", title: "Transfers", desc: "Door-to-door service", href: "/chat?prompt=I+need+a+transfer", color: "#ec4899" },
-  { icon: "🏖️", title: "Packages", desc: "All-inclusive deals", href: "/packages", color: "#8b5cf6" },
+  { icon: "🚗", title: "ZeniTransfers", desc: "Door-to-door service", href: "/chat?prompt=I+need+a+transfer", color: "#ec4899" },
+  { icon: "🏖️", title: "ZeniPackages", desc: "All-inclusive deals", href: "/packages", color: "#8b5cf6" },
   { icon: "🏠", title: "ZeniStay", desc: "Homes & villas", href: "/residences", color: "#f59e0b" },
 ];
 
