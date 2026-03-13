@@ -84,7 +84,7 @@ export default function AppHome() {
 
   return (
     <div style={{
-      minHeight:"100dvh", background:"#030812", color:"#fff", overflowX:"hidden",
+      minHeight:"100dvh", background:"#ffffff", color:"#0B1B4D", overflowX:"hidden",
       fontFamily:"-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       paddingTop:"env(safe-area-inset-top)",
       paddingBottom:"calc(88px + env(safe-area-inset-bottom))",
@@ -126,7 +126,7 @@ export default function AppHome() {
               <div style={{fontSize:15,fontWeight:900,letterSpacing:"-0.02em",lineHeight:1}}>
                 Zeniva <span style={{color:"#E6B85A"}}>Travel</span> ✈️
               </div>
-              <div style={{fontSize:10,color:"rgba(255,255,255,.35)",fontWeight:600,letterSpacing:"0.04em"}}>
+              <div style={{fontSize:10,color:"rgba(11,27,77,.5)",fontWeight:600,letterSpacing:"0.04em"}}>
                 {greeting}{firstName?`, ${firstName}`:""}
               </div>
             </div>
@@ -136,14 +136,14 @@ export default function AppHome() {
           <div style={{position:"relative"}}>
             <button onClick={()=>setShowMenu(v=>!v)} style={{
               width:40,height:40,borderRadius:"50%",
-              background:"rgba(255,255,255,.06)",
-              border:"1px solid rgba(255,255,255,.1)",
+              background:"rgba(11,27,77,.06)",
+              border:"1px solid rgba(11,27,77,.15)",
               display:"flex",alignItems:"center",justifyContent:"center",
               cursor:"pointer",WebkitTapHighlightColor:"transparent",
             }}>
               {authUser?.name
-                ? <span style={{fontSize:15,fontWeight:900,color:"#fff"}}>{authUser.name[0].toUpperCase()}</span>
-                : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" strokeWidth="2.5" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                ? <span style={{fontSize:15,fontWeight:900,color:"#0B1B4D"}}>{authUser.name[0].toUpperCase()}</span>
+                : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(11,27,77,.5)" strokeWidth="2.5" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               }
             </button>
 
@@ -162,7 +162,7 @@ export default function AppHome() {
                   {authUser && (
                     <div style={{padding:"10px 12px 8px",borderBottom:"1px solid rgba(255,255,255,.07)",marginBottom:4}}>
                       <div style={{fontSize:13,fontWeight:800,color:"#fff"}}>{authUser.name||"Traveler"}</div>
-                      <div style={{fontSize:10,color:"rgba(255,255,255,.35)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{authUser.email}</div>
+                      <div style={{fontSize:10,color:"rgba(11,27,77,.5)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{authUser.email}</div>
                     </div>
                   )}
                   {[
@@ -254,8 +254,8 @@ export default function AppHome() {
           {/* Chat input */}
           <div style={{
             display:"flex",gap:8,
-            background:"rgba(255,255,255,.06)",
-            border:"1px solid rgba(255,255,255,.1)",
+            background:"rgba(11,27,77,.05)",
+            border:"1px solid rgba(11,27,77,.12)",
             borderRadius:20,padding:"10px 10px 10px 16px",
             maxWidth:420,margin:"0 auto",
           }}>
@@ -266,7 +266,7 @@ export default function AppHome() {
               placeholder="Where do you want to go?"
               style={{
                 flex:1,background:"transparent",border:"none",outline:"none",
-                fontSize:14,color:"#fff",fontWeight:500,
+                fontSize:14,color:"#0B1B4D",fontWeight:500,
               }}
             />
             <button onClick={()=>chat(chatInput)} style={{
@@ -286,13 +286,13 @@ export default function AppHome() {
           {QUICK_CHIPS.map((c)=>(
             <button key={c.label} className="chip-btn" onClick={()=>chat(c.q)} style={{
               flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",gap:4,
-              background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.08)",
+              background:"rgba(11,27,77,.05)",border:"1px solid rgba(11,27,77,.1)",
               borderRadius:16,padding:"10px 14px",cursor:"pointer",
               WebkitTapHighlightColor:"transparent",
               transition:"transform .15s ease",
             }}>
               <span style={{fontSize:22}}>{c.emoji}</span>
-              <span style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,.6)",whiteSpace:"nowrap"}}>{c.label}</span>
+              <span style={{fontSize:10,fontWeight:700,color:"rgba(11,27,77,.75)",whiteSpace:"nowrap"}}>{c.label}</span>
             </button>
           ))}
         </div>
@@ -301,7 +301,7 @@ export default function AppHome() {
         <div style={{padding:"0 20px 6px"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
             <div>
-              <div style={{fontSize:11,fontWeight:800,color:"rgba(255,255,255,.3)",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:3}}>FEATURED</div>
+              <div style={{fontSize:11,fontWeight:800,color:"rgba(11,27,77,.45)",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:3}}>FEATURED</div>
               <div style={{fontSize:20,fontWeight:900,letterSpacing:"-0.02em"}}>Dream Destinations</div>
             </div>
             <button onClick={()=>go("/destinations")} style={{
@@ -317,7 +317,7 @@ export default function AppHome() {
                 onClick={()=>go(`/destinations/${d.slug}`)}
                 style={{
                   flexShrink:0,width:200,borderRadius:22,overflow:"hidden",
-                  background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.07)",
+                  background:"rgba(11,27,77,.04)",border:"1px solid rgba(11,27,77,.08)",
                   cursor:"pointer",textAlign:"left",padding:0,
                   WebkitTapHighlightColor:"transparent",
                   transition:"transform .15s ease",
@@ -346,7 +346,7 @@ export default function AppHome() {
                 </div>
                 {/* Sub */}
                 <div style={{padding:"10px 12px 12px"}}>
-                  <div style={{fontSize:11,color:"rgba(255,255,255,.45)",fontWeight:600}}>{d.sub}</div>
+                  <div style={{fontSize:11,color:"rgba(11,27,77,.6)",fontWeight:600}}>{d.sub}</div>
                   <div style={{
                     marginTop:8,display:"flex",alignItems:"center",justifyContent:"space-between",
                   }}>
@@ -362,7 +362,7 @@ export default function AppHome() {
         <div style={{padding:"20px 20px 0"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
             <div>
-              <div style={{fontSize:11,fontWeight:800,color:"rgba(255,255,255,.3)",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:3}}>EXPLORE</div>
+              <div style={{fontSize:11,fontWeight:800,color:"rgba(11,27,77,.45)",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:3}}>EXPLORE</div>
               <div style={{fontSize:20,fontWeight:900,letterSpacing:"-0.02em"}}>Our Collections</div>
             </div>
           </div>
@@ -385,10 +385,10 @@ export default function AppHome() {
                 <img src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=200&q=80" alt="Yachts" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
               </div>
               <div style={{flex:1}}>
-                <div style={{fontSize:16,fontWeight:900,color:"#fff",marginBottom:3}}>⛵ Yacht Charters</div>
-                <div style={{fontSize:12,color:"rgba(255,255,255,.45)"}}>Luxury yachts in Miami, Bahamas & more</div>
+                <div style={{fontSize:16,fontWeight:900,color:"#0B1B4D",marginBottom:3}}>⛵ Yacht Charters</div>
+                <div style={{fontSize:12,color:"rgba(11,27,77,.6)"}}>Luxury yachts in Miami, Bahamas & more</div>
               </div>
-              <div style={{fontSize:20,color:"rgba(255,255,255,.3)"}}>›</div>
+              <div style={{fontSize:20,color:"rgba(11,27,77,.45)"}}>›</div>
             </button>
 
             {/* Luxury Resorts */}
@@ -407,10 +407,10 @@ export default function AppHome() {
                 <img src="https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=200&q=80" alt="Resorts" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
               </div>
               <div style={{flex:1}}>
-                <div style={{fontSize:16,fontWeight:900,color:"#fff",marginBottom:3}}>🏨 Luxury Resorts</div>
-                <div style={{fontSize:12,color:"rgba(255,255,255,.45)"}}>5-star partner hotels & all-inclusive</div>
+                <div style={{fontSize:16,fontWeight:900,color:"#0B1B4D",marginBottom:3}}>🏨 Luxury Resorts</div>
+                <div style={{fontSize:12,color:"rgba(11,27,77,.6)"}}>5-star partner hotels & all-inclusive</div>
               </div>
-              <div style={{fontSize:20,color:"rgba(255,255,255,.3)"}}>›</div>
+              <div style={{fontSize:20,color:"rgba(11,27,77,.45)"}}>›</div>
             </button>
 
             {/* Villas & Residences */}
@@ -429,10 +429,10 @@ export default function AppHome() {
                 <img src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=200&q=80" alt="Villas" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
               </div>
               <div style={{flex:1}}>
-                <div style={{fontSize:16,fontWeight:900,color:"#fff",marginBottom:3}}>🏡 Villas & Residences</div>
-                <div style={{fontSize:12,color:"rgba(255,255,255,.45)"}}>Private Florida villas, beach houses</div>
+                <div style={{fontSize:16,fontWeight:900,color:"#0B1B4D",marginBottom:3}}>🏡 Villas & Residences</div>
+                <div style={{fontSize:12,color:"rgba(11,27,77,.6)"}}>Private Florida villas, beach houses</div>
               </div>
-              <div style={{fontSize:20,color:"rgba(255,255,255,.3)"}}>›</div>
+              <div style={{fontSize:20,color:"rgba(11,27,77,.45)"}}>›</div>
             </button>
           </div>
         </div>
@@ -445,15 +445,15 @@ export default function AppHome() {
             {icon:"👤",label:"Profile",href:"/profile"},
           ].map((item)=>(
             <button key={item.label} onClick={()=>go(item.href)} style={{
-              flex:1,background:"rgba(255,255,255,.05)",
-              border:"1px solid rgba(255,255,255,.08)",
+              flex:1,background:"rgba(11,27,77,.05)",
+              border:"1px solid rgba(11,27,77,.1)",
               borderRadius:18,padding:"14px 8px",
               cursor:"pointer",textAlign:"center",
               WebkitTapHighlightColor:"transparent",
               transition:"transform .15s ease",
             }}>
               <div style={{fontSize:22,marginBottom:4}}>{item.icon}</div>
-              <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,.6)"}}>{item.label}</div>
+              <div style={{fontSize:11,fontWeight:700,color:"rgba(11,27,77,.75)"}}>{item.label}</div>
             </button>
           ))}
         </div>
@@ -473,7 +473,7 @@ export default function AppHome() {
             <img src="/branding/lina-avatar.png" style={{width:48,height:48,borderRadius:"50%",objectFit:"cover",border:"2px solid rgba(230,184,90,.4)",flexShrink:0}} alt="Lina"/>
             <div style={{flex:1}}>
               <div style={{fontSize:15,fontWeight:900,color:"#fff",marginBottom:3}}>Talk to Lina live</div>
-              <div style={{fontSize:12,color:"rgba(255,255,255,.5)"}}>Real-time AI travel concierge · Video + Voice</div>
+              <div style={{fontSize:12,color:"rgba(11,27,77,.65)"}}>Real-time AI travel concierge · Video + Voice</div>
             </div>
             <div style={{
               background:"rgba(255,255,255,.1)",borderRadius:14,padding:"8px 14px",
