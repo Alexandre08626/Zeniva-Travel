@@ -59,6 +59,36 @@ export default function AirbnbsPage() {
   const isLoggedIn = false;
   const userEmail = "user@email.com";
 
+  // Airbnb live search
+  const [apiResults, setApiResults] = useState<any[]>([]);
+  const [apiLoading, setApiLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
+  const [searched, setSearched] = useState(false);
+  const [searchedDest, setSearchedDest] = useState("");
+
+  const handleSearch = async () => {
+    const dest = query.trim();
+    if (!dest) return;
+    setApiLoading(true);
+    setApiError("");
+    setSearched(true);
+    setSearchedDest(dest);
+    try {
+      const params = new URLSearchParams({ destination: dest, type: "all" });
+      if (checkIn) params.set("checkIn", checkIn);
+      if (checkOut) params.set("checkOut", checkOut);
+      if (travelers) params.set("guests", travelers);
+      const r = await fetch(`/api/airbnb/villas/search?${params}`);
+      const data = await r.json();
+      setApiResults(data.villas || []);
+      if ((data.villas || []).length === 0) setApiError("No properties found. Try a different destination or dates.");
+    } catch {
+      setApiError("Search failed. Please try again.");
+    } finally {
+      setApiLoading(false);
+    }
+  };
+
   useEffect(() => {
     let active = true;
     const loadFallback = async () => {
@@ -249,7 +279,8 @@ export default function AirbnbsPage() {
                     type="search"
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Search by property or country"
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    placeholder="City, country or destination (e.g. Paris, Maldives…)"
                     className="w-full max-w-full min-w-0 rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white/70"
                   />
                 </div>
@@ -301,6 +332,15 @@ export default function AirbnbsPage() {
                       <option value="11" className="text-slate-900">11+ travelers</option>
                     </select>
                   </div>
+                  {/* Search Button */}
+                  <button
+                    type="button"
+                    onClick={handleSearch}
+                    disabled={apiLoading || !query.trim()}
+                    className="flex-shrink-0 rounded-full bg-white px-6 py-2 text-sm font-black text-blue-700 shadow-lg hover:bg-blue-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {apiLoading ? "🔍…" : "🔍 Search"}
+                  </button>
                 </div>
               </div>
             </div>
@@ -322,15 +362,108 @@ export default function AirbnbsPage() {
             </Link>
           </div>
 
-        {loading ? (
+        {/* ── LIVE AIRBNB RESULTS ── */}
+        {(searched || apiLoading) && (
+          <div className="mb-10">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-2xl font-black text-slate-900">
+                  {apiLoading ? "Searching…" : `Results for "${searchedDest}"`}
+                </h2>
+                {!apiLoading && apiResults.length > 0 && (
+                  <p className="text-slate-500 text-sm mt-1">{apiResults.length} properties found · Prices in USD · Booked through Zeniva</p>
+                )}
+              </div>
+              <button
+                onClick={() => { setSearched(false); setApiResults([]); setApiError(""); }}
+                className="text-sm text-slate-500 hover:text-slate-800 font-semibold border border-slate-200 rounded-full px-4 py-1.5 hover:bg-slate-50 transition">
+                ✕ Clear search
+              </button>
+            </div>
+
+            {apiLoading && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="bg-white rounded-2xl shadow animate-pulse">
+                    <div className="h-48 bg-slate-200 rounded-t-2xl" />
+                    <div className="p-4 space-y-2">
+                      <div className="h-4 bg-slate-200 rounded w-3/4" />
+                      <div className="h-3 bg-slate-100 rounded w-1/2" />
+                      <div className="h-3 bg-slate-100 rounded w-1/3" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {!apiLoading && apiError && (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center text-amber-800 font-semibold">
+                {apiError}
+              </div>
+            )}
+
+            {!apiLoading && !apiError && apiResults.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {apiResults.map((v: any) => {
+                  const chatPrompt = encodeURIComponent(
+                    `I'd like to book the property "${v.name}" in ${v.city} for ${travelers} traveler${parseInt(travelers) > 1 ? "s" : ""}${checkIn ? ` from ${checkIn}` : ""}${checkOut ? ` to ${checkOut}` : ""}. Price: ${v.pricePerNight}. Can you help me book it?`
+                  );
+                  return (
+                    <div key={v.id} className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-shadow overflow-hidden group">
+                      {/* Photos */}
+                      <div className="relative h-52 overflow-hidden bg-slate-100">
+                        {v.photo ? (
+                          <img src={v.photo} alt={v.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-4xl text-slate-300">🏠</div>
+                        )}
+                        {v.superhost && (
+                          <span className="absolute top-3 left-3 bg-white text-slate-800 text-[10px] font-black px-2.5 py-1 rounded-full shadow">⭐ Superhost</span>
+                        )}
+                        <div className="absolute bottom-3 right-3 bg-blue-600 text-white text-xs font-black px-3 py-1 rounded-full shadow">
+                          {v.pricePerNight}
+                        </div>
+                      </div>
+                      {/* Info */}
+                      <div className="p-4">
+                        <h3 className="font-black text-slate-900 text-sm leading-snug line-clamp-2">{v.name}</h3>
+                        <p className="text-xs text-slate-500 mt-1">📍 {v.city}</p>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {v.bedrooms && <span className="text-[10px] bg-slate-100 text-slate-600 rounded-full px-2 py-0.5">🛏 {v.bedrooms} bed{v.bedrooms > 1 ? "s" : ""}</span>}
+                          {v.bathrooms && <span className="text-[10px] bg-slate-100 text-slate-600 rounded-full px-2 py-0.5">🚿 {v.bathrooms} bath</span>}
+                          {v.maxGuests && <span className="text-[10px] bg-slate-100 text-slate-600 rounded-full px-2 py-0.5">👥 max {v.maxGuests}</span>}
+                          {v.rating && <span className="text-[10px] bg-yellow-50 text-yellow-700 rounded-full px-2 py-0.5 font-bold">★ {v.rating} ({v.reviews})</span>}
+                        </div>
+                        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+                          <div>
+                            <p className="text-base font-black text-slate-900">{v.pricePerNight}<span className="text-xs font-normal text-slate-400"> / night</span></p>
+                            {v.nights > 1 && <p className="text-[10px] text-slate-400">{v.priceTotal} total · {v.nights} nights</p>}
+                          </div>
+                          <a href={`/chat?prompt=${chatPrompt}`}
+                            className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl px-4 py-2 transition shadow">
+                            💬 Book with Lina
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── CURATED LISTINGS (default, hidden when API search active) ── */}
+        {!searched && loading ? (
           <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-600 shadow">
             <AutoTranslate text="Loading residences..." className="inline" />
           </div>
-        ) : filtered.length === 0 ? (
+        ) : !searched && filtered.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-600 shadow">
             <AutoTranslate text="No residences match your search." className="inline" />
           </div>
-        ) : (
+        ) : !searched ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filtered.slice(0, visible).map((p) => (
