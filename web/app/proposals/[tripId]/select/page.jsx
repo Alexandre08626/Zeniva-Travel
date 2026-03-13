@@ -374,10 +374,28 @@ export default function ProposalSelectPage() {
 
   // Basic date parsing from tripDraft.checkIn/checkOut
   const parsedDates = useMemo(() => {
-    const depart = tripDraft?.checkIn || "";
-    const ret = tripDraft?.checkOut || "";
+    // Try tripDraft fields first
+    let depart = tripDraft?.checkIn || "";
+    let ret = tripDraft?.checkOut || "";
+
+    // Fallback: parse from snapshot.dates "Mar 22, 2026 → Apr 5, 2026" or "2026-03-22 → 2026-04-05"
+    if ((!depart || !ret) && snapshot?.dates) {
+      const parts = String(snapshot.dates).split(/\s*(?:→|–|—|-to-)\s*/);
+      if (parts.length >= 2) {
+        if (!depart) depart = parts[0].trim();
+        if (!ret) ret = parts[1].trim();
+      }
+    }
+    // Fallback: parse from tripDraft.dates
+    if ((!depart || !ret) && tripDraft?.dates) {
+      const parts = String(tripDraft.dates).split(/\s*(?:→|–|—|-to-)\s*/);
+      if (parts.length >= 2) {
+        if (!depart) depart = parts[0].trim();
+        if (!ret) ret = parts[1].trim();
+      }
+    }
     return { depart, ret };
-  }, [tripDraft]);
+  }, [tripDraft, snapshot]);
 
   const hasReturnLeg = Boolean(String(tripDraft?.checkOut || parsedDates.ret || "").trim());
 
@@ -1185,7 +1203,7 @@ export default function ProposalSelectPage() {
   );
 
   const filteredFlights = useMemo(() => {
-    const reqOrigin = flightSearchContext.origin.toUpperCase();
+    const reqOrigin = (flightLeg === "return" ? flightSearchContext.destination : flightSearchContext.origin).toUpperCase();
     const reqDest = (flightLeg === "return" ? flightSearchContext.origin : flightSearchContext.destination).toUpperCase();
 
     const list = flights
