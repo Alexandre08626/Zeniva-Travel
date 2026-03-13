@@ -10,6 +10,7 @@ type HolidayResult = {
   ref: string;
   name: string;
   operator: string;
+  cover_image?: string;
   detail_url: string;
 };
 
@@ -100,13 +101,13 @@ const CABIN_LABELS: Record<string, { label: string; icon: string; desc: string }
   Suite:     { label: "Suite",     icon: "👑",  desc: "Premium space & exclusive perks." },
 };
 
-const OPERATOR_IMAGES: Record<string, string> = {
+const FALLBACK_IMAGES: Record<string, string> = {
   "MSC Cruises":    "https://images.unsplash.com/photo-1548032885-b5e38734eca5?auto=format&fit=crop&w=900&q=80",
   "Virgin Voyages": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
 };
 
-function fallbackImage(operator: string) {
-  return OPERATOR_IMAGES[operator] || "https://images.unsplash.com/photo-1548032885-b5e38734eca5?auto=format&fit=crop&w=900&q=80";
+function getCardImage(h: HolidayResult) {
+  return h.cover_image || FALLBACK_IMAGES[h.operator] || FALLBACK_IMAGES["MSC Cruises"];
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -392,7 +393,7 @@ function CruisesContent() {
                 <div className={`grid gap-4 ${selected ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"}`}>
                   {results.map(h => {
                     const isActive = selected?.ref === h.ref;
-                    const img = fallbackImage(h.operator);
+                    const img = getCardImage(h);
                     return (
                       <div key={h.ref}
                         className={`bg-white rounded-2xl overflow-hidden border-2 shadow-sm hover:shadow-lg transition-all cursor-pointer group
@@ -445,8 +446,18 @@ function CruisesContent() {
             <div className="lg:sticky lg:top-6 h-fit">
               <div className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
 
-                {/* Panel header */}
-                <div className="relative bg-gradient-to-br from-[#0f2a5e] to-[#1a3d8f] text-white p-5">
+                {/* Panel header — ship photo */}
+                {(() => {
+                  const panelImg = (detail?.images?.[0]?.href) || selected.cover_image;
+                  return panelImg ? (
+                    <div className="relative h-40 overflow-hidden">
+                      <img src={panelImg} alt={selected.name}
+                        className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0f2a5e]/90 via-[#0f2a5e]/30 to-transparent" />
+                    </div>
+                  ) : null;
+                })()}
+                <div className={`relative ${selected.cover_image ? "" : "bg-gradient-to-br from-[#0f2a5e] to-[#1a3d8f]"} text-white p-5`}>
                   <button onClick={() => { setSelected(null); setDetail(null); }}
                     className="absolute top-3 right-3 bg-white/10 hover:bg-white/20 rounded-full w-8 h-8 flex items-center justify-center text-white font-bold text-sm transition">
                     ✕
