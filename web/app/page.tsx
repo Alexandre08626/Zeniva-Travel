@@ -77,128 +77,122 @@ export default function HomePage() {
       {/* ══════════════════════════════════════════
           MOBILE VERSION
       ══════════════════════════════════════════ */}
-      <section className="sm:hidden" style={{ marginLeft: "calc(-1 * max(0px, (100vw - 100%) / 2))", marginRight: "calc(-1 * max(0px, (100vw - 100%) / 2))", width: "100vw", maxWidth: "100vw" }}>
-        {/* Hero mobile */}
-        <div className="relative min-h-screen overflow-hidden" style={{ background: "linear-gradient(160deg, #050E1F 0%, #0A1E4A 40%, #0F3A8A 100%)" }}>
-          {/* Animated orbs */}
-          <div className="absolute top-[-80px] right-[-60px] w-72 h-72 rounded-full opacity-20" style={{ background: "radial-gradient(circle, #E6B85A, transparent)", filter: "blur(40px)", animation: "pulse 4s ease-in-out infinite" }} />
-          <div className="absolute top-[30%] left-[-80px] w-64 h-64 rounded-full opacity-15" style={{ background: "radial-gradient(circle, #6366f1, transparent)", filter: "blur(50px)" }} />
-          <div className="absolute bottom-[10%] right-[-40px] w-48 h-48 rounded-full opacity-20" style={{ background: "radial-gradient(circle, #0F6CF5, transparent)", filter: "blur(30px)" }} />
+      <section className="sm:hidden" style={{ marginLeft: "calc(-1 * max(0px, (100vw - 100%) / 2))", marginRight: "calc(-1 * max(0px, (100vw - 100%) / 2))", width: "100vw", maxWidth: "100vw", background: "#ffffff" }}>
 
-          {/* Stars/particles effect */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {[...Array(20)].map((_, i) => (
-              <div key={i} className="absolute rounded-full bg-white opacity-30" style={{ width: Math.random() * 3 + 1 + "px", height: Math.random() * 3 + 1 + "px", top: Math.random() * 100 + "%", left: Math.random() * 100 + "%" }} />
-            ))}
+        {/* ── MOBILE HERO — white lead capture ── */}
+        <div className="relative min-h-screen flex flex-col overflow-hidden bg-white">
+          {/* Soft orbs on white */}
+          <div className="absolute top-[-60px] right-[-40px] w-64 h-64 rounded-full opacity-10 pointer-events-none" style={{ background: "radial-gradient(circle, #0F6CF5, transparent)", filter: "blur(50px)" }} />
+          <div className="absolute top-[35%] left-[-50px] w-52 h-52 rounded-full opacity-8 pointer-events-none" style={{ background: "radial-gradient(circle, #E6B85A, transparent)", filter: "blur(60px)" }} />
+
+          {/* Top nav */}
+          <div className="flex items-center justify-between px-5 pt-5">
+            <div className="flex items-center gap-2">
+              <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full border-2 border-blue-100" />
+              <span className="font-black text-sm text-[#0B1B4D] tracking-tight">Zeniva Travel</span>
+            </div>
+            <div className="flex gap-2">
+              <Link href="/login" className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600">Log in</Link>
+              <Link href="/signup" className="rounded-full px-3 py-1.5 text-xs font-black text-white" style={{ background: "linear-gradient(90deg, #0F6CF5, #0B1B4D)" }}>Sign up</Link>
+            </div>
           </div>
 
-          <div className="relative z-10 px-5 pt-6 pb-10 flex flex-col min-h-screen">
-            {/* Top nav */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full border border-white/20" />
-                <span className="text-white font-black text-sm tracking-tight">Zeniva Travel</span>
-              </div>
-              <div className="flex gap-2">
-                <Link href="/login" className="rounded-full bg-white/20 backdrop-blur border border-white/20 px-3 py-1.5 text-xs font-semibold text-white">Log in</Link>
-                <Link href="/signup" className="rounded-full px-3 py-1.5 text-xs font-black text-[#0B1B4D]" style={{ background: "linear-gradient(90deg, #E6B85A, #f0c96b)" }}>Sign up</Link>
-              </div>
-            </div>
+          {/* Main content */}
+          <div className="flex flex-col items-center px-5 pt-8 flex-1">
 
-            {/* Lina avatar + hero */}
-            <div className="flex flex-col items-center mt-10 flex-1">
-              {/* Lina with glow ring */}
-              <div className="relative mb-6">
-                {/* Speech bubble — desktop only */}
-                <div className="absolute inset-0 rounded-full" style={{ margin: "-12px", background: "radial-gradient(circle, rgba(230,184,90,0.4) 0%, transparent 70%)", filter: "blur(15px)" }} />
-                <div className="absolute inset-0 rounded-full border-2 border-yellow-400/30 animate-ping" style={{ margin: "-4px", animationDuration: "3s" }} />
-                <Link href="/call">
-                  <img src="/branding/lina-avatar.png" alt="Lina AI" className="relative w-40 h-40 rounded-full object-cover border-4 shadow-2xl cursor-pointer hover:scale-105 transition-transform duration-300" style={{ borderColor: "rgba(230,184,90,0.5)" }} />
-                </Link>
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-white/25 backdrop-blur rounded-full px-3 py-1 border border-white/20">
-                  <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                  <span className="text-white text-[10px] font-bold">Lina AI · Live</span>
-                </div>
-              </div>
-
-              <div className="text-center px-2">
-                <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur rounded-full px-4 py-1.5 mb-4 border border-white/15">
-                  <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                  <span className="text-[10px] font-bold text-yellow-300 uppercase tracking-widest">🔥 Limited · 15% OFF Your First Trip</span>
-                </div>
-                <p className="text-4xl font-black text-white leading-none tracking-tight mb-3" role="heading" aria-level={1}>
-                  Your dream trip,<br/>
-                  <span style={{ background: "linear-gradient(90deg, #E6B85A, #fff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                    planned in 60 sec
-                  </span>
-                </p>
-                <p className="text-white/90 text-sm leading-relaxed max-w-xs mx-auto font-medium">
-                  Tell Lina where you want to go — she handles flights, hotels, and experiences instantly. No fees.
-                </p>
-              </div>
-
-              {/* CTA */}
-              <div className="mt-8 w-full space-y-3">
-                <Link href="/chat" className="flex items-center justify-between bg-white rounded-2xl p-4 shadow-xl active:scale-[0.98] transition-transform">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg" style={{ background: "linear-gradient(135deg, #0B1B4D, #0F6CF5)" }}>💬</div>
-                    <div>
-                      <div className="text-sm font-black text-slate-900">🎁 Claim my 15% discount</div>
-                      <div className="text-xs text-slate-600 font-semibold">Free · Instant · No credit card</div>
-                    </div>
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0F6CF5" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
-                  </div>
-                </Link>
-
-                <Link href="/call" className="flex items-center justify-between rounded-2xl p-4 active:scale-[0.98] transition-transform border border-white/30" style={{ background: "rgba(255,255,255,0.18)" }}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style={{ background: "rgba(255,255,255,0.2)" }}>📞</div>
-                    <div>
-                      <div className="text-sm font-black text-white">📞 Talk to Lina — Right Now</div>
-                      <div className="text-xs text-white font-semibold opacity-90">Live AI agent · Answers in seconds · Free</div>
-                    </div>
-                  </div>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
-                </Link>
-              </div>
-
-              {/* Trust microcopy */}
-              <p className="mt-4 text-center text-[11px] text-white/80 font-semibold">✅ 500+ trips planned this month · <span className="text-yellow-300">Code WELCOME15</span></p>
-
-              {/* Quick tags */}
-              <div className="mt-4 flex flex-wrap justify-center gap-2">
-                {["🏖️ Beach", "💑 Couples", "👨‍👩‍👧 Family", "🏔️ Adventure", "🛥️ Yacht"].map((t) => (
-                  <Link key={t} href={`/chat?prompt=${encodeURIComponent(t.split(" ")[1] + " trip")}`} className="rounded-full border border-white/40 px-3 py-1.5 text-xs font-bold text-white active:bg-white/20" style={{ background: "rgba(255,255,255,0.22)" }}>{t}</Link>
-                ))}
+            {/* Lina avatar */}
+            <div className="relative mb-5">
+              <div className="absolute inset-0 rounded-full" style={{ margin: "-10px", background: "radial-gradient(circle, rgba(15,108,245,0.15) 0%, transparent 70%)", filter: "blur(12px)" }} />
+              <div className="absolute inset-0 rounded-full border-2 border-blue-200/60 animate-ping" style={{ margin: "-4px", animationDuration: "3s" }} />
+              <Link href="/call">
+                <img src="/branding/lina-avatar.png" alt="Lina AI" className="relative w-32 h-32 rounded-full object-cover border-4 border-blue-100 shadow-xl cursor-pointer" />
+              </Link>
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-white rounded-full px-3 py-1 shadow-md border border-slate-100">
+                <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                <span className="text-[10px] font-bold text-slate-700">Lina AI · Online</span>
               </div>
             </div>
 
-            {/* Powered by AI trust line */}
-            <p className="text-center text-[10px] text-white/60 font-medium mt-2">🔒 Secure · No fees · Cancel anytime · Used by travelers worldwide</p>
+            {/* Promo badge */}
+            <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-4 border border-amber-200" style={{ background: "linear-gradient(90deg, #FFF8E6, #FFF3CC)" }}>
+              <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse" />
+              <span className="text-[11px] font-black text-amber-700 uppercase tracking-widest">🔥 15% OFF — Code WELCOME15</span>
+            </div>
+
+            {/* Headline */}
+            <h1 className="text-[2.4rem] font-black text-[#0B1B4D] leading-none tracking-tight text-center mb-3">
+              Your dream trip,<br />
+              <span style={{ background: "linear-gradient(90deg, #0F6CF5, #0B1B4D)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                planned in 60 sec
+              </span>
+            </h1>
+            <p className="text-slate-500 text-sm text-center leading-relaxed max-w-xs mb-6">
+              Tell Lina where you want to go — she handles flights, hotels &amp; experiences instantly. No fees, no hassle.
+            </p>
+
+            {/* CTAs */}
+            <div className="w-full space-y-3">
+              <Link href="/chat" className="flex items-center justify-between rounded-2xl p-4 shadow-lg active:scale-[0.98] transition-transform" style={{ background: "linear-gradient(135deg, #0F6CF5, #0B1B4D)" }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-lg">💬</div>
+                  <div>
+                    <div className="text-sm font-black text-white">🎁 Claim my 15% discount</div>
+                    <div className="text-xs text-blue-200 font-semibold">Free · Instant · No credit card</div>
+                  </div>
+                </div>
+                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                </div>
+              </Link>
+
+              <Link href="/call" className="flex items-center justify-between rounded-2xl p-4 active:scale-[0.98] transition-transform border-2 border-slate-100 bg-white shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg bg-slate-50">📞</div>
+                  <div>
+                    <div className="text-sm font-black text-[#0B1B4D]">Talk to Lina — Right Now</div>
+                    <div className="text-xs text-slate-500 font-semibold">Live AI agent · Answers in seconds · Free</div>
+                  </div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0F6CF5" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+              </Link>
+            </div>
+
+            {/* Social proof */}
+            <p className="mt-4 text-center text-[11px] text-slate-500 font-semibold">✅ 500+ trips planned this month · Trusted by travelers worldwide</p>
+
+            {/* Quick tags */}
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              {["🏖️ Beach", "💑 Couples", "👨‍👩‍👧 Family", "🏔️ Adventure", "🛥️ Yacht"].map((t) => (
+                <Link key={t} href={`/chat?prompt=${encodeURIComponent(t.split(" ")[1] + " trip")}`}
+                  className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-50 active:bg-slate-100">
+                  {t}
+                </Link>
+              ))}
+            </div>
 
             {/* Stats bar */}
-            <div className="mt-8 grid grid-cols-4 gap-2 rounded-2xl p-4 border border-white/30" style={{ background: "rgba(255,255,255,0.20)" }}>
+            <div className="mt-6 w-full grid grid-cols-4 gap-2 rounded-2xl p-4 border border-slate-100 bg-slate-50">
               {STATS.map((s) => (
                 <div key={s.value} className="text-center">
-                  <div className="text-base font-black text-white">{s.value}</div>
-                  <div className="text-[9px] text-white font-semibold mt-0.5 opacity-90">{s.label}</div>
+                  <div className="text-base font-black text-[#0B1B4D]">{s.value}</div>
+                  <div className="text-[9px] text-slate-500 font-semibold mt-0.5">{s.label}</div>
                 </div>
               ))}
             </div>
+
+            <p className="text-center text-[10px] text-slate-400 font-medium mt-3 mb-6">🔒 Secure · No booking fees · Cancel anytime</p>
           </div>
         </div>
 
-        {/* Mobile destinations */}
-        <div className="bg-[#0A1628] px-5 py-8">
+        {/* Mobile destinations — white */}
+        <div className="bg-white px-5 py-8 border-t border-slate-100">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-black text-white">Top Destinations</h2>
-            <Link href="/destinations" className="text-xs font-bold px-3 py-1.5 rounded-full" style={{ background: "rgba(15,108,245,0.2)", color: "#60a5fa", border: "1px solid rgba(15,108,245,0.3)" }}>View All →</Link>
+            <h2 className="text-xl font-black text-[#0B1B4D]">Top Destinations</h2>
+            <Link href="/destinations" className="text-xs font-bold text-blue-600 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100">View All →</Link>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
             {DESTINATIONS.map((d) => (
-              <Link key={d.name} href={`/chat?prompt=I want to go to ${d.name}`} className="flex-shrink-0 w-36 rounded-2xl overflow-hidden relative active:scale-95 transition-transform">
+              <Link key={d.name} href={`/chat?prompt=I want to go to ${d.name}`} className="flex-shrink-0 w-36 rounded-2xl overflow-hidden relative active:scale-95 transition-transform shadow-md">
                 <img src={d.img} alt={d.name} className="w-full h-44 object-cover" />
                 <div className="absolute inset-0" style={{ background: "linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 60%)" }} />
                 <div className="absolute bottom-0 left-0 p-3">
@@ -211,27 +205,27 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Mobile search */}
-        <div className="bg-[#0A1628] px-5 pb-8">
-          <h2 className="text-xl font-black text-white mb-4">Search Flights</h2>
-          <div className="bg-white rounded-2xl p-4">
+        {/* Mobile search — white */}
+        <div className="bg-slate-50 px-5 pb-8 pt-6 border-t border-slate-100">
+          <h2 className="text-xl font-black text-[#0B1B4D] mb-4">Search &amp; Plan</h2>
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
             <TravelSearchWidget />
           </div>
         </div>
 
-        {/* Mobile footer */}
-        <div className="bg-[#060E1D] px-5 py-8">
-          <div className="flex items-center gap-2 mb-6">
-            <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full" />
-            <span className="text-white font-black">Zeniva Travel</span>
+        {/* Mobile footer — white */}
+        <div className="bg-white px-5 py-8 border-t border-slate-100">
+          <div className="flex items-center gap-2 mb-4">
+            <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full border border-slate-200" />
+            <span className="font-black text-[#0B1B4D]">Zeniva Travel</span>
           </div>
-          <div className="flex flex-wrap gap-4 text-white text-xs mb-4 font-semibold opacity-90">
+          <div className="flex flex-wrap gap-4 text-slate-500 text-xs mb-4 font-semibold">
             <Link href="/about">About</Link>
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
             <Link href="/agent">Agents</Link>
           </div>
-          <p className="text-white/90 text-[10px]">© 2026 Zeniva Travel Inc. · Delaware, USA</p>
+          <p className="text-slate-400 text-[10px]">© 2026 Zeniva Travel Inc. · Delaware, USA</p>
         </div>
       </section>
 
