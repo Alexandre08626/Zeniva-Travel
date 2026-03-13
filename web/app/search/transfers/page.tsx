@@ -133,8 +133,8 @@ function TransfersContent() {
         body: JSON.stringify({
           ref, type: "transfer", service: selected.title, pickup, dropoff, date,
           passengers, trip_type: "ZeniTransfers",
+          ...(() => { const { notes: _n, ...rest } = form; return rest; })(),
           notes: `Transfer: ${selected.title} | ${pickup} → ${dropoff} | ${date} at ${time} | ${passengers} pax${form.flightNumber ? ` | Flight: ${form.flightNumber}` : ""}${form.notes ? ` | Notes: ${form.notes}` : ""}`,
-          ...form,
         }),
       });
     } catch {}
