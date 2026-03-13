@@ -235,34 +235,65 @@ function ResidencesContent() {
           </div>
           <p className="text-blue-200 mb-8">Curated villas, condos & vacation rentals — booked exclusively through Zeniva</p>
 
-          {/* Search bar */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-2.5 sm:p-4 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3">
-            <div className="col-span-2 lg:col-span-2">
-              <label className="block text-[9px] sm:text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Destination</label>
-              <input value={destination} onChange={e => setDestination(e.target.value)}
-                placeholder="Tulum, Bali, Paris, Miami…"
-                className="w-full rounded-xl bg-white px-3 sm:px-4 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400"
-                onKeyDown={e => e.key === "Enter" && search()} />
-            </div>
-            <div>
-              <label className="block text-[9px] sm:text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Check-in</label>
-              <input type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)}
-                className="w-full rounded-xl bg-white px-3 sm:px-4 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
-            </div>
-            <div>
-              <label className="block text-[9px] sm:text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Check-out</label>
-              <input type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)}
-                className="w-full rounded-xl bg-white px-3 sm:px-4 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
-            </div>
-            <div>
-              <label className="block text-[9px] sm:text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Guests</label>
-              <div className="flex gap-1.5 sm:gap-2">
+          {/* Search bar — mobile: stacked single col, desktop: 5-col grid */}
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl sm:rounded-2xl p-2 sm:p-4 overflow-hidden">
+            {/* Mobile: 2x2 grid + full-width bottom row */}
+            <div className="sm:hidden grid grid-cols-2 gap-1.5">
+              <div className="col-span-2">
+                <label className="block text-[8px] font-bold text-blue-200 uppercase tracking-widest mb-0.5">Destination</label>
+                <input value={destination} onChange={e => setDestination(e.target.value)}
+                  placeholder="Miami, Tulum…"
+                  className="w-full min-w-0 rounded-lg bg-white px-2.5 py-1.5 text-slate-800 text-[11px] font-medium focus:outline-none"
+                  onKeyDown={e => e.key === "Enter" && search()} />
+              </div>
+              <div className="min-w-0">
+                <label className="block text-[8px] font-bold text-blue-200 uppercase tracking-widest mb-0.5">Check-in</label>
+                <input type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)}
+                  className="w-full min-w-0 rounded-lg bg-white px-2 py-1.5 text-slate-800 text-[10px] focus:outline-none" />
+              </div>
+              <div className="min-w-0">
+                <label className="block text-[8px] font-bold text-blue-200 uppercase tracking-widest mb-0.5">Check-out</label>
+                <input type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)}
+                  className="w-full min-w-0 rounded-lg bg-white px-2 py-1.5 text-slate-800 text-[10px] focus:outline-none" />
+              </div>
+              <div className="col-span-2 flex gap-1.5">
                 <input type="number" min={1} max={20} value={guests} onChange={e => setGuests(parseInt(e.target.value) || 1)}
-                  className="w-14 sm:w-20 rounded-xl bg-white px-2 sm:px-3 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                  className="w-14 rounded-lg bg-white px-2 py-1.5 text-slate-800 text-[11px] focus:outline-none" />
                 <button onClick={() => search()} disabled={loading || !destination.trim()}
-                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-black rounded-xl py-1.5 sm:py-2.5 text-xs sm:text-sm hover:opacity-90 transition disabled:opacity-50">
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-black rounded-lg py-1.5 text-[11px] hover:opacity-90 transition disabled:opacity-50">
                   {loading ? "…" : "Search"}
                 </button>
+              </div>
+            </div>
+            {/* Desktop: 5-col grid */}
+            <div className="hidden sm:grid grid-cols-5 gap-3">
+              <div className="col-span-2">
+                <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Destination</label>
+                <input value={destination} onChange={e => setDestination(e.target.value)}
+                  placeholder="Tulum, Bali, Paris, Miami…"
+                  className="w-full rounded-xl bg-white px-4 py-2.5 text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  onKeyDown={e => e.key === "Enter" && search()} />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Check-in</label>
+                <input type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)}
+                  className="w-full rounded-xl bg-white px-4 py-2.5 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Check-out</label>
+                <input type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)}
+                  className="w-full rounded-xl bg-white px-4 py-2.5 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Guests</label>
+                <div className="flex gap-2">
+                  <input type="number" min={1} max={20} value={guests} onChange={e => setGuests(parseInt(e.target.value) || 1)}
+                    className="w-20 rounded-xl bg-white px-3 py-2.5 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                  <button onClick={() => search()} disabled={loading || !destination.trim()}
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-black rounded-xl py-2.5 text-sm hover:opacity-90 transition disabled:opacity-50">
+                    {loading ? "…" : "Search"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

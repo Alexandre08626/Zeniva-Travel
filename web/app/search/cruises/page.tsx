@@ -351,7 +351,33 @@ function CruisesContent() {
 
           {/* ZeniStay-style search bar */}
           <form action="/search/cruises" method="GET"
-            className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-2.5 sm:p-4 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3 mb-4">
+            className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl sm:rounded-2xl p-2 sm:p-4 mb-4 overflow-hidden">
+          <div className="sm:hidden grid grid-cols-2 gap-1.5">
+            <div className="col-span-2">
+              <label className="block text-[8px] font-bold text-blue-200 uppercase tracking-widest mb-0.5">Region</label>
+              <input name="region" defaultValue={region} placeholder="Caribbean…"
+                className="w-full min-w-0 rounded-lg bg-white px-2.5 py-1.5 text-slate-800 text-[11px] font-medium focus:outline-none" />
+            </div>
+            <div className="min-w-0">
+              <label className="block text-[8px] font-bold text-blue-200 uppercase tracking-widest mb-0.5">Month</label>
+              <input name="departureMonth" defaultValue={depMonth} placeholder="2026-05"
+                className="w-full min-w-0 rounded-lg bg-white px-2 py-1.5 text-[10px] text-slate-800 focus:outline-none" />
+            </div>
+            <div className="min-w-0">
+              <label className="block text-[8px] font-bold text-blue-200 uppercase tracking-widest mb-0.5">Nights</label>
+              <input name="duration" defaultValue={duration} type="number" min={1} max={30} placeholder="7"
+                className="w-full min-w-0 rounded-lg bg-white px-2 py-1.5 text-[10px] text-slate-800 focus:outline-none" />
+            </div>
+            <div className="col-span-2 flex gap-1.5">
+              <input name="guests" defaultValue={guests} type="number" min={1} max={20}
+                className="w-14 rounded-lg bg-white px-2 py-1.5 text-slate-800 text-[11px] focus:outline-none" />
+              <button type="submit"
+                className="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-black rounded-lg py-1.5 text-[11px] hover:opacity-90 transition">
+                Search
+              </button>
+            </div>
+          </div>
+          <div className="hidden sm:grid grid-cols-5 gap-3">
             <div className="col-span-2 lg:col-span-2">
               <label className="block text-[9px] sm:text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Destination / Region</label>
               <input name="region" defaultValue={region}
@@ -369,16 +395,17 @@ function CruisesContent() {
                 className="w-full rounded-xl bg-white px-3 sm:px-4 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <div>
-              <label className="block text-[9px] sm:text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Guests</label>
-              <div className="flex gap-1.5 sm:gap-2">
+              <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Guests</label>
+              <div className="flex gap-2">
                 <input name="guests" defaultValue={guests} type="number" min={1} max={20}
-                  className="w-14 sm:w-20 rounded-xl bg-white px-2 sm:px-3 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                  className="w-20 rounded-xl bg-white px-3 py-2.5 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
                 <button type="submit"
-                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-black rounded-xl py-1.5 sm:py-2.5 text-xs sm:text-sm hover:opacity-90 transition">
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-black rounded-xl py-2.5 text-sm hover:opacity-90 transition">
                   Search
                 </button>
               </div>
             </div>
+          </div>
           </form>
 
           <div className="flex flex-wrap gap-2">

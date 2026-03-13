@@ -225,40 +225,63 @@ export default function PartnerResortsPage() {
             <p className="text-blue-200 mt-1 text-sm max-w-xl">5-star partner hotels & all-inclusive resorts — booked exclusively through Zeniva</p>
           </div>
 
-          {/* ZeniStay-style search bar */}
-          <div className="mt-4 sm:mt-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-2.5 sm:p-4 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3">
-            <div className="col-span-2 lg:col-span-2">
-              <label className="block text-[9px] sm:text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Destination or Resort</label>
-              <input
-                value={filters.query}
-                onChange={(e) => setFilters((f) => ({ ...f, query: e.target.value }))}
-                placeholder="Miami, Paris, Cancun…"
-                className="w-full rounded-xl bg-white px-3 sm:px-4 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
-            <div>
-              <label className="block text-[9px] sm:text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Check-in</label>
-              <input type="date" value={filters.checkIn}
-                onChange={(e) => setFilters((f) => ({ ...f, checkIn: e.target.value }))}
-                className="w-full rounded-xl bg-white px-3 sm:px-4 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
-            </div>
-            <div>
-              <label className="block text-[9px] sm:text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Check-out</label>
-              <input type="date" value={filters.checkOut}
-                onChange={(e) => setFilters((f) => ({ ...f, checkOut: e.target.value }))}
-                className="w-full rounded-xl bg-white px-3 sm:px-4 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
-            </div>
-            <div>
-              <label className="block text-[9px] sm:text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Guests</label>
-              <div className="flex gap-1.5 sm:gap-2">
-                <input type="number" min={1} max={20} value={filters.travelers}
-                  onChange={(e) => setFilters((f) => ({ ...f, travelers: Math.max(1, Number(e.target.value) || 1) }))}
-                  className="w-14 sm:w-20 rounded-xl bg-white px-2 sm:px-3 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
-                <button
-                  onClick={() => setFilters((f) => ({ ...f }))}
-                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-black rounded-xl py-1.5 sm:py-2.5 text-xs sm:text-sm hover:opacity-90 transition">
+          {/* Search bar — mobile stacked, desktop 5-col */}
+          <div className="mt-4 sm:mt-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl sm:rounded-2xl p-2 sm:p-4 overflow-hidden">
+            {/* Mobile */}
+            <div className="sm:hidden grid grid-cols-2 gap-1.5">
+              <div className="col-span-2">
+                <label className="block text-[8px] font-bold text-blue-200 uppercase tracking-widest mb-0.5">Destination / Resort</label>
+                <input value={filters.query} onChange={(e) => setFilters((f) => ({ ...f, query: e.target.value }))}
+                  placeholder="Miami, Cancun…"
+                  className="w-full min-w-0 rounded-lg bg-white px-2.5 py-1.5 text-slate-800 text-[11px] font-medium focus:outline-none" />
+              </div>
+              <div className="min-w-0">
+                <label className="block text-[8px] font-bold text-blue-200 uppercase tracking-widest mb-0.5">Check-in</label>
+                <input type="date" value={filters.checkIn} onChange={(e) => setFilters((f) => ({ ...f, checkIn: e.target.value }))}
+                  className="w-full min-w-0 rounded-lg bg-white px-2 py-1.5 text-[10px] text-slate-800 focus:outline-none" />
+              </div>
+              <div className="min-w-0">
+                <label className="block text-[8px] font-bold text-blue-200 uppercase tracking-widest mb-0.5">Check-out</label>
+                <input type="date" value={filters.checkOut} onChange={(e) => setFilters((f) => ({ ...f, checkOut: e.target.value }))}
+                  className="w-full min-w-0 rounded-lg bg-white px-2 py-1.5 text-[10px] text-slate-800 focus:outline-none" />
+              </div>
+              <div className="col-span-2 flex gap-1.5">
+                <input type="number" min={1} max={20} value={filters.travelers} onChange={(e) => setFilters((f) => ({ ...f, travelers: Math.max(1, Number(e.target.value) || 1) }))}
+                  className="w-14 rounded-lg bg-white px-2 py-1.5 text-slate-800 text-[11px] focus:outline-none" />
+                <button onClick={() => setFilters((f) => ({ ...f }))}
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-black rounded-lg py-1.5 text-[11px] hover:opacity-90 transition">
                   Search
                 </button>
+              </div>
+            </div>
+            {/* Desktop */}
+            <div className="hidden sm:grid grid-cols-5 gap-3">
+              <div className="col-span-2">
+                <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Destination or Resort</label>
+                <input value={filters.query} onChange={(e) => setFilters((f) => ({ ...f, query: e.target.value }))}
+                  placeholder="Miami, Paris, Cancun…"
+                  className="w-full rounded-xl bg-white px-4 py-2.5 text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Check-in</label>
+                <input type="date" value={filters.checkIn} onChange={(e) => setFilters((f) => ({ ...f, checkIn: e.target.value }))}
+                  className="w-full rounded-xl bg-white px-4 py-2.5 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Check-out</label>
+                <input type="date" value={filters.checkOut} onChange={(e) => setFilters((f) => ({ ...f, checkOut: e.target.value }))}
+                  className="w-full rounded-xl bg-white px-4 py-2.5 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Guests</label>
+                <div className="flex gap-2">
+                  <input type="number" min={1} max={20} value={filters.travelers} onChange={(e) => setFilters((f) => ({ ...f, travelers: Math.max(1, Number(e.target.value) || 1) }))}
+                    className="w-20 rounded-xl bg-white px-3 py-2.5 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                  <button onClick={() => setFilters((f) => ({ ...f }))}
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-black rounded-xl py-2.5 text-sm hover:opacity-90 transition">
+                    Search
+                  </button>
+                </div>
               </div>
             </div>
           </div>
