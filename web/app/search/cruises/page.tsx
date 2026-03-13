@@ -340,19 +340,47 @@ function CruisesContent() {
           <Link href="/" className="inline-flex items-center gap-1.5 text-blue-200 text-sm mb-5 hover:text-white transition">
             ← Back to home
           </Link>
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">🚢</span>
-            <div>
-              <p className="text-blue-300 text-xs font-bold uppercase tracking-widest">Zeniva Travel</p>
-              <h1 className="text-3xl sm:text-4xl font-black">
-                {region ? `${region} Cruises` : "Cruise Search"}
-              </h1>
+          <div className="mb-4">
+            <p className="text-blue-200 text-xs font-bold uppercase tracking-widest mb-1">Zeniva Travel</p>
+            <div className="flex items-center gap-3">
+              <span className="text-3xl sm:text-4xl">🚢</span>
+              <h1 className="text-3xl sm:text-4xl font-black">ZeniCruise</h1>
             </div>
+            <p className="text-blue-200 mt-2 text-sm">MSC Cruises · Virgin Voyages · Luxury itineraries worldwide</p>
           </div>
-          <p className="text-blue-200 text-sm mb-5">
-            {depMonth && `Departing ${depMonth} · `}{duration && `${duration} nights · `}{guests} guest{guests !== 1 ? "s" : ""}
-            {total > 0 && ` · ${total.toLocaleString()} cruises found`}
-          </p>
+
+          {/* ZeniStay-style search bar */}
+          <form action="/search/cruises" method="GET"
+            className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-2.5 sm:p-4 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3 mb-4">
+            <div className="col-span-2 lg:col-span-2">
+              <label className="block text-[9px] sm:text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Destination / Region</label>
+              <input name="region" defaultValue={region}
+                placeholder="Caribbean, Mediterranean…"
+                className="w-full rounded-xl bg-white px-3 sm:px-4 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+            <div>
+              <label className="block text-[9px] sm:text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Departure month</label>
+              <input name="departureMonth" defaultValue={depMonth} placeholder="2026-05"
+                className="w-full rounded-xl bg-white px-3 sm:px-4 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+            <div>
+              <label className="block text-[9px] sm:text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Duration (nights)</label>
+              <input name="duration" defaultValue={duration} type="number" min={1} max={30} placeholder="7"
+                className="w-full rounded-xl bg-white px-3 sm:px-4 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+            <div>
+              <label className="block text-[9px] sm:text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Guests</label>
+              <div className="flex gap-1.5 sm:gap-2">
+                <input name="guests" defaultValue={guests} type="number" min={1} max={20}
+                  className="w-14 sm:w-20 rounded-xl bg-white px-2 sm:px-3 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                <button type="submit"
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-black rounded-xl py-1.5 sm:py-2.5 text-xs sm:text-sm hover:opacity-90 transition">
+                  Search
+                </button>
+              </div>
+            </div>
+          </form>
+
           <div className="flex flex-wrap gap-2">
             <span className="bg-white/10 border border-white/20 rounded-full px-3 py-1 text-xs font-bold">🔒 Secure booking</span>
             <span className="bg-white/10 border border-white/20 rounded-full px-3 py-1 text-xs font-bold">✈️ MSC Cruises</span>

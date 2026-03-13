@@ -269,27 +269,35 @@ export default function YachtsPageClient() {
             </Link>
           </div>
 
-          {/* Search bar */}
-          <div className="mt-8 rounded-2xl bg-white/15 border border-white/30 backdrop-blur-sm p-4">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex-1">
-                <input
-                  type="search"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="🔍 Search yacht name or destination…"
-                  className="w-full rounded-xl border border-white/40 bg-white/20 px-4 py-3 text-sm font-semibold text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-white/50"
-                />
-              </div>
+          {/* Search bar — ZeniStay style, compact on mobile */}
+          <div className="mt-4 sm:mt-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-2.5 sm:p-4 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3">
+            <div className="col-span-2 lg:col-span-2">
+              <label className="block text-[9px] sm:text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Destination or Yacht</label>
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Miami, Bahamas, Caribbean…"
+                className="w-full rounded-xl bg-white px-3 sm:px-4 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+            </div>
+            <div>
+              <label className="block text-[9px] sm:text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Charter date</label>
               <input type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)}
-                className="rounded-xl border border-white/40 bg-white/20 px-4 py-3 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/50 sm:w-44" />
+                className="w-full rounded-xl bg-white px-3 sm:px-4 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+            <div>
+              <label className="block text-[9px] sm:text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Return date</label>
               <input type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)}
-                className="rounded-xl border border-white/40 bg-white/20 px-4 py-3 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/50 sm:w-44" />
+                className="w-full rounded-xl bg-white px-3 sm:px-4 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+            <div>
+              <label className="block text-[9px] sm:text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Guests</label>
               <select value={travelers} onChange={(e) => setTravelers(e.target.value)}
-                className="rounded-xl border border-white/40 bg-white/20 px-4 py-3 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/50 sm:w-40">
+                className="w-full rounded-xl bg-white px-3 sm:px-4 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400">
                 {[...Array(11)].map((_, i) => {
                   const n = i + 1;
-                  return <option key={n} value={String(n)} className="text-slate-900">{n === 11 ? "11+ travelers" : `${n} traveler${n > 1 ? "s" : ""}`}</option>;
+                  return <option key={n} value={String(n)} className="text-slate-900">{n === 11 ? "11+ guests" : `${n} guest${n > 1 ? "s" : ""}`}</option>;
                 })}
               </select>
             </div>

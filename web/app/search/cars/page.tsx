@@ -230,31 +230,31 @@ function CarsContent() {
           </div>
           <p className="text-blue-200 mb-8">Location de voiture partout dans le monde — réservez avec Lina</p>
 
-          {/* Search form */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
-              <div className="lg:col-span-2">
-                <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Pickup City / Airport</label>
+          {/* Search form — compact on mobile */}
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-2.5 sm:p-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-6 gap-2 sm:gap-3">
+              <div className="col-span-2 lg:col-span-2">
+                <label className="block text-[9px] sm:text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Pickup City / Airport</label>
                 <input value={pickup} onChange={e => setPickup(e.target.value)}
                   placeholder="Miami, Paris, Toronto, Dubai…"
-                  className="w-full rounded-xl bg-white px-4 py-2.5 text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-full rounded-xl bg-white px-3 sm:px-4 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400"
                   onKeyDown={e => e.key === "Enter" && search()} />
               </div>
               <div className="lg:col-span-2">
                 <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Dropoff (optional)</label>
                 <input value={dropoff} onChange={e => setDropoff(e.target.value)}
                   placeholder="Same as pickup"
-                  className="w-full rounded-xl bg-white px-4 py-2.5 text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                  className="w-full rounded-xl bg-white px-3 sm:px-4 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Pick-up Date</label>
                 <input type="date" value={pickupDate} onChange={e => setPickupDate(e.target.value)}
-                  className="w-full rounded-xl bg-white px-4 py-2.5 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                  className="w-full rounded-xl bg-white px-3 sm:px-4 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Return Date</label>
                 <input type="date" value={dropoffDate} onChange={e => setDropoffDate(e.target.value)}
-                  className="w-full rounded-xl bg-white px-4 py-2.5 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                  className="w-full rounded-xl bg-white px-3 sm:px-4 py-1.5 sm:py-2.5 text-slate-800 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-3">

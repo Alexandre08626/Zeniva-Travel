@@ -436,12 +436,15 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
   return (
     <main className="min-h-screen bg-slate-50">
       {/* Hero header */}
-      <div style={{ background: "linear-gradient(135deg, #0B1B4D 0%, #0F6CF5 100%)" }} className="px-4 py-6">
+      <div style={{ background: "linear-gradient(135deg, #0B1B4D 0%, #0F6CF5 100%)" }} className="px-4 py-6 sm:py-10">
         <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="text-white">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-200 mb-1">✈️ Zeniva Travel · Flights</p>
-            <h1 className="text-3xl font-black">{routeLabel}</h1>
-            <p className="text-blue-200 text-sm mt-0.5">{datesLabel} · {paxLabel}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-blue-200 mb-1">Zeniva Travel</p>
+            <div className="flex items-center gap-3 mb-1">
+              <span className="text-3xl sm:text-4xl">✈️</span>
+              <h1 className="text-3xl sm:text-4xl font-black">ZeniFlights</h1>
+            </div>
+            <p className="text-blue-200 text-sm mt-0.5">{routeLabel} · {datesLabel} · {paxLabel}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             {!isRoundTrip && <span className="rounded-full bg-amber-400/20 border border-amber-400/40 px-3 py-1 text-xs font-bold text-amber-300">One-way</span>}
