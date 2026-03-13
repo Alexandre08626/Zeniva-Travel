@@ -344,8 +344,13 @@ export default function ProposalSelectPage() {
       if (!tripDraft.departureCity && snapshot.departure) {
         missingData.departureCity = snapshot.departure.split(' - ')[0] || snapshot.departure;
       }
-      if (!tripDraft.destination && snapshot.destination) {
-        missingData.destination = snapshot.destination.split(' - ')[0] || snapshot.destination;
+      // Always sync destination from snapshot — snapshot is source of truth (from Lina chat)
+      // This fixes stale "Rome" destination in tripDraft when snapshot says "Miami"
+      if (snapshot.destination) {
+        const snapDest = snapshot.destination.split(' - ')[0] || snapshot.destination;
+        if (snapDest && snapDest !== tripDraft.destination) {
+          missingData.destination = snapDest;
+        }
       }
       if (!tripDraft.checkIn && snapshot.dates) {
         const dates = snapshot.dates.split(' → ');
@@ -404,10 +409,11 @@ export default function ProposalSelectPage() {
       resolveIATA(tripDraft?.departureCity) ||
       resolveIATA(snapshot?.departure?.split(" - ")[0]) ||
       "";
-    const destination =
-      resolveIATA(tripDraft?.destination) ||
-      resolveIATA(snapshot?.destination?.split(" - ")[0]) ||
-      "";
+    // Snapshot destination takes priority over cached tripDraft — prevents stale "Rome" destination
+    // overriding a fresh "Miami" snapshot when old localStorage data is present
+    const snapshotDest = resolveIATA(snapshot?.destination?.split(" - ")[0]);
+    const draftDest = resolveIATA(tripDraft?.destination);
+    const destination = snapshotDest || draftDest || "";
     const date =
       tripDraft?.checkIn ||
       parsedDates.depart ||
@@ -1657,8 +1663,8 @@ export default function ProposalSelectPage() {
                 )}
               </div>
 
-              {/* Hide flight list once round trip is fully confirmed */}
-              {hasReturnLeg && selection?.flight?.outbound && selection?.flight?.inbound ? null : <div className="p-4 space-y-3 max-h-[480px] overflow-y-auto">
+              {/* Always show flight list — no hide/show animation that causes scroll jumping */}
+              {true && <div className="p-4 space-y-3 max-h-[480px] overflow-y-auto">
                 {loadingFlights && (
                   <div className="flex items-center gap-3 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3">
                     <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin flex-shrink-0" />
