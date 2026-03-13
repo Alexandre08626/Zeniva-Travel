@@ -123,16 +123,17 @@ export default function HomePage() {
 
               <div className="text-center px-2">
                 <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur rounded-full px-4 py-1.5 mb-4 border border-white/15">
-                  <span className="text-[10px] font-bold text-yellow-300 uppercase tracking-widest">✨ AI-Powered Travel</span>
+                  <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                  <span className="text-[10px] font-bold text-yellow-300 uppercase tracking-widest">🔥 Limited · 15% OFF Your First Trip</span>
                 </div>
                 <p className="text-4xl font-black text-white leading-none tracking-tight mb-3" role="heading" aria-level={1}>
-                  Plan your entire trip<br/>
+                  Your dream trip,<br/>
                   <span style={{ background: "linear-gradient(90deg, #E6B85A, #fff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                    in seconds with AI
+                    planned in 60 sec
                   </span>
                 </p>
-                <p className="text-white text-sm leading-relaxed max-w-xs mx-auto font-medium">
-                  Tell Lina where you want to go and she instantly builds your flights, hotels, and experiences.
+                <p className="text-white/90 text-sm leading-relaxed max-w-xs mx-auto font-medium">
+                  Tell Lina where you want to go — she handles flights, hotels, and experiences instantly. No fees.
                 </p>
               </div>
 
@@ -142,8 +143,8 @@ export default function HomePage() {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg" style={{ background: "linear-gradient(135deg, #0B1B4D, #0F6CF5)" }}>💬</div>
                     <div>
-                      <div className="text-sm font-black text-slate-900">Start planning my trip</div>
-                      <div className="text-xs text-slate-600 font-semibold">Free to try • No account required</div>
+                      <div className="text-sm font-black text-slate-900">🎁 Claim my 15% discount</div>
+                      <div className="text-xs text-slate-600 font-semibold">Free · Instant · No credit card</div>
                     </div>
                   </div>
                   <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
@@ -155,8 +156,8 @@ export default function HomePage() {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style={{ background: "rgba(255,255,255,0.2)" }}>📞</div>
                     <div>
-                      <div className="text-sm font-black text-white">Call Lina</div>
-                      <div className="text-xs text-white font-semibold opacity-90">Speak with your AI travel agent and plan your trip by voice</div>
+                      <div className="text-sm font-black text-white">📞 Talk to Lina — Right Now</div>
+                      <div className="text-xs text-white font-semibold opacity-90">Live AI agent · Answers in seconds · Free</div>
                     </div>
                   </div>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
@@ -164,7 +165,7 @@ export default function HomePage() {
               </div>
 
               {/* Trust microcopy */}
-              <p className="mt-4 text-center text-[11px] text-white/70 font-medium">Create a free account and get 15% off your first booking.</p>
+              <p className="mt-4 text-center text-[11px] text-white/80 font-semibold">✅ 500+ trips planned this month · <span className="text-yellow-300">Code WELCOME15</span></p>
 
               {/* Quick tags */}
               <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -175,7 +176,7 @@ export default function HomePage() {
             </div>
 
             {/* Powered by AI trust line */}
-            <p className="text-center text-[10px] text-white/50 font-medium mt-2">Powered by AI travel planning • No booking fees</p>
+            <p className="text-center text-[10px] text-white/60 font-medium mt-2">🔒 Secure · No fees · Cancel anytime · Used by travelers worldwide</p>
 
             {/* Stats bar */}
             <div className="mt-8 grid grid-cols-4 gap-2 rounded-2xl p-4 border border-white/30" style={{ background: "rgba(255,255,255,0.20)" }}>
