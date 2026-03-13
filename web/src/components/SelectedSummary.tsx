@@ -51,12 +51,8 @@ export default function SelectedSummary({ flight, hotel, villa, activity, transf
     shortterm ? "ZeniStay 🏠" :
     hotel ? "ZeniHotel 🏨" : null;
 
-  const villaPriceRaw = parseMoney(accommodation?.price);
-  const villaTotal = villaPriceRaw !== null
-    ? (/night/i.test(String(accommodation?.price || "")) || accommodation?.pricePerNight
-        ? (accommodation?.pricePerNight ? parseMoney(String(accommodation.pricePerNight)) ?? villaPriceRaw : villaPriceRaw) * nights
-        : villaPriceRaw)
-    : null;
+  // villa.price = priceTotal (already total for full stay — do NOT multiply by nights)
+  const villaTotal = parseMoney(accommodation?.price);
 
   // Activity / Experience
   const activityTotal = parseMoney(activity?.price);
@@ -139,7 +135,7 @@ export default function SelectedSummary({ flight, hotel, villa, activity, transf
             <div className="font-bold">{accommodation.name}</div>
             <div className="text-xs text-slate-500">
               {accommodation.city || ""}{accommodation.city ? " • " : ""}{nights} nights
-              {accommodation.pricePerNight ? ` • $${accommodation.pricePerNight}/night` : accommodation.price ? ` • ${accommodation.price}` : ""}
+              {accommodation.pricePerNight ? ` • $${accommodation.pricePerNight}/night` : ""}
             </div>
             <div className="text-xs font-semibold text-slate-700">
               {hasVillaPrice
