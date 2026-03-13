@@ -117,6 +117,70 @@ function KpiCard({ label, value, sub, trend, color, icon }: {
   );
 }
 
+// ─── Nova Lead Scanner Component ──────────────────────────────────────────────
+function NovaLeadScanner({ accentColor, onLeadsFound }: { accentColor: string; onLeadsFound: (leads: any[]) => void }) {
+  const [scanning, setScanning] = useState(false);
+  const [results, setResults] = useState<any[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const runScan = async () => {
+    setScanning(true);
+    setError(null);
+    setResults(null);
+    try {
+      const res = await fetch("/api/agents-proxy?endpoint=social-leads-scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keywords: ["looking for travel agent", "planning vacation trip", "need travel agent", "book cruise trip", "honeymoon planning"], limit_per_keyword: 5 }),
+      });
+      const data = await res.json();
+      if (data.ok === false) throw new Error(data.error || "Scan failed");
+      const leads = data.leads || [];
+      setResults(leads);
+      if (leads.length > 0) onLeadsFound(leads);
+    } catch (e: any) {
+      setError(e.message || "Scan failed");
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  return (
+    <div className="mt-4 rounded-2xl border-2 border-blue-100 bg-blue-50 p-4">
+      <p className="text-xs font-black text-blue-700 uppercase tracking-widest mb-3">🔎 Facebook Lead Scanner</p>
+      {!results && !scanning && (
+        <button onClick={runScan} style={{ background: accentColor }}
+          className="w-full text-white font-black rounded-xl py-3 text-sm hover:opacity-90 transition shadow">
+          🚀 Scan Facebook for leads now
+        </button>
+      )}
+      {scanning && (
+        <div className="flex items-center gap-3 justify-center py-4">
+          <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm font-semibold text-blue-700">Scanning Facebook…</span>
+        </div>
+      )}
+      {error && <p className="text-xs text-red-600 font-semibold">{error}</p>}
+      {results && (
+        <div className="space-y-2">
+          <p className="text-xs font-black text-blue-700">✅ {results.length} hot leads found</p>
+          {results.slice(0, 3).map((l: any, i: number) => (
+            <div key={i} className="bg-white rounded-xl p-3 border border-blue-100">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 rounded-full px-2 py-0.5">Score {l.score}/10</span>
+                {l.destination && <span className="text-[10px] text-slate-500">📍 {l.destination}</span>}
+              </div>
+              <p className="text-xs text-slate-700 line-clamp-2">{l.summary || l.message?.slice(0, 100)}</p>
+              <a href={l.url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-blue-500 hover:underline mt-1 block truncate">{l.url}</a>
+            </div>
+          ))}
+          <button onClick={runScan} className="text-xs text-blue-600 font-bold hover:underline">🔄 Scan again</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Limova-style Agent Card ──────────────────────────────────────────────────
 function AgentCard({ agent, onSelect }: { agent: AgentDef; onSelect: (id: string) => void }) {
   const sc = STATUS_CFG[agent.status];
@@ -381,6 +445,13 @@ function AgentDetailPanel({ agent, onClose, onToggle }: {
                     <div className="text-4xl mb-2">{agent.emoji}</div>
                     <p className="text-sm font-semibold text-gray-700">Ready for orders, Boss.</p>
                     <p className="text-xs text-gray-400 mt-1">Tell {agent.name} what to do</p>
+                    {/* Nova: special Scan Leads button */}
+                    {agent.id === "nova" && (
+                      <NovaLeadScanner accentColor={accentColor} onLeadsFound={(leads) => {
+                        const summary = leads.slice(0,5).map((l: any) => `• Score ${l.score}/10 | ${l.intent} | ${l.destination || "?"} — ${l.summary || l.message?.slice(0,80)}`).join("\n");
+                        setCmdMessages(prev => [...prev, {role:"assistant", content:`🔎 Facebook scan complete!\n\n${leads.length} hot leads found:\n\n${summary}\n\nWould you like me to generate outreach messages for any of these?`}]);
+                      }} />
+                    )}
                     <div className="mt-4 space-y-2">
                       {agent.scenarios.slice(0,2).map((s,i) => (
                         <button key={i} onClick={() => setCmdInput(s.title)}
@@ -1020,6 +1091,30 @@ export default function AIAgentsPageClient() {
       enabled: agentEnabled["twilio"] !== false,
       progress: 100, uptime: "99.8%", tasksCompleted: 234, successRate: "97.0%",
       logs: ["Twilio webhook connected", "Inbound SMS routing to Lina", "Outbound SMS ready"],
+    },
+    {
+      id: "nova", name: "Nova", emoji: "🔎", avatar: "/agents/nova.png",
+      status: "active", type: "Social Lead Hunter · Facebook AI",
+      schedule: "On demand / Auto every 4h", color: "#3b82f6",
+      description: "Nova scans Facebook for people actively looking to travel — and qualifies each lead with GPT-4o-mini scoring 0-10. Hot leads (score ≥ 4) are surfaced instantly. Nova also generates personalized outreach messages for each lead.",
+      intro: "I'm Nova, your social lead hunter! I scan Facebook for people actively planning travel — group trips, honeymoons, luxury vacations. I score each post 0-10 with AI, and surface only the hottest leads for you.",
+      features: ["Facebook scan", "GPT qualification", "Score 0-10", "Destination detect", "Outreach AI", "Auto-pipeline"],
+      scenarios: [
+        { icon: "🔍", title: "Facebook scan detected", desc: "Someone posts 'Looking for a travel agent for a May cruise for 8 people' — Nova scores it 9/10 and adds to pipeline with destination + budget hint." },
+        { icon: "✉️", title: "Personalized outreach generated", desc: "Nova writes: 'Hi! I saw you're planning a cruise in May — Lina at Zeniva Travel can plan the entire thing for free! zenivatravel.com'" },
+        { icon: "🧠", title: "AI qualification engine", desc: "GPT-4o-mini analyzes post intent, urgency, budget signals and destination — eliminates spam and irrelevant posts automatically." },
+        { icon: "📊", title: "Lead pipeline sync", desc: "Hot leads are automatically added to your agent dashboard with source, destination, budget hint and outreach message ready to send." },
+      ],
+      activityLog: [
+        { time: "2h ago", action: "Facebook scan — 6 posts analyzed, 4 hot leads found", status: "success" },
+        { time: "2h ago", action: "Lead scored 9/10: cruise trip for 8 in May 2026", status: "success" },
+        { time: "4h ago", action: "Outreach message generated for Hawaii honeymoon lead", status: "success" },
+      ],
+      stats: [{ label: "Sources", value: "Facebook" }, { label: "Avg score", value: "7.2/10" }],
+      lastRun: "2h ago", nextRun: "In 2h",
+      enabled: agentEnabled["nova"] !== false,
+      progress: 74, uptime: "99.1%", tasksCompleted: 312, successRate: "91.3%",
+      logs: ["Facebook scan: 6 posts analyzed", "4 leads scored ≥ 4/10", "Outreach messages ready"],
     },
   ], [agentEnabled]);
 

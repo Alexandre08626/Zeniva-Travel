@@ -85,6 +85,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: err?.message || "VPS unreachable" }, { status: 502 });
   }
 }
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message || "VPS unreachable" }, { status: 502 });
+  }
+}
 
 export async function POST(req: NextRequest) {
   // Support ?path=admin/xxx for direct VPS passthrough
@@ -129,6 +133,16 @@ export async function POST(req: NextRequest) {
     if (endpoint === "social-queue") {
       const body = await req.json();
       const r = await fetch(`${VPS_BASE}/social-queue`, { method: "POST", headers: { Authorization: AUTH, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      return NextResponse.json(await r.json());
+    }
+    if (endpoint === "social-leads-scan") {
+      const body = await req.json();
+      const r = await fetch(`${VPS_BASE}/social-leads/scan`, { method: "POST", headers: { Authorization: AUTH, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      return NextResponse.json(await r.json());
+    }
+    if (endpoint === "social-leads-outreach") {
+      const body = await req.json();
+      const r = await fetch(`${VPS_BASE}/social-leads/outreach`, { method: "POST", headers: { Authorization: AUTH, "Content-Type": "application/json" }, body: JSON.stringify(body) });
       return NextResponse.json(await r.json());
     }
     return NextResponse.json({ error: "Unknown endpoint" }, { status: 400 });
