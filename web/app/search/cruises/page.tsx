@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -127,6 +127,21 @@ function fmtPrice(p?: string) {
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 export default function CruisesSearchPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#f0f4fa] flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-5xl mb-4 animate-bounce">🚢</div>
+          <p className="text-slate-500 font-semibold">Loading cruises…</p>
+        </div>
+      </div>
+    }>
+      <CruisesContent />
+    </Suspense>
+  );
+}
+
+function CruisesContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
