@@ -593,8 +593,22 @@ export default function ProposalSelectPage() {
     const accommodationType = tripDraft?.accommodationType;
     const style = tripDraft?.style || "";
     const destination = tripDraft?.destination || "Paris";
-    const checkIn = tripDraft?.checkIn || "2026-02-01";
-    const checkOut = tripDraft?.checkOut || "2026-02-03";
+    // Compute fallback dates — NEVER use past dates (LiteAPI rejects them)
+    const today = new Date();
+    const rawCheckIn = tripDraft?.checkIn || "";
+    const rawCheckOut = tripDraft?.checkOut || "";
+    // If checkIn is set but checkOut is missing, default checkOut = checkIn + 7 days
+    let checkIn = rawCheckIn;
+    let checkOut = rawCheckOut;
+    if (!checkOut && checkIn) {
+      const ci = new Date(checkIn);
+      if (!isNaN(ci.getTime())) {
+        checkOut = new Date(ci.getTime() + 7 * 86400000).toISOString().split("T")[0];
+      }
+    }
+    // If neither set, use future fallback
+    if (!checkIn) checkIn = new Date(today.getTime() + 30 * 86400000).toISOString().split("T")[0];
+    if (!checkOut) checkOut = new Date(today.getTime() + 37 * 86400000).toISOString().split("T")[0];
 
     // Check if yachts should be loaded based on accommodationType or style
     const shouldLoadYachts = accommodationType === "Yacht" || 
