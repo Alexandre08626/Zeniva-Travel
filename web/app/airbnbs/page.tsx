@@ -509,7 +509,7 @@ export default function AirbnbsPage() {
               </div>
             )}
           </>
-        )}
+        ) : null}
         </div>
       </div>
     </main>
