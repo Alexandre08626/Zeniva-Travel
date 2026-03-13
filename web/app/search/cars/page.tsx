@@ -59,14 +59,15 @@ type PassengerForm = {
   specialRequests: string;
 };
 
+// 3D professional car renders via Imagin Studio CDN (used by major car brands)
 const CAR_PHOTOS: Record<string, string> = {
-  economy: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&q=80",
-  compact: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&q=80",
-  suv: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=600&q=80",
-  luxury: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&q=80",
-  minivan: "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=600&q=80",
-  electric: "https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=600&q=80",
-  default: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&q=80",
+  economy: "https://cdn.imagin.studio/getimage?customer=uk-dealer-main&make=Toyota&modelFamily=Corolla&angle=23&paintId=imagin-white&width=600",
+  compact: "https://cdn.imagin.studio/getimage?customer=uk-dealer-main&make=Honda&modelFamily=Civic&angle=23&paintId=imagin-silver&width=600",
+  suv: "https://cdn.imagin.studio/getimage?customer=uk-dealer-main&make=Toyota&modelFamily=RAV4&angle=23&paintId=imagin-blue&width=600",
+  luxury: "https://cdn.imagin.studio/getimage?customer=uk-dealer-main&make=Mercedes-Benz&modelFamily=E-Class&angle=23&paintId=imagin-black&width=600",
+  minivan: "https://cdn.imagin.studio/getimage?customer=uk-dealer-main&make=Toyota&modelFamily=Sienna&angle=23&paintId=imagin-silver&width=600",
+  electric: "https://cdn.imagin.studio/getimage?customer=uk-dealer-main&make=Tesla&modelFamily=Model+3&angle=23&paintId=imagin-white&width=600",
+  default: "https://cdn.imagin.studio/getimage?customer=uk-dealer-main&make=Toyota&modelFamily=Camry&angle=23&paintId=imagin-silver&width=600",
 };
 
 function getCarPhoto(car: Car): string {
