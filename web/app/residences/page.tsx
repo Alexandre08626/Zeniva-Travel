@@ -187,9 +187,20 @@ function ResidencesContent() {
           </div>
 
           <div className="mt-3 space-y-2">
-            <button onClick={() => chatWithLina(villa)}
+            <button onClick={() => {
+              const qs = new URLSearchParams({
+                name: villa.name || "",
+                location: villa.city || villa.location || "",
+                checkin: checkIn || "",
+                checkout: checkOut || "",
+                guests: String(guests),
+                price: villa.pricePerNight || "",
+                type: "ZeniStay",
+              });
+              router.push(`/forms/travel?${qs.toString()}&agent=info%40zeniva.ca`);
+            }}
               className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-black py-3 hover:opacity-90 transition shadow">
-              🏠 Book with Lina
+              🏠 Book Now — Reserve & Pay →
             </button>
             <div className="grid grid-cols-2 gap-2">
               <button onClick={() => chatWithLina(villa)}
@@ -198,7 +209,7 @@ function ResidencesContent() {
               </button>
               <button onClick={() => requestBooking(villa)}
                 className="rounded-xl border-2 border-blue-200 text-blue-700 text-xs font-black py-2.5 hover:bg-blue-50 transition">
-                📧 Request
+                📧 Email
               </button>
             </div>
           </div>
@@ -349,15 +360,25 @@ function ResidencesContent() {
                   ))}
                 </div>
               )}
-              <div className="mt-5 grid grid-cols-2 gap-3">
-                <button onClick={() => { chatWithLina(photoModal); setPhotoModal(null); }}
-                  className="rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-black py-3 hover:opacity-90 transition">
-                  💬 Ask Lina
+              <div className="mt-5 flex flex-col gap-2">
+                <button onClick={() => {
+                  const qs = new URLSearchParams({ name: photoModal.name || "", location: photoModal.city || "", checkin: checkIn || "", checkout: checkOut || "", guests: String(guests), price: photoModal.pricePerNight || "", type: "ZeniStay" });
+                  router.push(`/forms/travel?${qs.toString()}&agent=info%40zeniva.ca`);
+                  setPhotoModal(null);
+                }}
+                  className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black py-3.5 hover:opacity-90 transition shadow">
+                  🏠 Book Now — Reserve & Pay →
                 </button>
-                <button onClick={() => { requestBooking(photoModal); setPhotoModal(null); }}
-                  className="rounded-xl border-2 border-slate-200 text-slate-700 font-black py-3 hover:bg-slate-50 transition">
-                  📧 Request
-                </button>
+                <div className="grid grid-cols-2 gap-2">
+                  <button onClick={() => { chatWithLina(photoModal); setPhotoModal(null); }}
+                    className="rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-black py-2.5 hover:opacity-90 transition text-sm">
+                    💬 Ask Lina
+                  </button>
+                  <button onClick={() => { requestBooking(photoModal); setPhotoModal(null); }}
+                    className="rounded-xl border-2 border-slate-200 text-slate-700 font-black py-2.5 hover:bg-slate-50 transition text-sm">
+                    📧 Email
+                  </button>
+                </div>
               </div>
             </div>
           </div>

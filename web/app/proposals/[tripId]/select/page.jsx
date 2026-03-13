@@ -1474,7 +1474,7 @@ export default function ProposalSelectPage() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)_300px] gap-5 items-start">
+        <div className="pb-24 xl:pb-0 grid grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)_300px] gap-5 items-start">
           {/* ── LEFT: Filters ── */}
           <aside
             id="advanced-filters"
@@ -2313,6 +2313,29 @@ export default function ProposalSelectPage() {
           </aside>
         </div>
       </div>
+      {/* ── MOBILE STICKY BOTTOM BAR — visible only on small screens, shows when something is selected ── */}
+      {(selection?.flight || selection?.hotel || selection?.villa || selection?.shortterm) && (
+        <div className="xl:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-2xl px-4 py-3 flex items-center gap-3" style={{ paddingBottom: "calc(12px + env(safe-area-inset-bottom))" }}>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Selected</p>
+            <p className="text-sm font-black text-slate-900 truncate">
+              {[
+                selection?.flight && "✈️ Flight",
+                (selection?.hotel || selection?.villa) && "🏨 Stay",
+                selection?.car && "🚗 Car",
+              ].filter(Boolean).join(" · ")}
+            </p>
+          </div>
+          <button
+            onClick={onContinue}
+            className="flex-shrink-0 rounded-xl px-5 py-3 text-sm font-black tracking-wide"
+            style={{ background: "linear-gradient(135deg, #E6B85A, #d4a442)", color: "#1a0f00", boxShadow: "0 4px 15px rgba(230,184,90,0.4)" }}
+          >
+            Continue to Review →
+          </button>
+        </div>
+      )}
+
       {/* ── FLIGHT DETAIL MODAL ── */}
       {flightModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-4" onClick={() => setFlightModal(null)}>
