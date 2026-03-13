@@ -109,6 +109,35 @@ function CarsContent() {
   });
   const [submitting, setSubmitting] = useState(false);
 
+  const buildRentalcarsUrl = useCallback((p: string) => {
+    const base = "https://www.rentalcars.com/en/search/";
+    const params = new URLSearchParams({
+      pickUpLocation: p,
+      dropOffSameAsPickUp: dropoff.trim() ? "false" : "true",
+    });
+    if (dropoff.trim()) params.set("dropOffLocation", dropoff.trim());
+    if (pickupDate) {
+      const [y, m, d] = pickupDate.split("-");
+      params.set("pickUpDate", `${d}/${m}/${y}`);
+    }
+    if (dropoffDate) {
+      const [y, m, d] = dropoffDate.split("-");
+      params.set("dropOffDate", `${d}/${m}/${y}`);
+    }
+    params.set("pickUpTime", pickupTime);
+    params.set("dropOffTime", dropoffTime);
+    params.set("driverAge", driverAge);
+    params.set("cor", "US");
+    return `${base}?${params.toString()}`;
+  }, [pickup, dropoff, pickupDate, dropoffDate, pickupTime, dropoffTime, driverAge]);
+
+  const buildKayakUrl = useCallback((p: string) => {
+    const city = encodeURIComponent(p.replace(/\s+/g, "-").toLowerCase());
+    const pd = pickupDate || "2026-03-22";
+    const dd = dropoffDate || "2026-03-29";
+    return `https://www.kayak.com/cars/${city}/${pd}/${dd}?sort=price_a`;
+  }, [pickupDate, dropoffDate]);
+
   const search = useCallback(async (overridePickup?: string) => {
     const p = (overridePickup || pickup).trim();
     if (!p || !pickupDate || !dropoffDate) return;
@@ -116,32 +145,14 @@ function CarsContent() {
     setError(null);
     setStep("search");
     setCars([]);
-    try {
-      const qs = new URLSearchParams({
-        pickup: p,
-        dropoff: dropoff || p,
-        pickup_date: pickupDate,
-        dropoff_date: dropoffDate,
-        pickup_time: pickupTime,
-        dropoff_time: dropoffTime,
-        driver_age: driverAge,
-      });
-      const res = await fetch(`/api/cars/search?${qs}`);
-      const data = await res.json();
-      if (data.ok && data.cars?.length > 0) {
-        setCars(data.cars);
-        setStep("select");
-      } else if (data.error) {
-        throw new Error(data.error);
-      } else {
-        setError("No cars found. The API may require a plan upgrade — contact Lina to book manually.");
-      }
-    } catch (e: any) {
-      setError(e.message || "Search failed");
-    } finally {
+    // Open Rentalcars.com in new tab with real results
+    window.open(buildRentalcarsUrl(p), "_blank");
+    // Show the Lina booking panel after a short delay
+    setTimeout(() => {
       setLoading(false);
-    }
-  }, [pickup, dropoff, pickupDate, dropoffDate, pickupTime, dropoffTime, driverAge]);
+      setStep("select");
+    }, 500);
+  }, [pickup, dropoff, pickupDate, dropoffDate, pickupTime, dropoffTime, driverAge, buildRentalcarsUrl]);
 
   // Auto-search from URL
   useEffect(() => {
@@ -298,76 +309,72 @@ function CarsContent() {
           </div>
         )}
 
-        {/* STEP: Car selection */}
-        {!loading && !error && step === "select" && cars.length > 0 && (
-          <>
-            {/* Category pills */}
-            <div className="flex flex-wrap gap-2 mb-6">
-              {CAR_CATEGORIES.map(cat => (
-                <button key={cat.key} onClick={() => setCategory(cat.key)}
-                  className={`text-xs font-bold px-4 py-2 rounded-full border transition ${category === cat.key ? "bg-[#0f2a5e] text-white border-[#0f2a5e]" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"}`}>
-                  {cat.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-xl font-black text-slate-800">{filteredCars.length} vehicles in <span className="capitalize">{pickup}</span></h2>
-                {days > 0 && <p className="text-xs text-slate-400">{pickupDate} → {dropoffDate} · {days} day{days > 1 ? "s" : ""}</p>}
+        {/* STEP: Partner results + Lina booking */}
+        {!loading && step === "select" && (
+          <div className="max-w-4xl mx-auto">
+            {/* Partner search banner */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-6">
+              <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-4 flex items-center gap-3">
+                <span className="text-2xl">✅</span>
+                <div>
+                  <p className="text-white font-black">Results opened in a new tab!</p>
+                  <p className="text-emerald-100 text-xs">Real cars, real prices, real booking — powered by Rentalcars.com</p>
+                </div>
+              </div>
+              <div className="p-6">
+                <p className="text-slate-600 text-sm mb-4">We searched <strong className="capitalize">{pickup}</strong> for your dates. Your results should be open in a new tab with 500+ cars from Hertz, Avis, Enterprise, Budget & more.</p>
+                <div className="flex flex-wrap gap-3">
+                  <a href={buildRentalcarsUrl(pickup)} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-black rounded-xl px-6 py-3 text-sm hover:opacity-90 transition shadow">
+                    🚗 Open Rentalcars.com
+                  </a>
+                  <a href={buildKayakUrl(pickup)} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-black rounded-xl px-6 py-3 text-sm hover:opacity-90 transition shadow">
+                    🔍 Compare on Kayak
+                  </a>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCars.map((car) => (
-                <div key={car.id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-slate-100 hover:border-slate-200">
-                  {/* Photo */}
-                  <div className="relative h-48 bg-slate-100 overflow-hidden">
-                    <img src={getCarPhoto(car)} alt={car.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                    {car.free_cancellation && (
-                      <span className="absolute top-3 left-3 bg-emerald-500 text-white text-[10px] font-black rounded-full px-3 py-1">✓ Free cancel</span>
-                    )}
-                    {car.category && (
-                      <span className="absolute bottom-3 right-3 bg-black/60 text-white text-[10px] font-bold rounded-full px-2.5 py-1 capitalize">{car.category}</span>
-                    )}
-                  </div>
-
-                  <div className="p-4">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <div>
-                        <p className="font-black text-slate-900 leading-tight">{car.name}</p>
-                        {car.supplier && <p className="text-xs text-slate-400 mt-0.5">{car.supplier}</p>}
-                      </div>
-                      {car.rating && <span className="text-sm font-black text-amber-600 bg-amber-50 rounded-full px-2.5 py-1">★ {car.rating}</span>}
-                    </div>
-
-                    <div className="flex flex-wrap gap-2 mb-3 text-xs text-slate-500">
-                      {car.specs.transmission && <span>{TRANS_ICONS[car.specs.transmission.toLowerCase()] || car.specs.transmission}</span>}
-                      {car.specs.seats > 0 && <span>👤 {car.specs.seats} seats</span>}
-                      {car.specs.bags > 0 && <span>🧳 {car.specs.bags} bags</span>}
-                      {car.specs.air_conditioning && <span>❄️ A/C</span>}
-                      {car.specs.fuel && <span>⛽ {car.specs.fuel}</span>}
-                    </div>
-
-                    <div className="flex items-end justify-between mb-3">
-                      <div>
-                        <p className="text-2xl font-black text-slate-900">
-                          ${car.price > 0 ? car.price.toFixed(0) : "—"}
-                          <span className="text-xs font-medium text-slate-400"> total</span>
-                        </p>
-                        {car.price_per_day > 0 && <p className="text-xs text-slate-400">${car.price_per_day.toFixed(0)}/day × {car.days} day{car.days > 1 ? "s" : ""}</p>}
-                      </div>
-                    </div>
-
-                    <button onClick={() => selectCar(car)}
-                      className="w-full bg-gradient-to-r from-[#0a1628] to-[#1a3d8f] text-white font-black rounded-xl py-3 text-sm hover:opacity-90 transition shadow">
-                      🚗 Reserve — ${car.price > 0 ? car.price.toFixed(0) : "Contact"}
-                    </button>
-                  </div>
-                </div>
-              ))}
+            {/* OR book through Lina */}
+            <div className="relative flex items-center gap-4 mb-6">
+              <div className="flex-1 border-t border-slate-200" />
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest bg-[#f8fafc] px-3">OR book through Zeniva</span>
+              <div className="flex-1 border-t border-slate-200" />
             </div>
-          </>
+
+            <div className="bg-white rounded-2xl border border-blue-100 shadow-sm p-6">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-xl flex-shrink-0">🤖</div>
+                <div>
+                  <p className="font-black text-slate-900">Book through Lina — Zeniva's AI agent</p>
+                  <p className="text-slate-500 text-sm mt-0.5">We handle everything: best rates, insurance, pickup confirmation. No hidden fees.</p>
+                </div>
+              </div>
+
+              {/* Quick category selector */}
+              <div className="flex flex-wrap gap-2 mb-5">
+                {CAR_CATEGORIES.filter(c => c.key !== "all").map(cat => (
+                  <button key={cat.key} onClick={() => { setCategory(cat.key); setStep("form"); }}
+                    className="flex flex-col items-center gap-1 bg-slate-50 hover:bg-blue-50 hover:border-blue-300 border border-slate-200 rounded-xl px-4 py-3 transition">
+                    <span className="text-xl">{cat.label.split(" ")[0]}</span>
+                    <span className="text-xs font-bold text-slate-600">{cat.label.split(" ").slice(1).join(" ")}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button onClick={() => setStep("form")}
+                  className="bg-gradient-to-r from-[#0a1628] to-[#1a3d8f] text-white font-black rounded-xl py-3.5 text-sm hover:opacity-90 transition shadow">
+                  🚗 Request through Zeniva
+                </button>
+                <Link href={`/chat?prompt=${encodeURIComponent(`I need a rental car in ${pickup} from ${pickupDate} to ${dropoffDate} for ${days} days. Driver age: ${driverAge}. Can you find me the best deal?`)}`}
+                  className="border-2 border-[#0a1628] text-[#0a1628] font-black rounded-xl py-3.5 text-sm text-center hover:bg-blue-50 transition">
+                  💬 Chat with Lina
+                </Link>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* STEP: Passenger form */}
