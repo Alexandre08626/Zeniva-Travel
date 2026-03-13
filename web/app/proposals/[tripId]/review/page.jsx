@@ -43,18 +43,23 @@ export default function ProposalReviewPage() {
   }, [tripId, proposal]);
 
   const heroImage = useMemo(() => {
-    // Priority: high-res destination photo > hotel full images > hotel thumbnail
+    // Priority: villa photo > hotel images > destination photo
     const dest = tripDraft?.destination || proposal?.title || "trip";
     const destImgs = getImagesForDestination(dest);
-    // If it's a real Unsplash image (not picsum/small thumb), use destination first
+
+    // Zeniva Home (villa) selected — use villa photos first
+    if (selection?.villa && !selection?.hotel) {
+      const villaPhotos = selection.villa.photos || (selection.villa.photo ? [selection.villa.photo] : []);
+      if (villaPhotos.length > 0) return villaPhotos[0];
+    }
+
+    // Hotel images
     const hotelImages = selection?.hotel?.images;
-    if (Array.isArray(hotelImages) && hotelImages.length > 0 && hotelImages[0].includes("unsplash")) {
-      return hotelImages[0];
-    }
-    if (destImgs && destImgs[0] && !destImgs[0].includes("picsum")) {
-      return destImgs[0];
-    }
+    if (Array.isArray(hotelImages) && hotelImages.length > 0) return hotelImages[0];
     if (selection?.hotel?.image) return selection.hotel.image;
+
+    // Destination fallback
+    if (destImgs && destImgs[0] && !destImgs[0].includes("picsum")) return destImgs[0];
     return destImgs[0] || "https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=1400&q=85";
   }, [tripDraft, proposal, selection]);
 
@@ -90,9 +95,11 @@ export default function ProposalReviewPage() {
   const getAccommodationImages = (item, type) => {
     const provider = String(item?.provider || "").trim().toLowerCase();
 
-    // Airbnb villa: use images array directly (from API response)
+    // Zeniva Home / villa: use all available photo fields
     if (provider === "airbnb" || type === "Residence") {
+      if (Array.isArray(item?.photos) && item.photos.length > 0) return item.photos;
       if (Array.isArray(item?.images) && item.images.length > 0) return item.images;
+      if (item?.photo) return [item.photo]; // single photo field from villa selection store
       if (item?.image) return [item.image];
       // Fallback: check airbnbs.json static data
       const airbnb = airbnbsData.find((a) => a.id === item?.id || a.title === item?.name);

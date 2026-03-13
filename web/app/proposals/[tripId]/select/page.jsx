@@ -592,7 +592,8 @@ export default function ProposalSelectPage() {
       setHotels(mappedYachts);
       const currentId = String(selection?.hotel?.id || "").trim();
       const stillExists = currentId ? mappedYachts.some((h) => String(h?.id || "").trim() === currentId) : false;
-      if (!selection?.hotel || !stillExists) {
+      const hasVillaSelectedY = Boolean(selection?.villa?.id);
+      if (!hasVillaSelectedY && (!selection?.hotel || !stillExists)) {
         setProposalSelection(tripId, { hotel: mappedYachts[0] || null });
       }
       // Ensure accommodationType is set to "Yacht" in trip draft
@@ -723,7 +724,10 @@ export default function ProposalSelectPage() {
         setHotels(normalizedHotels);
         const currentId = String(selection?.hotel?.id || "").trim();
         const stillExists = currentId ? normalizedHotels.some((h) => String(h?.id || "").trim() === currentId) : false;
-        if (!selection?.hotel || !stillExists) {
+        // Never auto-select a hotel if the user has already chosen a Zeniva Home (villa)
+        const hasVillaSelected = Boolean(selection?.villa?.id);
+        // Never auto-select if user explicitly cleared hotel (selection.hotel === null but villa selected)
+        if (!hasVillaSelected && (!selection?.hotel || !stillExists)) {
           setProposalSelection(tripId, { hotel: normalizedHotels[0] || null });
         }
       } catch (e) {
@@ -2076,7 +2080,7 @@ export default function ProposalSelectPage() {
                               Remove
                             </button>
                           ) : (
-                            <button onClick={() => setProposalSelection(tripId, { villa: { id: villaKey, name: villa.name, city: villa.city, price: villa.priceTotal, pricePerNight: villa.pricePerNight, photo: villa.photo } })}
+                            <button onClick={() => setProposalSelection(tripId, { villa: { id: villaKey, name: villa.name, city: villa.city, price: villa.priceTotal, pricePerNight: villa.pricePerNight, photo: villa.photo, photos: villa.photos || (villa.photo ? [villa.photo] : []) } })}
                               className="text-xs font-bold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-5 py-2.5 hover:opacity-90 transition shadow">
                               Select
                             </button>
@@ -2495,7 +2499,7 @@ export default function ProposalSelectPage() {
               </div>
               <button
                 onClick={() => {
-                  setProposalSelection(tripId, { villa: { id: villaPhotoModal.id, name: villaPhotoModal.name, city: villaPhotoModal.city, price: villaPhotoModal.priceTotal, pricePerNight: villaPhotoModal.pricePerNight, photo: villaPhotoModal.photo } });
+                  setProposalSelection(tripId, { villa: { id: villaPhotoModal.id, name: villaPhotoModal.name, city: villaPhotoModal.city, price: villaPhotoModal.priceTotal, pricePerNight: villaPhotoModal.pricePerNight, photo: villaPhotoModal.photo, photos: villaPhotoModal.photos || (villaPhotoModal.photo ? [villaPhotoModal.photo] : []) } });
                   setVillaPhotoModal(null);
                 }}
                 className="rounded-2xl px-8 py-3 font-black text-sm transition shadow-lg"
