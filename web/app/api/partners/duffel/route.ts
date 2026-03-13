@@ -152,8 +152,10 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false, error: `Invalid origin or destination; expected 3-letter IATA codes (got origin='${originInput}', destination='${destinationInput}')` }, { status: 400 });
   }
 
+  // Support optional passengers count (defaults to 1)
+  const passengersCount = Math.max(1, Math.min(9, parseInt(url.searchParams.get('passengers') || '1', 10)));
   const body = {
-    passengers: [{ type: 'adult' }],
+    passengers: Array.from({ length: passengersCount }, () => ({ type: 'adult' })),
     slices: [{ origin, destination, departure_date }],
   };
 

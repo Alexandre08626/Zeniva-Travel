@@ -828,7 +828,7 @@ export default function ProposalReviewPage() {
                 let ft = 0;
                 if (fl?.outbound && fl?.inbound) ft = pm(fl.outbound.price) + pm(fl.inbound.price);
                 else if (fl) ft = pm(fl.price);
-                const ht = (() => { const h = selection?.hotel; if (!h) return 0; const np = pm(h.price); const ni = pm(h.nights) || pm(tripDraft?.nights) || 5; return np > 0 ? np * ni : 0; })();
+                const ht = (() => { const h = selection?.hotel; if (!h) return 0; const np = pm(h.price); if (np <= 0) return 0; // LiteAPI returns total price (not per-night) — only multiply if price string explicitly says "/night" or "per night" const isPerNight = /night|nuit/i.test(String(h.price || "")); if (isPerNight) { const ni = pm(h.nights) || pm(tripDraft?.nights) || 5; return np * ni; } return np; })();
                 const vt = pm(selection?.villa?.price) || pm(selection?.shortterm?.price) || 0;
                 const at = pm(selection?.activity?.price) || 0;
                 const tt = pm(selection?.transfer?.price) || 0;

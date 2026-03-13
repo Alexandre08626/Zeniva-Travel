@@ -531,7 +531,8 @@ export default function ProposalSelectPage() {
       setLoadingFlights(true);
       setErrorFlights(null);
       try {
-        const outQs = new URLSearchParams({ origin, destination, date });
+        const adults = String(tripDraft?.adults || 1);
+        const outQs = new URLSearchParams({ origin, destination, date, passengers: adults });
         const outRes = await fetch(`/api/partners/duffel?${outQs.toString()}`);
         const outJson = await outRes.json();
         if (!outRes.ok || !outJson?.ok) throw new Error(outJson?.error || outRes.statusText);
@@ -541,7 +542,7 @@ export default function ProposalSelectPage() {
 
         let inMapped = [];
         if (returnDate) {
-          const inQs = new URLSearchParams({ origin: destination, destination: origin, date: returnDate });
+          const inQs = new URLSearchParams({ origin: destination, destination: origin, date: returnDate, passengers: adults });
           const inRes = await fetch(`/api/partners/duffel?${inQs.toString()}`);
           const inJson = await inRes.json();
           if (inRes.ok && inJson?.ok) {
