@@ -173,6 +173,31 @@ function CruisesContent() {
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", specialRequests: "" });
   const [booking,    setBooking]    = useState(false);
   const [bookResult, setBookResult] = useState<{ bookingRef: string } | null>(null);
+  const [payUrl, setPayUrl] = useState<string | null>(null);
+  const [paying, setPaying] = useState(false);
+
+  const payNow = async () => {
+    if (!bookResult || !selCabinPrice) return;
+    setPaying(true);
+    try {
+      const priceNum = parseFloat(selCabinPrice) * guests;
+      const res = await fetch("/api/payment/square", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: Math.round(priceNum * 1.06 * 100) / 100,
+          description: `ZeniCruise — ${detail?.name || "Cruise"} | ${selCabin} cabin | ${guests} guest${guests !== 1 ? "s" : ""}`,
+          referenceId: bookResult.bookingRef,
+        }),
+      });
+      const data = await res.json();
+      if (data.paymentUrl) {
+        setPayUrl(data.paymentUrl);
+        window.open(data.paymentUrl, "_blank");
+      }
+    } catch {}
+    setPaying(false);
+  };
   const [bookError,  setBookError]  = useState("");
 
   // ── Build search params ──────────────────────────────────────────────────
@@ -732,7 +757,11 @@ function CruisesContent() {
                         <p className="text-[10px] text-slate-400 mt-1">Confirmation sent to {form.email}</p>
                       </div>
                       <div className="space-y-2">
-                        <p className="text-xs text-slate-600 font-bold">While you wait, chat with Lina:</p>
+                        <button onClick={payNow} disabled={paying} className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-black rounded-xl py-4 text-sm hover:opacity-90 transition shadow disabled:opacity-50">
+                          {paying ? "Opening payment…" : "💳 Pay Now — Secure Online Payment"}
+                        </button>
+                        {payUrl && <p className="text-xs text-center text-emerald-600 font-bold">✅ Payment page opened in new tab</p>}
+                        <p className="text-xs text-slate-600 font-bold pt-1">Or chat with Lina for assistance:</p>
                         <button
                           onClick={() => {
                             const prompt = encodeURIComponent(`I just submitted a cruise booking request for ${detail?.name}. My reference is ${bookResult.bookingRef}. Can you help me prepare for my trip?`);

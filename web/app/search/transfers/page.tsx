@@ -91,6 +91,31 @@ function TransfersContent() {
   const [bookingRef, setBookingRef] = useState("");
   const [form, setForm] = useState<Form>({ firstName: "", lastName: "", email: "", phone: "", flightNumber: "", notes: "" });
   const [submitting, setSubmitting] = useState(false);
+  const [payUrl, setPayUrl] = useState<string | null>(null);
+  const [paying, setPaying] = useState(false);
+
+  const payNow = async () => {
+    if (!selected || !bookingRef) return;
+    setPaying(true);
+    try {
+      const price = parseFloat(String(selected.priceFrom).replace(/[^0-9.]/g, "")) || 49;
+      const res = await fetch("/api/payment/square", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: price,
+          description: `ZeniTransfers — ${selected.title} | ${pickup} → ${dropoff}`,
+          referenceId: bookingRef,
+        }),
+      });
+      const data = await res.json();
+      if (data.paymentUrl) {
+        setPayUrl(data.paymentUrl);
+        window.open(data.paymentUrl, "_blank");
+      }
+    } catch {}
+    setPaying(false);
+  };
 
   const search = async (overridePickup?: string) => {
     const city = (overridePickup || pickup).trim();
@@ -340,9 +365,15 @@ function TransfersContent() {
                   <div><p className="text-xs text-slate-400 uppercase font-bold">Date & Time</p><p className="font-bold text-slate-800">{date} at {time}</p></div>
                   <div><p className="text-xs text-slate-400 uppercase font-bold">Passengers</p><p className="font-bold text-slate-800">{passengers}</p></div>
                 </div>
-                <div className="flex gap-3 pt-2">
-                  <Link href="/chat" className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-black rounded-xl py-3 text-sm text-center hover:opacity-90 transition">💬 Chat with Lina</Link>
-                  <Link href="/" className="flex-1 border-2 border-slate-200 text-slate-700 font-black rounded-xl py-3 text-sm text-center hover:bg-slate-50 transition">🏠 Home</Link>
+                <div className="space-y-3 pt-2">
+                  <button onClick={payNow} disabled={paying} className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-black rounded-xl py-4 text-sm hover:opacity-90 transition shadow disabled:opacity-50">
+                    {paying ? "Opening payment…" : "💳 Pay Now — Secure Online Payment"}
+                  </button>
+                  {payUrl && <p className="text-xs text-center text-emerald-600 font-bold">✅ Payment page opened in new tab</p>}
+                  <div className="flex gap-3">
+                    <Link href="/chat" className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-black rounded-xl py-3 text-sm text-center hover:opacity-90 transition">💬 Chat with Lina</Link>
+                    <Link href="/" className="flex-1 border-2 border-slate-200 text-slate-700 font-black rounded-xl py-3 text-sm text-center hover:bg-slate-50 transition">🏠 Home</Link>
+                  </div>
                 </div>
               </div>
             </div>
