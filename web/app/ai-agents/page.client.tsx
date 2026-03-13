@@ -122,6 +122,11 @@ function NovaLeadScanner({ accentColor, onLeadsFound }: { accentColor: string; o
   const [scanning, setScanning] = useState(false);
   const [results, setResults] = useState<any[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [generatingId, setGeneratingId] = useState<string | null>(null);
+  const [outreachMap, setOutreachMap] = useState<Record<string, string>>({});
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const runScan = async () => {
     setScanning(true);
@@ -131,12 +136,20 @@ function NovaLeadScanner({ accentColor, onLeadsFound }: { accentColor: string; o
       const res = await fetch("/api/agents-proxy?endpoint=social-leads-scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ keywords: ["looking for travel agent", "planning vacation trip", "need travel agent", "book cruise trip", "honeymoon planning"], limit_per_keyword: 5 }),
+        body: JSON.stringify({
+          keywords: ["looking for travel agent", "planning vacation trip", "need travel agent", "book cruise trip", "honeymoon planning", "luxury vacation planning"],
+          limit_per_keyword: 5,
+          auto_save: true,
+        }),
       });
       const data = await res.json();
       if (data.ok === false) throw new Error(data.error || "Scan failed");
       const leads = data.leads || [];
       setResults(leads);
+      // Mark auto-saved leads
+      const autoSaved = new Set<string>();
+      leads.forEach((l: any) => { if (l.saved_to_pipeline || l.already_in_pipeline) autoSaved.add(l.url || l.post_id); });
+      setSavedIds(autoSaved);
       if (leads.length > 0) onLeadsFound(leads);
     } catch (e: any) {
       setError(e.message || "Scan failed");
@@ -144,6 +157,44 @@ function NovaLeadScanner({ accentColor, onLeadsFound }: { accentColor: string; o
       setScanning(false);
     }
   };
+
+  const saveLead = async (lead: any) => {
+    const key = lead.url || lead.post_id;
+    setSavingId(key);
+    try {
+      const res = await fetch("/api/agents-proxy?endpoint=social-leads-save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lead, outreach: outreachMap[key] || lead.outreach || "" }),
+      });
+      const data = await res.json();
+      if (data.ok) setSavedIds(prev => new Set([...prev, key]));
+    } catch {}
+    setSavingId(null);
+  };
+
+  const generateOutreach = async (lead: any) => {
+    const key = lead.url || lead.post_id;
+    setGeneratingId(key);
+    try {
+      const res = await fetch("/api/agents-proxy?endpoint=social-leads-outreach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lead, lang: "en" }),
+      });
+      const data = await res.json();
+      if (data.outreach) setOutreachMap(prev => ({ ...prev, [key]: data.outreach }));
+    } catch {}
+    setGeneratingId(null);
+  };
+
+  const copyOutreach = (key: string, text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(key);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const SCORE_COLOR = (s: number) => s >= 8 ? "text-red-700 bg-red-50" : s >= 6 ? "text-orange-700 bg-orange-50" : "text-yellow-700 bg-yellow-50";
 
   return (
     <div className="mt-4 rounded-2xl border-2 border-blue-100 bg-blue-50 p-4">
@@ -155,26 +206,69 @@ function NovaLeadScanner({ accentColor, onLeadsFound }: { accentColor: string; o
         </button>
       )}
       {scanning && (
-        <div className="flex items-center gap-3 justify-center py-4">
-          <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm font-semibold text-blue-700">Scanning Facebook…</span>
+        <div className="flex flex-col items-center gap-2 justify-center py-6">
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm font-semibold text-blue-700">Scanning Facebook + qualifying with AI…</span>
+          <span className="text-xs text-blue-400">This takes ~15 seconds</span>
         </div>
       )}
       {error && <p className="text-xs text-red-600 font-semibold">{error}</p>}
       {results && (
-        <div className="space-y-2">
-          <p className="text-xs font-black text-blue-700">✅ {results.length} hot leads found</p>
-          {results.slice(0, 3).map((l: any, i: number) => (
-            <div key={i} className="bg-white rounded-xl p-3 border border-blue-100">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 rounded-full px-2 py-0.5">Score {l.score}/10</span>
-                {l.destination && <span className="text-[10px] text-slate-500">📍 {l.destination}</span>}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-black text-blue-700">✅ {results.length} hot leads found</p>
+            <button onClick={runScan} className="text-[10px] text-blue-500 font-bold hover:underline">🔄 Scan again</button>
+          </div>
+          {results.map((l: any, i: number) => {
+            const key = l.url || l.post_id || String(i);
+            const isSaved = savedIds.has(key);
+            const outreach = outreachMap[key] || l.outreach || "";
+            return (
+              <div key={key} className={`bg-white rounded-2xl border-2 p-3 ${isSaved ? "border-emerald-200" : "border-slate-100"}`}>
+                {/* Header */}
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className={`text-[10px] font-black rounded-full px-2 py-0.5 ${SCORE_COLOR(l.score)}`}>🔥 {l.score}/10</span>
+                    {l.destination && <span className="text-[10px] bg-blue-50 text-blue-600 rounded-full px-2 py-0.5 font-bold">📍 {l.destination}</span>}
+                    {l.budget_hint && l.budget_hint !== "unknown" && <span className="text-[10px] bg-purple-50 text-purple-600 rounded-full px-2 py-0.5 font-bold capitalize">💰 {l.budget_hint}</span>}
+                    {isSaved && <span className="text-[10px] bg-emerald-50 text-emerald-700 rounded-full px-2 py-0.5 font-bold">✓ In pipeline</span>}
+                  </div>
+                  <a href={l.url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-blue-400 hover:underline shrink-0">FB post →</a>
+                </div>
+
+                {/* Summary */}
+                <p className="text-xs text-slate-700 mb-2 leading-relaxed">{l.summary || l.message?.slice(0, 120)}</p>
+
+                {/* Outreach box */}
+                {outreach ? (
+                  <div className="bg-blue-50 rounded-xl p-2.5 mb-2">
+                    <p className="text-[10px] font-black text-blue-700 mb-1">✉️ Outreach message</p>
+                    <p className="text-[10px] text-slate-700 whitespace-pre-wrap leading-relaxed">{outreach}</p>
+                    <button onClick={() => copyOutreach(key, outreach)}
+                      className="mt-1.5 text-[10px] font-bold text-blue-600 hover:text-blue-800">
+                      {copiedId === key ? "✓ Copied!" : "📋 Copy"}
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={() => generateOutreach(l)} disabled={generatingId === key}
+                    className="w-full text-[10px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl py-2 mb-2 transition disabled:opacity-50">
+                    {generatingId === key ? "⏳ Generating…" : "✉️ Generate outreach message"}
+                  </button>
+                )}
+
+                {/* Save to pipeline */}
+                {!isSaved ? (
+                  <button onClick={() => saveLead(l)} disabled={savingId === key}
+                    style={savingId !== key ? { background: accentColor } : {}}
+                    className="w-full text-white font-black rounded-xl py-2 text-[10px] hover:opacity-90 transition disabled:bg-slate-300 disabled:text-slate-500">
+                    {savingId === key ? "⏳ Saving…" : "➕ Save to lead pipeline"}
+                  </button>
+                ) : (
+                  <div className="text-center text-[10px] font-black text-emerald-700 py-1.5">✓ Saved to pipeline — visible in /agent/leads</div>
+                )}
               </div>
-              <p className="text-xs text-slate-700 line-clamp-2">{l.summary || l.message?.slice(0, 100)}</p>
-              <a href={l.url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-blue-500 hover:underline mt-1 block truncate">{l.url}</a>
-            </div>
-          ))}
-          <button onClick={runScan} className="text-xs text-blue-600 font-bold hover:underline">🔄 Scan again</button>
+            );
+          })}
         </div>
       )}
     </div>

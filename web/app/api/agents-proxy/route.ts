@@ -141,6 +141,11 @@ export async function POST(req: NextRequest) {
       const r = await fetch(`${VPS_BASE}/social-leads/outreach`, { method: "POST", headers: { Authorization: AUTH, "Content-Type": "application/json" }, body: JSON.stringify(body) });
       return NextResponse.json(await r.json());
     }
+    if (endpoint === "social-leads-save") {
+      const body = await req.json();
+      const r = await fetch(`${VPS_BASE}/social-leads/save`, { method: "POST", headers: { Authorization: AUTH, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      return NextResponse.json(await r.json());
+    }
     return NextResponse.json({ error: "Unknown endpoint" }, { status: 400 });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message }, { status: 502 });
