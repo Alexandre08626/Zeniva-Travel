@@ -180,7 +180,7 @@ export default function TripSnapshotPanel({ tripId, proposalMode = "" }) {
           { key: "accommodationType", label: "Accommodation Type", type: "select", options: [
             { value: "Hotel", label: "Hotel" },
             { value: "Residence", label: "Short-term rental" },
-            { value: "Airbnb", label: "Short-term rental" },
+            { value: "Airbnb", label: "ZeniStay" },
             { value: "Yacht", label: "Yacht" },
             { value: "Resort", label: "Resort" },
             { value: "Other", label: "Other" },

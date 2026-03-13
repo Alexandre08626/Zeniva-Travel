@@ -2209,19 +2209,19 @@ export default function ProposalSelectPage() {
                     {showAddActivities && (
                       <button onClick={() => { const e = new CustomEvent("zeniva:enable-addon", { detail: { type: "activities" } }); window.dispatchEvent(e); }}
                         className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition">
-                        🎯 + Add Experiences
+                        🎯 + Add ZeniXP
                       </button>
                     )}
                     {showAddTransfers && (
                       <button onClick={() => { const e = new CustomEvent("zeniva:enable-addon", { detail: { type: "transfers" } }); window.dispatchEvent(e); }}
                         className="flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-xs font-bold text-orange-700 hover:bg-orange-100 transition">
-                        🚗 + Add Transfers
+                        🚐 + Add ZeniTransfers
                       </button>
                     )}
                     {showAddCars && (
                       <button onClick={() => { const e = new CustomEvent("zeniva:enable-addon", { detail: { type: "rentalcar" } }); window.dispatchEvent(e); }}
                         className="flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-bold text-blue-700 hover:bg-blue-100 transition">
-                        🚙 + Add Rental Car
+                        🚗 + Add ZeniCar
                       </button>
                     )}
                   </div>
@@ -2242,9 +2242,9 @@ export default function ProposalSelectPage() {
                 {[
                   { icon: "✈️", label: "Flight", item: selection?.flight, getValue: (f) => f?.outbound ? `${f.outbound.airline} · ${f.outbound.route}` : `${f?.airline} · ${f?.route}` },
                   { icon: "🏨", label: staysTitle, item: selection?.hotel, getValue: (h) => h?.name },
-                  { icon: "🎯", label: "Activity", item: selection?.activity, getValue: (a) => a?.name, optional: true },
-                  { icon: "🚗", label: "Transfer", item: selection?.transfer, getValue: (t) => t?.name, optional: true },
-                  { icon: "🚙", label: "Rental Car", item: selection?.car, getValue: (c) => c?.name || c?.category, optional: true },
+                  { icon: "🎯", label: "ZeniXP", item: selection?.activity, getValue: (a) => a?.name, optional: true },
+                  { icon: "🚐", label: "ZeniTransfers", item: selection?.transfer, getValue: (t) => t?.name, optional: true },
+                  { icon: "🚗", label: "ZeniCar", item: selection?.car, getValue: (c) => c?.name || c?.category, optional: true },
                   { icon: "🏠", label: "ZeniStay", item: selection?.villa, getValue: (v) => v?.name, optional: true },
                 ].map(({ icon, label, item, getValue, optional }) => (
                   <div key={label} className={`flex items-start gap-3 rounded-xl p-3 ${item ? "bg-white/10 border border-white/10" : "border border-dashed border-white/10"}`}>
