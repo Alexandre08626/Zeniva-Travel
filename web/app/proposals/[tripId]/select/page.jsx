@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { BRAND_BLUE, LIGHT_BG, MUTED_TEXT, PREMIUM_BLUE, TITLE_TEXT } from "../../../../src/design/tokens";
 import { useTripsStore, generateProposal, setProposalSelection, applyTripPatch, updateSnapshot } from "../../../../lib/store/tripsStore";
@@ -258,6 +258,8 @@ export default function ProposalSelectPage() {
   const [showVillasOverride, setShowVillasOverride] = useState(false);
   const [selectedTransferKey, setSelectedTransferKey] = useState("");
   const [selectedCarKey, setSelectedCarKey] = useState("");
+  // Tracks whether user explicitly cleared hotel (via villa selection or manual deselect)
+  const userClearedHotelRef = useRef(false);
   const [expandedFlightId, setExpandedFlightId] = useState("");
   const [flightModal, setFlightModal] = useState(null);
   const [showMoreFlights, setShowMoreFlights] = useState(false);
@@ -724,10 +726,9 @@ export default function ProposalSelectPage() {
         setHotels(normalizedHotels);
         const currentId = String(selection?.hotel?.id || "").trim();
         const stillExists = currentId ? normalizedHotels.some((h) => String(h?.id || "").trim() === currentId) : false;
-        // Never auto-select a hotel if the user has already chosen a Zeniva Home (villa)
-        const hasVillaSelected = Boolean(selection?.villa?.id);
-        // Never auto-select if user explicitly cleared hotel (selection.hotel === null but villa selected)
-        if (!hasVillaSelected && (!selection?.hotel || !stillExists)) {
+        // Never auto-select if user explicitly cleared hotel or chose a Zeniva Home
+        if (userClearedHotelRef.current) return;
+        if (!selection?.hotel || !stillExists) {
           setProposalSelection(tripId, { hotel: normalizedHotels[0] || null });
         }
       } catch (e) {
@@ -1092,9 +1093,11 @@ export default function ProposalSelectPage() {
   const onSelectHotel = (hotel) => {
     // Toggle: click same hotel again → deselect
     if (selection?.hotel?.id && selection.hotel.id === hotel?.id) {
+      userClearedHotelRef.current = true;
       setProposalSelection(tripId, { hotel: null });
     } else {
       // Hotel and Zeniva Home are mutually exclusive — clear villa when hotel chosen
+      userClearedHotelRef.current = false; // allow hotel selection normally
       setProposalSelection(tripId, { hotel, villa: null });
     }
   };
@@ -2081,7 +2084,7 @@ export default function ProposalSelectPage() {
                               Remove
                             </button>
                           ) : (
-                            <button onClick={() => setProposalSelection(tripId, { villa: { id: villaKey, name: villa.name, city: villa.city, price: villa.priceTotal, pricePerNight: villa.pricePerNight, photo: villa.photo, photos: villa.photos || (villa.photo ? [villa.photo] : []) }, hotel: null })}
+                            <button onClick={() => { userClearedHotelRef.current = true; setProposalSelection(tripId, { villa: { id: villaKey, name: villa.name, city: villa.city, price: villa.priceTotal, pricePerNight: villa.pricePerNight, photo: villa.photo, photos: villa.photos || (villa.photo ? [villa.photo] : []) }, hotel: null }); }}
                               className="text-xs font-bold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-5 py-2.5 hover:opacity-90 transition shadow">
                               Select
                             </button>
@@ -2500,6 +2503,7 @@ export default function ProposalSelectPage() {
               </div>
               <button
                 onClick={() => {
+                  userClearedHotelRef.current = true;
                   setProposalSelection(tripId, { villa: { id: villaPhotoModal.id, name: villaPhotoModal.name, city: villaPhotoModal.city, price: villaPhotoModal.priceTotal, pricePerNight: villaPhotoModal.pricePerNight, photo: villaPhotoModal.photo, photos: villaPhotoModal.photos || (villaPhotoModal.photo ? [villaPhotoModal.photo] : []) }, hotel: null });
                   setVillaPhotoModal(null);
                 }}
