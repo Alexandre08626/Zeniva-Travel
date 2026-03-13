@@ -164,7 +164,7 @@ export default function AppShell() {
     router.push(tab.href);
   };
 
-  if (!isApp) return null;
+  if (!isApp) return null; // null or false — both hide the shell on website
 
   return (
     <>
