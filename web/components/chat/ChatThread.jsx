@@ -362,58 +362,8 @@ function ChatThread({ tripId, proposalMode = "" }) {
     pendingQRef.current = q;
   }, [tripId]);
 
-  useEffect(() => {
-    if (!userHasInteracted) return;
-    if (
-      snapshot.departure &&
-      snapshot.destination &&
-      snapshot.dates &&
-      snapshot.travelers &&
-      snapshot.budget &&
-      snapshot.style
-    ) {
-      // Use Zustand store actions (which persist to localStorage properly)
-      const newTripId = createTrip({
-        title: snapshot.destination,
-        destination: snapshot.destination,
-        departure: snapshot.departure,
-        dates: snapshot.dates,
-        travelers: snapshot.travelers,
-        budget: snapshot.budget,
-        style: snapshot.style,
-        status: "Ready",
-      });
-
-      // Copy full snapshot to new trip
-      updateSnapshot(newTripId, { ...snapshot });
-
-      // Build tripDraft from snapshot so the select page APIs can fire
-      const draftPatch = {};
-      if (snapshot.departure) draftPatch.departureCity = snapshot.departure.split(' - ')[0] || snapshot.departure;
-      if (snapshot.destination) draftPatch.destination = snapshot.destination.split(' - ')[0] || snapshot.destination;
-      if (snapshot.dates) {
-        const parts = snapshot.dates.split(' → ');
-        if (parts[0]) draftPatch.checkIn = parts[0].trim();
-        if (parts[1]) draftPatch.checkOut = parts[1].trim();
-      }
-      if (snapshot.travelers) {
-        const adultsMatch = snapshot.travelers.match(/(\d+)/);
-        if (adultsMatch) draftPatch.adults = parseInt(adultsMatch[1]);
-      }
-      if (snapshot.budget) draftPatch.budget = snapshot.budget;
-      if (snapshot.style) draftPatch.style = snapshot.style;
-      if (snapshot.accommodationType) draftPatch.accommodationType = snapshot.accommodationType;
-      if (snapshot.transportationType) draftPatch.transportationType = snapshot.transportationType;
-
-      applyTripPatch(newTripId, draftPatch);
-      generateProposal(newTripId);
-
-      // Navigate to proposal selection page
-      if (typeof window !== 'undefined') {
-        window.location.href = `/proposals/${newTripId}/select${proposalSuffix}`;
-      }
-    }
-  }, [userHasInteracted, snapshot.departure, snapshot.destination, snapshot.dates, snapshot.travelers, snapshot.budget, snapshot.style]);
+  // NOTE: Auto-trip creation removed — trips are created only when user clicks "Generate Proposal"
+  // The old useEffect that created trips automatically was polluting the sidebar with garbage trips
 
   const handleSend = async (text) => {
     setUserHasInteracted(true);
@@ -456,12 +406,19 @@ function ChatThread({ tripId, proposalMode = "" }) {
       const extracted = extractTripInfoFromConversation(allMsgs);
       if (extracted) {
         applyTripPatch(tripId, extracted);
-        // Auto-set trip title from destination
+        // Auto-set trip title from destination — only if it looks like a real place name
         if (extracted.destination) {
-          const currentTrip = (trips || []).find((t) => t.id === tripId);
-          const currentTitle = String(currentTrip?.title || "").trim();
-          if (!currentTitle || currentTitle === "New Trip" || currentTitle === "Trip") {
-            setTripTitle(tripId, extracted.destination);
+          const dest = String(extracted.destination).trim();
+          const isValidTitle = dest.length >= 3 && dest.length <= 30
+            && !/\?/.test(dest)  // not a question
+            && !/\b(quelles|quels|quelle|quel|what|when|where|comment|pourquoi|combien|sont|avez|avons|votre|votre|avez-vous)\b/i.test(dest)
+            && !/^(jourd|aujourd|hui|maintenant|demain)/i.test(dest);
+          if (isValidTitle) {
+            const currentTrip = (trips || []).find((t) => t.id === tripId);
+            const currentTitle = String(currentTrip?.title || "").trim();
+            if (!currentTitle || currentTitle === "New Trip" || currentTitle === "Trip" || currentTitle.startsWith("Trip ")) {
+              setTripTitle(tripId, dest);
+            }
           }
         }
       }
