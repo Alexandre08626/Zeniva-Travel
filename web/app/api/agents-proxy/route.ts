@@ -85,10 +85,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: err?.message || "VPS unreachable" }, { status: 502 });
   }
 }
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message || "VPS unreachable" }, { status: 502 });
-  }
-}
 
 export async function POST(req: NextRequest) {
   // Support ?path=admin/xxx for direct VPS passthrough
