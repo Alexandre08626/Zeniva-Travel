@@ -287,7 +287,7 @@ export default function AgentInventoryPage() {
             <option value="partner">Partenaire publié</option>
             <option value="ycn">YCN</option>
             <option value="resort">Resort catalog</option>
-            <option value="airbnb">Zeniva Home catalog</option>
+            <option value="airbnb">ZeniStay catalog</option>
             <option value="catalog">Catalogue interne</option>
           </select>
         </div>
@@ -311,7 +311,7 @@ export default function AgentInventoryPage() {
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
-                  <span className="rounded-full border border-slate-200 px-3 py-1">{item.type === "home" ? "Zeniva Home" : item.type}</span>
+                  <span className="rounded-full border border-slate-200 px-3 py-1">{item.type === "home" ? "ZeniStay" : item.type}</span>
                   <span className="rounded-full border border-slate-200 px-3 py-1">Source: {item.source}</span>
                   <span className={`rounded-full px-3 py-1 ${item.workflowStatus === "completed" ? "bg-emerald-100 text-emerald-700" : item.workflowStatus === "paused" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>{workflowLabel(item.workflowStatus)}</span>
                   <span className="rounded-full border border-slate-200 px-3 py-1">{publicationLabel(item.publicationStatus)}</span>

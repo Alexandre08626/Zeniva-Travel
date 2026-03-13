@@ -94,13 +94,13 @@ function RentalDetailContent() {
       name,
       amount: total,
       currency: "USD",
-      description: `Zeniva Home · ${name} · ${nights} night${nights > 1 ? "s" : ""} · ${checkin} → ${checkout}`,
+      description: `ZeniStay · ${name} · ${nights} night${nights > 1 ? "s" : ""} · ${checkin} → ${checkout}`,
     }));
     router.push(`/payment?type=villa&name=${encodeURIComponent(name)}&total=${total}&nights=${nights}&checkin=${encodeURIComponent(checkin)}&checkout=${encodeURIComponent(checkout)}`);
   };
 
   const chatWithLina = () => {
-    const prompt = encodeURIComponent(`I'm interested in booking the Zeniva Home "${name}" in ${location} from ${checkin} to ${checkout} for ${guests} guests. Can you help me with the reservation?`);
+    const prompt = encodeURIComponent(`I'm interested in booking the ZeniStay "${name}" in ${location} from ${checkin} to ${checkout} for ${guests} guests. Can you help me with the reservation?`);
     router.push(`/chat?prompt=${prompt}`);
   };
 
@@ -166,7 +166,7 @@ function RentalDetailContent() {
             {/* Title block */}
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs font-black text-blue-600 bg-blue-50 rounded-full px-3 py-1 uppercase tracking-widest">🏠 Zeniva Home</span>
+                <span className="text-xs font-black text-blue-600 bg-blue-50 rounded-full px-3 py-1 uppercase tracking-widest">🏠 ZeniStay</span>
                 <span className="text-xs text-slate-500 bg-slate-100 rounded-full px-3 py-1">{type}</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mb-2">{name}</h1>

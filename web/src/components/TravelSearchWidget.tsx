@@ -17,7 +17,7 @@ const WIDGET_TRANSLATIONS: Record<string, Record<string, string>> = {
     "Experience": "Expérience",
     "Cruise": "Croisière",
     "Yacht": "Yacht",
-    "Zeniva Home": "Zeniva Home",
+    "ZeniStay": "ZeniStay",
     "From (airport/city)": "Départ (aéroport/ville)",
     "To (airport/city)": "Arrivée (aéroport/ville)",
     "One-way": "Aller simple",
@@ -65,7 +65,7 @@ const WIDGET_TRANSLATIONS: Record<string, Record<string, string>> = {
     "Experience": "Experiencia",
     "Cruise": "Crucero",
     "Yacht": "Yate",
-    "Zeniva Home": "Zeniva Home",
+    "ZeniStay": "ZeniStay",
     "From (airport/city)": "Desde (aeropuerto/ciudad)",
     "To (airport/city)": "Hasta (aeropuerto/ciudad)",
     "One-way": "Solo ida",
@@ -328,7 +328,7 @@ export default function TravelSearchWidget() {
             { key: 'cars', label: tx('Rental Car'), icon: '🚗' },
             { key: 'experiences', label: tx('Experience'), icon: '🎯' },
             { key: 'cruises', label: tx('Cruise'), icon: '🚢' },
-            { key: 'rentals', label: 'Zeniva Home', icon: '🏠' },
+            { key: 'rentals', label: 'ZeniStay', icon: '🏠' },
           ].map((t: any) => (
             <button
               key={t.key}
@@ -422,7 +422,7 @@ export default function TravelSearchWidget() {
         )}
 
         {tab === "rentals" && (
-          <form onSubmit={(e) => { e.preventDefault(); const p = new URLSearchParams({ destination: expDestination || "Miami", checkin: checkIn, checkout: checkOut, guests: String(guests), type: "short-term rental" }); router.push(`/rentals?${p.toString()}`); }} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <form onSubmit={(e) => { e.preventDefault(); const p = new URLSearchParams({ destination: expDestination || "Miami", checkin: checkIn, checkout: checkOut, guests: String(guests), type: "ZeniStay" }); router.push(`/rentals?${p.toString()}`); }} className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="md:col-span-2">
               <input value={expDestination} onChange={e => setExpDestination(e.target.value)} placeholder="Where are you going?" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>

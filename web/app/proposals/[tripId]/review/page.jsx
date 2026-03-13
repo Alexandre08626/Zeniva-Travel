@@ -47,7 +47,7 @@ export default function ProposalReviewPage() {
     const dest = tripDraft?.destination || proposal?.title || "trip";
     const destImgs = getImagesForDestination(dest);
 
-    // Zeniva Home (villa) selected — use villa photos first
+    // ZeniStay (villa) selected — use villa photos first
     if (selection?.villa && !selection?.hotel) {
       const villaPhotos = selection.villa.photos || (selection.villa.photo ? [selection.villa.photo] : []);
       if (villaPhotos.length > 0) return villaPhotos[0];
@@ -78,7 +78,7 @@ export default function ProposalReviewPage() {
   // Is the primary accommodation an Airbnb/villa?
   const isAirbnbStay = Boolean(!selection?.hotel && selection?.villa) ||
     Boolean(selection?.hotel?.provider === "airbnb") ||
-    Boolean(["airbnb", "villa", "short-term rental", "condo", "residence"].includes(
+    Boolean(["airbnb", "villa", "ZeniStay", "condo", "residence"].includes(
       String(selection?.hotel?.accommodationType || selection?.villa?.accommodationType || "").toLowerCase()
     ));
 
@@ -87,7 +87,7 @@ export default function ProposalReviewPage() {
     const isVilla = item?.id && selection?.villa?.id === item?.id;
     if (isVilla) return "Residence";
     const rawType = String(item?.accommodationType || tripDraft?.accommodationType || "").toLowerCase();
-    if (["airbnb", "villa", "short-term rental", "condo", "residence"].includes(rawType)) return "Residence";
+    if (["airbnb", "villa", "ZeniStay", "condo", "residence"].includes(rawType)) return "Residence";
     if (rawType === "yacht") return "Yacht";
     return item?.room?.toLowerCase?.().includes("yacht") ? "Yacht" : item?.room?.toLowerCase?.().includes("residence") ? "Residence" : "Hotel";
   };
@@ -95,7 +95,7 @@ export default function ProposalReviewPage() {
   const getAccommodationImages = (item, type) => {
     const provider = String(item?.provider || "").trim().toLowerCase();
 
-    // Zeniva Home / villa: use all available photo fields
+    // ZeniStay / villa: use all available photo fields
     if (provider === "airbnb" || type === "Residence") {
       if (Array.isArray(item?.photos) && item.photos.length > 0) return item.photos;
       if (Array.isArray(item?.images) && item.images.length > 0) return item.images;
@@ -656,7 +656,7 @@ export default function ProposalReviewPage() {
             {/* STAYS */}
             {uniqueHotels.map((stay, idx) => {
               const type = getAccommodationType(stay);
-              const label = type === "Yacht" ? "Yacht" : type === "Residence" ? "Zeniva Home" : "Hotel";
+              const label = type === "Yacht" ? "Yacht" : type === "Residence" ? "ZeniStay" : "Hotel";
               const icon = type === "Yacht" ? "⛵" : type === "Residence" ? "🏡" : "🏨";
               const stayImages = getAccommodationImages(stay, type);
               const stayKey = String(stay?.id || stay?.name || idx);
@@ -823,7 +823,7 @@ export default function ProposalReviewPage() {
                   { icon: "📅", label: "Dates", value: tripDraft?.checkIn && tripDraft?.checkOut ? `${tripDraft.checkIn} → ${tripDraft.checkOut}` : "Flexible" },
                   { icon: "👥", label: "Travelers", value: `${tripDraft?.adults || "2"} traveler${(tripDraft?.adults || 2) > 1 ? "s" : ""}` },
                   { icon: "✈️", label: "Flight", value: flight?.airline ? `${flight.airline} · ${flight.route || ""}` : "Selected" },
-                  { icon: isAirbnbStay ? "🏡" : "🏨", label: isAirbnbStay ? "Zeniva Home" : "Stay", value: uniqueHotels[0]?.name || "Selected" },
+                  { icon: isAirbnbStay ? "🏡" : "🏨", label: isAirbnbStay ? "ZeniStay" : "Stay", value: uniqueHotels[0]?.name || "Selected" },
                 ].map(({ icon, label, value }) => (
                   <div key={label} className="flex items-start gap-3">
                     <span className="text-lg flex-shrink-0">{icon}</span>

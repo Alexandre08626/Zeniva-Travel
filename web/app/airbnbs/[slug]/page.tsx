@@ -27,7 +27,7 @@ function cleanDescription(description: string) {
   const sanitized = cleaned
     .replace(/Airbnb host/gi, 'property host')
     .replace(/Airbnb guests/gi, 'guests')
-    .replace(/Airbnb/gi, 'short-term rental');
+    .replace(/Airbnb/gi, 'ZeniStay');
   return sanitized.length < 40 ? 'Private stays curated by Zeniva, bookable with concierge support.' : sanitized;
 }
 
@@ -172,12 +172,12 @@ export default async function AirbnbDetailPage({ params }: { params: Promise<{ s
                   title={displayTitle}
                   destination={propertyLocation || item.location || ""}
                   accommodationType="Residence"
-                  style="Short-term rental"
+                  style="ZeniStay"
                   price={`${formatCurrencyAmount(pricePerNight, "USD")}/night`}
                   image={hero}
                   images={gallery}
                   description={descriptionText}
-                  roomLabel={propertyType ? `${propertyType} stay` : "Short-term rental"}
+                  roomLabel={propertyType ? `${propertyType} stay` : "ZeniStay"}
                   datesStorageKey={storageKey}
                   className="w-full rounded-full bg-black px-4 py-2 text-sm font-semibold text-white shadow hover:bg-slate-900"
                 />

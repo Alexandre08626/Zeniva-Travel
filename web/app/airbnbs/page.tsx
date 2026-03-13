@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { GRADIENT_END, GRADIENT_START, LIGHT_BG } from "../../src/design/tokens";
 import Header from "../../src/components/Header";
 import AutoTranslate from "../../src/components/AutoTranslate";
@@ -42,19 +42,31 @@ function cleanDescription(description: string) {
   const sanitized = cleaned
     .replace(/Airbnb host/gi, "property host")
     .replace(/Airbnb guests/gi, "guests")
-    .replace(/Airbnb/gi, "short-term rental");
+    .replace(/Airbnb/gi, "ZeniStay");
   return sanitized.length < 40 ? "Private stays curated by Zeniva, bookable with concierge support." : sanitized;
 }
 
-export default function AirbnbsPage() {
+const PROPERTY_TYPES = [
+  { key: "all", label: "🏠 All" },
+  { key: "villa", label: "🌴 Villas" },
+  { key: "condo", label: "🏢 Condos" },
+  { key: "house", label: "🏡 Houses" },
+  { key: "apartment", label: "🏙️ Apartments" },
+  { key: "chalet", label: "⛷️ Chalets" },
+  { key: "beachfront", label: "🏖 Beachfront" },
+];
+
+function AirbnbsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [items, setItems] = useState<AirbnbItem[]>([]);
   const [visible, setVisible] = useState(12);
   const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState("");
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
-  const [travelers, setTravelers] = useState("2");
+  const [query, setQuery] = useState(searchParams.get("destination") || "");
+  const [checkIn, setCheckIn] = useState(searchParams.get("checkin") || "");
+  const [checkOut, setCheckOut] = useState(searchParams.get("checkout") || "");
+  const [travelers, setTravelers] = useState(searchParams.get("guests") || "2");
+  const [propertyType, setPropertyType] = useState(searchParams.get("type") || "all");
 
   const isLoggedIn = false;
   const userEmail = "user@email.com";
@@ -66,15 +78,15 @@ export default function AirbnbsPage() {
   const [searched, setSearched] = useState(false);
   const [searchedDest, setSearchedDest] = useState("");
 
-  const handleSearch = async () => {
-    const dest = query.trim();
+  const handleSearch = async (overrideDest?: string) => {
+    const dest = (overrideDest || query).trim();
     if (!dest) return;
     setApiLoading(true);
     setApiError("");
     setSearched(true);
     setSearchedDest(dest);
     try {
-      const params = new URLSearchParams({ destination: dest, type: "all" });
+      const params = new URLSearchParams({ destination: dest, type: propertyType || "all" });
       if (checkIn) params.set("checkIn", checkIn);
       if (checkOut) params.set("checkOut", checkOut);
       if (travelers) params.set("guests", travelers);
@@ -88,6 +100,13 @@ export default function AirbnbsPage() {
       setApiLoading(false);
     }
   };
+
+  // Auto-search if URL has destination param
+  useEffect(() => {
+    const dest = searchParams.get("destination");
+    if (dest) handleSearch(dest);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -184,20 +203,20 @@ export default function AirbnbsPage() {
     const tripId = createTrip({
       title: stay.title,
       destination: stay.location,
-      style: "Short-term rental",
+      style: "ZeniStay",
     });
 
     updateSnapshot(tripId, {
       destination: stay.location,
       travelers: "2 adults",
-      style: "Short-term rental",
+      style: "ZeniStay",
       accommodationType: "Residence",
     });
 
     applyTripPatch(tripId, {
       destination: stay.location,
       accommodationType: "Residence",
-      style: "Short-term rental",
+      style: "ZeniStay",
     });
 
     setProposalSelection(tripId, {
@@ -208,7 +227,7 @@ export default function AirbnbsPage() {
         id: stay.slug,
         name: stay.title,
         location: stay.location,
-        room: "Short-term rental",
+        room: "ZeniStay",
         image: stay.image,
         images: stay.images,
         description: stay.description,
@@ -220,7 +239,7 @@ export default function AirbnbsPage() {
   };
 
   return (
-    <AppDarkPageWrapper title="Villas & Rentals" emoji="🏡" subtitle="Premium short-term stays worldwide">
+    <AppDarkPageWrapper title="Villas & Rentals" emoji="🏡" subtitle="Premium ZeniStay properties worldwide">
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
       <div className="w-screen left-1/2 right-1/2 -translate-x-1/2 relative">
         <div className="mx-auto w-full px-6 pt-5">
@@ -246,7 +265,7 @@ export default function AirbnbsPage() {
                 Yachts
               </Link>
               <Link href="/residences" className="rounded-full px-4 py-2 text-sm font-semibold bg-white text-slate-900">
-                Short-term Rentals
+                ZeniStay
               </Link>
               <Link href="/" className="rounded-full border border-white/50 px-4 py-2 text-sm font-semibold text-white">
                 Flights
@@ -335,7 +354,7 @@ export default function AirbnbsPage() {
                   {/* Search Button */}
                   <button
                     type="button"
-                    onClick={handleSearch}
+                    onClick={() => handleSearch()}
                     disabled={apiLoading || !query.trim()}
                     className="flex-shrink-0 rounded-full bg-white px-6 py-2 text-sm font-black text-blue-700 shadow-lg hover:bg-blue-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -343,6 +362,15 @@ export default function AirbnbsPage() {
                   </button>
                 </div>
               </div>
+            </div>
+            {/* Property type pills */}
+            <div className="mt-3 flex flex-wrap gap-2">
+              {PROPERTY_TYPES.map(pt => (
+                <button key={pt.key} onClick={() => setPropertyType(pt.key)}
+                  className={`text-xs font-bold px-4 py-1.5 rounded-full transition border ${propertyType === pt.key ? "bg-white text-blue-700 border-white" : "bg-white/10 text-white border-white/20 hover:bg-white/20"}`}>
+                  {pt.label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -353,8 +381,8 @@ export default function AirbnbsPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <p className="text-sm uppercase tracking-wide text-slate-500"><AutoTranslate text="Short-term rentals" className="inline" /></p>
-              <h1 className="text-3xl font-black mt-1"><AutoTranslate text="Short-term rentals" className="inline" /></h1>
+              <p className="text-sm uppercase tracking-wide text-slate-500"><AutoTranslate text="ZeniStay" className="inline" /></p>
+              <h1 className="text-3xl font-black mt-1"><AutoTranslate text="ZeniStay" className="inline" /></h1>
               <p className="text-slate-600 mt-2"><AutoTranslate text="Private stays curated by Zeniva, bookable with concierge support." className="inline" /></p>
             </div>
             <Link href="/chat?prompt=Plan%20a%20short-term%20stay" className="hidden md:inline-flex px-4 py-2 rounded-full bg-black text-white text-sm font-semibold shadow">
@@ -514,5 +542,13 @@ export default function AirbnbsPage() {
       </div>
     </main>
     </AppDarkPageWrapper>
+  );
+}
+
+export default function AirbnbsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-900" />}>
+      <AirbnbsContent />
+    </Suspense>
   );
 }

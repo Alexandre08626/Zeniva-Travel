@@ -302,8 +302,8 @@ export default function ProposalSelectPage() {
   const showHotels = (tripDraft?.accommodationType === "Hotel" || tripDraft?.accommodationType === "Yacht") || showHotelsOverride;
   const showVillas = tripDraft?.includeVillas === true
     || tripDraft?.accommodationType === "Villa"
-    || tripDraft?.accommodationType === "Zeniva Home"
-    || tripDraft?.accommodationType === "Zeniva Home"
+    || tripDraft?.accommodationType === "ZeniStay"
+    || tripDraft?.accommodationType === "ZeniStay"
     || tripDraft?.accommodationType === "Condo"
     || tripDraft?.accommodationType === "Residence"
     || showVillasOverride;
@@ -608,7 +608,7 @@ export default function ProposalSelectPage() {
 
     const normalizedStyle = (style || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     // Residence/Airbnb/STR is handled by the Villa section (Airbnb13 API) — skip hotel fetch
-    if (accommodationType === "Residence" || accommodationType === "Zeniva Home" || accommodationType === "Zeniva Home" || accommodationType === "Villa" || accommodationType === "Condo") {
+    if (accommodationType === "Residence" || accommodationType === "ZeniStay" || accommodationType === "ZeniStay" || accommodationType === "Villa" || accommodationType === "Condo") {
       setHotels([]);
       setLoadingHotels(false);
       return;
@@ -726,7 +726,7 @@ export default function ProposalSelectPage() {
         setHotels(normalizedHotels);
         const currentId = String(selection?.hotel?.id || "").trim();
         const stillExists = currentId ? normalizedHotels.some((h) => String(h?.id || "").trim() === currentId) : false;
-        // Never auto-select if user explicitly cleared hotel or chose a Zeniva Home
+        // Never auto-select if user explicitly cleared hotel or chose a ZeniStay
         if (userClearedHotelRef.current) return;
         if (!selection?.hotel || !stillExists) {
           setProposalSelection(tripId, { hotel: normalizedHotels[0] || null });
@@ -1000,8 +1000,8 @@ export default function ProposalSelectPage() {
   useEffect(() => {
     const shouldLoadVillas = tripDraft?.includeVillas === true
       || tripDraft?.accommodationType === "Villa"
-      || tripDraft?.accommodationType === "Zeniva Home"
-      || tripDraft?.accommodationType === "Zeniva Home"
+      || tripDraft?.accommodationType === "ZeniStay"
+      || tripDraft?.accommodationType === "ZeniStay"
       || tripDraft?.accommodationType === "Condo"
       || tripDraft?.accommodationType === "Residence"
       || showVillasOverride;
@@ -1096,7 +1096,7 @@ export default function ProposalSelectPage() {
       userClearedHotelRef.current = true;
       setProposalSelection(tripId, { hotel: null });
     } else {
-      // Hotel and Zeniva Home are mutually exclusive — clear villa when hotel chosen
+      // Hotel and ZeniStay are mutually exclusive — clear villa when hotel chosen
       userClearedHotelRef.current = false; // allow hotel selection normally
       setProposalSelection(tripId, { hotel, villa: null });
     }
@@ -1981,9 +1981,9 @@ export default function ProposalSelectPage() {
                 <div>
                   <h2 className="text-lg font-black text-white flex items-center gap-2">
                     <span class="font-black text-white bg-blue-600 rounded-full px-1.5 py-0 text-xs">Z</span>
-                    {tripDraft?.accommodationType === "Condo" ? "Zeniva Home Condos" 
-                     : tripDraft?.accommodationType === "Villa" ? "Zeniva Home Villas" 
-                     : "Zeniva Home"}
+                    {tripDraft?.accommodationType === "Condo" ? "ZeniStay Condos" 
+                     : tripDraft?.accommodationType === "Villa" ? "ZeniStay Villas" 
+                     : "ZeniStay"}
                   </h2>
                   <p className="text-purple-100 text-xs">{villas.length > 0 ? `${villas.length} properties available` : "Searching..."}</p>
                 </div>
@@ -1992,7 +1992,7 @@ export default function ProposalSelectPage() {
                 {loadingVillas && (
                   <div className="flex items-center gap-3 rounded-xl bg-purple-50 border border-purple-100 px-4 py-3 mb-3">
                     <div className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
-                    <span className="text-sm text-purple-700">Searching Zeniva Home listings…</span>
+                    <span className="text-sm text-purple-700">Searching ZeniStay listings…</span>
                   </div>
                 )}
                 {!loadingVillas && villas.length === 0 && (
@@ -2017,10 +2017,10 @@ export default function ProposalSelectPage() {
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-purple-50 to-pink-50">🏠</div>
                         )}
-                        {/* Zeniva Home badge */}
+                        {/* ZeniStay badge */}
                         <div className="absolute top-3 left-3 bg-white rounded-full px-2.5 py-1 flex items-center gap-1.5 shadow-md">
                           <span class="font-black text-white bg-blue-600 rounded-full px-1 text-[10px]">Z</span>
-                          <span className="text-[10px] font-bold text-slate-700">Zeniva Home</span>
+                          <span className="text-[10px] font-bold text-slate-700">ZeniStay</span>
                         </div>
                         {/* Selected badge */}
                         {active && (
@@ -2101,12 +2101,12 @@ export default function ProposalSelectPage() {
             {/* ── ADD TO YOUR TRIP ── */}
             {(() => {
               const showAddFlights = !showFlights;
-              const showAddHotels = !showHotels && tripDraft?.accommodationType !== "Villa" && tripDraft?.accommodationType !== "Zeniva Home" && tripDraft?.accommodationType !== "Residence" && tripDraft?.accommodationType !== "Condo";
-              const showAddZenivaHome = !showVillas;
+              const showAddHotels = !showHotels && tripDraft?.accommodationType !== "Villa" && tripDraft?.accommodationType !== "ZeniStay" && tripDraft?.accommodationType !== "Residence" && tripDraft?.accommodationType !== "Condo";
+              const showAddZeniStay = !showVillas;
               const showAddActivities = tripDraft?.includeActivities !== true;
               const showAddTransfers = tripDraft?.includeTransfers !== true;
               const showAddCars = tripDraft?.includeRentalCar !== true;
-              const hasAnything = showAddFlights || showAddHotels || showAddZenivaHome || showAddActivities || showAddTransfers || showAddCars;
+              const hasAnything = showAddFlights || showAddHotels || showAddZeniStay || showAddActivities || showAddTransfers || showAddCars;
               if (!hasAnything) return null;
               return (
                 <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5">
@@ -2124,10 +2124,10 @@ export default function ProposalSelectPage() {
                         🏨 + Add Hotels
                       </button>
                     )}
-                    {showAddZenivaHome && (
+                    {showAddZeniStay && (
                       <button onClick={() => setShowVillasOverride(true)}
                         className="flex items-center gap-1.5 rounded-full border border-pink-200 bg-pink-50 px-4 py-2 text-xs font-bold text-pink-700 hover:bg-pink-100 transition">
-                        🏠 + Add Zeniva Home
+                        🏠 + Add ZeniStay
                       </button>
                     )}
                     {showAddActivities && (
@@ -2169,7 +2169,7 @@ export default function ProposalSelectPage() {
                   { icon: "🎯", label: "Activity", item: selection?.activity, getValue: (a) => a?.name, optional: true },
                   { icon: "🚗", label: "Transfer", item: selection?.transfer, getValue: (t) => t?.name, optional: true },
                   { icon: "🚙", label: "Rental Car", item: selection?.car, getValue: (c) => c?.name || c?.category, optional: true },
-                  { icon: "🏠", label: "Zeniva Home", item: selection?.villa, getValue: (v) => v?.name, optional: true },
+                  { icon: "🏠", label: "ZeniStay", item: selection?.villa, getValue: (v) => v?.name, optional: true },
                 ].map(({ icon, label, item, getValue, optional }) => (
                   <div key={label} className={`flex items-start gap-3 rounded-xl p-3 ${item ? "bg-white/10 border border-white/10" : "border border-dashed border-white/10"}`}>
                     <span className="text-lg flex-shrink-0">{icon}</span>
@@ -2455,7 +2455,7 @@ export default function ProposalSelectPage() {
             {/* Header */}
             <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-5 flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <p className="text-white/70 text-xs font-bold uppercase tracking-widest">Zeniva Home</p>
+                <p className="text-white/70 text-xs font-bold uppercase tracking-widest">ZeniStay</p>
                 <h2 className="text-xl font-black text-white truncate">{villaPhotoModal.name}</h2>
                 <p className="text-purple-200 text-sm mt-0.5">{villaPhotoModal.city}</p>
               </div>

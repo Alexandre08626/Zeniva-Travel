@@ -27,7 +27,7 @@ export default function AutoTranslate({
       "Powered by Lina AI": "Propulsé par Lina AI",
       "Partner Resorts": "Resorts partenaires",
       "Group Trips": "Voyages de groupe",
-      "Zeniva Home": "Zeniva Home",
+      "ZeniStay": "ZeniStay",
       "Private stays curated by Zeniva, bookable with concierge support.": "Séjours privés choisis par Zeniva, réservables avec assistance.",
       "My Travel Documents": "Mes documents de voyage",
       "Partner": "Partenaire",

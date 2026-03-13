@@ -144,7 +144,7 @@ export default function Header({
             <Link href="/yachts" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="Yacht Charters" className="inline" /></Link>
             <Link href="/partners/resorts" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="Partner Resorts" className="inline" /></Link>
             <Link href="/collections/group" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="Group Trips" className="inline" /></Link>
-            <Link href="/residences" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="Zeniva Homes" className="inline" /></Link>
+            <Link href="/residences" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="ZeniStays" className="inline" /></Link>
             {loggedIn && (
               <>
                 <Link href="/documents" className="text-sm text-slate-900 font-semibold hover:underline"><AutoTranslate text="Dashboard" className="inline" /></Link>

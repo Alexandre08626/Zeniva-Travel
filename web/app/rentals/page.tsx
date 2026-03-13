@@ -11,7 +11,7 @@ function RentalsContent() {
   const [checkIn, setCheckIn] = useState(searchParams.get("checkin") || "");
   const [checkOut, setCheckOut] = useState(searchParams.get("checkout") || "");
   const [guests, setGuests] = useState(parseInt(searchParams.get("guests") || "2"));
-  const [propertyType, setPropertyType] = useState(searchParams.get("type") || "short-term rental");
+  const [propertyType, setPropertyType] = useState(searchParams.get("type") || "ZeniStay");
   const [villas, setVillas] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +19,7 @@ function RentalsContent() {
   const [photoModal, setPhotoModal] = useState<any | null>(null);
 
   const PROPERTY_TYPES = [
-    { key: "short-term rental", label: "🏠 All" },
+    { key: "ZeniStay", label: "🏠 All" },
     { key: "villa", label: "🌴 Villas" },
     { key: "condo", label: "🏢 Condos" },
     { key: "house", label: "🏡 Houses" },
@@ -57,13 +57,13 @@ function RentalsContent() {
   useEffect(() => { if (destination) search(); }, []);
 
   const requestBooking = (villa: any) => {
-    const subject = encodeURIComponent(`Zeniva Home Booking Request — ${villa.name}`);
+    const subject = encodeURIComponent(`ZeniStay Booking Request — ${villa.name}`);
     const body = encodeURIComponent(`Hi,\n\nI'm interested in booking this property:\n\nName: ${villa.name}\nLocation: ${villa.city}\nDates: ${checkIn || "TBD"} → ${checkOut || "TBD"}\nGuests: ${guests}\nPrice: ${villa.priceTotal}\n\nPlease confirm availability.\n\nThank you`);
     window.open(`mailto:info@zeniva.ca?subject=${subject}&body=${body}`, "_blank");
   };
 
   const chatWithLina = (villa: any) => {
-    const prompt = encodeURIComponent(`I want to book the Zeniva Home: ${villa.name} in ${villa.city} from ${checkIn || "my dates"} to ${checkOut || "my dates"} for ${guests} guests. Price: ${villa.priceTotal}. Can you help me with the booking?`);
+    const prompt = encodeURIComponent(`I want to book the ZeniStay: ${villa.name} in ${villa.city} from ${checkIn || "my dates"} to ${checkOut || "my dates"} for ${guests} guests. Price: ${villa.priceTotal}. Can you help me with the booking?`);
     router.push(`/chat?prompt=${prompt}`);
   };
 
@@ -79,7 +79,7 @@ function RentalsContent() {
             <span className="text-3xl">🏠</span>
             <div>
               <p className="text-blue-200 text-xs font-bold uppercase tracking-widest">Zeniva Travel</p>
-              <h1 className="text-3xl sm:text-4xl font-black">Zeniva Home</h1>
+              <h1 className="text-3xl sm:text-4xl font-black">ZeniStay</h1>
             </div>
           </div>
           <p className="text-blue-200 mb-8">Curated villas, condos & vacation rentals — booked exclusively through Zeniva</p>

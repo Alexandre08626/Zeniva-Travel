@@ -47,7 +47,7 @@ export default function Footer() {
         </Link>
       </div>
       <div className="mt-4 text-[11px] font-semibold" style={{ color: MUTED_TEXT }}>
-        Zeniva Home is a curated collection of vacation rentals and private homes managed by Zeniva Travel.
+        ZeniStay is a curated collection of vacation rentals and private homes managed by Zeniva Travel.
       </div>
     </footer>
   );

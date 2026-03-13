@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Luxury Short-Term Rentals & Villas — Airbnbs USA & Worldwide | Zeniva Travel",
   description:
-    "Book luxury short-term rentals, private villas, and premium Airbnbs worldwide through Zeniva Travel. Curated homes and apartments in top destinations — planned by Lina AI.",
+    "Book luxury ZeniStays, private villas, and premium Airbnbs worldwide through Zeniva Travel. Curated homes and apartments in top destinations — planned by Lina AI.",
   keywords: [
-    "luxury short-term rentals USA",
+    "luxury ZeniStays USA",
     "private villas vacation rental",
     "luxury Airbnb USA",
     "vacation homes worldwide",

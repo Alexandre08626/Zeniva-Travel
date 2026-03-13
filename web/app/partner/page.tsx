@@ -74,7 +74,7 @@ export default function PartnerPage() {
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {["Hotels", "Villas and private residences", "Yachts & charters", "Experiences & excursions", "Aviation & air", "Group & MICE"].map((label) => {
-              const displayLabel = label === "Villas and private residences" ? "Villas and short-term rentals" : label;
+              const displayLabel = label === "Villas and private residences" ? "Villas and ZeniStays" : label;
               return (
                 <div key={label} className="rounded-lg border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold" style={{ color: TITLE_TEXT }}>
                   {displayLabel}
