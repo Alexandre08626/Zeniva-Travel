@@ -57,7 +57,7 @@ const QUICK_CHIPS = [
   { emoji:"🌴", label:"Resort",  q:"All-inclusive luxury resort" },
   { emoji:"💍", label:"Honeymoon", q:"Perfect honeymoon package" },
   { emoji:"🎿", label:"Ski",     q:"Luxury ski vacation" },
-  { emoji:"🚢", label:"Cruise",  q:"Luxury cruise experience" },
+  { emoji:"🚢", label:"ZeniCruise", q:"Luxury ZeniCruise experience" },
   { emoji:"🌺", label:"Tropical", q:"Tropical escape with Lina" },
 ];
 

@@ -70,7 +70,7 @@ export default function AITravelAgentPage() {
               { icon: "🚗", label: "Car Rentals" },
               { icon: "🚌", label: "Transfers" },
               { icon: "🎭", label: "Experiences" },
-              { icon: "🛳️", label: "Cruises" },
+              { icon: "🛳️", label: "ZeniCruise" },
               { icon: "🎽", label: "ZeniGroup" },
               { icon: "💼", label: "Corporate Trips" },
               { icon: "🌍", label: "Honeymoons" },

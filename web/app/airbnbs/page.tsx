@@ -239,142 +239,71 @@ function AirbnbsContent() {
   };
 
   return (
-    <AppDarkPageWrapper title="Villas & Rentals" emoji="🏡" subtitle="Premium ZeniStay properties worldwide">
-    <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
-      <div className="w-screen left-1/2 right-1/2 -translate-x-1/2 relative">
-        <div className="mx-auto w-full px-6 pt-5">
-          <Header isLoggedIn={isLoggedIn} userEmail={userEmail} />
+    <AppDarkPageWrapper title="ZeniStay" emoji="🏡" subtitle="Villas, condos & vacation rentals worldwide">
+    <main className="min-h-screen bg-[#f8fafc]">
+      {/* Dark navy header — same as /rentals */}
+      <div className="bg-gradient-to-br from-[#0a1628] via-[#0f2a5e] to-[#1a3d8f] text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+          <div className="mx-auto w-full px-0 pt-0">
+            <Header isLoggedIn={isLoggedIn} userEmail={userEmail} />
+          </div>
+          <Link href="/" className="inline-flex items-center gap-1.5 text-blue-200 text-sm mb-6 hover:text-white transition mt-4">
+            ← Back to home
+          </Link>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-3xl">🏠</span>
+            <div>
+              <p className="text-blue-200 text-xs font-bold uppercase tracking-widest">Zeniva Travel</p>
+              <h1 className="text-3xl sm:text-4xl font-black">ZeniStay</h1>
+            </div>
+          </div>
+          <p className="text-blue-200 mb-8">Curated villas, condos & vacation rentals — booked exclusively through Zeniva</p>
+
+          {/* Search bar — same layout as /rentals */}
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="lg:col-span-2">
+              <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Destination</label>
+              <input value={query} onChange={e => setQuery(e.target.value)}
+                placeholder="Tulum, Bali, Paris, Miami…"
+                className="w-full rounded-xl bg-white px-4 py-2.5 text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400"
+                onKeyDown={e => e.key === "Enter" && handleSearch()} />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Check-in</label>
+              <input type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)}
+                className="w-full rounded-xl bg-white px-4 py-2.5 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Check-out</label>
+              <input type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)}
+                className="w-full rounded-xl bg-white px-4 py-2.5 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Guests</label>
+              <div className="flex gap-2">
+                <input type="number" min={1} max={20} value={travelers} onChange={e => setTravelers(e.target.value || "1")}
+                  className="w-20 rounded-xl bg-white px-3 py-2.5 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                <button onClick={() => handleSearch()} disabled={apiLoading || !query.trim()}
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-black rounded-xl py-2.5 text-sm hover:opacity-90 transition disabled:opacity-50">
+                  {apiLoading ? "…" : "Search"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Property type pills */}
+          <div className="mt-4 flex flex-wrap gap-2">
+            {PROPERTY_TYPES.map(pt => (
+              <button key={pt.key} onClick={() => setPropertyType(pt.key)}
+                className={`text-xs font-bold px-4 py-1.5 rounded-full transition border ${propertyType === pt.key ? "bg-white text-blue-700 border-white" : "bg-white/10 text-white border-white/20 hover:bg-white/20"}`}>
+                {pt.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      <section className="mb-6 rounded-2xl sm:rounded-3xl px-4 sm:px-6 py-5 sm:py-8 overflow-hidden" style={{ background: `linear-gradient(110deg, ${GRADIENT_START} 0%, ${GRADIENT_END} 60%)` }}>
-        <div className="mx-auto max-w-6xl text-white">
-          <div className="hidden sm:flex flex-col gap-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Traveler Catalog</p>
-            <h1 className="text-3xl font-black">Full Travel Inventory</h1>
-            <p className="text-sm text-white/90">
-              Explore the full traveler catalog and connect with Zeniva to finalize your trip.
-            </p>
-          </div>
-          <div className="mt-3 sm:mt-10 flex flex-col gap-4 sm:gap-6">
-            <div className="hidden sm:flex flex-wrap gap-3">
-              <Link href="/partners/resorts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
-                Hotels & Resorts
-              </Link>
-              <Link href="/yachts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
-                Yachts
-              </Link>
-              <Link href="/residences" className="rounded-full px-4 py-2 text-sm font-semibold bg-white text-slate-900">
-                ZeniStay
-              </Link>
-              <Link href="/" className="rounded-full border border-white/50 px-4 py-2 text-sm font-semibold text-white">
-                Flights
-              </Link>
-            </div>
-            <div className="w-full max-w-full rounded-2xl sm:rounded-3xl border border-white/35 bg-white/15 p-2.5 sm:p-3 shadow-sm backdrop-blur overflow-hidden">
-              <div className="flex items-center gap-4 pb-3">
-                <Link
-                  href="/chat/r5ug551qmll3p6p3"
-                  className="inline-flex items-center justify-center rounded-full border border-white/40 bg-white/15 p-1 shadow-sm backdrop-blur transition hover:bg-white/25"
-                  aria-label="Chat with Lina"
-                >
-                  <img
-                    src="/branding/lina-avatar.png"
-                    alt="Lina"
-                    className="h-14 w-14 sm:h-16 sm:w-16 rounded-full object-cover"
-                  />
-                </Link>
-                <div className="text-sm font-semibold text-white/90">
-                  Lina concierge
-                </div>
-              </div>
-              <div className="flex flex-col gap-3 md:flex-row md:items-center min-w-0">
-                <div className="flex-1 min-w-0">
-                  <label htmlFor="residence-search" className="sr-only">
-                    Search residences
-                  </label>
-                  <input
-                    id="residence-search"
-                    type="search"
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                    placeholder="City, country or destination (e.g. Paris, Maldives…)"
-                    className="w-full max-w-full min-w-0 rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white/70"
-                  />
-                </div>
-                <div className="flex flex-1 min-w-0 flex-col gap-3 sm:flex-row">
-                  <div className="flex-1 min-w-0">
-                    <label htmlFor="residence-checkin" className="sr-only">
-                      Check-in date
-                    </label>
-                    <input
-                      id="residence-checkin"
-                      type="date"
-                      value={checkIn}
-                      onChange={(event) => setCheckIn(event.target.value)}
-                      className="w-full max-w-full min-w-0 rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white/70"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <label htmlFor="residence-checkout" className="sr-only">
-                      Check-out date
-                    </label>
-                    <input
-                      id="residence-checkout"
-                      type="date"
-                      value={checkOut}
-                      onChange={(event) => setCheckOut(event.target.value)}
-                      className="w-full max-w-full min-w-0 rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white/70"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <label htmlFor="residence-travelers" className="sr-only">
-                      Travelers
-                    </label>
-                    <select
-                      id="residence-travelers"
-                      value={travelers}
-                      onChange={(event) => setTravelers(event.target.value)}
-                      className="w-full max-w-full min-w-0 rounded-full border border-white/40 bg-white/15 px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-white/70"
-                    >
-                      {Array.from({ length: 8 }, (_, index) => {
-                        const count = index + 1;
-                        return (
-                          <option key={count} value={String(count)} className="text-slate-900">
-                            {count} traveler{count > 1 ? "s" : ""}
-                          </option>
-                        );
-                      })}
-                      <option value="9" className="text-slate-900">9 travelers</option>
-                      <option value="10" className="text-slate-900">10 travelers</option>
-                      <option value="11" className="text-slate-900">11+ travelers</option>
-                    </select>
-                  </div>
-                  {/* Search Button */}
-                  <button
-                    type="button"
-                    onClick={() => handleSearch()}
-                    disabled={apiLoading || !query.trim()}
-                    className="flex-shrink-0 rounded-full bg-white px-6 py-2 text-sm font-black text-blue-700 shadow-lg hover:bg-blue-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {apiLoading ? "🔍…" : "🔍 Search"}
-                  </button>
-                </div>
-              </div>
-            </div>
-            {/* Property type pills */}
-            <div className="mt-3 flex flex-wrap gap-2">
-              {PROPERTY_TYPES.map(pt => (
-                <button key={pt.key} onClick={() => setPropertyType(pt.key)}
-                  className={`text-xs font-bold px-4 py-1.5 rounded-full transition border ${propertyType === pt.key ? "bg-white text-blue-700 border-white" : "bg-white/10 text-white border-white/20 hover:bg-white/20"}`}>
-                  {pt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+
 
       <div className="mx-auto w-full max-w-none px-6 pb-16">
 
