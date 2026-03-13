@@ -245,7 +245,14 @@ export async function GET(req: Request) {
     }
 
     // ── Step 2: Get rates for those hotels ────────────────────────────────
-    const occupancies = Array.from({ length: rooms }, () => ({ adults: guests, children: [] }));
+    // Cap adults per room at 2 (most hotels can't put 6 adults in 1 room)
+    // For group bookings, split across multiple rooms automatically
+    const adultsPerRoom = Math.min(guests, 2);
+    const numRooms = Math.max(rooms, Math.ceil(guests / adultsPerRoom));
+    const occupancies = Array.from({ length: numRooms }, (_, i) => {
+      const remaining = guests - i * adultsPerRoom;
+      return { adults: Math.min(adultsPerRoom, remaining), children: [] as number[] };
+    });
     const ratesRes = await liteApiFetchJson<any>({
       path: "/hotels/rates",
       method: "POST",
