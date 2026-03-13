@@ -26,7 +26,7 @@ export default function AutoTranslate({
     fr: {
       "Powered by Lina AI": "Propulsé par Lina AI",
       "Partner Resorts": "Resorts partenaires",
-      "Group Trips": "Voyages de groupe",
+      "ZeniGroup": "ZeniGroup",
       "ZeniStay": "ZeniStay",
       "Private stays curated by Zeniva, bookable with concierge support.": "Séjours privés choisis par Zeniva, réservables avec assistance.",
       "My Travel Documents": "Mes documents de voyage",
@@ -63,7 +63,7 @@ export default function AutoTranslate({
       "Chat to book": "Discuter pour réserver",
       "Loading residences...": "Chargement des résidences...",
       "No residences available right now. Please check back soon.": "Aucune résidence disponible pour le moment. Revenez bientôt.",
-      "Yacht Charters": "Charters de yachts",
+      "ZeniYacht": "ZeniYacht",
       "Exclusive YCN Fleet": "Flotte exclusive YCN",
       "Browse curated yachts and contact us for tailored itineraries.": "Parcourez des yachts sélectionnés et contactez‑nous pour des itinéraires sur mesure.",
       "Chat to plan": "Discuter pour planifier",

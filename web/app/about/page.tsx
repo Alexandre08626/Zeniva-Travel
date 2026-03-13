@@ -77,7 +77,7 @@ export default function AboutPage() {
                 Zeniva Travel LLC is a travel technology company incorporated in the state of Delaware, United States. We operate nationally across all 50 US states and serve customers throughout Canada.
               </p>
               <p className="text-gray-600 leading-relaxed mb-4">
-                Our flagship product, <strong>Lina AI</strong>, is a 24/7 AI travel concierge that helps travelers plan luxury vacations, custom trips, group travel, and yacht charters — in minutes, not hours.
+                Our flagship product, <strong>Lina AI</strong>, is a 24/7 AI travel concierge that helps travelers plan luxury vacations, custom trips, ZeniGroup, and ZeniYacht — in minutes, not hours.
               </p>
               <p className="text-gray-600 leading-relaxed">
                 We're a fully digital travel agency. No brick-and-mortar storefront, no waiting on hold. Just fast, intelligent trip planning — available anytime.
@@ -130,9 +130,9 @@ export default function AboutPage() {
             <div className="grid md:grid-cols-3 gap-6">
               {[
                 { icon: "✈️", title: "Custom Trip Planning", desc: "AI-powered custom vacation planning for individuals, couples, and families. Any destination, any budget." },
-                { icon: "🛥️", title: "Yacht Charters", desc: "Private yacht charters worldwide. Lina AI finds the perfect vessel and itinerary for your group." },
+                { icon: "🛥️", title: "ZeniYacht", desc: "Private yacht charters worldwide. Lina AI finds the perfect vessel and itinerary for your group." },
                 { icon: "🏖️", title: "All-Inclusive Vacations", desc: "Curated all-inclusive resort packages to top destinations — Mexico, Caribbean, Europe, and beyond." },
-                { icon: "👥", title: "Group Travel", desc: "Stress-free group trip planning for corporate retreats, weddings, bachelor/bachelorette parties, and more." },
+                { icon: "👥", title: "ZeniGroup", desc: "Stress-free group trip planning for corporate retreats, weddings, bachelor/bachelorette parties, and more." },
                 { icon: "🏡", title: "Luxury Rentals", desc: "Private villas, chalets, and short-term luxury rentals curated by Zeniva concierge experts." },
                 { icon: "🤖", title: "Lina AI — 24/7 Concierge", desc: "Our AI travel concierge is available around the clock. Ask anything — she'll plan your dream trip in minutes." },
               ].map((s) => (

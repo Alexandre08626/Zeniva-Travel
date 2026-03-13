@@ -141,9 +141,9 @@ export default function Header({
           </Link>
           
           <nav className="hidden md:flex items-center gap-3 ml-4">
-            <Link href="/yachts" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="Yacht Charters" className="inline" /></Link>
-            <Link href="/partners/resorts" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="Partner Resorts" className="inline" /></Link>
-            <Link href="/collections/group" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="Group Trips" className="inline" /></Link>
+            <Link href="/yachts" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="ZeniYacht" className="inline" /></Link>
+            <Link href="/partners/resorts" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="ZeniHotel" className="inline" /></Link>
+            <Link href="/collections/group" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="ZeniGroup" className="inline" /></Link>
             <Link href="/residences" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="ZeniStays" className="inline" /></Link>
             {loggedIn && (
               <>
@@ -279,8 +279,8 @@ export default function Header({
                 {[
                   { href: "/", icon: "🏠", label: "Home" },
                   { href: "/destinations", icon: "🌍", label: "Destinations" },
-                  { href: "/yachts", icon: "⛵", label: "Yachts & Charters" },
-                  { href: "/partners/resorts", icon: "🏨", label: "Luxury Hotels" },
+                  { href: "/yachts", icon: "⛵", label: "ZeniYacht" },
+                  { href: "/partners/resorts", icon: "🏨", label: "ZeniHotel" },
                   { href: "/residences", icon: "🏠", label: "Villas & Rentals" },
                   { href: "/chat", icon: "💬", label: "Chat with Lina" },
                   { href: "/call", icon: "📞", label: "Call Lina" },

@@ -71,7 +71,7 @@ export default function AITravelAgentPage() {
               { icon: "🚌", label: "Transfers" },
               { icon: "🎭", label: "Experiences" },
               { icon: "🛳️", label: "Cruises" },
-              { icon: "🎽", label: "Group Travel" },
+              { icon: "🎽", label: "ZeniGroup" },
               { icon: "💼", label: "Corporate Trips" },
               { icon: "🌍", label: "Honeymoons" },
               { icon: "👨‍👩‍👧", label: "Family Vacations" },

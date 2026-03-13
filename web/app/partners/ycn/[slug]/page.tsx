@@ -151,7 +151,7 @@ export default async function YcnPartnerPage({
 
         <section className="rounded-2xl border border-blue-100 bg-white p-6">
           <p className="text-lg font-bold text-slate-900">
-            Yacht charter in {item.destination || "your destination"}
+            ZeniYacht in {item.destination || "your destination"}
           </p>
           <p className="mt-1 text-sm text-slate-600">
             {`${sleeps ? `${sleeps} guests` : "Up to 6 guests"}${beds ? ` · ${beds} beds` : ""}${baths ? ` · ${baths} baths` : ""}`}
@@ -257,8 +257,8 @@ export default async function YcnPartnerPage({
                 <AddToProposalButton
                   title={item.title}
                   destination={item.destination || ""}
-                  accommodationType="Yacht"
-                  style="Yacht charter"
+                  accommodationType="ZeniYacht"
+                  style="ZeniYacht"
                   price={selectedPriceLabel}
                   image={hero}
                   images={gallery}

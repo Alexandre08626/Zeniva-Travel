@@ -52,7 +52,7 @@ const DESTINATIONS = [
 
 const QUICK_CHIPS = [
   { emoji:"🏖️", label:"Beach",   q:"Plan a luxury beach vacation" },
-  { emoji:"⛵", label:"Yacht",   q:"Charter a private yacht in Miami" },
+  { emoji:"⛵", label:"ZeniYacht", q:"Charter a private yacht in Miami" },
   { emoji:"🗼", label:"Europe",  q:"Luxury trip to Europe" },
   { emoji:"🌴", label:"Resort",  q:"All-inclusive luxury resort" },
   { emoji:"💍", label:"Honeymoon", q:"Perfect honeymoon package" },

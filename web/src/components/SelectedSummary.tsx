@@ -9,7 +9,7 @@ export default function SelectedSummary({ flight, hotel, activity, transfer, tri
     .map((part) => part.trim())
     .filter(Boolean);
 
-  const accommodationLabel = tripDraft?.accommodationType === "Yacht" ? "Yacht" :
+  const accommodationLabel = tripDraft?.accommodationType === "ZeniYacht" ? "ZeniYacht" :
                              (tripDraft?.accommodationType === "ZeniStay" || tripDraft?.accommodationType === "Residence") ? "ZeniStay" :
                              "Hotel";
 

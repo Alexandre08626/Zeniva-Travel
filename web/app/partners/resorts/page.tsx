@@ -123,7 +123,7 @@ export default function PartnerResortsPage() {
       destination: resort.destination,
       travelers: `${filters.travelers} travelers`,
       style: resort.positioning,
-      accommodationType: "Hotel",
+      accommodationType: "ZeniHotel",
       budget: publicRate,
       dates,
       departure: filters.departureCity,
@@ -131,7 +131,7 @@ export default function PartnerResortsPage() {
 
     applyTripPatch(tripId, {
       destination: resort.destination,
-      accommodationType: "Hotel",
+      accommodationType: "ZeniHotel",
       style: resort.positioning,
       budget: publicRate,
       checkIn: filters.checkIn,
@@ -147,7 +147,7 @@ export default function PartnerResortsPage() {
       location: resort.destination,
       price: publicRate,
       room: selectedRoom,
-      accommodationType: "Hotel",
+      accommodationType: "ZeniHotel",
       image: getCover(resort),
       images: resort.media?.flatMap((m) => m.images) || [],
       amenities: resort.amenities,
@@ -226,7 +226,7 @@ export default function PartnerResortsPage() {
           <div className="mt-3 sm:mt-10 flex flex-col gap-4 sm:gap-6">
             <div className="hidden sm:flex flex-wrap gap-3">
               <Link href="/partners/resorts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white text-slate-900">
-                Hotels & Resorts
+                ZeniHotel
               </Link>
               <Link href="/yachts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
                 Yachts

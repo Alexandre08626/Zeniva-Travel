@@ -38,8 +38,8 @@ const DESTINATIONS = [
 
 const SERVICES = [
   { icon: "✈️", title: "Flights", desc: "Best fares worldwide", href: "/search/flights", color: "#0F6CF5" },
-  { icon: "🏨", title: "Hotels", desc: "Curated luxury stays", href: "/partners/resorts", color: "#10b981" },
-  { icon: "🛥️", title: "Yachts", desc: "Private charters", href: "/yachts", color: "#E6B85A" },
+  { icon: "🏨", title: "ZeniHotel", desc: "Curated luxury stays", href: "/partners/resorts", color: "#10b981" },
+  { icon: "🛥️", title: "ZeniYacht", desc: "Private charters", href: "/yachts", color: "#E6B85A" },
   { icon: "🚗", title: "Transfers", desc: "Door-to-door service", href: "/chat?prompt=I+need+a+transfer", color: "#ec4899" },
   { icon: "🏖️", title: "Packages", desc: "All-inclusive deals", href: "/packages", color: "#8b5cf6" },
   { icon: "🏠", title: "ZeniStay", desc: "Homes & villas", href: "/residences", color: "#f59e0b" },
@@ -156,7 +156,7 @@ export default function HomePage() {
 
             {/* Quick tags */}
             <div className="mt-4 flex flex-wrap justify-center gap-2">
-              {["🏖️ Beach", "💑 Couples", "👨‍👩‍👧 Family", "🏔️ Adventure", "🛥️ Yacht"].map((t) => (
+              {["🏖️ Beach", "💑 Couples", "👨‍👩‍👧 Family", "🏔️ Adventure", "🛥️ ZeniYacht"].map((t) => (
                 <Link key={t} href={`/chat?prompt=${encodeURIComponent(t.split(" ")[1] + " trip")}`}
                   className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-50 active:bg-slate-100">
                   {t}
@@ -284,7 +284,7 @@ export default function HomePage() {
                       { label: "🏖️ Beach escape", p: "Beach vacation 7 nights" },
                       { label: "💑 Honeymoon", p: "Romantic honeymoon" },
                       { label: "👨‍👩‍👧 Family trip", p: "Family vacation with kids" },
-                      { label: "🛥️ Yacht charter", p: "Luxury yacht charter" },
+                      { label: "🛥️ ZeniYacht", p: "ZeniYacht luxury charter" },
                     ].map((q) => (
                       <Link key={q.label} href={`/chat?prompt=${encodeURIComponent(q.p)}`} className="rounded-full bg-slate-100 hover:bg-blue-50 hover:text-blue-700 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors">
                         {q.label}

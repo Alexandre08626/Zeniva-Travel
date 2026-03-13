@@ -6,7 +6,7 @@ import { applyTripPatch, createTrip, generateProposal, setProposalSelection, upd
 type AddToProposalButtonProps = {
   title: string;
   destination: string;
-  accommodationType: "ZeniStay" | "Residence" | "Yacht" | "Resort" | "Hotel";
+  accommodationType: "ZeniStay" | "Residence" | "ZeniYacht" | "ZeniHotel";
   style?: string;
   price?: string;
   image: string;

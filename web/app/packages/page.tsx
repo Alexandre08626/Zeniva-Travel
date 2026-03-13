@@ -66,7 +66,7 @@ const packages = [
   {
     href: "/chat",
     emoji: "🛥️",
-    title: "Yacht Charter",
+    title: "ZeniYacht",
     subtitle: "Custom pricing",
     desc: "Private yacht for groups, honeymoons, or special events. Mediterranean, Caribbean, or anywhere in the world.",
     tags: ["Luxury", "Groups", "Premium"],
@@ -75,7 +75,7 @@ const packages = [
   {
     href: "/chat",
     emoji: "👥",
-    title: "Group Travel",
+    title: "ZeniGroup",
     subtitle: "10+ people — best rates",
     desc: "Corporate retreats, wedding groups, family reunions. Lina AI negotiates group rates and handles all logistics.",
     tags: ["Groups", "Corporate", "Family"],
@@ -112,7 +112,7 @@ export default function PackagesPage() {
               ✨ Powered by Lina AI — Your 24/7 Travel Concierge
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Best Travel Packages 2025</h1>
-            <p className="text-xl text-blue-100 mb-8">Tell Lina where you want to go — she'll build the perfect trip proposal in under 60 seconds. All-inclusive deals, luxury vacations, group trips & more.</p>
+            <p className="text-xl text-blue-100 mb-8">Tell Lina where you want to go — she'll build the perfect trip proposal in under 60 seconds. All-inclusive deals, luxury vacations, ZeniGroup & more.</p>
             <Link href="/chat" className="inline-flex items-center gap-2 bg-white text-blue-700 font-bold px-8 py-4 rounded-2xl hover:bg-blue-50 transition-colors text-lg shadow-lg">
               💬 Ask Lina for a Custom Package
             </Link>
