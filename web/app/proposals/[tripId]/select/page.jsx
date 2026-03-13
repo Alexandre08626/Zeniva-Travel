@@ -2240,8 +2240,11 @@ export default function ProposalSelectPage() {
             <SelectedSummary
               flight={selection?.flight}
               hotel={selection?.hotel}
+              villa={selection?.villa}
+              shortterm={selection?.shortterm}
               activity={selection?.activity}
               transfer={selection?.transfer}
+              car={selection?.car}
               tripDraft={tripDraft}
               onProceed={onContinue}
             />
