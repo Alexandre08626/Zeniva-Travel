@@ -595,20 +595,17 @@ export default function ProposalSelectPage() {
     const destination = tripDraft?.destination || "Paris";
     // Compute fallback dates — NEVER use past dates (LiteAPI rejects them)
     const today = new Date();
+    const todayStr = today.toISOString().split("T")[0];
     const rawCheckIn = tripDraft?.checkIn || "";
     const rawCheckOut = tripDraft?.checkOut || "";
-    // If checkIn is set but checkOut is missing, default checkOut = checkIn + 7 days
-    let checkIn = rawCheckIn;
-    let checkOut = rawCheckOut;
-    if (!checkOut && checkIn) {
-      const ci = new Date(checkIn);
-      if (!isNaN(ci.getTime())) {
-        checkOut = new Date(ci.getTime() + 7 * 86400000).toISOString().split("T")[0];
-      }
-    }
-    // If neither set, use future fallback
-    if (!checkIn) checkIn = new Date(today.getTime() + 30 * 86400000).toISOString().split("T")[0];
-    if (!checkOut) checkOut = new Date(today.getTime() + 37 * 86400000).toISOString().split("T")[0];
+    // Helper: is date in the past?
+    const isPast = (d) => d && d < todayStr;
+    // If checkIn is past or missing, use future fallback
+    let checkIn = (!rawCheckIn || isPast(rawCheckIn)) ? new Date(today.getTime() + 30 * 86400000).toISOString().split("T")[0] : rawCheckIn;
+    // If checkOut is past, missing, or <= checkIn, compute checkIn + 7 days
+    let checkOut = (!rawCheckOut || isPast(rawCheckOut) || rawCheckOut <= checkIn)
+      ? new Date(new Date(checkIn).getTime() + 7 * 86400000).toISOString().split("T")[0]
+      : rawCheckOut;
 
     // Check if yachts should be loaded based on accommodationType or style
     const shouldLoadYachts = accommodationType === "Yacht" || 
