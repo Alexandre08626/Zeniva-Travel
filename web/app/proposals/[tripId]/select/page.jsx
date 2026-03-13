@@ -1597,15 +1597,43 @@ export default function ProposalSelectPage() {
 
             {/* FLIGHTS */}
             {showFlights && <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+              {/* ── Round trip locked confirmation ── */}
+              {hasReturnLeg && selection?.flight?.outbound && selection?.flight?.inbound && (
+                <div className="bg-emerald-600 px-6 py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-white text-xl">✅</span>
+                    <div>
+                      <div className="text-white font-bold text-sm">Round trip selected</div>
+                      <div className="text-emerald-100 text-xs">
+                        {selection.flight.outbound?.route?.split("→")[0]?.trim()} → {selection.flight.outbound?.route?.split("→")[1]?.trim()} · {selection.flight.outbound?.times} &nbsp;|&nbsp;
+                        {selection.flight.inbound?.route?.split("→")[0]?.trim()} → {selection.flight.inbound?.route?.split("→")[1]?.trim()} · {selection.flight.inbound?.times}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => { setProposalSelection(tripId, { flight: null }); setSelectedOutbound(null); setFlightLeg("outbound"); }}
+                    className="text-xs bg-white/20 hover:bg-white/30 text-white font-bold px-3 py-1.5 rounded-full transition"
+                  >
+                    ✎ Change
+                  </button>
+                </div>
+              )}
+
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">✈️</div>
                   <div>
                     <h2 className="text-lg font-black text-white">Flights</h2>
-                    <p className="text-blue-200 text-xs">{filteredFlights.length} options available</p>
+                    <p className="text-blue-200 text-xs">
+                      {hasReturnLeg && selection?.flight?.outbound && selection?.flight?.inbound
+                        ? "✓ Round trip confirmed"
+                        : hasReturnLeg && selection?.flight?.outbound
+                        ? "Step 2: Select your return flight ←"
+                        : `${filteredFlights.length} options available`}
+                    </p>
                   </div>
                 </div>
-                {hasReturnLeg && (
+                {hasReturnLeg && !(selection?.flight?.outbound && selection?.flight?.inbound) && (
                   <div className="flex rounded-full overflow-hidden border border-white/30">
                     {["outbound", "return"].map((leg) => (
                       <button key={leg} type="button" onClick={() => setFlightLeg(leg)}
@@ -1617,7 +1645,8 @@ export default function ProposalSelectPage() {
                 )}
               </div>
 
-              <div className="p-4 space-y-3 max-h-[480px] overflow-y-auto">
+              {/* Hide flight list once round trip is fully confirmed */}
+              {hasReturnLeg && selection?.flight?.outbound && selection?.flight?.inbound ? null : <div className="p-4 space-y-3 max-h-[480px] overflow-y-auto">
                 {loadingFlights && (
                   <div className="flex items-center gap-3 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3">
                     <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin flex-shrink-0" />
@@ -1730,7 +1759,7 @@ export default function ProposalSelectPage() {
                     </button>
                   </div>
                 )}
-              </div>
+              </div>}
             </section>}
 
             {/* HOTELS / STAYS */}
