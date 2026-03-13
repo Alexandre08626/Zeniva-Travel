@@ -5,20 +5,12 @@
     "destination": "Bahamas",
     "region": "Caribbean",
     "type": "Motor Yacht",
-    "prices": [
-      "Day charter $12,500 all in",
-      "Weekend $28,000 + APA",
-      "1 week $75,000 + APA"
-    ],
+    "prices": ["Day charter $12,500 all in", "Weekend $28,000 + APA", "1 week $75,000 + APA"],
     "specs": "5 cabins | 5 baths | 10 guests | 4 crew",
     "length": "110ft / 33.5m",
     "amenities": ["👨‍✈️ Captain + Full Crew", "🍽 Gourmet Chef", "🛥 Tender & Jetskis", "🤿 Snorkeling & Diving", "🍾 Premium Bar", "🛁 Jacuzzi on Deck"],
     "thumbnail": "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=900&q=80",
-    "images": [
-      "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1605281317010-fe5ffe798166?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1548032885-b5e38734eca5?auto=format&fit=crop&w=900&q=80"
-    ],
+    "images": ["https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=900&q=80"],
     "badge": "Popular"
   },
   {
@@ -27,19 +19,12 @@
     "destination": "Amalfi Coast",
     "region": "Mediterranean",
     "type": "Superyacht",
-    "prices": [
-      "Day charter €9,500 all in",
-      "Weekend €22,000 + APA",
-      "1 week €58,000 + APA"
-    ],
+    "prices": ["Day charter €9,500 all in", "Weekend €22,000 + APA", "1 week €58,000 + APA"],
     "specs": "4 cabins | 4 baths | 8 guests | 4 crew",
     "length": "85ft / 26m",
-    "amenities": ["👨‍✈️ Captain + Crew", "🍽 Private Chef", "🛥 Tender & Water Toys", "🤿 Snorkeling Gear", "🍷 Fine Wine Cellar", "⛵ Sailing Routes to Capri"],
+    "amenities": ["👨‍✈️ Captain + Crew", "🍽 Private Chef", "🛥 Tender & Water Toys", "🍷 Fine Wine Cellar"],
     "thumbnail": "https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?auto=format&fit=crop&w=900&q=80",
-    "images": [
-      "https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1567890997528-51e67afcb2d7?auto=format&fit=crop&w=900&q=80"
-    ],
+    "images": ["https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?auto=format&fit=crop&w=900&q=80"],
     "badge": "Luxury"
   },
   {
@@ -48,20 +33,12 @@
     "destination": "Miami",
     "region": "USA",
     "type": "Motor Yacht",
-    "prices": [
-      "4 hrs $4,500 all in",
-      "8 hrs $7,200 all in",
-      "Weekend $16,000 + APA",
-      "1 week $42,000 + APA"
-    ],
+    "prices": ["4 hrs $4,500 all in", "8 hrs $7,200 all in", "Weekend $16,000 + APA", "1 week $42,000 + APA"],
     "specs": "3 cabins | 3 baths | 8 guests | 3 crew",
     "length": "72ft / 22m",
-    "amenities": ["👨‍✈️ Captain + Stew", "🧊 Open Bar", "🛥 Jet Skis & Paddleboards", "🎵 Premium Sound System", "🍤 Catering Available", "📍 Key West, Dry Tortugas"],
+    "amenities": ["👨‍✈️ Captain + Stew", "🧊 Open Bar", "🛥 Jet Skis & Paddleboards", "🎵 Premium Sound System"],
     "thumbnail": "https://images.unsplash.com/photo-1540946485063-a40da27545f8?auto=format&fit=crop&w=900&q=80",
-    "images": [
-      "https://images.unsplash.com/photo-1540946485063-a40da27545f8?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1548032885-b5e38734eca5?auto=format&fit=crop&w=900&q=80"
-    ],
+    "images": ["https://images.unsplash.com/photo-1540946485063-a40da27545f8?auto=format&fit=crop&w=900&q=80"],
     "badge": "Best Value"
   },
   {
@@ -70,18 +47,12 @@
     "destination": "St. Tropez",
     "region": "Mediterranean",
     "type": "Mega Yacht",
-    "prices": [
-      "Day charter €25,000",
-      "1 week €160,000 + APA"
-    ],
+    "prices": ["Day charter €25,000", "1 week €160,000 + APA"],
     "specs": "7 cabins | 7 baths | 14 guests | 8 crew",
     "length": "150ft / 45.7m",
-    "amenities": ["👨‍✈️ Full Professional Crew", "🍽 Executive Chef", "🚁 Helipad", "🛥 3x Tenders", "🏊 Swim Platform & Pool", "🎸 Nightclub Deck"],
+    "amenities": ["👨‍✈️ Full Professional Crew", "🍽 Executive Chef", "🚁 Helipad", "🛁 Jacuzzi"],
     "thumbnail": "https://images.unsplash.com/photo-1570993492894-8c45a3ced05d?auto=format&fit=crop&w=900&q=80",
-    "images": [
-      "https://images.unsplash.com/photo-1570993492894-8c45a3ced05d?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=900&q=80"
-    ],
+    "images": ["https://images.unsplash.com/photo-1570993492894-8c45a3ced05d?auto=format&fit=crop&w=900&q=80"],
     "badge": "Mega Yacht"
   },
   {
@@ -90,19 +61,12 @@
     "destination": "BVI",
     "region": "Caribbean",
     "type": "Sailing Catamaran",
-    "prices": [
-      "Day charter $3,800 all in",
-      "Weekend $8,500 + provisions",
-      "1 week $22,000 + provisions"
-    ],
+    "prices": ["Day charter $3,800 all in", "Weekend $8,500 + provisions", "1 week $22,000 + provisions"],
     "specs": "4 cabins | 4 baths | 8 guests | 2 crew",
     "length": "60ft / 18.3m",
-    "amenities": ["👨‍✈️ Captain + Chef", "🌊 Snorkeling & Freediving", "🛥 Dinghy Tender", "🤿 Full Dive Gear", "⛵ Island Hopping", "🍹 Rum Punch Bar"],
+    "amenities": ["👨‍✈️ Captain + Chef", "🌊 Snorkeling & Freediving", "🛥 Dinghy Tender", "⛵ Island Hopping"],
     "thumbnail": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
-    "images": [
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=900&q=80"
-    ],
+    "images": ["https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80"],
     "badge": "Sailing"
   },
   {
@@ -111,19 +75,12 @@
     "destination": "Greek Islands",
     "region": "Mediterranean",
     "type": "Sport Yacht",
-    "prices": [
-      "Day charter €14,000",
-      "3 days €38,000 + APA",
-      "1 week €88,000 + APA"
-    ],
+    "prices": ["Day charter €14,000", "3 days €38,000 + APA", "1 week €88,000 + APA"],
     "specs": "4 cabins | 4 baths | 8 guests | 4 crew",
     "length": "95ft / 29m",
-    "amenities": ["👨‍✈️ Captain & Crew", "🍽 Onboard Chef", "🛥 Jet Tender", "🤿 Snorkeling", "🏖 Beach Club Stern", "⚡ Fastest Cruising 45 knots"],
+    "amenities": ["👨‍✈️ Captain & Crew", "🍽 Onboard Chef", "🛥 Jet Tender", "⚡ 45 knots top speed"],
     "thumbnail": "https://images.unsplash.com/photo-1589129140837-67287c22521b?auto=format&fit=crop&w=900&q=80",
-    "images": [
-      "https://images.unsplash.com/photo-1589129140837-67287c22521b?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?auto=format&fit=crop&w=900&q=80"
-    ],
+    "images": ["https://images.unsplash.com/photo-1589129140837-67287c22521b?auto=format&fit=crop&w=900&q=80"],
     "badge": "Fast & Sleek"
   },
   {
@@ -132,98 +89,68 @@
     "destination": "Maldives",
     "region": "Indian Ocean",
     "type": "Explorer Yacht",
-    "prices": [
-      "3 days $28,000 + APA",
-      "1 week $68,000 + APA",
-      "2 weeks $125,000 + APA"
-    ],
+    "prices": ["3 days $28,000 + APA", "1 week $68,000 + APA", "2 weeks $125,000 + APA"],
     "specs": "5 cabins | 5 baths | 10 guests | 6 crew",
     "length": "120ft / 36.6m",
-    "amenities": ["👨‍✈️ Full Crew", "🤿 Dive Instructor Onboard", "🐠 Private Reef Access", "🛥 Glass Bottom Tender", "📡 Starlink WiFi", "🌅 Sunset Sundeck"],
+    "amenities": ["👨‍✈️ Full Crew", "🤿 Dive Instructor Onboard", "🐠 Private Reef Access", "📡 Starlink WiFi"],
     "thumbnail": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80",
-    "images": [
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=900&q=80"
-    ],
+    "images": ["https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80"],
     "badge": "Bucket List"
   },
   {
-    "id": "55ft-sailing-yacht-mediterranean",
+    "id": "55ft-sailing-yacht-corsica-sardinia",
     "title": "55ft Sailing Yacht — Corsica & Sardinia",
     "destination": "Corsica",
     "region": "Mediterranean",
     "type": "Sailing Yacht",
-    "prices": [
-      "Weekend €4,200 + provisions",
-      "1 week €12,500 + provisions"
-    ],
+    "prices": ["Weekend €4,200 + provisions", "1 week €12,500 + provisions"],
     "specs": "3 cabins | 2 baths | 6 guests | 2 crew",
     "length": "55ft / 16.8m",
-    "amenities": ["👨‍✈️ Skipper + Hostess", "⛵ Classic Sailing Routes", "🏊 Swim Ladder", "🛥 Inflatable Dinghy", "🍷 Wine Tour Included", "🌊 Crystal Waters"],
+    "amenities": ["👨‍✈️ Skipper + Hostess", "⛵ Classic Sailing Routes", "🍷 Wine Tour Included"],
     "thumbnail": "https://images.unsplash.com/photo-1566847438217-76e82d3c5a8d?auto=format&fit=crop&w=900&q=80",
-    "images": [
-      "https://images.unsplash.com/photo-1566847438217-76e82d3c5a8d?auto=format&fit=crop&w=900&q=80"
-    ],
+    "images": ["https://images.unsplash.com/photo-1566847438217-76e82d3c5a8d?auto=format&fit=crop&w=900&q=80"],
     "badge": "Classic Sail"
   },
   {
-    "id": "80ft-princess-dubai-abu-dhabi",
+    "id": "80ft-princess-dubai",
     "title": "80ft Princess — Dubai & Abu Dhabi",
     "destination": "Dubai",
     "region": "Middle East",
     "type": "Motor Yacht",
-    "prices": [
-      "4 hrs AED 18,000 all in",
-      "8 hrs AED 32,000 all in",
-      "Weekend AED 75,000 + APA"
-    ],
+    "prices": ["4 hrs AED 18,000 all in", "8 hrs AED 32,000 all in", "Weekend AED 75,000 + APA"],
     "specs": "4 cabins | 3 baths | 10 guests | 3 crew",
     "length": "80ft / 24.4m",
-    "amenities": ["👨‍✈️ Captain + Crew", "🍽 Catering Service", "🌆 Burj Al Arab Views", "🛥 Water Sports Package", "🎆 Fireworks Packages", "📸 Professional Photos"],
+    "amenities": ["👨‍✈️ Captain + Crew", "🌆 Burj Al Arab Views", "🎆 Fireworks Packages"],
     "thumbnail": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=900&q=80",
-    "images": [
-      "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=900&q=80"
-    ],
+    "images": ["https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=900&q=80"],
     "badge": "Luxury"
   },
   {
-    "id": "65ft-catamaran-tahiti-bora-bora",
+    "id": "65ft-catamaran-bora-bora",
     "title": "65ft Catamaran — Bora Bora & Tahiti",
     "destination": "Bora Bora",
     "region": "South Pacific",
     "type": "Luxury Catamaran",
-    "prices": [
-      "3 days $12,000 + provisions",
-      "1 week $28,000 + provisions"
-    ],
+    "prices": ["3 days $12,000 + provisions", "1 week $28,000 + provisions"],
     "specs": "4 cabins | 4 baths | 8 guests | 3 crew",
     "length": "65ft / 19.8m",
-    "amenities": ["👨‍✈️ Captain + Chef", "🐋 Whale Watching (season)", "🤿 Coral Reef Snorkeling", "🛥 Paddleboards & Kayaks", "🌺 Local Cultural Experiences", "🌊 Lagoon Access"],
+    "amenities": ["👨‍✈️ Captain + Chef", "🐋 Whale Watching (season)", "🌺 Local Cultural Experiences"],
     "thumbnail": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=900&q=80",
-    "images": [
-      "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=900&q=80"
-    ],
+    "images": ["https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=900&q=80"],
     "badge": "Paradise"
   },
   {
-    "id": "100ft-motoryacht-caribbean-stbarths",
+    "id": "100ft-motoryacht-st-barths",
     "title": "100ft Motor Yacht — St. Barths & St. Martin",
     "destination": "St. Barths",
     "region": "Caribbean",
     "type": "Motor Yacht",
-    "prices": [
-      "Day charter $15,000 all in",
-      "3 days $38,000 + APA",
-      "1 week $90,000 + APA"
-    ],
+    "prices": ["Day charter $15,000 all in", "3 days $38,000 + APA", "1 week $90,000 + APA"],
     "specs": "5 cabins | 5 baths | 10 guests | 5 crew",
     "length": "100ft / 30.5m",
-    "amenities": ["👨‍✈️ Full Crew", "🍽 Private Chef", "🛥 Tender & Waverunners", "🤿 Scuba Diving", "🎶 DJ Equipment", "🛁 Jacuzzi"],
+    "amenities": ["👨‍✈️ Full Crew", "🍽 Private Chef", "🎶 DJ Equipment", "🛁 Jacuzzi"],
     "thumbnail": "https://images.unsplash.com/photo-1605281317010-fe5ffe798166?auto=format&fit=crop&w=900&q=80",
-    "images": [
-      "https://images.unsplash.com/photo-1605281317010-fe5ffe798166?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=900&q=80"
-    ],
+    "images": ["https://images.unsplash.com/photo-1605281317010-fe5ffe798166?auto=format&fit=crop&w=900&q=80"],
     "badge": "Exclusive"
   },
   {
@@ -232,37 +159,26 @@
     "destination": "Fort Lauderdale",
     "region": "USA",
     "type": "Sport Powerboat",
-    "prices": [
-      "4 hrs $2,800 all in",
-      "8 hrs $4,500 all in",
-      "1 week $18,000 + APA"
-    ],
+    "prices": ["4 hrs $2,800 all in", "8 hrs $4,500 all in", "1 week $18,000 + APA"],
     "specs": "2 cabins | 1 bath | 6 guests | 2 crew",
     "length": "45ft / 13.7m",
-    "amenities": ["👨‍✈️ Captain + Mate", "🧊 Cooler & Beverages", "🏖 Beach Stops", "🎵 Premium Audio", "🛥 Banana Boat & Tubes", "📍 Bahamas Day Trip Available"],
+    "amenities": ["👨‍✈️ Captain + Mate", "🏖 Beach Stops", "🎵 Premium Audio"],
     "thumbnail": "https://images.unsplash.com/photo-1580151083547-f4d86e69c8fc?auto=format&fit=crop&w=900&q=80",
-    "images": [
-      "https://images.unsplash.com/photo-1580151083547-f4d86e69c8fc?auto=format&fit=crop&w=900&q=80"
-    ],
+    "images": ["https://images.unsplash.com/photo-1580151083547-f4d86e69c8fc?auto=format&fit=crop&w=900&q=80"],
     "badge": "Day Charter"
   },
   {
-    "id": "130ft-explorer-alaska-fjords",
+    "id": "130ft-explorer-alaska",
     "title": "130ft Explorer — Alaska & Pacific Northwest",
     "destination": "Alaska",
     "region": "North America",
     "type": "Explorer Yacht",
-    "prices": [
-      "3 days $32,000 + APA",
-      "1 week $78,000 + APA"
-    ],
+    "prices": ["3 days $32,000 + APA", "1 week $78,000 + APA"],
     "specs": "6 cabins | 6 baths | 12 guests | 6 crew",
     "length": "130ft / 39.6m",
-    "amenities": ["👨‍✈️ Expedition Crew", "🦅 Wildlife Expert Onboard", "🛶 Kayaks & Zodiacs", "🎣 Salmon Fishing", "🏔 Glacier Access", "📡 Satellite Communications"],
+    "amenities": ["👨‍✈️ Expedition Crew", "🦅 Wildlife Expert Onboard", "🎣 Salmon Fishing"],
     "thumbnail": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=900&q=80",
-    "images": [
-      "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=900&q=80"
-    ],
+    "images": ["https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=900&q=80"],
     "badge": "Expedition"
   },
   {
@@ -271,56 +187,40 @@
     "destination": "Ibiza",
     "region": "Mediterranean",
     "type": "Motor Yacht",
-    "prices": [
-      "Day charter €11,000 all in",
-      "Weekend €26,000 + APA",
-      "1 week €68,000 + APA"
-    ],
+    "prices": ["Day charter €11,000 all in", "Weekend €26,000 + APA", "1 week €68,000 + APA"],
     "specs": "4 cabins | 4 baths | 8 guests | 4 crew",
     "length": "78ft / 23.8m",
-    "amenities": ["👨‍✈️ Captain + Crew", "🎵 DJ System", "🏖 Exclusive Beach Clubs", "🛥 Seabobs & Flyboard", "🍾 Champagne Service", "🌅 Sunset Parties"],
+    "amenities": ["👨‍✈️ Captain + Crew", "🎵 DJ System", "🏖 Exclusive Beach Clubs"],
     "thumbnail": "https://images.unsplash.com/photo-1548438294-1ad5d5f4f063?auto=format&fit=crop&w=900&q=80",
-    "images": [
-      "https://images.unsplash.com/photo-1548438294-1ad5d5f4f063?auto=format&fit=crop&w=900&q=80"
-    ],
+    "images": ["https://images.unsplash.com/photo-1548438294-1ad5d5f4f063?auto=format&fit=crop&w=900&q=80"],
     "badge": "Party Yacht"
   },
   {
-    "id": "50ft-sailing-catamaran-seychelles",
+    "id": "50ft-catamaran-seychelles",
     "title": "50ft Catamaran — Seychelles",
     "destination": "Seychelles",
     "region": "Indian Ocean",
     "type": "Sailing Catamaran",
-    "prices": [
-      "3 days $8,500 + provisions",
-      "1 week $19,000 + provisions"
-    ],
+    "prices": ["3 days $8,500 + provisions", "1 week $19,000 + provisions"],
     "specs": "3 cabins | 3 baths | 6 guests | 2 crew",
     "length": "50ft / 15.2m",
-    "amenities": ["👨‍✈️ Skipper + Cook", "🐠 Pristine Reefs", "🛶 Kayaks & SUPs", "🦜 Exotic Wildlife", "🌴 Private Island Stops", "🤿 Giant Tortoise Encounters"],
+    "amenities": ["👨‍✈️ Skipper + Cook", "🐠 Pristine Reefs", "🌴 Private Island Stops"],
     "thumbnail": "https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?auto=format&fit=crop&w=900&q=80",
-    "images": [
-      "https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?auto=format&fit=crop&w=900&q=80"
-    ],
+    "images": ["https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?auto=format&fit=crop&w=900&q=80"],
     "badge": "Island Hopping"
   },
   {
-    "id": "200ft-gigayacht-monaco-cannes",
+    "id": "200ft-gigayacht-monaco",
     "title": "200ft Giga Yacht — Monaco & Cannes",
     "destination": "Monaco",
     "region": "Mediterranean",
     "type": "Giga Yacht",
-    "prices": [
-      "1 week €320,000 + APA",
-      "2 weeks €600,000 + APA"
-    ],
+    "prices": ["1 week €320,000 + APA", "2 weeks €600,000 + APA"],
     "specs": "10 cabins | 10 baths | 20 guests | 15 crew",
     "length": "200ft / 61m",
-    "amenities": ["👨‍✈️ Full Professional Crew of 15", "🚁 Private Helipad", "🏊 Infinity Pool", "🎰 Casino Room", "🎭 Cinema Lounge", "🛥 4x Tenders + Submarines"],
+    "amenities": ["👨‍✈️ Crew of 15", "🚁 Private Helipad", "🏊 Infinity Pool", "🎭 Cinema Lounge"],
     "thumbnail": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=80",
-    "images": [
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=80"
-    ],
+    "images": ["https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=80"],
     "badge": "Ultra Luxury"
   },
   {
@@ -329,18 +229,12 @@
     "destination": "Dubrovnik",
     "region": "Mediterranean",
     "type": "Motor Yacht",
-    "prices": [
-      "Day charter €7,500",
-      "Weekend €17,000 + APA",
-      "1 week €48,000 + APA"
-    ],
+    "prices": ["Day charter €7,500", "Weekend €17,000 + APA", "1 week €48,000 + APA"],
     "specs": "3 cabins | 3 baths | 7 guests | 3 crew",
     "length": "68ft / 20.7m",
-    "amenities": ["👨‍✈️ Captain + Chef", "🏛 Game of Thrones Locations", "🤿 Adriatic Snorkeling", "🛥 Tender & Watersports", "🍷 Local Wine Tastings", "🏝 Hidden Coves"],
+    "amenities": ["👨‍✈️ Captain + Chef", "🏛 Game of Thrones Locations", "🍷 Local Wine Tastings"],
     "thumbnail": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=900&q=80",
-    "images": [
-      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=900&q=80"
-    ],
+    "images": ["https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=900&q=80"],
     "badge": "Cultural"
   },
   {
@@ -349,18 +243,12 @@
     "destination": "Maui",
     "region": "USA",
     "type": "Power Catamaran",
-    "prices": [
-      "Day charter $8,500 all in",
-      "3 days $22,000 + APA",
-      "1 week $52,000 + APA"
-    ],
+    "prices": ["Day charter $8,500 all in", "3 days $22,000 + APA", "1 week $52,000 + APA"],
     "specs": "4 cabins | 4 baths | 10 guests | 4 crew",
     "length": "90ft / 27.4m",
-    "amenities": ["👨‍✈️ Captain + Crew", "🐋 Whale Watching (Jan–Apr)", "🐢 Turtle Snorkeling", "🌋 Volcano Views", "🛥 Snorkel Gear & Kayaks", "🍍 Island-Fresh Catering"],
+    "amenities": ["👨‍✈️ Captain + Crew", "🐋 Whale Watching (Jan–Apr)", "🌋 Volcano Views"],
     "thumbnail": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
-    "images": [
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80"
-    ],
+    "images": ["https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80"],
     "badge": "Island Escape"
   },
   {
@@ -369,17 +257,12 @@
     "destination": "Bodrum",
     "region": "Mediterranean",
     "type": "Traditional Gulet",
-    "prices": [
-      "Weekend €5,800 + provisions",
-      "1 week €16,500 + provisions"
-    ],
+    "prices": ["Weekend €5,800 + provisions", "1 week €16,500 + provisions"],
     "specs": "5 cabins | 5 baths | 10 guests | 3 crew",
     "length": "75ft / 22.9m",
-    "amenities": ["👨‍✈️ Skipper + Chef", "⛵ Authentic Turkish Sailing", "🏛 Ancient Ruins Tours", "🤿 Turquoise Coast Diving", "🍜 Turkish Cuisine Onboard", "🌅 Sunrise Yoga Deck"],
+    "amenities": ["👨‍✈️ Skipper + Chef", "⛵ Authentic Turkish Sailing", "🌅 Sunrise Yoga Deck"],
     "thumbnail": "https://images.unsplash.com/photo-1531911315232-ff5d3d2e74b8?auto=format&fit=crop&w=900&q=80",
-    "images": [
-      "https://images.unsplash.com/photo-1531911315232-ff5d3d2e74b8?auto=format&fit=crop&w=900&q=80"
-    ],
+    "images": ["https://images.unsplash.com/photo-1531911315232-ff5d3d2e74b8?auto=format&fit=crop&w=900&q=80"],
     "badge": "Authentic"
   },
   {
@@ -388,17 +271,642 @@
     "destination": "Nassau",
     "region": "Caribbean",
     "type": "Sport Boat",
-    "prices": [
-      "4 hrs $1,800 all in",
-      "8 hrs $2,900 all in"
-    ],
+    "prices": ["4 hrs $1,800 all in", "8 hrs $2,900 all in"],
     "specs": "Open deck | 8 guests | 1 captain",
     "length": "40ft / 12.2m",
-    "amenities": ["👨‍✈️ Captain", "🏝 Pig Beach Visit", "🤿 Reef Snorkeling", "🧊 Ice Chest & Drinks", "🚤 Blue Hole Swimming", "📸 Drone Photos"],
+    "amenities": ["👨‍✈️ Captain", "🏝 Pig Beach Visit", "🤿 Reef Snorkeling"],
     "thumbnail": "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=900&q=80",
-    "images": [
-      "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=900&q=80"
-    ],
+    "images": ["https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=900&q=80"],
     "badge": "Day Trip"
+  },
+  {
+    "id": "105ft-sunseeker-cannes",
+    "title": "105ft Sunseeker Predator — Cannes Film Festival",
+    "destination": "Cannes",
+    "region": "Mediterranean",
+    "type": "Motor Yacht",
+    "prices": ["Day charter €18,000", "Festival Week €135,000 + APA"],
+    "specs": "5 cabins | 5 baths | 10 guests | 5 crew",
+    "length": "105ft / 32m",
+    "amenities": ["👨‍✈️ Full Crew", "🎬 Festival VIP Access", "🍾 Champagne Lounge"],
+    "thumbnail": "https://images.unsplash.com/photo-1548032885-b5e38734eca5?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1548032885-b5e38734eca5?auto=format&fit=crop&w=900&q=80"],
+    "badge": "VIP"
+  },
+  {
+    "id": "70ft-sailing-yacht-aegean",
+    "title": "70ft Sailing Yacht — Aegean Sea, Greece",
+    "destination": "Athens",
+    "region": "Mediterranean",
+    "type": "Sailing Yacht",
+    "prices": ["Weekend €6,500 + provisions", "1 week €18,000 + provisions"],
+    "specs": "4 cabins | 3 baths | 8 guests | 2 crew",
+    "length": "70ft / 21.3m",
+    "amenities": ["👨‍✈️ Skipper + Cook", "⛵ Aegean Island Hopping", "🏛 Ancient Sites Access"],
+    "thumbnail": "https://images.unsplash.com/photo-1548438294-1ad5d5f4f063?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1548438294-1ad5d5f4f063?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Classic Sail"
+  },
+  {
+    "id": "55ft-powercat-miami-beach",
+    "title": "55ft Power Cat — Miami Beach Party",
+    "destination": "Miami Beach",
+    "region": "USA",
+    "type": "Power Catamaran",
+    "prices": ["4 hrs $3,200 all in", "8 hrs $5,500 all in"],
+    "specs": "2 cabins | 2 baths | 12 guests | 2 crew",
+    "length": "55ft / 16.8m",
+    "amenities": ["👨‍✈️ Captain + DJ", "🎵 Sound System", "🏊 Swim Platform", "🍾 Bar Service"],
+    "thumbnail": "https://images.unsplash.com/photo-1567890997528-51e67afcb2d7?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1567890997528-51e67afcb2d7?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Party"
+  },
+  {
+    "id": "88ft-lazzara-cancun",
+    "title": "88ft Lazzara — Cancún & Riviera Maya",
+    "destination": "Cancún",
+    "region": "Caribbean",
+    "type": "Motor Yacht",
+    "prices": ["Day charter $9,500 all in", "3 days $25,000 + APA", "1 week $60,000 + APA"],
+    "specs": "4 cabins | 4 baths | 8 guests | 4 crew",
+    "length": "88ft / 26.8m",
+    "amenities": ["👨‍✈️ Full Crew", "🤿 Cenote Snorkeling", "🦈 Bull Shark Diving"],
+    "thumbnail": "https://images.unsplash.com/photo-1540946485063-a40da27545f8?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1540946485063-a40da27545f8?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Adventure"
+  },
+  {
+    "id": "115ft-ferretti-barcelona",
+    "title": "115ft Ferretti — Barcelona & Costa Brava",
+    "destination": "Barcelona",
+    "region": "Mediterranean",
+    "type": "Motor Yacht",
+    "prices": ["Day charter €16,000", "Weekend €38,000 + APA", "1 week €98,000 + APA"],
+    "specs": "5 cabins | 5 baths | 10 guests | 5 crew",
+    "length": "115ft / 35m",
+    "amenities": ["👨‍✈️ Professional Crew", "🍽 Spanish Chef", "🎨 Gaudí Architecture Views"],
+    "thumbnail": "https://images.unsplash.com/photo-1589129140837-67287c22521b?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1589129140837-67287c22521b?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Exclusive"
+  },
+  {
+    "id": "62ft-catamaran-st-lucia",
+    "title": "62ft Catamaran — St. Lucia & Grenadines",
+    "destination": "St. Lucia",
+    "region": "Caribbean",
+    "type": "Luxury Catamaran",
+    "prices": ["Day charter $4,200 all in", "1 week $24,000 + provisions"],
+    "specs": "4 cabins | 4 baths | 8 guests | 2 crew",
+    "length": "62ft / 18.9m",
+    "amenities": ["👨‍✈️ Captain + Cook", "🏝 The Pitons Views", "🌺 Volcano Hot Springs"],
+    "thumbnail": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Paradise"
+  },
+  {
+    "id": "140ft-explorer-norway-fjords",
+    "title": "140ft Explorer — Norwegian Fjords",
+    "destination": "Bergen",
+    "region": "Scandinavia",
+    "type": "Explorer Yacht",
+    "prices": ["3 days NOK 280,000 + APA", "1 week NOK 620,000 + APA"],
+    "specs": "6 cabins | 6 baths | 12 guests | 7 crew",
+    "length": "140ft / 42.7m",
+    "amenities": ["👨‍✈️ Expedition Crew", "🏔 Glacier Trekking", "🚀 Northern Lights Tours"],
+    "thumbnail": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Expedition"
+  },
+  {
+    "id": "90ft-azimut-singapore",
+    "title": "90ft Azimut Grande — Singapore & Bintan",
+    "destination": "Singapore",
+    "region": "Asia",
+    "type": "Motor Yacht",
+    "prices": ["Day charter SGD 15,000", "Weekend SGD 36,000 + APA"],
+    "specs": "4 cabins | 4 baths | 8 guests | 4 crew",
+    "length": "90ft / 27.4m",
+    "amenities": ["👨‍✈️ Captain + Crew", "🌆 Marina Bay Views", "🍜 Asian Fusion Chef"],
+    "thumbnail": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Asia Pacific"
+  },
+  {
+    "id": "85ft-princess-amalfi-capri",
+    "title": "85ft Princess V85 — Capri & Positano",
+    "destination": "Capri",
+    "region": "Mediterranean",
+    "type": "Motor Yacht",
+    "prices": ["Day charter €12,000", "Weekend €28,000 + APA", "1 week €72,000 + APA"],
+    "specs": "4 cabins | 4 baths | 8 guests | 4 crew",
+    "length": "85ft / 25.9m",
+    "amenities": ["👨‍✈️ Crew", "🍋 Limoncello Tasting", "🏊 Blue Grotto Swim"],
+    "thumbnail": "https://images.unsplash.com/photo-1570993492894-8c45a3ced05d?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1570993492894-8c45a3ced05d?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Dolce Vita"
+  },
+  {
+    "id": "58ft-sailing-cat-martinique",
+    "title": "58ft Catamaran — Martinique & Guadeloupe",
+    "destination": "Martinique",
+    "region": "Caribbean",
+    "type": "Sailing Catamaran",
+    "prices": ["Weekend $5,500 + provisions", "1 week $16,000 + provisions"],
+    "specs": "3 cabins | 3 baths | 6 guests | 2 crew",
+    "length": "58ft / 17.7m",
+    "amenities": ["👨‍✈️ Captain + Cook", "🌋 Volcanic Island Hikes", "🍹 Ti Punch Bar"],
+    "thumbnail": "https://images.unsplash.com/photo-1566847438217-76e82d3c5a8d?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1566847438217-76e82d3c5a8d?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Island Hopping"
+  },
+  {
+    "id": "160ft-trinity-superyacht-mediterranean",
+    "title": "160ft Trinity Superyacht — Côte d'Azur",
+    "destination": "Nice",
+    "region": "Mediterranean",
+    "type": "Superyacht",
+    "prices": ["1 week €220,000 + APA"],
+    "specs": "8 cabins | 8 baths | 16 guests | 10 crew",
+    "length": "160ft / 48.8m",
+    "amenities": ["👨‍✈️ 10 Crew", "🚁 Helipad", "🏊 Swim Platform", "🎰 Casino Room"],
+    "thumbnail": "https://images.unsplash.com/photo-1548032885-b5e38734eca5?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1548032885-b5e38734eca5?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Superyacht"
+  },
+  {
+    "id": "65ft-sunreef-catamaran-phuket",
+    "title": "65ft Sunreef — Phuket & Phi Phi Islands",
+    "destination": "Phuket",
+    "region": "Asia",
+    "type": "Luxury Catamaran",
+    "prices": ["Day charter THB 120,000", "1 week THB 650,000 + provisions"],
+    "specs": "4 cabins | 4 baths | 8 guests | 3 crew",
+    "length": "65ft / 19.8m",
+    "amenities": ["👨‍✈️ Captain + Chef", "🏝 Maya Bay Access", "🤿 Coral Reef Diving"],
+    "thumbnail": "https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Asia Pacific"
+  },
+  {
+    "id": "48ft-sailing-yacht-auckland",
+    "title": "48ft Sailing Yacht — Auckland & Bay of Islands",
+    "destination": "Auckland",
+    "region": "South Pacific",
+    "type": "Sailing Yacht",
+    "prices": ["Day charter NZD 3,500", "1 week NZD 22,000 + provisions"],
+    "specs": "3 cabins | 2 baths | 6 guests | 2 crew",
+    "length": "48ft / 14.6m",
+    "amenities": ["👨‍✈️ Skipper + Cook", "🐬 Dolphin Watching", "🦜 Kiwi Bird Sanctuary"],
+    "thumbnail": "https://images.unsplash.com/photo-1531911315232-ff5d3d2e74b8?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1531911315232-ff5d3d2e74b8?auto=format&fit=crop&w=900&q=80"],
+    "badge": "South Pacific"
+  },
+  {
+    "id": "77ft-riva-amalfi",
+    "title": "77ft Riva — Amalfi & Positano",
+    "destination": "Positano",
+    "region": "Mediterranean",
+    "type": "Classic Yacht",
+    "prices": ["Day charter €13,500", "Weekend €32,000 + APA"],
+    "specs": "3 cabins | 3 baths | 6 guests | 3 crew",
+    "length": "77ft / 23.5m",
+    "amenities": ["👨‍✈️ Crew", "🎨 Classic Italian Design", "🍕 Pizza Stop Ashore"],
+    "thumbnail": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Iconic"
+  },
+  {
+    "id": "100ft-crewed-yacht-chesapeake",
+    "title": "100ft Motor Yacht — Chesapeake Bay, USA",
+    "destination": "Annapolis",
+    "region": "USA",
+    "type": "Motor Yacht",
+    "prices": ["Day charter $10,500 all in", "Weekend $24,000 + APA", "1 week $62,000 + APA"],
+    "specs": "5 cabins | 4 baths | 10 guests | 4 crew",
+    "length": "100ft / 30.5m",
+    "amenities": ["👨‍✈️ Full Crew", "🦀 Crab Feast Catering", "⛵ Chesapeake Sailing"],
+    "thumbnail": "https://images.unsplash.com/photo-1605281317010-fe5ffe798166?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1605281317010-fe5ffe798166?auto=format&fit=crop&w=900&q=80"],
+    "badge": "East Coast"
+  },
+  {
+    "id": "80ft-catamaran-red-sea",
+    "title": "80ft Catamaran — Red Sea & Petra, Jordan",
+    "destination": "Aqaba",
+    "region": "Middle East",
+    "type": "Luxury Catamaran",
+    "prices": ["Day charter $7,000", "1 week $42,000 + provisions"],
+    "specs": "4 cabins | 4 baths | 8 guests | 3 crew",
+    "length": "80ft / 24.4m",
+    "amenities": ["👨‍✈️ Captain + Cook", "🐠 Red Sea Coral Reefs", "🏛 Petra Day Trip Available"],
+    "thumbnail": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Unique"
+  },
+  {
+    "id": "73ft-motoryacht-cabo-san-lucas",
+    "title": "73ft Motor Yacht — Cabo San Lucas",
+    "destination": "Cabo San Lucas",
+    "region": "Mexico",
+    "type": "Motor Yacht",
+    "prices": ["4 hrs $4,800 all in", "Day charter $8,500 all in", "1 week $50,000 + APA"],
+    "specs": "3 cabins | 3 baths | 8 guests | 3 crew",
+    "length": "73ft / 22.3m",
+    "amenities": ["👨‍✈️ Captain + Crew", "🐋 Whale Watching (Dec–Apr)", "🏄 Surfing Excursions"],
+    "thumbnail": "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Mexico"
+  },
+  {
+    "id": "98ft-princess-palma-mallorca",
+    "title": "98ft Princess — Palma de Mallorca",
+    "destination": "Mallorca",
+    "region": "Mediterranean",
+    "type": "Motor Yacht",
+    "prices": ["Day charter €15,000", "1 week €92,000 + APA"],
+    "specs": "5 cabins | 5 baths | 10 guests | 4 crew",
+    "length": "98ft / 29.9m",
+    "amenities": ["👨‍✈️ Captain + Crew", "🏄 Watersports Package", "🍊 Local Tapas Chef"],
+    "thumbnail": "https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Mediterranean"
+  },
+  {
+    "id": "60ft-gulet-kotor-bay",
+    "title": "60ft Gulet — Kotor Bay, Montenegro",
+    "destination": "Kotor",
+    "region": "Mediterranean",
+    "type": "Traditional Gulet",
+    "prices": ["Weekend €4,500 + provisions", "1 week €13,500 + provisions"],
+    "specs": "4 cabins | 4 baths | 8 guests | 2 crew",
+    "length": "60ft / 18.3m",
+    "amenities": ["👨‍✈️ Skipper + Cook", "🏰 Medieval Old Town", "🏔 Bay of Kotor Views"],
+    "thumbnail": "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Hidden Gem"
+  },
+  {
+    "id": "120ft-superyacht-palawan",
+    "title": "120ft Superyacht — Palawan, Philippines",
+    "destination": "Palawan",
+    "region": "Asia",
+    "type": "Superyacht",
+    "prices": ["3 days $18,000 + APA", "1 week $45,000 + APA"],
+    "specs": "5 cabins | 5 baths | 10 guests | 6 crew",
+    "length": "120ft / 36.6m",
+    "amenities": ["👨‍✈️ Full Crew", "🌊 UNESCO Lagoon Access", "🤿 World-Class Diving"],
+    "thumbnail": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=900&q=80"],
+    "badge": "UNESCO"
+  },
+  {
+    "id": "52ft-sailboat-cape-town",
+    "title": "52ft Sailboat — Cape Town & Cape Winelands",
+    "destination": "Cape Town",
+    "region": "Africa",
+    "type": "Sailing Yacht",
+    "prices": ["Day charter ZAR 28,000", "1 week ZAR 145,000 + provisions"],
+    "specs": "3 cabins | 2 baths | 6 guests | 2 crew",
+    "length": "52ft / 15.8m",
+    "amenities": ["👨‍✈️ Skipper + Cook", "🦭 Seal Island Visit", "🍷 Cape Winery Tour"],
+    "thumbnail": "https://images.unsplash.com/photo-1566847438217-76e82d3c5a8d?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1566847438217-76e82d3c5a8d?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Africa"
+  },
+  {
+    "id": "86ft-pershing-monaco-carlo",
+    "title": "86ft Pershing — Monaco Grand Prix Charter",
+    "destination": "Monaco",
+    "region": "Mediterranean",
+    "type": "Sport Yacht",
+    "prices": ["Grand Prix Weekend €45,000", "Day charter €16,000"],
+    "specs": "4 cabins | 4 baths | 8 guests | 4 crew",
+    "length": "86ft / 26.2m",
+    "amenities": ["👨‍✈️ Crew", "🏎 Trackside Views from Deck", "🍾 VIP F1 Experience"],
+    "thumbnail": "https://images.unsplash.com/photo-1589129140837-67287c22521b?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1589129140837-67287c22521b?auto=format&fit=crop&w=900&q=80"],
+    "badge": "F1 Special"
+  },
+  {
+    "id": "55ft-catamaran-maldives-private",
+    "title": "55ft Catamaran — Maldives Private Atoll",
+    "destination": "North Malé Atoll",
+    "region": "Indian Ocean",
+    "type": "Sailing Catamaran",
+    "prices": ["3 days $11,000 + provisions", "1 week $26,000 + provisions"],
+    "specs": "3 cabins | 3 baths | 6 guests | 2 crew",
+    "length": "55ft / 16.8m",
+    "amenities": ["👨‍✈️ Captain + Chef", "🐠 Bioluminescent Beach Night Swim", "🤿 Manta Ray Dive"],
+    "thumbnail": "https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Private"
+  },
+  {
+    "id": "92ft-yacht-porto-cervo",
+    "title": "92ft Yacht — Porto Cervo, Sardinia",
+    "destination": "Porto Cervo",
+    "region": "Mediterranean",
+    "type": "Motor Yacht",
+    "prices": ["Day charter €13,000", "1 week €82,000 + APA"],
+    "specs": "4 cabins | 4 baths | 8 guests | 4 crew",
+    "length": "92ft / 28m",
+    "amenities": ["👨‍✈️ Crew", "🏖 Emerald Coast Beaches", "🍕 Italian Gourmet Chef"],
+    "thumbnail": "https://images.unsplash.com/photo-1570993492894-8c45a3ced05d?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1570993492894-8c45a3ced05d?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Italy"
+  },
+  {
+    "id": "38ft-speedboat-lake-como",
+    "title": "38ft Classic Speedboat — Lake Como, Italy",
+    "destination": "Lake Como",
+    "region": "Mediterranean",
+    "type": "Classic Speedboat",
+    "prices": ["Half day €1,800", "Full day €3,200"],
+    "specs": "Open deck | 6 guests | 1 captain",
+    "length": "38ft / 11.6m",
+    "amenities": ["👨‍✈️ Captain", "🏰 Waterfront Villa Tours", "🇮🇹 Prosecco & Aperitivo"],
+    "thumbnail": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Iconic"
+  },
+  {
+    "id": "108ft-horizon-puerto-rico",
+    "title": "108ft Horizon — Puerto Rico & USVI",
+    "destination": "San Juan",
+    "region": "Caribbean",
+    "type": "Motor Yacht",
+    "prices": ["Day charter $13,000 all in", "1 week $78,000 + APA"],
+    "specs": "5 cabins | 5 baths | 10 guests | 5 crew",
+    "length": "108ft / 32.9m",
+    "amenities": ["👨‍✈️ Full Crew", "🐢 Sea Turtle Snorkeling", "🏝 Culebra Island Day Trip"],
+    "thumbnail": "https://images.unsplash.com/photo-1605281317010-fe5ffe798166?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1605281317010-fe5ffe798166?auto=format&fit=crop&w=900&q=80"],
+    "badge": "USA Caribbean"
+  },
+  {
+    "id": "75ft-sailing-yacht-corsica",
+    "title": "75ft Sailing Yacht — Corsica & Elba",
+    "destination": "Corsica",
+    "region": "Mediterranean",
+    "type": "Sailing Yacht",
+    "prices": ["Weekend €8,000 + provisions", "1 week €22,000 + provisions"],
+    "specs": "4 cabins | 3 baths | 8 guests | 2 crew",
+    "length": "75ft / 22.9m",
+    "amenities": ["👨‍✈️ Skipper + Chef", "⛵ Napoleon's Exile Island", "🍷 Corsican Wine & Charcuterie"],
+    "thumbnail": "https://images.unsplash.com/photo-1531911315232-ff5d3d2e74b8?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1531911315232-ff5d3d2e74b8?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Sailing"
+  },
+  {
+    "id": "145ft-expedition-galapagos",
+    "title": "145ft Expedition — Galápagos Islands",
+    "destination": "Galápagos",
+    "region": "South America",
+    "type": "Expedition Yacht",
+    "prices": ["1 week $95,000 + APA", "2 weeks $175,000 + APA"],
+    "specs": "7 cabins | 7 baths | 14 guests | 8 crew",
+    "length": "145ft / 44.2m",
+    "amenities": ["👨‍✈️ Naturalist Guides", "🦎 Galápagos Tortoise", "🐧 Penguin Snorkeling"],
+    "thumbnail": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Once in a Lifetime"
+  },
+  {
+    "id": "82ft-motoryacht-adriatic-split",
+    "title": "82ft Motor Yacht — Split & Hvar, Croatia",
+    "destination": "Split",
+    "region": "Mediterranean",
+    "type": "Motor Yacht",
+    "prices": ["Day charter €9,800", "Weekend €22,000 + APA", "1 week €58,000 + APA"],
+    "specs": "4 cabins | 4 baths | 8 guests | 3 crew",
+    "length": "82ft / 25m",
+    "amenities": ["👨‍✈️ Captain + Cook", "🏖 Hvar Nightlife", "🍷 Local Wine Tasting"],
+    "thumbnail": "https://images.unsplash.com/photo-1548438294-1ad5d5f4f063?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1548438294-1ad5d5f4f063?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Croatia"
+  },
+  {
+    "id": "50ft-powerboat-lake-tahoe",
+    "title": "50ft Powerboat — Lake Tahoe, Nevada",
+    "destination": "Lake Tahoe",
+    "region": "USA",
+    "type": "Sport Powerboat",
+    "prices": ["4 hrs $2,500 all in", "Full day $4,200 all in"],
+    "specs": "2 cabins | 1 bath | 8 guests | 2 crew",
+    "length": "50ft / 15.2m",
+    "amenities": ["👨‍✈️ Captain + Mate", "🎿 Ski Area Views", "🏄 Wakeboarding"],
+    "thumbnail": "https://images.unsplash.com/photo-1580151083547-f4d86e69c8fc?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1580151083547-f4d86e69c8fc?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Freshwater"
+  },
+  {
+    "id": "135ft-superyacht-abu-dhabi",
+    "title": "135ft Superyacht — Abu Dhabi & DIFC",
+    "destination": "Abu Dhabi",
+    "region": "Middle East",
+    "type": "Superyacht",
+    "prices": ["Day charter AED 65,000", "1 week AED 380,000 + APA"],
+    "specs": "6 cabins | 6 baths | 12 guests | 7 crew",
+    "length": "135ft / 41.1m",
+    "amenities": ["👨‍✈️ Full Crew", "🕌 Sheikh Zayed Mosque Views", "🏎 Ferrari World Nearby"],
+    "thumbnail": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Middle East"
+  },
+  {
+    "id": "67ft-catamaran-costa-rica",
+    "title": "67ft Catamaran — Costa Rica & Manuel Antonio",
+    "destination": "Costa Rica",
+    "region": "Central America",
+    "type": "Luxury Catamaran",
+    "prices": ["Day charter $5,200 all in", "1 week $28,000 + provisions"],
+    "specs": "4 cabins | 4 baths | 8 guests | 3 crew",
+    "length": "67ft / 20.4m",
+    "amenities": ["👨‍✈️ Captain + Chef", "🦁 Jungle Wildlife Tours", "🐬 Dolphin Watching"],
+    "thumbnail": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Eco Adventure"
+  },
+  {
+    "id": "118ft-heesen-lofoten",
+    "title": "118ft Heesen — Lofoten Islands, Norway",
+    "destination": "Lofoten",
+    "region": "Scandinavia",
+    "type": "Explorer Yacht",
+    "prices": ["3 days NOK 220,000 + APA", "1 week NOK 520,000 + APA"],
+    "specs": "5 cabins | 5 baths | 10 guests | 6 crew",
+    "length": "118ft / 36m",
+    "amenities": ["👨‍✈️ Expedition Crew", "🎣 Cod Fishing", "🌌 Midnight Sun + Northern Lights"],
+    "thumbnail": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Arctic"
+  },
+  {
+    "id": "76ft-motoryacht-miami-private",
+    "title": "76ft Motor Yacht — Miami Private Island Tour",
+    "destination": "Miami",
+    "region": "USA",
+    "type": "Motor Yacht",
+    "prices": ["4 hrs $5,000 all in", "Full day $8,800 all in", "Weekend $20,000 + APA"],
+    "specs": "3 cabins | 3 baths | 10 guests | 3 crew",
+    "length": "76ft / 23.2m",
+    "amenities": ["👨‍✈️ Captain + Crew", "🌴 Star Island Celebrity Homes", "🛥 Seabob Included"],
+    "thumbnail": "https://images.unsplash.com/photo-1540946485063-a40da27545f8?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1540946485063-a40da27545f8?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Miami"
+  },
+  {
+    "id": "90ft-falcon-dubai-marina",
+    "title": "90ft Falcon — Dubai Marina & Palm Jumeirah",
+    "destination": "Dubai Marina",
+    "region": "Middle East",
+    "type": "Motor Yacht",
+    "prices": ["2 hrs AED 8,500", "4 hrs AED 14,000", "Full day AED 25,000"],
+    "specs": "4 cabins | 3 baths | 12 guests | 3 crew",
+    "length": "90ft / 27.4m",
+    "amenities": ["👨‍✈️ Captain + Crew", "🌴 Palm Jumeirah Views", "🎆 Burj Khalifa NYE Package"],
+    "thumbnail": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Dubai"
+  },
+  {
+    "id": "53ft-catamaran-zanzibar",
+    "title": "53ft Catamaran — Zanzibar & Pemba Island",
+    "destination": "Zanzibar",
+    "region": "Africa",
+    "type": "Sailing Catamaran",
+    "prices": ["Day charter $3,200 all in", "1 week $17,000 + provisions"],
+    "specs": "3 cabins | 3 baths | 6 guests | 2 crew",
+    "length": "53ft / 16.2m",
+    "amenities": ["👨‍✈️ Captain + Cook", "🐬 Dolphin Swim", "🌴 Spice Farm Tour"],
+    "thumbnail": "https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Africa"
+  },
+  {
+    "id": "125ft-palmer-johnson-antigua",
+    "title": "125ft Palmer Johnson — Antigua Sailing Week",
+    "destination": "Antigua",
+    "region": "Caribbean",
+    "type": "Racing Superyacht",
+    "prices": ["Race Week $85,000 all in", "1 week $68,000 + APA"],
+    "specs": "6 cabins | 6 baths | 12 guests | 7 crew",
+    "length": "125ft / 38.1m",
+    "amenities": ["👨‍✈️ Racing Crew", "⛵ Antigua Sailing Week Participation", "🏆 Trophy Ceremony Access"],
+    "thumbnail": "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Racing"
+  },
+  {
+    "id": "69ft-fountaine-pajot-caribbean",
+    "title": "69ft Fountaine Pajot — Caribbean Liveaboard",
+    "destination": "Grenada",
+    "region": "Caribbean",
+    "type": "Luxury Catamaran",
+    "prices": ["1 week $18,500 + provisions", "2 weeks $34,000 + provisions"],
+    "specs": "4 cabins | 4 baths | 8 guests | 2 crew",
+    "length": "69ft / 21m",
+    "amenities": ["👨‍✈️ Captain + Chef", "🌴 Grenadines Island Hopping", "🤿 Caribbean Reefs"],
+    "thumbnail": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Liveaboard"
+  },
+  {
+    "id": "170ft-abeking-rasmussen-monaco",
+    "title": "170ft Abeking & Rasmussen — Monaco Classic Week",
+    "destination": "Monaco",
+    "region": "Mediterranean",
+    "type": "Giga Yacht",
+    "prices": ["Classic Week €280,000 all in", "1 week €240,000 + APA"],
+    "specs": "9 cabins | 9 baths | 18 guests | 12 crew",
+    "length": "170ft / 51.8m",
+    "amenities": ["👨‍✈️ 12 Crew", "🏆 Monaco Classic Week Participation", "🚁 Helipad"],
+    "thumbnail": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Historic"
+  },
+  {
+    "id": "65ft-motor-yacht-curacao",
+    "title": "65ft Motor Yacht — Curaçao & Aruba",
+    "destination": "Curaçao",
+    "region": "Caribbean",
+    "type": "Motor Yacht",
+    "prices": ["Day charter $6,500 all in", "1 week $38,000 + APA"],
+    "specs": "3 cabins | 3 baths | 8 guests | 3 crew",
+    "length": "65ft / 19.8m",
+    "amenities": ["👨‍✈️ Captain + Crew", "🌊 ABC Islands", "🤿 Shipwreck Diving"],
+    "thumbnail": "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=900&q=80"],
+    "badge": "ABC Islands"
+  },
+  {
+    "id": "88ft-motor-yacht-komodo",
+    "title": "88ft Motor Yacht — Komodo & Raja Ampat",
+    "destination": "Labuan Bajo",
+    "region": "Asia",
+    "type": "Explorer Yacht",
+    "prices": ["3 days $14,000 + APA", "1 week $35,000 + APA"],
+    "specs": "4 cabins | 4 baths | 8 guests | 5 crew",
+    "length": "88ft / 26.8m",
+    "amenities": ["👨‍✈️ Crew + Guide", "🦎 Komodo Dragon Trekking", "🐠 Raja Ampat Diving"],
+    "thumbnail": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Wildlife"
+  },
+  {
+    "id": "58ft-cat-turks-caicos",
+    "title": "58ft Catamaran — Turks & Caicos",
+    "destination": "Providenciales",
+    "region": "Caribbean",
+    "type": "Sailing Catamaran",
+    "prices": ["Day charter $4,500 all in", "1 week $23,000 + provisions"],
+    "specs": "3 cabins | 3 baths | 6 guests | 2 crew",
+    "length": "58ft / 17.7m",
+    "amenities": ["👨‍✈️ Captain + Cook", "🏖 Grace Bay Beach Access", "🐢 Sea Turtle Swim"],
+    "thumbnail": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Caribbean"
+  },
+  {
+    "id": "104ft-ferretti-naples",
+    "title": "104ft Ferretti — Naples & Pompeii",
+    "destination": "Naples",
+    "region": "Mediterranean",
+    "type": "Motor Yacht",
+    "prices": ["Day charter €14,500", "1 week €88,000 + APA"],
+    "specs": "5 cabins | 5 baths | 10 guests | 5 crew",
+    "length": "104ft / 31.7m",
+    "amenities": ["👨‍✈️ Full Crew", "🏛 Pompeii Day Trip", "🍕 Naples Pizza Tour"],
+    "thumbnail": "https://images.unsplash.com/photo-1570993492894-8c45a3ced05d?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1570993492894-8c45a3ced05d?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Cultural"
+  },
+  {
+    "id": "71ft-sailing-yacht-azores",
+    "title": "71ft Sailing Yacht — Azores, Portugal",
+    "destination": "Azores",
+    "region": "Atlantic",
+    "type": "Sailing Yacht",
+    "prices": ["1 week €14,000 + provisions"],
+    "specs": "4 cabins | 3 baths | 8 guests | 2 crew",
+    "length": "71ft / 21.6m",
+    "amenities": ["👨‍✈️ Skipper + Cook", "🐋 Blue Whale Watching", "🌋 Volcanic Hot Springs"],
+    "thumbnail": "https://images.unsplash.com/photo-1566847438217-76e82d3c5a8d?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1566847438217-76e82d3c5a8d?auto=format&fit=crop&w=900&q=80"],
+    "badge": "Atlantic"
+  },
+  {
+    "id": "55ft-power-cat-new-england",
+    "title": "55ft Power Cat — New England & Nantucket",
+    "destination": "Newport",
+    "region": "USA",
+    "type": "Power Catamaran",
+    "prices": ["Day charter $5,500 all in", "1 week $32,000 + APA"],
+    "specs": "3 cabins | 2 baths | 8 guests | 2 crew",
+    "length": "55ft / 16.8m",
+    "amenities": ["👨‍✈️ Captain + Mate", "🦞 Lobster Feast", "🏖 Nantucket Beach Picnic"],
+    "thumbnail": "https://images.unsplash.com/photo-1580151083547-f4d86e69c8fc?auto=format&fit=crop&w=900&q=80",
+    "images": ["https://images.unsplash.com/photo-1580151083547-f4d86e69c8fc?auto=format&fit=crop&w=900&q=80"],
+    "badge": "New England"
   }
 ]
