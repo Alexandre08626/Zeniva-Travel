@@ -1,313 +1,750 @@
 "use client";
 
+import { useEffect, useState, useCallback, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 
-type Params = {
-  region?: string;
-  departureMonth?: string;
-  duration?: string;
-  guests?: string;
-};
+// ─── Types ───────────────────────────────────────────────────────────────────
 
-type CruiseOption = {
-  id: string;
+type HolidayResult = {
+  ref: string;
   name: string;
-  line: string;
-  route: string;
-  dates: string;
-  duration: string;
-  price: string;
-  priceNum: number;
-  cabin: string;
-  perks: string[];
-  badge?: string;
-  image: string;
+  operator: string;
+  detail_url: string;
 };
 
-const sampleCruises: CruiseOption[] = [
-  { id: "cru-1", name: "Caribbean Escape", line: "Celebrity Cruises", route: "Miami → St. Maarten → St. Lucia → Barbados", dates: "Mar 12 – Mar 19", duration: "7 nights", price: "$1,350 / person", priceNum: 1350, cabin: "Veranda stateroom", perks: ["Drinks & Wi-Fi", "Onboard credit", "Flexible fare"], badge: "Best value", image: "https://images.unsplash.com/photo-1548032885-b5e38734eca5?auto=format&fit=crop&w=900&q=80" },
-  { id: "cru-2", name: "Mediterranean Icons", line: "Oceania Cruises", route: "Rome → Amalfi → Santorini → Athens", dates: "May 4 – May 11", duration: "7 nights", price: "$2,480 / person", priceNum: 2480, cabin: "Concierge veranda", perks: ["Fine dining", "Air credit", "Excursion credit"], badge: "Top pick", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80" },
-  { id: "cru-3", name: "Alaska Fjords", line: "Holland America", route: "Vancouver → Juneau → Skagway → Ketchikan", dates: "Jul 8 – Jul 15", duration: "7 nights", price: "$1,180 / person", priceNum: 1180, cabin: "Oceanview", perks: ["Excursion credit", "Kids promo", "Flexible cancel"], badge: "Family friendly", image: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=900&q=80" },
-  { id: "cru-4", name: "Greek Isles Discovery", line: "Azamara", route: "Athens → Mykonos → Paros → Rhodes", dates: "Jun 2 – Jun 9", duration: "7 nights", price: "$1,620 / person", priceNum: 1620, cabin: "Veranda", perks: ["Gratuities", "Wi-Fi", "Smaller ship"], badge: "Small ship", image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80" },
-  { id: "cru-5", name: "Baltic Capitals", line: "Norwegian Cruise Line", route: "Copenhagen → Tallinn → Helsinki → Stockholm", dates: "Aug 14 – Aug 21", duration: "7 nights", price: "$1,050 / person", priceNum: 1050, cabin: "Balcony", perks: ["Drinks", "Wi-Fi", "Specialty dining"], badge: "Great value", image: "https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=900&q=80" },
-  { id: "cru-6", name: "Norway Fjords", line: "Princess Cruises", route: "Southampton → Bergen → Geiranger → Stavanger", dates: "May 18 – May 25", duration: "7 nights", price: "$1,290 / person", priceNum: 1290, cabin: "Balcony", perks: ["Medallion tech", "Flex fare"], badge: "Scenic", image: "https://images.unsplash.com/photo-1520769945061-0a448c463865?auto=format&fit=crop&w=900&q=80" },
-  { id: "cru-7", name: "Iceland Loop", line: "Windstar Cruises", route: "Reykjavik → Isafjordur → Seydisfjordur → Reykjavik", dates: "Jul 3 – Jul 10", duration: "7 nights", price: "$2,250 / person", priceNum: 2250, cabin: "Oceanview", perks: ["Small ship", "Excursion credit"], badge: "Expedition", image: "https://images.unsplash.com/photo-1531911315232-ff5d3d2e74b8?auto=format&fit=crop&w=900&q=80" },
-  { id: "cru-8", name: "Galapagos Journey", line: "Celebrity Flora", route: "Baltra → Genovesa → Santa Cruz", dates: "Oct 6 – Oct 13", duration: "7 nights", price: "$5,400 / person", priceNum: 5400, cabin: "Suite", perks: ["All-inclusive", "Excursions", "Naturalists"], badge: "Bucket list", image: "https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?auto=format&fit=crop&w=900&q=80" },
-  { id: "cru-9", name: "Danube Castles", line: "AMA Waterways", route: "Budapest → Vienna → Melk → Passau", dates: "Sep 10 – Sep 17", duration: "7 nights", price: "$3,050 / person", priceNum: 3050, cabin: "French balcony", perks: ["Excursions", "Wine & beer", "Wi-Fi"], badge: "River cruise", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=900&q=80" },
-  { id: "cru-10", name: "Seine Gourmet", line: "Uniworld Boutique", route: "Paris → Rouen → Honfleur → Paris", dates: "Apr 14 – Apr 21", duration: "7 nights", price: "$3,280 / person", priceNum: 3280, cabin: "Deluxe", perks: ["All-inclusive", "Butler", "Small ship"], badge: "Culinary", image: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=900&q=80" },
-  { id: "cru-11", name: "Dubai to Mumbai", line: "Oceania Cruises", route: "Dubai → Abu Dhabi → Muscat → Mumbai", dates: "Jan 18 – Jan 28", duration: "10 nights", price: "$2,980 / person", priceNum: 2980, cabin: "Veranda", perks: ["Fine dining", "Wi-Fi", "Shore credit"], image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=900&q=80" },
-  { id: "cru-12", name: "Australia Explorer", line: "Royal Caribbean", route: "Sydney → Hobart → Adelaide → Sydney", dates: "Feb 3 – Feb 13", duration: "10 nights", price: "$1,450 / person", priceNum: 1450, cabin: "Balcony", perks: ["Drinks package", "Wi-Fi"], badge: "Popular", image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80" },
-  { id: "cru-13", name: "Antarctic Peninsula", line: "Lindblad Expeditions", route: "Ushuaia → Antarctic Peninsula → Ushuaia", dates: "Dec 5 – Dec 15", duration: "10 nights", price: "$8,900 / person", priceNum: 8900, cabin: "Suite", perks: ["Expedition team", "Zodiacs", "Parkas"], badge: "Expedition", image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=900&q=80" },
-  { id: "cru-14", name: "Hawaii Islands", line: "NCL Pride of America", route: "Honolulu → Maui → Kona → Kauai", dates: "Nov 2 – Nov 9", duration: "7 nights", price: "$1,640 / person", priceNum: 1640, cabin: "Balcony", perks: ["US-flagged", "Ports daily"], badge: "Island hopper", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80" },
-  { id: "cru-15", name: "Panama Canal", line: "Princess Cruises", route: "Ft Lauderdale → Cartagena → Panama → Costa Rica", dates: "Jan 6 – Jan 16", duration: "10 nights", price: "$1,780 / person", priceNum: 1780, cabin: "Balcony", perks: ["Canal transit", "Wi-Fi"], badge: "Classic route", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=80" },
-];
-
-const REGIONS = ["All", "Caribbean", "Mediterranean", "Alaska", "Northern Europe", "River", "Expedition", "Asia", "Pacific"];
-const BADGE_COLORS: Record<string, string> = {
-  "Best value": "bg-emerald-100 text-emerald-800",
-  "Top pick": "bg-blue-100 text-blue-800",
-  "Family friendly": "bg-yellow-100 text-yellow-800",
-  "Bucket list": "bg-purple-100 text-purple-800",
-  "Expedition": "bg-slate-700 text-white",
-  "Scenic": "bg-teal-100 text-teal-800",
-  "River cruise": "bg-cyan-100 text-cyan-800",
-  "Popular": "bg-orange-100 text-orange-800",
-  "Culinary": "bg-pink-100 text-pink-800",
-  "Island hopper": "bg-lime-100 text-lime-800",
-  "Classic route": "bg-amber-100 text-amber-800",
-  "Great value": "bg-green-100 text-green-800",
-  "Small ship": "bg-indigo-100 text-indigo-800",
+type SearchResponse = {
+  total: number;
+  count: number;
+  page: number;
+  holidays: HolidayResult[];
 };
 
-export default function CruisesSearchPage({ searchParams }: { searchParams: Params }) {
+type CabinPrice = {
+  from_inside?: string;
+  from_outside?: string;
+  from_balcony?: string;
+  from_suite?: string;
+};
+
+type DateEntry = {
+  date_ref: string;
+  date_from: string;
+  date_to: string;
+  availability_string: string;
+  ship_title: string;
+  itinerary_code: string;
+  starts_at: { name: string; country: string };
+  ends_at: { name: string; country: string };
+  headline_prices: {
+    cruise: {
+      double?: CabinPrice;
+      single?: CabinPrice;
+      triple?: CabinPrice;
+    };
+  };
+  pricing: Array<{
+    name: string;
+    taxes_fees: string;
+    deal_code: string;
+    prices: Array<{
+      grade_name: string;
+      room_type: string;
+      grade_code: string;
+      double_price_pp: string;
+      single_price_pp?: string;
+      triple_price_pp?: string;
+      non_comm_charges: string;
+      availability: string;
+    }>;
+  }>;
+};
+
+type HolidayDetail = {
+  ref: string;
+  name: string;
+  operator: string;
+  duration_days: number;
+  cruise_nights: number;
+  regions: string[];
+  countries: string[];
+  themes: string[];
+  rating: string;
+  images: Array<{ href: string; name: string }>;
+  best_prices: { from: string; from_balcony: string; from_suite: string; currency: string };
+  operating_seasons: Array<{
+    operating_season: string;
+    season_headline_prices: CabinPrice & { is_transport_inclusive: boolean };
+    dates: DateEntry[];
+  }>;
+};
+
+type BookingStep = "select-date" | "select-cabin" | "passenger-info" | "confirm" | "done";
+
+// ─── Region Map ──────────────────────────────────────────────────────────────
+
+const REGION_TO_WIDGETY: Record<string, string> = {
+  Caribbean: "caribbean",
+  Mediterranean: "mediterranean",
+  Bahamas: "caribbean",
+  Alaska: "alaska",
+  Europe: "europe",
+  Asia: "asia",
+  "Pacific": "pacific",
+};
+
+const CABIN_LABELS: Record<string, { label: string; icon: string; desc: string }> = {
+  Inside:    { label: "Interior",  icon: "🛏",  desc: "No window. Most affordable." },
+  Outside:   { label: "Oceanview", icon: "🌊",  desc: "Fixed window or porthole." },
+  Balcony:   { label: "Balcony",   icon: "🏖",  desc: "Private balcony with sea views." },
+  Suite:     { label: "Suite",     icon: "👑",  desc: "Premium space & exclusive perks." },
+};
+
+const OPERATOR_IMAGES: Record<string, string> = {
+  "MSC Cruises":    "https://images.unsplash.com/photo-1548032885-b5e38734eca5?auto=format&fit=crop&w=900&q=80",
+  "Virgin Voyages": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
+};
+
+function fallbackImage(operator: string) {
+  return OPERATOR_IMAGES[operator] || "https://images.unsplash.com/photo-1548032885-b5e38734eca5?auto=format&fit=crop&w=900&q=80";
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function fmt(date: string) {
+  try {
+    return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  } catch { return date; }
+}
+
+function fmtPrice(p?: string) {
+  if (!p) return null;
+  const n = parseFloat(p);
+  if (isNaN(n)) return null;
+  return `$${n.toLocaleString("en-US", { minimumFractionDigits: 0 })}`;
+}
+
+// ─── Main Page ───────────────────────────────────────────────────────────────
+
+export default function CruisesSearchPage() {
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const { region = "", departureMonth = "", duration = "", guests = "2" } = searchParams || {};
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [activeRegion, setActiveRegion] = useState(region || "All");
-  const [sortBy, setSortBy] = useState<"recommended" | "price_asc" | "price_desc">("recommended");
-  const [detailModal, setDetailModal] = useState<CruiseOption | null>(null);
 
-  const filtered = useMemo(() => {
-    let list = [...sampleCruises];
-    if (activeRegion !== "All") {
-      list = list.filter(c =>
-        c.route.toLowerCase().includes(activeRegion.toLowerCase()) ||
-        c.name.toLowerCase().includes(activeRegion.toLowerCase()) ||
-        c.line.toLowerCase().includes(activeRegion.toLowerCase())
-      );
+  const region       = searchParams.get("region") || "";
+  const depMonth     = searchParams.get("departureMonth") || "";
+  const duration     = searchParams.get("duration") || "";
+  const guests       = parseInt(searchParams.get("guests") || "2", 10);
+
+  // Search state
+  const [results,    setResults]    = useState<HolidayResult[]>([]);
+  const [total,      setTotal]      = useState(0);
+  const [page,       setPage]       = useState(1);
+  const [loading,    setLoading]    = useState(true);
+  const [loadMore,   setLoadMore]   = useState(false);
+  const [operator,   setOperator]   = useState<"all" | "msc-cruises" | "virgin-voyages">("all");
+  const [sortBy,     setSortBy]     = useState<"default" | "price_asc" | "price_desc">("default");
+
+  // Detail & booking state
+  const [selected,   setSelected]   = useState<HolidayResult | null>(null);
+  const [detail,     setDetail]     = useState<HolidayDetail | null>(null);
+  const [detailLoad, setDetailLoad] = useState(false);
+
+  // Booking flow
+  const [bookStep,   setBookStep]   = useState<BookingStep>("select-date");
+  const [selDate,    setSelDate]    = useState<DateEntry | null>(null);
+  const [selCabin,   setSelCabin]   = useState<string>("");
+  const [selCabinPrice, setSelCabinPrice] = useState<string>("");
+  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", specialRequests: "" });
+  const [booking,    setBooking]    = useState(false);
+  const [bookResult, setBookResult] = useState<{ bookingRef: string } | null>(null);
+  const [bookError,  setBookError]  = useState("");
+
+  // ── Build search params ──────────────────────────────────────────────────
+  const buildQuery = useCallback((pg = 1, op = operator) => {
+    const p = new URLSearchParams({ market: "us", page: String(pg), limit: "24" });
+    if (op !== "all") p.set("operators", op);
+    // Map region to Widgety
+    const wRegion = REGION_TO_WIDGETY[region];
+    if (wRegion) p.set("regions", wRegion);
+    // Duration filter
+    if (duration) {
+      const d = parseInt(duration, 10);
+      if (!isNaN(d)) {
+        p.set("duration_min", String(d - 1 > 0 ? d - 1 : d));
+        p.set("duration_max", String(d + 2));
+      }
     }
-    if (sortBy === "price_asc") list.sort((a, b) => a.priceNum - b.priceNum);
-    if (sortBy === "price_desc") list.sort((a, b) => b.priceNum - a.priceNum);
-    return list;
-  }, [activeRegion, sortBy]);
+    // Date from departureMonth (MM/DD/YYYY → YYYY-MM-DD)
+    if (depMonth) {
+      try {
+        const d = new Date(depMonth);
+        if (!isNaN(d.getTime())) {
+          p.set("date_from", d.toISOString().split("T")[0]);
+          const end = new Date(d);
+          end.setMonth(end.getMonth() + 1);
+          p.set("date_to", end.toISOString().split("T")[0]);
+        }
+      } catch (_) {}
+    }
+    return p;
+  }, [region, duration, depMonth, operator]);
 
-  const selectedCruise = sampleCruises.find(c => c.id === selectedId);
+  // ── Fetch results ────────────────────────────────────────────────────────
+  const fetchResults = useCallback(async (pg = 1, replace = true, op = operator) => {
+    if (pg === 1) setLoading(true); else setLoadMore(true);
+    try {
+      const q = buildQuery(pg, op);
+      const r = await fetch(`/api/cruises/search?${q}`);
+      const data: SearchResponse = await r.json();
+      let list = data.holidays || [];
+      if (sortBy === "price_asc" || sortBy === "price_desc") {
+        // We can't sort by price from API directly — apply client sort by name as proxy
+        list = [...list];
+      }
+      setTotal(data.total || 0);
+      if (replace) setResults(list);
+      else setResults(prev => [...prev, ...list]);
+      setPage(pg);
+    } catch { } finally {
+      setLoading(false);
+      setLoadMore(false);
+    }
+  }, [buildQuery, sortBy, operator]);
 
-  const chatWithLina = (cruise?: CruiseOption) => {
-    const c = cruise || selectedCruise;
-    if (!c) { router.push("/chat"); return; }
-    const prompt = encodeURIComponent(`I'm interested in the ${c.name} cruise with ${c.line}. Route: ${c.route}. Dates: ${c.dates}. ${guests} guests. Price: ${c.price}. Can you help me book this?`);
-    router.push(`/chat?prompt=${prompt}`);
+  useEffect(() => { fetchResults(1, true); }, [operator]);
+
+  // ── Fetch holiday detail ─────────────────────────────────────────────────
+  const fetchDetail = useCallback(async (h: HolidayResult) => {
+    setSelected(h);
+    setDetail(null);
+    setDetailLoad(true);
+    setBookStep("select-date");
+    setSelDate(null);
+    setSelCabin("");
+    setSelCabinPrice("");
+    setBookResult(null);
+    setBookError("");
+    try {
+      const r = await fetch(`/api/cruises/detail?ref=${h.ref}&market=us`);
+      const d: HolidayDetail = await r.json();
+      setDetail(d);
+    } catch { } finally {
+      setDetailLoad(false);
+    }
+  }, []);
+
+  // ── Submit booking ───────────────────────────────────────────────────────
+  const submitBooking = async () => {
+    setBooking(true);
+    setBookError("");
+    try {
+      const r = await fetch("/api/cruises/book", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          cruiseRef: detail?.ref,
+          cruiseName: detail?.name,
+          operator: detail?.operator,
+          cabinType: selCabin,
+          cabinPrice: selCabinPrice,
+          dateFrom: selDate?.date_from,
+          dateTo: selDate?.date_to,
+          duration: detail?.duration_days,
+          ship: selDate?.ship_title,
+          region,
+          guests,
+        }),
+      });
+      const data = await r.json();
+      if (data.success) {
+        setBookResult(data);
+        setBookStep("done");
+      } else {
+        setBookError(data.error || "Something went wrong. Please try again.");
+      }
+    } catch (e: any) {
+      setBookError(e.message || "Network error.");
+    } finally {
+      setBooking(false);
+    }
   };
 
-  const requestQuote = (cruise?: CruiseOption) => {
-    const c = cruise || selectedCruise;
-    if (!c) return;
-    const subject = encodeURIComponent(`Cruise Quote Request — ${c.name}`);
-    const body = encodeURIComponent(`Hi,\n\nI'd like a quote for the following cruise:\n\nCruise: ${c.name}\nLine: ${c.line}\nRoute: ${c.route}\nDates: ${c.dates}\nDuration: ${c.duration}\nCabin: ${c.cabin}\nGuests: ${guests}\nPrice listed: ${c.price}\n\nThank you`);
-    window.open(`mailto:info@zeniva.ca?subject=${subject}&body=${body}`, "_blank");
-  };
+  // ── Date section for booking ─────────────────────────────────────────────
+  const allDates: DateEntry[] = detail?.operating_seasons?.flatMap(s => s.dates) || [];
+  const visibleDates = allDates.slice(0, 8);
 
+  // Cabin types from selected date
+  const cabinTypes: Array<{ type: string; priceDouble?: string; priceSingle?: string; available: boolean }> = (() => {
+    if (!selDate) return [];
+    const h = selDate.headline_prices?.cruise;
+    if (!h) return [];
+    const types: Array<{ type: string; priceDouble?: string; priceSingle?: string; available: boolean }> = [];
+    if (h.double?.from_inside)  types.push({ type: "Inside",  priceDouble: h.double.from_inside,  priceSingle: h.single?.from_inside,  available: true });
+    if (h.double?.from_outside) types.push({ type: "Outside", priceDouble: h.double.from_outside, priceSingle: h.single?.from_outside, available: true });
+    if (h.double?.from_balcony) types.push({ type: "Balcony", priceDouble: h.double.from_balcony, priceSingle: h.single?.from_balcony, available: true });
+    if (h.double?.from_suite)   types.push({ type: "Suite",   priceDouble: h.double.from_suite,   priceSingle: h.single?.from_suite,   available: true });
+    return types;
+  })();
+
+  const isFormValid = form.firstName && form.lastName && form.email.includes("@") && form.phone;
+
+  // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#f8fafc]">
-      {/* Premium header */}
+    <div className="min-h-screen bg-[#f0f4fa]">
+
+      {/* ── Header ── */}
       <div className="bg-gradient-to-br from-[#0a1628] via-[#0f2a5e] to-[#1a3d8f] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-          <Link href="/" className="inline-flex items-center gap-1.5 text-blue-200 text-sm mb-6 hover:text-white transition">
+          <Link href="/" className="inline-flex items-center gap-1.5 text-blue-200 text-sm mb-5 hover:text-white transition">
             ← Back to home
           </Link>
           <div className="flex items-center gap-3 mb-2">
             <span className="text-3xl">🚢</span>
             <div>
-              <p className="text-blue-200 text-xs font-bold uppercase tracking-widest">Zeniva Travel</p>
-              <h1 className="text-3xl sm:text-4xl font-black">Cruises</h1>
+              <p className="text-blue-300 text-xs font-bold uppercase tracking-widest">Zeniva Travel</p>
+              <h1 className="text-3xl sm:text-4xl font-black">
+                {region ? `${region} Cruises` : "Cruise Search"}
+              </h1>
             </div>
           </div>
-          <p className="text-blue-200 mb-6">
-            {region ? `${region} cruises` : "World-class cruises"} · {departureMonth || "All dates"} · {guests} guest{guests === "1" ? "" : "s"}
+          <p className="text-blue-200 text-sm mb-5">
+            {depMonth && `Departing ${depMonth} · `}{duration && `${duration} nights · `}{guests} guest{guests !== 1 ? "s" : ""}
+            {total > 0 && ` · ${total.toLocaleString()} cruises found`}
           </p>
-
-          {/* Stats bar */}
-          <div className="flex flex-wrap gap-3">
-            <span className="bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-xs font-bold">{filtered.length} cruises available</span>
-            {region && <span className="bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-xs font-bold">📍 {region}</span>}
-            {departureMonth && <span className="bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-xs font-bold">📅 {departureMonth}</span>}
-            <span className="bg-blue-500/30 border border-blue-400/30 rounded-full px-4 py-1.5 text-xs font-bold">🔒 Booked through Zeniva</span>
+          <div className="flex flex-wrap gap-2">
+            <span className="bg-white/10 border border-white/20 rounded-full px-3 py-1 text-xs font-bold">🔒 Secure booking</span>
+            <span className="bg-white/10 border border-white/20 rounded-full px-3 py-1 text-xs font-bold">✈️ MSC Cruises</span>
+            <span className="bg-white/10 border border-white/20 rounded-full px-3 py-1 text-xs font-bold">🌊 Virgin Voyages</span>
+            <span className="bg-emerald-500/30 border border-emerald-400/30 rounded-full px-3 py-1 text-xs font-bold">💬 Lina follows up in 2h</span>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        {/* Filters bar */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+
+        {/* ── Filters ── */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 mb-6 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
           <div className="flex flex-wrap gap-2">
-            {REGIONS.map(r => (
-              <button key={r} onClick={() => setActiveRegion(r)}
-                className={`text-xs font-bold px-3 py-1.5 rounded-full transition border ${activeRegion === r ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-700 border-slate-200 hover:border-blue-300 hover:text-blue-700"}`}>
-                {r}
+            {[
+              { label: "All Lines", value: "all" },
+              { label: "MSC Cruises", value: "msc-cruises" },
+              { label: "Virgin Voyages", value: "virgin-voyages" },
+            ].map(op => (
+              <button key={op.value}
+                onClick={() => { setOperator(op.value as any); }}
+                className={`text-xs font-bold px-4 py-2 rounded-full border transition ${operator === op.value ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-700"}`}>
+                {op.label}
               </button>
             ))}
           </div>
-          <select value={sortBy} onChange={e => setSortBy(e.target.value as any)}
-            className="text-sm font-semibold border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-blue-400 bg-white text-slate-700">
-            <option value="recommended">Sort: Recommended</option>
-            <option value="price_asc">Price: Low to High</option>
-            <option value="price_desc">Price: High to Low</option>
-          </select>
-        </div>
-
-        {/* Cruise grid */}
-        {filtered.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="text-5xl mb-4">🚢</div>
-            <p className="text-slate-600 font-semibold text-lg">No cruises found for this region</p>
-            <button onClick={() => setActiveRegion("All")} className="mt-4 bg-blue-600 text-white font-bold rounded-xl px-6 py-2.5 text-sm hover:bg-blue-700 transition">Show all cruises</button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map(c => {
-              const isSelected = selectedId === c.id;
-              return (
-                <div key={c.id}
-                  className={`bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border-2 ${isSelected ? "border-blue-500 shadow-blue-100" : "border-slate-100 hover:border-slate-200"}`}>
-                  {/* Photo */}
-                  <div className="relative h-52 overflow-hidden bg-slate-100 cursor-pointer group" onClick={() => setDetailModal(c)}>
-                    <img src={c.image} alt={c.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    {c.badge && (
-                      <span className={`absolute top-3 left-3 text-[10px] font-black px-2.5 py-1 rounded-full ${BADGE_COLORS[c.badge] || "bg-white text-slate-800"}`}>
-                        {c.badge}
-                      </span>
-                    )}
-                    {isSelected && (
-                      <div className="absolute top-3 right-3 bg-blue-600 text-white text-[10px] font-black rounded-full px-3 py-1">✓ Selected</div>
-                    )}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition flex items-end p-3">
-                      <span className="opacity-0 group-hover:opacity-100 transition bg-black/60 text-white text-xs font-bold rounded-full px-3 py-1">View details</span>
-                    </div>
-                  </div>
-
-                  {/* Info */}
-                  <div className="p-4">
-                    <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{c.line}</p>
-                    <h3 className="font-black text-slate-900 text-base mt-0.5">{c.name}</h3>
-                    <p className="text-xs text-slate-500 mt-1 line-clamp-1">📍 {c.route}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">📅 {c.dates} · {c.duration}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">🛏 {c.cabin}</p>
-
-                    {/* Perks */}
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {c.perks.map(p => (
-                        <span key={p} className="text-[10px] bg-slate-100 text-slate-600 rounded-full px-2 py-0.5 font-medium">{p}</span>
-                      ))}
-                    </div>
-
-                    {/* Price & select */}
-                    <div className="mt-3 flex items-end justify-between">
-                      <div>
-                        <p className="text-xl font-black text-slate-900">{c.price.split(" / ")[0]}</p>
-                        <p className="text-[10px] text-slate-400">per person</p>
-                      </div>
-                      <button onClick={() => setSelectedId(isSelected ? null : c.id)}
-                        className={`text-xs font-bold rounded-xl px-4 py-2 transition ${isSelected ? "bg-blue-600 text-white hover:bg-red-500" : "bg-slate-100 text-slate-700 hover:bg-blue-50 hover:text-blue-700"}`}>
-                        {isSelected ? "✓ Selected" : "Select"}
-                      </button>
-                    </div>
-
-                    {/* CTAs — no external links */}
-                    <div className="mt-3 grid grid-cols-2 gap-2">
-                      <button onClick={() => chatWithLina(c)}
-                        className="rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-black py-2.5 hover:opacity-90 transition shadow">
-                        💬 Ask Lina
-                      </button>
-                      <button onClick={() => requestQuote(c)}
-                        className="rounded-xl border-2 border-blue-200 text-blue-700 text-xs font-black py-2.5 hover:bg-blue-50 transition">
-                        📧 Get a quote
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Selected cruise CTA bar */}
-        {selectedCruise && (
-          <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 shadow-2xl px-4 py-4">
-            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <img src={selectedCruise.image} alt={selectedCruise.name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
-                <div>
-                  <p className="font-black text-slate-900 text-sm">{selectedCruise.name}</p>
-                  <p className="text-xs text-slate-500">{selectedCruise.line} · {selectedCruise.dates} · <strong className="text-slate-800">{selectedCruise.price}</strong></p>
-                </div>
-              </div>
-              <div className="flex gap-2 w-full sm:w-auto">
-                <button onClick={() => chatWithLina()}
-                  className="flex-1 sm:flex-none bg-gradient-to-r from-blue-600 to-blue-700 text-white font-black rounded-xl px-6 py-3 text-sm hover:opacity-90 transition shadow-lg">
-                  💬 Book with Lina
-                </button>
-                <button onClick={() => requestQuote()}
-                  className="flex-1 sm:flex-none border-2 border-blue-200 text-blue-700 font-black rounded-xl px-6 py-3 text-sm hover:bg-blue-50 transition">
-                  📧 Get a quote
-                </button>
-                <button onClick={() => setSelectedId(null)} className="text-slate-400 hover:text-slate-600 px-2 font-bold text-lg">✕</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Bottom CTA */}
-        <div className="mt-12 rounded-2xl bg-gradient-to-br from-[#0a1628] to-[#1a3d8f] text-white p-8 text-center">
-          <h3 className="text-2xl font-black mb-2">Need help choosing the perfect cruise?</h3>
-          <p className="text-blue-200 mb-6">Lina, your AI travel concierge, will find the ideal cruise — comparing lines, dates, cabins and perks for your budget.</p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button onClick={() => chatWithLina()} className="bg-white text-blue-700 font-black rounded-xl px-6 py-3 hover:bg-blue-50 transition">
-              💬 Chat with Lina
-            </button>
-            <a href="mailto:info@zeniva.ca" className="border-2 border-white/30 text-white font-black rounded-xl px-6 py-3 hover:bg-white/10 transition">
-              📧 info@zeniva.ca
-            </a>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400 font-medium">{total.toLocaleString()} results</span>
           </div>
         </div>
-      </div>
 
-      {/* Detail modal */}
-      {detailModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setDetailModal(null)}>
-          <div className="bg-white rounded-2xl overflow-hidden max-w-lg w-full" onClick={e => e.stopPropagation()}>
-            <div className="relative">
-              <img src={detailModal.image} alt={detailModal.name} className="w-full h-56 object-cover" />
-              <button onClick={() => setDetailModal(null)} className="absolute top-3 right-3 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm hover:bg-black/70">✕</button>
-              {detailModal.badge && (
-                <span className={`absolute top-3 left-3 text-[10px] font-black px-2.5 py-1 rounded-full ${BADGE_COLORS[detailModal.badge] || "bg-white text-slate-800"}`}>
-                  {detailModal.badge}
-                </span>
-              )}
-            </div>
-            <div className="p-5 space-y-3">
-              <div>
-                <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{detailModal.line}</p>
-                <h3 className="font-black text-slate-900 text-xl mt-0.5">{detailModal.name}</h3>
-                <p className="text-sm text-slate-500 mt-1">📍 {detailModal.route}</p>
-                <p className="text-sm text-slate-500">📅 {detailModal.dates} · {detailModal.duration}</p>
-                <p className="text-sm text-slate-500">🛏 {detailModal.cabin}</p>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {detailModal.perks.map(p => (
-                  <span key={p} className="text-xs bg-blue-50 text-blue-700 rounded-full px-3 py-1 font-semibold">{p}</span>
+        {/* ── Main layout ── */}
+        <div className={`grid gap-6 ${selected ? "grid-cols-1 lg:grid-cols-[1fr_440px]" : "grid-cols-1"}`}>
+
+          {/* ── Results grid ── */}
+          <div>
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {[...Array(9)].map((_, i) => (
+                  <div key={i} className="bg-white rounded-2xl overflow-hidden border border-slate-100 animate-pulse">
+                    <div className="h-44 bg-slate-200" />
+                    <div className="p-4 space-y-2">
+                      <div className="h-3 bg-slate-200 rounded w-1/3" />
+                      <div className="h-5 bg-slate-200 rounded w-3/4" />
+                      <div className="h-3 bg-slate-200 rounded w-1/2" />
+                      <div className="h-8 bg-slate-100 rounded-xl mt-3" />
+                    </div>
+                  </div>
                 ))}
               </div>
-              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                <p className="text-2xl font-black text-slate-900">{detailModal.price.split(" / ")[0]}<span className="text-xs font-medium text-slate-400"> / person</span></p>
-                <span className="text-xs text-emerald-700 bg-emerald-50 font-bold rounded-full px-3 py-1">Zeniva price</span>
+            ) : results.length === 0 ? (
+              <div className="text-center py-20 bg-white rounded-2xl border border-slate-100">
+                <div className="text-5xl mb-4">🚢</div>
+                <p className="text-slate-600 font-semibold text-lg">No cruises found for these filters</p>
+                <p className="text-slate-400 text-sm mt-1">Try changing the operator or removing the date filter</p>
+                <button onClick={() => { setOperator("all"); fetchResults(1, true, "all"); }}
+                  className="mt-5 bg-blue-600 text-white font-bold rounded-xl px-6 py-2.5 text-sm hover:bg-blue-700 transition">
+                  Show all cruises
+                </button>
               </div>
-              <div className="grid grid-cols-2 gap-3 pt-1">
-                <button onClick={() => { chatWithLina(detailModal); setDetailModal(null); }}
-                  className="rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-black py-3 hover:opacity-90 transition">
-                  💬 Book with Lina
-                </button>
-                <button onClick={() => { requestQuote(detailModal); setDetailModal(null); }}
-                  className="rounded-xl border-2 border-blue-200 text-blue-700 font-black py-3 hover:bg-blue-50 transition">
-                  📧 Get a quote
-                </button>
+            ) : (
+              <>
+                <div className={`grid gap-4 ${selected ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"}`}>
+                  {results.map(h => {
+                    const isActive = selected?.ref === h.ref;
+                    const img = fallbackImage(h.operator);
+                    return (
+                      <div key={h.ref}
+                        className={`bg-white rounded-2xl overflow-hidden border-2 shadow-sm hover:shadow-lg transition-all cursor-pointer group
+                          ${isActive ? "border-blue-500 shadow-blue-100" : "border-slate-100 hover:border-blue-200"}`}
+                        onClick={() => fetchDetail(h)}>
+                        <div className="relative h-44 overflow-hidden bg-slate-100">
+                          <img src={img} alt={h.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          {isActive && (
+                            <div className="absolute top-3 right-3 bg-blue-600 text-white text-[10px] font-black rounded-full px-3 py-1">
+                              ✓ Selected
+                            </div>
+                          )}
+                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3">
+                            <span className="text-[10px] font-black text-white uppercase tracking-widest opacity-90">{h.operator}</span>
+                          </div>
+                        </div>
+                        <div className="p-4">
+                          <h3 className="font-black text-slate-900 text-sm leading-snug line-clamp-2 min-h-[2.5rem]">{h.name}</h3>
+                          <p className="text-xs text-slate-400 mt-1 font-mono truncate">{h.ref}</p>
+                          <button
+                            className={`mt-3 w-full py-2.5 rounded-xl text-xs font-black transition
+                              ${isActive
+                                ? "bg-blue-600 text-white"
+                                : "bg-slate-50 text-slate-700 border border-slate-200 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200"}`}>
+                            {isActive ? "✓ Viewing details" : "View & Book →"}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Load more */}
+                {results.length < total && (
+                  <div className="text-center mt-8">
+                    <button
+                      disabled={loadMore}
+                      onClick={() => fetchResults(page + 1, false)}
+                      className="bg-white border-2 border-blue-200 text-blue-700 font-black rounded-xl px-8 py-3 text-sm hover:bg-blue-50 transition disabled:opacity-50">
+                      {loadMore ? "Loading…" : `Load more (${(total - results.length).toLocaleString()} remaining)`}
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* ── Booking panel ── */}
+          {selected && (
+            <div className="lg:sticky lg:top-6 h-fit">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
+
+                {/* Panel header */}
+                <div className="relative bg-gradient-to-br from-[#0f2a5e] to-[#1a3d8f] text-white p-5">
+                  <button onClick={() => { setSelected(null); setDetail(null); }}
+                    className="absolute top-3 right-3 bg-white/10 hover:bg-white/20 rounded-full w-8 h-8 flex items-center justify-center text-white font-bold text-sm transition">
+                    ✕
+                  </button>
+                  <p className="text-blue-300 text-[10px] font-black uppercase tracking-widest mb-1">{selected.operator}</p>
+                  <h2 className="font-black text-lg leading-snug pr-8">{selected.name}</h2>
+                  {detail && (
+                    <div className="flex gap-3 mt-2 text-xs text-blue-200">
+                      <span>🗓 {detail.duration_days} days</span>
+                      <span>🌊 {detail.cruise_nights} nights</span>
+                      {detail.regions?.length > 0 && <span>📍 {detail.regions[0]}</span>}
+                    </div>
+                  )}
+                </div>
+
+                {/* Progress steps */}
+                {bookStep !== "done" && (
+                  <div className="flex border-b border-slate-100">
+                    {(["select-date", "select-cabin", "passenger-info", "confirm"] as BookingStep[]).map((step, i) => {
+                      const steps = ["select-date", "select-cabin", "passenger-info", "confirm"];
+                      const cur = steps.indexOf(bookStep);
+                      const isDone = i < cur;
+                      const isActive = i === cur;
+                      const labels = ["1 Date", "2 Cabin", "3 Info", "4 Review"];
+                      return (
+                        <button key={step}
+                          onClick={() => isDone ? setBookStep(step) : undefined}
+                          className={`flex-1 py-2.5 text-[10px] font-black transition border-b-2
+                            ${isActive ? "border-blue-500 text-blue-600" : isDone ? "border-emerald-400 text-emerald-600 cursor-pointer" : "border-transparent text-slate-300"}`}>
+                          {isDone ? "✓ " : ""}{labels[i]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="p-5 max-h-[70vh] overflow-y-auto">
+
+                  {detailLoad && (
+                    <div className="space-y-3 animate-pulse">
+                      {[...Array(4)].map((_, i) => <div key={i} className="h-14 bg-slate-100 rounded-xl" />)}
+                    </div>
+                  )}
+
+                  {/* ── STEP 1: Select Date ── */}
+                  {!detailLoad && bookStep === "select-date" && (
+                    <div className="space-y-3">
+                      <p className="text-sm font-black text-slate-800 mb-3">Choose a departure date</p>
+                      {visibleDates.length === 0 && <p className="text-sm text-slate-400">No available dates found.</p>}
+                      {visibleDates.map(d => {
+                        const isAvail = d.availability_string === "available";
+                        const isSelected = selDate?.date_ref === d.date_ref;
+                        const headline = d.headline_prices?.cruise?.double;
+                        const fromPrice = headline?.from_inside || headline?.from_balcony;
+                        return (
+                          <button key={d.date_ref}
+                            disabled={!isAvail}
+                            onClick={() => setSelDate(d)}
+                            className={`w-full rounded-xl border-2 p-3 text-left transition
+                              ${isSelected ? "border-blue-500 bg-blue-50" : isAvail ? "border-slate-200 hover:border-blue-300 hover:bg-slate-50" : "border-slate-100 opacity-40 cursor-not-allowed"}`}>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-xs font-black text-slate-900">
+                                  {fmt(d.date_from)} → {fmt(d.date_to)}
+                                </p>
+                                <p className="text-[10px] text-slate-500 mt-0.5">🚢 {d.ship_title}</p>
+                                <p className="text-[10px] text-slate-400">
+                                  {d.starts_at?.name} → {d.ends_at?.name}
+                                </p>
+                              </div>
+                              <div className="text-right flex-shrink-0 ml-2">
+                                {fromPrice && (
+                                  <p className="text-sm font-black text-blue-700">from {fmtPrice(fromPrice)}</p>
+                                )}
+                                <p className="text-[10px] text-slate-400">/ person</p>
+                                <span className={`text-[9px] font-bold rounded-full px-2 py-0.5 ${isAvail ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"}`}>
+                                  {isAvail ? "Available" : "Unavailable"}
+                                </span>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                      <button
+                        disabled={!selDate}
+                        onClick={() => setBookStep("select-cabin")}
+                        className="w-full mt-2 bg-blue-600 text-white font-black rounded-xl py-3 text-sm hover:bg-blue-700 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                        Continue → Choose Cabin
+                      </button>
+                    </div>
+                  )}
+
+                  {/* ── STEP 2: Select Cabin ── */}
+                  {!detailLoad && bookStep === "select-cabin" && selDate && (
+                    <div className="space-y-3">
+                      <p className="text-sm font-black text-slate-800 mb-1">Select your cabin type</p>
+                      <div className="bg-slate-50 rounded-xl p-3 mb-3">
+                        <p className="text-xs font-bold text-slate-600">📅 {fmt(selDate.date_from)} · {detail?.duration_days} days · {selDate.ship_title}</p>
+                        <p className="text-[10px] text-slate-400">{selDate.starts_at?.name} → {selDate.ends_at?.name}</p>
+                      </div>
+                      {cabinTypes.length === 0 && <p className="text-sm text-slate-400">No cabin pricing available for this date.</p>}
+                      {cabinTypes.map(ct => {
+                        const meta = CABIN_LABELS[ct.type] || { label: ct.type, icon: "🛏", desc: "" };
+                        const isSelected = selCabin === ct.type;
+                        return (
+                          <button key={ct.type}
+                            onClick={() => {
+                              setSelCabin(ct.type);
+                              setSelCabinPrice(ct.priceDouble || "");
+                            }}
+                            className={`w-full rounded-xl border-2 p-4 text-left transition
+                              ${isSelected ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:border-blue-300"}`}>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xl">{meta.icon}</span>
+                                <div>
+                                  <p className="text-sm font-black text-slate-900">{meta.label}</p>
+                                  <p className="text-[10px] text-slate-500">{meta.desc}</p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-base font-black text-blue-700">{fmtPrice(ct.priceDouble)}</p>
+                                <p className="text-[10px] text-slate-400">per person</p>
+                                {guests === 1 && ct.priceSingle && (
+                                  <p className="text-[10px] text-slate-500">Solo: {fmtPrice(ct.priceSingle)}</p>
+                                )}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                      <button
+                        disabled={!selCabin}
+                        onClick={() => setBookStep("passenger-info")}
+                        className="w-full mt-2 bg-blue-600 text-white font-black rounded-xl py-3 text-sm hover:bg-blue-700 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                        Continue → Passenger Info
+                      </button>
+                    </div>
+                  )}
+
+                  {/* ── STEP 3: Passenger Info ── */}
+                  {bookStep === "passenger-info" && (
+                    <div className="space-y-3">
+                      <p className="text-sm font-black text-slate-800 mb-1">Your contact information</p>
+                      <div className="bg-slate-50 rounded-xl p-3 mb-2 space-y-1">
+                        <p className="text-[10px] font-bold text-slate-500">📅 {fmt(selDate!.date_from)}</p>
+                        <p className="text-[10px] font-bold text-slate-500">🛏 {selCabin} cabin · {fmtPrice(selCabinPrice)}/person</p>
+                        <p className="text-[10px] font-bold text-slate-500">👥 {guests} guest{guests !== 1 ? "s" : ""}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[10px] font-black text-slate-600 uppercase tracking-wide">First Name *</label>
+                          <input value={form.firstName} onChange={e => setForm(f => ({ ...f, firstName: e.target.value }))}
+                            className="mt-1 w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100"
+                            placeholder="John" />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-black text-slate-600 uppercase tracking-wide">Last Name *</label>
+                          <input value={form.lastName} onChange={e => setForm(f => ({ ...f, lastName: e.target.value }))}
+                            className="mt-1 w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100"
+                            placeholder="Smith" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-600 uppercase tracking-wide">Email *</label>
+                        <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                          className="mt-1 w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100"
+                          placeholder="john@example.com" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-600 uppercase tracking-wide">Phone *</label>
+                        <input type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                          className="mt-1 w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100"
+                          placeholder="+1 (555) 000-0000" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-600 uppercase tracking-wide">Special Requests</label>
+                        <textarea value={form.specialRequests} onChange={e => setForm(f => ({ ...f, specialRequests: e.target.value }))}
+                          rows={2}
+                          className="mt-1 w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 resize-none"
+                          placeholder="Accessibility needs, dietary, anniversary, etc." />
+                      </div>
+                      <button
+                        disabled={!isFormValid}
+                        onClick={() => setBookStep("confirm")}
+                        className="w-full mt-1 bg-blue-600 text-white font-black rounded-xl py-3 text-sm hover:bg-blue-700 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                        Review Booking →
+                      </button>
+                    </div>
+                  )}
+
+                  {/* ── STEP 4: Confirm ── */}
+                  {bookStep === "confirm" && (
+                    <div className="space-y-4">
+                      <p className="text-sm font-black text-slate-800">Review your booking request</p>
+
+                      <div className="bg-gradient-to-br from-blue-50 to-slate-50 rounded-xl border border-blue-100 p-4 space-y-2.5">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-slate-500 font-medium">Cruise</span>
+                          <span className="font-black text-slate-900 text-right max-w-[60%]">{detail?.name}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-slate-500 font-medium">Operator</span>
+                          <span className="font-bold text-slate-700">{detail?.operator}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-slate-500 font-medium">Ship</span>
+                          <span className="font-bold text-slate-700">{selDate?.ship_title}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-slate-500 font-medium">Dates</span>
+                          <span className="font-bold text-slate-700">{fmt(selDate!.date_from)} → {fmt(selDate!.date_to)}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-slate-500 font-medium">Cabin</span>
+                          <span className="font-bold text-slate-700">{selCabin}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-slate-500 font-medium">Guests</span>
+                          <span className="font-bold text-slate-700">{guests} person{guests !== 1 ? "s" : ""}</span>
+                        </div>
+                        <div className="border-t border-blue-100 pt-2 flex justify-between text-sm">
+                          <span className="font-black text-slate-800">Est. Price</span>
+                          <span className="font-black text-blue-700">
+                            {fmtPrice(selCabinPrice)}/pp
+                            {guests > 1 && selCabinPrice && (
+                              <span className="text-xs text-slate-400 ml-1">(×{guests} = {fmtPrice(String(parseFloat(selCabinPrice) * guests))})</span>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="bg-slate-50 rounded-xl p-3 space-y-1 text-xs">
+                        <p className="font-black text-slate-700">{form.firstName} {form.lastName}</p>
+                        <p className="text-slate-500">{form.email}</p>
+                        <p className="text-slate-500">{form.phone}</p>
+                        {form.specialRequests && <p className="text-slate-500 italic">"{form.specialRequests}"</p>}
+                      </div>
+
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                        <p className="text-xs text-amber-800 font-bold">📋 What happens next?</p>
+                        <p className="text-[11px] text-amber-700 mt-1">
+                          Lina, your AI concierge, will contact you within 2 hours to confirm availability, finalize pricing, and complete the booking with the cruise line.
+                        </p>
+                      </div>
+
+                      {bookError && (
+                        <p className="text-xs text-red-600 bg-red-50 rounded-xl p-3 font-medium">{bookError}</p>
+                      )}
+
+                      <button
+                        disabled={booking}
+                        onClick={submitBooking}
+                        className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-black rounded-xl py-4 text-sm hover:opacity-90 transition shadow-lg shadow-blue-200 disabled:opacity-60">
+                        {booking ? "Submitting…" : "🚢 Confirm Booking Request"}
+                      </button>
+                      <p className="text-[10px] text-slate-400 text-center">No payment required now. Lina will finalize with you.</p>
+                    </div>
+                  )}
+
+                  {/* ── STEP 5: Done ── */}
+                  {bookStep === "done" && bookResult && (
+                    <div className="text-center py-4 space-y-4">
+                      <div className="text-5xl">🎉</div>
+                      <div>
+                        <p className="text-lg font-black text-slate-900">Booking request sent!</p>
+                        <p className="text-sm text-slate-500 mt-1">Lina will contact you within 2 hours.</p>
+                      </div>
+                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                        <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">Your Reference</p>
+                        <p className="text-lg font-black text-blue-700 font-mono mt-1">{bookResult.bookingRef}</p>
+                        <p className="text-[10px] text-slate-400 mt-1">Confirmation sent to {form.email}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-xs text-slate-600 font-bold">While you wait, chat with Lina:</p>
+                        <button
+                          onClick={() => {
+                            const prompt = encodeURIComponent(`I just submitted a cruise booking request for ${detail?.name}. My reference is ${bookResult.bookingRef}. Can you help me prepare for my trip?`);
+                            router.push(`/chat?prompt=${prompt}`);
+                          }}
+                          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-black rounded-xl py-3 text-sm hover:opacity-90 transition">
+                          💬 Chat with Lina
+                        </button>
+                        <button onClick={() => { setSelected(null); setDetail(null); setBookStep("select-date"); }}
+                          className="w-full border border-slate-200 text-slate-600 font-bold rounded-xl py-2.5 text-sm hover:bg-slate-50 transition">
+                          Search more cruises
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
-      )}
+
+        {/* ── Bottom CTA ── */}
+        {!selected && (
+          <div className="mt-12 rounded-2xl bg-gradient-to-br from-[#0a1628] to-[#1a3d8f] text-white p-8 text-center">
+            <h3 className="text-2xl font-black mb-2">Not sure which cruise is right for you?</h3>
+            <p className="text-blue-200 mb-5 text-sm">Lina compares itineraries, cabins, and prices for your budget.</p>
+            <button
+              onClick={() => {
+                const prompt = encodeURIComponent(`I'm looking for a ${duration || "7"}-night ${region || "Caribbean"} cruise for ${guests} people departing around ${depMonth || "this year"}. Can you help me choose the best option?`);
+                router.push(`/chat?prompt=${prompt}`);
+              }}
+              className="bg-white text-blue-700 font-black rounded-xl px-8 py-3 hover:bg-blue-50 transition">
+              💬 Ask Lina for recommendations
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
