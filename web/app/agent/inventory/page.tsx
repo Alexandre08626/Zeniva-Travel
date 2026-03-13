@@ -287,7 +287,7 @@ export default function AgentInventoryPage() {
             <option value="partner">Partenaire publié</option>
             <option value="ycn">YCN</option>
             <option value="resort">Resort catalog</option>
-            <option value="airbnb"<>Zeniva Home <catalog</option>
+            <option value="airbnb">Zeniva Home catalog</option>
             <option value="catalog">Catalogue interne</option>
           </select>
         </div>
