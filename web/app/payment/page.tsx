@@ -86,6 +86,13 @@ function PaymentContent() {
   const searchParams = useSearchParams();
   const mode = searchParams.get("type");
   const isFlight = mode === "flight";
+  const isResidence = mode === "residence";
+  const residenceName = searchParams.get("residence") || "ZeniStay Property";
+  const residenceNights = parseInt(searchParams.get("nights") || "7", 10);
+  const residenceTotal = parseFloat(searchParams.get("total") || "0");
+  const residenceCheckin = searchParams.get("checkin") || "";
+  const residenceCheckout = searchParams.get("checkout") || "";
+  const residencePricePerNight = parseFloat(searchParams.get("price") || "0");
   const yachtParam = searchParams.get("yacht") || "Yacht charter";
   const hoursParam = searchParams.get("hours");
   const priceParam = searchParams.get("price");
@@ -112,10 +119,10 @@ function PaymentContent() {
   const price = priceParam ? Number.parseInt(priceParam, 10) : NaN;
   const hasCustomPrice = Number.isFinite(price);
 
-  const baseRate = hasCustomPrice ? (price as number) : 1700;
-  const gratuity = hasCustomPrice ? 0 : 255;
-  const taxes = hasCustomPrice ? 0 : 68;
-  const rawTotal = hasCustomPrice ? baseRate : baseRate + gratuity + taxes;
+  const baseRate = isResidence ? residenceTotal : (hasCustomPrice ? (price as number) : 1700);
+  const gratuity = (isResidence || hasCustomPrice) ? 0 : 255;
+  const taxes = (isResidence || hasCustomPrice) ? 0 : 68;
+  const rawTotal = isResidence ? residenceTotal : (hasCustomPrice ? baseRate : baseRate + gratuity + taxes);
 
   // ── Promo code ──────────────────────────────────────────────────────────
   const [promoCode, setPromoCode] = useState("");
@@ -136,7 +143,7 @@ function PaymentContent() {
     }
   };
 
-  const bookingType = isFlight ? "zeniva_managed" : "yacht";
+  const bookingType = isFlight ? "zeniva_managed" : isResidence ? "residence" : "yacht";
 
   const formatMoney = (value: number) => new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -197,7 +204,7 @@ function PaymentContent() {
     <div className="rounded-[20px] border border-slate-100 bg-white p-6 shadow-sm">
       <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold" style={{ color: TITLE_TEXT }}>{isFlight ? "Flight checkout" : "Checkout"}</h1>
+          <h1 className="text-2xl font-extrabold" style={{ color: TITLE_TEXT }}>{isFlight ? "Flight checkout" : isResidence ? `🏡 ${residenceName}` : "Checkout"}</h1>
           <p className="mt-2 text-sm font-semibold" style={{ color: MUTED_TEXT }}>Secure payment with 3D Secure. Your card is encrypted.</p>
         </div>
       </div>
@@ -235,7 +242,51 @@ function PaymentContent() {
 
         <aside className="rounded-xl border border-slate-200 p-4 space-y-3 bg-slate-50">
           <h2 className="text-sm font-semibold text-slate-700">Booking summary</h2>
-          {isFlight ? (
+          {isResidence ? (
+            <>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-2xl">🏡</span>
+                <div className="text-base font-bold" style={{ color: TITLE_TEXT }}>{residenceName}</div>
+              </div>
+              <div className="text-sm text-slate-600 mt-1">
+                {residenceCheckin && residenceCheckout ? `${residenceCheckin} → ${residenceCheckout}` : `${residenceNights} nights`}
+              </div>
+              <div className="rounded-lg bg-white border border-slate-200 p-3 text-sm text-slate-700 space-y-1 mt-3">
+                <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-2">ZeniStay · Zeniva Travel</div>
+                {residencePricePerNight > 0 && (
+                  <div className="flex justify-between"><span>{residenceNights} nights × ${residencePricePerNight.toLocaleString()}/night</span><span>${(residenceNights * residencePricePerNight).toLocaleString()}</span></div>
+                )}
+                <div className="flex justify-between"><span>Cleaning fee</span><span>$285</span></div>
+                <div className="flex justify-between"><span>Zeniva concierge</span><span>$120</span></div>
+                <div className="flex justify-between"><span>Taxes (6%)</span><span>${Math.round(residenceNights * residencePricePerNight * 0.06).toLocaleString()}</span></div>
+              </div>
+              <div className="border-t border-slate-200 pt-3 space-y-2 text-sm text-slate-700 mt-2">
+                {discount > 0 && <div className="flex justify-between font-semibold" style={{ color: "#10b981" }}><span>🎁 Promo ({promoCode.toUpperCase()})</span><span>-{formatMoney(discount)}</span></div>}
+                <div className="flex justify-between font-bold text-slate-900 text-base"><span>Total due</span><span>{formatMoney(totalDue)}</span></div>
+              </div>
+              {/* Promo code */}
+              <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px dashed #e2e8f0" }}>
+                {!promoApplied ? (
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <input type="text" value={promoCode} onChange={e => { setPromoCode(e.target.value); setPromoError(""); }}
+                      placeholder="Promo code (ex: WELCOME15)"
+                      style={{ flex: 1, border: "1.5px solid #e2e8f0", borderRadius: 10, padding: "8px 12px", fontSize: 13, outline: "none", color: "#0B1B4D" }} />
+                    <button onClick={applyPromo}
+                      style={{ background: "#0F6CF5", color: "white", border: "none", borderRadius: 10, padding: "8px 14px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+                      Apply
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#10b981", fontSize: 13, fontWeight: 700 }}>
+                    <span>✅ 15% discount applied!</span>
+                    <button onClick={() => { setPromoApplied(false); setPromoCode(""); }}
+                      style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: 12 }}>Remove</button>
+                  </div>
+                )}
+                {promoError && <div style={{ color: "#ef4444", fontSize: 12, marginTop: 4 }}>{promoError}</div>}
+              </div>
+            </>
+          ) : isFlight ? (
             <>
               <div className="text-base font-bold" style={{ color: TITLE_TEXT }}>{flightRoute}</div>
               <div className="text-sm text-slate-600">{flightDates}{flightPassengers ? ` · ${flightPassengers} pax` : ""}{flightCabin ? ` · ${flightCabin}` : ""}</div>
