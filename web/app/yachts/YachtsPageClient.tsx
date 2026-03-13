@@ -13,6 +13,7 @@ import { createTrip, updateSnapshot, applyTripPatch, generateProposal, setPropos
 import { useI18n } from "../../src/lib/i18n/I18nProvider";
 import { normalizePriceLabel } from "../../src/lib/format";
 import yachtImageMap from "../../src/data/ycn_yacht_images.json";
+import zenivaYachtsGlobal from "../../src/data/zeniva_yachts_global.json";
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -75,8 +76,16 @@ export default function YachtsPageClient() {
       try {
         const mod = await import("../../src/data/ycn_packages.json");
         const fallback = (mod as any).default || mod;
+        const globalItems: YcnItem[] = (zenivaYachtsGlobal as any[]).map((y: any) => ({
+          title: y.title,
+          destination: y.destination,
+          prices: y.prices || [],
+          thumbnail: y.thumbnail,
+          images: y.images || [y.thumbnail],
+          calendar: undefined,
+        }));
         if (active && Array.isArray(fallback)) {
-          setItems(fallback);
+          setItems([...fallback, ...globalItems]);
         }
       } catch {
         if (active) setItems([]);
@@ -129,7 +138,17 @@ export default function YachtsPageClient() {
           images: data.images || [],
         };
       });
-      setItems([...(ycnItems || []), ...partnerItems]);
+      // Add global luxury yachts (Zeniva curated worldwide fleet)
+      const globalItems: YcnItem[] = (zenivaYachtsGlobal as any[]).map((y: any) => ({
+        title: y.title,
+        destination: y.destination,
+        prices: y.prices || [],
+        thumbnail: y.thumbnail,
+        images: y.images || [y.thumbnail],
+        calendar: undefined,
+      }));
+
+      setItems([...(ycnItems || []), ...partnerItems, ...globalItems]);
     }).catch(() => {
       if (!active) return;
       loadFallback();
