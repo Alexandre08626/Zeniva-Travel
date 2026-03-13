@@ -561,6 +561,16 @@ export default function ProposalSelectPage() {
     setProposalSelection(tripId, { flight: outboundFlights[0] });
   }, [outboundFlights, selection?.flight, tripId]);
 
+  // Sync selectedOutbound from store when page loads with existing selection
+  useEffect(() => {
+    if (selectedOutbound) return;
+    if (!selection?.flight) return;
+    // Round trip already selected — restore outbound leg
+    const outbound = selection.flight.outbound || selection.flight;
+    if (outbound?.id) setSelectedOutbound(outbound);
+    else if (outboundFlights.length > 0) setSelectedOutbound(outboundFlights[0]);
+  }, [selection?.flight, outboundFlights]);
+
   useEffect(() => {
     const accommodationType = tripDraft?.accommodationType;
     const style = tripDraft?.style || "";
@@ -1084,6 +1094,7 @@ export default function ProposalSelectPage() {
 
     if (hasReturnLeg && flightLeg === "return" && selectedOutbound) {
       setProposalSelection(tripId, { flight: buildRoundTripFlight(selectedOutbound, flight) });
+      setFlightLeg("outbound"); // Switch back to show full selection summary
       return;
     }
 
