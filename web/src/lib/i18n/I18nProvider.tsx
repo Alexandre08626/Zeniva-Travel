@@ -11,8 +11,7 @@ function getInitialLocale(): Locale {
   if (typeof window === "undefined") return defaultLocale;
   const saved = window.localStorage.getItem(STORAGE_KEY);
   if (saved && locales.includes(saved as Locale)) return saved as Locale;
-  const nav = navigator.language?.slice(0, 2).toLowerCase();
-  if (locales.includes(nav as Locale)) return nav as Locale;
+  // Always default to English — user can switch manually via locale switcher
   return defaultLocale;
 }
 
