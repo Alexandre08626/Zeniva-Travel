@@ -5,6 +5,7 @@ import { BRAND_BLUE, LIGHT_BG, MUTED_TEXT, PREMIUM_BLUE, TITLE_TEXT } from "../.
 import { useTripsStore, generateProposal } from "../../../../lib/store/tripsStore";
 import { getImagesForDestination, getPartnerHotelImages } from "../../../../src/lib/images";
 import { computePrice, formatCurrency } from "../../../../src/lib/pricing";
+import SelectedSummary from "../../../../src/components/SelectedSummary";
 import { loadTripWorkflowState, persistWorkflowStatePatch } from "../../../../src/lib/workflowPersistence";
 import yachtsData from "../../../../src/data/ycn_packages.json";
 import airbnbsData from "../../../../src/data/airbnbs.json";
@@ -780,33 +781,18 @@ export default function ProposalReviewPage() {
               </section>
             )}
 
-            {/* PRICE BREAKDOWN */}
-            <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-              <div className="bg-white border-b border-slate-100 px-6 py-4 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-amber-50 flex items-center justify-center text-lg">💰</div>
-                <h2 className="text-lg font-black text-slate-900">Price breakdown</h2>
-              </div>
-              <div className="p-5 space-y-3">
-                {breakdown.map((row) => (
-                  <div key={row.label} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
-                    <span className="text-sm text-slate-600">{row.label}</span>
-                    <span className="text-sm font-bold text-slate-900">{row.value}</span>
-                  </div>
-                ))}
-                <div className="rounded-xl border-2 border-amber-200 bg-amber-50 p-4 flex items-center justify-between mt-2">
-                  <div>
-                    <p className="text-slate-900 font-black text-lg">Total</p>
-                    <p className="text-slate-500 text-xs mt-0.5">{pricing.travelers} traveler(s) · {pricing.nights} nights</p>
-                  </div>
-                  <p className="text-2xl font-black text-amber-600 whitespace-nowrap">
-                    {pricing.hasAnyPrice ? formatCurrency(pricing.total) : "Custom Quote"}
-                  </p>
-                </div>
-                <p className="text-xs text-slate-400 text-center">
-                  Final pricing confirmed at payment with live availability.
-                </p>
-              </div>
-            </section>
+            {/* PRICE BREAKDOWN — same SelectedSummary as /select page */}
+            <SelectedSummary
+              flight={selection?.flight}
+              hotel={selection?.hotel}
+              villa={selection?.villa}
+              shortterm={selection?.shortterm}
+              activity={selection?.activity}
+              transfer={selection?.transfer}
+              car={selection?.car}
+              tripDraft={tripDraft}
+              onProceed={onPay}
+            />
           </div>
 
           {/* ── RIGHT SIDEBAR ── */}
@@ -835,12 +821,12 @@ export default function ProposalReviewPage() {
                 ))}
               </div>
 
-              {/* Total */}
-              {pricing.hasAnyPrice && (
+              {/* Total — uses SelectedSummary logic for consistency */}
+              {(selection?.flight || selection?.hotel || selection?.villa || selection?.car || selection?.shortterm || selection?.activity || selection?.transfer) && (
                 <div className="px-5 pb-4">
                   <div className="rounded-xl border-2 border-amber-200 bg-amber-50 px-4 py-3 flex items-center justify-between">
                     <p className="text-slate-700 text-sm font-bold">Total</p>
-                    <p className="font-black text-xl text-amber-600">{formatCurrency(pricing.total)}</p>
+                    <p className="font-black text-xl text-amber-600">{formatCurrency(pricing.total) || "Custom Quote"}</p>
                   </div>
                 </div>
               )}
