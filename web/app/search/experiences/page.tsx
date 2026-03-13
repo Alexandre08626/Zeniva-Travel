@@ -139,14 +139,15 @@ function ExperiencesContent() {
     setSubmitting(true);
     const ref = `ZV-XP-${Date.now().toString(36).toUpperCase()}`;
     try {
+      const { notes: formNotes, ...formRest } = form;
       await fetch("/api/cruises/book", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ref, type: "experience", service: selected.title, destination,
           travelers, trip_type: "ZeniXP",
-          notes: `Experience: ${selected.title} | ${destination} | ${form.date || date} | ${travelers} pax${form.notes ? ` | Notes: ${form.notes}` : ""}`,
-          ...form,
+          notes: `Experience: ${selected.title} | ${destination} | ${form.date || date} | ${travelers} pax${formNotes ? ` | Notes: ${formNotes}` : ""}`,
+          ...formRest,
         }),
       });
     } catch {}
