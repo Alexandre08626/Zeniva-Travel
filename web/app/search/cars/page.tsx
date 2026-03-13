@@ -1,253 +1,512 @@
 "use client";
-
+import { Suspense, useState, useEffect, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useI18n } from "../../../src/lib/i18n/I18nProvider";
-import { normalizePriceLabel } from "../../../src/lib/format";
 
-type Params = {
-  pickup?: string;
-  dropoff?: string;
-  pickupDate?: string;
-  dropoffDate?: string;
-  age?: string;
+const CAR_CATEGORIES = [
+  { key: "all", label: "🚗 All" },
+  { key: "economy", label: "💚 Economy" },
+  { key: "compact", label: "🚙 Compact" },
+  { key: "suv", label: "🛻 SUV" },
+  { key: "luxury", label: "💎 Luxury" },
+  { key: "minivan", label: "🚐 Minivan" },
+  { key: "electric", label: "⚡ Electric" },
+];
+
+const TRANS_ICONS: Record<string, string> = {
+  automatic: "🔄 Auto",
+  manual: "⚙️ Manual",
+  "": "🚗",
 };
 
-type CarOffer = {
+type Car = {
   id: string;
-  provider: "amadeus";
+  name: string;
+  category: string;
+  photo: string;
+  photos: string[];
+  supplier: string;
+  supplier_logo: string;
   pickup: string;
   dropoff: string;
-  startDate: string;
-  endDate: string;
-  vehicle?: {
-    name?: string;
-    category?: string;
-    transmission?: string;
-    fuel?: string;
-    seats?: number;
-    doors?: number;
+  pickup_date: string;
+  dropoff_date: string;
+  price: number;
+  currency: string;
+  price_per_day: number;
+  days: number;
+  specs: {
+    transmission: string;
+    fuel: string;
+    seats: number;
+    doors: number;
+    air_conditioning: boolean;
+    bags: number;
   };
-  price?: {
-    amount: number;
-    currency: string;
-  };
+  free_cancellation: boolean;
+  rating: number | null;
+  review_count: number | null;
 };
 
-function isoToday() {
-  return new Date().toISOString().slice(0, 10);
+type BookingStep = "search" | "select" | "form" | "confirm";
+
+type PassengerForm = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  flightNumber: string;
+  specialRequests: string;
+};
+
+const CAR_PHOTOS: Record<string, string> = {
+  economy: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&q=80",
+  compact: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&q=80",
+  suv: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=600&q=80",
+  luxury: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&q=80",
+  minivan: "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=600&q=80",
+  electric: "https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=600&q=80",
+  default: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&q=80",
+};
+
+function getCarPhoto(car: Car): string {
+  if (car.photo) return car.photo;
+  const cat = (car.category || "").toLowerCase();
+  for (const [key, url] of Object.entries(CAR_PHOTOS)) {
+    if (cat.includes(key)) return url;
+  }
+  return CAR_PHOTOS.default;
 }
 
-export default function CarsSearchPage({ searchParams }: { searchParams: Params }) {
+function calcDays(d1: string, d2: string): number {
+  try {
+    return Math.max(1, Math.round((new Date(d2).getTime() - new Date(d1).getTime()) / 86400000));
+  } catch { return 1; }
+}
+
+function CarsContent() {
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const { locale } = useI18n();
 
-  const today = useMemo(() => isoToday(), []);
+  const [pickup, setPickup] = useState(searchParams.get("pickup") || "");
+  const [dropoff, setDropoff] = useState(searchParams.get("dropoff") || "");
+  const [pickupDate, setPickupDate] = useState(searchParams.get("pickupDate") || "");
+  const [dropoffDate, setDropoffDate] = useState(searchParams.get("dropoffDate") || "");
+  const [pickupTime, setPickupTime] = useState("10:00");
+  const [dropoffTime, setDropoffTime] = useState("10:00");
+  const [driverAge, setDriverAge] = useState(searchParams.get("drivers") ? "30" : "30");
+  const [category, setCategory] = useState("all");
 
-  const [pickup, setPickup] = useState(String(searchParams?.pickup || "").trim());
-  const [dropoff, setDropoff] = useState(String(searchParams?.dropoff || "").trim());
-  const [pickupDate, setPickupDate] = useState(String(searchParams?.pickupDate || "").trim());
-  const [dropoffDate, setDropoffDate] = useState(String(searchParams?.dropoffDate || "").trim());
-  const [age, setAge] = useState(String(searchParams?.age || "30").trim());
-
+  const [step, setStep] = useState<BookingStep>("search");
+  const [cars, setCars] = useState<Car[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [offers, setOffers] = useState<CarOffer[]>([]);
-  const [selectedId, setSelectedId] = useState<string>("");
+  const [selectedCar, setSelectedCar] = useState<Car | null>(null);
+  const [bookingRef, setBookingRef] = useState("");
 
-  const summary = useMemo(() => {
-    const pickupLabel = pickup || "Pickup";
-    const dropoffLabel = dropoff || pickupLabel;
-    const datesLabel = pickupDate && dropoffDate ? `${pickupDate} → ${dropoffDate}` : "Choose dates";
-    return { pickupLabel, dropoffLabel, datesLabel };
-  }, [pickup, dropoff, pickupDate, dropoffDate]);
+  const [form, setForm] = useState<PassengerForm>({
+    firstName: "", lastName: "", email: "", phone: "", flightNumber: "", specialRequests: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
 
-  const runSearch = async (next?: {
-    pickup?: string;
-    dropoff?: string;
-    pickupDate?: string;
-    dropoffDate?: string;
-    age?: string;
-  }) => {
-    const resolvedPickup = String(next?.pickup ?? pickup).trim().toUpperCase();
-    const resolvedDropoff = String(next?.dropoff ?? dropoff).trim().toUpperCase();
-    const resolvedPickupDate = String(next?.pickupDate ?? pickupDate).trim();
-    const resolvedDropoffDate = String(next?.dropoffDate ?? dropoffDate).trim();
-    const resolvedAge = String(next?.age ?? age).trim();
-
-    if (!resolvedPickup || resolvedPickup.length < 3 || !resolvedPickupDate || !resolvedDropoffDate) {
-      setError("Enter pickup code (IATA/city), pickup date, and dropoff date.");
-      setOffers([]);
-      return;
-    }
-
+  const search = useCallback(async (overridePickup?: string) => {
+    const p = (overridePickup || pickup).trim();
+    if (!p || !pickupDate || !dropoffDate) return;
     setLoading(true);
     setError(null);
-
+    setStep("search");
+    setCars([]);
     try {
       const qs = new URLSearchParams({
-        pickup: resolvedPickup,
-        dropoff: resolvedDropoff || resolvedPickup,
-        startDate: resolvedPickupDate,
-        endDate: resolvedDropoffDate,
+        pickup: p,
+        dropoff: dropoff || p,
+        pickup_date: pickupDate,
+        dropoff_date: dropoffDate,
+        pickup_time: pickupTime,
+        dropoff_time: dropoffTime,
+        driver_age: driverAge,
       });
-      if (resolvedAge) qs.set("age", resolvedAge);
-
-      const res = await fetch(`/api/amadeus/cars/search?${qs.toString()}`, { cache: "no-store" });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok || !json?.ok) {
-        const msg = String(json?.message || json?.error || "Car search failed");
-        throw new Error(msg);
+      const res = await fetch(`/api/cars/search?${qs}`);
+      const data = await res.json();
+      if (data.ok && data.cars?.length > 0) {
+        setCars(data.cars);
+        setStep("select");
+      } else if (data.error) {
+        throw new Error(data.error);
+      } else {
+        setError("No cars found. The API may require a plan upgrade — contact Lina to book manually.");
       }
-
-      const nextOffers: CarOffer[] = Array.isArray(json?.offers) ? json.offers : [];
-      setOffers(nextOffers);
-      setSelectedId(nextOffers[0]?.id || "");
     } catch (e: any) {
-      setOffers([]);
-      setSelectedId("");
-      setError(e?.message || "Car search failed");
+      setError(e.message || "Search failed");
     } finally {
       setLoading(false);
     }
+  }, [pickup, dropoff, pickupDate, dropoffDate, pickupTime, dropoffTime, driverAge]);
+
+  // Auto-search from URL
+  useEffect(() => {
+    const p = searchParams.get("pickup");
+    const pd = searchParams.get("pickupDate");
+    const dd = searchParams.get("dropoffDate");
+    if (p && pd && dd) {
+      setPickup(p);
+      if (dd) setDropoffDate(dd);
+      if (pd) setPickupDate(pd);
+      search(p);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const filteredCars = category === "all"
+    ? cars
+    : cars.filter(c => (c.category || "").toLowerCase().includes(category));
+
+  const selectCar = (car: Car) => {
+    setSelectedCar(car);
+    setStep("form");
   };
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const submitBooking = async (e: React.FormEvent) => {
     e.preventDefault();
-    const params = new URLSearchParams();
-    if (pickup) params.set("pickup", pickup);
-    if (dropoff) params.set("dropoff", dropoff);
-    if (pickupDate) params.set("pickupDate", pickupDate);
-    if (dropoffDate) params.set("dropoffDate", dropoffDate);
-    if (age) params.set("age", age);
-
-    router.push(`/search/cars?${params.toString()}`);
-    await runSearch();
+    if (!selectedCar) return;
+    setSubmitting(true);
+    const ref = `ZV-CAR-${Date.now().toString(36).toUpperCase()}`;
+    try {
+      const days = calcDays(selectedCar.pickup_date, selectedCar.dropoff_date);
+      await fetch("/api/cruises/book", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ref,
+          type: "car_rental",
+          car: selectedCar.name,
+          supplier: selectedCar.supplier,
+          pickup: selectedCar.pickup,
+          dropoff: selectedCar.dropoff,
+          pickup_date: selectedCar.pickup_date,
+          dropoff_date: selectedCar.dropoff_date,
+          total_price: selectedCar.price,
+          currency: selectedCar.currency,
+          days,
+          ...form,
+          trip_type: "ZeniCar",
+          notes: `Car: ${selectedCar.name} | ${selectedCar.supplier} | ${selectedCar.pickup} → ${selectedCar.dropoff} | ${selectedCar.pickup_date} → ${selectedCar.dropoff_date} | ${days} days | $${selectedCar.price} ${selectedCar.currency}${form.flightNumber ? ` | Flight: ${form.flightNumber}` : ""}${form.specialRequests ? ` | Notes: ${form.specialRequests}` : ""}`,
+        }),
+      });
+    } catch {}
+    setBookingRef(ref);
+    setStep("confirm");
+    setSubmitting(false);
   };
 
-  const askPrompt = `Find rental cars ${summary.pickupLabel} → ${summary.dropoffLabel} from ${pickupDate || "(pickup date)"} to ${dropoffDate || "(dropoff date)"}. Keep ${selectedId || "the best value option"} selected and propose 2 alternatives.`;
-
-  const selectedOffer = useMemo(() => offers.find((o) => o.id === selectedId) || null, [offers, selectedId]);
+  const days = pickupDate && dropoffDate ? calcDays(pickupDate, dropoffDate) : 0;
 
   return (
-    <main className="min-h-screen bg-slate-50 py-10 px-4">
-      <div className="mx-auto max-w-5xl space-y-4">
-        <header className="rounded-2xl bg-white px-5 py-4 shadow-sm border border-slate-200 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Rental car search</p>
-            <h1 className="text-2xl font-black text-slate-900">{summary.pickupLabel} → {summary.dropoffLabel}</h1>
-            <p className="text-sm text-slate-600">{summary.datesLabel} · Driver age {age || "30"}</p>
+    <div className="min-h-screen bg-[#f8fafc]">
+      {/* Dark navy header */}
+      <div className="bg-gradient-to-br from-[#0a1628] via-[#0f2a5e] to-[#1a3d8f] text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+          <Link href="/" className="inline-flex items-center gap-1.5 text-blue-200 text-sm mb-6 hover:text-white transition">
+            ← Back
+          </Link>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-3xl">🚗</span>
+            <div>
+              <p className="text-blue-200 text-xs font-bold uppercase tracking-widest">Zeniva Travel</p>
+              <h1 className="text-3xl sm:text-4xl font-black">ZeniCar</h1>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">{offers.length} options</span>
-            {pickup ? <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-800">Pickup {pickup}</span> : null}
-          </div>
-        </header>
+          <p className="text-blue-200 mb-8">Location de voiture partout dans le monde — réservez avec Lina</p>
 
-        <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
-          <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <input value={pickup} onChange={(e) => setPickup(e.target.value)} placeholder="Pickup (city/airport)" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
-            <input value={dropoff} onChange={(e) => setDropoff(e.target.value)} placeholder="Dropoff (optional)" className="w-full rounded-2xl bg-slate-50 px-4 py-3" />
-            <input value={pickupDate} onChange={(e) => { setPickupDate(e.target.value); if (dropoffDate && e.target.value && dropoffDate < e.target.value) setDropoffDate(""); }} placeholder="Pickup date" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="date" min={today} />
-            <input value={dropoffDate} onChange={(e) => setDropoffDate(e.target.value)} placeholder="Dropoff date" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="date" min={pickupDate || today} />
-            <input value={age} onChange={(e) => setAge(e.target.value)} placeholder="Driver age" className="w-full rounded-2xl bg-slate-50 px-4 py-3" type="number" min={18} max={99} />
-
-            <div className="md:col-span-2 flex flex-wrap justify-end gap-2">
-              <Link
-                href={`/chat?prompt=${encodeURIComponent(askPrompt)}`}
-                className="rounded-full bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-2 text-sm font-semibold text-white shadow hover:opacity-95"
-              >
-                Ask Lina
-              </Link>
-              <button
-                type="submit"
-                className="rounded-full bg-black px-4 py-2 text-sm font-semibold text-white shadow hover:bg-slate-900"
-              >
-                Search cars
-              </button>
-              <Link
-                href="/"
-                className="rounded-full border px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
-              >
-                New search
-              </Link>
-            </div>
-          </form>
-
-          {loading ? (
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">Loading rental cars…</div>
-          ) : null}
-          {error ? (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">{error}</div>
-          ) : null}
-
-          {!loading && !error && offers.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-200 bg-white p-3 text-sm text-slate-600">
-              Enter your pickup code and dates to see rental car options.
-            </div>
-          ) : null}
-
-          {offers.length > 0 ? (
-            <div className="space-y-3">
-              {offers.map((o) => {
-                const active = o.id === selectedId;
-                const vehicleName = o.vehicle?.name || "Car";
-                const details = [o.vehicle?.category, o.vehicle?.transmission, o.vehicle?.fuel, o.vehicle?.seats ? `${o.vehicle.seats} seats` : ""]
-                  .filter(Boolean)
-                  .join(" • ");
-                const priceLabel = o.price?.currency && Number.isFinite(o.price?.amount)
-                  ? normalizePriceLabel(`${o.price.currency} ${o.price.amount}`, locale)
-                  : "Price on request";
-
-                return (
-                  <button
-                    key={o.id}
-                    type="button"
-                    onClick={() => setSelectedId(o.id)}
-                    className={`w-full rounded-xl border p-3 shadow-sm flex flex-col gap-2 text-left md:flex-row md:items-center md:justify-between ${active ? "border-blue-500 ring-2 ring-blue-100 bg-blue-50" : "border-slate-200 bg-white"}`}
-                  >
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold text-slate-900">{vehicleName}</p>
-                      <p className="text-xs text-slate-600">{o.pickup} → {o.dropoff} · {o.startDate} → {o.endDate}</p>
-                      {details ? <p className="text-xs text-slate-600">{details}</p> : null}
-                    </div>
-                    <div className="flex items-center gap-3 md:flex-col md:items-end">
-                      <span className="text-lg font-black text-slate-900">{priceLabel}</span>
-                      <span className="text-xs text-slate-500">Click to select</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          ) : null}
-        </section>
-
-        {selectedOffer ? (
-          <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-3">
-            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          {/* Search form */}
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+              <div className="lg:col-span-2">
+                <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Pickup City / Airport</label>
+                <input value={pickup} onChange={e => setPickup(e.target.value)}
+                  placeholder="Miami, Paris, Toronto, Dubai…"
+                  className="w-full rounded-xl bg-white px-4 py-2.5 text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  onKeyDown={e => e.key === "Enter" && search()} />
+              </div>
+              <div className="lg:col-span-2">
+                <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Dropoff (optional)</label>
+                <input value={dropoff} onChange={e => setDropoff(e.target.value)}
+                  placeholder="Same as pickup"
+                  className="w-full rounded-xl bg-white px-4 py-2.5 text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
               <div>
-                <p className="text-sm font-semibold text-slate-800">Selected car</p>
-                <p className="text-xs text-slate-600">Ask Lina to confirm availability, coverage, and payment details.</p>
+                <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Pick-up Date</label>
+                <input type="date" value={pickupDate} onChange={e => setPickupDate(e.target.value)}
+                  className="w-full rounded-xl bg-white px-4 py-2.5 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
-              <div className="flex gap-2">
-                <Link
-                  href={`/chat?prompt=${encodeURIComponent(`Proceed with rental car ${selectedOffer.vehicle?.name || selectedOffer.id} (${selectedOffer.pickup} to ${selectedOffer.dropoff}, ${selectedOffer.startDate} to ${selectedOffer.endDate}). Confirm pricing, insurance, and booking steps.`)}`}
-                  className="rounded-full bg-black px-4 py-2 text-sm font-semibold text-white shadow hover:bg-slate-900"
-                >
-                  Confirm / Book
-                </Link>
-                <Link
-                  href={`/chat?prompt=${encodeURIComponent(askPrompt)}`}
-                  className="rounded-full border px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
-                >
-                  Compare 3
-                </Link>
+              <div>
+                <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Return Date</label>
+                <input type="date" value={dropoffDate} onChange={e => setDropoffDate(e.target.value)}
+                  className="w-full rounded-xl bg-white px-4 py-2.5 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
             </div>
-          </section>
-        ) : null}
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <label className="text-[10px] font-bold text-blue-200 uppercase tracking-widest">Pick-up Time</label>
+                <input type="time" value={pickupTime} onChange={e => setPickupTime(e.target.value)}
+                  className="rounded-xl bg-white px-3 py-2 text-slate-800 text-sm focus:outline-none" />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-[10px] font-bold text-blue-200 uppercase tracking-widest">Return Time</label>
+                <input type="time" value={dropoffTime} onChange={e => setDropoffTime(e.target.value)}
+                  className="rounded-xl bg-white px-3 py-2 text-slate-800 text-sm focus:outline-none" />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-[10px] font-bold text-blue-200 uppercase tracking-widest">Driver Age</label>
+                <input type="number" min={18} max={99} value={driverAge} onChange={e => setDriverAge(e.target.value)}
+                  className="w-16 rounded-xl bg-white px-3 py-2 text-slate-800 text-sm focus:outline-none" />
+              </div>
+              <button onClick={() => search()} disabled={loading || !pickup.trim() || !pickupDate || !dropoffDate}
+                className="ml-auto bg-gradient-to-r from-blue-500 to-blue-700 text-white font-black rounded-xl px-8 py-2.5 text-sm hover:opacity-90 transition disabled:opacity-50">
+                {loading ? "Searching…" : "🔍 Search Cars"}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-    </main>
+
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+
+        {/* STEP: Loading */}
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-24 gap-4">
+            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <p className="text-slate-500 font-semibold">Searching best rates in {pickup}…</p>
+          </div>
+        )}
+
+        {/* STEP: Error / no results */}
+        {!loading && error && (
+          <div className="max-w-2xl mx-auto text-center py-16">
+            <div className="text-5xl mb-4">🚗</div>
+            <h3 className="text-xl font-black text-slate-800 mb-2">Searching the best rates for you</h3>
+            <p className="text-slate-500 mb-6 text-sm">{error}</p>
+            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6">
+              <p className="text-blue-800 font-semibold mb-2">💬 Lina can find you the best deal</p>
+              <p className="text-blue-600 text-sm mb-4">Our AI travel agent has access to 500+ car rental suppliers. She'll find the best rate and confirm your booking in minutes.</p>
+              <Link href={`/chat?prompt=${encodeURIComponent(`I need a rental car in ${pickup || "my destination"} from ${pickupDate || "my dates"} to ${dropoffDate || "return"} for ${driverAge} year old driver. Can you find me the best deal?`)}`}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-black rounded-xl px-6 py-3 hover:opacity-90 transition shadow">
+                💬 Ask Lina for the best rate
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* STEP: Car selection */}
+        {!loading && !error && step === "select" && cars.length > 0 && (
+          <>
+            {/* Category pills */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              {CAR_CATEGORIES.map(cat => (
+                <button key={cat.key} onClick={() => setCategory(cat.key)}
+                  className={`text-xs font-bold px-4 py-2 rounded-full border transition ${category === cat.key ? "bg-[#0f2a5e] text-white border-[#0f2a5e]" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"}`}>
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-black text-slate-800">{filteredCars.length} vehicles in <span className="capitalize">{pickup}</span></h2>
+                {days > 0 && <p className="text-xs text-slate-400">{pickupDate} → {dropoffDate} · {days} day{days > 1 ? "s" : ""}</p>}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredCars.map((car) => (
+                <div key={car.id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-slate-100 hover:border-slate-200">
+                  {/* Photo */}
+                  <div className="relative h-48 bg-slate-100 overflow-hidden">
+                    <img src={getCarPhoto(car)} alt={car.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                    {car.free_cancellation && (
+                      <span className="absolute top-3 left-3 bg-emerald-500 text-white text-[10px] font-black rounded-full px-3 py-1">✓ Free cancel</span>
+                    )}
+                    {car.category && (
+                      <span className="absolute bottom-3 right-3 bg-black/60 text-white text-[10px] font-bold rounded-full px-2.5 py-1 capitalize">{car.category}</span>
+                    )}
+                  </div>
+
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div>
+                        <p className="font-black text-slate-900 leading-tight">{car.name}</p>
+                        {car.supplier && <p className="text-xs text-slate-400 mt-0.5">{car.supplier}</p>}
+                      </div>
+                      {car.rating && <span className="text-sm font-black text-amber-600 bg-amber-50 rounded-full px-2.5 py-1">★ {car.rating}</span>}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mb-3 text-xs text-slate-500">
+                      {car.specs.transmission && <span>{TRANS_ICONS[car.specs.transmission.toLowerCase()] || car.specs.transmission}</span>}
+                      {car.specs.seats > 0 && <span>👤 {car.specs.seats} seats</span>}
+                      {car.specs.bags > 0 && <span>🧳 {car.specs.bags} bags</span>}
+                      {car.specs.air_conditioning && <span>❄️ A/C</span>}
+                      {car.specs.fuel && <span>⛽ {car.specs.fuel}</span>}
+                    </div>
+
+                    <div className="flex items-end justify-between mb-3">
+                      <div>
+                        <p className="text-2xl font-black text-slate-900">
+                          ${car.price > 0 ? car.price.toFixed(0) : "—"}
+                          <span className="text-xs font-medium text-slate-400"> total</span>
+                        </p>
+                        {car.price_per_day > 0 && <p className="text-xs text-slate-400">${car.price_per_day.toFixed(0)}/day × {car.days} day{car.days > 1 ? "s" : ""}</p>}
+                      </div>
+                    </div>
+
+                    <button onClick={() => selectCar(car)}
+                      className="w-full bg-gradient-to-r from-[#0a1628] to-[#1a3d8f] text-white font-black rounded-xl py-3 text-sm hover:opacity-90 transition shadow">
+                      🚗 Reserve — ${car.price > 0 ? car.price.toFixed(0) : "Contact"}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* STEP: Passenger form */}
+        {step === "form" && selectedCar && (
+          <div className="max-w-2xl mx-auto">
+            <button onClick={() => setStep("select")} className="text-blue-600 text-sm hover:underline mb-6 flex items-center gap-1">
+              ← Back to results
+            </button>
+
+            {/* Selected car summary */}
+            <div className="bg-white rounded-2xl overflow-hidden shadow border border-slate-100 mb-6">
+              <div className="relative h-40">
+                <img src={getCarPhoto(selectedCar)} alt={selectedCar.name} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <p className="text-white font-black text-xl">{selectedCar.name}</p>
+                  <p className="text-white/80 text-sm">{selectedCar.supplier}</p>
+                </div>
+              </div>
+              <div className="p-4 grid grid-cols-2 gap-3 text-sm">
+                <div><p className="text-xs text-slate-400 uppercase tracking-widest font-bold">Pick-up</p><p className="font-bold text-slate-800 capitalize">{selectedCar.pickup}</p><p className="text-slate-500">{selectedCar.pickup_date} at {pickupTime}</p></div>
+                <div><p className="text-xs text-slate-400 uppercase tracking-widest font-bold">Return</p><p className="font-bold text-slate-800 capitalize">{selectedCar.dropoff}</p><p className="text-slate-500">{selectedCar.dropoff_date} at {dropoffTime}</p></div>
+                <div><p className="text-xs text-slate-400 uppercase tracking-widest font-bold">Duration</p><p className="font-bold text-slate-800">{selectedCar.days} day{selectedCar.days > 1 ? "s" : ""}</p></div>
+                <div><p className="text-xs text-slate-400 uppercase tracking-widest font-bold">Total</p><p className="font-black text-blue-700 text-lg">${selectedCar.price.toFixed(0)} {selectedCar.currency}</p></div>
+              </div>
+            </div>
+
+            <form onSubmit={submitBooking} className="bg-white rounded-2xl shadow border border-slate-100 p-6 space-y-4">
+              <h2 className="text-xl font-black text-slate-900">Driver Information</h2>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">First Name *</label>
+                  <input required value={form.firstName} onChange={e => setForm(f => ({ ...f, firstName: e.target.value }))}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Last Name *</label>
+                  <input required value={form.lastName} onChange={e => setForm(f => ({ ...f, lastName: e.target.value }))}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Email *</label>
+                <input type="email" required value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Phone *</label>
+                <input type="tel" required value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Flight Number (optional)</label>
+                <input value={form.flightNumber} onChange={e => setForm(f => ({ ...f, flightNumber: e.target.value }))}
+                  placeholder="e.g. AA1234"
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Special Requests</label>
+                <textarea rows={3} value={form.specialRequests} onChange={e => setForm(f => ({ ...f, specialRequests: e.target.value }))}
+                  placeholder="Car seat, GPS, specific supplier preference…"
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
+              </div>
+
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-700">
+                <p className="font-bold mb-1">🔒 No payment now</p>
+                <p>Lina will contact you within 2 hours to confirm pricing, insurance options, and process payment.</p>
+              </div>
+
+              <button type="submit" disabled={submitting}
+                className="w-full bg-gradient-to-r from-[#0a1628] to-[#1a3d8f] text-white font-black rounded-xl py-4 text-sm hover:opacity-90 transition shadow disabled:opacity-50">
+                {submitting ? "Processing…" : "✅ Confirm Reservation Request"}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* STEP: Confirmation */}
+        {step === "confirm" && selectedCar && (
+          <div className="max-w-2xl mx-auto text-center py-8">
+            <div className="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
+              <div className="bg-gradient-to-br from-[#0a1628] to-[#1a3d8f] p-8 text-white">
+                <div className="text-5xl mb-4">🚗</div>
+                <h2 className="text-2xl font-black mb-2">Reservation Confirmed!</h2>
+                <p className="text-blue-200 text-sm mb-4">Lina will contact you within 2 hours to finalize your booking.</p>
+                <div className="bg-white/10 rounded-xl px-6 py-3 inline-block">
+                  <p className="text-xs text-blue-200 font-bold uppercase tracking-widest">Reservation Reference</p>
+                  <p className="text-2xl font-black font-mono">{bookingRef}</p>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4 text-left">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div><p className="text-xs text-slate-400 uppercase tracking-widest font-bold">Vehicle</p><p className="font-black text-slate-800">{selectedCar.name}</p></div>
+                  <div><p className="text-xs text-slate-400 uppercase tracking-widest font-bold">Supplier</p><p className="font-bold text-slate-700">{selectedCar.supplier || "TBC"}</p></div>
+                  <div><p className="text-xs text-slate-400 uppercase tracking-widest font-bold">Pick-up</p><p className="font-bold text-slate-800 capitalize">{selectedCar.pickup}</p><p className="text-slate-500 text-xs">{selectedCar.pickup_date}</p></div>
+                  <div><p className="text-xs text-slate-400 uppercase tracking-widest font-bold">Return</p><p className="font-bold text-slate-800 capitalize">{selectedCar.dropoff}</p><p className="text-slate-500 text-xs">{selectedCar.dropoff_date}</p></div>
+                  <div><p className="text-xs text-slate-400 uppercase tracking-widest font-bold">Driver</p><p className="font-bold text-slate-800">{form.firstName} {form.lastName}</p></div>
+                  <div><p className="text-xs text-slate-400 uppercase tracking-widest font-bold">Total</p><p className="font-black text-blue-700 text-xl">${selectedCar.price.toFixed(0)} {selectedCar.currency}</p></div>
+                </div>
+
+                <div className="flex gap-3">
+                  <Link href="/chat" className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-black rounded-xl py-3 text-sm text-center hover:opacity-90 transition">
+                    💬 Chat with Lina
+                  </Link>
+                  <Link href="/" className="flex-1 border-2 border-slate-200 text-slate-700 font-black rounded-xl py-3 text-sm text-center hover:bg-slate-50 transition">
+                    🏠 Back to home
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Default state — no search yet */}
+        {!loading && !error && step === "search" && cars.length === 0 && (
+          <div className="text-center py-16">
+            <div className="text-6xl mb-6">🚗</div>
+            <h3 className="text-2xl font-black text-slate-800 mb-3">ZeniCar — Best rates worldwide</h3>
+            <p className="text-slate-500 mb-8 max-w-md mx-auto">Enter your pickup city and dates above to search 500+ car rental suppliers. Economy to luxury, fully insured.</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mx-auto">
+              {["🌴 Miami", "🗼 Paris", "🌆 Dubai", "🍁 Toronto"].map(city => (
+                <button key={city} onClick={() => { setPickup(city.split(" ")[1]); }}
+                  className="bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-bold text-slate-700 hover:border-blue-300 hover:bg-blue-50 transition">
+                  {city}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function CarsSearchPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0a1628]" />}>
+      <CarsContent />
+    </Suspense>
   );
 }
