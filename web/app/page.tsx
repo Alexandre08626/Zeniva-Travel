@@ -107,10 +107,6 @@ export default function HomePage() {
               <Link href="/call">
                 <img src="/branding/lina-avatar.png" alt="Lina AI" className="relative w-32 h-32 rounded-full object-cover border-4 border-blue-100 shadow-xl cursor-pointer" />
               </Link>
-              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-white rounded-full px-3 py-1 shadow-md border border-slate-100">
-                <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-[10px] font-bold text-slate-700">Lina AI · Online</span>
-              </div>
             </div>
 
             {/* Promo badge */}
