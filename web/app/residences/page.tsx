@@ -187,20 +187,9 @@ function ResidencesContent() {
           </div>
 
           <div className="mt-3 space-y-2">
-            <button onClick={() => {
-              const qs = new URLSearchParams({
-                name: villa.name || "",
-                location: villa.city || villa.location || "",
-                checkin: checkIn || "",
-                checkout: checkOut || "",
-                guests: String(guests),
-                price: villa.pricePerNight || "",
-                type: "ZeniStay",
-              });
-              router.push(`/forms/travel?${qs.toString()}&agent=info%40zeniva.ca`);
-            }}
+            <button onClick={() => router.push(`/residences/${villa.id || villaId}`)}
               className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-black py-3 hover:opacity-90 transition shadow">
-              🏠 Book Now — Reserve & Pay →
+              🏠 View & Book — Photos + Payment →
             </button>
             <div className="grid grid-cols-2 gap-2">
               <button onClick={() => chatWithLina(villa)}
@@ -392,13 +381,9 @@ function ResidencesContent() {
                 </div>
               )}
               <div className="mt-5 flex flex-col gap-2">
-                <button onClick={() => {
-                  const qs = new URLSearchParams({ name: photoModal.name || "", location: photoModal.city || "", checkin: checkIn || "", checkout: checkOut || "", guests: String(guests), price: photoModal.pricePerNight || "", type: "ZeniStay" });
-                  router.push(`/forms/travel?${qs.toString()}&agent=info%40zeniva.ca`);
-                  setPhotoModal(null);
-                }}
+                <button onClick={() => { router.push(`/residences/${photoModal.id}`); setPhotoModal(null); }}
                   className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black py-3.5 hover:opacity-90 transition shadow">
-                  🏠 Book Now — Reserve & Pay →
+                  🏠 View & Book — Photos + Payment →
                 </button>
                 <div className="grid grid-cols-2 gap-2">
                   <button onClick={() => { chatWithLina(photoModal); setPhotoModal(null); }}
