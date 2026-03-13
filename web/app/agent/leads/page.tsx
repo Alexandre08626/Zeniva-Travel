@@ -72,15 +72,18 @@ export default function LeadsPage() {
   }, [user?.email]);
 
   const filtered = leads.filter(l => {
+    // Hide placeholder FB leads — only show when they have a real email
+    if (l.email?.endsWith("@zeniva-lead.com")) return false;
     const name = `${l.first_name || ""} ${l.last_name || ""}`.trim();
     const matchSearch = !search || name.toLowerCase().includes(search.toLowerCase()) || l.email.toLowerCase().includes(search.toLowerCase()) || (l.destination || "").toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "all" || l.status === statusFilter;
     return matchSearch && matchStatus;
   });
 
+  const realLeads = leads.filter(l => !l.email?.endsWith("@zeniva-lead.com"));
   const statuses = ["all", "new", "contacted", "followed_up", "quoted", "client", "junk"];
   const counts = statuses.reduce((acc, s) => {
-    acc[s] = s === "all" ? leads.length : leads.filter(l => l.status === s).length;
+    acc[s] = s === "all" ? realLeads.length : realLeads.filter(l => l.status === s).length;
     return acc;
   }, {} as Record<string, number>);
 
