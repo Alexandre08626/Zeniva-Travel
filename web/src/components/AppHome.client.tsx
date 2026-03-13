@@ -51,14 +51,14 @@ const DESTINATIONS = [
 ];
 
 const QUICK_CHIPS = [
-  { emoji:"🏖️", label:"Beach",   q:"Plan a luxury beach vacation" },
-  { emoji:"⛵", label:"ZeniYacht", q:"Charter a private yacht in Miami" },
-  { emoji:"🗼", label:"Europe",  q:"Luxury trip to Europe" },
-  { emoji:"🌴", label:"Resort",  q:"All-inclusive luxury resort" },
-  { emoji:"💍", label:"Honeymoon", q:"Perfect honeymoon package" },
-  { emoji:"🎿", label:"Ski",     q:"Luxury ski vacation" },
-  { emoji:"🚢", label:"ZeniCruise", q:"Luxury ZeniCruise experience" },
-  { emoji:"🌺", label:"Tropical", q:"Tropical escape with Lina" },
+  { emoji:"⛵", label:"ZeniYacht",   q:"Charter a private luxury yacht" },
+  { emoji:"🏨", label:"ZeniHotel",   q:"Book a luxury hotel" },
+  { emoji:"🏡", label:"ZeniStay",    q:"Find a private villa or ZeniStay" },
+  { emoji:"✈️", label:"ZeniFlights", q:"Book flights with Lina" },
+  { emoji:"🚗", label:"ZeniCar",     q:"Reserve a rental car with Zeniva" },
+  { emoji:"🚢", label:"ZeniCruise",  q:"Plan a luxury cruise experience" },
+  { emoji:"🎯", label:"ZeniXP",      q:"Add experiences and activities to my trip" },
+  { emoji:"👥", label:"ZeniGroup",   q:"Plan a group trip with Zeniva" },
 ];
 
 export default function AppHome() {

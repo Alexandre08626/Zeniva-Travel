@@ -274,16 +274,20 @@ export default function Header({
                 <button onClick={() => setMenuOpen(false)} style={{ marginLeft: "auto", background: "#f1f5f9", border: "none", borderRadius: "50%", width: 32, height: 32, cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
               </div>
 
-              {/* Nav links */}
+              {/* Nav links — All Zeni products */}
               <div style={{ display: "flex", flexDirection: "column", gap: 2, marginBottom: 20 }}>
                 {[
-                  { href: "/", icon: "🏠", label: "Home" },
-                  { href: "/destinations", icon: "🌍", label: "Destinations" },
+                  { href: "/chat", icon: "💬", label: "Chat Lina" },
+                  { href: "/call", icon: "📞", label: "Call Lina" },
                   { href: "/yachts", icon: "⛵", label: "ZeniYacht" },
                   { href: "/partners/resorts", icon: "🏨", label: "ZeniHotel" },
-                  { href: "/residences", icon: "🏠", label: "Villas & Rentals" },
-                  { href: "/chat", icon: "💬", label: "Chat with Lina" },
-                  { href: "/call", icon: "📞", label: "Call Lina" },
+                  { href: "/residences", icon: "🏡", label: "ZeniStay" },
+                  { href: "/search/flights", icon: "✈️", label: "ZeniFlights" },
+                  { href: "/search/cars", icon: "🚗", label: "ZeniCar" },
+                  { href: "/cruises", icon: "🚢", label: "ZeniCruise" },
+                  { href: "/collections/group", icon: "👥", label: "ZeniGroup" },
+                  { href: "/destinations", icon: "🌍", label: "Destinations" },
+                  { href: "/trips", icon: "✈️", label: "My Trips" },
                 ].map(item => (
                   <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)}
                     style={{ display: "flex", alignItems: "center", gap: 14, padding: "13px 12px", borderRadius: 14, textDecoration: "none", color: "#0B1B4D", fontSize: 15, fontWeight: 600 }}>

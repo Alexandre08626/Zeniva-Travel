@@ -4,7 +4,7 @@ import { BRAND_BLUE, PREMIUM_BLUE } from "../design/tokens";
 
 export default function SearchBar() {
   return (
-    <div className="mt-6 rounded-3xl bg-white p-6 shadow-lg">
+    <div className="mt-2 sm:mt-6 rounded-3xl bg-white p-3 sm:p-6 shadow-lg">
       <div className="flex items-start justify-between gap-6">
           <div className="flex items-center gap-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-full overflow-hidden" style={{ backgroundColor: "#EEF5FF" }}>
@@ -26,19 +26,19 @@ export default function SearchBar() {
         </div>
       </div>
 
-      <form action="/chat" method="GET" className="mt-5 grid gap-3 lg:grid-cols-12 items-center">
+      <form action="/chat" method="GET" className="mt-3 sm:mt-5 grid gap-2 sm:gap-3 lg:grid-cols-12 items-center">
         <input
           name="prompt"
           placeholder="e.g. 7 nights, 2 adults, premium resort, March"
-          className="lg:col-span-9 w-full rounded-2xl bg-slate-50 px-6 py-4 text-base font-semibold text-slate-900 outline-none shadow-inner"
+          className="lg:col-span-9 w-full rounded-2xl bg-slate-50 px-4 sm:px-6 py-2.5 sm:py-4 text-sm sm:text-base font-semibold text-slate-900 outline-none shadow-inner"
           style={{ border: '1px solid rgba(15, 23, 42, 0.06)' }}
         />
 
-        <button type="submit" className="lg:col-span-3 rounded-2xl px-6 py-3 text-sm font-extrabold text-white shadow" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>
+        <button type="submit" className="lg:col-span-3 rounded-2xl px-4 sm:px-6 py-2 sm:py-3 text-sm font-extrabold text-white shadow" style={{ background: `linear-gradient(90deg, ${BRAND_BLUE} 0%, ${PREMIUM_BLUE} 100%)` }}>
           Ask Lina
         </button>
 
-        <div className="lg:col-span-12 grid gap-3 md:grid-cols-4 mt-2">
+        <div className="lg:col-span-12 hidden sm:grid gap-3 md:grid-cols-4 mt-2">
           <input name="from" placeholder="From (ex: YUL)" className="w-full rounded-2xl bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none border border-transparent" />
           <input name="to" placeholder="Destination (ex: CUN)" className="w-full rounded-2xl bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none border border-transparent" />
           <input name="dates" placeholder="Dates (ex: Dec 20–27)" className="w-full rounded-2xl bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none border border-transparent" />
