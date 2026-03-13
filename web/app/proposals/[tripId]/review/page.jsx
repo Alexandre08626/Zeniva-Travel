@@ -822,14 +822,28 @@ export default function ProposalReviewPage() {
               </div>
 
               {/* Total — uses SelectedSummary logic for consistency */}
-              {(selection?.flight || selection?.hotel || selection?.villa || selection?.car || selection?.shortterm || selection?.activity || selection?.transfer) && (
+              {(selection?.flight || selection?.hotel || selection?.villa || selection?.car || selection?.shortterm || selection?.activity || selection?.transfer) && (() => {
+                const pm = (v) => { if (!v) return 0; const n = parseFloat(String(v).replace(/[^0-9.]/g,"")); return isNaN(n) ? 0 : n; };
+                const fl = selection?.flight;
+                let ft = 0;
+                if (fl?.outbound && fl?.inbound) ft = pm(fl.outbound.price) + pm(fl.inbound.price);
+                else if (fl) ft = pm(fl.price);
+                const ht = (() => { const h = selection?.hotel; if (!h) return 0; const np = pm(h.price); const ni = pm(h.nights) || pm(tripDraft?.nights) || 5; return np > 0 ? np * ni : 0; })();
+                const vt = pm(selection?.villa?.price) || pm(selection?.shortterm?.price) || 0;
+                const at = pm(selection?.activity?.price) || 0;
+                const tt = pm(selection?.transfer?.price) || 0;
+                const ct = pm(selection?.car?.price) || 0;
+                const sub = ft + ht + vt + at + tt + ct;
+                const total = sub > 0 ? Math.round((sub * 1.06) * 100) / 100 : 0;
+                return total > 0 ? (
                 <div className="px-5 pb-4">
                   <div className="rounded-xl border-2 border-amber-200 bg-amber-50 px-4 py-3 flex items-center justify-between">
                     <p className="text-slate-700 text-sm font-bold">Total</p>
-                    <p className="font-black text-xl text-amber-600">{formatCurrency(pricing.total) || "Custom Quote"}</p>
+                    <p className="font-black text-xl text-amber-600">{formatCurrency(total)}</p>
                   </div>
                 </div>
-              )}
+                ) : null;
+              })()}
 
               {/* CTA */}
               <div className="px-5 pb-5 space-y-3">

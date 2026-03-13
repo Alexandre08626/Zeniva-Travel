@@ -64,6 +64,7 @@ import { BRAND_BLUE, LIGHT_BG, MUTED_TEXT, TITLE_TEXT } from "../../../src/desig
 import { useTripsStore, createTrip } from "../../../lib/store/tripsStore";
 import { getImagesForDestination, getPartnerHotelImages } from "../../../src/lib/images";
 import { computePrice, formatCurrency, parseMoney } from "../../../src/lib/pricing";
+import SelectedSummary from "../../../src/components/SelectedSummary";
 import { useAuthStore } from "../../../src/lib/authStore";
 import { getDocumentsForUser, upsertDocuments } from "../../../src/lib/documentsStore";
 
@@ -72,7 +73,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const proposalId = Array.isArray(params.proposalId) ? params.proposalId[0] : params.proposalId;
   const { selection, tripDraft, trips } = useTripsStore((s) => ({
-    selection: s.selections[proposalId] || { flight: null, hotel: null, activity: null, transfer: null },
+    selection: s.selections[proposalId] || { flight: null, hotel: null, activity: null, transfer: null, villa: null, shortterm: null, car: null },
     tripDraft: s.tripDrafts[proposalId] || {},
     trips: s.trips || [],
   }));
@@ -455,46 +456,16 @@ export default function CheckoutPage() {
           </div>
 
           <aside className="space-y-3 lg:sticky lg:top-4">
-            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>Summary</div>
-                <span className="rounded-full bg-slate-100 px-2 py-[2px] text-[11px] font-bold" style={{ color: TITLE_TEXT }}>Review</span>
-              </div>
-              <div className="text-sm" style={{ color: TITLE_TEXT }}>
-                {tripDraft?.departureCity || "Departure"} → {tripDraft?.destination || "Destination"}
-              </div>
-              <div className="text-sm" style={{ color: MUTED_TEXT }}>
-                {tripDraft?.checkIn && tripDraft?.checkOut ? `${tripDraft.checkIn} to ${tripDraft.checkOut}` : "Dates TBC"} • Travelers: {tripDraft?.adults || pricing.travelers}
-              </div>
-              <div className="border-t border-slate-200 pt-2 space-y-1 text-sm" style={{ color: TITLE_TEXT }}>
-                <div className="flex items-center justify-between">
-                  <span>Flights</span>
-                  <span className="font-semibold">{pricing.hasFlightPrice ? formatCurrency(pricing.flightTotal) : "On request"}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Accommodation</span>
-                  <span className="font-semibold">{pricing.hasHotelPrice ? formatCurrency(pricing.hotelTotal) : "On request"}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Activities</span>
-                  <span className="font-semibold">{pricing.hasActivityPrice ? formatCurrency(pricing.activityTotal) : "Included"}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Transfers</span>
-                  <span className="font-semibold">{pricing.hasTransferPrice ? formatCurrency(pricing.transferTotal) : "Included"}</span>
-                </div>
-                <div className="flex items-center justify-between text-xs" style={{ color: MUTED_TEXT }}>
-                  <span>Service fee (6%)</span>
-                  <span>{pricing.hasAnyPrice ? formatCurrency(pricing.fees) : "Included"}</span>
-                </div>
-                <div className="border-t border-slate-200 pt-2 flex items-center justify-between">
-                  <span className="font-bold">Total (est.)</span>
-                  <span className="text-lg font-extrabold" style={{ color: BRAND_BLUE }}>
-                    {trueTotal > 0 ? formatCurrency(trueTotal) : (pricing.hasAnyPrice ? formatCurrency(pricing.total) : "On request")}
-                  </span>
-                </div>
-              </div>
-            </div>
+            <SelectedSummary
+              flight={selection?.flight}
+              hotel={selection?.hotel}
+              villa={selection?.villa}
+              shortterm={selection?.shortterm}
+              activity={selection?.activity}
+              transfer={selection?.transfer}
+              car={selection?.car}
+              tripDraft={tripDraft}
+            />
 
             <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">
               <div className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>Flight</div>
