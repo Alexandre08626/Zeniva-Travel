@@ -539,8 +539,8 @@ function AgentDetailPanel({ agent, onClose, onToggle }: {
                     <div className="text-4xl mb-2">{agent.emoji}</div>
                     <p className="text-sm font-semibold text-gray-700">Ready for orders, Boss.</p>
                     <p className="text-xs text-gray-400 mt-1">Tell {agent.name} what to do</p>
-                    {/* Nova: special Scan Leads button */}
-                    {agent.id === "nova" && (
+                    {/* Marco: Facebook Lead Scanner */}
+                    {agent.id === "lead_machine" && (
                       <NovaLeadScanner accentColor={accentColor} onLeadsFound={(leads) => {
                         const summary = leads.slice(0,5).map((l: any) => `• Score ${l.score}/10 | ${l.intent} | ${l.destination || "?"} — ${l.summary || l.message?.slice(0,80)}`).join("\n");
                         setCmdMessages(prev => [...prev, {role:"assistant", content:`🔎 Facebook scan complete!\n\n${leads.length} hot leads found:\n\n${summary}\n\nWould you like me to generate outreach messages for any of these?`}]);
@@ -1030,27 +1030,27 @@ export default function AIAgentsPageClient() {
     },
     {
       id: "lead_machine", name: "Marco", emoji: "🔥", avatar: "/agents/marco.png",
-      status: "active", type: "Lead Hunter · 5-Engine Scraper",
-      schedule: "Every 2 hours", color: "#f59e0b",
-      description: "5 scraping engines running 24/7: Reddit travel subs, competitor sites, social signals, SEO intent keywords, and deep web scraping.",
-      intro: "I'm the Lead Machine! I hunt for potential travel clients across Reddit, competitor websites, social media, and search engines. I find people who WANT to travel and deliver them straight to your pipeline.",
-      features: ["Reddit", "Competitors", "Social", "SEO intent", "Deep scrape", "Auto-qualify"],
+      status: "active", type: "Lead Hunter · Facebook AI + Multi-Engine",
+      schedule: "On demand / Auto every 2h", color: "#f59e0b",
+      description: "Marco hunts leads 24/7 — scanning Facebook for people actively planning travel, scoring each post 0-10 with GPT-4o-mini, auto-saving hot leads (score ≥ 6) to your pipeline, and generating personalized outreach with a direct link to Zeniva.",
+      intro: "I'm Marco, your lead hunting machine! I scan Facebook for people actively planning travel — cruises, honeymoons, luxury vacations. I score every post with AI, save hot leads to your pipeline, and write personalized outreach for each one.",
+      features: ["Facebook scan", "GPT scoring 0-10", "Auto-pipeline", "Outreach AI", "Destination detect", "Budget signals"],
       scenarios: [
-        { icon: "🔍", title: "Reddit r/travel post detected", desc: "Someone posts 'Planning a honeymoon in the Caribbean, budget $5k' — Lead Machine captures it, qualifies it, and adds to pipeline." },
-        { icon: "🏢", title: "Competitor price monitoring", desc: "Detects that Expedia dropped Cancun package prices — alerts you to adjust your pricing strategy." },
-        { icon: "📱", title: "Social signal found", desc: "Someone tweets 'Need a vacation ASAP' with travel hashtags — qualified and added to outreach list." },
-        { icon: "🔑", title: "SEO intent keyword match", desc: "Detects high-intent searches like 'best travel agency for group trips' and captures the lead source." },
+        { icon: "🔍", title: "Facebook post detected", desc: "Someone posts 'Looking for a travel agent for a May cruise for 8 people' — Marco scores it 9/10 and auto-saves to pipeline with destination + budget hint." },
+        { icon: "✉️", title: "Personalized outreach generated", desc: "Marco writes: 'Hi! I saw you're planning a cruise in May — Lina at Zeniva Travel can plan the entire thing for free! zenivatravel.com/chat?...'" },
+        { icon: "🧠", title: "AI qualification engine", desc: "GPT-4o-mini analyzes intent, urgency, budget signals and destination — eliminates spam and irrelevant posts automatically." },
+        { icon: "📊", title: "Auto pipeline save", desc: "Hot leads (score ≥ 6) are saved instantly to /agent/leads with source URL, destination, deal value estimate and outreach message." },
       ],
       activityLog: [
-        { time: "1h ago", action: "Reddit scan complete — 12 intent signals found", status: "success" },
-        { time: "1h ago", action: "Expedia competitor scan — 8 leads extracted", status: "success" },
-        { time: "3h ago", action: "Social media scan — 5 qualified leads", status: "success" },
+        { time: "2h ago", action: "Facebook scan — 6 posts analyzed, 4 hot leads found", status: "success" },
+        { time: "2h ago", action: "Lead scored 9/10: cruise trip for 8 in May 2026 — saved to pipeline", status: "success" },
+        { time: "4h ago", action: "Outreach message generated for Hawaii honeymoon lead", status: "success" },
       ],
-      stats: [{ label: "Engines", value: "5" }, { label: "Target/day", value: "200+" }],
-      lastRun: "1h 12m ago", nextRun: "In 48 min",
+      stats: [{ label: "Sources", value: "Facebook" }, { label: "Avg score", value: "7.2/10" }],
+      lastRun: "2h ago", nextRun: "In 2h",
       enabled: agentEnabled["lead_machine"] !== false,
-      progress: 62, uptime: "99.5%", tasksCompleted: 1420, successRate: "94.8%",
-      logs: ["Reddit r/travel: 12 intent signals found", "Expedia competitor scan complete", "8 leads auto-qualified and saved"],
+      progress: 74, uptime: "99.5%", tasksCompleted: 1732, successRate: "94.8%",
+      logs: ["Facebook scan: 6 posts analyzed", "4 leads scored ≥ 6/10 — auto-saved", "Outreach messages ready to send"],
     },
     {
       id: "converter", name: "Sofia", emoji: "🌟", avatar: "/agents/sofia.png",
@@ -1185,30 +1185,6 @@ export default function AIAgentsPageClient() {
       enabled: agentEnabled["twilio"] !== false,
       progress: 100, uptime: "99.8%", tasksCompleted: 234, successRate: "97.0%",
       logs: ["Twilio webhook connected", "Inbound SMS routing to Lina", "Outbound SMS ready"],
-    },
-    {
-      id: "nova", name: "Nova", emoji: "🔎", avatar: "/agents/nova.png",
-      status: "active", type: "Social Lead Hunter · Facebook AI",
-      schedule: "On demand / Auto every 4h", color: "#3b82f6",
-      description: "Nova scans Facebook for people actively looking to travel — and qualifies each lead with GPT-4o-mini scoring 0-10. Hot leads (score ≥ 4) are surfaced instantly. Nova also generates personalized outreach messages for each lead.",
-      intro: "I'm Nova, your social lead hunter! I scan Facebook for people actively planning travel — group trips, honeymoons, luxury vacations. I score each post 0-10 with AI, and surface only the hottest leads for you.",
-      features: ["Facebook scan", "GPT qualification", "Score 0-10", "Destination detect", "Outreach AI", "Auto-pipeline"],
-      scenarios: [
-        { icon: "🔍", title: "Facebook scan detected", desc: "Someone posts 'Looking for a travel agent for a May cruise for 8 people' — Nova scores it 9/10 and adds to pipeline with destination + budget hint." },
-        { icon: "✉️", title: "Personalized outreach generated", desc: "Nova writes: 'Hi! I saw you're planning a cruise in May — Lina at Zeniva Travel can plan the entire thing for free! zenivatravel.com'" },
-        { icon: "🧠", title: "AI qualification engine", desc: "GPT-4o-mini analyzes post intent, urgency, budget signals and destination — eliminates spam and irrelevant posts automatically." },
-        { icon: "📊", title: "Lead pipeline sync", desc: "Hot leads are automatically added to your agent dashboard with source, destination, budget hint and outreach message ready to send." },
-      ],
-      activityLog: [
-        { time: "2h ago", action: "Facebook scan — 6 posts analyzed, 4 hot leads found", status: "success" },
-        { time: "2h ago", action: "Lead scored 9/10: cruise trip for 8 in May 2026", status: "success" },
-        { time: "4h ago", action: "Outreach message generated for Hawaii honeymoon lead", status: "success" },
-      ],
-      stats: [{ label: "Sources", value: "Facebook" }, { label: "Avg score", value: "7.2/10" }],
-      lastRun: "2h ago", nextRun: "In 2h",
-      enabled: agentEnabled["nova"] !== false,
-      progress: 74, uptime: "99.1%", tasksCompleted: 312, successRate: "91.3%",
-      logs: ["Facebook scan: 6 posts analyzed", "4 leads scored ≥ 4/10", "Outreach messages ready"],
     },
   ], [agentEnabled]);
 
