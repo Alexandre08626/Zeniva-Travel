@@ -51,14 +51,14 @@ const DESTINATIONS = [
 ];
 
 const QUICK_CHIPS = [
-  { emoji:"⛵", label:"ZeniYacht",   q:"Charter a private luxury yacht" },
-  { emoji:"🏨", label:"ZeniHotel",   q:"Book a luxury hotel" },
-  { emoji:"🏡", label:"ZeniStay",    q:"Find a private villa or ZeniStay" },
-  { emoji:"✈️", label:"ZeniFlights", q:"Book flights with Lina" },
-  { emoji:"🚗", label:"ZeniCar",     q:"Reserve a rental car with Zeniva" },
-  { emoji:"🚢", label:"ZeniCruise",  q:"Plan a luxury cruise experience" },
-  { emoji:"🎯", label:"ZeniXP",      q:"Add experiences and activities to my trip" },
-  { emoji:"👥", label:"ZeniGroup",   q:"Plan a group trip with Zeniva" },
+  { emoji:"⛵", label:"ZeniYacht",   href:"/yachts" },
+  { emoji:"🏨", label:"ZeniHotel",   href:"/partners/resorts" },
+  { emoji:"🏡", label:"ZeniStay",    href:"/residences" },
+  { emoji:"✈️", label:"ZeniFlights", href:"/search/flights" },
+  { emoji:"🚗", label:"ZeniCar",     href:"/search/cars" },
+  { emoji:"🚢", label:"ZeniCruise",  href:"/cruises" },
+  { emoji:"🎯", label:"ZeniXP",      href:"/chat" },
+  { emoji:"👥", label:"ZeniGroup",   href:"/collections/group" },
 ];
 
 export default function AppHome() {
@@ -284,7 +284,7 @@ export default function AppHome() {
           scrollbarWidth:"none",
         }}>
           {QUICK_CHIPS.map((c)=>(
-            <button key={c.label} className="chip-btn" onClick={()=>chat(c.q)} style={{
+            <button key={c.label} className="chip-btn" onClick={()=>go(c.href)} style={{
               flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",gap:4,
               background:"rgba(11,27,77,.05)",border:"1px solid rgba(11,27,77,.1)",
               borderRadius:16,padding:"10px 14px",cursor:"pointer",

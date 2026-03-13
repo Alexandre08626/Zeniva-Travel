@@ -1810,13 +1810,16 @@ export default function ProposalSelectPage() {
                         <div className="h-48 w-full overflow-hidden relative">
                           {images.length > 1 ? (
                             <div className="flex h-full gap-0.5">
-                              <img src={images[0]} alt={h.name} className="h-full w-2/3 object-cover" />
+                              <img src={images[0]} alt={h.name} className="h-full w-2/3 object-cover"
+                                onError={(e) => { e.currentTarget.src = hotelImages[0] || "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80"; }} />
                               <div className="flex-1 flex flex-col gap-0.5">
-                                {images.slice(1, 3).map((img, idx) => <img key={idx} src={img} alt="" className="flex-1 w-full object-cover" />)}
+                                {images.slice(1, 3).map((img, idx) => <img key={idx} src={img} alt="" className="flex-1 w-full object-cover"
+                                  onError={(e) => { e.currentTarget.src = hotelImages[idx + 1] || hotelImages[0] || ""; }} />)}
                               </div>
                             </div>
                           ) : (
-                            <img src={image} alt={h.name} className="h-full w-full object-cover" />
+                            <img src={image} alt={h.name} className="h-full w-full object-cover"
+                              onError={(e) => { e.currentTarget.src = hotelImages[0] || "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80"; }} />
                           )}
                           {/* Price overlay */}
                           <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-lg">
@@ -2444,32 +2447,53 @@ export default function ProposalSelectPage() {
         return (
           <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-4" onClick={() => setHotelModal(null)}>
             <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-              {/* Hero image */}
-              <div className="relative h-64 w-full overflow-hidden">
-                <img src={hImages[0] || "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80"} alt={hotelModal.name} className="h-full w-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <button onClick={() => setHotelModal(null)} className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/50 flex items-center justify-center text-white font-black text-lg hover:bg-black/70">×</button>
-                <div className="absolute bottom-4 left-4">
-                  <h2 className="text-2xl font-black text-white">{hotelModal.name}</h2>
-                  <p className="text-white/80 text-sm">{hotelModal.location}</p>
-                  {hotelStars > 0 && <p className="text-amber-400 text-sm mt-1">{"★".repeat(hotelStars)}</p>}
-                </div>
-                {isSelected && <div className="absolute top-4 left-4 bg-purple-600 text-white text-xs font-black rounded-full px-3 py-1">✓ Selected</div>}
-              </div>
 
-              {/* Photo gallery */}
-              {hImages.length > 1 && (
-                <div className="px-4 pt-4">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">📷 {hImages.length} photos</p>
-                  <div className="grid grid-cols-4 gap-1.5 max-h-48 overflow-y-auto">
-                    {hImages.map((img, i) => (
-                      <div key={i} className="aspect-square overflow-hidden rounded-xl">
-                        <img src={img} alt={`Photo ${i + 1}`} className="h-full w-full object-cover hover:scale-110 transition-transform duration-300" />
-                      </div>
-                    ))}
+              {/* ── Hero + thumbnail strip ── */}
+              <div className="relative">
+                {/* Main hero image */}
+                <div className="relative h-64 w-full overflow-hidden bg-slate-100">
+                  <img
+                    id={`hotel-hero-${hotelModal.id}`}
+                    src={hImages[0] || "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80"}
+                    alt={hotelModal.name}
+                    className="h-full w-full object-cover"
+                    onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?auto=format&fit=crop&w=800&q=80"; }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                  <button onClick={() => setHotelModal(null)} className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/50 flex items-center justify-center text-white font-black text-lg hover:bg-black/70">×</button>
+                  {hImages.length > 1 && (
+                    <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-sm text-white text-xs font-bold rounded-full px-3 py-1">
+                      📷 {hImages.length} photos
+                    </div>
+                  )}
+                  {isSelected && <div className="absolute bottom-4 right-4 bg-purple-600 text-white text-xs font-black rounded-full px-3 py-1">✓ Selected</div>}
+                  <div className="absolute bottom-4 left-4">
+                    <h2 className="text-xl font-black text-white leading-tight">{hotelModal.name}</h2>
+                    <p className="text-white/80 text-sm">{hotelModal.location}</p>
+                    {hotelStars > 0 && <p className="text-amber-400 text-sm mt-0.5">{"★".repeat(hotelStars)}</p>}
                   </div>
                 </div>
-              )}
+
+                {/* Thumbnail strip — horizontal scroll */}
+                {hImages.length > 1 && (
+                  <div className="flex gap-1.5 px-3 py-2 overflow-x-auto bg-slate-900" style={{ scrollbarWidth: "none" }}>
+                    {hImages.map((img, i) => (
+                      <img
+                        key={i}
+                        src={img}
+                        alt={`Photo ${i + 1}`}
+                        className="flex-shrink-0 w-16 h-12 object-cover rounded-lg cursor-pointer opacity-70 hover:opacity-100 transition-opacity border-2 border-transparent hover:border-purple-400"
+                        style={{ minWidth: 64 }}
+                        onError={(e) => { e.currentTarget.style.display = "none"; }}
+                        onClick={() => {
+                          const hero = document.getElementById(`hotel-hero-${hotelModal.id}`);
+                          if (hero) hero.src = img;
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* Details */}
               <div className="px-5 py-4 space-y-4">

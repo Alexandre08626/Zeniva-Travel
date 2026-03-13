@@ -302,11 +302,28 @@ export async function GET(req: Request) {
         const location = [cityStr, countryStr].filter(Boolean).join(", ") || city;
         // Extract images from hotelImages array (LiteAPI v3 format)
         const hotelImagesArr: string[] = Array.isArray(meta?.hotelImages)
-          ? meta.hotelImages.slice(0, 8).map((img: any) => img?.urlHd || img?.url || "").filter(Boolean)
+          ? meta.hotelImages.slice(0, 12).map((img: any) => img?.urlHd || img?.url || "").filter(Boolean)
           : [];
+
+        // Per-hotel unique fallback images — use hotel ID hash so each hotel gets a different photo
+        const HOTEL_FALLBACKS = [
+          "photo-1566073771259-6a8506099945", // hotel pool
+          "photo-1582719478250-c89cae4dc85b", // hotel room
+          "photo-1520250497591-112f2f40a3f4", // luxury resort
+          "photo-1571003123894-1f0594d2b5d9", // hotel lobby
+          "photo-1445019980597-93fa8acb246c", // hotel exterior
+          "photo-1455587734955-081b22074882", // hotel room 2
+          "photo-1551882547-ff40c4fe1fa7", // hotel pool 2
+          "photo-1578683010236-d716f9a3f461", // luxury room
+          "photo-1564501049412-61c2a3083791", // hotel bar
+          "photo-1542314831-068cd1dbfeeb", // hotel facade
+        ];
+        const fallbackIdx = Math.abs(hotelId.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0)) % HOTEL_FALLBACKS.length;
+        const fallbackPhoto = `https://images.unsplash.com/${HOTEL_FALLBACKS[fallbackIdx]}?auto=format&fit=crop&w=900&q=80`;
+
         const image = hotelImagesArr[0]
           || getStr(meta?.main_photo, meta?.mainPhoto, meta?.thumbnail)
-          || "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80";
+          || fallbackPhoto;
         const rating = starsByHotelId.get(hotelId) || getNum(meta?.stars) || 0; // stars from /data/hotels
         const room = getStr(rt?.rates?.[0]?.name, rt?.name, rt?.roomTypeName) || "Room";
         const perNight = Math.round(priceAmount / nights);
