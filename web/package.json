@@ -19,6 +19,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dotenv": "^17.3.1",
+    "geist": "^1.7.0",
     "html-pdf-node": "^1.0.8",
     "imapflow": "^1.2.13",
     "lucide-react": "^0.562.0",
