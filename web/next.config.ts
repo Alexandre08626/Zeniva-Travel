@@ -5,11 +5,7 @@ const rootDir = path.resolve(__dirname);
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  experimental: {
-    // Disable Dynamic IO mode (Next.js 16 default) which causes workUnitAsyncStorage
-    // invariant errors when prerendering pages during static generation
-    dynamicIO: false,
-  },
+
 
   env: {
     // LiteAPI Production credentials — server-only (not prefixed with NEXT_PUBLIC)
