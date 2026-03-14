@@ -119,10 +119,10 @@ export default function AirbnbBookingSummary({ pricePerNight, storageKey, proper
 
         {beforeBook && <div className="mt-4">{beforeBook}</div>}
         <Link
-          href={`/payment?type=residence&residence=${encodeURIComponent(propertyName)}&nights=${nights}&total=${total}&checkin=${dates.start || ""}&checkout=${dates.end || ""}&price=${pricePerNight}`}
+          href={`${sourcePath}/book?property=${encodeURIComponent(propertyName)}&slug=${encodeURIComponent(sourcePath.split("/").pop() || "")}&nights=${nights}&total=${total}&checkin=${dates.start || ""}&checkout=${dates.end || ""}&price=${pricePerNight}`}
           className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-blue-700 text-white py-3.5 text-sm font-semibold shadow-lg shadow-blue-200/60 hover:bg-blue-800 transition"
         >
-          🏠 Book Now — Secure Checkout →
+          🏠 Reserve This Property →
         </Link>
         <a
           href={`/chat/agent?channel=${encodeURIComponent("agent-alexandre")}&listing=${encodeURIComponent(propertyName)}&source=${encodeURIComponent(sourcePath)}`}
