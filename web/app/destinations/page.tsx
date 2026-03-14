@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Top Destinations — Zeniva Travel",
   description: "Discover the 30 most beautiful destinations in the world. Plan your dream trip with Lina AI — free, instant, personalized.",

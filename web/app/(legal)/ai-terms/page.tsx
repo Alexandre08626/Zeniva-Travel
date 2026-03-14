@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import React from "react";
 import OrganizationSchema from "../../../src/components/legal/OrganizationSchema";
 import LegalContactBlock from "../../../src/components/legal/LegalContactBlock";
