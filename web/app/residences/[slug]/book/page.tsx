@@ -62,7 +62,7 @@ function BookingForm() {
     setPayLoading(true); setError("");
     try {
       await saveLead();
-      const res = await fetch("/api/payment/stripe", {
+      const res = await fetch("/api/payment/helcim", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -2,84 +2,7 @@
 import React, { Suspense, useState } from "react";
 import Header from "../../src/components/Header";
 
-function StripePayButton({ amount, description, referenceId }: { amount: number; description: string; referenceId: string }) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const handlePay = async () => {
-    if (loading) return;
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/payment/stripe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: amount || 1,
-          currency: "USD",
-          description: description || "Zeniva Travel Booking",
-          referenceId,
-          redirectUrl: `${window.location.origin}/payment/confirmation`,
-        }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        // Save pending booking details for confirmation page
-        try {
-          const urlParams = new URLSearchParams(window.location.search);
-          localStorage.setItem("zeniva_pending_booking", JSON.stringify({
-            clientEmail: (window as any).__zenivaUser?.email || "",
-            clientName: (window as any).__zenivaUser?.name || "",
-            destination: urlParams.get("to") || urlParams.get("destination") || description,
-            totalPrice: String(amount),
-            travelers: urlParams.get("passengers") || "1",
-            departure: urlParams.get("depart") || "",
-            returnDate: urlParams.get("return") || "",
-            description,
-          }));
-        } catch { /* noop */ }
-        window.location.href = data.url;
-      } else {
-        setError(data.error || "Payment error. Please try again.");
-        setLoading(false);
-      }
-    } catch {
-      setError("Connection error. Please try again.");
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div>
-      <button
-        onClick={handlePay}
-        disabled={loading}
-        className="w-full rounded-full px-6 py-4 font-extrabold text-white shadow-lg transition-all"
-        style={{
-          background: loading ? "#94a3b8" : "linear-gradient(135deg, #0F6CF5, #0B1B4D)",
-          cursor: loading ? "not-allowed" : "pointer",
-          fontSize: "16px",
-        }}
-      >
-        {loading ? "Redirecting to secure payment…" : `💳 Pay $${amount.toLocaleString()} — Secure Checkout`}
-      </button>
-      {error && <p className="text-red-500 text-xs mt-2 text-center">{error}</p>}
-      {!loading && (
-        <p className="text-xs text-center text-gray-400 mt-2">
-          🔒 Visa · Mastercard · Amex · Apple Pay
-        </p>
-      )}
-    </div>
-  );
-}
-import Footer from "../../src/components/Footer";
-import { LIGHT_BG, TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../src/design/tokens";
-import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useAuthStore } from "../../src/lib/authStore";
-import { getDocumentsForUser, upsertDocuments } from "../../src/lib/documentsStore";
-import { useTripsStore, createTrip } from "../../lib/store/tripsStore";
-import { getStoredReferral } from "../../src/lib/influencer";
+import HelcimPayButton from "../../src/components/HelcimPayButton.client";
 
 function PaymentContent() {
   const router = useRouter();
@@ -224,12 +147,12 @@ function PaymentContent() {
           <div className="rounded-xl border border-slate-200 p-4 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold text-slate-700">Payment method</h2>
-              <span className="text-xs font-semibold text-slate-500">🔒 Secured by Stripe</span>
+              <span className="text-xs font-semibold text-slate-500">🔒 Secured by Helcim</span>
             </div>
             <p className="text-sm text-slate-600">
               Click below to proceed to our secure payment page. You can pay by Visa, Mastercard, Amex, or Apple Pay.
             </p>
-            <StripePayButton
+            <HelcimPayButton
               amount={totalDue}
               description={isFlight ? `${flightCarrier} ${flightCode} — ${flightRoute}` : `${yachtParam}${Number.isFinite(hours) ? ` (${hours}h)` : ""}${noteParam ? ` · ${noteParam}` : ""}`}
               referenceId={`zeniva-${Date.now()}`}

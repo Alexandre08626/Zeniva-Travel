@@ -3,70 +3,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
-function StripePayButton({ amount, description, referenceId, disabled }) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const handlePay = async () => {
-    if (disabled || loading) return;
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/payment/stripe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: amount || 1,
-          currency: "USD",
-          description: description || "Zeniva Travel Booking",
-          referenceId: referenceId || Date.now().toString(),
-          redirectUrl: `${window.location.origin}/payment/confirmation`,
-        }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        setError(data.error || "Payment error. Please try again.");
-        setLoading(false);
-      }
-    } catch {
-      setError("Connection error. Please try again.");
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div>
-      <button
-        onClick={handlePay}
-        disabled={disabled || loading}
-        className="w-full rounded-full px-4 py-4 text-sm font-extrabold text-white shadow-lg transition-all"
-        style={{
-          background: disabled ? "#94a3b8" : "linear-gradient(135deg, #0F6CF5, #0B1B4D)",
-          cursor: disabled ? "not-allowed" : "pointer",
-          fontSize: "15px",
-          letterSpacing: "0.5px",
-        }}
-      >
-        {loading ? "Redirecting to secure payment…" : disabled ? "Fill in your details first" : "💳 Pay by Card (Secure)"}
-      </button>
-      {error && <p className="text-red-500 text-xs mt-2 text-center">{error}</p>}
-      {!disabled && (
-        <p className="text-xs text-center text-gray-400 mt-1">
-          🔒 Secured by Stripe — Visa · Mastercard · Amex · Apple Pay
-        </p>
-      )}
-    </div>
-  );
-}
-import { BRAND_BLUE, LIGHT_BG, MUTED_TEXT, TITLE_TEXT } from "../../../src/design/tokens";
-import { useTripsStore, createTrip } from "../../../lib/store/tripsStore";
-import { getImagesForDestination, getPartnerHotelImages } from "../../../src/lib/images";
-import { computePrice, formatCurrency, parseMoney } from "../../../src/lib/pricing";
-import SelectedSummary from "../../../src/components/SelectedSummary";
-import { useAuthStore } from "../../../src/lib/authStore";
-import { getDocumentsForUser, upsertDocuments } from "../../../src/lib/documentsStore";
+import HelcimPayButton from "../../../src/components/HelcimPayButton.client";
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -444,7 +381,7 @@ export default function CheckoutPage() {
             <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>Payment</div>
-                <span className="text-[11px] font-bold text-emerald-600">🔒 Secured by Stripe</span>
+                <span className="text-[11px] font-bold text-emerald-600">🔒 Secured by Helcim</span>
               </div>
               <p className="text-sm text-slate-600">
                 Fill in your traveler details above, then click the button below to proceed to our secure payment page.
@@ -504,13 +441,13 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            {/* Stripe Payment Button */}
+            {/* Helcim Payment Button */}
             {!pricing.hasAnyPrice && (
               <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 mb-3">
                 💡 <strong>Price on request</strong> — Our team will confirm exact pricing within 24h and send you a payment link.
               </div>
             )}
-            <StripePayButton
+            <HelcimPayButton
               amount={trueTotal > 0 ? trueTotal : (pricing.hasAnyPrice ? pricing.total : 500)}
               description={`Zeniva Travel — ${tripDraft?.destination || "Trip"} (${tripDraft?.adults || 1} travelers)`}
               referenceId={proposalId}
