@@ -117,7 +117,13 @@ export function setTripUserScope(userId) {
   activeUserEmail = userId ? String(userId).trim().toLowerCase() : "";
   activeStorageKey = nextKey;
   const parsed = loadFromStorage(activeStorageKey);
-  state = { ...defaultState, ...(parsed || {}) };
+  const loadedState = { ...defaultState, ...(parsed || {}) };
+  // Cap trips to 5 on load — purge old extras immediately
+  if (Array.isArray(loadedState.trips) && loadedState.trips.length > 5) {
+    loadedState.trips = loadedState.trips.slice(0, 5);
+  }
+  state = loadedState;
+  persist(state); // write back capped version
   // notify subscribers of scope change
   listeners.forEach((l) => l());
 }
@@ -194,7 +200,7 @@ function ensureTrip(tripId) {
   const trip = { id, title, status: "Draft", lastMessage: "", updatedAt: createdAt };
   setState((s) => ({
     ...s,
-    trips: [trip, ...s.trips],
+    trips: [trip, ...s.trips].slice(0, 5),
     messages: { ...s.messages, [id]: s.messages[id] || [] },
     snapshots: {
       ...s.snapshots,
@@ -218,7 +224,7 @@ export function createTrip(initial = {}) {
   const trip = { id, title, status: initial.status || "Draft", lastMessage: "", updatedAt: createdAt };
   setState((s) => ({
     ...s,
-    trips: [trip, ...s.trips],
+    trips: [trip, ...s.trips].slice(0, 5),
     messages: { ...s.messages, [id]: [] },
     snapshots: {
       ...s.snapshots,

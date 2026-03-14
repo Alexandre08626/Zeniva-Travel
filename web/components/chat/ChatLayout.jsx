@@ -164,7 +164,25 @@ function useTrips() {
         const db = new Date(b.updatedAt || b.createdAt || 0).getTime();
         return db - da;
       });
-      setTrips(deduped.slice(0, 10));
+      const capped = deduped.slice(0, 5);
+      // Purge extras from localStorage so they don't come back
+      if (deduped.length > 5) {
+        const extraIds = new Set(deduped.slice(5).map(t => t.id));
+        const email2 = getCurrentUserEmail();
+        const allKeys = Object.keys(localStorage).filter(k => k.startsWith("trips-store-") || k.startsWith("zeniva-trips-"));
+        allKeys.forEach(k => {
+          try {
+            const raw = localStorage.getItem(k);
+            if (!raw) return;
+            const s = JSON.parse(raw);
+            if (Array.isArray(s?.trips)) {
+              s.trips = s.trips.filter((t: any) => !extraIds.has(t.id));
+              localStorage.setItem(k, JSON.stringify(s));
+            }
+          } catch {}
+        });
+      }
+      setTrips(capped);
     };
 
     load();
