@@ -1,5 +1,5 @@
-export const dynamic = "force-dynamic";
 "use client";
+export const dynamic = "force-dynamic";
 import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ensureSeedTrip } from "../../lib/store/tripsStore";

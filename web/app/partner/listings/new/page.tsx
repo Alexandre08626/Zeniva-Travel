@@ -1,5 +1,5 @@
-export const dynamic = "force-dynamic";
 "use client";
+export const dynamic = "force-dynamic";
 import React, { useState } from 'react';
 import PageHeader from '../../../../src/components/partner/PageHeader';
 import { ArrowLeft, ArrowRight, Check, Home, Anchor, Building2, MapPin, Users, ImageIcon, DollarSign, Calendar, FileText, LucideIcon } from 'lucide-react';

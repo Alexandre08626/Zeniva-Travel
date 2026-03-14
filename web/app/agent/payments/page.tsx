@@ -1,5 +1,5 @@
-export const dynamic = "force-dynamic";
 "use client";
+export const dynamic = "force-dynamic";
 import { listTrips } from "../../../src/lib/agent/store";
 import { TITLE_TEXT, MUTED_TEXT } from "../../../src/design/tokens";
 

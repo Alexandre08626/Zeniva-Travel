@@ -1,5 +1,5 @@
-export const dynamic = "force-dynamic";
 "use client";
+export const dynamic = "force-dynamic";
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Building2, Users, Bell, Shield, CreditCard } from 'lucide-react';
