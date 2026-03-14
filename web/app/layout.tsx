@@ -1,25 +1,25 @@
 
 import React from "react";
 import type { Metadata } from "next";
-
-export const dynamic = "force-dynamic";
 import { Geist, Geist_Mono } from "next/font/google";
+import nextDynamic from "next/dynamic";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 import Script from "next/script";
 import "./globals.css";
 import { Providers } from "./providers";
-
 import CookieConsent from "../src/components/legal/CookieConsent.client";
 import PlatformOsTag from "../src/components/PlatformOsTag.client";
 import PWAPromptAfterLogin from "../src/components/PWAPromptAfterLogin.client";
 import WelcomeBanner from "../src/components/WelcomeBanner.client";
 import PushNotifManager from "../src/components/PushNotifManager.client";
 import HelpCenterButton from "../src/components/HelpCenterButton.client";
-import { DynamicBackButton as BackButton, DynamicLinaAssistantDock as LinaAssistantDock, DynamicAppShell as AppShell, DynamicLinaFloatingChat as LinaFloatingChat } from "../src/components/DynamicLayoutComponents.client";
 
-// GeistSans and GeistMono are pre-bundled — no Dynamic IO / network call at build time
+const BackButton = nextDynamic(() => import("../src/components/BackButton.client"), { ssr: false });
+const LinaAssistantDock = nextDynamic(() => import("../src/components/LinaAssistantDock"), { ssr: false });
+const AppShell = nextDynamic(() => import("../src/components/AppShell.client"), { ssr: false });
+const LinaFloatingChat = nextDynamic(() => import("../components/LinaFloatingChat"), { ssr: false });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://zenivatravel.com"),
