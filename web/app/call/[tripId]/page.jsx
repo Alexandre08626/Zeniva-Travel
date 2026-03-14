@@ -3,13 +3,13 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import dynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 import ConversationsSidebar from "../../../components/chat/ConversationsSidebar";
 import ChatThread from "../../../components/chat/ChatThread";
 import TripSnapshotPanel from "../../../components/chat/TripSnapshotPanel";
 import { ensureSeedTrip, useTripsStore } from "../../../lib/store/tripsStore";
 
-const LinaVideoCall = dynamic(() => import("../../../src/components/LinaVideoCall"), { ssr: false });
+const LinaVideoCall = nextDynamic(() => import("../../../src/components/LinaVideoCall"), { ssr: false });
 
 export default function CallTripPage() {
   const params = useParams();
