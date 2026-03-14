@@ -5,6 +5,10 @@ const rootDir = path.resolve(__dirname);
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  experimental: {
+    // Disable Partial Prerendering — causes /_global-error workUnitAsyncStorage crash on Vercel
+    ppr: false,
+  },
 
 
   env: {
