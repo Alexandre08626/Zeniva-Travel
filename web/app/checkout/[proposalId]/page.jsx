@@ -449,8 +449,7 @@ export default function CheckoutPage() {
             )}
             <HelcimPayButton
               amount={trueTotal > 0 ? trueTotal : (pricing.hasAnyPrice ? pricing.total : 500)}
-              description={`Zeniva Travel — ${tripDraft?.destination || "Trip"} (${tripDraft?.adults || 1} travelers)`}
-              referenceId={proposalId}
+              currency="CAD"
               disabled={!travelerForm.firstName.trim() || !travelerForm.email.trim()}
             />
             <div className="rounded-xl border border-slate-200 bg-white p-3 text-xs" style={{ color: MUTED_TEXT }}>

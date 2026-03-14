@@ -161,8 +161,7 @@ function PaymentContent() {
             </p>
             <HelcimPayButton
               amount={totalDue}
-              description={isFlight ? `${flightCarrier} ${flightCode} — ${flightRoute}` : `${yachtParam}${Number.isFinite(hours) ? ` (${hours}h)` : ""}${noteParam ? ` · ${noteParam}` : ""}`}
-              referenceId={`zeniva-${Date.now()}`}
+              currency="CAD"
             />
             <p className="text-xs text-slate-400 text-center">
               After payment, you will receive an email confirmation with your booking details.
