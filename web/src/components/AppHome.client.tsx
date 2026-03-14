@@ -369,7 +369,7 @@ export default function AppHome() {
 
           {/* 3 big category cards */}
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
-            {/* Yachts */}
+            {/* ZeniYacht */}
             <button onClick={()=>go("/yachts")} style={{
               display:"flex",alignItems:"center",gap:16,
               background:"linear-gradient(135deg,rgba(15,108,245,.12) 0%,rgba(11,27,77,.4) 100%)",
@@ -378,20 +378,17 @@ export default function AppHome() {
               cursor:"pointer",textAlign:"left",
               WebkitTapHighlightColor:"transparent",
             }}>
-              <div style={{
-                width:54,height:54,borderRadius:16,flexShrink:0,overflow:"hidden",
-                border:"1.5px solid rgba(15,108,245,.3)",
-              }}>
-                <img src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=200&q=80" alt="Yachts" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+              <div style={{width:54,height:54,borderRadius:16,flexShrink:0,overflow:"hidden",border:"1.5px solid rgba(15,108,245,.3)"}}>
+                <img src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=200&q=80" alt="ZeniYacht" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
               </div>
               <div style={{flex:1}}>
-                <div style={{fontSize:16,fontWeight:900,color:"#0B1B4D",marginBottom:3}}>⛵ Yacht Charters</div>
-                <div style={{fontSize:12,color:"rgba(11,27,77,.6)"}}>Luxury yachts in Miami, Bahamas & more</div>
+                <div style={{fontSize:16,fontWeight:900,color:"#0B1B4D",marginBottom:3}}>⛵ ZeniYacht</div>
+                <div style={{fontSize:12,color:"rgba(11,27,77,.6)"}}>Private charters — Miami, Bahamas & more</div>
               </div>
               <div style={{fontSize:20,color:"rgba(11,27,77,.45)"}}>›</div>
             </button>
 
-            {/* Luxury Resorts */}
+            {/* ZeniHotel */}
             <button onClick={()=>go("/partners/resorts")} style={{
               display:"flex",alignItems:"center",gap:16,
               background:"linear-gradient(135deg,rgba(230,184,90,.1) 0%,rgba(11,27,77,.4) 100%)",
@@ -400,20 +397,17 @@ export default function AppHome() {
               cursor:"pointer",textAlign:"left",
               WebkitTapHighlightColor:"transparent",
             }}>
-              <div style={{
-                width:54,height:54,borderRadius:16,flexShrink:0,overflow:"hidden",
-                border:"1.5px solid rgba(230,184,90,.3)",
-              }}>
-                <img src="https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=200&q=80" alt="Resorts" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+              <div style={{width:54,height:54,borderRadius:16,flexShrink:0,overflow:"hidden",border:"1.5px solid rgba(230,184,90,.3)"}}>
+                <img src="https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=200&q=80" alt="ZeniHotel" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
               </div>
               <div style={{flex:1}}>
-                <div style={{fontSize:16,fontWeight:900,color:"#0B1B4D",marginBottom:3}}>🏨 Luxury Resorts</div>
-                <div style={{fontSize:12,color:"rgba(11,27,77,.6)"}}>5-star partner hotels & all-inclusive</div>
+                <div style={{fontSize:16,fontWeight:900,color:"#0B1B4D",marginBottom:3}}>🏨 ZeniHotel</div>
+                <div style={{fontSize:12,color:"rgba(11,27,77,.6)"}}>5-star hotels & all-inclusive resorts</div>
               </div>
               <div style={{fontSize:20,color:"rgba(11,27,77,.45)"}}>›</div>
             </button>
 
-            {/* Villas & Residences */}
+            {/* ZeniStay */}
             <button onClick={()=>go("/residences")} style={{
               display:"flex",alignItems:"center",gap:16,
               background:"linear-gradient(135deg,rgba(16,185,129,.1) 0%,rgba(11,27,77,.4) 100%)",
@@ -422,15 +416,12 @@ export default function AppHome() {
               cursor:"pointer",textAlign:"left",
               WebkitTapHighlightColor:"transparent",
             }}>
-              <div style={{
-                width:54,height:54,borderRadius:16,flexShrink:0,overflow:"hidden",
-                border:"1.5px solid rgba(16,185,129,.3)",
-              }}>
-                <img src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=200&q=80" alt="Villas" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+              <div style={{width:54,height:54,borderRadius:16,flexShrink:0,overflow:"hidden",border:"1.5px solid rgba(16,185,129,.3)"}}>
+                <img src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=200&q=80" alt="ZeniStay" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
               </div>
               <div style={{flex:1}}>
-                <div style={{fontSize:16,fontWeight:900,color:"#0B1B4D",marginBottom:3}}>🏡 Villas & Residences</div>
-                <div style={{fontSize:12,color:"rgba(11,27,77,.6)"}}>Private Florida villas, beach houses</div>
+                <div style={{fontSize:16,fontWeight:900,color:"#0B1B4D",marginBottom:3}}>🏡 ZeniStay</div>
+                <div style={{fontSize:12,color:"rgba(11,27,77,.6)"}}>Private villas & luxury residences</div>
               </div>
               <div style={{fontSize:20,color:"rgba(11,27,77,.45)"}}>›</div>
             </button>
