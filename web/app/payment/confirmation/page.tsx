@@ -49,7 +49,7 @@ function ConfirmationContent() {
         returnDate,
         travelers,
         totalPrice,
-        notes: `Square order: ${orderId || ref} | ${description}`,
+        notes: `Stripe payment: ${orderId || ref} | ${description}`,
       }),
     }).catch(() => undefined);
 
@@ -66,7 +66,7 @@ function ConfirmationContent() {
         travelers,
         total_price: totalPrice,
         status: "confirmed",
-        notes: `Square order: ${orderId || ref} | ${description}`,
+        notes: `Stripe payment: ${orderId || ref} | ${description}`,
       }),
     }).catch(() => undefined);
 
@@ -105,7 +105,7 @@ function ConfirmationContent() {
             <p className="text-xs text-gray-400 uppercase tracking-wider">Booking Reference</p>
             <p className="font-mono text-lg font-black text-[#0B1B4D]">{bookingRef || orderId}</p>
             {orderId && bookingRef && (
-              <p className="text-xs text-gray-400">Square order: {orderId}</p>
+              <p className="text-xs text-gray-400">Stripe payment: {orderId}</p>
             )}
           </div>
         )}

@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import React, { Suspense, useState } from "react";
 import Header from "../../src/components/Header";
 
-function SquarePayButton({ amount, description, referenceId }: { amount: number; description: string; referenceId: string }) {
+function StripePayButton({ amount, description, referenceId }: { amount: number; description: string; referenceId: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -225,12 +225,12 @@ function PaymentContent() {
           <div className="rounded-xl border border-slate-200 p-4 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold text-slate-700">Payment method</h2>
-              <span className="text-xs font-semibold text-slate-500">🔒 Secured by Square</span>
+              <span className="text-xs font-semibold text-slate-500">🔒 Secured by Stripe</span>
             </div>
             <p className="text-sm text-slate-600">
               Click below to proceed to our secure payment page. You can pay by Visa, Mastercard, Amex, or Apple Pay.
             </p>
-            <SquarePayButton
+            <StripePayButton
               amount={totalDue}
               description={isFlight ? `${flightCarrier} ${flightCode} — ${flightRoute}` : `${yachtParam}${Number.isFinite(hours) ? ` (${hours}h)` : ""}${noteParam ? ` · ${noteParam}` : ""}`}
               referenceId={`zeniva-${Date.now()}`}

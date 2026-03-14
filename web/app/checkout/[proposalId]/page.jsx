@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
-function SquarePayButton({ amount, description, referenceId, disabled }) {
+function StripePayButton({ amount, description, referenceId, disabled }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -55,7 +55,7 @@ function SquarePayButton({ amount, description, referenceId, disabled }) {
       {error && <p className="text-red-500 text-xs mt-2 text-center">{error}</p>}
       {!disabled && (
         <p className="text-xs text-center text-gray-400 mt-1">
-          🔒 Secured by Square — Visa · Mastercard · Amex · Apple Pay
+          🔒 Secured by Stripe — Visa · Mastercard · Amex · Apple Pay
         </p>
       )}
     </div>
@@ -445,7 +445,7 @@ export default function CheckoutPage() {
             <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>Payment</div>
-                <span className="text-[11px] font-bold text-emerald-600">🔒 Secured by Square</span>
+                <span className="text-[11px] font-bold text-emerald-600">🔒 Secured by Stripe</span>
               </div>
               <p className="text-sm text-slate-600">
                 Fill in your traveler details above, then click the button below to proceed to our secure payment page.
@@ -505,13 +505,13 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            {/* Square Payment Button */}
+            {/* Stripe Payment Button */}
             {!pricing.hasAnyPrice && (
               <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 mb-3">
                 💡 <strong>Price on request</strong> — Our team will confirm exact pricing within 24h and send you a payment link.
               </div>
             )}
-            <SquarePayButton
+            <StripePayButton
               amount={trueTotal > 0 ? trueTotal : (pricing.hasAnyPrice ? pricing.total : 500)}
               description={`Zeniva Travel — ${tripDraft?.destination || "Trip"} (${tripDraft?.adults || 1} travelers)`}
               referenceId={proposalId}
