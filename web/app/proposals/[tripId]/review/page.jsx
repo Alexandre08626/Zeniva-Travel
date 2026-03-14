@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { BRAND_BLUE, LIGHT_BG, MUTED_TEXT, PREMIUM_BLUE, TITLE_TEXT } from "../../../../src/design/tokens";
 import { useTripsStore, generateProposal } from "../../../../lib/store/tripsStore";
@@ -10,7 +10,7 @@ import { loadTripWorkflowState, persistWorkflowStatePatch } from "../../../../sr
 import yachtsData from "../../../../src/data/ycn_packages.json";
 import airbnbsData from "../../../../src/data/airbnbs.json";
 
-export default function ProposalReviewPage() {
+function ProposalReviewPageInner() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -990,5 +990,13 @@ export default function ProposalReviewPage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function ProposalReviewPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-slate-400">Loading…</div>}>
+      <ProposalReviewPageInner />
+    </Suspense>
   );
 }

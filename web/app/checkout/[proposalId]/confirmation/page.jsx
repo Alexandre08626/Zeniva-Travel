@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { BRAND_BLUE, LIGHT_BG, MUTED_TEXT, TITLE_TEXT } from "../../../../src/design/tokens";
 
-export default function CheckoutConfirmationPage() {
+function CheckoutConfirmationPageInner() {
   const searchParams = useSearchParams();
   const [feedback, setFeedback] = useState("");
 
@@ -146,5 +146,13 @@ export default function CheckoutConfirmationPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function CheckoutConfirmationPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-slate-400">Loading…</div>}>
+      <CheckoutConfirmationPageInner />
+    </Suspense>
   );
 }

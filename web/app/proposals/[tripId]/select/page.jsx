@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { BRAND_BLUE, LIGHT_BG, MUTED_TEXT, PREMIUM_BLUE, TITLE_TEXT } from "../../../../src/design/tokens";
 import { useTripsStore, generateProposal, setProposalSelection, applyTripPatch, updateSnapshot } from "../../../../lib/store/tripsStore";
@@ -227,7 +227,7 @@ function getTimeBucket(timeLabel) {
   return "any";
 }
 
-export default function ProposalSelectPage() {
+function ProposalSelectPageInner() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -2642,5 +2642,13 @@ export default function ProposalSelectPage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function ProposalSelectPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-slate-400">Loading…</div>}>
+      <ProposalSelectPageInner />
+    </Suspense>
   );
 }
