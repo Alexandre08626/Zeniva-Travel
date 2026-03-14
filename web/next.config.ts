@@ -5,6 +5,11 @@ const rootDir = path.resolve(__dirname);
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  experimental: {
+    // Disable Dynamic IO — prevents workUnitAsyncStorage prerender crashes on Vercel
+    // @ts-ignore
+    dynamicIO: false,
+  },
 
 
   env: {
