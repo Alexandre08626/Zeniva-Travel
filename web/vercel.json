@@ -1,4 +1,5 @@
 {
+  "installCommand": "npm ci",
   "rewrites": [
     {
       "source": "/tiktokT6qzksZRDhq8epwtEK902HQOgOKb0ffn.txt",
