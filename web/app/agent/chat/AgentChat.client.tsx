@@ -46,6 +46,9 @@ export default function AgentChatClient() {
     { id: "hq", label: "📥 All Messages", scope: "Global inbox", unread: 0, closed: false },
   ]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const listRef = useRef<HTMLDivElement | null>(null);
   const activeChannelRef = useRef(channelId);
   // Track which message IDs have been seen — fixes "stays unread after opening"
@@ -234,6 +237,29 @@ export default function AgentChatClient() {
     } finally {
       setDeletingId(null);
     }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkDeleting(true);
+    const ids = Array.from(selectedIds);
+    // Optimistic remove
+    ids.forEach(id => removeMessageById(id));
+    setSelectedIds(new Set());
+    setSelectMode(false);
+    // Fire deletes
+    await Promise.all(ids.map(id =>
+      fetch(`/api/agent/requests?messageId=${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {})
+    ));
+    setBulkDeleting(false);
   };
 
   const handleClearChannel = (targetChannelId: string) => {
@@ -558,6 +584,25 @@ export default function AgentChatClient() {
               <p className="text-xs text-slate-500">{currentChannel?.scope || ""}</p>
             </div>
             <div className="flex items-center gap-2">
+              {/* Select mode toggle */}
+              {!selectMode ? (
+                <button onClick={() => { setSelectMode(true); setSelectedIds(new Set()); }}
+                  className="text-xs text-slate-500 hover:text-slate-700 border border-slate-200 hover:border-slate-300 px-3 py-1.5 rounded-lg transition font-medium">
+                  ☑️ Select
+                </button>
+              ) : (
+                <>
+                  <span className="text-xs text-slate-500 font-semibold">{selectedIds.size} selected</span>
+                  <button onClick={handleBulkDelete} disabled={selectedIds.size === 0 || bulkDeleting}
+                    className="text-xs bg-red-500 text-white hover:bg-red-600 px-3 py-1.5 rounded-lg transition font-bold disabled:opacity-40">
+                    {bulkDeleting ? "Deleting…" : `🗑 Delete (${selectedIds.size})`}
+                  </button>
+                  <button onClick={() => { setSelectMode(false); setSelectedIds(new Set()); }}
+                    className="text-xs text-slate-500 hover:text-slate-700 border border-slate-200 px-3 py-1.5 rounded-lg transition font-medium">
+                    Cancel
+                  </button>
+                </>
+              )}
               {/* Close / Reopen button — only on client channels, not on "hq" */}
               {!nonDeletableChannels.has(channelId) && (
                 currentClosed ? (
@@ -639,7 +684,15 @@ export default function AgentChatClient() {
                       )}
                     </div>
 
-                    <div className={`relative px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                    {/* Checkbox in select mode */}
+                    {selectMode && (
+                      <button onClick={() => toggleSelect(m.id)}
+                        className={`w-5 h-5 rounded border-2 flex items-center justify-center text-xs font-bold shrink-0 transition ${selectedIds.has(m.id) ? "bg-red-500 border-red-500 text-white" : "border-slate-300 bg-white"}`}>
+                        {selectedIds.has(m.id) ? "✓" : ""}
+                      </button>
+                    )}
+                    <div onClick={() => selectMode && toggleSelect(m.id)}
+                      className={`relative px-4 py-3 rounded-2xl text-sm leading-relaxed ${selectMode ? "cursor-pointer" : ""} ${selectedIds.has(m.id) ? "opacity-60 ring-2 ring-red-300" : ""} ${
                       isMe ? "bg-slate-900 text-white rounded-tr-sm" :
                       isClient ? "bg-white border border-slate-200 text-slate-900 rounded-tl-sm shadow-sm" :
                       isLina ? "bg-amber-50 border border-amber-200 text-amber-900 rounded-tl-sm" :
