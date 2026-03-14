@@ -5,6 +5,7 @@ const rootDir = path.resolve(__dirname);
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+
   env: {
     // LiteAPI Production credentials — server-only (not prefixed with NEXT_PUBLIC)
     LITEAPI_API_BASE_URL: process.env.LITEAPI_API_BASE_URL || "https://api.liteapi.travel/v3.0",
