@@ -434,12 +434,51 @@ export default function ProposalReviewPage() {
   };
 
   const handleShare = async () => {
-    const url = shareUrl || `/checkout/${tripId}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      setShareStatus("Payment link copied.");
-    } catch {
-      setShareStatus("Copy failed. Please copy the link manually.");
+    const url = shareUrl || `${window.location.origin}/checkout/${tripId}`;
+    const clientEmail = tripDraft?.clientEmail || tripDraft?.email || proposal?.clientEmail || "";
+    const clientName  = tripDraft?.clientName  || tripDraft?.name  || proposal?.clientName  || "Traveler";
+    const destination = tripDraft?.destination || proposal?.title || "your trip";
+    const travelDates = tripDraft?.checkIn && tripDraft?.checkOut ? `${tripDraft.checkIn} → ${tripDraft.checkOut}` : "";
+    const totalPrice  = pricing?.grandTotal ? formatCurrency(pricing.grandTotal) : (proposal?.totalPrice || "");
+
+    // If we have the client's email, send via VPS email API
+    if (clientEmail && clientEmail.includes("@")) {
+      setShareStatus("Sending email…");
+      try {
+        const res = await fetch("https://vmi3097009.contaboserver.net/admin/send-proposal-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": "Bearer zeniva-secret-2025" },
+          body: JSON.stringify({
+            client_email: clientEmail,
+            client_name: clientName,
+            trip_id: tripId,
+            destination,
+            checkout_url: url,
+            total_price: totalPrice,
+            travel_dates: travelDates,
+            agent_name: "Zeniva Travel",
+          }),
+        });
+        const data = await res.json();
+        if (data.ok) {
+          setShareStatus(`✅ Email sent to ${clientEmail}`);
+        } else {
+          // Fallback: copy link
+          await navigator.clipboard.writeText(url).catch(() => {});
+          setShareStatus("⚠️ Email failed — link copied. Send manually.");
+        }
+      } catch {
+        await navigator.clipboard.writeText(url).catch(() => {});
+        setShareStatus("⚠️ Connection error — link copied. Send manually.");
+      }
+    } else {
+      // No email found — copy link + prompt to enter email
+      try {
+        await navigator.clipboard.writeText(url);
+        setShareStatus("🔗 Link copied — no client email on file. Paste and send manually.");
+      } catch {
+        setShareStatus("Copy failed. Send this link: " + url);
+      }
     }
   };
 
@@ -876,10 +915,18 @@ export default function ProposalReviewPage() {
                     >
                       👁 Preview payment page
                     </button>
-                    {shareUrl && (
-                      <div className="rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-[10px] text-slate-500 break-all">
-                        🔗 {shareUrl}{shareStatus ? ` · ${shareStatus}` : ""}
+                    {/* Email status / fallback */}
+                    {shareStatus && (
+                      <div className={`rounded-xl px-3 py-2 text-[11px] font-semibold break-all ${shareStatus.startsWith("✅") ? "bg-green-50 border border-green-200 text-green-700" : shareStatus.startsWith("⚠️") ? "bg-amber-50 border border-amber-200 text-amber-700" : "bg-slate-50 border border-slate-200 text-slate-500"}`}>
+                        {shareStatus}
                       </div>
+                    )}
+                    {/* Manual link */}
+                    {shareUrl && (
+                      <button onClick={() => navigator.clipboard.writeText(shareUrl).then(() => setShareStatus("🔗 Link copied!"))}
+                        className="w-full rounded-xl border border-slate-200 py-2 text-[11px] font-semibold text-slate-500 hover:bg-slate-50 transition">
+                        📋 Copy checkout link
+                      </button>
                     )}
                   </>
                 ) : (
