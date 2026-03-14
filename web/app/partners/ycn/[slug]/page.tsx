@@ -1,4 +1,3 @@
-export const dynamic = "force-dynamic";
 import { getYcnPackages } from '@/src/data/partners/ycn';
 import { getImagesForDestination } from '@/src/lib/images';
 import Link from 'next/link';

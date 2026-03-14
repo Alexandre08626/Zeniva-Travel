@@ -2,7 +2,6 @@ import React from "react";
 import "./legal.css";
 import LegalHeader from "../../src/components/legal/LegalHeader";
 import LegalFooter from "../../src/components/legal/LegalFooter";
-export const dynamic = "force-dynamic";
 
 export default function LegalLayout({
   children,

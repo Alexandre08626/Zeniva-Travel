@@ -1,4 +1,3 @@
-export const dynamic = "force-dynamic";
 // src/app/page.tsx — ZENIVA TRAVEL — REDESIGN ULTRA PREMIUM
 import type { Metadata } from "next";
 import Link from "next/link";

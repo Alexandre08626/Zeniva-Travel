@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { login, useAuthStore } from "../../src/lib/authStore";

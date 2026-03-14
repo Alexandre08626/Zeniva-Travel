@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import AgentChatClient from "./AgentChat.client";
 import AppAgentInbox from "../../../src/components/AppAgentInbox.client";

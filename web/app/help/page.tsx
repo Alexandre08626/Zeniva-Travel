@@ -1,4 +1,3 @@
-export const dynamic = "force-dynamic";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../src/design/tokens";
 
 const COMPANY_INFO = {
