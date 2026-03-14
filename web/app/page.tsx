@@ -154,12 +154,19 @@ export default function HomePage() {
             {/* Social proof */}
             <p className="mt-4 text-center text-[11px] text-slate-500 font-semibold">✅ 500+ trips planned this month · Trusted by travelers worldwide</p>
 
-            {/* Quick tags */}
+            {/* Quick tags — Zeni brands */}
             <div className="mt-4 flex flex-wrap justify-center gap-2">
-              {["🏖️ Beach", "💑 Couples", "👨‍👩‍👧 Family", "🏔️ Adventure", "🛥️ ZeniYacht"].map((t) => (
-                <Link key={t} href={`/chat?prompt=${encodeURIComponent(t.split(" ")[1] + " trip")}`}
+              {[
+                { label: "🏡 ZeniStay",    href: "/residences" },
+                { label: "🏨 ZeniHotel",   href: "/partners/resorts" },
+                { label: "✈️ ZeniFlights", href: "/search/flights" },
+                { label: "🛥️ ZeniYacht",   href: "/yachts" },
+                { label: "🚢 ZeniCruise",  href: "/search/cruises" },
+                { label: "🚗 ZeniCar",     href: "/search/cars" },
+              ].map((t) => (
+                <Link key={t.label} href={t.href}
                   className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-50 active:bg-slate-100">
-                  {t}
+                  {t.label}
                 </Link>
               ))}
             </div>
@@ -278,15 +285,16 @@ export default function HomePage() {
                   <div className="w-full overflow-hidden">
                     <TravelSearchWidget />
                   </div>
-                  {/* Quick prompts */}
+                  {/* Quick prompts — Zeni brands */}
                   <div className="mt-3 flex flex-wrap gap-2">
                     {[
-                      { label: "🏖️ Beach escape", p: "Beach vacation 7 nights" },
-                      { label: "💑 Honeymoon", p: "Romantic honeymoon" },
-                      { label: "👨‍👩‍👧 Family trip", p: "Family vacation with kids" },
-                      { label: "🛥️ ZeniYacht", p: "ZeniYacht luxury charter" },
+                      { label: "🏡 ZeniStay",    href: "/residences" },
+                      { label: "🏨 ZeniHotel",   href: "/partners/resorts" },
+                      { label: "✈️ ZeniFlights", href: "/search/flights" },
+                      { label: "🛥️ ZeniYacht",   href: "/yachts" },
+                      { label: "🚢 ZeniCruise",  href: "/search/cruises" },
                     ].map((q) => (
-                      <Link key={q.label} href={`/chat?prompt=${encodeURIComponent(q.p)}`} className="rounded-full bg-slate-100 hover:bg-blue-50 hover:text-blue-700 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors">
+                      <Link key={q.label} href={q.href} className="rounded-full bg-slate-100 hover:bg-blue-50 hover:text-blue-700 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors">
                         {q.label}
                       </Link>
                     ))}
