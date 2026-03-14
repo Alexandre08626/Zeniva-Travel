@@ -176,7 +176,7 @@ function useTrips() {
             if (!raw) return;
             const s = JSON.parse(raw);
             if (Array.isArray(s?.trips)) {
-              s.trips = s.trips.filter((t: any) => !extraIds.has(t.id));
+              s.trips = s.trips.filter((t) => !extraIds.has(t.id));
               localStorage.setItem(k, JSON.stringify(s));
             }
           } catch {}
