@@ -1,19 +1,14 @@
-"use client";
+// Server component — force-dynamic prevents static prerender (/_global-error workUnitAsyncStorage fix)
 export const dynamic = "force-dynamic";
 
-export default function GlobalError({ reset }: { reset?: () => void }) {
+export default function GlobalError() {
   return (
-    <div style={{ padding: "2rem", textAlign: "center", fontFamily: "sans-serif" }}>
-      <h2>Something went wrong</h2>
-      <p>An unexpected error occurred.</p>
-      {reset && (
-        <button onClick={reset} style={{ marginTop: "1rem", padding: "0.5rem 1.5rem" }}>
-          Try again
-        </button>
-      )}
-      <div style={{ marginTop: "1rem" }}>
-        <a href="/" style={{ color: "#0F6CF5" }}>Go home</a>
-      </div>
-    </div>
+    <html lang="en">
+      <body style={{ fontFamily: "sans-serif", padding: "2rem", textAlign: "center" }}>
+        <h2>Something went wrong</h2>
+        <p>An unexpected error occurred.</p>
+        <a href="/" style={{ color: "#0F6CF5" }}>← Go home</a>
+      </body>
+    </html>
   );
 }
