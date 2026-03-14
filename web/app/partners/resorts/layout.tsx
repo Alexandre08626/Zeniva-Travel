@@ -1,5 +1,5 @@
-export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Luxury Resort Partners — All-Inclusive Hotels & 5-Star Resorts | Zeniva Travel USA",
