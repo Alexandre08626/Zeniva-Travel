@@ -49,6 +49,10 @@ export default function AgentChatClient() {
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  // Sidebar conversation select mode
+  const [sidebarSelectMode, setSidebarSelectMode] = useState(false);
+  const [selectedChannels, setSelectedChannels] = useState<Set<string>>(new Set());
+  const [bulkChannelDeleting, setBulkChannelDeleting] = useState(false);
   const listRef = useRef<HTMLDivElement | null>(null);
   const activeChannelRef = useRef(channelId);
   // Track which message IDs have been seen — fixes "stays unread after opening"
@@ -251,15 +255,39 @@ export default function AgentChatClient() {
     if (selectedIds.size === 0) return;
     setBulkDeleting(true);
     const ids = Array.from(selectedIds);
-    // Optimistic remove
     ids.forEach(id => removeMessageById(id));
     setSelectedIds(new Set());
     setSelectMode(false);
-    // Fire deletes
     await Promise.all(ids.map(id =>
       fetch(`/api/agent/requests?messageId=${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {})
     ));
     setBulkDeleting(false);
+  };
+
+  const toggleChannelSelect = (cid: string) => {
+    setSelectedChannels(prev => {
+      const next = new Set(prev);
+      next.has(cid) ? next.delete(cid) : next.add(cid);
+      return next;
+    });
+  };
+
+  const handleBulkChannelDelete = async () => {
+    if (selectedChannels.size === 0) return;
+    setBulkChannelDeleting(true);
+    const cids = Array.from(selectedChannels).filter(c => !nonDeletableChannels.has(c));
+    // Optimistic: remove channels & messages
+    cids.forEach(cid => {
+      (messages[cid] || []).forEach(msg =>
+        fetch(`/api/agent/requests?messageId=${encodeURIComponent(msg.id)}`, { method: "DELETE" }).catch(() => {})
+      );
+    });
+    setChannels(prev => prev.filter(c => !cids.includes(c.id)));
+    setMessages(prev => { const n = { ...prev }; cids.forEach(c => delete n[c]); return n; });
+    if (cids.includes(channelId)) setChannelId("hq");
+    setSelectedChannels(new Set());
+    setSidebarSelectMode(false);
+    setBulkChannelDeleting(false);
   };
 
   const handleClearChannel = (targetChannelId: string) => {
@@ -467,8 +495,30 @@ export default function AgentChatClient() {
       <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 73px)" }}>
         {/* Sidebar */}
         <div className="w-72 bg-white border-r border-slate-200 flex flex-col overflow-hidden">
-          <div className="p-4 border-b border-slate-100">
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Conversations</p>
+          <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-2">
+            {!sidebarSelectMode ? (
+              <>
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Conversations</p>
+                <button onClick={() => { setSidebarSelectMode(true); setSelectedChannels(new Set()); }}
+                  className="text-[11px] font-bold text-slate-400 hover:text-red-500 border border-slate-200 hover:border-red-200 px-2 py-1 rounded-lg transition">
+                  ☑️ Select
+                </button>
+              </>
+            ) : (
+              <>
+                <span className="text-[11px] font-bold text-slate-600">{selectedChannels.size} selected</span>
+                <div className="flex gap-1">
+                  <button onClick={handleBulkChannelDelete} disabled={selectedChannels.size === 0 || bulkChannelDeleting}
+                    className="text-[11px] font-bold bg-red-500 text-white px-2.5 py-1 rounded-lg hover:bg-red-600 transition disabled:opacity-40">
+                    {bulkChannelDeleting ? "…" : `🗑 Delete (${selectedChannels.size})`}
+                  </button>
+                  <button onClick={() => { setSidebarSelectMode(false); setSelectedChannels(new Set()); }}
+                    className="text-[11px] font-semibold text-slate-500 border border-slate-200 px-2 py-1 rounded-lg hover:bg-slate-50 transition">
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
           </div>
           <div className="flex-1 overflow-y-auto">
             {/* All Messages */}
@@ -505,25 +555,34 @@ export default function AgentChatClient() {
             )}
             {openChannels.map((ch) => {
               const isActive = ch.id === channelId;
+              const isChecked = selectedChannels.has(ch.id);
               const chMessages = messages[ch.id] || [];
               const lastMsg = chMessages.filter(m => m.role !== "system").slice(-1)[0];
               return (
                 <div
                   key={ch.id}
-                  onClick={() => setChannelId(ch.id)}
+                  onClick={() => sidebarSelectMode ? toggleChannelSelect(ch.id) : setChannelId(ch.id)}
                   className={`flex items-start gap-3 px-4 py-3 cursor-pointer border-b border-slate-100 transition group ${
+                    isChecked ? "bg-red-50 border-l-4 border-l-red-400" :
                     isActive ? "bg-blue-50 border-l-4 border-l-blue-500" : "hover:bg-slate-50"
                   }`}
                 >
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold bg-blue-100 text-blue-700 flex-shrink-0">
-                    {ch.label.replace("💬 ", "").charAt(0).toUpperCase()}
-                  </div>
+                  {sidebarSelectMode && (
+                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center text-xs font-bold shrink-0 mt-2 ${isChecked ? "bg-red-500 border-red-500 text-white" : "border-slate-300 bg-white"}`}>
+                      {isChecked ? "✓" : ""}
+                    </div>
+                  )}
+                  {!sidebarSelectMode && (
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold bg-blue-100 text-blue-700 flex-shrink-0">
+                      {ch.label.replace("💬 ", "").charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <span className={`text-sm font-semibold truncate ${isActive ? "text-blue-700" : "text-slate-900"}`}>
+                      <span className={`text-sm font-semibold truncate ${isChecked ? "text-red-600" : isActive ? "text-blue-700" : "text-slate-900"}`}>
                         {ch.label}
                       </span>
-                      {ch.unread > 0 && !isActive && (
+                      {ch.unread > 0 && !isActive && !sidebarSelectMode && (
                         <span className="text-xs bg-red-500 text-white rounded-full px-1.5 py-0.5 ml-1 flex-shrink-0 font-bold animate-pulse">
                           {ch.unread}
                         </span>
@@ -543,21 +602,28 @@ export default function AgentChatClient() {
             )}
             {closedChannels.map((ch) => {
               const isActive = ch.id === channelId;
+              const isChecked = selectedChannels.has(ch.id);
               const chMessages = messages[ch.id] || [];
               const lastMsg = chMessages.filter(m => m.role !== "system").slice(-1)[0];
               return (
                 <div
                   key={ch.id}
-                  onClick={() => setChannelId(ch.id)}
-                  className={`flex items-start gap-3 px-4 py-3 cursor-pointer border-b border-slate-100 transition opacity-60 ${
-                    isActive ? "bg-emerald-50 border-l-4 border-l-emerald-500 opacity-100" : "hover:bg-slate-50 hover:opacity-80"
+                  onClick={() => sidebarSelectMode ? toggleChannelSelect(ch.id) : setChannelId(ch.id)}
+                  className={`flex items-start gap-3 px-4 py-3 cursor-pointer border-b border-slate-100 transition ${
+                    isChecked ? "bg-red-50 border-l-4 border-l-red-400 opacity-100" :
+                    isActive ? "bg-emerald-50 border-l-4 border-l-emerald-500 opacity-100" : "hover:bg-slate-50 opacity-60 hover:opacity-80"
                   }`}
                 >
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold bg-emerald-100 text-emerald-700 flex-shrink-0">
-                    ✓
-                  </div>
+                  {sidebarSelectMode && (
+                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center text-xs font-bold shrink-0 mt-2 ${isChecked ? "bg-red-500 border-red-500 text-white" : "border-slate-300 bg-white"}`}>
+                      {isChecked ? "✓" : ""}
+                    </div>
+                  )}
+                  {!sidebarSelectMode && (
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold bg-emerald-100 text-emerald-700 flex-shrink-0">✓</div>
+                  )}
                   <div className="flex-1 min-w-0">
-                    <span className={`text-sm font-medium truncate block ${isActive ? "text-emerald-700" : "text-slate-500"}`}>
+                    <span className={`text-sm font-medium truncate block ${isChecked ? "text-red-600" : isActive ? "text-emerald-700" : "text-slate-500"}`}>
                       {ch.label}
                     </span>
                     <p className="text-xs text-slate-400 truncate mt-0.5">{lastMsg?.text || "Resolved"}</p>
