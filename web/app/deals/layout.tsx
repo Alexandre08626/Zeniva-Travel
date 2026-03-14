@@ -29,6 +29,8 @@ export const metadata: Metadata = {
   },
 };
 
+export const dynamic = "force-dynamic";
+
 export default function DealsLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
