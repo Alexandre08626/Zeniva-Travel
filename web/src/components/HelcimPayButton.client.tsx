@@ -25,24 +25,17 @@ export default function HelcimPayButton({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const loadHelcimScript = (): Promise<void> => {
-    return new Promise((resolve) => {
-      if (typeof window.appendHelcimPayIframe === "function") {
-        resolve();
-        return;
-      }
+  const loadHelcimScript = (): Promise<void> =>
+    new Promise((resolve) => {
+      if (typeof window.appendHelcimPayIframe === "function") { resolve(); return; }
       const existing = document.getElementById("helcim-pay-js");
-      if (existing) {
-        existing.addEventListener("load", () => resolve());
-        return;
-      }
+      if (existing) { existing.addEventListener("load", () => resolve()); return; }
       const script = document.createElement("script");
       script.id = "helcim-pay-js";
       script.src = "https://secure.helcim.app/helcim-pay/services/start.js";
       script.onload = () => resolve();
       document.head.appendChild(script);
     });
-  };
 
   const handlePay = async () => {
     if (disabled || loading) return;
@@ -50,7 +43,6 @@ export default function HelcimPayButton({
     setError("");
 
     try {
-      // 1. Initialize session on backend
       const res = await fetch("/api/helcim/initialize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -58,15 +50,22 @@ export default function HelcimPayButton({
       });
       const data = await res.json();
 
-      if (!res.ok || !data.checkoutToken) {
+      if (!res.ok) {
         setError(data.error || "Payment initialization failed. Try again.");
         setLoading(false);
         return;
       }
 
-      // 2. Load HelcimPay.js and open iframe
-      await loadHelcimScript();
-      window.appendHelcimPayIframe(data.checkoutToken);
+      if (data.method === "iframe" && data.checkoutToken) {
+        // HelcimPay.js inline iframe
+        await loadHelcimScript();
+        window.appendHelcimPayIframe(data.checkoutToken);
+      } else if (data.method === "hosted" && data.hostedUrl) {
+        // Redirect to Helcim hosted payment page
+        window.location.href = data.hostedUrl;
+      } else {
+        setError("Payment unavailable. Please contact support.");
+      }
       setLoading(false);
     } catch {
       setError("Connection error. Please try again.");
@@ -86,7 +85,9 @@ export default function HelcimPayButton({
           fontSize: "15px",
           fontWeight: 800,
           color: "white",
-          background: disabled || loading ? "#94a3b8" : "linear-gradient(135deg, #0F6CF5, #0B1B4D)",
+          background: disabled || loading
+            ? "#94a3b8"
+            : "linear-gradient(135deg, #0F6CF5, #0B1B4D)",
           cursor: disabled || loading ? "not-allowed" : "pointer",
           border: "none",
           boxShadow: "0 4px 12px rgba(15,108,245,0.25)",
@@ -95,15 +96,19 @@ export default function HelcimPayButton({
         className={className}
       >
         {loading
-          ? "🔄 Initializing secure payment…"
+          ? "🔄 Preparing secure payment…"
           : disabled
           ? "Fill in your details first"
-          : label || `💳 Pay CAD $${amount} — Secure Checkout`}
+          : label || `💳 Pay CAD $${Number(amount).toFixed(2)} — Secure Checkout`}
       </button>
-      {error && <p style={{ color: "#ef4444", fontSize: "12px", marginTop: "8px", textAlign: "center" }}>{error}</p>}
+      {error && (
+        <p style={{ color: "#ef4444", fontSize: "12px", marginTop: "8px", textAlign: "center" }}>
+          {error}
+        </p>
+      )}
       {!disabled && (
         <p style={{ color: "#94a3b8", fontSize: "11px", marginTop: "6px", textAlign: "center" }}>
-          🔒 Secured by Helcim — Visa · Mastercard · Amex · Apple Pay
+          🔒 Secured by Helcim — Visa · Mastercard · Amex
         </p>
       )}
     </div>

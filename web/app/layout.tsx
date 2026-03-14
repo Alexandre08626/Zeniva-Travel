@@ -1,11 +1,6 @@
-
 import React from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import nextDynamic from "next/dynamic";
-
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 import Script from "next/script";
 import "./globals.css";
 import { Providers } from "./providers";
@@ -15,11 +10,12 @@ import PWAPromptAfterLogin from "../src/components/PWAPromptAfterLogin.client";
 import WelcomeBanner from "../src/components/WelcomeBanner.client";
 import PushNotifManager from "../src/components/PushNotifManager.client";
 import HelpCenterButton from "../src/components/HelpCenterButton.client";
+import { DynamicBackButton as BackButton, DynamicLinaAssistantDock as LinaAssistantDock, DynamicAppShell as AppShell, DynamicLinaFloatingChat as LinaFloatingChat } from "../src/components/DynamicLayoutComponents.client";
 
-const BackButton = nextDynamic(() => import("../src/components/BackButton.client"), { ssr: false });
-const LinaAssistantDock = nextDynamic(() => import("../src/components/LinaAssistantDock"), { ssr: false });
-const AppShell = nextDynamic(() => import("../src/components/AppShell.client"), { ssr: false });
-const LinaFloatingChat = nextDynamic(() => import("../components/LinaFloatingChat"), { ssr: false });
+export const dynamic = "force-dynamic";
+
+const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://zenivatravel.com"),
