@@ -1,7 +1,14 @@
 "use client";
 import React, { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import Header from "../../src/components/Header";
+import Footer from "../../src/components/Footer";
+import { LIGHT_BG, TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../src/design/tokens";
+import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useAuthStore } from "../../src/lib/authStore";
+import { getDocumentsForUser, upsertDocuments } from "../../src/lib/documentsStore";
+import { useTripsStore, createTrip } from "../../lib/store/tripsStore";
+import { getStoredReferral } from "../../src/lib/influencer";
 import HelcimPayButton from "../../src/components/HelcimPayButton.client";
 
 function PaymentContent() {
