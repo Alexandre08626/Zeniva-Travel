@@ -264,13 +264,19 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
     // Update in-memory Zustand store + local state (instant UI) + localStorage
     deleteTripFromStore(deletedTripId);
     deleteTripFromStorage(deletedTripId, userEmail);
-    setTrips((prev) => prev.filter((t) => t.id !== deletedTripId));
+    setTrips((prev) => {
+      const updated = prev.filter((t) => t.id !== deletedTripId);
+      // If deleting the active trip, redirect to first remaining trip (no new creation)
+      if (deletedTripId === tripId) {
+        if (updated.length > 0) {
+          router.push(`/chat/${updated[0].id}`);
+        } else {
+          router.push("/chat");
+        }
+      }
+      return updated;
+    });
     setTripsOpen(true); // keep dropdown open to show updated list
-    // If deleting active trip, go to new trip
-    if (deletedTripId === tripId) {
-      const id = createNewTrip();
-      router.push(`/chat/${id}`);
-    }
   };
 
   const getTripLabel = (trip) => {
