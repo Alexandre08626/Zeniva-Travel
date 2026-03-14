@@ -181,7 +181,7 @@ function CruisesContent() {
     setPaying(true);
     try {
       const priceNum = parseFloat(selCabinPrice) * guests;
-      const res = await fetch("/api/payment/square", {
+      const res = await fetch("/api/payment/stripe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -191,9 +191,9 @@ function CruisesContent() {
         }),
       });
       const data = await res.json();
-      if (data.paymentUrl) {
-        setPayUrl(data.paymentUrl);
-        window.open(data.paymentUrl, "_blank");
+      if (data.url) {
+        setPayUrl(data.url);
+        window.open(data.url, "_blank");
       }
     } catch {}
     setPaying(false);

@@ -11,7 +11,7 @@ function SquarePayButton({ amount, description, referenceId }: { amount: number;
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/payment/square", {
+      const res = await fetch("/api/payment/stripe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -23,7 +23,7 @@ function SquarePayButton({ amount, description, referenceId }: { amount: number;
         }),
       });
       const data = await res.json();
-      if (data.paymentUrl) {
+      if (data.url) {
         // Save pending booking details for confirmation page
         try {
           const urlParams = new URLSearchParams(window.location.search);
@@ -38,7 +38,7 @@ function SquarePayButton({ amount, description, referenceId }: { amount: number;
             description,
           }));
         } catch { /* noop */ }
-        window.location.href = data.paymentUrl;
+        window.location.href = data.url;
       } else {
         setError(data.error || "Payment error. Please try again.");
         setLoading(false);

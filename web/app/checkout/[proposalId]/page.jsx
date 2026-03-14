@@ -12,7 +12,7 @@ function SquarePayButton({ amount, description, referenceId, disabled }) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/payment/square", {
+      const res = await fetch("/api/payment/stripe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -24,8 +24,8 @@ function SquarePayButton({ amount, description, referenceId, disabled }) {
         }),
       });
       const data = await res.json();
-      if (data.paymentUrl) {
-        window.location.href = data.paymentUrl;
+      if (data.url) {
+        window.location.href = data.url;
       } else {
         setError(data.error || "Payment error. Please try again.");
         setLoading(false);

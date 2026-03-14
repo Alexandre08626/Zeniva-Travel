@@ -62,7 +62,7 @@ function BookingForm() {
     setPayLoading(true); setError("");
     try {
       await saveLead();
-      const res = await fetch("/api/payment/square", {
+      const res = await fetch("/api/payment/stripe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -70,11 +70,12 @@ function BookingForm() {
           currency: "USD",
           description: `ZeniStay — ${property} · ${nights} nights (${checkin || "?"} → ${checkout || "?"})`,
           referenceId: confNum,
+          customerEmail: email,
           redirectUrl: `${window.location.origin}/payment/confirmation`,
         }),
       });
       const data = await res.json();
-      if (data.paymentUrl) {
+      if (data.url) {
         // Save booking context for confirmation page
         localStorage.setItem("zeniva_pending_booking", JSON.stringify({
           clientEmail: email,
@@ -86,7 +87,7 @@ function BookingForm() {
           returnDate: checkout,
           description: `ZeniStay — ${property}`,
         }));
-        window.location.href = data.paymentUrl;
+        window.location.href = data.url;
       } else {
         setError(data.error || "Payment setup error. Try 'Reserve & Pay Later' below.");
         setPayLoading(false);

@@ -99,7 +99,7 @@ function TransfersContent() {
     setPaying(true);
     try {
       const price = parseFloat(String(selected.priceFrom).replace(/[^0-9.]/g, "")) || 49;
-      const res = await fetch("/api/payment/square", {
+      const res = await fetch("/api/payment/stripe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -109,9 +109,9 @@ function TransfersContent() {
         }),
       });
       const data = await res.json();
-      if (data.paymentUrl) {
-        setPayUrl(data.paymentUrl);
-        window.open(data.paymentUrl, "_blank");
+      if (data.url) {
+        setPayUrl(data.url);
+        window.open(data.url, "_blank");
       }
     } catch {}
     setPaying(false);
