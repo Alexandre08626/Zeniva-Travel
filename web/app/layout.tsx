@@ -1,8 +1,10 @@
 
 import React from "react";
 import type { Metadata } from "next";
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
+import { Geist, Geist_Mono } from "next/font/google";
+
+const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 import Script from "next/script";
 import "./globals.css";
 import { Providers } from "./providers";
@@ -317,7 +319,7 @@ export default function RootLayout({
           });
         `}
       </Script>
-      <body data-brand="blue" className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
+      <body data-brand="blue" className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Providers>
           <PlatformOsTag />
           <BackButton />
