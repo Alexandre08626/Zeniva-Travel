@@ -205,7 +205,7 @@ function createNewTrip() {
 
     const updated = {
       ...store,
-      trips: [newTrip, ...(store.trips || [])].slice(0, 10),
+      trips: [newTrip, ...(store.trips || [])].slice(0, 5),
     };
     localStorage.setItem(key, JSON.stringify(updated));
     return id;
@@ -233,6 +233,7 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
   }, []);
 
   const handleNewTrip = () => {
+    if (trips.length >= 5) return;
     const id = createNewTrip();
     setTripsOpen(false);
     router.push(`/chat/${id}`);
@@ -320,7 +321,7 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
                 {/* Header */}
                 <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">My Conversations</span>
-                  <span className="text-xs text-slate-400">{trips.length} conversations</span>
+                  <span className="text-xs text-slate-400">{Math.min(trips.length, 5)}/5 conversations</span>
                 </div>
 
                 {/* Trip list */}
@@ -330,7 +331,7 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
                       No trips yet — start a new one!
                     </div>
                   )}
-                  {trips.map((trip) => {
+                  {trips.slice(0, 5).map((trip) => {
                     const isActive = trip.id === tripId;
                     const label = getTripLabel(trip);
                     const date = trip.updatedAt || trip.createdAt;
@@ -372,14 +373,14 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
                 <div className="p-3 border-t border-slate-100">
                   <button
                     onClick={handleNewTrip}
-                    disabled={trips.length >= 50}
+                    disabled={trips.length >= 5}
                     className="w-full py-2.5 rounded-xl text-sm font-bold text-white transition disabled:opacity-40"
                     style={{ background: "linear-gradient(90deg, #0F3A8A, #1a4fad)" }}
                   >
-                    {trips.length >= 50 ? "Max 50 reached" : "+ New Trip Conversation"}
+                    {trips.length >= 5 ? "Max 5 reached — delete one first" : "+ New Trip Conversation"}
                   </button>
-                  {trips.length >= 10 && (
-                    <p className="text-center text-xs text-slate-400 mt-1">Delete a trip to add a new one</p>
+                  {trips.length >= 5 && (
+                    <p className="text-center text-xs text-slate-400 mt-1">Delete a trip to start a new one</p>
                   )}
                 </div>
               </div>
