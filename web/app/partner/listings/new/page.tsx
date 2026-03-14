@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 "use client";
 import React, { useState } from 'react';
 import PageHeader from '../../../../src/components/partner/PageHeader';

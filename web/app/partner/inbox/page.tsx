@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 "use client";
 import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { Send, Search } from "lucide-react";

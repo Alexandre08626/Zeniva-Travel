@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 "use client";
 import { listTrips } from "../../../src/lib/agent/store";
 import { TITLE_TEXT, MUTED_TEXT } from "../../../src/design/tokens";

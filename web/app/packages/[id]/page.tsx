@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import Link from "next/link";
 import PACKAGES from "@/src/data/packages";
 import { getImagesForDestination } from "@/src/lib/images";
