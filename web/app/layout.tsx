@@ -12,7 +12,6 @@ import PushNotifManager from "../src/components/PushNotifManager.client";
 import HelpCenterButton from "../src/components/HelpCenterButton.client";
 import { DynamicBackButton as BackButton, DynamicLinaAssistantDock as LinaAssistantDock, DynamicAppShell as AppShell, DynamicLinaFloatingChat as LinaFloatingChat } from "../src/components/DynamicLayoutComponents.client";
 
-export const dynamic = "force-dynamic";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
