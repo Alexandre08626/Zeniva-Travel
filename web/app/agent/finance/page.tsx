@@ -1,443 +1,807 @@
 "use client";
 export const dynamic = "force-dynamic";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 
-const BLUE = "#0F6CF5", DARK = "#0B1B4D", GREEN = "#10b981", RED = "#ef4444", AMBER = "#f59e0b", PURPLE = "#8b5cf6", TEAL = "#14b8a6";
+// ═══════════════════════════════════════════════════════
+//  ZeniPay — The Financial Core of Zeniva Travel
+//  Built like Stripe. Thinks like a bank.
+// ═══════════════════════════════════════════════════════
 
-const fmt = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
-const fmtD = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 }).format(n);
-function timeAgo(iso: string) {
-  const d = Date.now() - new Date(iso).getTime();
-  if (d < 60000) return `${Math.floor(d/1000)}s ago`;
-  if (d < 3600000) return `${Math.floor(d/60000)}m ago`;
-  if (d < 86400000) return `${Math.floor(d/3600000)}h ago`;
-  return `${Math.floor(d/86400000)}d ago`;
+const BLUE = "#0F6CF5";
+const DARK = "#0B1B4D";
+const GREEN = "#10B981";
+const GOLD = "#F59E0B";
+const RED = "#EF4444";
+const PURPLE = "#8B5CF6";
+
+// ── MOCK DATA (replace with Supabase queries) ─────────
+const WALLETS = {
+  platform:   { available: 94302.40, pending: 23401.00, paid: 478900.00, currency: "USD" },
+  agent:      { available: 47230.80, pending: 18900.00, paid: 284500.00, currency: "USD" },
+  influencer: { available: 52050.60, pending:  8200.00, paid: 123000.00, currency: "USD" },
+  supplier:   { available: 281400.00, pending: 89200.00, paid: 1423000.00, currency: "USD" },
+};
+
+const TRANSACTIONS = [
+  { id: "TXN-K9X2M", customer: "James Mitchell", booking: "#9231", amount: 7677, currency: "USD", method: "Visa •• 4242", gateway: "Authorize.net", status: "completed", date: "2026-02-27 14:32" },
+  { id: "TXN-B7R4L", customer: "Priya Sharma", booking: "#9228", amount: 12450, currency: "USD", method: "Mastercard •• 8521", gateway: "Authorize.net", status: "completed", date: "2026-02-27 11:15" },
+  { id: "TXN-Q3W9P", customer: "Lucas Fontaine", booking: "#9220", amount: 3280, currency: "USD", method: "ACH", gateway: "ZeniPay ACH", status: "pending", date: "2026-02-27 09:04" },
+  { id: "TXN-Y6T1A", customer: "Emma Wilson", booking: "#9218", amount: 5890, currency: "USD", method: "Amex •• 3741", gateway: "Authorize.net", status: "completed", date: "2026-02-26 22:48" },
+  { id: "TXN-D2S8N", customer: "Carlos Ruiz", booking: "#9215", amount: 2100, currency: "USD", method: "Visa •• 1234", gateway: "Authorize.net", status: "failed", date: "2026-02-26 18:31" },
+  { id: "TXN-H5F3C", customer: "Sophie Laurent", booking: "#9210", amount: 9875, currency: "USD", method: "Wire Transfer", gateway: "ZeniPay Wire", status: "completed", date: "2026-02-26 15:20" },
+  { id: "TXN-M1V7K", customer: "Ryan Chen", booking: "#9205", amount: 4300, currency: "USD", method: "Mastercard •• 5678", gateway: "Authorize.net", status: "refunded", date: "2026-02-26 12:08" },
+  { id: "TXN-P9G2R", customer: "Layla Hassan", booking: "#9199", amount: 18750, currency: "USD", method: "Wire Transfer", gateway: "ZeniPay Wire", status: "completed", date: "2026-02-25 17:45" },
+];
+
+const AGENTS = [
+  { id: "AGT-001", name: "Noah Martin", role: "Lead Agent · ZeniPay AI", avatar: "🤖", bookings: 47, revenue: 284500, commission: 47230, pending: 8400, rate: "10.4%", status: "active", badge: "🏆 Top Earner" },
+  { id: "AGT-002", name: "Sofia Rivera", role: "Marketing Lead", avatar: "🌟", bookings: 31, revenue: 187200, commission: 29560, pending: 5200, rate: "9.8%", status: "active", badge: "⬆️ +22% this month" },
+  { id: "AGT-003", name: "Luna Park", role: "Content & Social", avatar: "🌙", bookings: 18, revenue: 98400, commission: 14760, pending: 2800, rate: "9.5%", status: "active", badge: "📈 Growing" },
+  { id: "AGT-004", name: "Alex Torres", role: "Travel Specialist", avatar: "✈️", bookings: 24, revenue: 156000, commission: 22880, pending: 3600, rate: "10.0%", status: "active", badge: null },
+];
+
+const INFLUENCERS = [
+  { id: "INF-001", name: "Camille Beaumont", handle: "@camille_travels", platform: "TikTok", referrals: 127, revenue: 84700, commission: 10164, rate: "12%", tier: "Gold", status: "active" },
+  { id: "INF-002", name: "Marco Viaggio", handle: "@marcoviaggio", platform: "Instagram", referrals: 89, revenue: 52300, commission: 5754, rate: "11%", tier: "Silver", status: "active" },
+  { id: "INF-003", name: "Jade Mori", handle: "@jade.adventures", platform: "YouTube", referrals: 62, revenue: 38900, commission: 3890, rate: "10%", tier: "Bronze", status: "active" },
+];
+
+const INVOICES = [
+  { id: "INV-2026-0042", client: "James Mitchell", amount: 7677, status: "paid", date: "2026-02-27", due: "2026-03-05", booking: "#9231" },
+  { id: "INV-2026-0041", client: "Priya Sharma", amount: 12450, status: "paid", date: "2026-02-27", due: "2026-03-05", booking: "#9228" },
+  { id: "INV-2026-0040", client: "Lucas Fontaine", amount: 3280, status: "pending", date: "2026-02-27", due: "2026-03-06", booking: "#9220" },
+  { id: "INV-2026-0039", client: "Carlos Ruiz", amount: 2100, status: "overdue", date: "2026-02-20", due: "2026-02-27", booking: "#9215" },
+];
+
+const PAYOUTS = [
+  { id: "PAY-2026-018", recipient: "Noah Martin", type: "Agent Commission", amount: 8400, method: "Direct Deposit", status: "pending", date: "2026-03-01" },
+  { id: "PAY-2026-017", recipient: "Camille Beaumont", type: "Influencer Commission", amount: 3200, method: "PayPal", status: "scheduled", date: "2026-03-01" },
+  { id: "PAY-2026-016", recipient: "Sofia Rivera", type: "Agent Commission", amount: 5200, method: "Direct Deposit", status: "pending", date: "2026-03-01" },
+  { id: "PAY-2026-015", recipient: "Noah Martin", type: "Agent Commission", amount: 7840, method: "Direct Deposit", status: "paid", date: "2026-02-01" },
+];
+
+// ── UTILS ────────────────────────────────────────────
+const fmt = (n: number, compact?: boolean) =>
+  compact
+    ? n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `$${(n / 1000).toFixed(0)}k` : `$${n}`
+    : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
+
+const STATUS_COLORS: Record<string, string> = {
+  completed: GREEN, pending: GOLD, failed: RED, refunded: PURPLE,
+  paid: GREEN, overdue: RED, scheduled: BLUE, active: GREEN, disputed: RED,
+};
+
+// ── COMPONENTS ────────────────────────────────────────
+function StatCard({ icon, label, value, sub, color = BLUE }: { icon: string; label: string; value: string; sub?: string; color?: string }) {
+  return (
+    <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.07)", borderLeft: `4px solid ${color}` }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</p>
+          <p style={{ margin: 0, fontWeight: 800, fontSize: 22, color: "#0f172a" }}>{value}</p>
+          {sub && <p style={{ margin: "4px 0 0", fontSize: 11, color: "#94a3b8" }}>{sub}</p>}
+        </div>
+        <span style={{ fontSize: 24 }}>{icon}</span>
+      </div>
+    </div>
+  );
 }
 
-type TxStatus = "completed"|"pending"|"failed"|"refunded"|"disputed";
-type Tab = "overview"|"transactions"|"payments"|"links"|"invoices"|"refunds"|"payouts"|"agents"|"influencers"|"financing"|"analytics"|"settings";
+function StatusBadge({ status }: { status: string }) {
+  return (
+    <span style={{
+      background: `${STATUS_COLORS[status] || "#94a3b8"}22`,
+      color: STATUS_COLORS[status] || "#94a3b8",
+      borderRadius: 6, padding: "2px 8px", fontSize: 11, fontWeight: 700, textTransform: "capitalize",
+      border: `1px solid ${STATUS_COLORS[status] || "#94a3b8"}44`,
+    }}>
+      {status}
+    </span>
+  );
+}
 
-const STATUS_CFG: Record<TxStatus, { label: string; bg: string; color: string }> = {
-  completed: { label: "Completed", bg: "#d1fae5", color: "#065f46" },
-  pending: { label: "Pending", bg: "#fef3c7", color: "#92400e" },
-  failed: { label: "Failed", bg: "#fee2e2", color: "#991b1b" },
-  refunded: { label: "Refunded", bg: "#ede9fe", color: "#4c1d95" },
-  disputed: { label: "Disputed", bg: "#fce7f3", color: "#9d174d" },
-};
-const STATUS_ICON: Record<TxStatus, string> = { completed: "✅", pending: "⏳", failed: "❌", refunded: "↩️", disputed: "⚠️" };
+function WalletCard({ name, data, icon }: { name: string; data: typeof WALLETS.platform; icon: string }) {
+  return (
+    <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+        <div style={{ width: 36, height: 36, background: `${BLUE}15`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>{icon}</div>
+        <div>
+          <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: "#0f172a" }}>{name} Wallet</p>
+          <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>ZeniPay Balance</p>
+        </div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+        {[
+          { label: "Available", value: fmt(data.available, true), color: GREEN },
+          { label: "Pending", value: fmt(data.pending, true), color: GOLD },
+          { label: "Paid Out", value: fmt(data.paid, true), color: BLUE },
+        ].map(s => (
+          <div key={s.label} style={{ background: "#f8fafc", borderRadius: 10, padding: 10, textAlign: "center" }}>
+            <p style={{ margin: "0 0 4px", fontSize: 10, color: "#64748b", fontWeight: 600, textTransform: "uppercase" }}>{s.label}</p>
+            <p style={{ margin: 0, fontWeight: 800, fontSize: 14, color: s.color }}>{s.value}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-interface Tx { id: string; customerName: string; amount: number; currency: string; status: TxStatus; paymentMethod: string; gateway: string; bookingRef?: string; createdAt: string; }
-interface Stats { totalRevenue: number; netRevenue: number; pendingPayments: number; successfulPayments: number; failedPayments: number; refunds: number; agentCommissions: number; platformMargin: number; revenueChange: number; transactionCount: number; }
-
-const TABS: { id: Tab; icon: string; label: string }[] = [
+// ── TABS ─────────────────────────────────────────────
+const TABS = [
   { id: "overview", icon: "📊", label: "Overview" },
   { id: "transactions", icon: "💳", label: "Transactions" },
-  { id: "payments", icon: "💰", label: "Payments" },
-  { id: "links", icon: "🔗", label: "Pay Links" },
-  { id: "invoices", icon: "🧾", label: "Invoices" },
-  { id: "refunds", icon: "↩️", label: "Refunds" },
-  { id: "payouts", icon: "🏦", label: "Payouts" },
+  { id: "wallets", icon: "🏦", label: "Wallets" },
+  { id: "paylinks", icon: "🔗", label: "Pay Links" },
+  { id: "invoices", icon: "📄", label: "Invoices" },
+  { id: "payouts", icon: "💸", label: "Payouts" },
   { id: "agents", icon: "👤", label: "Agents" },
   { id: "influencers", icon: "⭐", label: "Influencers" },
-  { id: "financing", icon: "📅", label: "Financing" },
+  { id: "financing", icon: "🏛️", label: "Financing" },
   { id: "analytics", icon: "📈", label: "Analytics" },
+  { id: "ai", icon: "🤖", label: "Noah AI" },
   { id: "settings", icon: "⚙️", label: "Settings" },
 ];
 
+// ══════════════════════════════════════════════════════
+//  MAIN COMPONENT
+// ══════════════════════════════════════════════════════
 export default function ZeniPayDashboard() {
-  const [tab, setTab] = useState<Tab>("overview");
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [txs, setTxs] = useState<Tx[]>([]);
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [live, setLive] = useState(true);
-  const [linkForm, setLinkForm] = useState({ amount: "", description: "", customerName: "", customerEmail: "" });
-  const [createdLink, setCreatedLink] = useState<{url:string;amount:string}|null>(null);
-  const [linkLoading, setLinkLoading] = useState(false);
-  const [aiQuery, setAiQuery] = useState("");
-  const [aiResponse, setAiResponse] = useState("");
+  const [tab, setTab] = useState("overview");
+  const [txSearch, setTxSearch] = useState("");
+  const [txFilter, setTxFilter] = useState("all");
+  const [linkModal, setLinkModal] = useState(false);
+  const [linkForm, setLinkForm] = useState({ amount: "", desc: "", type: "trip", email: "" });
+  const [linkCreated, setLinkCreated] = useState("");
+  const [noahMsg, setNoahMsg] = useState("");
+  const [noahChat, setNoahChat] = useState<{ role: "user" | "noah"; text: string }[]>([
+    { role: "noah", text: "Bonjour! Je suis Noah, votre agent IA ZeniPay. Je surveille les paiements, détecte les anomalies et génère vos rapports financiers en temps réel. Comment puis-je vous aider?" }
+  ]);
   const [aiLoading, setAiLoading] = useState(false);
+  const [liveActivity, setLiveActivity] = useState([
+    { id: 1, text: "$7,677 received · James Mitchell · Booking #9231 · Visa", time: "2 min ago", type: "success" },
+    { id: 2, text: "$12,450 received · Priya Sharma · Booking #9228 · Mastercard", time: "35 min ago", type: "success" },
+    { id: 3, text: "⚠️ Payment failed · Carlos Ruiz · Booking #9215 · $2,100", time: "2h ago", type: "alert" },
+    { id: 4, text: "$9,875 received · Sophie Laurent · Wire Transfer", time: "4h ago", type: "success" },
+  ]);
 
-  const fetchData = useCallback(async () => {
-    try {
-      const [sr, tr] = await Promise.all([fetch("/api/zenipay/stats"), fetch("/api/zenipay/transactions")]);
-      const sd = await sr.json(); const td = await tr.json();
-      setStats(sd.stats); setTxs(td.transactions || []);
-    } catch { /**/ }
+  // Simulate live payment feed
+  useEffect(() => {
+    const names = ["Alex Johnson", "Marie Dubois", "Kevin Park", "Isabella Ferrari", "Omar Khalil"];
+    const amounts = [4280, 6750, 9120, 3440, 11800];
+    const interval = setInterval(() => {
+      const name = names[Math.floor(Math.random() * names.length)];
+      const amount = amounts[Math.floor(Math.random() * amounts.length)];
+      const ref = Math.random().toString(36).slice(2, 7).toUpperCase();
+      setLiveActivity(prev => [{
+        id: Date.now(),
+        text: `${fmt(amount)} received · ${name} · Booking #${ref} · Visa`,
+        time: "just now",
+        type: "success",
+      }, ...prev.slice(0, 7)]);
+    }, 15000);
+    return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => { fetchData(); const iv = setInterval(() => { if (live) fetchData(); }, 30000); return () => clearInterval(iv); }, [fetchData, live]);
+  const totalRevenue = TRANSACTIONS.filter(t => t.status === "completed").reduce((a, t) => a + t.amount, 0);
+  const platformBalance = WALLETS.platform.available + WALLETS.agent.available + WALLETS.influencer.available + WALLETS.supplier.available;
+  const successRate = Math.round(TRANSACTIONS.filter(t => t.status === "completed").length / TRANSACTIONS.length * 100);
 
-  const filtered = txs.filter(t => {
-    const ms = !search || t.customerName.toLowerCase().includes(search.toLowerCase()) || t.id.toLowerCase().includes(search.toLowerCase()) || (t.bookingRef||"").includes(search);
-    const mst = filterStatus === "all" || t.status === filterStatus;
-    return ms && mst;
+  const filteredTx = TRANSACTIONS.filter(t => {
+    const matchSearch = !txSearch || t.customer.toLowerCase().includes(txSearch.toLowerCase()) || t.id.includes(txSearch) || t.booking.includes(txSearch);
+    const matchFilter = txFilter === "all" || t.status === txFilter;
+    return matchSearch && matchFilter;
   });
 
-  async function createLink() {
-    setLinkLoading(true);
-    try {
-      const r = await fetch("/api/zenipay/create-link", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...linkForm, amount: parseFloat(linkForm.amount), currency: "USD" }) });
-      const d = await r.json();
-      setCreatedLink({ url: d.url, amount: fmtD(d.amount) });
-    } catch { /**/ }
-    setLinkLoading(false);
-  }
+  const handleCreateLink = () => {
+    const id = `ZNV-${Date.now().toString(36).toUpperCase()}`;
+    const url = `https://zenivatravel.com/zenipay/checkout/${id}?amount=${linkForm.amount}&desc=${encodeURIComponent(linkForm.desc)}&currency=USD`;
+    setLinkCreated(url);
+  };
 
-  async function askAI() {
-    if (!aiQuery.trim()) return;
+  const handleNoahSend = async () => {
+    if (!noahMsg.trim()) return;
+    const userMsg = noahMsg;
+    setNoahMsg("");
+    setNoahChat(prev => [...prev, { role: "user", text: userMsg }]);
     setAiLoading(true);
-    // Simulate AI response (replace with real VPS endpoint)
     await new Promise(r => setTimeout(r, 1200));
     const responses: Record<string, string> = {
-      revenue: `💵 Total platform revenue this period: ${fmt(stats?.totalRevenue||0)}. Net revenue after fees: ${fmt(stats?.netRevenue||0)}. Growth: +${stats?.revenueChange||0}% vs last period.`,
-      failed: `⚠️ ${stats?.failedPayments ? fmt(stats.failedPayments) : 0} in failed payments detected. Primary causes: insufficient funds, expired cards. Recommend: automated retry flow for failed transactions.`,
-      commission: `🤝 Agent commissions: ${fmt(stats?.agentCommissions||0)} (10% of net revenue). Platform margin: ${fmt(stats?.platformMargin||0)} (20% of revenue).`,
+      "revenue": `📊 Revenue Analysis:\n• Total today: $47,322\n• MTD: $284,500 (+18% vs last month)\n• Top payment: James Mitchell $7,677\n• Success rate: ${successRate}%`,
+      "fraud": `🛡️ Fraud Monitoring:\n• No high-risk transactions detected\n• Carlos Ruiz failure flagged: card declined (3x attempt)\n• Recommendation: request alternative payment method`,
+      "payout": `💸 Upcoming Payouts (March 1st):\n• Noah Martin: $8,400 commission\n• Sofia Rivera: $5,200 commission\n• Camille Beaumont: $3,200 influencer referral\n• Total outgoing: $16,800`,
+      "rapport": `📄 Financial Report — February 2026:\n• Gross Revenue: $284,500\n• Platform Margin: $8,422 (2.96%)\n• Agent Commissions: $29,588 (10.4%)\n• Influencer Referrals: $5,548 (1.95%)\n• Supplier Payouts: $240,942 (84.7%)`,
     };
-    const key = Object.keys(responses).find(k => aiQuery.toLowerCase().includes(k)) || "revenue";
-    setAiResponse(responses[key] || `📊 Analyzing your financial data... Revenue: ${fmt(stats?.totalRevenue||0)}, ${stats?.transactionCount||0} transactions this period.`);
+    const keyword = Object.keys(responses).find(k => userMsg.toLowerCase().includes(k));
+    const reply = keyword ? responses[keyword] : `Analysing your request: "${userMsg}"...\n\n✅ All systems operational. Platform balance: ${fmt(platformBalance, true)}. Payment success rate: ${successRate}%. No anomalies detected in the last 24h.`;
+    setNoahChat(prev => [...prev, { role: "noah", text: reply }]);
     setAiLoading(false);
-  }
+  };
 
-  const agents = [
-    { name: "Marie Laurent", flag: "🇫🇷", bookings: 34, revenue: 142450, commission: 14245, pending: 3890, paid: 10355, rate: "10%", status: "Active" },
-    { name: "James Park", flag: "🇺🇸", bookings: 28, revenue: 89200, commission: 8920, pending: 2450, paid: 6470, rate: "10%", status: "Active" },
-    { name: "Sofia Mendez", flag: "🇲🇽", bookings: 41, revenue: 156700, commission: 15670, pending: 4200, paid: 11470, rate: "10%", status: "Active" },
-  ];
-  const influencers = [
-    { name: "@lina.travel", platform: "TikTok", followers: "124K", referrals: 18, revenue: 76400, commission: 3820, rate: "5%", pending: 1200, paid: 2620 },
-    { name: "@zenivastyle", platform: "Instagram", followers: "89K", referrals: 11, revenue: 44100, commission: 2205, rate: "5%", pending: 800, paid: 1405 },
-  ];
-  const financedTrips = [
-    { client: "John Smith", trip: "Rome + Amalfi", total: 4200, paid: 1260, remaining: 2940, installments: 3, nextDue: "Jun 15, 2025", status: "On track" },
-    { client: "Emily Davis", trip: "Bali 10 days", total: 3800, paid: 950, remaining: 2850, installments: 4, nextDue: "Jun 22, 2025", status: "On track" },
-    { client: "Carlos Vega", trip: "Japan Explorer", total: 5600, paid: 0, remaining: 5600, installments: 5, nextDue: "Jun 1, 2025", status: "Overdue" },
-  ];
+  const exportCSV = () => {
+    const headers = "Transaction ID,Customer,Booking,Amount,Currency,Method,Gateway,Status,Date\n";
+    const rows = filteredTx.map(t => `${t.id},${t.customer},${t.booking},${t.amount},${t.currency},${t.method},${t.gateway},${t.status},${t.date}`).join("\n");
+    const blob = new Blob([headers + rows], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "zenipay_transactions.csv"; a.click();
+  };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "system-ui,sans-serif" }}>
-      {/* HEADER */}
-      <div style={{ background: `linear-gradient(135deg, ${DARK} 0%, #1e3a8a 100%)`, padding: "20px 24px 0", color: "white" }}>
+    <div style={{ minHeight: "100vh", background: "#f0f4ff", fontFamily: "'Inter',system-ui,sans-serif" }}>
+      {/* ── HEADER ── */}
+      <div style={{ background: `linear-gradient(135deg, ${DARK} 0%, #1a2f6e 100%)`, padding: "0 24px", boxShadow: "0 2px 20px rgba(0,0,0,0.3)" }}>
         <div style={{ maxWidth: 1400, margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, paddingBottom: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ width: 40, height: 40, background: BLUE, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>💳</div>
-              <div>
-                <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>ZeniPay</h1>
-                <p style={{ margin: 0, fontSize: 11, opacity: 0.65 }}>Financial Infrastructure · Zeniva Travel</p>
-              </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 0", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+            <div style={{ width: 40, height: 40, background: BLUE, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, boxShadow: `0 0 20px ${BLUE}60` }}>💳</div>
+            <div>
+              <p style={{ margin: 0, fontWeight: 900, fontSize: 18, color: "white", letterSpacing: "-0.5px" }}>ZeniPay</p>
+              <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.5)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Financial Core · Zeniva Travel</p>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.12)", borderRadius: 20, padding: "5px 12px", fontSize: 12 }}>
-                <span style={{ width: 7, height: 7, borderRadius: "50%", background: live ? GREEN : "#94a3b8", display: "inline-block" }} />
-                {live ? "Live" : "Paused"}
+            <div style={{ marginLeft: "auto", display: "flex", gap: 20, alignItems: "center" }}>
+              <div style={{ textAlign: "right" }}>
+                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Platform Balance</p>
+                <p style={{ margin: 0, fontWeight: 800, fontSize: 20, color: "white" }}>{fmt(platformBalance)}</p>
               </div>
-              <button onClick={() => setLive(v => !v)} style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "white", borderRadius: 8, padding: "6px 14px", fontSize: 12, cursor: "pointer" }}>{live ? "⏸" : "▶"}</button>
+              <div style={{ width: 1, height: 40, background: "rgba(255,255,255,0.1)" }} />
+              <div style={{ textAlign: "right" }}>
+                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Gateway</p>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: 12, color: GREEN }}>● Authorize.net · Live</p>
+              </div>
+              <div style={{ background: `${BLUE}22`, border: `1px solid ${BLUE}44`, borderRadius: 8, padding: "6px 12px", fontSize: 11, color: BLUE, fontWeight: 700 }}>
+                🤖 Noah AI Online
+              </div>
             </div>
           </div>
-          {/* NAV TABS */}
-          <div style={{ display: "flex", gap: 2, overflowX: "auto", paddingBottom: 0 }}>
+
+          {/* ── TAB BAR ── */}
+          <div style={{ display: "flex", gap: 2, overflowX: "auto", padding: "0 0 2px" }}>
             {TABS.map(t => (
               <button key={t.id} onClick={() => setTab(t.id)} style={{
-                background: tab === t.id ? "white" : "transparent", color: tab === t.id ? DARK : "rgba(255,255,255,0.75)",
-                border: "none", borderRadius: "8px 8px 0 0", padding: "8px 14px", fontSize: 12, fontWeight: tab === t.id ? 700 : 400,
-                cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.15s",
+                background: tab === t.id ? `${BLUE}25` : "transparent",
+                border: "none", borderBottom: tab === t.id ? `2px solid ${BLUE}` : "2px solid transparent",
+                color: tab === t.id ? BLUE : "rgba(255,255,255,0.5)",
+                padding: "14px 16px", fontSize: 12, fontWeight: tab === t.id ? 700 : 500,
+                cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.15s", display: "flex", gap: 6, alignItems: "center",
               }}>
-                {t.icon} <span className="hidden sm:inline">{t.label}</span>
+                <span>{t.icon}</span> {t.label}
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "20px 16px" }}>
+      {/* ── CONTENT ── */}
+      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "24px 24px" }}>
 
-        {/* ── OVERVIEW ── */}
+        {/* ════ OVERVIEW ════ */}
         {tab === "overview" && (
-          <>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(190px,1fr))", gap: 12, marginBottom: 20 }}>
-              {[
-                { l: "Total Revenue", v: fmt(stats?.totalRevenue||0), sub: `+${stats?.revenueChange||0}% vs last month`, c: BLUE, i: "💵" },
-                { l: "Net Revenue", v: fmt(stats?.netRevenue||0), sub: "After fees & refunds", c: GREEN, i: "✅" },
-                { l: "Pending", v: fmt(stats?.pendingPayments||0), sub: "Awaiting capture", c: AMBER, i: "⏳" },
-                { l: "Successful", v: fmt(stats?.successfulPayments||0), sub: "Captured payments", c: GREEN, i: "✔" },
-                { l: "Failed", v: fmt(stats?.failedPayments||0), sub: "Needs attention", c: RED, i: "⚠️" },
-                { l: "Refunds", v: fmt(stats?.refunds||0), sub: "Processed refunds", c: "#64748b", i: "↩️" },
-                { l: "Agent Commissions", v: fmt(stats?.agentCommissions||0), sub: "10% of net revenue", c: PURPLE, i: "🤝" },
-                { l: "Influencer Commissions", v: fmt(5205), sub: "5% referral revenue", c: TEAL, i: "⭐" },
-                { l: "Platform Margin", v: fmt(stats?.platformMargin||0), sub: "Zeniva 20% take", c: DARK, i: "🏢" },
-                { l: "Transactions", v: String(stats?.transactionCount||0), sub: "This period", c: "#0ea5e9", i: "📋" },
-              ].map(c => (
-                <div key={c.l} style={{ background: "white", borderRadius: 12, padding: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", borderTop: `3px solid ${c.c}` }}>
-                  <p style={{ margin: "0 0 4px", fontSize: 10, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>{c.l}</p>
-                  <p style={{ margin: "0 0 2px", fontSize: 20, fontWeight: 800, color: "#0f172a" }}>{stats ? c.v : "—"}</p>
-                  <p style={{ margin: 0, fontSize: 10, color: "#94a3b8" }}>{c.sub}</p>
-                  <span style={{ fontSize: 18 }}>{c.i}</span>
-                </div>
-              ))}
+          <div>
+            {/* KPI Cards */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 14, marginBottom: 24 }}>
+              <StatCard icon="💰" label="Total Revenue (MTD)" value={fmt(totalRevenue + 198230)} sub="+18.4% vs last month" color={GREEN} />
+              <StatCard icon="📥" label="Platform Margin" value={fmt((totalRevenue + 198230) * 0.0296)} sub="2.96% of gross" color={BLUE} />
+              <StatCard icon="✅" label="Success Rate" value={`${successRate}%`} sub="8 transactions this session" color={GREEN} />
+              <StatCard icon="⏳" label="Pending Payments" value={fmt(WALLETS.platform.pending + WALLETS.agent.pending)} sub="3 transactions" color={GOLD} />
+              <StatCard icon="👤" label="Agent Commissions" value={fmt(WALLETS.agent.paid)} sub="10.4% avg rate" color={PURPLE} />
+              <StatCard icon="⭐" label="Influencer Revenue" value={fmt(WALLETS.influencer.paid)} sub="3 active influencers" color={GOLD} />
+              <StatCard icon="💸" label="Total Payouts" value={fmt(WALLETS.agent.paid + WALLETS.influencer.paid)} sub="Last payout: Feb 1" color={RED} />
+              <StatCard icon="🔄" label="Refunds" value="$4,300" sub="1 refund this month" color={PURPLE} />
             </div>
-            {/* LIVE FEED */}
-            <div style={{ background: "white", borderRadius: 12, padding: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", marginBottom: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                <span style={{ width: 8, height: 8, background: GREEN, borderRadius: "50%", display: "inline-block" }} />
-                <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700 }}>Live Payment Activity</h3>
-              </div>
-              {txs.slice(0,6).map(tx => {
-                const cfg = STATUS_CFG[tx.status];
-                return (
-                  <div key={tx.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #f1f5f9", flexWrap: "wrap", gap: 8 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <span style={{ fontSize: 20 }}>{STATUS_ICON[tx.status]}</span>
-                      <div>
-                        <p style={{ margin: 0, fontWeight: 700, fontSize: 13 }}>{fmtD(tx.amount)} {tx.status === "completed" ? "received" : tx.status}</p>
-                        <p style={{ margin: 0, fontSize: 11, color: "#64748b" }}>{tx.bookingRef && `Booking ${tx.bookingRef} · `}{tx.customerName} · {tx.paymentMethod}</p>
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 20, background: cfg.bg, color: cfg.color, fontWeight: 600 }}>{cfg.label}</span>
-                      <span style={{ fontSize: 11, color: "#94a3b8" }}>{timeAgo(tx.createdAt)}</span>
-                    </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 20 }}>
+              {/* Live Feed */}
+              <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                  <h3 style={{ margin: 0, fontWeight: 700, fontSize: 15 }}>⚡ Live Payment Activity</h3>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: GREEN, fontWeight: 600 }}>
+                    <div style={{ width: 7, height: 7, background: GREEN, borderRadius: "50%", animation: "pulse 1.5s infinite" }} />
+                    Real-time
+                    <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
                   </div>
-                );
-              })}
-            </div>
-            {/* ZENIPAY AI */}
-            <div style={{ background: `linear-gradient(135deg, ${DARK}, #1e3a8a)`, borderRadius: 12, padding: 20, color: "white" }}>
-              <h3 style={{ margin: "0 0 12px", fontSize: 14, fontWeight: 700 }}>🤖 ZeniPay AI — Financial Intelligence</h3>
-              <div style={{ display: "flex", gap: 8 }}>
-                <input value={aiQuery} onChange={e => setAiQuery(e.target.value)} onKeyDown={e => e.key === "Enter" && askAI()} placeholder="Ask: revenue, failed payments, commissions…" style={{ flex: 1, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, padding: "9px 14px", color: "white", fontSize: 13, outline: "none" }} />
-                <button onClick={askAI} disabled={aiLoading} style={{ background: BLUE, border: "none", color: "white", borderRadius: 8, padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>{aiLoading ? "…" : "Ask"}</button>
-              </div>
-              {aiResponse && <p style={{ margin: "12px 0 0", fontSize: 13, opacity: 0.9, lineHeight: 1.6, background: "rgba(255,255,255,0.08)", borderRadius: 8, padding: 12 }}>{aiResponse}</p>}
-            </div>
-          </>
-        )}
-
-        {/* ── TRANSACTIONS ── */}
-        {tab === "transactions" && (
-          <div style={{ background: "white", borderRadius: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", overflow: "hidden" }}>
-            <div style={{ padding: "16px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", justifyContent: "space-between" }}>
-              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>All Transactions</h3>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Search…" style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: "7px 12px", fontSize: 13, outline: "none", minWidth: 180 }} />
-                <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: "7px 12px", fontSize: 13, background: "white" }}>
-                  {["all","completed","pending","failed","refunded","disputed"].map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase()+s.slice(1)}</option>)}
-                </select>
-                <button onClick={() => {
-                  const csv = ["ID,Customer,Amount,Currency,Status,Method,Gateway,Booking,Date",...filtered.map(t=>`${t.id},${t.customerName},${t.amount},${t.currency},${t.status},${t.paymentMethod},${t.gateway},${t.bookingRef||""},${t.createdAt}`)].join("\n");
-                  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download = "zenipay-txs.csv"; a.click();
-                }} style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "7px 14px", fontSize: 13, cursor: "pointer", fontWeight: 600 }}>⬇ CSV</button>
-              </div>
-            </div>
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                <thead><tr style={{ background: "#f8fafc" }}>{["Transaction ID","Customer","Amount","Method","Gateway","Booking","Status","Date"].map(h=><th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px", whiteSpace: "nowrap" }}>{h}</th>)}</tr></thead>
-                <tbody>{filtered.map((tx,i)=>{const cfg=STATUS_CFG[tx.status]; return (<tr key={tx.id} style={{ borderTop: "1px solid #f1f5f9", background: i%2===0?"white":"#fafbfc" }}>
-                  <td style={{ padding: "11px 14px", fontWeight: 700, color: BLUE, whiteSpace: "nowrap" }}>{tx.id}</td>
-                  <td style={{ padding: "11px 14px" }}>{tx.customerName}</td>
-                  <td style={{ padding: "11px 14px", fontWeight: 700, whiteSpace: "nowrap" }}>{fmtD(tx.amount)}</td>
-                  <td style={{ padding: "11px 14px", color: "#64748b", fontSize: 12, whiteSpace: "nowrap" }}>{tx.paymentMethod}</td>
-                  <td style={{ padding: "11px 14px", color: "#64748b" }}>{tx.gateway}</td>
-                  <td style={{ padding: "11px 14px", color: "#64748b" }}>{tx.bookingRef||"—"}</td>
-                  <td style={{ padding: "11px 14px" }}><span style={{ padding: "3px 10px", borderRadius: 20, background: cfg.bg, color: cfg.color, fontSize: 11, fontWeight: 600 }}>{cfg.label}</span></td>
-                  <td style={{ padding: "11px 14px", color: "#94a3b8", fontSize: 12, whiteSpace: "nowrap" }}>{timeAgo(tx.createdAt)}</td>
-                </tr>);})}</tbody>
-              </table>
-              {filtered.length === 0 && <div style={{ textAlign: "center", padding: 40, color: "#94a3b8" }}>No transactions found</div>}
-            </div>
-          </div>
-        )}
-
-        {/* ── PAYMENTS ── */}
-        {tab === "payments" && (
-          <div style={{ maxWidth: 700, margin: "0 auto" }}>
-            <div style={{ background: "white", borderRadius: 12, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-              <h3 style={{ margin: "0 0 20px", fontSize: 16, fontWeight: 700 }}>💰 Create Payment</h3>
-              {[{ l: "Customer Name", k: "customerName", ph: "John Smith" },{ l: "Email", k: "customerEmail", ph: "john@example.com" },{ l: "Amount (USD)", k: "amount", ph: "2450.00", type: "number" },{ l: "Description", k: "description", ph: "Paris Trip Deposit" }].map(f => (
-                <div key={f.k} style={{ marginBottom: 14 }}>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 6 }}>{f.l}</label>
-                  <input type={(f as {type?:string}).type||"text"} value={(linkForm as Record<string,string>)[f.k]||""} onChange={e => setLinkForm(prev => ({...prev,[f.k]:e.target.value}))} placeholder={f.ph} style={{ width: "100%", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 14px", fontSize: 14, outline: "none", boxSizing: "border-box" }} />
                 </div>
-              ))}
-              <a href="/payment?type=custom" style={{ display: "block", background: BLUE, color: "white", textAlign: "center", borderRadius: 9999, padding: "12px", fontSize: 15, fontWeight: 800, textDecoration: "none", marginTop: 8 }}>
-                💳 Proceed to Checkout
-              </a>
-              <p style={{ textAlign: "center", fontSize: 11, color: "#94a3b8", marginTop: 8 }}>🔒 Secured by ZeniPay · ZeniPay · PCI Compliant</p>
-            </div>
-          </div>
-        )}
-
-        {/* ── PAYMENT LINKS ── */}
-        {tab === "links" && (
-          <div style={{ maxWidth: 680, margin: "0 auto" }}>
-            <div style={{ background: "white", borderRadius: 12, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-              <h3 style={{ margin: "0 0 20px", fontSize: 16, fontWeight: 700 }}>🔗 Payment Links</h3>
-              {!createdLink ? (
-                <div style={{ display: "grid", gap: 12 }}>
-                  {[{ l: "Amount (USD)", k: "amount", ph: "2450.00", type: "number" },{ l: "Description", k: "description", ph: "Paris Trip Deposit" },{ l: "Client Name (optional)", k: "customerName", ph: "John Smith" },{ l: "Client Email (optional)", k: "customerEmail", ph: "john@email.com" }].map(f => (
-                    <div key={f.k}>
-                      <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 5 }}>{f.l}</label>
-                      <input type={(f as {type?:string}).type||"text"} value={(linkForm as Record<string,string>)[f.k]||""} onChange={e => setLinkForm(prev=>({...prev,[f.k]:e.target.value}))} placeholder={f.ph} style={{ width: "100%", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 14px", fontSize: 14, outline: "none", boxSizing: "border-box" }} />
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {liveActivity.map(a => (
+                    <div key={a.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: a.type === "alert" ? "#fff1f2" : "#f0fdf4", borderRadius: 10, padding: "10px 14px" }}>
+                      <span style={{ fontSize: 13, color: a.type === "alert" ? RED : "#065f46", fontWeight: 500 }}>{a.text}</span>
+                      <span style={{ fontSize: 11, color: "#94a3b8", whiteSpace: "nowrap", marginLeft: 12 }}>{a.time}</span>
                     </div>
                   ))}
-                  <button onClick={createLink} disabled={!linkForm.amount||linkLoading} style={{ background: linkForm.amount?BLUE:"#94a3b8", color: "white", border: "none", borderRadius: 9999, padding: "12px", fontSize: 14, fontWeight: 700, cursor: "pointer", marginTop: 4 }}>
-                    {linkLoading ? "🔄 Generating…" : "🔗 Generate Payment Link"}
-                  </button>
                 </div>
-              ) : (
-                <div style={{ background: "#d1fae5", borderRadius: 12, padding: 20 }}>
-                  <p style={{ margin: "0 0 12px", fontWeight: 700, color: "#065f46", fontSize: 15 }}>✅ Payment link created — {createdLink.amount}</p>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, background: "white", borderRadius: 8, padding: "10px 14px" }}>
-                    <code style={{ flex: 1, fontSize: 12, wordBreak: "break-all", color: "#0f172a" }}>{createdLink.url}</code>
-                    <button onClick={() => navigator.clipboard.writeText(createdLink.url)} style={{ background: BLUE, color: "white", border: "none", borderRadius: 6, padding: "5px 12px", fontSize: 12, cursor: "pointer" }}>Copy</button>
+              </div>
+
+              {/* Commission Split */}
+              <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+                <h3 style={{ margin: "0 0 16px", fontWeight: 700, fontSize: 15 }}>💡 Revenue Split</h3>
+                <p style={{ fontSize: 12, color: "#94a3b8", margin: "0 0 16px" }}>Per $7,677 booking</p>
+                {[
+                  { label: "Supplier Payout", amount: 6497, pct: 84.7, color: "#64748b" },
+                  { label: "Agent Commission", amount: 799, pct: 10.4, color: PURPLE },
+                  { label: "Influencer Referral", amount: 150, pct: 1.95, color: GOLD },
+                  { label: "Platform Margin", amount: 227, pct: 2.96, color: BLUE },
+                ].map(s => (
+                  <div key={s.label} style={{ marginBottom: 12 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                      <span style={{ fontSize: 12, color: "#374151", fontWeight: 500 }}>{s.label}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: s.color }}>{fmt(s.amount)} ({s.pct}%)</span>
+                    </div>
+                    <div style={{ background: "#f1f5f9", borderRadius: 4, height: 6 }}>
+                      <div style={{ background: s.color, width: `${s.pct}%`, height: "100%", borderRadius: 4 }} />
+                    </div>
                   </div>
-                  <button onClick={() => { setCreatedLink(null); setLinkForm({ amount:"",description:"",customerName:"",customerEmail:"" }); }} style={{ marginTop: 10, background: "transparent", border: "none", color: "#065f46", fontSize: 12, cursor: "pointer", textDecoration: "underline" }}>Create another</button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ════ TRANSACTIONS ════ */}
+        {tab === "transactions" && (
+          <div style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+            <div style={{ padding: 20, borderBottom: "1px solid #f1f5f9", display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+              <h3 style={{ margin: 0, fontWeight: 700, fontSize: 15, flex: 1 }}>💳 Transactions</h3>
+              <input value={txSearch} onChange={e => setTxSearch(e.target.value)} placeholder="Search customer, ID, booking…"
+                style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: "7px 12px", fontSize: 13, width: 220, outline: "none" }} />
+              <select value={txFilter} onChange={e => setTxFilter(e.target.value)}
+                style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: "7px 12px", fontSize: 13, outline: "none" }}>
+                <option value="all">All Status</option>
+                {["completed","pending","failed","refunded"].map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase()+s.slice(1)}</option>)}
+              </select>
+              <button onClick={exportCSV} style={{ background: BLUE, color: "white", border: "none", borderRadius: 8, padding: "7px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                ⬇ Export CSV
+              </button>
+            </div>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ background: "#f8fafc" }}>
+                    {["Transaction ID","Customer","Booking","Amount","Method","Gateway","Status","Date"].map(h => (
+                      <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTx.map((t, i) => (
+                    <tr key={t.id} style={{ borderTop: "1px solid #f1f5f9", background: i % 2 === 0 ? "white" : "#fafbff" }}>
+                      <td style={{ padding: "12px 16px", fontSize: 12, fontFamily: "monospace", color: BLUE, fontWeight: 600 }}>{t.id}</td>
+                      <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 500 }}>{t.customer}</td>
+                      <td style={{ padding: "12px 16px", fontSize: 12, color: "#64748b" }}>{t.booking}</td>
+                      <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 700 }}>{fmt(t.amount)}</td>
+                      <td style={{ padding: "12px 16px", fontSize: 12, color: "#374151" }}>{t.method}</td>
+                      <td style={{ padding: "12px 16px", fontSize: 12, color: "#64748b" }}>{t.gateway}</td>
+                      <td style={{ padding: "12px 16px" }}><StatusBadge status={t.status} /></td>
+                      <td style={{ padding: "12px 16px", fontSize: 12, color: "#94a3b8", whiteSpace: "nowrap" }}>{t.date}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ════ WALLETS ════ */}
+        {tab === "wallets" && (
+          <div>
+            <div style={{ background: `linear-gradient(135deg, ${DARK}, #1e3a8a)`, borderRadius: 20, padding: 28, marginBottom: 24, color: "white" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <p style={{ margin: "0 0 4px", fontSize: 12, opacity: 0.6, textTransform: "uppercase", letterSpacing: "0.1em" }}>ZeniPay Master Balance</p>
+                  <p style={{ margin: 0, fontWeight: 900, fontSize: 40, letterSpacing: "-1px" }}>{fmt(platformBalance)}</p>
+                  <p style={{ margin: "8px 0 0", fontSize: 12, opacity: 0.5 }}>All wallets · USD · Updated in real-time</p>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <p style={{ margin: "0 0 8px", fontSize: 12, opacity: 0.6 }}>Gateway</p>
+                  <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 14, color: GREEN }}>● Authorize.net Active</p>
+                  <p style={{ margin: 0, fontSize: 11, opacity: 0.5 }}>Sandbox mode · Production pending</p>
+                </div>
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 }}>
+              <WalletCard name="Platform" data={WALLETS.platform} icon="🏛️" />
+              <WalletCard name="Agent" data={WALLETS.agent} icon="👤" />
+              <WalletCard name="Influencer" data={WALLETS.influencer} icon="⭐" />
+              <WalletCard name="Supplier" data={WALLETS.supplier} icon="✈️" />
+            </div>
+          </div>
+        )}
+
+        {/* ════ PAY LINKS ════ */}
+        {tab === "paylinks" && (
+          <div>
+            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)", marginBottom: 20 }}>
+              <h3 style={{ margin: "0 0 16px", fontWeight: 700 }}>🔗 Create Payment Link</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+                {[
+                  { label: "Amount (USD)", key: "amount", ph: "7677", type: "number" },
+                  { label: "Client Email", key: "email", ph: "client@example.com" },
+                  { label: "Description", key: "desc", ph: "Maldives Trip — 7 nights" },
+                  { label: "Payment Type", key: "type", ph: "", select: ["trip","deposit","balance","custom"] },
+                ].map(f => (
+                  <div key={f.key}>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#374151", marginBottom: 5, textTransform: "uppercase" }}>{f.label}</label>
+                    {f.select ? (
+                      <select value={(linkForm as Record<string,string>)[f.key]} onChange={e => setLinkForm(p => ({...p,[f.key]:e.target.value}))}
+                        style={{ width:"100%",border:"1px solid #e2e8f0",borderRadius:8,padding:"10px 12px",fontSize:13,outline:"none",boxSizing:"border-box" as const }}>
+                        {f.select.map(o => <option key={o} value={o}>{o.charAt(0).toUpperCase()+o.slice(1)}</option>)}
+                      </select>
+                    ) : (
+                      <input type={f.type || "text"} value={(linkForm as Record<string,string>)[f.key]}
+                        onChange={e => setLinkForm(p => ({...p,[f.key]:e.target.value}))} placeholder={f.ph}
+                        style={{ width:"100%",border:"1px solid #e2e8f0",borderRadius:8,padding:"10px 12px",fontSize:13,outline:"none",boxSizing:"border-box" as const }} />
+                    )}
+                  </div>
+                ))}
+              </div>
+              <button onClick={handleCreateLink} style={{ background:`linear-gradient(135deg,${BLUE},${DARK})`,color:"white",border:"none",borderRadius:9999,padding:"12px 28px",fontWeight:800,fontSize:14,cursor:"pointer" }}>
+                🔗 Generate Payment Link
+              </button>
+              {linkCreated && (
+                <div style={{ marginTop: 16, background: "#f0fdf4", borderRadius: 12, padding: 16 }}>
+                  <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 600, color: GREEN }}>✅ Payment link created!</p>
+                  <code style={{ fontSize: 12, color: "#0f172a", wordBreak: "break-all" as const }}>{linkCreated}</code>
+                  <br />
+                  <button onClick={() => navigator.clipboard?.writeText(linkCreated)} style={{ marginTop: 8, background: BLUE, color: "white", border: "none", borderRadius: 6, padding: "6px 14px", fontSize: 12, cursor: "pointer" }}>
+                    📋 Copy Link
+                  </button>
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {/* ── AGENTS ── */}
-        {tab === "agents" && (
-          <div style={{ background: "white", borderRadius: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", overflow: "hidden" }}>
-            <div style={{ padding: "16px 20px", borderBottom: "1px solid #f1f5f9" }}><h3 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>👤 Agent Financial Profiles</h3></div>
-            {agents.map((a, i) => (
-              <div key={a.name} style={{ padding: "20px", borderBottom: i<agents.length-1?"1px solid #f1f5f9":"none" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ width: 42, height: 42, borderRadius: "50%", background: `hsl(${i*80+200},70%,90%)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>{a.flag}</div>
-                    <div><p style={{ margin:0, fontWeight:700, fontSize:15 }}>{a.name}</p><p style={{ margin:0, fontSize:12, color:"#64748b" }}>{a.bookings} bookings · Commission rate: {a.rate}</p></div>
-                  </div>
-                  <span style={{ background: "#d1fae5", color: "#065f46", padding: "4px 12px", borderRadius: 20, fontSize: 12, fontWeight: 600 }}>{a.status}</span>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(130px,1fr))", gap: 10, marginTop: 14 }}>
-                  {[["Total Revenue", fmt(a.revenue), BLUE],["Commission", fmt(a.commission), PURPLE],["Pending Payout", fmt(a.pending), AMBER],["Paid Out", fmt(a.paid), GREEN]].map(([l,v,c]) => (
-                    <div key={l as string} style={{ background: "#f8fafc", borderRadius: 8, padding: 12 }}>
-                      <p style={{ margin:"0 0 2px", fontSize:10, color:"#64748b", fontWeight:600, textTransform:"uppercase" }}>{l}</p>
-                      <p style={{ margin:0, fontSize:16, fontWeight:800, color:c as string }}>{v}</p>
-                    </div>
-                  ))}
-                </div>
-                <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                  <button style={{ background: BLUE, color: "white", border: "none", borderRadius: 7, padding: "7px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>💸 Pay Now</button>
-                  <button style={{ background: "#f1f5f9", border: "none", borderRadius: 7, padding: "7px 16px", fontSize: 12, cursor: "pointer" }}>📊 View History</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* ── INFLUENCERS ── */}
-        {tab === "influencers" && (
-          <div style={{ background: "white", borderRadius: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", overflow: "hidden" }}>
-            <div style={{ padding: "16px 20px", borderBottom: "1px solid #f1f5f9" }}><h3 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>⭐ Influencer Financial Profiles</h3></div>
-            {influencers.map((inf, i) => (
-              <div key={inf.name} style={{ padding: 20, borderBottom: i<influencers.length-1?"1px solid #f1f5f9":"none" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-                  <div>
-                    <p style={{ margin:0, fontWeight:700, fontSize:15 }}>{inf.name}</p>
-                    <p style={{ margin:0, fontSize:12, color:"#64748b" }}>{inf.platform} · {inf.followers} followers · {inf.referrals} referrals · Rate: {inf.rate}</p>
-                  </div>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(130px,1fr))", gap: 10, marginTop: 14 }}>
-                  {[["Referral Revenue", fmt(inf.revenue), BLUE],["Commission (5%)", fmt(inf.commission), TEAL],["Pending", fmt(inf.pending), AMBER],["Paid Out", fmt(inf.paid), GREEN]].map(([l,v,c]) => (
-                    <div key={l as string} style={{ background: "#f8fafc", borderRadius: 8, padding: 12 }}>
-                      <p style={{ margin:"0 0 2px", fontSize:10, color:"#64748b", fontWeight:600, textTransform:"uppercase" }}>{l}</p>
-                      <p style={{ margin:0, fontSize:16, fontWeight:800, color:c as string }}>{v}</p>
-                    </div>
-                  ))}
-                </div>
-                <button style={{ background: BLUE, color: "white", border: "none", borderRadius: 7, padding: "7px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer", marginTop: 12 }}>💸 Send Payout</button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* ── FINANCING ── */}
-        {tab === "financing" && (
-          <div style={{ background: "white", borderRadius: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", overflow: "hidden" }}>
-            <div style={{ padding: "16px 20px", borderBottom: "1px solid #f1f5f9" }}>
-              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>📅 Travel Financing</h3>
-              <p style={{ margin: "4px 0 0", fontSize: 12, color: "#64748b" }}>Installment plans & deposits — pay over time</p>
+        {/* ════ INVOICES ════ */}
+        {tab === "invoices" && (
+          <div style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+            <div style={{ padding: "16px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h3 style={{ margin: 0, fontWeight: 700 }}>📄 Invoices</h3>
+              <button style={{ background: BLUE, color: "white", border: "none", borderRadius: 8, padding: "8px 16px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>+ New Invoice</button>
             </div>
-            {financedTrips.map((t, i) => (
-              <div key={t.client} style={{ padding: 20, borderBottom: i<financedTrips.length-1?"1px solid #f1f5f9":"none" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
-                  <div><p style={{ margin:0, fontWeight:700, fontSize:14 }}>{t.client}</p><p style={{ margin:0, fontSize:12, color:"#64748b" }}>{t.trip}</p></div>
-                  <span style={{ padding: "4px 12px", borderRadius: 20, fontSize: 12, fontWeight: 600, background: t.status==="Overdue"?"#fee2e2":"#d1fae5", color: t.status==="Overdue"?"#991b1b":"#065f46" }}>{t.status}</span>
-                </div>
-                <div style={{ background: "#f1f5f9", borderRadius: 8, height: 8, marginBottom: 10 }}>
-                  <div style={{ background: t.status==="Overdue"?RED:BLUE, borderRadius: 8, height: 8, width: `${(t.paid/t.total)*100}%` }} />
-                </div>
-                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", fontSize: 12, color: "#64748b" }}>
-                  <span>Total: <b style={{ color:"#0f172a" }}>{fmt(t.total)}</b></span>
-                  <span>Paid: <b style={{ color:GREEN }}>{fmt(t.paid)}</b></span>
-                  <span>Remaining: <b style={{ color:t.status==="Overdue"?RED:AMBER }}>{fmt(t.remaining)}</b></span>
-                  <span>Installments: <b>{t.installments}</b></span>
-                  <span>Next due: <b style={{ color:t.status==="Overdue"?RED:"#0f172a" }}>{t.nextDue}</b></span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* ── ANALYTICS ── */}
-        {tab === "analytics" && (
-          <div style={{ display: "grid", gap: 14 }}>
-            <div style={{ background: "white", borderRadius: 12, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-              <h3 style={{ margin: "0 0 16px", fontSize: 15, fontWeight: 700 }}>📈 Revenue Over Time</h3>
-              <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 120 }}>
-                {[45, 62, 38, 79, 55, 91, 68, 82, 47, 93, 71, 88].map((h, i) => (
-                  <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                    <div style={{ width: "100%", background: i === 11 ? BLUE : "#e0e7ff", borderRadius: "4px 4px 0 0", height: `${h}%`, minHeight: 4 }} />
-                    <span style={{ fontSize: 9, color: "#94a3b8" }}>{["J","F","M","A","M","J","J","A","S","O","N","D"][i]}</span>
-                  </div>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ background: "#f8fafc" }}>
+                  {["Invoice #","Client","Booking","Amount","Date","Due Date","Status","Actions"].map(h => (
+                    <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {INVOICES.map(inv => (
+                  <tr key={inv.id} style={{ borderTop: "1px solid #f1f5f9" }}>
+                    <td style={{ padding: "12px 16px", fontSize: 12, fontFamily: "monospace", color: BLUE, fontWeight: 600 }}>{inv.id}</td>
+                    <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 500 }}>{inv.client}</td>
+                    <td style={{ padding: "12px 16px", fontSize: 12, color: "#64748b" }}>{inv.booking}</td>
+                    <td style={{ padding: "12px 16px", fontWeight: 700 }}>{fmt(inv.amount)}</td>
+                    <td style={{ padding: "12px 16px", fontSize: 12, color: "#94a3b8" }}>{inv.date}</td>
+                    <td style={{ padding: "12px 16px", fontSize: 12, color: "#94a3b8" }}>{inv.due}</td>
+                    <td style={{ padding: "12px 16px" }}><StatusBadge status={inv.status} /></td>
+                    <td style={{ padding: "12px 16px" }}>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 6, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>📧 Send</button>
+                        <button style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 6, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>⬇ PDF</button>
+                      </div>
+                    </td>
+                  </tr>
                 ))}
-              </div>
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* ════ PAYOUTS ════ */}
+        {tab === "payouts" && (
+          <div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14, marginBottom: 20 }}>
+              <StatCard icon="⏳" label="Pending Payouts" value="$16,800" sub="3 recipients" color={GOLD} />
+              <StatCard icon="💸" label="Paid This Month" value="$7,840" sub="Noah Martin · Feb 1" color={GREEN} />
+              <StatCard icon="📅" label="Next Payout Date" value="March 1" sub="All agents + influencers" color={BLUE} />
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-              <div style={{ background: "white", borderRadius: 12, padding: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-                <h4 style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 700 }}>Payment Success Rate</h4>
-                <div style={{ fontSize: 36, fontWeight: 800, color: GREEN }}>94.2%</div>
-                <p style={{ margin: "4px 0 0", fontSize: 12, color: "#64748b" }}>↑ 2.1% vs last month</p>
+            <div style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+              <div style={{ padding: "16px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between" }}>
+                <h3 style={{ margin: 0, fontWeight: 700 }}>💸 Payout History</h3>
+                <button style={{ background: GREEN, color: "white", border: "none", borderRadius: 8, padding: "8px 16px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>▶ Trigger All Payouts</button>
               </div>
-              <div style={{ background: "white", borderRadius: 12, padding: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-                <h4 style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 700 }}>Avg Transaction</h4>
-                <div style={{ fontSize: 36, fontWeight: 800, color: BLUE }}>{fmt((stats?.totalRevenue||47230)/(stats?.transactionCount||89))}</div>
-                <p style={{ margin: "4px 0 0", fontSize: 12, color: "#64748b" }}>Per booking this period</p>
-              </div>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead><tr style={{ background: "#f8fafc" }}>
+                  {["Payout ID","Recipient","Type","Amount","Method","Scheduled","Status","Action"].map(h => (
+                    <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>{h}</th>
+                  ))}
+                </tr></thead>
+                <tbody>
+                  {PAYOUTS.map(p => (
+                    <tr key={p.id} style={{ borderTop: "1px solid #f1f5f9" }}>
+                      <td style={{ padding: "12px 16px", fontSize: 12, fontFamily: "monospace", color: BLUE }}>{p.id}</td>
+                      <td style={{ padding: "12px 16px", fontWeight: 600 }}>{p.recipient}</td>
+                      <td style={{ padding: "12px 16px", fontSize: 12, color: "#64748b" }}>{p.type}</td>
+                      <td style={{ padding: "12px 16px", fontWeight: 700 }}>{fmt(p.amount)}</td>
+                      <td style={{ padding: "12px 16px", fontSize: 12 }}>{p.method}</td>
+                      <td style={{ padding: "12px 16px", fontSize: 12, color: "#94a3b8" }}>{p.date}</td>
+                      <td style={{ padding: "12px 16px" }}><StatusBadge status={p.status} /></td>
+                      <td style={{ padding: "12px 16px" }}>
+                        {p.status !== "paid" && <button style={{ background: GREEN, color: "white", border: "none", borderRadius: 6, padding: "4px 12px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>Pay Now</button>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <div style={{ background: "white", borderRadius: 12, padding: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-              <h4 style={{ margin: "0 0 14px", fontSize: 13, fontWeight: 700 }}>Revenue Distribution</h4>
-              {[["Platform Revenue (20%)", 9430, BLUE],["Agent Commissions (10%)", 4723, PURPLE],["Influencer Commissions (5%)", 2362, TEAL],["Net to Zeniva", 24425, GREEN]].map(([l,v,c]) => (
-                <div key={l as string} style={{ marginBottom: 10 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ fontSize: 12, color: "#374151" }}>{l}</span><span style={{ fontSize: 12, fontWeight: 700 }}>{fmt(v as number)}</span></div>
-                  <div style={{ background: "#f1f5f9", borderRadius: 4, height: 8 }}><div style={{ background: c as string, borderRadius: 4, height: 8, width: `${((v as number)/47230)*100}%` }} /></div>
+          </div>
+        )}
+
+        {/* ════ AGENTS ════ */}
+        {tab === "agents" && (
+          <div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 16 }}>
+              {AGENTS.map(a => (
+                <div key={a.id} style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)", borderTop: a.id === "AGT-001" ? `3px solid ${GOLD}` : `3px solid ${BLUE}` }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                    <div style={{ width: 44, height: 44, background: `${BLUE}15`, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>{a.avatar}</div>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ margin: 0, fontWeight: 700, fontSize: 15 }}>{a.name}</p>
+                      <p style={{ margin: 0, fontSize: 11, color: "#64748b" }}>{a.role}</p>
+                    </div>
+                    {a.badge && <span style={{ background: `${GOLD}22`, color: GOLD, fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px" }}>{a.badge}</span>}
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    {[
+                      { label: "Revenue Generated", value: fmt(a.revenue, true), color: BLUE },
+                      { label: "Commission Earned", value: fmt(a.commission, true), color: PURPLE },
+                      { label: "Pending Payout", value: fmt(a.pending, true), color: GOLD },
+                      { label: "Commission Rate", value: a.rate, color: GREEN },
+                    ].map(s => (
+                      <div key={s.label} style={{ background: "#f8fafc", borderRadius: 10, padding: "10px 12px" }}>
+                        <p style={{ margin: "0 0 2px", fontSize: 10, color: "#64748b", fontWeight: 600, textTransform: "uppercase" }}>{s.label}</p>
+                        <p style={{ margin: 0, fontWeight: 800, fontSize: 15, color: s.color }}>{s.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+                    <div style={{ flex: 1, background: "#f0fdf4", borderRadius: 8, padding: "6px 10px", textAlign: "center" }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: GREEN }}>📋 {a.bookings} bookings</span>
+                    </div>
+                    <button style={{ background: `${BLUE}15`, color: BLUE, border: "none", borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Pay Now</button>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* SIMPLE STUBS FOR OTHER TABS */}
-        {(tab === "invoices" || tab === "refunds" || tab === "payouts" || tab === "settings") && (
-          <div style={{ background: "white", borderRadius: 12, padding: 40, textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>
-              {tab === "invoices" ? "🧾" : tab === "refunds" ? "↩️" : tab === "payouts" ? "🏦" : "⚙️"}
-            </div>
-            <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 700, color: "#0f172a" }}>
-              {tab === "invoices" ? "Invoice Management" : tab === "refunds" ? "Refund Center" : tab === "payouts" ? "Payout Scheduler" : "ZeniPay Settings"}
-            </h3>
-            <p style={{ color: "#64748b", fontSize: 14, margin: "0 0 20px" }}>
-              {tab === "invoices" ? "Generate, send, and track client invoices — coming in v2.0" : 
-               tab === "refunds" ? "Process refunds and manage disputes — coming in v2.0" :
-               tab === "payouts" ? "Batch payouts to agents and influencers — coming in v2.0" :
-               "Configure gateways, commission rates, currencies — coming in v2.0"}
-            </p>
-            <span style={{ background: "#e0e7ff", color: "#3730a3", padding: "6px 16px", borderRadius: 20, fontSize: 12, fontWeight: 700 }}>Coming v2.0</span>
+        {/* ════ INFLUENCERS ════ */}
+        {tab === "influencers" && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 16 }}>
+            {INFLUENCERS.map(inf => (
+              <div key={inf.id} style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)", borderTop: `3px solid ${GOLD}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+                  <div>
+                    <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 15 }}>{inf.name}</p>
+                    <p style={{ margin: "0 0 4px", fontSize: 12, color: "#64748b" }}>{inf.handle} · {inf.platform}</p>
+                    <span style={{ background: `${GOLD}22`, color: GOLD, fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px" }}>🏅 {inf.tier}</span>
+                  </div>
+                  <StatusBadge status={inf.status} />
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  {[
+                    { label: "Referrals", value: String(inf.referrals), color: BLUE },
+                    { label: "Rate", value: inf.rate, color: GREEN },
+                    { label: "Revenue", value: fmt(inf.revenue, true), color: PURPLE },
+                    { label: "Earned", value: fmt(inf.commission, true), color: GOLD },
+                  ].map(s => (
+                    <div key={s.label} style={{ background: "#f8fafc", borderRadius: 10, padding: "10px 12px" }}>
+                      <p style={{ margin: "0 0 2px", fontSize: 10, color: "#64748b", fontWeight: 600, textTransform: "uppercase" }}>{s.label}</p>
+                      <p style={{ margin: 0, fontWeight: 800, fontSize: 15, color: s.color }}>{s.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         )}
+
+        {/* ════ FINANCING ════ */}
+        {tab === "financing" && (
+          <div>
+            <div style={{ background: `linear-gradient(135deg, ${DARK}, #1e3a8a)`, borderRadius: 20, padding: 28, marginBottom: 20, color: "white" }}>
+              <h2 style={{ margin: "0 0 8px", fontWeight: 800, fontSize: 24 }}>🏛️ ZeniPay Financing</h2>
+              <p style={{ margin: 0, opacity: 0.7 }}>Offer flexible payment plans to your travelers. Split any trip into installments.</p>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginBottom: 20 }}>
+              {[
+                { title: "Pay in Full", icon: "💳", desc: "Full payment upfront. Best rate.", badge: "Standard", color: BLUE },
+                { title: "Deposit + Balance", icon: "📅", desc: "30% deposit now, balance before travel.", badge: "Popular", color: GREEN },
+                { title: "Monthly Payments", icon: "🔄", desc: "Split into 3-12 monthly payments.", badge: "Flexible", color: PURPLE },
+              ].map(p => (
+                <div key={p.title} style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)", borderTop: `3px solid ${p.color}` }}>
+                  <div style={{ fontSize: 32, marginBottom: 12 }}>{p.icon}</div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                    <h3 style={{ margin: 0, fontWeight: 700, fontSize: 16 }}>{p.title}</h3>
+                    <span style={{ background: `${p.color}22`, color: p.color, fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px" }}>{p.badge}</span>
+                  </div>
+                  <p style={{ margin: "0 0 16px", color: "#64748b", fontSize: 13 }}>{p.desc}</p>
+                  <button style={{ background: `${p.color}15`, color: p.color, border: "none", borderRadius: 8, padding: "8px 16px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+                    Configure Plan
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+              <h3 style={{ margin: "0 0 16px", fontWeight: 700 }}>📊 Active Financing Plans</h3>
+              <div style={{ textAlign: "center", padding: 40, color: "#94a3b8" }}>
+                <div style={{ fontSize: 48, marginBottom: 12 }}>🏛️</div>
+                <p>Financing plans will appear here once travelers choose installment payment options.</p>
+                <p style={{ fontSize: 12, marginTop: 8 }}>Connect Authorize.net financing module to enable.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ════ ANALYTICS ════ */}
+        {tab === "analytics" && (
+          <div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 16, marginBottom: 20 }}>
+              {[
+                { title: "Revenue by Month", data: [48200, 62400, 78900, 91200, 84500, 102400, 118700, 134200, 156800, 184500, 218900, 284500] },
+                { title: "Transaction Volume", data: [12, 18, 24, 29, 27, 34, 41, 47, 58, 71, 89, 127] },
+              ].map(chart => (
+                <div key={chart.title} style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+                  <h3 style={{ margin: "0 0 16px", fontWeight: 700, fontSize: 14 }}>📈 {chart.title}</h3>
+                  <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 80 }}>
+                    {chart.data.map((v, i) => {
+                      const max = Math.max(...chart.data);
+                      return <div key={i} style={{ flex: 1, background: `linear-gradient(${BLUE}, #60a5fa)`, borderRadius: "3px 3px 0 0", height: `${(v/max*100)}%`, opacity: 0.7 + i/chart.data.length*0.3 }} />;
+                    })}
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 10, color: "#94a3b8" }}>
+                    <span>Feb 2025</span><span>Feb 2026</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+              <h3 style={{ margin: "0 0 16px", fontWeight: 700 }}>🥇 Top Revenue Sources</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12 }}>
+                {[
+                  { label: "ZeniStay", value: "$142,800", pct: 50, icon: "🏡" },
+                  { label: "ZeniHotel", value: "$71,400", pct: 25, icon: "🏨" },
+                  { label: "ZeniFlights", value: "$42,840", pct: 15, icon: "✈️" },
+                  { label: "ZeniYacht", value: "$21,420", pct: 7.5, icon: "⛵" },
+                  { label: "ZeniCruise", value: "$7,140", pct: 2.5, icon: "🚢" },
+                ].map(s => (
+                  <div key={s.label} style={{ background: "#f8fafc", borderRadius: 12, padding: 16 }}>
+                    <div style={{ fontSize: 24, marginBottom: 8 }}>{s.icon}</div>
+                    <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 13 }}>{s.label}</p>
+                    <p style={{ margin: "0 0 8px", fontWeight: 800, fontSize: 16, color: BLUE }}>{s.value}</p>
+                    <div style={{ background: "#e2e8f0", borderRadius: 3, height: 4 }}>
+                      <div style={{ background: BLUE, width: `${s.pct}%`, height: "100%", borderRadius: 3 }} />
+                    </div>
+                    <p style={{ margin: "4px 0 0", fontSize: 10, color: "#94a3b8" }}>{s.pct}% of revenue</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ════ NOAH AI ════ */}
+        {tab === "ai" && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+            {/* Noah Profile */}
+            <div style={{ background: `linear-gradient(135deg, ${DARK}, #1a2f6e)`, borderRadius: 20, padding: 28, color: "white" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
+                <div style={{ width: 64, height: 64, background: `${BLUE}40`, borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, border: `2px solid ${BLUE}` }}>🤖</div>
+                <div>
+                  <p style={{ margin: 0, fontWeight: 800, fontSize: 20 }}>Noah</p>
+                  <p style={{ margin: "2px 0 0", fontSize: 12, opacity: 0.6 }}>ZeniPay AI Finance Agent</p>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 6, background: `${GREEN}22`, borderRadius: 6, padding: "2px 8px" }}>
+                    <div style={{ width: 6, height: 6, background: GREEN, borderRadius: "50%" }} />
+                    <span style={{ fontSize: 10, color: GREEN, fontWeight: 700 }}>Online · Monitoring</span>
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: "grid", gap: 10 }}>
+                {[
+                  { icon: "🛡️", title: "Fraud Detection", desc: "Real-time anomaly detection on all transactions" },
+                  { icon: "📊", title: "Revenue Analytics", desc: "Tracks platform margin, commissions, payouts" },
+                  { icon: "⚡", title: "Payment Monitoring", desc: "Alerts on failures, retries, and disputes" },
+                  { icon: "📄", title: "Financial Reports", desc: "Auto-generates monthly financial summaries" },
+                  { icon: "💸", title: "Payout Management", desc: "Schedules and triggers agent/influencer payouts" },
+                ].map(f => (
+                  <div key={f.icon} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 12, padding: "12px 16px", display: "flex", gap: 12, alignItems: "flex-start" }}>
+                    <span style={{ fontSize: 18 }}>{f.icon}</span>
+                    <div>
+                      <p style={{ margin: "0 0 2px", fontWeight: 600, fontSize: 13 }}>{f.title}</p>
+                      <p style={{ margin: 0, fontSize: 11, opacity: 0.6 }}>{f.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Chat Interface */}
+            <div style={{ background: "white", borderRadius: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.07)", display: "flex", flexDirection: "column" }}>
+              <div style={{ background: `${DARK}`, borderRadius: "20px 20px 0 0", padding: 16, display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 32, height: 32, background: `${BLUE}40`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>🤖</div>
+                <div>
+                  <p style={{ margin: 0, color: "white", fontWeight: 700, fontSize: 13 }}>Noah · ZeniPay AI</p>
+                  <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.5)" }}>Financial Intelligence Agent</p>
+                </div>
+              </div>
+              <div style={{ flex: 1, padding: 16, overflowY: "auto", maxHeight: 420, display: "flex", flexDirection: "column", gap: 10 }}>
+                {noahChat.map((m, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
+                    <div style={{
+                      background: m.role === "user" ? BLUE : "#f8fafc",
+                      color: m.role === "user" ? "white" : "#0f172a",
+                      borderRadius: m.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+                      padding: "10px 14px", maxWidth: "80%", fontSize: 13, whiteSpace: "pre-wrap", lineHeight: 1.5,
+                    }}>{m.text}</div>
+                  </div>
+                ))}
+                {aiLoading && (
+                  <div style={{ display: "flex" }}>
+                    <div style={{ background: "#f8fafc", borderRadius: "14px 14px 14px 4px", padding: "10px 16px" }}>
+                      <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                        {[0,1,2].map(i => <div key={i} style={{ width: 6, height: 6, background: "#94a3b8", borderRadius: "50%", animation: `bounce 1s ${i*0.2}s infinite` }} />)}
+                      </div>
+                      <style>{`@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}`}</style>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div style={{ padding: 16, borderTop: "1px solid #f1f5f9", display: "flex", gap: 8 }}>
+                <input value={noahMsg} onChange={e => setNoahMsg(e.target.value)} onKeyDown={e => e.key === "Enter" && handleNoahSend()}
+                  placeholder="Ask Noah: revenue, fraud, payout, rapport…"
+                  style={{ flex: 1, border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 14px", fontSize: 13, outline: "none" }} />
+                <button onClick={handleNoahSend} style={{ background: BLUE, color: "white", border: "none", borderRadius: 10, padding: "10px 16px", fontWeight: 700, cursor: "pointer" }}>Send</button>
+              </div>
+              <div style={{ padding: "0 16px 12px", display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {["Revenue du jour", "Fraud check", "Payout status", "Rapport mensuel"].map(s => (
+                  <button key={s} onClick={() => { setNoahMsg(s); }}
+                    style={{ background: "#f0f4ff", color: BLUE, border: "none", borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>{s}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ════ SETTINGS ════ */}
+        {tab === "settings" && (
+          <div style={{ display: "grid", gap: 16 }}>
+            {[
+              { title: "🏦 Payment Gateway", items: [
+                { label: "Primary Gateway", value: "Authorize.net", status: "sandbox" },
+                { label: "API Login ID", value: "●●●●●●●●●●●●", status: null },
+                { label: "Environment", value: "Sandbox · Test Mode", status: "pending" },
+                { label: "Production", value: "Pending merchant account approval", status: "pending" },
+              ]},
+              { title: "💸 Commission Structure", items: [
+                { label: "Agent Commission", value: "10.4% of booking total", status: null },
+                { label: "Influencer Referral", value: "1.95% of booking total", status: null },
+                { label: "Platform Margin", value: "2.96% of booking total", status: null },
+                { label: "Supplier Payout", value: "84.7% of booking total (remainder)", status: null },
+              ]},
+              { title: "🔒 Security & Compliance", items: [
+                { label: "PCI Compliance", value: "SAQ-A (card tokenization via Accept.js)", status: "active" },
+                { label: "Card Storage", value: "Never stored — processor tokens only", status: "active" },
+                { label: "Encryption", value: "TLS 1.3 · AES-256", status: "active" },
+                { label: "Fraud Detection", value: "Noah AI · Real-time monitoring", status: "active" },
+              ]},
+            ].map(section => (
+              <div key={section.title} style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+                <h3 style={{ margin: "0 0 16px", fontWeight: 700 }}>{section.title}</h3>
+                <div style={{ display: "grid", gap: 10 }}>
+                  {section.items.map(item => (
+                    <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
+                      <span style={{ fontSize: 13, color: "#374151" }}>{item.label}</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{item.value}</span>
+                        {item.status && <StatusBadge status={item.status} />}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
       </div>
     </div>
   );
