@@ -49,7 +49,6 @@ export async function POST(request: Request) {
         amount: amountCents,
         currency,
         description: description || `ZeniPay Payment ${payment_id}`,
-        merchantId: process.env.FINIX_MERCHANT_ID || "",
       });
 
       if (!result.success) {
