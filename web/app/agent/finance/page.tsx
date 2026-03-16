@@ -719,6 +719,7 @@ const TABS = [
   { id: "ai", icon: "🤖", label: "Ben AI" },
   { id: "accounting", icon: "📚", label: "Accounting" },
   { id: "settings", icon: "⚙️", label: "Settings" },
+  { id: "bookings_link", icon: "✈️", label: "Bookings →", href: "/agent/bookings" },
 ];
 
 // ══════════════════════════════════════════════════════
@@ -870,6 +871,7 @@ export default function ZeniPayDashboard() {
   const [statsLoading, setStatsLoading] = useState(true);
   const [openWallet, setOpenWallet] = useState<{name:string;data:typeof DEFAULT_WALLETS.platform;icon:string;color:string}|null>(null);
   const [liveActivity, setLiveActivity] = useState<{ id: number; text: string; time: string; type: string }[]>([]);
+  const [recentBookings, setRecentBookings] = useState<{ id: string; client_name: string; destination: string; total_price: number; status: string; created_at: string }[]>([]);
 
   // ── Fetch live stats from /api/zenipay/stats ──────────────────────────
   useEffect(() => {
@@ -907,9 +909,20 @@ export default function ZeniPayDashboard() {
         setStatsLoading(false);
       }
     }
+
+    async function fetchBookings() {
+      try {
+        const r = await fetch("/api/agents-proxy?path=admin/bookings");
+        const d = await r.json();
+        const bks = (d?.bookings || []) as { id: string; client_name: string; destination: string; total_price: number; status: string; created_at: string }[];
+        setRecentBookings(bks.slice(0, 5));
+      } catch {}
+    }
+
     void fetchStats();
+    void fetchBookings();
     // Refresh every 30s
-    const interval = setInterval(fetchStats, 30_000);
+    const interval = setInterval(() => { void fetchStats(); void fetchBookings(); }, 30_000);
     return () => clearInterval(interval);
   }, []);
 
@@ -985,27 +998,38 @@ export default function ZeniPayDashboard() {
         </div>
         {/* Nav items */}
         <div style={{ flex: 1, overflowY: "auto" as const, padding: "10px 8px", scrollbarWidth: "none" as const }}>
-          {TABS.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)} style={{
+          {TABS.map(t => {
+            const isLink = !!(t as any).href;
+            const isActive = tab === t.id;
+            const btnStyle = {
               width: "100%",
-              display: "flex",
-              alignItems: "center",
+              display: "flex" as const,
+              alignItems: "center" as const,
               gap: 10,
               padding: sidebarOpen ? "10px 12px" : "10px 0",
-              justifyContent: sidebarOpen ? "flex-start" : "center",
+              justifyContent: sidebarOpen ? "flex-start" as const : "center" as const,
               border: "none",
               borderRadius: 10,
-              background: tab === t.id ? "rgba(255,255,255,0.12)" : "transparent",
+              background: isActive ? "rgba(255,255,255,0.12)" : isLink ? "rgba(255,255,255,0.04)" : "transparent",
               cursor: "pointer",
               marginBottom: 2,
               transition: "background 0.15s",
               color: "white",
-            }}>
-              <span style={{ fontSize: 16, flexShrink: 0 }}>{t.icon}</span>
-              {sidebarOpen && <span style={{ fontSize: 12, fontWeight: tab === t.id ? 700 : 500, color: tab === t.id ? "white" : "rgba(255,255,255,0.55)", whiteSpace: "nowrap" as const }}>{t.label}</span>}
-              {sidebarOpen && tab === t.id && <div style={{ marginLeft: "auto", width: 3, height: 16, background: BLUE, borderRadius: 9999 }} />}
-            </button>
-          ))}
+              textDecoration: "none" as const,
+            };
+            return isLink ? (
+              <a key={t.id} href={(t as any).href} style={btnStyle}>
+                <span style={{ fontSize: 16, flexShrink: 0 }}>{t.icon}</span>
+                {sidebarOpen && <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.7)", whiteSpace: "nowrap" as const }}>{t.label}</span>}
+              </a>
+            ) : (
+              <button key={t.id} onClick={() => setTab(t.id)} style={btnStyle}>
+                <span style={{ fontSize: 16, flexShrink: 0 }}>{t.icon}</span>
+                {sidebarOpen && <span style={{ fontSize: 12, fontWeight: isActive ? 700 : 500, color: isActive ? "white" : "rgba(255,255,255,0.55)", whiteSpace: "nowrap" as const }}>{t.label}</span>}
+                {sidebarOpen && isActive && <div style={{ marginLeft: "auto", width: 3, height: 16, background: BLUE, borderRadius: 9999 }} />}
+              </button>
+            );
+          })}
         </div>
         {/* Bottom status */}
         {sidebarOpen && (
@@ -1114,6 +1138,45 @@ export default function ZeniPayDashboard() {
 
               {/* Commission Split */}
               <RevenueSplitWidget />
+            </div>
+
+            {/* ── Recent Bookings Panel ── */}
+            <div style={{ background: "white", borderRadius: 16, padding: 0, boxShadow: "0 1px 4px rgba(0,0,0,0.07)", overflow: "hidden" }}>
+              <div style={{ padding: "16px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <h3 style={{ margin: 0, fontWeight: 700, fontSize: 15 }}>✈️ Recent Bookings</h3>
+                <a href="/agent/bookings" style={{ fontSize: 12, color: BLUE, fontWeight: 700, textDecoration: "none" }}>View All →</a>
+              </div>
+              {recentBookings.length === 0 ? (
+                <div style={{ padding: 32, textAlign: "center", color: "#94a3b8" }}>
+                  <div style={{ fontSize: 32, marginBottom: 8 }}>✈️</div>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>No bookings yet</p>
+                  <p style={{ margin: "4px 0 0", fontSize: 11 }}>Bookings appear here after payment is received</p>
+                  <a href="/agent/bookings" style={{ display: "inline-block", marginTop: 12, background: BLUE, color: "white", borderRadius: 8, padding: "7px 16px", fontSize: 12, fontWeight: 700, textDecoration: "none" }}>+ New Booking</a>
+                </div>
+              ) : (
+                <div>
+                  {recentBookings.map((b, i) => {
+                    const statusColor = b.status === "confirmed" ? GREEN : b.status === "pending_payment" ? "#F59E0B" : "#94a3b8";
+                    const statusLabel = b.status === "confirmed" ? "✓ Confirmed" : b.status === "pending_payment" ? "⏳ Pending" : b.status;
+                    return (
+                      <div key={b.id} style={{ display: "flex", alignItems: "center", padding: "12px 20px", borderTop: i > 0 ? "1px solid #f8fafc" : "none", gap: 12 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#f0f7ff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>✈️</div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: DARK }}>{b.client_name}</p>
+                          <p style={{ margin: 0, fontSize: 11, color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.destination}</p>
+                        </div>
+                        <div style={{ textAlign: "right" as const, flexShrink: 0 }}>
+                          <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: GREEN }}>${(b.total_price || 0).toLocaleString()}</p>
+                          <p style={{ margin: 0, fontSize: 10, color: statusColor, fontWeight: 600 }}>{statusLabel}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div style={{ padding: "12px 20px", borderTop: "1px solid #f1f5f9", textAlign: "center" as const }}>
+                    <a href="/agent/bookings" style={{ fontSize: 12, color: BLUE, fontWeight: 700, textDecoration: "none" }}>View All Bookings →</a>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -130,6 +130,28 @@ export async function POST(request: Request) {
         }).eq("id", paymentId);
       }
 
+      // ── AUTO-CREATE BOOKING IN SUPABASE ──────────────────────────────
+      if (supabase) {
+        // Parse destination/dates from description or metadata
+        const meta = body.metadata || {};
+        const bookingId = meta.booking_id || `BK-${paymentId}`;
+        await supabase.from("bookings").upsert({
+          id: bookingId,
+          client_name: cardholder_name || meta.customer_name || "Client",
+          client_email: meta.customer_email || body.customer_email || "",
+          destination: meta.destination || description || "Zeniva Travel",
+          departure_date: meta.checkin || meta.departure_date || null,
+          return_date: meta.checkout || meta.return_date || null,
+          travelers: meta.guests || meta.travelers || 1,
+          total_price: parsedAmount,
+          currency,
+          status: "confirmed",
+          notes: `ZeniPay payment ${paymentId} — Finix ${result.transactionId}`,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "id" }).then(() => {});
+      }
+
       // Append-only ledger entry (100% → Platform Wallet)
       await recordPaymentReceived({
         paymentId,
