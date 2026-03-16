@@ -499,6 +499,7 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
               ) : (
                 <div style={{ display: "grid", gap: 8 }}>
                   {[
+                    { type: "owner", name: "Zeniva Travel LLC", sub: "Owner payout — company account", icon: "🏢", color: "#0F6CF5", data: { id: "owner-001", name: "Zeniva Travel LLC", code: "ZENIVA", bookings: 0, revenue: 0, commission: 0, pending: 0, rate: "100%", role: "Owner · Platform Revenue" } },
                     ...agents.map(a => ({ type: "agent", name: a.name, sub: a.role || "Travel Agent", icon: "👤", color: PURPLE, data: a })),
                     { type: "supplier", name: "Supplier / Hotel", sub: "Direct supplier payment", icon: "✈️", color: GREEN, data: null },
                     { type: "other", name: "Other Recipient", sub: "Bank wire to custom account", icon: "🏦", color: "#64748b", data: null },
@@ -621,37 +622,53 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
         {/* Agent Balances */}
         <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 16px rgba(0,0,0,0.08)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <h3 style={{ margin: 0, fontWeight: 800, fontSize: 15 }}>👥 Agent Balances</h3>
-            <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600 }}>70% of booking</span>
+            <h3 style={{ margin: 0, fontWeight: 800, fontSize: 15 }}>👥 Recipients</h3>
+            <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600 }}>Quick Pay</span>
           </div>
-          {agents.length === 0 ? (
-            <p style={{ textAlign: "center" as const, color: "#94a3b8", fontSize: 13, padding: "16px 0" }}>No agents yet</p>
-          ) : (
-            <div style={{ display: "grid", gap: 10 }}>
-              {agents.map(a => (
-                <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px", background: "#f8fafc", borderRadius: 12 }}>
-                  <div style={{ width: 40, height: 40, background: `${PURPLE}15`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 700, color: PURPLE }}>
-                    {a.name.charAt(0)}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: DARK }}>{a.name}</p>
-                    <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>{a.bookings} bookings · {a.rate}</p>
-                  </div>
-                  <div style={{ textAlign: "right" as const }}>
-                    <p style={{ margin: "0 0 2px", fontSize: 11, color: "#94a3b8" }}>Pending</p>
-                    <p style={{ margin: 0, fontWeight: 800, fontSize: 14, color: a.pending > 0 ? GOLD : "#94a3b8" }}>{fmt(a.pending, true)}</p>
-                  </div>
-                  <button onClick={() => {
-                    setSelectedAgent(a);
-                    if (a.pending > 0) setAmount(String(a.pending));
-                    setStep("amount");
-                  }} style={{ background: BLUE, color: "white", border: "none", borderRadius: 9999, padding: "6px 14px", fontSize: 11, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
-                    Pay
-                  </button>
-                </div>
-              ))}
+          <div style={{ display: "grid", gap: 10 }}>
+            {/* Zeniva Travel LLC — toujours en premier */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", background: `${BLUE}08`, borderRadius: 12, border: `1.5px solid ${BLUE}20` }}>
+              <div style={{ width: 40, height: 40, background: `${BLUE}15`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🏢</div>
+              <div style={{ flex: 1 }}>
+                <p style={{ margin: 0, fontWeight: 800, fontSize: 14, color: DARK }}>Zeniva Travel LLC</p>
+                <p style={{ margin: 0, fontSize: 11, color: "#64748b" }}>Owner · Platform Revenue · 100%</p>
+              </div>
+              <div style={{ textAlign: "right" as const }}>
+                <p style={{ margin: "0 0 2px", fontSize: 10, color: "#94a3b8" }}>Available</p>
+                <p style={{ margin: 0, fontWeight: 900, fontSize: 14, color: BLUE }}>{fmt(platformBalance, true)}</p>
+              </div>
+              <button onClick={() => {
+                setSelectedAgent({ id: "owner-001", name: "Zeniva Travel LLC", code: "ZENIVA", bookings: 0, revenue: 0, commission: 0, pending: platformBalance, rate: "100%", role: "Owner · Platform Revenue" });
+                setAmount(String(platformBalance > 0 ? Math.floor(platformBalance) : ""));
+                setStep("amount");
+              }} style={{ background: BLUE, color: "white", border: "none", borderRadius: 9999, padding: "7px 16px", fontSize: 11, fontWeight: 800, cursor: "pointer", flexShrink: 0 }}>
+                💸 Pay Me
+              </button>
             </div>
-          )}
+            {/* Agents */}
+            {agents.map(a => (
+              <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px", background: "#f8fafc", borderRadius: 12 }}>
+                <div style={{ width: 40, height: 40, background: `${PURPLE}15`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 700, color: PURPLE }}>
+                  {a.name.charAt(0)}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: DARK }}>{a.name}</p>
+                  <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>{a.bookings} bookings · {a.rate}</p>
+                </div>
+                <div style={{ textAlign: "right" as const }}>
+                  <p style={{ margin: "0 0 2px", fontSize: 11, color: "#94a3b8" }}>Pending</p>
+                  <p style={{ margin: 0, fontWeight: 800, fontSize: 14, color: a.pending > 0 ? GOLD : "#94a3b8" }}>{fmt(a.pending, true)}</p>
+                </div>
+                <button onClick={() => {
+                  setSelectedAgent(a);
+                  if (a.pending > 0) setAmount(String(a.pending));
+                  setStep("amount");
+                }} style={{ background: BLUE, color: "white", border: "none", borderRadius: 9999, padding: "6px 14px", fontSize: 11, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
+                  Pay
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Commission Breakdown */}
