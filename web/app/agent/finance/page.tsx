@@ -719,7 +719,7 @@ const TABS = [
   { id: "influencers", icon: "⭐", label: "Influencers" },
   { id: "financing", icon: "🏛️", label: "Financing" },
   { id: "analytics", icon: "📈", label: "Analytics" },
-  { id: "ai", icon: "🤖", label: "Noah AI" },
+  { id: "ai", icon: "🤖", label: "Ben AI" },
   { id: "accounting", icon: "📚", label: "Accounting" },
   { id: "settings", icon: "⚙️", label: "Settings" },
 ];
@@ -735,9 +735,9 @@ export default function ZeniPayDashboard() {
   const [linkModal, setLinkModal] = useState(false);
   const [linkForm, setLinkForm] = useState({ amount: "", desc: "", type: "trip", email: "" });
   const [linkCreated, setLinkCreated] = useState("");
-  const [noahMsg, setNoahMsg] = useState("");
-  const [noahChat, setNoahChat] = useState<{ role: "user" | "noah"; text: string }[]>([
-    { role: "noah", text: "Bonjour! Je suis Noah, votre agent IA ZeniPay. Je surveille les paiements, détecte les anomalies et génère vos rapports financiers en temps réel. Comment puis-je vous aider?" }
+  const [benMsg, setBenMsg] = useState("");
+  const [benChat, setBenChat] = useState<{ role: "user" | "ben"; text: string }[]>([
+    { role: "ben", text: "Bonjour! Je suis Ben, votre agent IA ZeniPay. Je surveille les paiements, détecte les anomalies et génère vos rapports financiers en temps réel. Comment puis-je vous aider?" }
   ]);
   const [aiLoading, setAiLoading] = useState(false);
   const [openWallet, setOpenWallet] = useState<{name:string;data:typeof WALLETS.platform;icon:string;color:string}|null>(null);
@@ -763,11 +763,11 @@ export default function ZeniPayDashboard() {
     setLinkCreated(url);
   };
 
-  const handleNoahSend = async () => {
-    if (!noahMsg.trim()) return;
-    const userMsg = noahMsg;
-    setNoahMsg("");
-    setNoahChat(prev => [...prev, { role: "user", text: userMsg }]);
+  const handleBenSend = async () => {
+    if (!benMsg.trim()) return;
+    const userMsg = benMsg;
+    setBenMsg("");
+    setBenChat(prev => [...prev, { role: "user", text: userMsg }]);
     setAiLoading(true);
     await new Promise(r => setTimeout(r, 1200));
     const responses: Record<string, string> = {
@@ -778,7 +778,7 @@ export default function ZeniPayDashboard() {
     };
     const keyword = Object.keys(responses).find(k => userMsg.toLowerCase().includes(k));
     const reply = keyword ? responses[keyword] : `Analysing your request: "${userMsg}"...\n\n✅ All systems operational. Platform balance: ${fmt(platformBalance, true)}. Payment success rate: ${successRate}%. No anomalies detected in the last 24h.`;
-    setNoahChat(prev => [...prev, { role: "noah", text: reply }]);
+    setBenChat(prev => [...prev, { role: "ben", text: reply }]);
     setAiLoading(false);
   };
 
@@ -885,7 +885,7 @@ export default function ZeniPayDashboard() {
                 <p style={{ margin: 0, fontWeight: 700, fontSize: 12, color: GREEN }}>● Finix · Sandbox</p>
               </div>
               <div style={{ background: `${BLUE}22`, border: `1px solid ${BLUE}44`, borderRadius: 8, padding: "6px 12px", fontSize: 11, color: BLUE, fontWeight: 700 }}>
-                🤖 Noah AI Online
+                🤖 Ben AI Online
               </div>
             </div>
           </div>
@@ -1496,7 +1496,7 @@ export default function ZeniPayDashboard() {
                 {/* Avatar */}
                 <div style={{ flexShrink: 0 }}>
                   <div style={{ width: 88, height: 88, borderRadius: 22, overflow: "hidden", border: `2px solid ${BLUE}60`, boxShadow: `0 0 32px ${BLUE}40`, background: `linear-gradient(135deg, ${DARK}, #1a2f6e)` }}>
-                    <img src="/agents/noah.png" alt="Noah" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { (e.target as HTMLImageElement).style.display="none"; (e.target as HTMLImageElement).parentElement!.innerHTML="<div style=\"display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:42px\">🤖</div>"; }} />
+                    <img src="/agents/noah.png" alt="Ben" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { (e.target as HTMLImageElement).style.display="none"; (e.target as HTMLImageElement).parentElement!.innerHTML="<div style=\"display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:42px\">🤖</div>"; }} />
                   </div>
                   <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, justifyContent: "center" }}>
                     <div style={{ width: 7, height: 7, background: GREEN, borderRadius: "50%", boxShadow: `0 0 6px ${GREEN}` }} />
@@ -1506,7 +1506,7 @@ export default function ZeniPayDashboard() {
                 {/* Info */}
                 <div style={{ flex: 1 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
-                    <h2 style={{ margin: 0, fontWeight: 900, fontSize: 28, letterSpacing: "-0.5px" }}>Noah</h2>
+                    <h2 style={{ margin: 0, fontWeight: 900, fontSize: 28, letterSpacing: "-0.5px" }}>Ben</h2>
                     <span style={{ background: `${BLUE}30`, border: `1px solid ${BLUE}50`, borderRadius: 8, padding: "3px 10px", fontSize: 11, fontWeight: 700, color: BLUE }}>ZeniPay Finance Agent</span>
                   </div>
                   <p style={{ margin: "0 0 16px", opacity: 0.7, fontSize: 14 }}>ZeniPay financial intelligence. Monitors all payments, detects fraud, distributes commissions to agents and influencers, and generates financial reports in real-time.</p>
@@ -1556,10 +1556,10 @@ export default function ZeniPayDashboard() {
               <div style={{ background: "white", borderRadius: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", display: "flex", flexDirection: "column" }}>
                 <div style={{ background: `linear-gradient(135deg, ${DARK}, #1a2f6e)`, borderRadius: "20px 20px 0 0", padding: "14px 18px", display: "flex", alignItems: "center", gap: 12 }}>
                   <div style={{ width: 36, height: 36, borderRadius: 10, overflow: "hidden", border: `1px solid ${BLUE}60`, background: DARK }}>
-                    <img src="/agents/noah.png" alt="Noah" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <img src="/agents/noah.png" alt="Ben" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <p style={{ margin: 0, color: "white", fontWeight: 700, fontSize: 14 }}>Noah · ZeniPay AI</p>
+                    <p style={{ margin: 0, color: "white", fontWeight: 700, fontSize: 14 }}>Ben · ZeniPay AI</p>
                     <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Financial Intelligence Agent</p>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 5, background: `${GREEN}22`, borderRadius: 6, padding: "4px 10px" }}>
@@ -1568,10 +1568,10 @@ export default function ZeniPayDashboard() {
                   </div>
                 </div>
                 <div style={{ flex: 1, padding: 16, overflowY: "auto", maxHeight: 380, display: "flex", flexDirection: "column", gap: 10 }}>
-                  {noahChat.map((m, i) => (
+                  {benChat.map((m, i) => (
                     <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", gap: 8, alignItems: "flex-end" }}>
-                      {m.role === "noah" && <div style={{ width: 28, height: 28, borderRadius: 8, overflow: "hidden", border: `1px solid ${BLUE}30`, flexShrink: 0 }}>
-                      <img src="/agents/noah.png" alt="Noah" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      {m.role === "ben" && <div style={{ width: 28, height: 28, borderRadius: 8, overflow: "hidden", border: `1px solid ${BLUE}30`, flexShrink: 0 }}>
+                      <img src="/agents/noah.png" alt="Ben" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </div>}
                       <div style={{
                         background: m.role === "user" ? `linear-gradient(135deg, ${BLUE}, ${DARK})` : "#f0f4ff",
@@ -1596,15 +1596,15 @@ export default function ZeniPayDashboard() {
                 </div>
                 <div style={{ padding: "0 16px 8px", display: "flex", gap: 6, flexWrap: "wrap" }}>
                   {["💰 Revenue du jour", "🛡️ Fraud check", "💸 Payout status", "📊 Rapport mensuel"].map(s => (
-                    <button key={s} onClick={() => setNoahMsg(s.replace(/^[^ ]+ /, ""))}
+                    <button key={s} onClick={() => setBenMsg(s.replace(/^[^ ]+ /, ""))}
                       style={{ background: "#f0f4ff", color: BLUE, border: "1px solid #dbeafe", borderRadius: 8, padding: "5px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>{s}</button>
                   ))}
                 </div>
                 <div style={{ padding: "0 16px 16px", display: "flex", gap: 8 }}>
-                  <input value={noahMsg} onChange={e => setNoahMsg(e.target.value)} onKeyDown={e => e.key === "Enter" && handleNoahSend()}
+                  <input value={benMsg} onChange={e => setBenMsg(e.target.value)} onKeyDown={e => e.key === "Enter" && handleBenSend()}
                     placeholder="Ask Noah: revenue, fraud, payout, rapport…"
                     style={{ flex: 1, border: "1.5px solid #e2e8f0", borderRadius: 12, padding: "11px 14px", fontSize: 13, outline: "none", background: "#fafbff" }} />
-                  <button onClick={handleNoahSend} style={{ background: `linear-gradient(135deg, ${BLUE}, ${DARK})`, color: "white", border: "none", borderRadius: 12, padding: "11px 20px", fontWeight: 800, cursor: "pointer", fontSize: 14 }}>↑</button>
+                  <button onClick={handleBenSend} style={{ background: `linear-gradient(135deg, ${BLUE}, ${DARK})`, color: "white", border: "none", borderRadius: 12, padding: "11px 20px", fontWeight: 800, cursor: "pointer", fontSize: 14 }}>↑</button>
                 </div>
               </div>
 
@@ -1636,7 +1636,7 @@ export default function ZeniPayDashboard() {
                       { label: "🛡️ Fraud Scan", color: PURPLE },
                       { label: "📧 Email Summary", color: GOLD },
                     ].map(a => (
-                      <button key={a.label} onClick={() => setNoahMsg(a.label.replace(/^[^ ]+ /, ""))}
+                      <button key={a.label} onClick={() => setBenMsg(a.label.replace(/^[^ ]+ /, ""))}
                         style={{ background: `${a.color}15`, color: a.color, border: `1px solid ${a.color}30`, borderRadius: 10, padding: "10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
                         {a.label}
                       </button>
@@ -1877,7 +1877,7 @@ export default function ZeniPayDashboard() {
                 { label: "PCI Compliance", value: "SAQ-A (card tokenization via Accept.js)", status: "active" },
                 { label: "Card Storage", value: "Never stored — processor tokens only", status: "active" },
                 { label: "Encryption", value: "TLS 1.3 · AES-256", status: "active" },
-                { label: "Fraud Detection", value: "Noah AI · Real-time monitoring", status: "active" },
+                { label: "Fraud Detection", value: "Ben AI · Real-time monitoring", status: "active" },
               ]},
             ].map(section => (
               <div key={section.title} style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>

@@ -1075,16 +1075,16 @@ export default function AIAgentsPageClient() {
       logs: ["Checked pipeline: 0 new unconverted leads", "Email templates loaded (EN, FR, ES)", "SMTP health OK"],
     },
     {
-      id: "followup", name: "Noah", emoji: "🤖", avatar: "/agents/noah.png",
+      id: "followup", name: "Ben", emoji: "🤖", avatar: "/agents/noah.png",
       status: "active", type: "ZeniPay Finance Agent · AI",
       schedule: "Real-time", color: "#0F6CF5",
       description: "ZeniPay financial intelligence. Monitors all payments, detects fraud, distributes commissions to agents and influencers, and generates financial reports in real-time.",
       intro: "I am ZeniPay's financial AI. I monitor every transaction in real-time, detect anomalies, distribute commissions to agents and influencers, and auto-generate financial reports. The money never sleeps — and neither do I.",
       features: ["Fraud Detection", "Revenue Analytics", "Commission Distribution", "Payout Management", "Financial Reports", "Real-time Monitoring"],
       scenarios: [
-        { icon: "🛡️", title: "Real-time fraud detection", desc: "A payment comes in from an unusual IP with 3 failed retries — Noah flags it, holds the transaction, and alerts the team." },
-        { icon: "💸", title: "Automatic commission split", desc: "James Mitchell pays $7,677 — Noah instantly allocates: $799 to agent, $150 to influencer, $227 to platform, $6,501 to supplier wallet." },
-        { icon: "📊", title: "Monthly financial report", desc: "On the 1st of every month, Noah generates a complete financial summary: gross revenue, margins, payout breakdown, and trend analysis." },
+        { icon: "🛡️", title: "Real-time fraud detection", desc: "A payment comes in from an unusual IP with 3 failed retries — Ben flags it, holds the transaction, and alerts the team." },
+        { icon: "💸", title: "Automatic commission split", desc: "James Mitchell pays $7,677 — Ben instantly allocates: $799 to agent, $150 to influencer, $227 to platform, $6,501 to supplier wallet." },
+        { icon: "📊", title: "Monthly financial report", desc: "On the 1st of every month, Ben generates a complete financial summary: gross revenue, margins, payout breakdown, and trend analysis." },
       ],
       activityLog: [
         { time: "2 min ago", action: "$7,677 received · James Mitchell · Booking #9231 · ✅ Completed", status: "success" },
