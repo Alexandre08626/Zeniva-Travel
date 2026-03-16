@@ -500,33 +500,144 @@ export default function ZeniPayDashboard() {
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             {/* Wallet Modal */}
             {openWallet && (
-              <WalletModal
-                name={openWallet.name}
-                data={openWallet.data}
-                icon={openWallet.icon}
-                color={openWallet.color}
-                onClose={() => setOpenWallet(null)}
-              />
+              <WalletModal name={openWallet.name} data={openWallet.data} icon={openWallet.icon} color={openWallet.color} onClose={() => setOpenWallet(null)} />
             )}
-            <div style={{ background: `linear-gradient(135deg, ${DARK}, #1e3a8a)`, borderRadius: 20, padding: 28, color: "white" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+
+            {/* HERO BANNER */}
+            <div style={{ background: `linear-gradient(135deg, ${DARK} 0%, #1e3a8a 60%, ${BLUE} 100%)`, borderRadius: 24, padding: "32px 36px", color: "white", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: -30, right: -30, width: 200, height: 200, background: "rgba(255,255,255,0.04)", borderRadius: "50%" }} />
+              <div style={{ position: "absolute", bottom: -50, right: 80, width: 150, height: 150, background: "rgba(255,255,255,0.03)", borderRadius: "50%" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 24, flexWrap: "wrap" as const, position: "relative" }}>
                 <div>
-                  <p style={{ margin: "0 0 4px", fontSize: 12, opacity: 0.6, textTransform: "uppercase" as const, letterSpacing: "0.1em" }}>ZeniPay Master Balance</p>
-                  <p style={{ margin: 0, fontWeight: 900, fontSize: 40, letterSpacing: "-1px" }}>{fmt(platformBalance)}</p>
-                  <p style={{ margin: "8px 0 0", fontSize: 12, opacity: 0.5 }}>All wallets · USD · Click to manage</p>
+                  <p style={{ margin: "0 0 6px", fontSize: 11, opacity: 0.55, textTransform: "uppercase" as const, letterSpacing: "0.12em", fontWeight: 700 }}>ZeniPay — Total Platform Balance</p>
+                  <p style={{ margin: 0, fontWeight: 900, fontSize: 48, letterSpacing: "-2px", lineHeight: 1 }}>{fmt(platformBalance)}</p>
+                  <p style={{ margin: "10px 0 0", fontSize: 12, opacity: 0.45 }}>USD · 4 active wallets · Real-time</p>
                 </div>
-                <div style={{ textAlign: "right" as const }}>
-                  <p style={{ margin: "0 0 8px", fontSize: 12, opacity: 0.6 }}>Gateway</p>
-                  <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 14, color: GREEN }}>● Finix Active (Sandbox → Production)</p>
-                  <p style={{ margin: 0, fontSize: 11, opacity: 0.5 }}>Sandbox mode · Production pending</p>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  {[
+                    { l: "Available", v: platformBalance, c: GREEN },
+                    { l: "Pending", v: 0, c: GOLD },
+                    { l: "Paid Out", v: 0, c: "#94a3b8" },
+                    { l: "Gateway", v: "Finix", c: BLUE, txt: true },
+                  ].map(s => (
+                    <div key={s.l} style={{ background: "rgba(255,255,255,0.08)", borderRadius: 12, padding: "10px 14px", backdropFilter: "blur(8px)" }}>
+                      <p style={{ margin: "0 0 2px", fontSize: 9, opacity: 0.6, fontWeight: 700, textTransform: "uppercase" as const }}>{s.l}</p>
+                      {s.txt ? (
+                        <p style={{ margin: 0, fontWeight: 800, fontSize: 13, color: s.c }}>{String(s.v)}</p>
+                      ) : (
+                        <p style={{ margin: 0, fontWeight: 800, fontSize: 16, color: s.c }}>{fmt(Number(s.v), true)}</p>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
+              {/* Quick action bar */}
+              <div style={{ marginTop: 24, display: "flex", gap: 10, flexWrap: "wrap" as const }}>
+                {[
+                  { label: "💸 Withdraw", action: () => setOpenWallet({ name: "Platform", data: WALLETS.platform, icon: "🏛️", color: BLUE }) },
+                  { label: "🏦 Add Bank Account", action: () => setOpenWallet({ name: "Platform", data: WALLETS.platform, icon: "🏛️", color: BLUE }) },
+                  { label: "📊 Export Statement", action: () => {} },
+                  { label: "⚡ Instant Payout", action: () => {} },
+                ].map(b => (
+                  <button key={b.label} onClick={b.action} style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 9999, padding: "8px 18px", color: "white", fontSize: 12, fontWeight: 700, cursor: "pointer", backdropFilter: "blur(4px)" }}>
+                    {b.label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 20 }}>
-              <WalletCard name="Platform" data={WALLETS.platform} icon="🏛️" color={BLUE} onOpen={() => setOpenWallet({ name: "Platform", data: WALLETS.platform, icon: "🏛️", color: BLUE })} />
-              <WalletCard name="Agent" data={WALLETS.agent} icon="👤" color={PURPLE} onOpen={() => setOpenWallet({ name: "Agent", data: WALLETS.agent, icon: "👤", color: PURPLE })} />
-              <WalletCard name="Influencer" data={WALLETS.influencer} icon="⭐" color={GOLD} onOpen={() => setOpenWallet({ name: "Influencer", data: WALLETS.influencer, icon: "⭐", color: GOLD })} />
-              <WalletCard name="Supplier" data={WALLETS.supplier} icon="✈️" color={GREEN} onOpen={() => setOpenWallet({ name: "Supplier", data: WALLETS.supplier, icon: "✈️", color: GREEN })} />
+
+            {/* WALLET CARDS GRID */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 18 }}>
+              {[
+                { name: "Platform", data: WALLETS.platform, icon: "🏛️", color: BLUE, role: "Zeniva Travel LLC", desc: "Main company wallet — all client payments land here" },
+                { name: "Agent", data: WALLETS.agent, icon: "👤", color: PURPLE, role: "Travel Agents", desc: "Commissions due to agents — manual payout by admin" },
+                { name: "Influencer", data: WALLETS.influencer, icon: "⭐", color: GOLD, role: "Content Creators", desc: "Referral commissions for influencer partners" },
+                { name: "Supplier", data: WALLETS.supplier, icon: "✈️", color: GREEN, role: "Hotels & Airlines", desc: "Supplier payouts — hotels, flights, excursions" },
+              ].map(w => (
+                <WalletCard key={w.name} name={w.name} data={w.data} icon={w.icon} color={w.color} onOpen={() => setOpenWallet({ name: w.name, data: w.data, icon: w.icon, color: w.color })} />
+              ))}
+            </div>
+
+            {/* MONEY FLOW */}
+            <div style={{ background: "white", borderRadius: 20, padding: 28, boxShadow: "0 1px 8px rgba(0,0,0,0.07)" }}>
+              <h3 style={{ margin: "0 0 20px", fontWeight: 800, fontSize: 16 }}>💰 Money Flow — How ZeniPay Distributes Funds</h3>
+              <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto", paddingBottom: 8 }}>
+                {[
+                  { icon: "👤", label: "Client Pays", sub: "ZeniPay Checkout", color: "#6366f1" },
+                  { arrow: true },
+                  { icon: "🔄", label: "Finix Processes", sub: "Card Network", color: BLUE },
+                  { arrow: true },
+                  { icon: "🏛️", label: "Platform Wallet", sub: "100% lands here", color: BLUE },
+                  { arrow: true },
+                  { icon: "⚙️", label: "Admin Splits", sub: "Manual or auto", color: GOLD },
+                  { arrow: true },
+                  { icon: "💸", label: "Pays Out", sub: "Agents · Suppliers", color: GREEN },
+                ].map((s, i) => s.arrow ? (
+                  <div key={i} style={{ fontSize: 20, color: "#cbd5e1", flexShrink: 0, padding: "0 8px" }}>→</div>
+                ) : (
+                  <div key={i} style={{ flexShrink: 0, textAlign: "center" as const, minWidth: 90 }}>
+                    <div style={{ width: 48, height: 48, background: `${s.color}15`, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, margin: "0 auto 6px", border: `1px solid ${s.color}25` }}>{s.icon}</div>
+                    <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 11, color: "#374151" }}>{s.label}</p>
+                    <p style={{ margin: 0, fontSize: 9, color: "#94a3b8" }}>{s.sub}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* PAYOUT RULES */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+              <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 1px 8px rgba(0,0,0,0.07)" }}>
+                <h4 style={{ margin: "0 0 16px", fontWeight: 800, fontSize: 14 }}>📋 Commission Rules (Future)</h4>
+                {[
+                  { role: "Agent Commission", pct: "10.4%", color: PURPLE },
+                  { role: "Influencer Referral", pct: "1.95%", color: GOLD },
+                  { role: "Platform Margin", pct: "2.96%", color: BLUE },
+                  { role: "Supplier Payment", pct: "Remainder", color: GREEN },
+                ].map(r => (
+                  <div key={r.role} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #f8fafc", alignItems: "center" }}>
+                    <span style={{ fontSize: 13, color: "#374151" }}>{r.role}</span>
+                    <span style={{ fontWeight: 800, fontSize: 13, color: r.color, background: `${r.color}12`, borderRadius: 6, padding: "2px 8px" }}>{r.pct}</span>
+                  </div>
+                ))}
+                <p style={{ margin: "12px 0 0", fontSize: 11, color: "#94a3b8" }}>Auto-split activates once agent onboarding is complete</p>
+              </div>
+              <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 1px 8px rgba(0,0,0,0.07)" }}>
+                <h4 style={{ margin: "0 0 16px", fontWeight: 800, fontSize: 14 }}>🏦 Payout Schedule</h4>
+                {[
+                  { label: "Platform (You)", freq: "Instant / On-demand", color: BLUE },
+                  { label: "Agents", freq: "Every Friday", color: PURPLE },
+                  { label: "Influencers", freq: "1st of month", color: GOLD },
+                  { label: "Suppliers", freq: "Net-30 / On invoice", color: GREEN },
+                ].map(r => (
+                  <div key={r.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #f8fafc", alignItems: "center" }}>
+                    <span style={{ fontSize: 13, color: "#374151", fontWeight: 600 }}>{r.label}</span>
+                    <span style={{ fontSize: 12, color: r.color, fontWeight: 700 }}>{r.freq}</span>
+                  </div>
+                ))}
+                <button style={{ marginTop: 14, width: "100%", background: `${BLUE}12`, border: `1px solid ${BLUE}25`, borderRadius: 10, padding: "10px", fontWeight: 700, fontSize: 12, cursor: "pointer", color: BLUE }}>
+                  ⚙️ Configure Payout Rules
+                </button>
+              </div>
+            </div>
+
+            {/* BANK ACCOUNT STATUS */}
+            <div style={{ background: "white", borderRadius: 20, padding: 28, boxShadow: "0 1px 8px rgba(0,0,0,0.07)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16 }}>🏦 Connected Bank Accounts</h3>
+                <button onClick={() => setOpenWallet({ name: "Platform", data: WALLETS.platform, icon: "🏛️", color: BLUE })}
+                  style={{ background: BLUE, color: "white", border: "none", borderRadius: 9999, padding: "8px 18px", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
+                  + Add Account
+                </button>
+              </div>
+              <div style={{ background: "#f8fafc", borderRadius: 14, padding: "20px 24px", border: "2px dashed #e2e8f0", textAlign: "center" as const }}>
+                <div style={{ fontSize: 40, marginBottom: 10 }}>🏦</div>
+                <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151" }}>No bank accounts linked yet</p>
+                <p style={{ margin: "0 0 16px", fontSize: 12, color: "#94a3b8" }}>Add your Zeniva Travel LLC bank account to receive payouts from Finix</p>
+                <button onClick={() => setOpenWallet({ name: "Platform", data: WALLETS.platform, icon: "🏛️", color: BLUE })}
+                  style={{ background: BLUE, color: "white", border: "none", borderRadius: 9999, padding: "10px 24px", fontWeight: 700, cursor: "pointer" }}>
+                  Connect Bank Account →
+                </button>
+              </div>
             </div>
           </div>
         )}
