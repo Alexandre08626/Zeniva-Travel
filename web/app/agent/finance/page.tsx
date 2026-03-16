@@ -296,6 +296,7 @@ const TABS = [
   { id: "financing", icon: "🏛️", label: "Financing" },
   { id: "analytics", icon: "📈", label: "Analytics" },
   { id: "ai", icon: "🤖", label: "Noah AI" },
+  { id: "accounting", icon: "📚", label: "Accounting" },
   { id: "settings", icon: "⚙️", label: "Settings" },
 ];
 
@@ -553,10 +554,10 @@ export default function ZeniPayDashboard() {
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 }}>
-              <WalletCard name="Platform" data={WALLETS.platform} icon="🏛️" />
-              <WalletCard name="Agent" data={WALLETS.agent} icon="👤" />
-              <WalletCard name="Influencer" data={WALLETS.influencer} icon="⭐" />
-              <WalletCard name="Supplier" data={WALLETS.supplier} icon="✈️" />
+              <WalletCard name="Platform" data={WALLETS.platform} icon="🏛️" color={BLUE} onOpen={() => setOpenWallet({ name: "Platform", data: WALLETS.platform, icon: "🏛️", color: BLUE })} />
+              <WalletCard name="Agent" data={WALLETS.agent} icon="👤" color={PURPLE} onOpen={() => setOpenWallet({ name: "Agent", data: WALLETS.agent, icon: "👤", color: PURPLE })} />
+              <WalletCard name="Influencer" data={WALLETS.influencer} icon="⭐" color={GOLD} onOpen={() => setOpenWallet({ name: "Influencer", data: WALLETS.influencer, icon: "⭐", color: GOLD })} />
+              <WalletCard name="Supplier" data={WALLETS.supplier} icon="✈️" color={GREEN} onOpen={() => setOpenWallet({ name: "Supplier", data: WALLETS.supplier, icon: "✈️", color: GREEN })} />
             </div>
           </div>
         )}
@@ -994,6 +995,228 @@ export default function ZeniPayDashboard() {
                     ))}
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ════ ACCOUNTING ════ */}
+        {tab === "accounting" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {/* Header */}
+            <div style={{ background: `linear-gradient(135deg, ${DARK}, #1a2f6e)`, borderRadius: 20, padding: 28, color: "white" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <h2 style={{ margin: "0 0 6px", fontWeight: 900, fontSize: 24 }}>📚 ZeniPay Accounting</h2>
+                  <p style={{ margin: 0, opacity: 0.6, fontSize: 14 }}>Automatic bookkeeping · Real-time P&L · Tax-ready reports</p>
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {["📥 Import", "📤 Export", "🖨️ Print"].map(btn => (
+                    <button key={btn} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 9999, padding: "8px 14px", color: "white", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>{btn}</button>
+                  ))}
+                </div>
+              </div>
+              {/* Fiscal summary */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginTop: 20 }}>
+                {[
+                  { label: "Gross Revenue", value: "$1,892,400", sub: "FY 2025-2026", color: GREEN },
+                  { label: "Total Expenses", value: "$948,200", sub: "Operating costs", color: RED },
+                  { label: "Net Income", value: "$944,200", sub: "Before tax", color: GOLD },
+                  { label: "Tax Provision", value: "$141,630", sub: "Est. 15% corp tax", color: "#94a3b8" },
+                ].map(s => (
+                  <div key={s.label} style={{ background: "rgba(255,255,255,0.08)", borderRadius: 12, padding: "14px 16px" }}>
+                    <p style={{ margin: "0 0 4px", fontSize: 10, opacity: 0.6, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>{s.label}</p>
+                    <p style={{ margin: "0 0 2px", fontWeight: 900, fontSize: 20, color: s.color }}>{s.value}</p>
+                    <p style={{ margin: 0, fontSize: 10, opacity: 0.5 }}>{s.sub}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* P&L + Balance Sheet side by side */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+              {/* P&L Statement */}
+              <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+                  <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16 }}>📊 Profit & Loss</h3>
+                  <select style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: "4px 10px", fontSize: 12 }}>
+                    <option>Q1 2026</option><option>Q4 2025</option><option>Annual 2025</option>
+                  </select>
+                </div>
+                {[
+                  { label: "Travel Bookings Revenue", amount: 1_284_000, type: "income" },
+                  { label: "ZeniStay Revenue", amount: 187_400, type: "income" },
+                  { label: "Agent Commissions (in)", amount: 142_800, type: "income" },
+                  { label: "ZeniYacht Revenue", amount: 278_200, type: "income" },
+                  { label: "TOTAL REVENUE", amount: 1_892_400, type: "total-income" },
+                  { label: "Supplier Payouts", amount: -848_200, type: "expense" },
+                  { label: "Agent Commissions (out)", amount: -47_200, type: "expense" },
+                  { label: "Influencer Payouts", amount: -18_400, type: "expense" },
+                  { label: "Tech Infrastructure", amount: -22_400, type: "expense" },
+                  { label: "Marketing", amount: -12_000, type: "expense" },
+                  { label: "TOTAL EXPENSES", amount: -948_200, type: "total-expense" },
+                  { label: "NET INCOME", amount: 944_200, type: "net" },
+                ].map((row, i) => (
+                  <div key={i} style={{
+                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                    padding: "9px 12px", borderRadius: 8,
+                    background: row.type === "total-income" ? "#f0fdf4" : row.type === "total-expense" ? "#fff1f2" : row.type === "net" ? `${BLUE}10` : "transparent",
+                    marginBottom: 2,
+                    borderTop: (row.type === "total-income" || row.type === "total-expense" || row.type === "net") ? "2px solid #e2e8f0" : "none",
+                  }}>
+                    <span style={{ fontSize: 13, fontWeight: (row.type.startsWith("total") || row.type === "net") ? 800 : 500, color: "#374151" }}>{row.label}</span>
+                    <span style={{ fontWeight: 800, fontSize: 13, color: row.amount > 0 ? GREEN : row.amount < 0 ? RED : BLUE }}>
+                      {row.amount > 0 ? "+" : ""}{new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(row.amount)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Balance Sheet */}
+              <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+                <h3 style={{ margin: "0 0 18px", fontWeight: 800, fontSize: 16 }}>🏛️ Balance Sheet</h3>
+                <div style={{ marginBottom: 16 }}>
+                  <p style={{ margin: "0 0 10px", fontWeight: 700, fontSize: 12, color: "#64748b", textTransform: "uppercase" as const }}>Assets</p>
+                  {[
+                    { label: "ZeniPay Platform Wallet", value: 94_302 },
+                    { label: "Agent Wallets", value: 47_230 },
+                    { label: "Supplier Wallets", value: 281_400 },
+                    { label: "Accounts Receivable", value: 182_000 },
+                    { label: "Cash & Equivalents", value: 94_302 },
+                  ].map(a => (
+                    <div key={a.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 10px", fontSize: 13 }}>
+                      <span style={{ color: "#374151" }}>{a.label}</span>
+                      <span style={{ fontWeight: 700, color: GREEN }}>${(a.value/1000).toFixed(0)}k</span>
+                    </div>
+                  ))}
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 10px", background: "#f0fdf4", borderRadius: 8, fontWeight: 800, fontSize: 13, marginTop: 4 }}>
+                    <span>TOTAL ASSETS</span><span style={{ color: GREEN }}>$699k</span>
+                  </div>
+                </div>
+                <div>
+                  <p style={{ margin: "0 0 10px", fontWeight: 700, fontSize: 12, color: "#64748b", textTransform: "uppercase" as const }}>Liabilities & Equity</p>
+                  {[
+                    { label: "Pending Payouts", value: 89_200 },
+                    { label: "Agent Pending", value: 18_900 },
+                    { label: "Tax Provision", value: 141_630 },
+                  ].map(l => (
+                    <div key={l.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 10px", fontSize: 13 }}>
+                      <span style={{ color: "#374151" }}>{l.label}</span>
+                      <span style={{ fontWeight: 700, color: RED }}>-${(l.value/1000).toFixed(0)}k</span>
+                    </div>
+                  ))}
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 10px", fontSize: 13 }}>
+                    <span style={{ color: "#374151" }}>Retained Earnings</span>
+                    <span style={{ fontWeight: 700, color: BLUE }}>$449k</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 10px", background: "#eff6ff", borderRadius: 8, fontWeight: 800, fontSize: 13, marginTop: 4 }}>
+                    <span>TOTAL L+E</span><span style={{ color: BLUE }}>$699k</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Chart of Accounts + Journal Entries */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+              {/* Chart of Accounts */}
+              <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                  <h3 style={{ margin: 0, fontWeight: 800, fontSize: 15 }}>📋 Chart of Accounts</h3>
+                  <button style={{ background: BLUE, color: "white", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>+ New Account</button>
+                </div>
+                {[
+                  { code: "1000", name: "Cash & ZeniPay Wallets", type: "Asset", balance: 699_000 },
+                  { code: "1200", name: "Accounts Receivable", type: "Asset", balance: 182_000 },
+                  { code: "2000", name: "Accounts Payable", type: "Liability", balance: -89_200 },
+                  { code: "2500", name: "Tax Payable", type: "Liability", balance: -141_630 },
+                  { code: "3000", name: "Retained Earnings", type: "Equity", balance: 449_000 },
+                  { code: "4000", name: "Travel Revenue", type: "Income", balance: 1_892_400 },
+                  { code: "5000", name: "Supplier Costs (COGS)", type: "Expense", balance: -848_200 },
+                  { code: "6000", name: "Commission Expense", type: "Expense", balance: -65_600 },
+                  { code: "7000", name: "Operating Expenses", type: "Expense", balance: -34_400 },
+                ].map(a => (
+                  <div key={a.code} style={{ display: "flex", alignItems: "center", padding: "7px 10px", borderRadius: 8, marginBottom: 2, cursor: "pointer" }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#f8fafc"}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}>
+                    <span style={{ fontSize: 11, color: "#94a3b8", width: 36, fontFamily: "monospace" }}>{a.code}</span>
+                    <span style={{ flex: 1, fontSize: 12, color: "#374151" }}>{a.name}</span>
+                    <span style={{ fontSize: 10, color: "#94a3b8", marginRight: 8 }}>{a.type}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: a.balance > 0 ? GREEN : RED }}>{a.balance > 0 ? "+" : ""}{(a.balance/1000).toFixed(0)}k</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Journal Entries */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                    <h3 style={{ margin: 0, fontWeight: 800, fontSize: 15 }}>📝 Recent Journal Entries</h3>
+                    <button style={{ background: BLUE, color: "white", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>+ New Entry</button>
+                  </div>
+                  {[
+                    { date: "Mar 1", ref: "JE-0042", desc: "ZeniStay AIKA booking - client payment", dr: "Cash 7,677", cr: "Revenue 7,677", status: "Posted" },
+                    { date: "Feb 28", ref: "JE-0041", desc: "Agent commission payout - Noah Martin", dr: "Commission Exp 799", cr: "Cash 799", status: "Posted" },
+                    { date: "Feb 28", ref: "JE-0040", desc: "Supplier payout - ZeniYacht booking", dr: "COGS 4,200", cr: "AP 4,200", status: "Posted" },
+                    { date: "Feb 27", ref: "JE-0039", desc: "Influencer referral commission", dr: "Inf. Exp 150", cr: "Cash 150", status: "Posted" },
+                  ].map((je, i) => (
+                    <div key={i} style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: 10, marginBottom: 10 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: BLUE }}>{je.ref}</span>
+                        <span style={{ fontSize: 10, background: "#dcfce7", color: "#065f46", borderRadius: 6, padding: "2px 7px", fontWeight: 700 }}>{je.status}</span>
+                      </div>
+                      <p style={{ margin: "0 0 4px", fontSize: 12, color: "#374151" }}>{je.desc}</p>
+                      <div style={{ display: "flex", gap: 12, fontSize: 11, color: "#94a3b8" }}>
+                        <span>DR: {je.dr}</span><span>CR: {je.cr}</span><span>{je.date}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Tax Summary */}
+                <div style={{ background: `linear-gradient(135deg, ${DARK}, #1a2f6e)`, borderRadius: 20, padding: 20, color: "white" }}>
+                  <h4 style={{ margin: "0 0 14px", fontWeight: 800 }}>🧾 Tax Summary</h4>
+                  {[
+                    { label: "Gross Revenue", v: "$1,892,400" },
+                    { label: "Total Deductions", v: "-$948,200" },
+                    { label: "Net Taxable Income", v: "$944,200" },
+                    { label: "Corp Tax Rate (est.)", v: "15%" },
+                    { label: "Tax Provision", v: "$141,630" },
+                  ].map(t => (
+                    <div key={t.label} style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13 }}>
+                      <span style={{ opacity: 0.6 }}>{t.label}</span>
+                      <span style={{ fontWeight: 700, color: GOLD }}>{t.v}</span>
+                    </div>
+                  ))}
+                  <button style={{ width: "100%", background: GOLD, color: DARK, border: "none", borderRadius: 9999, padding: "10px", fontWeight: 800, fontSize: 13, cursor: "pointer", marginTop: 8 }}>
+                    📥 Download Tax Report (PDF)
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Reports */}
+            <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16 }}>📄 Financial Reports</h3>
+                <span style={{ fontSize: 12, color: "#94a3b8" }}>Auto-generated by ZeniPay AI</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
+                {[
+                  { icon: "📊", title: "Income Statement", desc: "Revenue, expenses, profit", color: BLUE },
+                  { icon: "🏛️", title: "Balance Sheet", desc: "Assets, liabilities, equity", color: PURPLE },
+                  { icon: "💸", title: "Cash Flow", desc: "Operating, investing, financing", color: GREEN },
+                  { icon: "🧾", title: "Tax Return Prep", desc: "Delaware corp filing ready", color: GOLD },
+                  { icon: "👤", title: "Agent Payroll Report", desc: "Commissions & 1099s", color: "#ec4899" },
+                  { icon: "📦", title: "COGS Report", desc: "Supplier costs by booking", color: RED },
+                  { icon: "📈", title: "Revenue by Channel", desc: "Hotel, Yacht, Flights, Stay", color: BLUE },
+                  { icon: "🌍", title: "Multi-Currency Report", desc: "CAD/USD/EUR reconciliation", color: DARK },
+                ].map(r => (
+                  <button key={r.title} style={{ background: `${r.color}10`, border: `1px solid ${r.color}25`, borderRadius: 14, padding: "16px 14px", cursor: "pointer", textAlign: "left" as const }}>
+                    <div style={{ fontSize: 24, marginBottom: 8 }}>{r.icon}</div>
+                    <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 13, color: DARK }}>{r.title}</p>
+                    <p style={{ margin: 0, fontSize: 11, color: "#64748b" }}>{r.desc}</p>
+                  </button>
+                ))}
               </div>
             </div>
           </div>
