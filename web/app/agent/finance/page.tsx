@@ -29,7 +29,7 @@ const AGENTS: { name: string; code: string; bookings: number; revenue: number; c
 
 const INFLUENCERS: { name: string; code: string; refs: number; revenue: number; commission: number; pending: number; rate: string }[] = [];
 
-const INVOICES: { id: string; client: string; amount: number; status: string; date: string }[] = [];
+const INVOICES: { id: string; client: string; booking?: string; amount: number; status: string; date: string }[] = [];
 
 const PAYOUTS: { recipient: string; type: string; amount: number; status: string; date: string }[] = [];
 
@@ -595,7 +595,7 @@ export default function ZeniPayDashboard() {
                   <tr key={inv.id} style={{ borderTop: "1px solid #f1f5f9" }}>
                     <td style={{ padding: "12px 16px", fontSize: 12, fontFamily: "monospace", color: BLUE, fontWeight: 600 }}>{inv.id}</td>
                     <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 500 }}>{inv.client}</td>
-                    <td style={{ padding: "12px 16px", fontSize: 12, color: "#64748b" }}>{inv.booking}</td>
+                    <td style={{ padding: "12px 16px", fontSize: 12, color: "#64748b" }}>—</td>
                     <td style={{ padding: "12px 16px", fontWeight: 700 }}>{fmt(inv.amount)}</td>
                     <td style={{ padding: "12px 16px", fontSize: 12, color: "#94a3b8" }}>{inv.date}</td>
                     <td style={{ padding: "12px 16px", fontSize: 12, color: "#94a3b8" }}>{inv.due}</td>
