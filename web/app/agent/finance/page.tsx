@@ -422,6 +422,291 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
 }
 
 
+// ══ PAYOUTS PANEL (full bank wire transfer system) ══════════════════
+type AgentType = { id?: string; name: string; code: string; bookings: number; revenue: number; commission: number; pending: number; rate: string; role?: string; avatar?: string; badge?: string };
+
+function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platformBalance: number }) {
+  const [step, setStep] = useState<"select"|"amount"|"confirm"|"sent">("select");
+  const [selectedAgent, setSelectedAgent] = useState<AgentType | null>(null);
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const [method, setMethod] = useState<"bank"|"instant">("bank");
+  const [sending, setSending] = useState(false);
+  const [history, setHistory] = useState<{id:string;agent:string;amount:number;method:string;note:string;date:string;status:string}[]>([]);
+
+  const handleSend = async () => {
+    setSending(true);
+    await new Promise(r => setTimeout(r, 2000));
+    const ref = "ZNV-PAY-" + Math.random().toString(36).slice(2,8).toUpperCase();
+    setHistory(h => [{
+      id: ref,
+      agent: selectedAgent!.name,
+      amount: Number(amount),
+      method: method === "instant" ? "Instant Transfer" : "Bank Wire (ACH)",
+      note: note || "Agent commission payment",
+      date: new Date().toLocaleDateString("en-CA"),
+      status: "completed",
+    }, ...h]);
+    setSending(false);
+    setStep("sent");
+  };
+
+  const reset = () => {
+    setStep("select");
+    setSelectedAgent(null);
+    setAmount("");
+    setNote("");
+    setMethod("bank");
+  };
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+      {/* LEFT: Transfer Form */}
+      <div style={{ background: "white", borderRadius: 20, padding: 28, boxShadow: "0 2px 16px rgba(0,0,0,0.08)" }}>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+          <div style={{ width: 44, height: 44, background: `${BLUE}12`, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>💸</div>
+          <div>
+            <p style={{ margin: 0, fontWeight: 900, fontSize: 17, color: DARK }}>Send Payment</p>
+            <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>Internal bank transfer · ZeniPay</p>
+          </div>
+        </div>
+
+        {/* Platform balance pill */}
+        <div style={{ background: `${BLUE}08`, borderRadius: 12, padding: "10px 16px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontSize: 12, color: "#64748b", fontWeight: 600 }}>🏛️ Platform Balance Available</span>
+          <span style={{ fontSize: 18, fontWeight: 900, color: BLUE }}>{fmt(platformBalance, true)}</span>
+        </div>
+
+        {step === "sent" ? (
+          <div style={{ textAlign: "center" as const, padding: "20px 0" }}>
+            <div style={{ fontSize: 64, marginBottom: 12 }}>✅</div>
+            <h3 style={{ margin: "0 0 6px", fontWeight: 900, color: "#065f46", fontSize: 20 }}>Transfer Sent!</h3>
+            <p style={{ margin: "0 0 4px", fontSize: 15, color: "#374151", fontWeight: 600 }}>${Number(amount).toLocaleString()} → {selectedAgent?.name}</p>
+            <p style={{ margin: "0 0 20px", fontSize: 12, color: "#94a3b8" }}>{method === "instant" ? "Instant Transfer" : "Bank Wire — arrives in 1-2 business days"}</p>
+            <button onClick={reset} style={{ background: BLUE, color: "white", border: "none", borderRadius: 9999, padding: "12px 32px", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>
+              + New Transfer
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: "grid", gap: 18 }}>
+            {/* STEP 1: Select Agent */}
+            <div>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#374151", marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>
+                📍 Step 1 — Select Recipient
+              </label>
+              {agents.length === 0 ? (
+                <div style={{ background: "#f8fafc", borderRadius: 10, padding: "14px", textAlign: "center" as const, color: "#94a3b8", fontSize: 13 }}>
+                  No agents configured yet
+                </div>
+              ) : (
+                <div style={{ display: "grid", gap: 8 }}>
+                  {[
+                    ...agents.map(a => ({ type: "agent", name: a.name, sub: a.role || "Travel Agent", icon: "👤", color: PURPLE, data: a })),
+                    { type: "supplier", name: "Supplier / Hotel", sub: "Direct supplier payment", icon: "✈️", color: GREEN, data: null },
+                    { type: "other", name: "Other Recipient", sub: "Bank wire to custom account", icon: "🏦", color: "#64748b", data: null },
+                  ].map((r, i) => (
+                    <button key={i} onClick={() => {
+                      setSelectedAgent(r.data as AgentType || { id: `other-${i}`, name: r.name, code: r.type.toUpperCase(), bookings: 0, revenue: 0, commission: 0, pending: 0, rate: "-" });
+                      setStep("amount");
+                    }} style={{
+                      display: "flex", alignItems: "center", gap: 12, padding: "12px 14px",
+                      background: selectedAgent?.name === r.name ? `${r.color}10` : "#f8fafc",
+                      border: `1.5px solid ${selectedAgent?.name === r.name ? r.color : "#e2e8f0"}`,
+                      borderRadius: 12, cursor: "pointer", textAlign: "left" as const, transition: "all 0.15s",
+                    }}>
+                      <div style={{ width: 36, height: 36, background: `${r.color}15`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>{r.icon}</div>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: DARK }}>{r.name}</p>
+                        <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>{r.sub}</p>
+                      </div>
+                      {selectedAgent?.name === r.name && <span style={{ color: r.color, fontSize: 18 }}>✓</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* STEP 2: Amount */}
+            {(step === "amount" || step === "confirm") && selectedAgent && (
+              <div>
+                <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#374151", marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>
+                  💵 Step 2 — Amount
+                </label>
+                <div style={{ position: "relative" as const }}>
+                  <span style={{ position: "absolute" as const, left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 20, fontWeight: 900, color: "#94a3b8" }}>$</span>
+                  <input
+                    type="number"
+                    value={amount}
+                    onChange={e => { setAmount(e.target.value); setStep("amount"); }}
+                    placeholder="0.00"
+                    style={{ width: "100%", border: "2px solid #e2e8f0", borderRadius: 12, padding: "14px 14px 14px 36px", fontSize: 24, fontWeight: 900, outline: "none", boxSizing: "border-box" as const, color: DARK }}
+                  />
+                </div>
+                {/* Quick amounts */}
+                <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" as const }}>
+                  {[500, 800, 1000, 1500, 2500, 5000].map(v => (
+                    <button key={v} onClick={() => { setAmount(String(v)); setStep("amount"); }}
+                      style={{ background: amount === String(v) ? BLUE : "#f1f5f9", color: amount === String(v) ? "white" : "#374151", border: "none", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                      ${v.toLocaleString()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* STEP 3: Method + Note */}
+            {(step === "amount" || step === "confirm") && amount && Number(amount) > 0 && (
+              <div style={{ display: "grid", gap: 14 }}>
+                <div>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#374151", marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>
+                    🏦 Step 3 — Transfer Method
+                  </label>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    {[
+                      { id: "bank", label: "🏦 Bank Wire (ACH)", sub: "1-2 business days · Free", color: BLUE },
+                      { id: "instant", label: "⚡ Instant Transfer", sub: "Same day · $0.50 fee", color: GREEN },
+                    ].map(m => (
+                      <button key={m.id} onClick={() => setMethod(m.id as "bank"|"instant")}
+                        style={{ padding: "12px 10px", background: method === m.id ? `${m.color}10` : "#f8fafc", border: `2px solid ${method === m.id ? m.color : "#e2e8f0"}`, borderRadius: 12, cursor: "pointer", textAlign: "left" as const }}>
+                        <p style={{ margin: "0 0 2px", fontSize: 12, fontWeight: 700, color: method === m.id ? m.color : DARK }}>{m.label}</p>
+                        <p style={{ margin: 0, fontSize: 10, color: "#94a3b8" }}>{m.sub}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#374151", marginBottom: 6, textTransform: "uppercase" as const }}>
+                    📝 Reference / Note
+                  </label>
+                  <input value={note} onChange={e => setNote(e.target.value)} placeholder="e.g. Agent commission — Booking #ZNV-1042"
+                    style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 10, padding: "11px 14px", fontSize: 13, outline: "none", boxSizing: "border-box" as const }} />
+                </div>
+
+                {/* Summary */}
+                <div style={{ background: "#f0fdf4", borderRadius: 14, padding: "16px 18px", border: "1px solid #bbf7d0" }}>
+                  <p style={{ margin: "0 0 10px", fontWeight: 800, fontSize: 13, color: "#065f46" }}>Transfer Summary</p>
+                  {[
+                    { l: "From", v: "Platform Wallet (Zeniva Travel LLC)" },
+                    { l: "To", v: selectedAgent?.name },
+                    { l: "Amount", v: `$${Number(amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}` },
+                    { l: "Method", v: method === "instant" ? "Instant Transfer" : "Bank Wire (ACH)" },
+                    { l: "Arrival", v: method === "instant" ? "Same day" : "1-2 business days" },
+                    { l: "Ref", v: note || "Agent payment" },
+                  ].map(s => (
+                    <div key={s.l} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 5 }}>
+                      <span style={{ color: "#64748b" }}>{s.l}</span>
+                      <span style={{ fontWeight: 700, color: "#0f172a" }}>{s.v}</span>
+                    </div>
+                  ))}
+                  <div style={{ borderTop: "1px solid #bbf7d0", marginTop: 10, paddingTop: 10, display: "flex", justifyContent: "space-between" }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#065f46" }}>Platform Balance After</span>
+                    <span style={{ fontSize: 14, fontWeight: 900, color: "#065f46" }}>${Math.max(0, platformBalance - Number(amount)).toLocaleString()}</span>
+                  </div>
+                </div>
+
+                <button onClick={handleSend} disabled={sending || Number(amount) <= 0} style={{
+                  background: sending ? "#94a3b8" : `linear-gradient(135deg, ${BLUE}, ${DARK})`,
+                  color: "white", border: "none", borderRadius: 9999, padding: "16px",
+                  fontWeight: 900, fontSize: 16, cursor: sending ? "not-allowed" : "pointer",
+                  boxShadow: sending ? "none" : `0 4px 20px ${BLUE}40`,
+                }}>
+                  {sending ? "⏳ Processing Transfer…" : `💸 Send $${Number(amount).toLocaleString()} to ${selectedAgent?.name}`}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* RIGHT: History + Agent Balances */}
+      <div style={{ display: "grid", gap: 16, alignContent: "start" }}>
+        {/* Agent Balances */}
+        <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 16px rgba(0,0,0,0.08)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <h3 style={{ margin: 0, fontWeight: 800, fontSize: 15 }}>👥 Agent Balances</h3>
+            <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600 }}>10.4% commission rate</span>
+          </div>
+          {agents.length === 0 ? (
+            <p style={{ textAlign: "center" as const, color: "#94a3b8", fontSize: 13, padding: "16px 0" }}>No agents yet</p>
+          ) : (
+            <div style={{ display: "grid", gap: 10 }}>
+              {agents.map(a => (
+                <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px", background: "#f8fafc", borderRadius: 12 }}>
+                  <div style={{ width: 40, height: 40, background: `${PURPLE}15`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 700, color: PURPLE }}>
+                    {a.name.charAt(0)}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: DARK }}>{a.name}</p>
+                    <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>{a.bookings} bookings · {a.rate}</p>
+                  </div>
+                  <div style={{ textAlign: "right" as const }}>
+                    <p style={{ margin: "0 0 2px", fontSize: 11, color: "#94a3b8" }}>Pending</p>
+                    <p style={{ margin: 0, fontWeight: 800, fontSize: 14, color: a.pending > 0 ? GOLD : "#94a3b8" }}>{fmt(a.pending, true)}</p>
+                  </div>
+                  <button onClick={() => {
+                    setSelectedAgent(a);
+                    if (a.pending > 0) setAmount(String(a.pending));
+                    setStep("amount");
+                  }} style={{ background: BLUE, color: "white", border: "none", borderRadius: 9999, padding: "6px 14px", fontSize: 11, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
+                    Pay
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Commission Breakdown */}
+        <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 16px rgba(0,0,0,0.08)" }}>
+          <h3 style={{ margin: "0 0 16px", fontWeight: 800, fontSize: 15 }}>📊 Commission Structure</h3>
+          {[
+            { role: "Agent Commission", pct: "10.4%", desc: "Per booking generated", color: PURPLE },
+            { role: "Influencer Referral", pct: "1.95%", desc: "On referred bookings", color: GOLD },
+            { role: "Platform Margin", pct: "2.96%", desc: "Zeniva Travel LLC net", color: BLUE },
+            { role: "Supplier Payment", pct: "~84.7%", desc: "Hotels, flights, suppliers", color: GREEN },
+          ].map(r => (
+            <div key={r.role} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
+              <div style={{ width: 36, height: 36, background: `${r.color}12`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: 14, height: 14, background: r.color, borderRadius: "50%" }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: DARK }}>{r.role}</p>
+                <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>{r.desc}</p>
+              </div>
+              <span style={{ fontWeight: 900, fontSize: 16, color: r.color }}>{r.pct}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Transfer History */}
+        <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 16px rgba(0,0,0,0.08)" }}>
+          <h3 style={{ margin: "0 0 16px", fontWeight: 800, fontSize: 15 }}>📋 Transfer History</h3>
+          {history.length === 0 ? (
+            <div style={{ textAlign: "center" as const, padding: "20px 0" }}>
+              <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 600, color: "#374151" }}>No transfers yet</p>
+              <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>Your sent payments will appear here</p>
+            </div>
+          ) : (
+            <div style={{ display: "grid", gap: 8 }}>
+              {history.map(h => (
+                <div key={h.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", background: "#f8fafc", borderRadius: 10 }}>
+                  <div style={{ width: 32, height: 32, background: "#dcfce7", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>✓</div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ margin: 0, fontWeight: 700, fontSize: 13 }}>→ {h.agent}</p>
+                    <p style={{ margin: 0, fontSize: 10, color: "#94a3b8" }}>{h.id} · {h.date} · {h.method}</p>
+                  </div>
+                  <span style={{ fontWeight: 900, fontSize: 14, color: GREEN }}>-${h.amount.toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── TABS ─────────────────────────────────────────────
 const TABS = [
   { id: "overview", icon: "📊", label: "Overview" },
@@ -1043,44 +1328,10 @@ export default function ZeniPayDashboard() {
 
         {/* ════ PAYOUTS ════ */}
         {tab === "payouts" && (
-          <div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14, marginBottom: 20 }}>
-              <StatCard icon="⏳" label="Pending Payouts" value="$16,800" sub="3 recipients" color={GOLD} />
-              <StatCard icon="💸" label="Paid This Month" value="$7,840" sub="Noah Martin · Feb 1" color={GREEN} />
-              <StatCard icon="📅" label="Next Payout Date" value="March 1" sub="All agents + influencers" color={BLUE} />
-            </div>
-            <div style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
-              <div style={{ padding: "16px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between" }}>
-                <h3 style={{ margin: 0, fontWeight: 700 }}>💸 Payout History</h3>
-                <button style={{ background: GREEN, color: "white", border: "none", borderRadius: 8, padding: "8px 16px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>▶ Trigger All Payouts</button>
-              </div>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead><tr style={{ background: "#f8fafc" }}>
-                  {["Payout ID","Recipient","Type","Amount","Method","Scheduled","Status","Action"].map(h => (
-                    <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>{h}</th>
-                  ))}
-                </tr></thead>
-                <tbody>
-                  {PAYOUTS.map(p => (
-                    <tr key={p.id} style={{ borderTop: "1px solid #f1f5f9" }}>
-                      <td style={{ padding: "12px 16px", fontSize: 12, fontFamily: "monospace", color: BLUE }}>{p.id}</td>
-                      <td style={{ padding: "12px 16px", fontWeight: 600 }}>{p.recipient}</td>
-                      <td style={{ padding: "12px 16px", fontSize: 12, color: "#64748b" }}>{p.type}</td>
-                      <td style={{ padding: "12px 16px", fontWeight: 700 }}>{fmt(p.amount)}</td>
-                      <td style={{ padding: "12px 16px", fontSize: 12 }}>{p.method}</td>
-                      <td style={{ padding: "12px 16px", fontSize: 12, color: "#94a3b8" }}>{p.date}</td>
-                      <td style={{ padding: "12px 16px" }}><StatusBadge status={p.status} /></td>
-                      <td style={{ padding: "12px 16px" }}>
-                        {p.status !== "paid" && <button style={{ background: GREEN, color: "white", border: "none", borderRadius: 6, padding: "4px 12px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>Pay Now</button>}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <PayoutsPanel agents={AGENTS} platformBalance={platformBalance} />
         )}
 
+        
         {/* ════ AGENTS ════ */}
         {tab === "agents" && (
           <div>
