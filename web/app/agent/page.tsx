@@ -24,7 +24,7 @@ const AI_AGENTS: AIAgent[] = [
   { id: "lina", name: "Lina", emoji: "🤖", avatar: "/agents/lina.png", status: "live", type: "AI Travel Concierge · GPT-4o", schedule: "24/7 Real-time", color: "#6366f1", description: "Polyglot AI travel concierge. Qualifies leads, quotes packages, saves to Supabase. Speaks every language your clients do.", features: ["GPT-4o", "Multi-language", "Lead extraction", "Supabase sync", "24/7"], lastAction: "Chat replied 2min ago" },
   { id: "marco", name: "Marco", emoji: "🔥", avatar: "/agents/marco.png", status: "active", type: "Lead Hunter · 5-Engine Scraper", schedule: "Every 2h", color: "#ef4444", description: "5 scraping engines running 24/7: Reddit travel subs, competitor sites, social signals, SEO intent keywords, and deep web scraping.", features: ["Reddit", "Competitors", "Social", "SEO", "Deep web"], lastAction: "3 leads qualified" },
   { id: "sofia", name: "Sofia", emoji: "📬", avatar: "/agents/sofia.png", status: "active", type: "Email Marketing · AI Writer", schedule: "Every 6h", color: "#ec4899", description: "Sends personalized AI-written invite emails to every new lead. Detects their language and writes in EN, FR, ES, or AR. Not templates — every email is unique.", features: ["AI emails", "EN/FR/ES/AR", "Smart timing", "Conversion tracking", "Unique copy"], lastAction: "39 emails sent" },
-  { id: "noah", name: "Ben", emoji: "📧", avatar: "/agents/noah.png", status: "active", type: "Follow-up Specialist · AI", schedule: "Every 6h", color: "#f59e0b", description: "Smart follow-up system. New leads get a follow-up within 6 hours. Quoted leads get re-engaged after 72 hours. All personalized, all multi-language.", features: ["AI copy", "Multi-language", "Smart cadence", "Re-engagement", "Dossier sync"], lastAction: "Follow-up sent" },
+  { id: "noah", name: "Ben", emoji: "💳", avatar: "/agents/noah.png", status: "live", type: "ZeniPay AI Finance Agent", schedule: "Real-time", color: "#0F6CF5", description: "ZeniPay's internal AI finance agent. Monitors all payments in real-time, detects anomalies, generates financial reports, tracks commissions, and alerts on failed or suspicious transactions.", features: ["Payment monitoring", "Fraud detection", "Auto-accounting", "Commission calc", "Finance reports"], lastAction: "Finance dashboard active" },
   { id: "luna", name: "Luna", emoji: "📞", avatar: "/agents/luna.png", status: "live", type: "Voice & SMS · Real-time", schedule: "24/7 Real-time", color: "#06b6d4", description: "Real-time phone and SMS powered by AI. Lina answers calls and texts, sends follow-up SMS, delivers quotes by text, and handles voice conversations naturally.", features: ["Inbound SMS", "Outbound SMS", "Voice calls", "AI responses", "Twilio"], lastAction: "4 SMS Sent" },
   { id: "atlas", name: "Atlas", emoji: "🛡️", avatar: "/agents/atlas.png", status: "active", type: "Security Guardian · 24/7", schedule: "Every hour", color: "#64748b", description: "24/7 security watchdog. Monitors all services, SSL certificates, disk usage, RAM, SSH logins, and Docker containers. Auto-restarts any failures.", features: ["Services", "SSL certs", "SSH detect", "Disk/RAM", "Auto-restart"], lastAction: "Scan OK 14:00" },
   { id: "mia", name: "Mia", emoji: "📱", avatar: "/agents/mia.png", status: "idle", type: "Social Media Manager · AI", schedule: "Daily", color: "#a855f7", description: "Generates 5 travel posts per day with AI captions and stunning visuals. Auto-posts to Instagram, TikTok, and Facebook — after your approval.", features: ["AI captions", "Visual creation", "Instagram", "TikTok", "Approval flow"], lastAction: "Awaiting TikTok" },
@@ -669,11 +669,19 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
                 )}
               </div>
               <div className="flex gap-2">
-                <Link href="/ai-agents" onClick={() => setSelectedAgent(null)}
-                  className="flex-1 rounded-full py-2.5 text-sm font-bold text-white text-center"
-                  style={{ background: selectedAgent.color }}>
-                  Voir détails →
-                </Link>
+                {selectedAgent.id === "noah" ? (
+                  <Link href="/agent/finance" onClick={() => setSelectedAgent(null)}
+                    className="flex-1 rounded-full py-2.5 text-sm font-bold text-white text-center"
+                    style={{ background: "#0F6CF5" }}>
+                    💳 Open ZeniPay Dashboard →
+                  </Link>
+                ) : (
+                  <Link href="/ai-agents" onClick={() => setSelectedAgent(null)}
+                    className="flex-1 rounded-full py-2.5 text-sm font-bold text-white text-center"
+                    style={{ background: selectedAgent.color }}>
+                    Voir détails →
+                  </Link>
+                )}
                 <button onClick={() => setSelectedAgent(null)} className="rounded-full px-4 py-2.5 text-sm font-semibold border border-slate-200 text-slate-700">
                   Fermer
                 </button>
