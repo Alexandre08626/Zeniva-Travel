@@ -25,7 +25,11 @@ const WALLETS = {
 
 const TRANSACTIONS: { id: string; customer: string; booking: string; amount: number; currency: string; method: string; gateway: string; status: string; date: string }[] = [];
 
-const AGENTS: { id?: string; name: string; code: string; bookings: number; revenue: number; commission: number; pending: number; rate: string; role?: string; avatar?: string; badge?: string }[] = [];
+const AGENTS: { id?: string; name: string; code: string; bookings: number; revenue: number; commission: number; pending: number; rate: string; role?: string; avatar?: string; badge?: string }[] = [
+  { id: "ag-001", name: "Louis", code: "LOUIS", bookings: 0, revenue: 0, commission: 0, pending: 0, rate: "10.4%", role: "Senior Travel Agent", badge: "🥇" },
+  { id: "ag-002", name: "Jason", code: "JASON", bookings: 0, revenue: 0, commission: 0, pending: 0, rate: "10.4%", role: "Travel Agent", badge: "🥈" },
+  { id: "ag-003", name: "Luca", code: "LUCA", bookings: 0, revenue: 0, commission: 0, pending: 0, rate: "10.4%", role: "Travel Agent", badge: "🥉" },
+];
 
 const INFLUENCERS: { id?: string; name: string; code: string; refs: number; revenue: number; commission: number; pending: number; rate: string; handle?: string; platform?: string; tier?: string; status?: string; referrals?: number }[] = [];
 
@@ -440,6 +444,7 @@ const TABS = [
 // ══════════════════════════════════════════════════════
 export default function ZeniPayDashboard() {
   const [tab, setTab] = useState("overview");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [txSearch, setTxSearch] = useState("");
   const [txFilter, setTxFilter] = useState("all");
   const [linkModal, setLinkModal] = useState(false);
@@ -481,10 +486,10 @@ export default function ZeniPayDashboard() {
     setAiLoading(true);
     await new Promise(r => setTimeout(r, 1200));
     const responses: Record<string, string> = {
-      "revenue": `📊 Revenue Analysis:\n• Total today: $47,322\n• MTD: $284,500 (+18% vs last month)\n• Top payment: James Mitchell $7,677\n• Success rate: ${successRate}%`,
+      "revenue": `📊 Revenue Analysis:\n• Total today: ${fmt(totalRevenue)}\n• MTD: ${fmt(totalRevenue)}\n• Active agents: Louis, Jason, Luca\n• Success rate: ${successRate}%`,
       "fraud": `🛡️ Fraud Monitoring:\n• No high-risk transactions detected\n• Carlos Ruiz failure flagged: card declined (3x attempt)\n• Recommendation: request alternative payment method`,
       "payout": `💸 Upcoming Payouts (March 1st):\n• Noah Martin: $8,400 commission\n• Sofia Rivera: $5,200 commission\n• Camille Beaumont: $3,200 influencer referral\n• Total outgoing: $16,800`,
-      "rapport": `📄 Financial Report — February 2026:\n• Gross Revenue: $284,500\n• Platform Margin: $8,422 (2.96%)\n• Agent Commissions: $29,588 (10.4%)\n• Influencer Referrals: $5,548 (1.95%)\n• Supplier Payouts: $240,942 (84.7%)`,
+      "rapport": `📄 Financial Report — Current:\n• Gross Revenue: ${fmt(totalRevenue)}\n• Platform Margin: ${fmt(totalRevenue * 0.0296)} (2.96%)\n• Agent Commissions: ${fmt(WALLETS.agent.available)} (10.4%)\n• Influencer Referrals: ${fmt(WALLETS.influencer.available)} (1.95%)\n• Supplier Balance: ${fmt(WALLETS.supplier.available)}`,
     };
     const keyword = Object.keys(responses).find(k => userMsg.toLowerCase().includes(k));
     const reply = keyword ? responses[keyword] : `Analysing your request: "${userMsg}"...\n\n✅ All systems operational. Platform balance: ${fmt(platformBalance, true)}. Payment success rate: ${successRate}%. No anomalies detected in the last 24h.`;
@@ -501,7 +506,76 @@ export default function ZeniPayDashboard() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f0f4ff", fontFamily: "'Inter',system-ui,sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#f0f4ff", fontFamily: "'Inter',system-ui,sans-serif", display: "flex" }}>
+      {/* ══ LEFT SIDEBAR ══ */}
+      <div style={{
+        width: sidebarOpen ? 240 : 60,
+        minHeight: "100vh",
+        background: `linear-gradient(180deg, ${DARK} 0%, #0a1f5c 100%)`,
+        transition: "width 0.25s ease",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column" as const,
+        flexShrink: 0,
+        position: "sticky" as const,
+        top: 0,
+        alignSelf: "flex-start" as const,
+        zIndex: 100,
+      }}>
+        {/* Logo + toggle */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: sidebarOpen ? "space-between" : "center", padding: "20px 16px", borderBottom: "1px solid rgba(255,255,255,0.08)", minHeight: 72 }}>
+          {sidebarOpen && <div>
+            <p style={{ margin: 0, fontWeight: 900, fontSize: 14, color: "white", letterSpacing: "-0.3px" }}>ZeniPay</p>
+            <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 600, textTransform: "uppercase" as const }}>Financial Dashboard</p>
+          </div>}
+          <button onClick={() => setSidebarOpen((o: boolean) => !o)} style={{ background: "rgba(255,255,255,0.08)", border: "none", borderRadius: 8, width: 28, height: 28, cursor: "pointer", color: "white", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            {sidebarOpen ? "◀" : "▶"}
+          </button>
+        </div>
+        {/* Nav items */}
+        <div style={{ flex: 1, overflowY: "auto" as const, padding: "10px 8px", scrollbarWidth: "none" as const }}>
+          {TABS.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)} style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: sidebarOpen ? "10px 12px" : "10px 0",
+              justifyContent: sidebarOpen ? "flex-start" : "center",
+              border: "none",
+              borderRadius: 10,
+              background: tab === t.id ? "rgba(255,255,255,0.12)" : "transparent",
+              cursor: "pointer",
+              marginBottom: 2,
+              transition: "background 0.15s",
+              color: "white",
+            }}>
+              <span style={{ fontSize: 16, flexShrink: 0 }}>{t.icon}</span>
+              {sidebarOpen && <span style={{ fontSize: 12, fontWeight: tab === t.id ? 700 : 500, color: tab === t.id ? "white" : "rgba(255,255,255,0.55)", whiteSpace: "nowrap" as const }}>{t.label}</span>}
+              {sidebarOpen && tab === t.id && <div style={{ marginLeft: "auto", width: 3, height: 16, background: BLUE, borderRadius: 9999 }} />}
+            </button>
+          ))}
+        </div>
+        {/* Bottom status */}
+        {sidebarOpen && (
+          <div style={{ padding: "14px 16px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <div style={{ width: 7, height: 7, background: GREEN, borderRadius: "50%" }} />
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>Finix · Sandbox</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ width: 28, height: 28, background: `${BLUE}30`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>👑</div>
+              <div>
+                <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.8)" }}>Admin</p>
+                <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.35)" }}>Zeniva Travel LLC</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ══ MAIN CONTENT ══ */}
+      <div style={{ flex: 1, minHeight: "100vh", overflow: "auto" }}>
       {/* Hide duplicate Help button on desktop */}
       <style>{`
         @media (min-width: 640px) { .help-float { display: none !important; } }
@@ -556,14 +630,14 @@ export default function ZeniPayDashboard() {
           <div>
             {/* KPI Cards */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 14, marginBottom: 24 }}>
-              <StatCard icon="💰" label="Total Revenue (MTD)" value={fmt(totalRevenue + 198230)} sub="+18.4% vs last month" color={GREEN} />
-              <StatCard icon="📥" label="Platform Margin" value={fmt((totalRevenue + 198230) * 0.0296)} sub="2.96% of gross" color={BLUE} />
-              <StatCard icon="✅" label="Success Rate" value={`${successRate}%`} sub="8 transactions this session" color={GREEN} />
-              <StatCard icon="⏳" label="Pending Payments" value={fmt(WALLETS.platform.pending + WALLETS.agent.pending)} sub="3 transactions" color={GOLD} />
-              <StatCard icon="👤" label="Agent Commissions" value={fmt(WALLETS.agent.paid)} sub="10.4% avg rate" color={PURPLE} />
-              <StatCard icon="⭐" label="Influencer Revenue" value={fmt(WALLETS.influencer.paid)} sub="3 active influencers" color={GOLD} />
-              <StatCard icon="💸" label="Total Payouts" value={fmt(WALLETS.agent.paid + WALLETS.influencer.paid)} sub="Last payout: Feb 1" color={RED} />
-              <StatCard icon="🔄" label="Refunds" value="$4,300" sub="1 refund this month" color={PURPLE} />
+              <StatCard icon="💰" label="Total Revenue (MTD)" value={fmt(totalRevenue)} sub="Real payments only" color={GREEN} />
+              <StatCard icon="📥" label="Platform Margin" value={fmt(totalRevenue * 0.0296)} sub="2.96% of gross" color={BLUE} />
+              <StatCard icon="✅" label="Success Rate" value={`${successRate}%`} sub={TRANSACTIONS.length === 0 ? "No transactions yet" : `${TRANSACTIONS.length} transactions`} color={GREEN} />
+              <StatCard icon="⏳" label="Pending Payments" value={fmt(WALLETS.platform.pending + WALLETS.agent.pending)} sub="Awaiting settlement" color={GOLD} />
+              <StatCard icon="👤" label="Agent Commissions" value={fmt(WALLETS.agent.paid)} sub="3 agents — Louis, Jason, Luca" color={PURPLE} />
+              <StatCard icon="⭐" label="Influencer Revenue" value={fmt(WALLETS.influencer.paid)} sub="0 active influencers" color={GOLD} />
+              <StatCard icon="💸" label="Total Payouts" value={fmt(WALLETS.agent.paid + WALLETS.influencer.paid + WALLETS.supplier.paid)} sub="Platform → Agents / Suppliers" color={RED} />
+              <StatCard icon="🔄" label="Refunds" value={fmt(0)} sub="No refunds yet" color={PURPLE} />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 20 }}>
@@ -1586,6 +1660,7 @@ export default function ZeniPayDashboard() {
           </div>
         )}
 
+      </div>
       </div>
     </div>
   );
