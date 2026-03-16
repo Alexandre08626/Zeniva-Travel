@@ -2,6 +2,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import airbnbsData from "../../src/data/airbnbs.json";
 
 const PROPERTY_TYPES = [
   { key: "all", label: "🏠 All" },
@@ -33,35 +34,34 @@ function ResidencesContent() {
 
   // Load curated ZeniStay listings on mount
   useEffect(() => {
-    import("../../src/data/airbnbs.json")
-      .then((mod: any) => {
-        const data = mod.default || mod;
-        if (Array.isArray(data)) {
-          const mapped = data.map((p: any) => ({
-            id: p.id,
-            name: p.title || "ZeniStay Property",
-            city: extractCity(p.location || p.description || ""),
-            location: p.location || "",
-            photo: p.thumbnail || (p.images && p.images[0]) || "",
-            photos: p.images || (p.thumbnail ? [p.thumbnail] : []),
-            pricePerNight: p.price_per_night ? `$${p.price_per_night}` : "Contact for price",
-            priceTotal: p.price_per_night ? `$${p.price_per_night * 3} (3 nights)` : "",
-            rawPrice: p.price_per_night || 0,
-            type: "ZeniStay",
-            bedrooms: 0,
-            bathrooms: 0,
-            maxGuests: guests,
-            rating: null,
-            reviewCount: null,
-            superhost: false,
-            rareFind: false,
-            description: p.description || "",
-            nights: 3,
-          }));
-          setCurated(mapped);
-        }
-      })
-      .catch(() => setCurated([]));
+    // Static import — no dynamic() needed, avoids Turbopack JSON issues
+    try {
+      const data = Array.isArray(airbnbsData) ? airbnbsData : [];
+      const mapped = (data as any[]).map((p: any) => ({
+        id: p.id,
+        name: p.title || "ZeniStay Property",
+        city: extractCity(p.location || p.description || ""),
+        location: p.location || "",
+        photo: p.thumbnail || (p.images && p.images[0]) || "",
+        photos: p.images || (p.thumbnail ? [p.thumbnail] : []),
+        pricePerNight: p.price_per_night ? `$${p.price_per_night}` : "Contact for price",
+        priceTotal: p.price_per_night ? `$${p.price_per_night * 3} (3 nights)` : "",
+        rawPrice: p.price_per_night || 0,
+        type: "ZeniStay",
+        bedrooms: 0,
+        bathrooms: 0,
+        maxGuests: guests,
+        rating: null,
+        reviewCount: null,
+        superhost: false,
+        rareFind: false,
+        description: p.description || "",
+        nights: 3,
+      }));
+      setCurated(mapped);
+    } catch {
+      setCurated([]);
+    }
 
     // Auto-search if URL has destination
     const dest = searchParams.get("destination");

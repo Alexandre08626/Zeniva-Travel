@@ -50,7 +50,7 @@ export async function createPaymentInstrument(params: {
     type: "PAYMENT_CARD",
     number: params.cardNumber.replace(/\s/g, ""),
     expiration_month: parseInt(params.expiryMonth),
-    expiration_year: parseInt(`20${params.expiryYear}`),
+    expiration_year: params.expiryYear.length === 4 ? parseInt(params.expiryYear) : parseInt(`20${params.expiryYear}`),
     security_code: params.cvc,
     name: params.cardholderName,
     address: { postal_code: params.postalCode || "00000" },
@@ -145,7 +145,7 @@ export async function processFinixPayment(params: {
 
   return {
     success: transfer.state === "SUCCEEDED" || transfer.state === "PENDING",
-    transferId: transfer.transferId,
+    transferId: transfer.transferId || "",
     instrumentId,
     brand,
     last4,

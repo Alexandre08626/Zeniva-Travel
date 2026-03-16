@@ -93,7 +93,7 @@ export async function POST(request: Request) {
         cvc,
         cardholderName: cardholder_name || "Cardholder",
         postalCode: billing_zip || "00000",
-        amount: amountCents,
+        amount: parsedAmount, // dollars — processFinixPayment converts to cents internally
         currency,
         description: description || `ZeniPay Payment ${paymentId}`,
         paymentId,
