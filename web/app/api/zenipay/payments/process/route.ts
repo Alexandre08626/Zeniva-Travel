@@ -45,7 +45,7 @@ export async function POST(request: Request) {
         expiryYear: expiry_year,
         cvc,
         cardholderName: cardholder_name || "Cardholder",
-        billingZip: billing_zip || "00000",
+        postalCode: billing_zip || "00000",
         amount: amountCents,
         currency,
         description: description || `ZeniPay Payment ${payment_id}`,

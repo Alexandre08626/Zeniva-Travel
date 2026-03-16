@@ -25,13 +25,13 @@ const WALLETS = {
 
 const TRANSACTIONS: { id: string; customer: string; booking: string; amount: number; currency: string; method: string; gateway: string; status: string; date: string }[] = [];
 
-const AGENTS: { name: string; code: string; bookings: number; revenue: number; commission: number; pending: number; rate: string }[] = [];
+const AGENTS: { id?: string; name: string; code: string; bookings: number; revenue: number; commission: number; pending: number; rate: string; role?: string; avatar?: string; badge?: string }[] = [];
 
-const INFLUENCERS: { name: string; code: string; refs: number; revenue: number; commission: number; pending: number; rate: string }[] = [];
+const INFLUENCERS: { id?: string; name: string; code: string; refs: number; revenue: number; commission: number; pending: number; rate: string; handle?: string; platform?: string; tier?: string; status?: string; referrals?: number }[] = [];
 
 const INVOICES: { id: string; client: string; booking?: string; amount: number; status: string; date: string }[] = [];
 
-const PAYOUTS: { recipient: string; type: string; amount: number; status: string; date: string }[] = [];
+const PAYOUTS: { id?: string; recipient: string; type: string; amount: number; status: string; date: string; method?: string }[] = [];
 
 // ── UTILS ────────────────────────────────────────────
 const fmt = (n: number, compact?: boolean) =>
