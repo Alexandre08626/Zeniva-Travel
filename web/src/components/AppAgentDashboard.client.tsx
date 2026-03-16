@@ -13,7 +13,7 @@ const AI_AGENTS = [
   { name: "Lina",  role: "AI Concierge",    color: "#6366f1", icon: "✈️", status: "live",   photo: "/agents/lina.png"  },
   { name: "Marco", role: "Lead Hunter",      color: "#ef4444", icon: "🎯", status: "live",   photo: "/agents/marco.png" },
   { name: "Sofia", role: "Email Marketing",  color: "#ec4899", icon: "📧", status: "active", photo: "/agents/sofia.png" },
-  { name: "Noah",  role: "Follow-up",        color: "#f59e0b", icon: "🔔", status: "active", photo: "/agents/noah.png"  },
+  { name: "Ben",  role: "Follow-up",        color: "#f59e0b", icon: "🔔", status: "active", photo: "/agents/noah.png"  },
   { name: "Luna",  role: "Voice & SMS",      color: "#06b6d4", icon: "📞", status: "active", photo: "/agents/luna.png"  },
   { name: "Atlas", role: "Cyber Guard",      color: "#64748b", icon: "🛡️", status: "live",   photo: "/agents/atlas.png" },
   { name: "Mia",   role: "Social Media",     color: "#a855f7", icon: "📱", status: "active", photo: "/agents/mia.png"   },

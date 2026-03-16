@@ -17,7 +17,7 @@ export default function WalletSettings() {
   };
 
   const agents = [
-    { id: "AGT-001", name: "Noah Martin", role: "ZeniPay Finance Agent", status: "verified", bank: "Chase", last4: "4242", pending: 8400 },
+    { id: "AGT-001", name: "Ben Martin", role: "ZeniPay Finance Agent", status: "verified", bank: "Chase", last4: "4242", pending: 8400 },
     { id: "AGT-002", name: "Sofia Rivera", role: "Marketing Lead", status: "pending", bank: "—", last4: "—", pending: 5200 },
     { id: "AGT-003", name: "Luna Park", role: "Content & Social", status: "not_set", bank: "—", last4: "—", pending: 2800 },
   ];

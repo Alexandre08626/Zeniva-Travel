@@ -178,7 +178,7 @@ export default function LinaAgentPage() {
         {[
           { name: "Marco", icon: "/agents/marco.png", emoji: "🔥", role: "Lead Hunter", action: "Ask Marco to hunt leads" },
           { name: "Sofia", icon: "/agents/sofia.png", emoji: "📬", role: "Email Agent", action: "Tell Sofia to send follow-up emails to all new leads" },
-          { name: "Noah", icon: "/agents/noah.png", emoji: "📧", role: "Follow-up", action: "Ask Noah to schedule follow-ups for all contacts" },
+          { name: "Ben", icon: "/agents/noah.png", emoji: "📧", role: "Follow-up", action: "Ask Ben to schedule follow-ups for all contacts" },
           { name: "Luna", icon: "/agents/luna.png", emoji: "📱", role: "SMS & Calls", action: "Tell Luna to send SMS reminders to pending clients" },
           { name: "Atlas", icon: "/agents/atlas.png", emoji: "🛡️", role: "Security", action: "Ask Atlas for a security report" },
           { name: "Leo", icon: "/agents/leo.png", emoji: "📊", role: "Analytics", action: "Ask Leo for today's analytics report" },
@@ -249,7 +249,7 @@ export default function LinaAgentPage() {
             Send ↑
           </button>
         </div>
-        <p className="text-xs text-slate-500 mt-2 text-center">Lina can command Marco · Sofia · Noah · Luna · Atlas · Leo — all responses are saved</p>
+        <p className="text-xs text-slate-500 mt-2 text-center">Lina can command Marco · Sofia · Ben · Luna · Atlas · Leo — all responses are saved</p>
       </div>
     </div>
   );

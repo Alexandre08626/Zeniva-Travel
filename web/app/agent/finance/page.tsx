@@ -1749,7 +1749,7 @@ export default function ZeniPayDashboard() {
                 </div>
                 <div style={{ padding: "0 16px 16px", display: "flex", gap: 8 }}>
                   <input value={benMsg} onChange={e => setBenMsg(e.target.value)} onKeyDown={e => e.key === "Enter" && handleBenSend()}
-                    placeholder="Ask Noah: revenue, fraud, payout, rapport…"
+                    placeholder="Ask Ben: revenue, fraud, payout, rapport…"
                     style={{ flex: 1, border: "1.5px solid #e2e8f0", borderRadius: 12, padding: "11px 14px", fontSize: 13, outline: "none", background: "#fafbff" }} />
                   <button onClick={handleBenSend} style={{ background: `linear-gradient(135deg, ${BLUE}, ${DARK})`, color: "white", border: "none", borderRadius: 12, padding: "11px 20px", fontWeight: 800, cursor: "pointer", fontSize: 14 }}>↑</button>
                 </div>
@@ -1759,7 +1759,7 @@ export default function ZeniPayDashboard() {
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <div style={{ background: "white", borderRadius: 20, padding: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", flex: 1 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                    <h3 style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>⚡ Noah Live Activity</h3>
+                    <h3 style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>⚡ Ben Live Activity</h3>
                     <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: GREEN, fontWeight: 600 }}>
                       <div style={{ width: 6, height: 6, background: GREEN, borderRadius: "50%", animation: "pulse 1.5s infinite" }} /> Real-time
                     </div>
