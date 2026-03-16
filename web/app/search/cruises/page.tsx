@@ -181,7 +181,7 @@ function CruisesContent() {
     setPaying(true);
     try {
       const priceNum = parseFloat(selCabinPrice) * guests;
-      const res = await fetch("/api/helcim/initialize", {
+      const res = await fetch("/api/zenipay/create-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

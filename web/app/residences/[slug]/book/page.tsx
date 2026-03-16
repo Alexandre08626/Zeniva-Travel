@@ -62,7 +62,7 @@ function BookingForm() {
     setPayLoading(true); setError("");
     try {
       await saveLead();
-      const res = await fetch("/api/helcim/initialize", {
+      const res = await fetch("/api/zenipay/create-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

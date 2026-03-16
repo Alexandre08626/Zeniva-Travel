@@ -261,7 +261,7 @@ export default function ZeniPayDashboard() {
               <a href="/payment?type=custom" style={{ display: "block", background: BLUE, color: "white", textAlign: "center", borderRadius: 9999, padding: "12px", fontSize: 15, fontWeight: 800, textDecoration: "none", marginTop: 8 }}>
                 💳 Proceed to Checkout
               </a>
-              <p style={{ textAlign: "center", fontSize: 11, color: "#94a3b8", marginTop: 8 }}>🔒 Secured by ZeniPay · Helcim · PCI Compliant</p>
+              <p style={{ textAlign: "center", fontSize: 11, color: "#94a3b8", marginTop: 8 }}>🔒 Secured by ZeniPay · ZeniPay · PCI Compliant</p>
             </div>
           </div>
         )}

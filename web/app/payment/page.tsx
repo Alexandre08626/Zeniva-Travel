@@ -9,7 +9,6 @@ import { useAuthStore } from "../../src/lib/authStore";
 import { getDocumentsForUser, upsertDocuments } from "../../src/lib/documentsStore";
 import { useTripsStore, createTrip } from "../../lib/store/tripsStore";
 import { getStoredReferral } from "../../src/lib/influencer";
-import HelcimPayButton from "../../src/components/HelcimPayButton.client";
 
 function PaymentContent() {
   const router = useRouter();
@@ -154,15 +153,12 @@ function PaymentContent() {
           <div className="rounded-xl border border-slate-200 p-4 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold text-slate-700">Payment method</h2>
-              <span className="text-xs font-semibold text-slate-500">🔒 Secured by Helcim</span>
+              <span className="text-xs font-semibold text-slate-500">🔒 Secured by ZeniPay</span>
             </div>
             <p className="text-sm text-slate-600">
               Click below to proceed to our secure payment page. You can pay by Visa, Mastercard, Amex, or Apple Pay.
             </p>
-            <HelcimPayButton
-              amount={totalDue}
-              currency="CAD"
-            />
+            <ZeniPayButton amount={totalDue} />
             <p className="text-xs text-slate-400 text-center">
               After payment, you will receive an email confirmation with your booking details.
             </p>

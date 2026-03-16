@@ -19,13 +19,7 @@ const nextConfig: NextConfig = {
     LITEAPI_BOOK_BASE_URL: process.env.LITEAPI_BOOK_BASE_URL || "https://book.liteapi.travel/v3.0",
   },
   // Turbopack root forced to the `web` directory to avoid workspace-root resolution
-  // when multiple lockfiles exist in the repository root.
-  // Use an absolute path so Vercel's build (e.g. /vercel/path0/web) matches outputFileTracingRoot.
-  turbopack: {
-    // point to the current directory (the `web` project) — must be absolute
-    root: rootDir,
-  },
-  // Ensure outputFileTracingRoot matches turbopack.root (they must be identical on Vercel)
+  // Turbopack removed — use webpack to avoid /_global-error workUnitAsyncStorage crash
   outputFileTracingRoot: rootDir,
   images: {
     qualities: [70, 75, 100],

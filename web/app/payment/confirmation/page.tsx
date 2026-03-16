@@ -48,7 +48,7 @@ function ConfirmationContent() {
         returnDate,
         travelers,
         totalPrice,
-        notes: `Helcim payment: ${orderId || ref} | ${description}`,
+        notes: `ZeniPay payment: ${orderId || ref} | ${description}`,
       }),
     }).catch(() => undefined);
 
@@ -65,7 +65,7 @@ function ConfirmationContent() {
         travelers,
         total_price: totalPrice,
         status: "confirmed",
-        notes: `Helcim payment: ${orderId || ref} | ${description}`,
+        notes: `ZeniPay payment: ${orderId || ref} | ${description}`,
       }),
     }).catch(() => undefined);
 
@@ -104,7 +104,7 @@ function ConfirmationContent() {
             <p className="text-xs text-gray-400 uppercase tracking-wider">Booking Reference</p>
             <p className="font-mono text-lg font-black text-[#0B1B4D]">{bookingRef || orderId}</p>
             {orderId && bookingRef && (
-              <p className="text-xs text-gray-400">Helcim payment: {orderId}</p>
+              <p className="text-xs text-gray-400">ZeniPay payment: {orderId}</p>
             )}
           </div>
         )}

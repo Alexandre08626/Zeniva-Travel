@@ -99,7 +99,7 @@ function TransfersContent() {
     setPaying(true);
     try {
       const price = parseFloat(String(selected.priceFrom).replace(/[^0-9.]/g, "")) || 49;
-      const res = await fetch("/api/helcim/initialize", {
+      const res = await fetch("/api/zenipay/create-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
-import HelcimPayButton from "../../../src/components/HelcimPayButton.client";
+import ZeniPayButton from "../../../src/components/ZeniPayButton.client";
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -381,7 +381,7 @@ export default function CheckoutPage() {
             <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>Payment</div>
-                <span className="text-[11px] font-bold text-emerald-600">🔒 Secured by Helcim</span>
+                <span className="text-[11px] font-bold text-emerald-600">🔒 Secured by ZeniPay</span>
               </div>
               <p className="text-sm text-slate-600">
                 Fill in your traveler details above, then click the button below to proceed to our secure payment page.
@@ -447,9 +447,9 @@ export default function CheckoutPage() {
                 💡 <strong>Price on request</strong> — Our team will confirm exact pricing within 24h and send you a payment link.
               </div>
             )}
-            <HelcimPayButton
+            <ZeniPayButton
               amount={trueTotal > 0 ? trueTotal : (pricing.hasAnyPrice ? pricing.total : 500)}
-              currency="CAD"
+              currency="USD"
               disabled={!travelerForm.firstName.trim() || !travelerForm.email.trim()}
             />
             <div className="rounded-xl border border-slate-200 bg-white p-3 text-xs" style={{ color: MUTED_TEXT }}>
