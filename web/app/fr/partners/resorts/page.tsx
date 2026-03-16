@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
 import PartnerResortsPage from "../../../partners/resorts/page";
 

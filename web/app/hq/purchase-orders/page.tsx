@@ -1,5 +1,5 @@
 "use client";
-
+export const dynamic = "force-dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { useRequireRole } from "../../../src/lib/roleGuards";
 import { useAuthStore, addAudit } from "../../../src/lib/authStore";

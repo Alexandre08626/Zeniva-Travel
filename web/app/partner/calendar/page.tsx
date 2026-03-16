@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";
 import React, { useMemo, useState } from 'react';
 import PageHeader from '../../../src/components/partner/PageHeader';
 import { DayPicker, DateRange } from 'react-day-picker';

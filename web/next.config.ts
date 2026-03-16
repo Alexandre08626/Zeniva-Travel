@@ -6,9 +6,8 @@ const rootDir = path.resolve(__dirname);
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   experimental: {
-    // Disable Partial Prerendering + Dynamic IO — both cause /_global-error workUnitAsyncStorage crash
+    // Disable PPR — can cause workUnitAsyncStorage crash
     ppr: false,
-    dynamicIO: false,
   },
 
 

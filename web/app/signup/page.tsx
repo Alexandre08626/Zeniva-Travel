@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";
 import { FormEvent, Suspense, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signup, useAuthStore, type Role, type Division, updatePartnerProfile, logout } from "../../src/lib/authStore";

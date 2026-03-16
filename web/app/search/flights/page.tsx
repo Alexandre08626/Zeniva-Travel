@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { searchDuffelOffers } from "../../../src/lib/duffelClient";
 import FlightOffers from '../../../src/components/FlightOffers.client';

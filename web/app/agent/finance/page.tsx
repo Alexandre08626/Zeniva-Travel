@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";
 import { useState, useEffect, useCallback } from "react";
 
 const BLUE = "#0F6CF5", DARK = "#0B1B4D", GREEN = "#10b981", RED = "#ef4444", AMBER = "#f59e0b", PURPLE = "#8b5cf6", TEAL = "#14b8a6";

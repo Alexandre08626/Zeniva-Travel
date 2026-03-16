@@ -1,5 +1,5 @@
 "use client";
-
+export const dynamic = "force-dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { TITLE_TEXT, MUTED_TEXT } from "../../../src/design/tokens";
 import { useRequireAnyPermission } from "../../../src/lib/roleGuards";

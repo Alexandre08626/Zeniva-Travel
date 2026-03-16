@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { getAirbnbs } from '@/src/data/partners/airbnbs';
 import Link from 'next/link';
 import Image from 'next/image';
