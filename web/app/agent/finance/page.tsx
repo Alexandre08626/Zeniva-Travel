@@ -722,6 +722,133 @@ const TABS = [
 ];
 
 // ══════════════════════════════════════════════════════
+//  REVENUE SPLIT WIDGET
+// ══════════════════════════════════════════════════════
+const SPLIT_SCENARIOS = [
+  {
+    id: "no_agent",
+    label: "Direct / No Agent",
+    icon: "🏦",
+    desc: "Zeniva platform only",
+    rows: (b: number) => [
+      { label: "🏦 Zeniva Travel", pct: 100, amount: b, color: "#0F6CF5", sub: "100% platform revenue" },
+    ],
+  },
+  {
+    id: "lina_only",
+    label: "Lina AI seule",
+    icon: "🤖",
+    desc: "Lina book without human agent",
+    rows: (b: number) => [
+      { label: "🏦 Zeniva Travel (70%)", pct: 70, amount: Math.round(b*0.70*100)/100, color: "#0F6CF5", sub: "Lina-only booking" },
+      { label: "👤 Agent assigné (30%)", pct: 30, amount: Math.round(b*0.30*100)/100, color: "#8B5CF6", sub: "Agent de suivi" },
+    ],
+  },
+  {
+    id: "human_agent",
+    label: "Agent humain",
+    icon: "👤",
+    desc: "Full agent involvement",
+    rows: (b: number) => [
+      { label: "👤 Agent de voyage (70%)", pct: 70, amount: Math.round(b*0.70*100)/100, color: "#8B5CF6", sub: "Louis / Jason / Luca" },
+      { label: "🏦 Zeniva Travel (30%)", pct: 30, amount: Math.round(b*0.30*100)/100, color: "#0F6CF5", sub: "Platform margin" },
+    ],
+  },
+  {
+    id: "with_influencer",
+    label: "+ Influenceur",
+    icon: "⭐",
+    desc: "Agent + influencer referral",
+    rows: (b: number) => {
+      const agent = Math.round(b*0.70*100)/100;
+      const zenivaGross = Math.round(b*0.30*100)/100;
+      const inf = Math.round(zenivaGross*0.05*100)/100;
+      const zenivaNet = Math.round((zenivaGross - inf)*100)/100;
+      return [
+        { label: "👤 Agent de voyage (70%)", pct: 70, amount: agent, color: "#8B5CF6", sub: "Louis / Jason / Luca" },
+        { label: "🏦 Zeniva Travel (~28.5%)", pct: Math.round(zenivaNet/b*100), amount: zenivaNet, color: "#0F6CF5", sub: "Net après influenceur" },
+        { label: "⭐ Influenceur (5% du net)", pct: Math.round(inf/b*100), amount: inf, color: "#F59E0B", sub: "5% du 30% Zeniva" },
+      ];
+    },
+  },
+  {
+    id: "yacht",
+    label: "ZeniYacht",
+    icon: "⛵",
+    desc: "100% Zeniva — always",
+    rows: (b: number) => [
+      { label: "⛵ Zeniva Travel — ZeniYacht (100%)", pct: 100, amount: b, color: "#10B981", sub: "100% — broker commissions handled separately" },
+    ],
+  },
+];
+
+function RevenueSplitWidget() {
+  const [scenario, setScenario] = useState("no_agent");
+  const [bookingAmt, setBookingAmt] = useState(7677);
+  const active = SPLIT_SCENARIOS.find(s => s.id === scenario)!;
+  const rows = active.rows(bookingAmt);
+  return (
+    <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+        <h3 style={{ margin: 0, fontWeight: 700, fontSize: 15 }}>💡 Revenue Split</h3>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ fontSize: 11, color: "#94a3b8" }}>Booking:</span>
+          <input
+            type="number"
+            value={bookingAmt}
+            onChange={e => setBookingAmt(Number(e.target.value) || 0)}
+            style={{ width: 80, border: "1px solid #e2e8f0", borderRadius: 6, padding: "3px 8px", fontSize: 12, fontWeight: 700, color: "#0F6CF5", textAlign: "right" }}
+          />
+        </div>
+      </div>
+      {/* Scenario tabs */}
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
+        {SPLIT_SCENARIOS.map(s => (
+          <button key={s.id} onClick={() => setScenario(s.id)} style={{
+            padding: "5px 10px", borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: "pointer", border: "1px solid",
+            background: scenario === s.id ? "#0F6CF5" : "#f8fafc",
+            color: scenario === s.id ? "white" : "#64748b",
+            borderColor: scenario === s.id ? "#0F6CF5" : "#e2e8f0",
+          }}>
+            {s.icon} {s.label}
+          </button>
+        ))}
+      </div>
+      {/* Active scenario */}
+      <div style={{ padding: "10px 14px", background: "#f0f7ff", borderRadius: 10, marginBottom: 14, borderLeft: "3px solid #0F6CF5" }}>
+        <p style={{ margin: 0, fontSize: 11, color: "#0F6CF5", fontWeight: 600 }}>{active.icon} {active.label} — {active.desc}</p>
+      </div>
+      {rows.map(r => (
+        <div key={r.label} style={{ marginBottom: 14 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+            <div>
+              <span style={{ fontSize: 12, color: "#374151", fontWeight: 600 }}>{r.label}</span>
+              <span style={{ fontSize: 10, color: "#94a3b8", marginLeft: 6 }}>{r.sub}</span>
+            </div>
+            <span style={{ fontSize: 13, fontWeight: 700, color: r.color }}>
+              ${r.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+              <span style={{ fontSize: 11, fontWeight: 400, marginLeft: 4 }}>({r.pct}%)</span>
+            </span>
+          </div>
+          <div style={{ background: "#f1f5f9", borderRadius: 4, height: 7 }}>
+            <div style={{ background: r.color, width: `${r.pct}%`, height: "100%", borderRadius: 4, transition: "width 0.3s" }} />
+          </div>
+        </div>
+      ))}
+      <div style={{ marginTop: 16, padding: "8px 12px", background: "#fefce8", borderRadius: 8, borderLeft: "3px solid #F59E0B" }}>
+        <p style={{ margin: 0, fontSize: 10, color: "#92400e", lineHeight: 1.7 }}>
+          <strong>Règle de base :</strong> Sans agent ni influenceur → <strong>100% Zeniva</strong> · 
+          Lina seule → <strong>70% Zeniva / 30% Agent</strong> · 
+          Agent humain → <strong>70% Agent / 30% Zeniva</strong> · 
+          ZeniYacht → <strong>100% Zeniva toujours</strong> · 
+          Influenceur → <strong>+5% du net Zeniva</strong>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════
 //  MAIN COMPONENT
 // ══════════════════════════════════════════════════════
 export default function ZeniPayDashboard() {
@@ -986,42 +1113,7 @@ export default function ZeniPayDashboard() {
               </div>
 
               {/* Commission Split */}
-              <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
-                <h3 style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 15 }}>💡 Revenue Split</h3>
-                <p style={{ fontSize: 12, color: "#94a3b8", margin: "0 0 16px" }}>Exemple — réservation $7,677 avec agent</p>
-                {(() => {
-                  const booking = 7677;
-                  const agentAmt = Math.round(booking * 0.70 * 100) / 100;
-                  const zenivaGross = Math.round(booking * 0.30 * 100) / 100;
-                  const influencerAmt = Math.round(zenivaGross * 0.05 * 100) / 100;
-                  const zenivaNet = Math.round((zenivaGross - influencerAmt) * 100) / 100;
-                  return [
-                    { label: "🏦 Zeniva Travel (30%)", amount: zenivaNet, pct: 30, color: BLUE, sub: `Net après influenceur` },
-                    { label: "👤 Agent de voyage (70%)", amount: agentAmt, pct: 70, color: PURPLE, sub: "Louis / Jason / Luca" },
-                    { label: "⭐ Influenceur (5% du net Zeniva)", amount: influencerAmt, pct: Math.round(influencerAmt/booking*100), color: GOLD, sub: "5% du 30% Zeniva" },
-                  ].map(s => (
-                    <div key={s.label} style={{ marginBottom: 14 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
-                        <div>
-                          <span style={{ fontSize: 12, color: "#374151", fontWeight: 600 }}>{s.label}</span>
-                          <span style={{ fontSize: 10, color: "#94a3b8", marginLeft: 6 }}>{s.sub}</span>
-                        </div>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: s.color }}>${s.amount.toLocaleString("en-US", {minimumFractionDigits:2})} <span style={{fontSize:11,fontWeight:400}}>({s.pct}%)</span></span>
-                      </div>
-                      <div style={{ background: "#f1f5f9", borderRadius: 4, height: 7 }}>
-                        <div style={{ background: s.color, width: `${s.pct}%`, height: "100%", borderRadius: 4 }} />
-                      </div>
-                    </div>
-                  ));
-                })()}
-                <div style={{ marginTop: 16, padding: "10px 14px", background: "#f8fafc", borderRadius: 10, borderLeft: `3px solid ${BLUE}` }}>
-                  <p style={{ margin: 0, fontSize: 11, color: "#64748b", lineHeight: 1.6 }}>
-                    <strong style={{color: DARK}}>⚓ ZeniYacht :</strong> 100% Zeniva Travel<br/>
-                    <strong style={{color: DARK}}>🤖 Réservation Lina seule :</strong> 70% Zeniva / 30% Agent<br/>
-                    <strong style={{color: DARK}}>💳 Sans influenceur :</strong> 70% Agent / 30% Zeniva direct
-                  </p>
-                </div>
-              </div>
+              <RevenueSplitWidget />
             </div>
           </div>
         )}
