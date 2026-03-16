@@ -1,5 +1,4 @@
 'use client';
-export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from 'react';
 import { createTravelerProfile, switchActiveSpace } from '@/src/lib/authStore';

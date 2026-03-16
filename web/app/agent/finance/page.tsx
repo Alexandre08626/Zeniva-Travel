@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 import { useState, useEffect } from "react";
 
 // ═══════════════════════════════════════════════════════
@@ -688,8 +687,8 @@ export default function ZeniPayDashboard() {
               <div style={{ display: "flex", alignItems: "flex-start", gap: 24, position: "relative" }}>
                 {/* Avatar */}
                 <div style={{ flexShrink: 0 }}>
-                  <div style={{ width: 88, height: 88, background: `linear-gradient(135deg, ${BLUE}60, #8b5cf660)`, borderRadius: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, border: `2px solid ${BLUE}44`, boxShadow: `0 0 32px ${BLUE}40` }}>
-                    🤖
+                  <div style={{ width: 88, height: 88, borderRadius: 22, overflow: "hidden", border: `2px solid ${BLUE}60`, boxShadow: `0 0 32px ${BLUE}40`, background: `linear-gradient(135deg, ${DARK}, #1a2f6e)` }}>
+                    <img src="/agents/noah.png" alt="Noah" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { (e.target as HTMLImageElement).style.display="none"; (e.target as HTMLImageElement).parentElement!.innerHTML="<div style=\"display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:42px\">🤖</div>"; }} />
                   </div>
                   <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, justifyContent: "center" }}>
                     <div style={{ width: 7, height: 7, background: GREEN, borderRadius: "50%", boxShadow: `0 0 6px ${GREEN}` }} />
@@ -748,7 +747,9 @@ export default function ZeniPayDashboard() {
               {/* Chat Interface */}
               <div style={{ background: "white", borderRadius: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", display: "flex", flexDirection: "column" }}>
                 <div style={{ background: `linear-gradient(135deg, ${DARK}, #1a2f6e)`, borderRadius: "20px 20px 0 0", padding: "14px 18px", display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ width: 36, height: 36, background: `${BLUE}40`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, border: `1px solid ${BLUE}60` }}>🤖</div>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, overflow: "hidden", border: `1px solid ${BLUE}60`, background: DARK }}>
+                    <img src="/agents/noah.png" alt="Noah" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  </div>
                   <div style={{ flex: 1 }}>
                     <p style={{ margin: 0, color: "white", fontWeight: 700, fontSize: 14 }}>Noah · ZeniPay AI</p>
                     <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Financial Intelligence Agent</p>
@@ -761,7 +762,9 @@ export default function ZeniPayDashboard() {
                 <div style={{ flex: 1, padding: 16, overflowY: "auto", maxHeight: 380, display: "flex", flexDirection: "column", gap: 10 }}>
                   {noahChat.map((m, i) => (
                     <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", gap: 8, alignItems: "flex-end" }}>
-                      {m.role === "noah" && <div style={{ width: 28, height: 28, background: `${BLUE}20`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>🤖</div>}
+                      {m.role === "noah" && <div style={{ width: 28, height: 28, borderRadius: 8, overflow: "hidden", border: `1px solid ${BLUE}30`, flexShrink: 0 }}>
+                      <img src="/agents/noah.png" alt="Noah" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    </div>}
                       <div style={{
                         background: m.role === "user" ? `linear-gradient(135deg, ${BLUE}, ${DARK})` : "#f0f4ff",
                         color: m.role === "user" ? "white" : "#0f172a",
