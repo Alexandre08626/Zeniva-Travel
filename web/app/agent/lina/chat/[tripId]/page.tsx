@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ChatLayout from "../../../../../components/chat/ChatLayout";
