@@ -49,6 +49,7 @@ export async function POST(request: Request) {
         amount: amountCents,
         currency,
         description: description || `ZeniPay Payment ${payment_id}`,
+        paymentId: payment_id || `ZNV-${Date.now()}`,
       });
 
       if (!result.success) {
