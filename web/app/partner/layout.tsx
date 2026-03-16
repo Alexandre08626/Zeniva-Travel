@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 import React from "react";
 import PartnerSidebar from "../../src/components/partner/PartnerSidebar";
 import PartnerHeader from "../../src/components/partner/PartnerHeader";

@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 import "../globals.css";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";

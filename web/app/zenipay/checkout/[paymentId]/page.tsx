@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 import { useState, useEffect } from "react";
 
 const BLUE = "#0F6CF5", DARK = "#0B1B4D", GREEN = "#10B981", RED = "#EF4444", GOLD = "#F59E0B";
@@ -15,10 +14,17 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
   const [desc, setDesc] = useState("Zeniva Travel");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [errorMsg, setErrorMsg] = useState("");
+  const [paymentId, setPaymentId] = useState<string>("");
 
   useEffect(() => {
+    // Read paymentId from URL path (params may not resolve correctly in Next.js 16 client)
+    const pathParts = window.location.pathname.split("/");
+    const pidFromUrl = pathParts[pathParts.length - 1] || params?.paymentId || "";
+    setPaymentId(pidFromUrl);
+
     const p = new URLSearchParams(window.location.search);
-    setAmount(parseFloat(p.get("amount") || "0"));
+    const amt = parseFloat(p.get("amount") || "0");
+    setAmount(amt);
     setCurrency(p.get("currency") || "USD");
     setDesc(decodeURIComponent(p.get("desc") || "Zeniva Travel"));
     const name = decodeURIComponent(p.get("customer") || "");
@@ -56,7 +62,7 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          payment_id: params.paymentId,
+          payment_id: paymentId,
           amount, currency,
           payment_method: payMethod,
           card_number: form.cardNumber.replace(/\s/g, ""),
@@ -77,7 +83,7 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
       if (data.status === "completed") {
         setStep("success");
         setTimeout(() => {
-          window.location.href = data.confirmation_url || `/booking/confirmation?ref=${params.paymentId}&total=${fmt(amount)}`;
+          window.location.href = data.confirmation_url || `/booking/confirmation?ref=${paymentId}&total=${fmt(amount)}`;
         }, 2200);
       } else {
         setErrorMsg(data.error || "Payment declined. Please try another card.");
@@ -178,7 +184,7 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
         <div style={{ background:`linear-gradient(135deg,${DARK},#1a2f6e)`, borderRadius:18, padding:20, marginBottom:16, color:"white" }}>
           <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
             <span style={{ opacity:0.6, fontSize:12 }}>Booking</span>
-            <span style={{ fontWeight:700, fontSize:12, fontFamily:"monospace", color:GOLD }}>{params.paymentId}</span>
+            <span style={{ fontWeight:700, fontSize:12, fontFamily:"monospace", color:GOLD }}>{paymentId || "loading…"}</span>
           </div>
           <p style={{ margin:"0 0 4px", fontWeight:700, fontSize:16 }}>{desc}</p>
           <div style={{ borderTop:"1px solid rgba(255,255,255,0.15)", marginTop:12, paddingTop:12, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
