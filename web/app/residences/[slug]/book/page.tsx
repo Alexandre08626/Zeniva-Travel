@@ -75,8 +75,8 @@ function BookingForm() {
         }),
       });
       const data = await res.json();
-      if (data.url) {
-        // Save booking context for confirmation page
+      const redirectUrl = data.checkout_url || data.url || (data.payment_id ? `/zenipay/checkout/${data.payment_id}?amount=${displayTotal}&currency=USD&desc=${encodeURIComponent(`ZeniStay — ${property}`)}` : null);
+      if (redirectUrl) {
         localStorage.setItem("zeniva_pending_booking", JSON.stringify({
           clientEmail: email,
           clientName: name,
@@ -87,9 +87,9 @@ function BookingForm() {
           returnDate: checkout,
           description: `ZeniStay — ${property}`,
         }));
-        window.location.href = data.url;
+        window.location.href = redirectUrl;
       } else {
-        setError(data.error || "Payment setup error. Try 'Reserve & Pay Later' below.");
+        setError(data.error || "Payment setup error.");
         setPayLoading(false);
       }
     } catch {
