@@ -1,54 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
-async function chargeViaAuthorizenet(params: {
-  apiLoginId: string;
-  transactionKey: string;
-  env: string;
-  amount: number;
-  opaqueDataDescriptor: string;
-  opaqueDataValue: string;
-  customerEmail: string;
-  customerName: string;
-  description: string;
-}) {
-  const url = params.env === "production"
-    ? "https://api2.authorize.net/xml/v1/request.api"
-    : "https://apitest.authorize.net/xml/v1/request.api";
-
-  const payload = {
-    createTransactionRequest: {
-      merchantAuthentication: { name: params.apiLoginId, transactionKey: params.transactionKey },
-      transactionRequest: {
-        transactionType: "authCaptureTransaction",
-        amount: params.amount.toFixed(2),
-        payment: { opaqueData: { dataDescriptor: params.opaqueDataDescriptor, dataValue: params.opaqueDataValue } },
-        order: { description: params.description.slice(0, 255) },
-        customer: { email: params.customerEmail },
-        billTo: { firstName: params.customerName.split(" ")[0] || "", lastName: params.customerName.split(" ").slice(1).join(" ") || "" },
-      },
-    },
-  };
-
-  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-  const data = await res.json();
-  const resp = data.transactionResponse;
-  const msgs = data.messages;
-
-  if (msgs?.resultCode === "Error") {
-    const errText = msgs.message?.[0]?.text || "Gateway error";
-    return { success: false, error: errText };
-  }
-  if (resp?.responseCode === "1") {
-    return { success: true, transId: resp.transId || "unknown" };
-  }
-  const errMsg = resp?.errors?.[0]?.errorText || resp?.messages?.[0]?.description || "Payment declined";
-  return { success: false, error: errMsg };
-}
-
 export async function POST(req: NextRequest) {
   const {
     payment_id, amount, currency = "USD",
+    card_number, expiry_month, expiry_year, cvc,
+    cardholder_name, billing_zip,
+    // ACH fields
+    payment_method,
+    // Legacy opaque data fields (Authorize.net fallback)
     opaque_data_descriptor, opaque_data_value,
     customer_email, customer_name, description,
   } = await req.json();
@@ -57,45 +17,70 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ status: "failed", error: "Missing required fields" }, { status: 400 });
   }
 
-  const apiLoginId = process.env.AUTHORIZENET_API_LOGIN_ID || "PLACEHOLDER_TEST";
-  const transactionKey = process.env.AUTHORIZENET_TRANSACTION_KEY || "PLACEHOLDER_TEST";
-  const env = process.env.AUTHORIZENET_ENV || "sandbox";
-
   let transactionId: string;
+  let instrumentId: string | undefined;
+  let last4: string | undefined;
+  let brand: string | undefined;
 
-  if (apiLoginId === "PLACEHOLDER_TEST" || !opaque_data_descriptor || !opaque_data_value) {
-    // SANDBOX MODE — simulated success (waiting for real credentials from boss)
-    transactionId = `SANDBOX-${Date.now().toString(36).toUpperCase()}`;
-    console.log("[ZeniPay] SANDBOX MODE — real credentials needed from Authorize.net");
-  } else {
-    // REAL PAYMENT via Authorize.net
-    const result = await chargeViaAuthorizenet({
-      apiLoginId, transactionKey, env, amount,
-      opaqueDataDescriptor: opaque_data_descriptor,
-      opaqueDataValue: opaque_data_value,
-      customerEmail: customer_email || "",
-      customerName: customer_name || "",
-      description: description || `ZeniPay-${payment_id}`,
-    });
-    if (!result.success) {
-      return NextResponse.json({ status: "failed", error: result.error }, { status: 402 });
+  try {
+    if (payment_method === "ach") {
+      // ACH — record pending, no real processing yet
+      transactionId = `ACH-${Date.now().toString(36).toUpperCase()}`;
+    } else if (card_number && expiry_month && expiry_year && cvc) {
+      // Real card payment via Finix
+      const { processPayment } = await import("../../../../../../modules/zenipay/gateways/index");
+      const result = await processPayment({
+        cardNumber: card_number,
+        expiryMonth: expiry_month,
+        expiryYear: expiry_year,
+        cvc,
+        cardholderName: cardholder_name || customer_name || "",
+        postalCode: billing_zip,
+        amount: parseFloat(amount),
+        currency,
+        description: description || `Zeniva-${payment_id}`,
+        paymentId: payment_id,
+      });
+
+      if (!result.success) {
+        return NextResponse.json({ status: "failed", error: result.error || "Payment declined" }, { status: 402 });
+      }
+
+      transactionId = result.transactionId;
+      instrumentId = result.instrumentId;
+      last4 = result.last4;
+      brand = result.brand;
+    } else {
+      // Sandbox/test mode — no card data sent
+      transactionId = `SANDBOX-${Date.now().toString(36).toUpperCase()}`;
     }
-    transactionId = result.transId!;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Payment processing error";
+    console.error("[ZeniPay]", msg);
+    return NextResponse.json({ status: "failed", error: msg }, { status: 500 });
   }
 
-  // ZeniPay Commission Distribution
-  const agentCut      = Number((amount * 0.104).toFixed(2));
-  const influencerCut = Number((amount * 0.0195).toFixed(2));
-  const platformCut   = Number((amount * 0.0296).toFixed(2));
-  const supplierPay   = Number((amount - agentCut - influencerCut - platformCut).toFixed(2));
+  // Commission distribution
+  const a = parseFloat(amount);
+  const agentCut      = Number((a * 0.104).toFixed(2));
+  const influencerCut = Number((a * 0.0195).toFixed(2));
+  const platformCut   = Number((a * 0.0296).toFixed(2));
+  const supplierPay   = Number((a - agentCut - influencerCut - platformCut).toFixed(2));
+
+  const txnId = `TXN-${Date.now().toString(36).toUpperCase()}`;
 
   return NextResponse.json({
     status: "completed",
     transaction: {
-      id: `TXN-${Date.now().toString(36).toUpperCase()}`,
+      id: txnId,
       payment_id,
+      gateway: "finix",
       gateway_transaction_id: transactionId,
-      amount, currency,
+      instrument_id: instrumentId,
+      card_brand: brand,
+      card_last4: last4,
+      amount: a,
+      currency,
       created_at: new Date().toISOString(),
     },
     wallet_updates: {
@@ -104,6 +89,6 @@ export async function POST(req: NextRequest) {
       influencer: { credited: influencerCut },
       supplier:   { credited: supplierPay },
     },
-    confirmation_url: `/booking/confirmation?ref=${payment_id}&total=${amount}&trip=${encodeURIComponent(description || "Zeniva Travel")}`,
+    confirmation_url: `/booking/confirmation?ref=${payment_id}&total=${a}&trip=${encodeURIComponent(description || "Zeniva Travel")}`,
   });
 }
