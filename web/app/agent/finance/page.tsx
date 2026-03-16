@@ -99,27 +99,185 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function WalletCard({ name, data, icon }: { name: string; data: typeof WALLETS.platform; icon: string }) {
+function WalletCard({ name, data, icon, color, onOpen }: { name: string; data: typeof WALLETS.platform; icon: string; color: string; onOpen: () => void }) {
+  const pct = Math.round((data.available / (data.available + data.pending + 1)) * 100);
   return (
-    <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-        <div style={{ width: 36, height: 36, background: `${BLUE}15`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>{icon}</div>
-        <div>
-          <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: "#0f172a" }}>{name} Wallet</p>
-          <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>ZeniPay Balance</p>
+    <div onClick={onOpen} style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 16px rgba(0,0,0,0.08)", cursor: "pointer", transition: "transform 0.15s, box-shadow 0.15s", border: `1px solid ${color}18` }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 32px ${color}22`; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 16px rgba(0,0,0,0.08)"; }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+        <div style={{ width: 46, height: 46, background: `linear-gradient(135deg, ${color}22, ${color}11)`, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, border: `1px solid ${color}30` }}>{icon}</div>
+        <div style={{ flex: 1 }}>
+          <p style={{ margin: 0, fontWeight: 800, fontSize: 15, color: "#0f172a" }}>{name} Wallet</p>
+          <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>ZeniPay · USD</p>
+        </div>
+        <span style={{ fontSize: 11, color: color, fontWeight: 700, background: `${color}15`, borderRadius: 6, padding: "3px 8px" }}>Open →</span>
+      </div>
+      {/* Main Balance */}
+      <div style={{ background: `linear-gradient(135deg, ${color}12, ${color}06)`, borderRadius: 14, padding: "14px 18px", marginBottom: 14 }}>
+        <p style={{ margin: "0 0 2px", fontSize: 11, color: "#64748b", fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Available Balance</p>
+        <p style={{ margin: 0, fontSize: 28, fontWeight: 900, color: color }}>{fmt(data.available, true)}</p>
+      </div>
+      {/* Mini bar */}
+      <div style={{ background: "#f1f5f9", borderRadius: 9999, height: 5, marginBottom: 12, overflow: "hidden" }}>
+        <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 9999 }} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        <div style={{ background: "#fef3c722", borderRadius: 10, padding: "8px 12px" }}>
+          <p style={{ margin: "0 0 2px", fontSize: 9, color: "#64748b", fontWeight: 700, textTransform: "uppercase" as const }}>Pending</p>
+          <p style={{ margin: 0, fontWeight: 800, fontSize: 14, color: GOLD }}>{fmt(data.pending, true)}</p>
+        </div>
+        <div style={{ background: "#eff6ff", borderRadius: 10, padding: "8px 12px" }}>
+          <p style={{ margin: "0 0 2px", fontSize: 9, color: "#64748b", fontWeight: 700, textTransform: "uppercase" as const }}>Paid Out</p>
+          <p style={{ margin: 0, fontWeight: 800, fontSize: 14, color: BLUE }}>{fmt(data.paid, true)}</p>
         </div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-        {[
-          { label: "Available", value: fmt(data.available, true), color: GREEN },
-          { label: "Pending", value: fmt(data.pending, true), color: GOLD },
-          { label: "Paid Out", value: fmt(data.paid, true), color: BLUE },
-        ].map(s => (
-          <div key={s.label} style={{ background: "#f8fafc", borderRadius: 10, padding: 10, textAlign: "center" }}>
-            <p style={{ margin: "0 0 4px", fontSize: 10, color: "#64748b", fontWeight: 600, textTransform: "uppercase" }}>{s.label}</p>
-            <p style={{ margin: 0, fontWeight: 800, fontSize: 14, color: s.color }}>{s.value}</p>
+    </div>
+  );
+}
+
+function WalletModal({ name, data, icon, color, onClose }: { name: string; data: typeof WALLETS.platform; icon: string; color: string; onClose: () => void }) {
+  const [tab, setTab] = useState<"overview"|"bank"|"history">("overview");
+  const [bankForm, setBankForm] = useState({ holder: "", bank: "", routing: "", account: "", type: "checking" });
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    await new Promise(r => setTimeout(r, 1400));
+    setSaved(true);
+    setSaving(false);
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+      onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "white", borderRadius: 24, width: "100%", maxWidth: 560, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 24px 80px rgba(0,0,0,0.25)" }}>
+        {/* Header */}
+        <div style={{ background: `linear-gradient(135deg, ${DARK}, #1a2f6e)`, borderRadius: "24px 24px 0 0", padding: "24px 28px", color: "white", display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ width: 52, height: 52, background: `${color}30`, borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, border: `1px solid ${color}50` }}>{icon}</div>
+          <div style={{ flex: 1 }}>
+            <p style={{ margin: 0, fontWeight: 900, fontSize: 20 }}>{name} Wallet</p>
+            <p style={{ margin: "2px 0 0", fontSize: 12, opacity: 0.6 }}>ZeniPay Financial Account</p>
           </div>
-        ))}
+          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 9999, width: 32, height: 32, color: "white", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
+        </div>
+        {/* Balance banner */}
+        <div style={{ background: `${color}10`, padding: "20px 28px", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+          {[{ l: "Available", v: data.available, c: color }, { l: "Pending", v: data.pending, c: GOLD }, { l: "Paid Out", v: data.paid, c: "#64748b" }].map(s => (
+            <div key={s.l} style={{ textAlign: "center" }}>
+              <p style={{ margin: "0 0 2px", fontSize: 10, color: "#64748b", fontWeight: 700, textTransform: "uppercase" as const }}>{s.l}</p>
+              <p style={{ margin: 0, fontSize: 20, fontWeight: 900, color: s.c }}>{fmt(s.v, true)}</p>
+            </div>
+          ))}
+        </div>
+        {/* Tabs */}
+        <div style={{ display: "flex", gap: 0, borderBottom: "1px solid #f1f5f9" }}>
+          {[{ id: "overview", label: "💡 Overview" }, { id: "bank", label: "🏦 Bank Account" }, { id: "history", label: "📋 History" }].map(t => (
+            <button key={t.id} onClick={() => setTab(t.id as typeof tab)} style={{
+              flex: 1, padding: "14px 12px", border: "none", background: "none", cursor: "pointer", fontSize: 12, fontWeight: 700,
+              color: tab === t.id ? color : "#64748b",
+              borderBottom: tab === t.id ? `2px solid ${color}` : "2px solid transparent",
+            }}>{t.label}</button>
+          ))}
+        </div>
+        <div style={{ padding: 24 }}>
+          {tab === "overview" && (
+            <div style={{ display: "grid", gap: 14 }}>
+              <div style={{ background: "#f8fafc", borderRadius: 14, padding: 18 }}>
+                <p style={{ margin: "0 0 12px", fontWeight: 700, fontSize: 14 }}>💳 Quick Actions</p>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  {[
+                    { label: "💸 Withdraw Funds", onClick: () => setTab("bank") },
+                    { label: "📄 Download Statement", onClick: () => setTab("history") },
+                    { label: "🔗 Add Payout Method", onClick: () => setTab("bank") },
+                    { label: "⚡ Instant Payout", onClick: () => setTab("bank") },
+                  ].map(a => (
+                    <button key={a.label} onClick={a.onClick} style={{ background: "white", border: `1px solid #e2e8f0`, borderRadius: 10, padding: "10px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", color: "#374151", textAlign: "left" as const }}>
+                      {a.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div style={{ background: `${color}10`, borderRadius: 14, padding: 18, border: `1px solid ${color}20` }}>
+                <p style={{ margin: "0 0 8px", fontWeight: 700, fontSize: 13, color: DARK }}>📅 Next Scheduled Payout</p>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+                  <span style={{ color: "#64748b" }}>Date</span>
+                  <span style={{ fontWeight: 700, color: color }}>Every Friday</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 6 }}>
+                  <span style={{ color: "#64748b" }}>Amount</span>
+                  <span style={{ fontWeight: 800, color: color }}>{fmt(data.available, true)}</span>
+                </div>
+              </div>
+            </div>
+          )}
+          {tab === "bank" && (
+            <div>
+              {saved ? (
+                <div style={{ textAlign: "center", padding: "32px 20px" }}>
+                  <div style={{ fontSize: 56, marginBottom: 12 }}>✅</div>
+                  <h3 style={{ margin: "0 0 8px", fontWeight: 800, color: "#065f46" }}>Bank Account Saved!</h3>
+                  <p style={{ color: "#64748b", fontSize: 13, margin: "0 0 20px" }}>Verification micro-deposits will arrive in 1-2 business days.</p>
+                  <button onClick={() => setSaved(false)} style={{ background: BLUE, color: "white", border: "none", borderRadius: 9999, padding: "10px 24px", fontWeight: 700, cursor: "pointer" }}>Update Account</button>
+                </div>
+              ) : (
+                <div style={{ display: "grid", gap: 14 }}>
+                  <p style={{ margin: "0 0 4px", fontSize: 14, color: "#374151", fontWeight: 600 }}>Add your bank account to receive payouts from ZeniPay every Friday.</p>
+                  {[
+                    { label: "Account Holder Name", key: "holder", ph: name === "Platform" ? "Zeniva Travel LLC" : "Full Name" },
+                    { label: "Bank Name", key: "bank", ph: "Chase, Bank of America, Wells Fargo…" },
+                    { label: "Routing Number", key: "routing", ph: "021000021" },
+                    { label: "Account Number", key: "account", ph: "••••••••••" },
+                  ].map(f => (
+                    <div key={f.key}>
+                      <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#374151", marginBottom: 5, textTransform: "uppercase" as const }}>{f.label}</label>
+                      <input value={(bankForm as Record<string,string>)[f.key]} onChange={e => setBankForm(p => ({...p,[f.key]:e.target.value}))} placeholder={f.ph}
+                        style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 10, padding: "11px 14px", fontSize: 14, outline: "none", boxSizing: "border-box" as const }} />
+                    </div>
+                  ))}
+                  <div>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#374151", marginBottom: 5, textTransform: "uppercase" as const }}>Account Type</label>
+                    <select value={bankForm.type} onChange={e => setBankForm(p => ({...p,type:e.target.value}))}
+                      style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 10, padding: "11px 14px", fontSize: 14, outline: "none" }}>
+                      <option value="checking">Checking</option>
+                      <option value="savings">Savings</option>
+                    </select>
+                  </div>
+                  <button onClick={handleSave} disabled={saving} style={{ background: `linear-gradient(135deg, ${BLUE}, ${DARK})`, color: "white", border: "none", borderRadius: 9999, padding: "13px", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
+                    {saving ? "Saving…" : "💾 Save Bank Account"}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+          {tab === "history" && (
+            <div style={{ display: "grid", gap: 10 }}>
+              {[
+                { date: "Feb 28, 2026", amount: data.available * 0.3, type: "Credit", ref: "ZNV-PAY-001" },
+                { date: "Feb 21, 2026", amount: data.available * 0.25, type: "Credit", ref: "ZNV-PAY-002" },
+                { date: "Feb 14, 2026", amount: data.available * 0.2, type: "Payout", ref: "ZNV-OUT-003" },
+                { date: "Feb 7, 2026", amount: data.available * 0.15, type: "Credit", ref: "ZNV-PAY-004" },
+              ].map((t,i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", padding: "12px 0", borderBottom: "1px solid #f1f5f9" }}>
+                  <div style={{ width: 36, height: 36, background: t.type === "Payout" ? "#fee2e2" : "#dcfce7", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, marginRight: 12 }}>
+                    {t.type === "Payout" ? "↑" : "↓"}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ margin: 0, fontWeight: 600, fontSize: 13 }}>{t.type}</p>
+                    <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>{t.date} · {t.ref}</p>
+                  </div>
+                  <span style={{ fontWeight: 800, fontSize: 14, color: t.type === "Payout" ? RED : GREEN }}>
+                    {t.type === "Payout" ? "−" : "+"}{fmt(t.amount, true)}
+                  </span>
+                </div>
+              ))}
+              <button style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: "11px", fontWeight: 700, fontSize: 13, cursor: "pointer", color: "#374151", marginTop: 8 }}>
+                📥 Download Full Statement (PDF)
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -156,6 +314,7 @@ export default function ZeniPayDashboard() {
     { role: "noah", text: "Bonjour! Je suis Noah, votre agent IA ZeniPay. Je surveille les paiements, détecte les anomalies et génère vos rapports financiers en temps réel. Comment puis-je vous aider?" }
   ]);
   const [aiLoading, setAiLoading] = useState(false);
+  const [openWallet, setOpenWallet] = useState<{name:string;data:typeof WALLETS.platform;icon:string;color:string}|null>(null);
   const [liveActivity, setLiveActivity] = useState([
     { id: 1, text: "$7,677 received · James Mitchell · Booking #9231 · Visa", time: "2 min ago", type: "success" },
     { id: 2, text: "$12,450 received · Priya Sharma · Booking #9228 · Mastercard", time: "35 min ago", type: "success" },
