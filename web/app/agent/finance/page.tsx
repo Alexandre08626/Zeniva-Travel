@@ -111,10 +111,15 @@ function WalletCard({ name, data, icon, color, onOpen }: { name: string; data: t
 }
 
 function WalletModal({ name, data, icon, color, onClose }: { name: string; data: typeof WALLETS.platform; icon: string; color: string; onClose: () => void }) {
-  const [tab, setTab] = useState<"overview"|"bank"|"history">("overview");
+  const isPlatform = name === "Platform";
+  type ModalTab = "overview" | "bank" | "history" | "distribute";
+  const [tab, setTab] = useState<ModalTab>(isPlatform ? "overview" : "overview");
   const [bankForm, setBankForm] = useState({ holder: "", bank: "", routing: "", account: "", type: "checking" });
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [distForm, setDistForm] = useState({ to: "agent", amount: "", note: "" });
+  const [distSent, setDistSent] = useState(false);
+  const [distSending, setDistSending] = useState(false);
 
   const handleSave = async () => {
     setSaving(true);
@@ -123,73 +128,238 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
     setSaving(false);
   };
 
+  const handleDistribute = async () => {
+    setDistSending(true);
+    await new Promise(r => setTimeout(r, 1800));
+    setDistSent(true);
+    setDistSending(false);
+  };
+
+  const tabs = isPlatform
+    ? [
+        { id: "overview", label: "💡 Overview" },
+        { id: "distribute", label: "💸 Distribute" },
+        { id: "bank", label: "🏦 Bank" },
+        { id: "history", label: "📋 History" },
+      ]
+    : [
+        { id: "overview", label: "💡 Overview" },
+        { id: "bank", label: "🏦 Bank Account" },
+        { id: "history", label: "📋 History" },
+      ];
+
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
       onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "white", borderRadius: 24, width: "100%", maxWidth: 560, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 24px 80px rgba(0,0,0,0.25)" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "white", borderRadius: 24, width: "100%", maxWidth: isPlatform ? 620 : 560, maxHeight: "92vh", overflowY: "auto", boxShadow: "0 24px 80px rgba(0,0,0,0.3)" }}>
         {/* Header */}
-        <div style={{ background: `linear-gradient(135deg, ${DARK}, #1a2f6e)`, borderRadius: "24px 24px 0 0", padding: "24px 28px", color: "white", display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ width: 52, height: 52, background: `${color}30`, borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, border: `1px solid ${color}50` }}>{icon}</div>
-          <div style={{ flex: 1 }}>
-            <p style={{ margin: 0, fontWeight: 900, fontSize: 20 }}>{name} Wallet</p>
-            <p style={{ margin: "2px 0 0", fontSize: 12, opacity: 0.6 }}>ZeniPay Financial Account</p>
-          </div>
-          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 9999, width: 32, height: 32, color: "white", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
-        </div>
-        {/* Balance banner */}
-        <div style={{ background: `${color}10`, padding: "20px 28px", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-          {[{ l: "Available", v: data.available, c: color }, { l: "Pending", v: data.pending, c: GOLD }, { l: "Paid Out", v: data.paid, c: "#64748b" }].map(s => (
-            <div key={s.l} style={{ textAlign: "center" }}>
-              <p style={{ margin: "0 0 2px", fontSize: 10, color: "#64748b", fontWeight: 700, textTransform: "uppercase" as const }}>{s.l}</p>
-              <p style={{ margin: 0, fontSize: 20, fontWeight: 900, color: s.c }}>{fmt(s.v, true)}</p>
+        <div style={{ background: isPlatform ? `linear-gradient(135deg, #0B1B4D, #0F6CF5)` : `linear-gradient(135deg, ${DARK}, #1a2f6e)`, borderRadius: "24px 24px 0 0", padding: "24px 28px", color: "white" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: isPlatform ? 16 : 0 }}>
+            <div style={{ width: 52, height: 52, background: `${color}30`, borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, border: `1px solid ${color}50` }}>{icon}</div>
+            <div style={{ flex: 1 }}>
+              <p style={{ margin: 0, fontWeight: 900, fontSize: 20 }}>{name} Wallet</p>
+              <p style={{ margin: "2px 0 0", fontSize: 12, opacity: 0.6 }}>{isPlatform ? "Zeniva Travel LLC — Master Control Account" : "ZeniPay Financial Account"}</p>
             </div>
-          ))}
+            <button onClick={onClose} style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 9999, width: 32, height: 32, color: "white", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
+          </div>
+          {isPlatform && (
+            <div style={{ background: "rgba(255,255,255,0.08)", borderRadius: 14, padding: "12px 16px", display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8 }}>
+              {[
+                { l: "Available", v: fmt(data.available, true), c: "#4ade80" },
+                { l: "Pending", v: fmt(data.pending, true), c: GOLD },
+                { l: "Paid Out", v: fmt(data.paid, true), c: "#94a3b8" },
+                { l: "Gateway", v: "Finix", c: "#60a5fa" },
+              ].map(s => (
+                <div key={s.l} style={{ textAlign: "center" as const }}>
+                  <p style={{ margin: "0 0 2px", fontSize: 9, opacity: 0.55, fontWeight: 700, textTransform: "uppercase" as const }}>{s.l}</p>
+                  <p style={{ margin: 0, fontWeight: 800, fontSize: 14, color: s.c }}>{s.v}</p>
+                </div>
+              ))}
+            </div>
+          )}
+          {!isPlatform && (
+            <div style={{ background: `${color}20`, borderRadius: 10, padding: "10px 16px", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 12 }}>
+              {[{ l: "Available", v: data.available, c: color }, { l: "Pending", v: data.pending, c: GOLD }, { l: "Paid Out", v: data.paid, c: "#94a3b8" }].map(s => (
+                <div key={s.l} style={{ textAlign: "center" as const }}>
+                  <p style={{ margin: "0 0 2px", fontSize: 9, opacity: 0.6, fontWeight: 700, textTransform: "uppercase" as const }}>{s.l}</p>
+                  <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color: s.c }}>{fmt(s.v, true)}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+
         {/* Tabs */}
         <div style={{ display: "flex", gap: 0, borderBottom: "1px solid #f1f5f9" }}>
-          {[{ id: "overview", label: "💡 Overview" }, { id: "bank", label: "🏦 Bank Account" }, { id: "history", label: "📋 History" }].map(t => (
-            <button key={t.id} onClick={() => setTab(t.id as typeof tab)} style={{
-              flex: 1, padding: "14px 12px", border: "none", background: "none", cursor: "pointer", fontSize: 12, fontWeight: 700,
+          {tabs.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id as ModalTab)} style={{
+              flex: 1, padding: "13px 8px", border: "none", background: "none", cursor: "pointer", fontSize: 11, fontWeight: 700,
               color: tab === t.id ? color : "#64748b",
               borderBottom: tab === t.id ? `2px solid ${color}` : "2px solid transparent",
             }}>{t.label}</button>
           ))}
         </div>
+
         <div style={{ padding: 24 }}>
+          {/* OVERVIEW */}
           {tab === "overview" && (
             <div style={{ display: "grid", gap: 14 }}>
-              <div style={{ background: "#f8fafc", borderRadius: 14, padding: 18 }}>
-                <p style={{ margin: "0 0 12px", fontWeight: 700, fontSize: 14 }}>💳 Quick Actions</p>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  {[
-                    { label: "💸 Withdraw Funds", onClick: () => setTab("bank") },
-                    { label: "📄 Download Statement", onClick: () => setTab("history") },
-                    { label: "🔗 Add Payout Method", onClick: () => setTab("bank") },
-                    { label: "⚡ Instant Payout", onClick: () => setTab("bank") },
-                  ].map(a => (
-                    <button key={a.label} onClick={a.onClick} style={{ background: "white", border: `1px solid #e2e8f0`, borderRadius: 10, padding: "10px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", color: "#374151", textAlign: "left" as const }}>
-                      {a.label}
-                    </button>
-                  ))}
+              {isPlatform && (
+                <div style={{ background: `${BLUE}08`, border: `1px solid ${BLUE}20`, borderRadius: 14, padding: 18 }}>
+                  <p style={{ margin: "0 0 10px", fontWeight: 800, fontSize: 14, color: DARK }}>🏛️ Platform Control Center</p>
+                  <p style={{ margin: "0 0 14px", fontSize: 12, color: "#64748b" }}>All client payments land in this wallet. You control how funds are distributed to agents, suppliers, and influencers.</p>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    {[
+                      { label: "💸 Distribute Funds", action: () => setTab("distribute"), highlight: true },
+                      { label: "🏦 Add Bank Account", action: () => setTab("bank") },
+                      { label: "📊 Export Statement", action: () => {} },
+                      { label: "⚡ Instant Payout", action: () => setTab("distribute") },
+                    ].map(a => (
+                      <button key={a.label} onClick={a.action} style={{
+                        background: a.highlight ? BLUE : "white",
+                        border: a.highlight ? "none" : "1px solid #e2e8f0",
+                        borderRadius: 10, padding: "11px 12px", fontSize: 12, fontWeight: 700,
+                        cursor: "pointer", color: a.highlight ? "white" : "#374151", textAlign: "left" as const
+                      }}>
+                        {a.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+              {!isPlatform && (
+                <div style={{ background: "#f8fafc", borderRadius: 14, padding: 18 }}>
+                  <p style={{ margin: "0 0 12px", fontWeight: 700, fontSize: 14 }}>💳 Quick Actions</p>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    {[
+                      { label: "💸 Request Payout", action: () => setTab("bank") },
+                      { label: "📄 Download Statement", action: () => setTab("history") },
+                      { label: "🔗 Add Payout Method", action: () => setTab("bank") },
+                      { label: "📋 View History", action: () => setTab("history") },
+                    ].map(a => (
+                      <button key={a.label} onClick={a.action} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", color: "#374151", textAlign: "left" as const }}>
+                        {a.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div style={{ background: `${color}10`, borderRadius: 14, padding: 18, border: `1px solid ${color}20` }}>
-                <p style={{ margin: "0 0 8px", fontWeight: 700, fontSize: 13, color: DARK }}>📅 Next Scheduled Payout</p>
+                <p style={{ margin: "0 0 8px", fontWeight: 700, fontSize: 13, color: DARK }}>📅 {isPlatform ? "Finix Settlement" : "Next Scheduled Payout"}</p>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-                  <span style={{ color: "#64748b" }}>Date</span>
-                  <span style={{ fontWeight: 700, color: color }}>Every Friday</span>
+                  <span style={{ color: "#64748b" }}>Schedule</span>
+                  <span style={{ fontWeight: 700, color: color }}>{isPlatform ? "T+1 business day" : "Every Friday"}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 6 }}>
-                  <span style={{ color: "#64748b" }}>Amount</span>
+                  <span style={{ color: "#64748b" }}>Next Amount</span>
                   <span style={{ fontWeight: 800, color: color }}>{fmt(data.available, true)}</span>
                 </div>
+                {isPlatform && (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 6 }}>
+                    <span style={{ color: "#64748b" }}>Processor</span>
+                    <span style={{ fontWeight: 700, color: "#60a5fa" }}>Finix (Sandbox)</span>
+                  </div>
+                )}
               </div>
             </div>
           )}
+
+          {/* DISTRIBUTE (Platform only) */}
+          {tab === "distribute" && isPlatform && (
+            <div>
+              {distSent ? (
+                <div style={{ textAlign: "center" as const, padding: "32px 20px" }}>
+                  <div style={{ fontSize: 56, marginBottom: 12 }}>✅</div>
+                  <h3 style={{ margin: "0 0 8px", fontWeight: 800, color: "#065f46" }}>Transfer Recorded!</h3>
+                  <p style={{ color: "#64748b", fontSize: 13, margin: "0 0 20px" }}>The distribution will be processed once Finix live mode is activated.</p>
+                  <button onClick={() => { setDistSent(false); setDistForm({ to: "agent", amount: "", note: "" }); }}
+                    style={{ background: BLUE, color: "white", border: "none", borderRadius: 9999, padding: "10px 24px", fontWeight: 700, cursor: "pointer" }}>
+                    New Transfer
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: "grid", gap: 16 }}>
+                  <div style={{ background: `${BLUE}08`, borderRadius: 14, padding: 16, border: `1px solid ${BLUE}15` }}>
+                    <p style={{ margin: "0 0 6px", fontWeight: 700, fontSize: 13, color: DARK }}>💰 Platform Balance Available</p>
+                    <p style={{ margin: 0, fontSize: 32, fontWeight: 900, color: BLUE }}>{fmt(data.available, true)}</p>
+                    <p style={{ margin: "4px 0 0", fontSize: 11, color: "#94a3b8" }}>Zeniva Travel LLC · USD · Finix</p>
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#374151", marginBottom: 6, textTransform: "uppercase" as const }}>Send To</label>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                      {[
+                        { id: "agent", icon: "👤", label: "Agent", color: PURPLE },
+                        { id: "influencer", icon: "⭐", label: "Influencer", color: GOLD },
+                        { id: "supplier", icon: "✈️", label: "Supplier", color: GREEN },
+                      ].map(w => (
+                        <button key={w.id} onClick={() => setDistForm(p => ({ ...p, to: w.id }))} style={{
+                          background: distForm.to === w.id ? `${w.color}15` : "#f8fafc",
+                          border: `2px solid ${distForm.to === w.id ? w.color : "#e2e8f0"}`,
+                          borderRadius: 12, padding: "12px 8px", cursor: "pointer", textAlign: "center" as const,
+                        }}>
+                          <div style={{ fontSize: 22, marginBottom: 4 }}>{w.icon}</div>
+                          <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: distForm.to === w.id ? w.color : "#374151" }}>{w.label}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#374151", marginBottom: 6, textTransform: "uppercase" as const }}>Amount (USD)</label>
+                    <input
+                      type="number"
+                      value={distForm.amount}
+                      onChange={e => setDistForm(p => ({ ...p, amount: e.target.value }))}
+                      placeholder="Enter amount e.g. 800"
+                      style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 10, padding: "12px 14px", fontSize: 16, fontWeight: 700, outline: "none", boxSizing: "border-box" as const }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#374151", marginBottom: 6, textTransform: "uppercase" as const }}>Note / Reference (optional)</label>
+                    <input
+                      value={distForm.note}
+                      onChange={e => setDistForm(p => ({ ...p, note: e.target.value }))}
+                      placeholder="e.g. Agent commission — Booking #1042"
+                      style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 10, padding: "11px 14px", fontSize: 14, outline: "none", boxSizing: "border-box" as const }}
+                    />
+                  </div>
+
+                  {distForm.amount && Number(distForm.amount) > 0 && (
+                    <div style={{ background: "#f0fdf4", borderRadius: 12, padding: "14px 16px", border: "1px solid #bbf7d0" }}>
+                      <p style={{ margin: "0 0 6px", fontWeight: 700, fontSize: 13, color: "#065f46" }}>Transfer Summary</p>
+                      <div style={{ fontSize: 13, color: "#374151", display: "grid", gap: 4 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                          <span>From</span><span style={{ fontWeight: 700 }}>Platform Wallet (Zeniva Travel LLC)</span>
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                          <span>To</span><span style={{ fontWeight: 700, textTransform: "capitalize" as const }}>{distForm.to} Wallet</span>
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                          <span>Amount</span><span style={{ fontWeight: 800, color: GREEN }}>${Number(distForm.amount).toLocaleString()}</span>
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                          <span>Remaining</span><span style={{ fontWeight: 700 }}>${Math.max(0, data.available - Number(distForm.amount)).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <button onClick={handleDistribute} disabled={distSending || !distForm.amount || Number(distForm.amount) <= 0}
+                    style={{ background: distSending ? "#94a3b8" : `linear-gradient(135deg, ${BLUE}, ${DARK})`, color: "white", border: "none", borderRadius: 9999, padding: "14px", fontWeight: 800, fontSize: 15, cursor: distSending ? "not-allowed" : "pointer" }}>
+                    {distSending ? "Processing Transfer…" : `💸 Send ${distForm.amount ? "$" + Number(distForm.amount).toLocaleString() : ""} to ${distForm.to.charAt(0).toUpperCase() + distForm.to.slice(1)} Wallet`}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* BANK */}
           {tab === "bank" && (
             <div>
               {saved ? (
-                <div style={{ textAlign: "center", padding: "32px 20px" }}>
+                <div style={{ textAlign: "center" as const, padding: "32px 20px" }}>
                   <div style={{ fontSize: 56, marginBottom: 12 }}>✅</div>
                   <h3 style={{ margin: "0 0 8px", fontWeight: 800, color: "#065f46" }}>Bank Account Saved!</h3>
                   <p style={{ color: "#64748b", fontSize: 13, margin: "0 0 20px" }}>Verification micro-deposits will arrive in 1-2 business days.</p>
@@ -197,11 +367,13 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
                 </div>
               ) : (
                 <div style={{ display: "grid", gap: 14 }}>
-                  <p style={{ margin: "0 0 4px", fontSize: 14, color: "#374151", fontWeight: 600 }}>Add your bank account to receive payouts from ZeniPay every Friday.</p>
+                  <p style={{ margin: "0 0 4px", fontSize: 13, color: "#374151", fontWeight: 600 }}>
+                    {isPlatform ? "Add Zeniva Travel LLC bank account to receive Finix settlements." : "Add your bank account to receive payouts from ZeniPay."}
+                  </p>
                   {[
-                    { label: "Account Holder Name", key: "holder", ph: name === "Platform" ? "Zeniva Travel LLC" : "Full Name" },
-                    { label: "Bank Name", key: "bank", ph: "Chase, Bank of America, Wells Fargo…" },
-                    { label: "Routing Number", key: "routing", ph: "021000021" },
+                    { label: "Account Holder Name", key: "holder", ph: isPlatform ? "Zeniva Travel LLC" : "Full Name" },
+                    { label: "Bank Name", key: "bank", ph: "Chase, TD Bank, Royal Bank…" },
+                    { label: "Routing / Transit Number", key: "routing", ph: "021000021" },
                     { label: "Account Number", key: "account", ph: "••••••••••" },
                   ].map(f => (
                     <div key={f.key}>
@@ -214,40 +386,28 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
                     <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#374151", marginBottom: 5, textTransform: "uppercase" as const }}>Account Type</label>
                     <select value={bankForm.type} onChange={e => setBankForm(p => ({...p,type:e.target.value}))}
                       style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 10, padding: "11px 14px", fontSize: 14, outline: "none" }}>
-                      <option value="checking">Checking</option>
+                      <option value="checking">Checking / Chequing</option>
                       <option value="savings">Savings</option>
+                      <option value="business">Business Checking</option>
                     </select>
                   </div>
-                  <button onClick={handleSave} disabled={saving} style={{ background: `linear-gradient(135deg, ${BLUE}, ${DARK})`, color: "white", border: "none", borderRadius: 9999, padding: "13px", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
+                  <button onClick={handleSave} disabled={saving} style={{ background: saving ? "#94a3b8" : `linear-gradient(135deg, ${BLUE}, ${DARK})`, color: "white", border: "none", borderRadius: 9999, padding: "13px", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
                     {saving ? "Saving…" : "💾 Save Bank Account"}
                   </button>
                 </div>
               )}
             </div>
           )}
+
+          {/* HISTORY */}
           {tab === "history" && (
             <div style={{ display: "grid", gap: 10 }}>
-              {[
-                { date: "Feb 28, 2026", amount: data.available * 0.3, type: "Credit", ref: "ZNV-PAY-001" },
-                { date: "Feb 21, 2026", amount: data.available * 0.25, type: "Credit", ref: "ZNV-PAY-002" },
-                { date: "Feb 14, 2026", amount: data.available * 0.2, type: "Payout", ref: "ZNV-OUT-003" },
-                { date: "Feb 7, 2026", amount: data.available * 0.15, type: "Credit", ref: "ZNV-PAY-004" },
-              ].map((t,i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", padding: "12px 0", borderBottom: "1px solid #f1f5f9" }}>
-                  <div style={{ width: 36, height: 36, background: t.type === "Payout" ? "#fee2e2" : "#dcfce7", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, marginRight: 12 }}>
-                    {t.type === "Payout" ? "↑" : "↓"}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <p style={{ margin: 0, fontWeight: 600, fontSize: 13 }}>{t.type}</p>
-                    <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>{t.date} · {t.ref}</p>
-                  </div>
-                  <span style={{ fontWeight: 800, fontSize: 14, color: t.type === "Payout" ? RED : GREEN }}>
-                    {t.type === "Payout" ? "−" : "+"}{fmt(t.amount, true)}
-                  </span>
-                </div>
-              ))}
+              <div style={{ background: "#f8fafc", borderRadius: 12, padding: "14px 16px", textAlign: "center" as const, border: "1px dashed #e2e8f0" }}>
+                <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151" }}>No transactions yet</p>
+                <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>Transactions will appear here once Finix live payments are active</p>
+              </div>
               <button style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: "11px", fontWeight: 700, fontSize: 13, cursor: "pointer", color: "#374151", marginTop: 8 }}>
-                📥 Download Full Statement (PDF)
+                📥 Download Full Statement
               </button>
             </div>
           )}
@@ -256,6 +416,7 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
     </div>
   );
 }
+
 
 // ── TABS ─────────────────────────────────────────────
 const TABS = [
@@ -362,7 +523,7 @@ export default function ZeniPayDashboard() {
               <div style={{ width: 1, height: 40, background: "rgba(255,255,255,0.1)" }} />
               <div style={{ textAlign: "right" }}>
                 <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Gateway</p>
-                <p style={{ margin: 0, fontWeight: 700, fontSize: 12, color: GREEN }}>● Authorize.net · Live</p>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: 12, color: GREEN }}>● Finix · Sandbox</p>
               </div>
               <div style={{ background: `${BLUE}22`, border: `1px solid ${BLUE}44`, borderRadius: 8, padding: "6px 12px", fontSize: 11, color: BLUE, fontWeight: 700 }}>
                 🤖 Noah AI Online
@@ -546,13 +707,52 @@ export default function ZeniPayDashboard() {
               </div>
             </div>
 
-            {/* WALLET CARDS GRID */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 18 }}>
+            {/* PLATFORM WALLET — full width, control center */}
+            <div onClick={() => setOpenWallet({ name: "Platform", data: WALLETS.platform, icon: "🏛️", color: BLUE })}
+              style={{ background: `linear-gradient(135deg, ${DARK} 0%, #0a2070 50%, ${BLUE} 100%)`, borderRadius: 20, padding: "28px 32px", color: "white", cursor: "pointer", position: "relative", overflow: "hidden" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
+              <div style={{ position: "absolute", top: -20, right: -20, width: 160, height: 160, background: "rgba(255,255,255,0.04)", borderRadius: "50%", pointerEvents: "none" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" as const, position: "relative" }}>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                    <div style={{ width: 44, height: 44, background: "rgba(255,255,255,0.12)", borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, border: "1px solid rgba(255,255,255,0.2)" }}>🏛️</div>
+                    <div>
+                      <p style={{ margin: 0, fontWeight: 900, fontSize: 18 }}>Platform Wallet</p>
+                      <p style={{ margin: 0, fontSize: 11, opacity: 0.55 }}>Zeniva Travel LLC · Master Control</p>
+                    </div>
+                    <span style={{ marginLeft: 8, background: "#4ade8030", border: "1px solid #4ade8060", borderRadius: 9999, padding: "3px 10px", fontSize: 10, fontWeight: 700, color: "#4ade80" }}>ADMIN</span>
+                  </div>
+                  <p style={{ margin: 0, fontWeight: 900, fontSize: 40, letterSpacing: "-1px" }}>{fmt(WALLETS.platform.available, true)}</p>
+                  <p style={{ margin: "6px 0 0", fontSize: 12, opacity: 0.5 }}>Available for distribution</p>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  {[
+                    { l: "Pending", v: fmt(WALLETS.platform.pending, true), c: GOLD },
+                    { l: "Paid Out", v: fmt(WALLETS.platform.paid, true), c: "#94a3b8" },
+                    { l: "Processor", v: "Finix", c: "#60a5fa" },
+                    { l: "Mode", v: "Sandbox", c: GOLD },
+                  ].map(s => (
+                    <div key={s.l} style={{ background: "rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 12px", backdropFilter: "blur(4px)" }}>
+                      <p style={{ margin: "0 0 2px", fontSize: 9, opacity: 0.55, fontWeight: 700, textTransform: "uppercase" as const }}>{s.l}</p>
+                      <p style={{ margin: 0, fontWeight: 800, fontSize: 13, color: s.c }}>{s.v}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ marginTop: 20, display: "flex", gap: 8, flexWrap: "wrap" as const, position: "relative" }}>
+                {["💸 Distribute", "🏦 Bank Account", "📊 Statement", "⚡ Instant Payout"].map(b => (
+                  <span key={b} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 9999, padding: "6px 14px", fontSize: 11, fontWeight: 700 }}>{b}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* SUB WALLETS — 3 columns */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>
               {[
-                { name: "Platform", data: WALLETS.platform, icon: "🏛️", color: BLUE, role: "Zeniva Travel LLC", desc: "Main company wallet — all client payments land here" },
-                { name: "Agent", data: WALLETS.agent, icon: "👤", color: PURPLE, role: "Travel Agents", desc: "Commissions due to agents — manual payout by admin" },
-                { name: "Influencer", data: WALLETS.influencer, icon: "⭐", color: GOLD, role: "Content Creators", desc: "Referral commissions for influencer partners" },
-                { name: "Supplier", data: WALLETS.supplier, icon: "✈️", color: GREEN, role: "Hotels & Airlines", desc: "Supplier payouts — hotels, flights, excursions" },
+                { name: "Agent", data: WALLETS.agent, icon: "👤", color: PURPLE },
+                { name: "Influencer", data: WALLETS.influencer, icon: "⭐", color: GOLD },
+                { name: "Supplier", data: WALLETS.supplier, icon: "✈️", color: GREEN },
               ].map(w => (
                 <WalletCard key={w.name} name={w.name} data={w.data} icon={w.icon} color={w.color} onOpen={() => setOpenWallet({ name: w.name, data: w.data, icon: w.icon, color: w.color })} />
               ))}
@@ -908,7 +1108,7 @@ export default function ZeniPayDashboard() {
               <div style={{ textAlign: "center", padding: 40, color: "#94a3b8" }}>
                 <div style={{ fontSize: 48, marginBottom: 12 }}>🏛️</div>
                 <p>Financing plans will appear here once travelers choose installment payment options.</p>
-                <p style={{ fontSize: 12, marginTop: 8 }}>Connect Authorize.net financing module to enable.</p>
+                <p style={{ fontSize: 12, marginTop: 8 }}>Connect Finix financing module to enable installments.</p>
               </div>
             </div>
           </div>
@@ -1350,7 +1550,7 @@ export default function ZeniPayDashboard() {
           <div style={{ display: "grid", gap: 16 }}>
             {[
               { title: "🏦 Payment Gateway", items: [
-                { label: "Primary Gateway", value: "Authorize.net", status: "sandbox" },
+                { label: "Primary Gateway", value: "Finix", status: "sandbox" },
                 { label: "API Login ID", value: "●●●●●●●●●●●●", status: null },
                 { label: "Environment", value: "Sandbox · Test Mode", status: "pending" },
                 { label: "Production", value: "Pending merchant account approval", status: "pending" },
