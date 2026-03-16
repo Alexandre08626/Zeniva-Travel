@@ -13,17 +13,14 @@ const GOLD = "#F59E0B";
 const RED = "#EF4444";
 const PURPLE = "#8B5CF6";
 
-// ── MOCK DATA (replace with Supabase queries) ─────────
-// ── Real mode — starting at $0. 100% of payments → Platform wallet.
-// Admin manually triggers agent/supplier payouts when needed.
-const WALLETS = {
+// ── Default wallets — overwritten by live API on mount ────────────────
+const DEFAULT_WALLETS = {
   platform:   { available: 0, pending: 0, paid: 0, currency: "USD" },
   agent:      { available: 0, pending: 0, paid: 0, currency: "USD" },
   influencer: { available: 0, pending: 0, paid: 0, currency: "USD" },
   supplier:   { available: 0, pending: 0, paid: 0, currency: "USD" },
 };
-
-const TRANSACTIONS: { id: string; customer: string; booking: string; amount: number; currency: string; method: string; gateway: string; status: string; date: string }[] = [];
+// WALLETS and TRANSACTIONS are now component state — fetched from /api/zenipay/stats
 
 const AGENTS: { id?: string; name: string; code: string; bookings: number; revenue: number; commission: number; pending: number; rate: string; role?: string; avatar?: string; badge?: string }[] = [
   { id: "ag-001", name: "Louis", code: "LOUIS", bookings: 0, revenue: 0, commission: 0, pending: 0, rate: "70%", role: "Senior Travel Agent", badge: "🥇" },
@@ -77,7 +74,7 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function WalletCard({ name, data, icon, color, onOpen }: { name: string; data: typeof WALLETS.platform; icon: string; color: string; onOpen: () => void }) {
+function WalletCard({ name, data, icon, color, onOpen }: { name: string; data: { available: number; pending: number; paid: number; currency: string }; icon: string; color: string; onOpen: () => void }) {
   const pct = Math.round((data.available / (data.available + data.pending + 1)) * 100);
   return (
     <div onClick={onOpen} style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 16px rgba(0,0,0,0.08)", cursor: "pointer", transition: "transform 0.15s, box-shadow 0.15s", border: `1px solid ${color}18` }}
@@ -114,7 +111,7 @@ function WalletCard({ name, data, icon, color, onOpen }: { name: string; data: t
   );
 }
 
-function WalletModal({ name, data, icon, color, onClose }: { name: string; data: typeof WALLETS.platform; icon: string; color: string; onClose: () => void }) {
+function WalletModal({ name, data, icon, color, onClose }: { name: string; data: { available: number; pending: number; paid: number; currency: string }; icon: string; color: string; onClose: () => void }) {
   const isPlatform = name === "Platform";
   type ModalTab = "overview" | "bank" | "history" | "distribute";
   const [tab, setTab] = useState<ModalTab>(isPlatform ? "overview" : "overview");
@@ -740,16 +737,58 @@ export default function ZeniPayDashboard() {
     { role: "ben", text: "Bonjour! Je suis Ben, votre agent IA ZeniPay. Je surveille les paiements, détecte les anomalies et génère vos rapports financiers en temps réel. Comment puis-je vous aider?" }
   ]);
   const [aiLoading, setAiLoading] = useState(false);
-  const [openWallet, setOpenWallet] = useState<{name:string;data:typeof WALLETS.platform;icon:string;color:string}|null>(null);
-  // Real mode — activity feed starts empty, populated from real Finix webhooks
+  // Live data from API
+  const [WALLETS, setWALLETS] = useState(DEFAULT_WALLETS);
+  const [TRANSACTIONS, setTRANSACTIONS] = useState<{ id: string; customer: string; booking: string; amount: number; currency: string; method: string; gateway: string; status: string; date: string }[]>([]);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [openWallet, setOpenWallet] = useState<{name:string;data:typeof DEFAULT_WALLETS.platform;icon:string;color:string}|null>(null);
   const [liveActivity, setLiveActivity] = useState<{ id: number; text: string; time: string; type: string }[]>([]);
 
-  // Real mode — no fake simulation; feed populated by real Finix webhooks
-  // useEffect(() => { ... }, []);
+  // ── Fetch live stats from /api/zenipay/stats ──────────────────────────
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const res = await fetch("/api/zenipay/stats");
+        if (!res.ok) return;
+        const data = await res.json();
 
-  const totalRevenue = TRANSACTIONS.filter(t => t.status === "completed").reduce((a, t) => a + t.amount, 0);
+        if (data.wallets) {
+          setWALLETS({
+            platform:   { available: data.wallets.platform?.available || 0,   pending: data.wallets.platform?.pending || 0,   paid: data.wallets.platform?.paid_out || 0,   currency: "USD" },
+            agent:      { available: data.wallets.agent?.available || 0,       pending: data.wallets.agent?.pending || 0,       paid: data.wallets.agent?.paid_out || 0,       currency: "USD" },
+            influencer: { available: data.wallets.influencer?.available || 0,  pending: data.wallets.influencer?.pending || 0,  paid: data.wallets.influencer?.paid_out || 0,  currency: "USD" },
+            supplier:   { available: data.wallets.supplier?.available || 0,    pending: data.wallets.supplier?.pending || 0,    paid: data.wallets.supplier?.paid_out || 0,    currency: "USD" },
+          });
+        }
+
+        if (data.recent_transactions?.length > 0) {
+          setTRANSACTIONS(data.recent_transactions.map((t: Record<string, unknown>) => ({
+            id: String(t.id || ""),
+            customer: String(t.customer || ""),
+            booking: String(t.description || t.id || ""),
+            amount: Number(t.amount || 0),
+            currency: String(t.currency || "USD"),
+            method: "card",
+            gateway: "Finix",
+            status: String(t.status || "pending"),
+            date: String(t.date || new Date().toISOString()),
+          })));
+        }
+      } catch (e) {
+        // API not reachable — stay at $0
+      } finally {
+        setStatsLoading(false);
+      }
+    }
+    void fetchStats();
+    // Refresh every 30s
+    const interval = setInterval(fetchStats, 30_000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const totalRevenue = TRANSACTIONS.filter(t => t.status === "succeeded" || t.status === "completed").reduce((a, t) => a + t.amount, 0);
   const platformBalance = WALLETS.platform.available + WALLETS.agent.available + WALLETS.influencer.available + WALLETS.supplier.available;
-  const successRate = TRANSACTIONS.length > 0 ? Math.round(TRANSACTIONS.filter(t => t.status === "completed").length / TRANSACTIONS.length * 100) : 0;
+  const successRate = TRANSACTIONS.length > 0 ? Math.round(TRANSACTIONS.filter(t => t.status === "succeeded" || t.status === "completed").length / TRANSACTIONS.length * 100) : 0;
 
   const filteredTx = TRANSACTIONS.filter(t => {
     const matchSearch = !txSearch || t.customer.toLowerCase().includes(txSearch.toLowerCase()) || t.id.includes(txSearch) || t.booking.includes(txSearch);
