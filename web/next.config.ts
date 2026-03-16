@@ -6,8 +6,9 @@ const rootDir = path.resolve(__dirname);
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   experimental: {
-    // Disable Partial Prerendering — causes /_global-error workUnitAsyncStorage crash on Vercel
+    // Disable Partial Prerendering + Dynamic IO — both cause /_global-error workUnitAsyncStorage crash
     ppr: false,
+    dynamicIO: false,
   },
 
 
