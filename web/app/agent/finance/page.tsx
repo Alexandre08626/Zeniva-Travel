@@ -14,50 +14,24 @@ const RED = "#EF4444";
 const PURPLE = "#8B5CF6";
 
 // ── MOCK DATA (replace with Supabase queries) ─────────
+// ── Real mode — starting at $0. 100% of payments → Platform wallet.
+// Admin manually triggers agent/supplier payouts when needed.
 const WALLETS = {
-  platform:   { available: 94302.40, pending: 23401.00, paid: 478900.00, currency: "USD" },
-  agent:      { available: 47230.80, pending: 18900.00, paid: 284500.00, currency: "USD" },
-  influencer: { available: 52050.60, pending:  8200.00, paid: 123000.00, currency: "USD" },
+  platform:   { available: 0, pending: 0, paid: 0, currency: "USD" },
+  agent:      { available: 0, pending: 0, paid: 0, currency: "USD" },
+  influencer: { available: 0, pending: 0, paid: 0, currency: "USD" },
   supplier:   { available: 281400.00, pending: 89200.00, paid: 1423000.00, currency: "USD" },
 };
 
-const TRANSACTIONS = [
-  { id: "TXN-K9X2M", customer: "James Mitchell", booking: "#9231", amount: 7677, currency: "USD", method: "Visa •• 4242", gateway: "Authorize.net", status: "completed", date: "2026-02-27 14:32" },
-  { id: "TXN-B7R4L", customer: "Priya Sharma", booking: "#9228", amount: 12450, currency: "USD", method: "Mastercard •• 8521", gateway: "Authorize.net", status: "completed", date: "2026-02-27 11:15" },
-  { id: "TXN-Q3W9P", customer: "Lucas Fontaine", booking: "#9220", amount: 3280, currency: "USD", method: "ACH", gateway: "ZeniPay ACH", status: "pending", date: "2026-02-27 09:04" },
-  { id: "TXN-Y6T1A", customer: "Emma Wilson", booking: "#9218", amount: 5890, currency: "USD", method: "Amex •• 3741", gateway: "Authorize.net", status: "completed", date: "2026-02-26 22:48" },
-  { id: "TXN-D2S8N", customer: "Carlos Ruiz", booking: "#9215", amount: 2100, currency: "USD", method: "Visa •• 1234", gateway: "Authorize.net", status: "failed", date: "2026-02-26 18:31" },
-  { id: "TXN-H5F3C", customer: "Sophie Laurent", booking: "#9210", amount: 9875, currency: "USD", method: "Wire Transfer", gateway: "ZeniPay Wire", status: "completed", date: "2026-02-26 15:20" },
-  { id: "TXN-M1V7K", customer: "Ryan Chen", booking: "#9205", amount: 4300, currency: "USD", method: "Mastercard •• 5678", gateway: "Authorize.net", status: "refunded", date: "2026-02-26 12:08" },
-  { id: "TXN-P9G2R", customer: "Layla Hassan", booking: "#9199", amount: 18750, currency: "USD", method: "Wire Transfer", gateway: "ZeniPay Wire", status: "completed", date: "2026-02-25 17:45" },
-];
+const TRANSACTIONS: { id: string; customer: string; booking: string; amount: number; currency: string; method: string; gateway: string; status: string; date: string }[] = [];
 
-const AGENTS = [
-  { id: "AGT-001", name: "Noah Martin", role: "Lead Agent · ZeniPay AI", avatar: "🤖", bookings: 47, revenue: 284500, commission: 47230, pending: 8400, rate: "10.4%", status: "active", badge: "🏆 Top Earner" },
-  { id: "AGT-002", name: "Sofia Rivera", role: "Marketing Lead", avatar: "🌟", bookings: 31, revenue: 187200, commission: 29560, pending: 5200, rate: "9.8%", status: "active", badge: "⬆️ +22% this month" },
-  { id: "AGT-003", name: "Luna Park", role: "Content & Social", avatar: "🌙", bookings: 18, revenue: 98400, commission: 14760, pending: 2800, rate: "9.5%", status: "active", badge: "📈 Growing" },
-  { id: "AGT-004", name: "Alex Torres", role: "Travel Specialist", avatar: "✈️", bookings: 24, revenue: 156000, commission: 22880, pending: 3600, rate: "10.0%", status: "active", badge: null },
-];
+const AGENTS: { name: string; code: string; bookings: number; revenue: number; commission: number; pending: number; rate: string }[] = [];
 
-const INFLUENCERS = [
-  { id: "INF-001", name: "Camille Beaumont", handle: "@camille_travels", platform: "TikTok", referrals: 127, revenue: 84700, commission: 10164, rate: "12%", tier: "Gold", status: "active" },
-  { id: "INF-002", name: "Marco Viaggio", handle: "@marcoviaggio", platform: "Instagram", referrals: 89, revenue: 52300, commission: 5754, rate: "11%", tier: "Silver", status: "active" },
-  { id: "INF-003", name: "Jade Mori", handle: "@jade.adventures", platform: "YouTube", referrals: 62, revenue: 38900, commission: 3890, rate: "10%", tier: "Bronze", status: "active" },
-];
+const INFLUENCERS: { name: string; code: string; refs: number; revenue: number; commission: number; pending: number; rate: string }[] = [];
 
-const INVOICES = [
-  { id: "INV-2026-0042", client: "James Mitchell", amount: 7677, status: "paid", date: "2026-02-27", due: "2026-03-05", booking: "#9231" },
-  { id: "INV-2026-0041", client: "Priya Sharma", amount: 12450, status: "paid", date: "2026-02-27", due: "2026-03-05", booking: "#9228" },
-  { id: "INV-2026-0040", client: "Lucas Fontaine", amount: 3280, status: "pending", date: "2026-02-27", due: "2026-03-06", booking: "#9220" },
-  { id: "INV-2026-0039", client: "Carlos Ruiz", amount: 2100, status: "overdue", date: "2026-02-20", due: "2026-02-27", booking: "#9215" },
-];
+const INVOICES: { id: string; client: string; amount: number; status: string; date: string }[] = [];
 
-const PAYOUTS = [
-  { id: "PAY-2026-018", recipient: "Noah Martin", type: "Agent Commission", amount: 8400, method: "Direct Deposit", status: "pending", date: "2026-03-01" },
-  { id: "PAY-2026-017", recipient: "Camille Beaumont", type: "Influencer Commission", amount: 3200, method: "PayPal", status: "scheduled", date: "2026-03-01" },
-  { id: "PAY-2026-016", recipient: "Sofia Rivera", type: "Agent Commission", amount: 5200, method: "Direct Deposit", status: "pending", date: "2026-03-01" },
-  { id: "PAY-2026-015", recipient: "Noah Martin", type: "Agent Commission", amount: 7840, method: "Direct Deposit", status: "paid", date: "2026-02-01" },
-];
+const PAYOUTS: { recipient: string; type: string; amount: number; status: string; date: string }[] = [];
 
 // ── UTILS ────────────────────────────────────────────
 const fmt = (n: number, compact?: boolean) =>
@@ -316,28 +290,13 @@ export default function ZeniPayDashboard() {
   ]);
   const [aiLoading, setAiLoading] = useState(false);
   const [openWallet, setOpenWallet] = useState<{name:string;data:typeof WALLETS.platform;icon:string;color:string}|null>(null);
-  const [liveActivity, setLiveActivity] = useState([
-    { id: 1, text: "$7,677 received · James Mitchell · Booking #9231 · Visa", time: "2 min ago", type: "success" },
-    { id: 2, text: "$12,450 received · Priya Sharma · Booking #9228 · Mastercard", time: "35 min ago", type: "success" },
-    { id: 3, text: "⚠️ Payment failed · Carlos Ruiz · Booking #9215 · $2,100", time: "2h ago", type: "alert" },
-    { id: 4, text: "$9,875 received · Sophie Laurent · Wire Transfer", time: "4h ago", type: "success" },
-  ]);
+  // Real mode — activity feed starts empty, populated from real Finix webhooks
+  const [liveActivity, setLiveActivity] = useState<{ id: number; text: string; time: string; type: string }[]>([]);
 
   // Simulate live payment feed
   useEffect(() => {
-    const names = ["Alex Johnson", "Marie Dubois", "Kevin Park", "Isabella Ferrari", "Omar Khalil"];
-    const amounts = [4280, 6750, 9120, 3440, 11800];
-    const interval = setInterval(() => {
-      const name = names[Math.floor(Math.random() * names.length)];
-      const amount = amounts[Math.floor(Math.random() * amounts.length)];
-      const ref = Math.random().toString(36).slice(2, 7).toUpperCase();
-      setLiveActivity(prev => [{
-        id: Date.now(),
-        text: `${fmt(amount)} received · ${name} · Booking #${ref} · Visa`,
-        time: "just now",
-        type: "success",
-      }, ...prev.slice(0, 7)]);
-    }, 15000);
+// Real mode — no fake payment simulation. Feed comes from real Finix webhooks.
+    // TODO: connect to /api/zenipay/webhooks/finix for live events
     return () => clearInterval(interval);
   }, []);
 
@@ -562,7 +521,7 @@ export default function ZeniPayDashboard() {
                 </div>
                 <div style={{ textAlign: "right" as const }}>
                   <p style={{ margin: "0 0 8px", fontSize: 12, opacity: 0.6 }}>Gateway</p>
-                  <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 14, color: GREEN }}>● Finix Active</p>
+                  <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 14, color: GREEN }}>● Finix Active (Sandbox → Production)</p>
                   <p style={{ margin: 0, fontSize: 11, opacity: 0.5 }}>Sandbox mode · Production pending</p>
                 </div>
               </div>
@@ -1033,10 +992,10 @@ export default function ZeniPayDashboard() {
               {/* Fiscal summary */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginTop: 20 }}>
                 {[
-                  { label: "Gross Revenue", value: "$1,892,400", sub: "FY 2025-2026", color: GREEN },
-                  { label: "Total Expenses", value: "$948,200", sub: "Operating costs", color: RED },
-                  { label: "Net Income", value: "$944,200", sub: "Before tax", color: GOLD },
-                  { label: "Tax Provision", value: "$141,630", sub: "Est. 15% corp tax", color: "#94a3b8" },
+                  { label: "Gross Revenue", value: "$0", sub: "FY 2025-2026", color: GREEN },
+                  { label: "Total Expenses", value: "$0", sub: "Operating costs", color: RED },
+                  { label: "Net Income", value: "$0", sub: "Before tax", color: GOLD },
+                  { label: "Tax Provision", value: "$0", sub: "Est. 15% corp tax", color: "#94a3b8" },
                 ].map(s => (
                   <div key={s.label} style={{ background: "rgba(255,255,255,0.08)", borderRadius: 12, padding: "14px 16px" }}>
                     <p style={{ margin: "0 0 4px", fontSize: 10, opacity: 0.6, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>{s.label}</p>
@@ -1190,11 +1149,11 @@ export default function ZeniPayDashboard() {
                 <div style={{ background: `linear-gradient(135deg, ${DARK}, #1a2f6e)`, borderRadius: 20, padding: 20, color: "white" }}>
                   <h4 style={{ margin: "0 0 14px", fontWeight: 800 }}>🧾 Tax Summary</h4>
                   {[
-                    { label: "Gross Revenue", v: "$1,892,400" },
+                    { label: "Gross Revenue", v: "$0" },
                     { label: "Total Deductions", v: "-$948,200" },
-                    { label: "Net Taxable Income", v: "$944,200" },
+                    { label: "Net Taxable Income", v: "$0" },
                     { label: "Corp Tax Rate (est.)", v: "15%" },
-                    { label: "Tax Provision", v: "$141,630" },
+                    { label: "Tax Provision", v: "$0" },
                   ].map(t => (
                     <div key={t.label} style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13 }}>
                       <span style={{ opacity: 0.6 }}>{t.label}</span>

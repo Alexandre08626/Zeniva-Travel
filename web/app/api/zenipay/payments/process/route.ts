@@ -1,94 +1,108 @@
-import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
-export async function POST(req: NextRequest) {
-  const {
-    payment_id, amount, currency = "USD",
-    card_number, expiry_month, expiry_year, cvc,
-    cardholder_name, billing_zip,
-    // ACH fields
-    payment_method,
-    // Legacy opaque data fields (Authorize.net fallback)
-    opaque_data_descriptor, opaque_data_value,
-    customer_email, customer_name, description,
-  } = await req.json();
+/**
+ * ZeniPay — Payment Processing Route
+ * Architecture: Zeniva → ZeniPay → Finix → Card Network → Zeniva Bank Account
+ * 
+ * FLOW:
+ * 1. Receive card data from ZeniPay checkout
+ * 2. Tokenize card via Finix (never store raw card numbers)
+ * 3. Create transfer via Finix
+ * 4. 100% of funds go to Zeniva Travel Platform Wallet
+ * 5. Admin manually distributes to agents/suppliers when needed
+ * 6. Redirect client to /booking/confirmation
+ */
 
-  if (!payment_id || !amount) {
-    return NextResponse.json({ status: "failed", error: "Missing required fields" }, { status: 400 });
-  }
-
-  let transactionId: string;
-  let instrumentId: string | undefined;
-  let last4: string | undefined;
-  let brand: string | undefined;
-
+export async function POST(request: Request) {
   try {
-    if (payment_method === "ach") {
-      // ACH — record pending, no real processing yet
-      transactionId = `ACH-${Date.now().toString(36).toUpperCase()}`;
-    } else if (card_number && expiry_month && expiry_year && cvc) {
-      // Real card payment via Finix
+    const body = await request.json();
+    const {
+      payment_id,
+      amount,
+      currency = "USD",
+      card_number,
+      expiry_month,
+      expiry_year,
+      cvc,
+      cardholder_name,
+      billing_zip,
+      description,
+    } = body;
+
+    if (!payment_id || !amount) {
+      return Response.json({ error: "Missing required fields: payment_id and amount" }, { status: 400 });
+    }
+
+    const amountCents = Math.round(parseFloat(amount) * 100);
+
+    // ── FINIX GATEWAY ──────────────────────────────────────────────
+    if (card_number && expiry_month && expiry_year && cvc) {
       const { processPayment } = await import("../../../../../modules/zenipay/gateways/index");
+
       const result = await processPayment({
         cardNumber: card_number,
         expiryMonth: expiry_month,
         expiryYear: expiry_year,
         cvc,
-        cardholderName: cardholder_name || customer_name || "",
-        postalCode: billing_zip,
-        amount: parseFloat(amount),
+        cardholderName: cardholder_name || "Cardholder",
+        billingZip: billing_zip || "00000",
+        amount: amountCents,
         currency,
-        description: description || `Zeniva-${payment_id}`,
-        paymentId: payment_id,
+        description: description || `ZeniPay Payment ${payment_id}`,
+        merchantId: process.env.FINIX_MERCHANT_ID || "",
       });
 
       if (!result.success) {
-        return NextResponse.json({ status: "failed", error: result.error || "Payment declined" }, { status: 402 });
+        return Response.json({
+          success: false,
+          error: result.error || "Payment declined. Please try another card.",
+        }, { status: 402 });
       }
 
-      transactionId = result.transactionId;
-      instrumentId = result.instrumentId;
-      last4 = result.last4;
-      brand = result.brand;
-    } else {
-      // Sandbox/test mode — no card data sent
-      transactionId = `SANDBOX-${Date.now().toString(36).toUpperCase()}`;
+      /**
+       * WALLET DISTRIBUTION — Real Mode
+       * 100% of payment goes to Zeniva Travel Platform Wallet.
+       * Admin manually decides when to pay agents, suppliers, influencers.
+       * 
+       * Future: when agent system is live, auto-split will be:
+       *   Agent commission:     10.4%
+       *   Influencer referral:   1.95%
+       *   Platform margin:       2.96%
+       *   Supplier amount:      remainder
+       */
+      const totalAmount = parseFloat(amount);
+      console.log(`[ZeniPay] Payment SUCCESS — $${totalAmount} USD → Platform Wallet`);
+      console.log(`[ZeniPay] Finix Transfer ID: ${result.transactionId}`);
+      console.log(`[ZeniPay] Payment ID: ${payment_id}`);
+
+      return Response.json({
+        success: true,
+        payment_id,
+        transaction_id: result.transactionId,
+        amount: totalAmount,
+        currency,
+        status: "succeeded",
+        gateway: "Finix",
+        wallet: "platform",
+        message: `$${totalAmount} received. Funds added to Zeniva Travel Platform Wallet.`,
+        confirmation_url: `/booking/confirmation?ref=${payment_id}&total=$${totalAmount}&trip=${encodeURIComponent(description || "Zeniva Travel Booking")}`,
+      });
     }
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : "Payment processing error";
-    console.error("[ZeniPay]", msg);
-    return NextResponse.json({ status: "failed", error: msg }, { status: 500 });
-  }
 
-  // Commission distribution
-  const a = parseFloat(amount);
-  const agentCut      = Number((a * 0.104).toFixed(2));
-  const influencerCut = Number((a * 0.0195).toFixed(2));
-  const platformCut   = Number((a * 0.0296).toFixed(2));
-  const supplierPay   = Number((a - agentCut - influencerCut - platformCut).toFixed(2));
-
-  const txnId = `TXN-${Date.now().toString(36).toUpperCase()}`;
-
-  return NextResponse.json({
-    status: "completed",
-    transaction: {
-      id: txnId,
+    // ── ACH / PAY LATER ────────────────────────────────────────────
+    return Response.json({
+      success: true,
       payment_id,
-      gateway: "finix",
-      gateway_transaction_id: transactionId,
-      instrument_id: instrumentId,
-      card_brand: brand,
-      card_last4: last4,
-      amount: a,
-      currency,
-      created_at: new Date().toISOString(),
-    },
-    wallet_updates: {
-      platform:   { credited: platformCut },
-      agent:      { credited: agentCut },
-      influencer: { credited: influencerCut },
-      supplier:   { credited: supplierPay },
-    },
-    confirmation_url: `/booking/confirmation?ref=${payment_id}&total=${a}&trip=${encodeURIComponent(description || "Zeniva Travel")}`,
-  });
+      status: "pending",
+      message: "Reserve confirmed. Payment due at check-in.",
+      confirmation_url: `/booking/confirmation?ref=${payment_id}&total=$${amount}&trip=${encodeURIComponent(description || "Zeniva Travel Booking")}&payment=pending`,
+    });
+
+  } catch (err) {
+    console.error("[ZeniPay] Process error:", err);
+    return Response.json({
+      success: false,
+      error: "Payment processing error. Please try again or contact support.",
+    }, { status: 500 });
+  }
 }
