@@ -987,24 +987,40 @@ export default function ZeniPayDashboard() {
 
               {/* Commission Split */}
               <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
-                <h3 style={{ margin: "0 0 16px", fontWeight: 700, fontSize: 15 }}>💡 Revenue Split</h3>
-                <p style={{ fontSize: 12, color: "#94a3b8", margin: "0 0 16px" }}>Per $7,677 booking</p>
-                {[
-                  { label: "Supplier / Hotel", amount: 0, pct: 0, color: "#64748b" },
-                  { label: "Travel Agent (70%)", amount: 0, pct: 70, color: PURPLE },
-                  { label: "Influencer (5% net)", amount: 0, pct: 0, color: GOLD },
-                  { label: "Zeniva Platform", amount: 0, pct: 30, color: BLUE },
-                ].map(s => (
-                  <div key={s.label} style={{ marginBottom: 12 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                      <span style={{ fontSize: 12, color: "#374151", fontWeight: 500 }}>{s.label}</span>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: s.color }}>{fmt(s.amount)} ({s.pct}%)</span>
+                <h3 style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 15 }}>💡 Revenue Split</h3>
+                <p style={{ fontSize: 12, color: "#94a3b8", margin: "0 0 16px" }}>Exemple — réservation $7,677 avec agent</p>
+                {(() => {
+                  const booking = 7677;
+                  const agentAmt = Math.round(booking * 0.70 * 100) / 100;
+                  const zenivaGross = Math.round(booking * 0.30 * 100) / 100;
+                  const influencerAmt = Math.round(zenivaGross * 0.05 * 100) / 100;
+                  const zenivaNet = Math.round((zenivaGross - influencerAmt) * 100) / 100;
+                  return [
+                    { label: "🏦 Zeniva Travel (30%)", amount: zenivaNet, pct: 30, color: BLUE, sub: `Net après influenceur` },
+                    { label: "👤 Agent de voyage (70%)", amount: agentAmt, pct: 70, color: PURPLE, sub: "Louis / Jason / Luca" },
+                    { label: "⭐ Influenceur (5% du net Zeniva)", amount: influencerAmt, pct: Math.round(influencerAmt/booking*100), color: GOLD, sub: "5% du 30% Zeniva" },
+                  ].map(s => (
+                    <div key={s.label} style={{ marginBottom: 14 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                        <div>
+                          <span style={{ fontSize: 12, color: "#374151", fontWeight: 600 }}>{s.label}</span>
+                          <span style={{ fontSize: 10, color: "#94a3b8", marginLeft: 6 }}>{s.sub}</span>
+                        </div>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: s.color }}>${s.amount.toLocaleString("en-US", {minimumFractionDigits:2})} <span style={{fontSize:11,fontWeight:400}}>({s.pct}%)</span></span>
+                      </div>
+                      <div style={{ background: "#f1f5f9", borderRadius: 4, height: 7 }}>
+                        <div style={{ background: s.color, width: `${s.pct}%`, height: "100%", borderRadius: 4 }} />
+                      </div>
                     </div>
-                    <div style={{ background: "#f1f5f9", borderRadius: 4, height: 6 }}>
-                      <div style={{ background: s.color, width: `${s.pct}%`, height: "100%", borderRadius: 4 }} />
-                    </div>
-                  </div>
-                ))}
+                  ));
+                })()}
+                <div style={{ marginTop: 16, padding: "10px 14px", background: "#f8fafc", borderRadius: 10, borderLeft: `3px solid ${BLUE}` }}>
+                  <p style={{ margin: 0, fontSize: 11, color: "#64748b", lineHeight: 1.6 }}>
+                    <strong style={{color: DARK}}>⚓ ZeniYacht :</strong> 100% Zeniva Travel<br/>
+                    <strong style={{color: DARK}}>🤖 Réservation Lina seule :</strong> 70% Zeniva / 30% Agent<br/>
+                    <strong style={{color: DARK}}>💳 Sans influenceur :</strong> 70% Agent / 30% Zeniva direct
+                  </p>
+                </div>
               </div>
             </div>
           </div>
