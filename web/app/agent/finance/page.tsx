@@ -386,6 +386,10 @@ export default function ZeniPayDashboard() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#f0f4ff", fontFamily: "'Inter',system-ui,sans-serif" }}>
+      {/* Hide duplicate Help button on desktop */}
+      <style>{`
+        @media (min-width: 640px) { .help-float { display: none !important; } }
+      `}</style>
       {/* ── HEADER ── */}
       <div style={{ background: `linear-gradient(135deg, ${DARK} 0%, #1a2f6e 100%)`, padding: "0 24px", boxShadow: "0 2px 20px rgba(0,0,0,0.3)" }}>
         <div style={{ maxWidth: 1400, margin: "0 auto" }}>
@@ -412,14 +416,14 @@ export default function ZeniPayDashboard() {
           </div>
 
           {/* ── TAB BAR ── */}
-          <div style={{ display: "flex", gap: 2, overflowX: "auto", padding: "0 0 2px" }}>
+          <div style={{ display: "flex", gap: 0, overflowX: "auto", padding: "0 0 0", scrollbarWidth: "none" as const }}>
             {TABS.map(t => (
               <button key={t.id} onClick={() => setTab(t.id)} style={{
                 background: tab === t.id ? `${BLUE}25` : "transparent",
                 border: "none", borderBottom: tab === t.id ? `2px solid ${BLUE}` : "2px solid transparent",
                 color: tab === t.id ? BLUE : "rgba(255,255,255,0.5)",
-                padding: "14px 16px", fontSize: 12, fontWeight: tab === t.id ? 700 : 500,
-                cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.15s", display: "flex", gap: 6, alignItems: "center",
+                padding: "12px 10px", fontSize: 11, fontWeight: tab === t.id ? 700 : 500,
+                cursor: "pointer", whiteSpace: "nowrap" as const, transition: "all 0.15s", display: "flex", gap: 4, alignItems: "center", flexShrink: 0,
               }}>
                 <span>{t.icon}</span> {t.label}
               </button>
@@ -538,22 +542,32 @@ export default function ZeniPayDashboard() {
 
         {/* ════ WALLETS ════ */}
         {tab === "wallets" && (
-          <div>
-            <div style={{ background: `linear-gradient(135deg, ${DARK}, #1e3a8a)`, borderRadius: 20, padding: 28, marginBottom: 24, color: "white" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {/* Wallet Modal */}
+            {openWallet && (
+              <WalletModal
+                name={openWallet.name}
+                data={openWallet.data}
+                icon={openWallet.icon}
+                color={openWallet.color}
+                onClose={() => setOpenWallet(null)}
+              />
+            )}
+            <div style={{ background: `linear-gradient(135deg, ${DARK}, #1e3a8a)`, borderRadius: 20, padding: 28, color: "white" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <p style={{ margin: "0 0 4px", fontSize: 12, opacity: 0.6, textTransform: "uppercase", letterSpacing: "0.1em" }}>ZeniPay Master Balance</p>
+                  <p style={{ margin: "0 0 4px", fontSize: 12, opacity: 0.6, textTransform: "uppercase" as const, letterSpacing: "0.1em" }}>ZeniPay Master Balance</p>
                   <p style={{ margin: 0, fontWeight: 900, fontSize: 40, letterSpacing: "-1px" }}>{fmt(platformBalance)}</p>
-                  <p style={{ margin: "8px 0 0", fontSize: 12, opacity: 0.5 }}>All wallets · USD · Updated in real-time</p>
+                  <p style={{ margin: "8px 0 0", fontSize: 12, opacity: 0.5 }}>All wallets · USD · Click to manage</p>
                 </div>
-                <div style={{ textAlign: "right" }}>
+                <div style={{ textAlign: "right" as const }}>
                   <p style={{ margin: "0 0 8px", fontSize: 12, opacity: 0.6 }}>Gateway</p>
-                  <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 14, color: GREEN }}>● Authorize.net Active</p>
+                  <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 14, color: GREEN }}>● Finix Active</p>
                   <p style={{ margin: 0, fontSize: 11, opacity: 0.5 }}>Sandbox mode · Production pending</p>
                 </div>
               </div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 20 }}>
               <WalletCard name="Platform" data={WALLETS.platform} icon="🏛️" color={BLUE} onOpen={() => setOpenWallet({ name: "Platform", data: WALLETS.platform, icon: "🏛️", color: BLUE })} />
               <WalletCard name="Agent" data={WALLETS.agent} icon="👤" color={PURPLE} onOpen={() => setOpenWallet({ name: "Agent", data: WALLETS.agent, icon: "👤", color: PURPLE })} />
               <WalletCard name="Influencer" data={WALLETS.influencer} icon="⭐" color={GOLD} onOpen={() => setOpenWallet({ name: "Influencer", data: WALLETS.influencer, icon: "⭐", color: GOLD })} />
