@@ -681,81 +681,157 @@ export default function ZeniPayDashboard() {
 
         {/* ════ NOAH AI ════ */}
         {tab === "ai" && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-            {/* Noah Profile */}
-            <div style={{ background: `linear-gradient(135deg, ${DARK}, #1a2f6e)`, borderRadius: 20, padding: 28, color: "white" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
-                <div style={{ width: 64, height: 64, background: `${BLUE}40`, borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, border: `2px solid ${BLUE}` }}>🤖</div>
-                <div>
-                  <p style={{ margin: 0, fontWeight: 800, fontSize: 20 }}>Noah</p>
-                  <p style={{ margin: "2px 0 0", fontSize: 12, opacity: 0.6 }}>ZeniPay AI Finance Agent</p>
-                  <div style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 6, background: `${GREEN}22`, borderRadius: 6, padding: "2px 8px" }}>
-                    <div style={{ width: 6, height: 6, background: GREEN, borderRadius: "50%" }} />
-                    <span style={{ fontSize: 10, color: GREEN, fontWeight: 700 }}>Online · Monitoring</span>
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {/* HERO CARD — same visual style as /ai-agents */}
+            <div style={{ background: `linear-gradient(135deg, ${DARK} 0%, #1a2f6e 60%, #0d2257 100%)`, borderRadius: 24, padding: 32, color: "white", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: -40, right: -40, width: 200, height: 200, background: `${BLUE}20`, borderRadius: "50%", filter: "blur(40px)" }} />
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 24, position: "relative" }}>
+                {/* Avatar */}
+                <div style={{ flexShrink: 0 }}>
+                  <div style={{ width: 88, height: 88, background: `linear-gradient(135deg, ${BLUE}60, #8b5cf660)`, borderRadius: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, border: `2px solid ${BLUE}44`, boxShadow: `0 0 32px ${BLUE}40` }}>
+                    🤖
+                  </div>
+                  <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, justifyContent: "center" }}>
+                    <div style={{ width: 7, height: 7, background: GREEN, borderRadius: "50%", boxShadow: `0 0 6px ${GREEN}` }} />
+                    <span style={{ fontSize: 10, color: GREEN, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>Online</span>
                   </div>
                 </div>
-              </div>
-              <div style={{ display: "grid", gap: 10 }}>
-                {[
-                  { icon: "🛡️", title: "Fraud Detection", desc: "Real-time anomaly detection on all transactions" },
-                  { icon: "📊", title: "Revenue Analytics", desc: "Tracks platform margin, commissions, payouts" },
-                  { icon: "⚡", title: "Payment Monitoring", desc: "Alerts on failures, retries, and disputes" },
-                  { icon: "📄", title: "Financial Reports", desc: "Auto-generates monthly financial summaries" },
-                  { icon: "💸", title: "Payout Management", desc: "Schedules and triggers agent/influencer payouts" },
-                ].map(f => (
-                  <div key={f.icon} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 12, padding: "12px 16px", display: "flex", gap: 12, alignItems: "flex-start" }}>
-                    <span style={{ fontSize: 18 }}>{f.icon}</span>
-                    <div>
-                      <p style={{ margin: "0 0 2px", fontWeight: 600, fontSize: 13 }}>{f.title}</p>
-                      <p style={{ margin: 0, fontSize: 11, opacity: 0.6 }}>{f.desc}</p>
+                {/* Info */}
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
+                    <h2 style={{ margin: 0, fontWeight: 900, fontSize: 28, letterSpacing: "-0.5px" }}>Noah</h2>
+                    <span style={{ background: `${BLUE}30`, border: `1px solid ${BLUE}50`, borderRadius: 8, padding: "3px 10px", fontSize: 11, fontWeight: 700, color: BLUE }}>ZeniPay Finance Agent</span>
+                  </div>
+                  <p style={{ margin: "0 0 16px", opacity: 0.7, fontSize: 14 }}>ZeniPay financial intelligence. Monitors all payments, detects fraud, distributes commissions to agents and influencers, and generates financial reports in real-time.</p>
+                  {/* Feature Chips */}
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {["🛡️ Fraud Detection", "📊 Revenue Analytics", "💸 Commission Engine", "⚡ Payment Monitor", "📄 Auto Reports", "🔮 Payout AI"].map(f => (
+                      <span key={f} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 600 }}>{f}</span>
+                    ))}
+                  </div>
+                </div>
+                {/* Stats */}
+                <div style={{ display: "grid", gap: 8, flexShrink: 0 }}>
+                  {[
+                    { label: "Transactions Monitored", value: "2,847" },
+                    { label: "Platform Balance", value: "$475k" },
+                    { label: "Success Rate", value: "94.2%" },
+                    { label: "Uptime", value: "99.9%" },
+                  ].map(s => (
+                    <div key={s.label} style={{ background: "rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 14px", textAlign: "center" }}>
+                      <p style={{ margin: "0 0 2px", fontSize: 18, fontWeight: 900, color: "white" }}>{s.value}</p>
+                      <p style={{ margin: 0, fontSize: 9, opacity: 0.5, textTransform: "uppercase", letterSpacing: "0.05em" }}>{s.label}</p>
                     </div>
+                  ))}
+                </div>
+              </div>
+              {/* Capabilities Row */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 10, marginTop: 24, position: "relative" }}>
+                {[
+                  { icon: "🛡️", title: "Fraud Detection", desc: "Real-time anomaly detection" },
+                  { icon: "📊", title: "Revenue Analytics", desc: "Margin & commission tracking" },
+                  { icon: "⚡", title: "Payment Monitor", desc: "Failures, retries, disputes" },
+                  { icon: "📄", title: "Auto Reports", desc: "Monthly financial summaries" },
+                  { icon: "💸", title: "Payout Engine", desc: "Agent & influencer payouts" },
+                ].map(f => (
+                  <div key={f.icon} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
+                    <div style={{ fontSize: 24, marginBottom: 8 }}>{f.icon}</div>
+                    <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 12 }}>{f.title}</p>
+                    <p style={{ margin: 0, fontSize: 10, opacity: 0.5 }}>{f.desc}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Chat Interface */}
-            <div style={{ background: "white", borderRadius: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.07)", display: "flex", flexDirection: "column" }}>
-              <div style={{ background: `${DARK}`, borderRadius: "20px 20px 0 0", padding: 16, display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 32, height: 32, background: `${BLUE}40`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>🤖</div>
-                <div>
-                  <p style={{ margin: 0, color: "white", fontWeight: 700, fontSize: 13 }}>Noah · ZeniPay AI</p>
-                  <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.5)" }}>Financial Intelligence Agent</p>
+            {/* CHAT + LIVE LOG */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+              {/* Chat Interface */}
+              <div style={{ background: "white", borderRadius: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", display: "flex", flexDirection: "column" }}>
+                <div style={{ background: `linear-gradient(135deg, ${DARK}, #1a2f6e)`, borderRadius: "20px 20px 0 0", padding: "14px 18px", display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 36, height: 36, background: `${BLUE}40`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, border: `1px solid ${BLUE}60` }}>🤖</div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ margin: 0, color: "white", fontWeight: 700, fontSize: 14 }}>Noah · ZeniPay AI</p>
+                    <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Financial Intelligence Agent</p>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 5, background: `${GREEN}22`, borderRadius: 6, padding: "4px 10px" }}>
+                    <div style={{ width: 6, height: 6, background: GREEN, borderRadius: "50%", animation: "pulse 1.5s infinite" }} />
+                    <span style={{ fontSize: 10, color: GREEN, fontWeight: 700 }}>Monitoring</span>
+                  </div>
+                </div>
+                <div style={{ flex: 1, padding: 16, overflowY: "auto", maxHeight: 380, display: "flex", flexDirection: "column", gap: 10 }}>
+                  {noahChat.map((m, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", gap: 8, alignItems: "flex-end" }}>
+                      {m.role === "noah" && <div style={{ width: 28, height: 28, background: `${BLUE}20`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>🤖</div>}
+                      <div style={{
+                        background: m.role === "user" ? `linear-gradient(135deg, ${BLUE}, ${DARK})` : "#f0f4ff",
+                        color: m.role === "user" ? "white" : "#0f172a",
+                        borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                        padding: "10px 14px", maxWidth: "78%", fontSize: 13, whiteSpace: "pre-wrap", lineHeight: 1.6,
+                        boxShadow: m.role === "user" ? `0 2px 8px ${BLUE}30` : "none",
+                      }}>{m.text}</div>
+                    </div>
+                  ))}
+                  {aiLoading && (
+                    <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
+                      <div style={{ width: 28, height: 28, background: `${BLUE}20`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🤖</div>
+                      <div style={{ background: "#f0f4ff", borderRadius: "16px 16px 16px 4px", padding: "12px 16px" }}>
+                        <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                          {[0,1,2].map(i => <div key={i} style={{ width: 6, height: 6, background: BLUE, borderRadius: "50%", opacity: 0.6, animation: `bounce 1s ${i*0.2}s infinite` }} />)}
+                        </div>
+                        <style>{`@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div style={{ padding: "0 16px 8px", display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {["💰 Revenue du jour", "🛡️ Fraud check", "💸 Payout status", "📊 Rapport mensuel"].map(s => (
+                    <button key={s} onClick={() => setNoahMsg(s.replace(/^[^ ]+ /, ""))}
+                      style={{ background: "#f0f4ff", color: BLUE, border: "1px solid #dbeafe", borderRadius: 8, padding: "5px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>{s}</button>
+                  ))}
+                </div>
+                <div style={{ padding: "0 16px 16px", display: "flex", gap: 8 }}>
+                  <input value={noahMsg} onChange={e => setNoahMsg(e.target.value)} onKeyDown={e => e.key === "Enter" && handleNoahSend()}
+                    placeholder="Ask Noah: revenue, fraud, payout, rapport…"
+                    style={{ flex: 1, border: "1.5px solid #e2e8f0", borderRadius: 12, padding: "11px 14px", fontSize: 13, outline: "none", background: "#fafbff" }} />
+                  <button onClick={handleNoahSend} style={{ background: `linear-gradient(135deg, ${BLUE}, ${DARK})`, color: "white", border: "none", borderRadius: 12, padding: "11px 20px", fontWeight: 800, cursor: "pointer", fontSize: 14 }}>↑</button>
                 </div>
               </div>
-              <div style={{ flex: 1, padding: 16, overflowY: "auto", maxHeight: 420, display: "flex", flexDirection: "column", gap: 10 }}>
-                {noahChat.map((m, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
-                    <div style={{
-                      background: m.role === "user" ? BLUE : "#f8fafc",
-                      color: m.role === "user" ? "white" : "#0f172a",
-                      borderRadius: m.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
-                      padding: "10px 14px", maxWidth: "80%", fontSize: 13, whiteSpace: "pre-wrap", lineHeight: 1.5,
-                    }}>{m.text}</div>
-                  </div>
-                ))}
-                {aiLoading && (
-                  <div style={{ display: "flex" }}>
-                    <div style={{ background: "#f8fafc", borderRadius: "14px 14px 14px 4px", padding: "10px 16px" }}>
-                      <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                        {[0,1,2].map(i => <div key={i} style={{ width: 6, height: 6, background: "#94a3b8", borderRadius: "50%", animation: `bounce 1s ${i*0.2}s infinite` }} />)}
-                      </div>
-                      <style>{`@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}`}</style>
+
+              {/* Live Activity Log */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <div style={{ background: "white", borderRadius: 20, padding: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", flex: 1 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                    <h3 style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>⚡ Noah Live Activity</h3>
+                    <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: GREEN, fontWeight: 600 }}>
+                      <div style={{ width: 6, height: 6, background: GREEN, borderRadius: "50%", animation: "pulse 1.5s infinite" }} /> Real-time
                     </div>
                   </div>
-                )}
-              </div>
-              <div style={{ padding: 16, borderTop: "1px solid #f1f5f9", display: "flex", gap: 8 }}>
-                <input value={noahMsg} onChange={e => setNoahMsg(e.target.value)} onKeyDown={e => e.key === "Enter" && handleNoahSend()}
-                  placeholder="Ask Noah: revenue, fraud, payout, rapport…"
-                  style={{ flex: 1, border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 14px", fontSize: 13, outline: "none" }} />
-                <button onClick={handleNoahSend} style={{ background: BLUE, color: "white", border: "none", borderRadius: 10, padding: "10px 16px", fontWeight: 700, cursor: "pointer" }}>Send</button>
-              </div>
-              <div style={{ padding: "0 16px 12px", display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {["Revenue du jour", "Fraud check", "Payout status", "Rapport mensuel"].map(s => (
-                  <button key={s} onClick={() => { setNoahMsg(s); }}
-                    style={{ background: "#f0f4ff", color: BLUE, border: "none", borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>{s}</button>
-                ))}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {liveActivity.map(a => (
+                      <div key={a.id} style={{ background: a.type === "alert" ? "#fff1f2" : "#f0fdf4", borderRadius: 10, padding: "10px 14px", borderLeft: `3px solid ${a.type === "alert" ? RED : GREEN}` }}>
+                        <p style={{ margin: "0 0 2px", fontSize: 12, fontWeight: 600, color: a.type === "alert" ? RED : "#065f46" }}>{a.text}</p>
+                        <p style={{ margin: 0, fontSize: 10, color: "#94a3b8" }}>{a.time}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* Quick Actions */}
+                <div style={{ background: "white", borderRadius: 20, padding: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
+                  <h3 style={{ margin: "0 0 12px", fontWeight: 700, fontSize: 14 }}>⚡ Quick Actions</h3>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    {[
+                      { label: "📊 Generate Report", color: BLUE },
+                      { label: "💸 Trigger Payouts", color: GREEN },
+                      { label: "🛡️ Fraud Scan", color: PURPLE },
+                      { label: "📧 Email Summary", color: GOLD },
+                    ].map(a => (
+                      <button key={a.label} onClick={() => setNoahMsg(a.label.replace(/^[^ ]+ /, ""))}
+                        style={{ background: `${a.color}15`, color: a.color, border: `1px solid ${a.color}30`, borderRadius: 10, padding: "10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                        {a.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

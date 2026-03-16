@@ -1,14 +1,12 @@
 "use client";
 export const dynamic = "force-dynamic";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 const GOLD = "#E6B85A";
 const BLUE = "#0F6CF5";
 const NAVY = "#0B1B4D";
 
 export default function BookingConfirmationPage() {
-  const router = useRouter();
   const [bookingRef, setBookingRef] = useState("");
   const [tripName, setTripName] = useState("Your Trip");
   const [total, setTotal] = useState("");
@@ -49,7 +47,7 @@ export default function BookingConfirmationPage() {
           </div>}
         </div>
         <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, marginBottom: 24 }}>A confirmation email will be sent within 24 hours. Our team will contact you to finalize details.</p>
-        <button onClick={() => router.push("/")} style={{ background: `linear-gradient(135deg, ${BLUE}, ${NAVY})`, color: "white", border: "none", borderRadius: 9999, padding: "14px 32px", fontWeight: 800, fontSize: 15, cursor: "pointer", width: "100%" }}>
+        <button onClick={() => typeof window !== 'undefined' && (window.location.href = '/')} style={{ background: `linear-gradient(135deg, ${BLUE}, ${NAVY})`, color: "white", border: "none", borderRadius: 9999, padding: "14px 32px", fontWeight: 800, fontSize: 15, cursor: "pointer", width: "100%" }}>
           ✈️ Back to Zeniva Travel
         </button>
       </div>
