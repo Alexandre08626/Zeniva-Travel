@@ -28,14 +28,14 @@ export default function ZeniPayButton({
     if (disabled || loading) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/zenipay/create-payment", {
+      const res = await fetch("/api/zenipay/payments/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount, currency, description, customerName, customerEmail }),
       });
       const data = await res.json();
-      if (data.paymentId) {
-        window.location.href = `/zenipay/checkout/${data.paymentId}?amount=${amount}&currency=${currency}&desc=${encodeURIComponent(description || "Zeniva Travel")}`;
+      if (data.payment_id) {
+        window.location.href = data.checkout_url;
       }
     } catch {
       setLoading(false);

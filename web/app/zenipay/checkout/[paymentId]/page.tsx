@@ -42,12 +42,25 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
   const handleSubmit = async () => {
     if (!validate()) return;
     setStep("processing");
-    // Simulate payment processing — replace with real gateway call
-    await new Promise(r => setTimeout(r, 2500));
-    // 95% success rate simulation
-    if (Math.random() > 0.05) {
-      setStep("success");
-    } else {
+    try {
+      const res = await fetch("/api/zenipay/payments/process", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          payment_id: params.paymentId,
+          processor_token: `tok_${form.card.replace(/\s/g,"").slice(-4)}`, // tokenized — NEVER raw card
+          amount,
+          currency,
+          payment_method: payMethod,
+        }),
+      });
+      const data = await res.json();
+      if (data.status === "completed") {
+        setStep("success");
+      } else {
+        setStep("failed");
+      }
+    } catch {
       setStep("failed");
     }
   };
