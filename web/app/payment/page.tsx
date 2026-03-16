@@ -9,6 +9,7 @@ import { useAuthStore } from "../../src/lib/authStore";
 import { getDocumentsForUser, upsertDocuments } from "../../src/lib/documentsStore";
 import { useTripsStore, createTrip } from "../../lib/store/tripsStore";
 import { getStoredReferral } from "../../src/lib/influencer";
+import ZeniPayButton from "../../src/components/ZeniPayButton.client";
 
 function PaymentContent() {
   const router = useRouter();
