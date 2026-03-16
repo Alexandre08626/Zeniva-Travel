@@ -130,19 +130,25 @@ export async function POST(request: Request) {
         }).eq("id", paymentId);
       }
 
-      // ── AUTO-CREATE BOOKING IN SUPABASE ──────────────────────────────
+      // ── AUTO-CREATE BOOKING + INVOICE IN SUPABASE ────────────────────
+      const meta = body.metadata || {};
+      const customerEmail = meta.customer_email || body.customer_email || "";
+      const destination = meta.destination || description || "Zeniva Travel";
+      const checkin = meta.checkin || meta.departure_date || "";
+      const checkout = meta.checkout || meta.return_date || "";
+      const guests = meta.guests || meta.travelers || 1;
+
       if (supabase) {
-        // Parse destination/dates from description or metadata
-        const meta = body.metadata || {};
+        // 1. Create booking
         const bookingId = meta.booking_id || `BK-${paymentId}`;
         await supabase.from("bookings").upsert({
           id: bookingId,
           client_name: cardholder_name || meta.customer_name || "Client",
-          client_email: meta.customer_email || body.customer_email || "",
-          destination: meta.destination || description || "Zeniva Travel",
-          departure_date: meta.checkin || meta.departure_date || null,
-          return_date: meta.checkout || meta.return_date || null,
-          travelers: meta.guests || meta.travelers || 1,
+          client_email: customerEmail,
+          destination,
+          departure_date: checkin || null,
+          return_date: checkout || null,
+          travelers: guests,
           total_price: parsedAmount,
           currency,
           status: "confirmed",
@@ -150,6 +156,57 @@ export async function POST(request: Request) {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }, { onConflict: "id" }).then(() => {});
+
+        // 2. Auto-generate invoice
+        const invoiceId = `INV-${paymentId}`;
+        await supabase.from("zenipay_invoices").upsert({
+          id: invoiceId,
+          payment_id: paymentId,
+          booking_id: bookingId,
+          customer_name: cardholder_name || meta.customer_name || "Client",
+          customer_email: customerEmail,
+          items: JSON.stringify([{
+            description: destination,
+            qty: 1,
+            unit_price: parsedAmount,
+            total: parsedAmount,
+          }]),
+          subtotal: parsedAmount,
+          tax: 0,
+          total: parsedAmount,
+          currency,
+          status: "paid",
+          paid_at: new Date().toISOString(),
+          notes: `Finix Transfer: ${result.transactionId}`,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "id" }).then(() => {});
+      }
+
+      // 3. Send confirmation email (async — non-blocking)
+      if (customerEmail) {
+        const vpsBase = process.env.VPS_API_URL || "https://vmi3097009.contaboserver.net";
+        fetch(`${vpsBase}/admin/send-payment-confirmation`, {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer zeniva-secret-2025",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            client_email: customerEmail,
+            client_name: cardholder_name || meta.customer_name || "Client",
+            payment_id: paymentId,
+            amount: parsedAmount,
+            currency,
+            description: description || destination,
+            destination,
+            checkin,
+            checkout,
+            guests,
+            invoice_url: `https://www.zenivatravel.com/agent/invoices/INV-${paymentId}`,
+            booking_url: "https://www.zenivatravel.com/trips",
+          }),
+        }).catch(e => console.error("[ZeniPay] Email error:", e));
       }
 
       // Append-only ledger entry (100% → Platform Wallet)

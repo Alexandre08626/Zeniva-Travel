@@ -2011,10 +2011,38 @@ export default function ZeniPayDashboard() {
                     <h3 style={{ margin: 0, fontWeight: 800, fontSize: 15 }}>📝 Recent Journal Entries</h3>
                     <button style={{ background: BLUE, color: "white", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>+ New Entry</button>
                   </div>
-                  <div style={{ background: "#f8fafc", borderRadius: 10, padding: "16px", textAlign: "center" as const, border: "1px dashed #e2e8f0" }}>
-                    <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151", fontSize: 13 }}>No journal entries yet</p>
-                    <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>Entries will be generated automatically from real Finix payments</p>
-                  </div>
+                  {TRANSACTIONS.length === 0 ? (
+                    <div style={{ background: "#f8fafc", borderRadius: 10, padding: "16px", textAlign: "center" as const, border: "1px dashed #e2e8f0" }}>
+                      <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151", fontSize: 13 }}>No journal entries yet</p>
+                      <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>Generated automatically from real Finix payments</p>
+                    </div>
+                  ) : (
+                    <div style={{ overflowX: "auto" as const }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                        <thead>
+                          <tr style={{ background: "#f8fafc" }}>
+                            {["Date", "Description", "Account", "Debit", "Credit"].map(h => (
+                              <th key={h} style={{ padding: "8px 10px", textAlign: "left" as const, fontWeight: 700, color: "#64748b", borderBottom: "1px solid #e2e8f0", fontSize: 11 }}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {TRANSACTIONS.flatMap((t, i) => [
+                            { key: `${i}a`, date: t.date?.slice(0,10), desc: `Payment ${t.id}`, account: "1000 Platform Wallet", debit: `$${t.amount.toFixed(2)}`, credit: "—", color: "#10B981" },
+                            { key: `${i}b`, date: t.date?.slice(0,10), desc: `Revenue ${t.id}`, account: "4000 Travel Revenue", debit: "—", credit: `$${t.amount.toFixed(2)}`, color: "#0F6CF5" },
+                          ]).map(row => (
+                            <tr key={row.key} style={{ borderBottom: "1px solid #f8fafc" }}>
+                              <td style={{ padding: "7px 10px", color: "#94a3b8" }}>{row.date}</td>
+                              <td style={{ padding: "7px 10px", color: "#374151", fontWeight: 500 }}>{row.desc}</td>
+                              <td style={{ padding: "7px 10px", color: "#64748b" }}>{row.account}</td>
+                              <td style={{ padding: "7px 10px", fontWeight: 700, color: row.debit !== "—" ? "#10B981" : "#94a3b8" }}>{row.debit}</td>
+                              <td style={{ padding: "7px 10px", fontWeight: 700, color: row.credit !== "—" ? BLUE : "#94a3b8" }}>{row.credit}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
 
                 {/* Tax Summary */}
