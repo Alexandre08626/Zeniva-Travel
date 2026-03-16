@@ -26,9 +26,9 @@ const WALLETS = {
 const TRANSACTIONS: { id: string; customer: string; booking: string; amount: number; currency: string; method: string; gateway: string; status: string; date: string }[] = [];
 
 const AGENTS: { id?: string; name: string; code: string; bookings: number; revenue: number; commission: number; pending: number; rate: string; role?: string; avatar?: string; badge?: string }[] = [
-  { id: "ag-001", name: "Louis", code: "LOUIS", bookings: 0, revenue: 0, commission: 0, pending: 0, rate: "10.4%", role: "Senior Travel Agent", badge: "🥇" },
-  { id: "ag-002", name: "Jason", code: "JASON", bookings: 0, revenue: 0, commission: 0, pending: 0, rate: "10.4%", role: "Travel Agent", badge: "🥈" },
-  { id: "ag-003", name: "Luca", code: "LUCA", bookings: 0, revenue: 0, commission: 0, pending: 0, rate: "10.4%", role: "Travel Agent", badge: "🥉" },
+  { id: "ag-001", name: "Louis", code: "LOUIS", bookings: 0, revenue: 0, commission: 0, pending: 0, rate: "70%", role: "Senior Travel Agent", badge: "🥇" },
+  { id: "ag-002", name: "Jason", code: "JASON", bookings: 0, revenue: 0, commission: 0, pending: 0, rate: "70%", role: "Travel Agent", badge: "🥈" },
+  { id: "ag-003", name: "Luca", code: "LUCA", bookings: 0, revenue: 0, commission: 0, pending: 0, rate: "70%", role: "Travel Agent", badge: "🥉" },
 ];
 
 const INFLUENCERS: { id?: string; name: string; code: string; refs: number; revenue: number; commission: number; pending: number; rate: string; handle?: string; platform?: string; tier?: string; status?: string; referrals?: number }[] = [];
@@ -625,7 +625,7 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
         <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 16px rgba(0,0,0,0.08)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <h3 style={{ margin: 0, fontWeight: 800, fontSize: 15 }}>👥 Agent Balances</h3>
-            <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600 }}>10.4% commission rate</span>
+            <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600 }}>70% of booking</span>
           </div>
           {agents.length === 0 ? (
             <p style={{ textAlign: "center" as const, color: "#94a3b8", fontSize: 13, padding: "16px 0" }}>No agents yet</p>
@@ -661,10 +661,10 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
         <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 16px rgba(0,0,0,0.08)" }}>
           <h3 style={{ margin: "0 0 16px", fontWeight: 800, fontSize: 15 }}>📊 Commission Structure</h3>
           {[
-            { role: "Agent Commission", pct: "10.4%", desc: "Per booking generated", color: PURPLE },
-            { role: "Influencer Referral", pct: "1.95%", desc: "On referred bookings", color: GOLD },
-            { role: "Platform Margin", pct: "2.96%", desc: "Zeniva Travel LLC net", color: BLUE },
-            { role: "Supplier Payment", pct: "~84.7%", desc: "Hotels, flights, suppliers", color: GREEN },
+            { role: "Travel Agent", pct: "70%", desc: "Of booking (agent involved)", color: PURPLE },
+            { role: "Lina Books Alone", pct: "30% agent", desc: "Zeniva keeps 70%", color: BLUE },
+            { role: "Influencer Referral", pct: "5%", desc: "Of Zeniva net profit", color: GOLD },
+            { role: "ZeniYacht", pct: "100% Zeniva", desc: "All yacht revenue stays in Zeniva", color: GREEN },
           ].map(r => (
             <div key={r.role} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
               <div style={{ width: 36, height: 36, background: `${r.color}12`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -774,7 +774,7 @@ export default function ZeniPayDashboard() {
       "revenue": `📊 Revenue Analysis:\n• Total today: ${fmt(totalRevenue)}\n• MTD: ${fmt(totalRevenue)}\n• Active agents: Louis, Jason, Luca\n• Success rate: ${successRate}%`,
       "fraud": `🛡️ Fraud Monitoring:\n• No high-risk transactions detected\n• Carlos Ruiz failure flagged: card declined (3x attempt)\n• Recommendation: request alternative payment method`,
       "payout": `💸 Upcoming Payouts:\n• Platform Balance: ${fmt(platformBalance, true)}\n• Agents: Louis, Jason, Luca — $0 pending\n• No payouts scheduled yet — activate Finix live to begin`,
-      "rapport": `📄 Financial Report — Current:\n• Gross Revenue: ${fmt(totalRevenue)}\n• Platform Margin: ${fmt(totalRevenue * 0.0296)} (2.96%)\n• Agent Commissions: ${fmt(WALLETS.agent.available)} (10.4%)\n• Influencer Referrals: ${fmt(WALLETS.influencer.available)} (1.95%)\n• Supplier Balance: ${fmt(WALLETS.supplier.available)}`,
+      "rapport": `📄 Financial Report — Current:\n• Gross Revenue: ${fmt(totalRevenue)}\n• Platform Wallet: ${fmt(WALLETS.platform.available)} available\n• Agent Commissions Paid: ${fmt(WALLETS.agent.paid)} (70% travel agents)\n• Influencer Referrals Paid: ${fmt(WALLETS.influencer.paid)} (5% net profit)\n• Supplier Balance: ${fmt(WALLETS.supplier.available)}\n• ZeniYacht: 100% Zeniva`,
     };
     const keyword = Object.keys(responses).find(k => userMsg.toLowerCase().includes(k));
     const reply = keyword ? responses[keyword] : `Analysing your request: "${userMsg}"...\n\n✅ All systems operational. Platform balance: ${fmt(platformBalance, true)}. Payment success rate: ${successRate}%. No anomalies detected in the last 24h.`;
@@ -916,7 +916,7 @@ export default function ZeniPayDashboard() {
             {/* KPI Cards */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 14, marginBottom: 24 }}>
               <StatCard icon="💰" label="Total Revenue (MTD)" value={fmt(totalRevenue)} sub="Real payments only" color={GREEN} />
-              <StatCard icon="📥" label="Platform Margin" value={fmt(totalRevenue * 0.0296)} sub="2.96% of gross" color={BLUE} />
+              <StatCard icon="📥" label="Platform Margin" value={fmt(WALLETS.platform.available)} sub="Zeniva net (after payouts)" color={BLUE} />
               <StatCard icon="✅" label="Success Rate" value={`${successRate}%`} sub={TRANSACTIONS.length === 0 ? "No transactions yet" : `${TRANSACTIONS.length} transactions`} color={GREEN} />
               <StatCard icon="⏳" label="Pending Payments" value={fmt(WALLETS.platform.pending + WALLETS.agent.pending)} sub="Awaiting settlement" color={GOLD} />
               <StatCard icon="👤" label="Agent Commissions" value={fmt(WALLETS.agent.paid)} sub="3 agents — Louis, Jason, Luca" color={PURPLE} />
@@ -951,10 +951,10 @@ export default function ZeniPayDashboard() {
                 <h3 style={{ margin: "0 0 16px", fontWeight: 700, fontSize: 15 }}>💡 Revenue Split</h3>
                 <p style={{ fontSize: 12, color: "#94a3b8", margin: "0 0 16px" }}>Per $7,677 booking</p>
                 {[
-                  { label: "Supplier Payout", amount: 6497, pct: 84.7, color: "#64748b" },
-                  { label: "Agent Commission", amount: 799, pct: 10.4, color: PURPLE },
-                  { label: "Influencer Referral", amount: 150, pct: 1.95, color: GOLD },
-                  { label: "Platform Margin", amount: 227, pct: 2.96, color: BLUE },
+                  { label: "Supplier / Hotel", amount: 0, pct: 0, color: "#64748b" },
+                  { label: "Travel Agent (70%)", amount: 0, pct: 70, color: PURPLE },
+                  { label: "Influencer (5% net)", amount: 0, pct: 0, color: GOLD },
+                  { label: "Zeniva Platform", amount: 0, pct: 30, color: BLUE },
                 ].map(s => (
                   <div key={s.label} style={{ marginBottom: 12 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
@@ -1146,19 +1146,19 @@ export default function ZeniPayDashboard() {
             {/* PAYOUT RULES */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
               <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 1px 8px rgba(0,0,0,0.07)" }}>
-                <h4 style={{ margin: "0 0 16px", fontWeight: 800, fontSize: 14 }}>📋 Commission Rules (Future)</h4>
+                <h4 style={{ margin: "0 0 16px", fontWeight: 800, fontSize: 14 }}>📋 Commission Structure</h4>
                 {[
-                  { role: "Agent Commission", pct: "10.4%", color: PURPLE },
-                  { role: "Influencer Referral", pct: "1.95%", color: GOLD },
-                  { role: "Platform Margin", pct: "2.96%", color: BLUE },
-                  { role: "Supplier Payment", pct: "Remainder", color: GREEN },
+                  { role: "✈️ Travel Agent", pct: "70%", color: PURPLE },
+                  { role: "⭐ Influencer", pct: "5% net", color: GOLD },
+                  { role: "🏛️ Zeniva Platform", pct: "30%", color: BLUE },
+                  { role: "⛵ ZeniYacht", pct: "100% Zeniva", color: GREEN },
                 ].map(r => (
                   <div key={r.role} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #f8fafc", alignItems: "center" }}>
                     <span style={{ fontSize: 13, color: "#374151" }}>{r.role}</span>
                     <span style={{ fontWeight: 800, fontSize: 13, color: r.color, background: `${r.color}12`, borderRadius: 6, padding: "2px 8px" }}>{r.pct}</span>
                   </div>
                 ))}
-                <p style={{ margin: "12px 0 0", fontSize: 11, color: "#94a3b8" }}>Auto-split activates once agent onboarding is complete</p>
+                <p style={{ margin: "12px 0 0", fontSize: 11, color: "#94a3b8" }}>Lina books alone: Zeniva 70% · Agent 30% (reversed)</p>
               </div>
               <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 1px 8px rgba(0,0,0,0.07)" }}>
                 <h4 style={{ margin: "0 0 16px", fontWeight: 800, fontSize: 14 }}>🏦 Payout Schedule</h4>
