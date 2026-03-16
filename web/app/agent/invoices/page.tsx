@@ -164,7 +164,7 @@ function CreateInvoiceModal({ onClose, onSaved }: { onClose: () => void; onSaved
 // ─── Main Page ─────────────────────────────────────────────────────────────
 export default function InvoicesPage() {
   const router = useRouter();
-  const [tab, setTab] = useState<"outgoing" | "incoming" | "overview">("overview");
+  const [tab, setTab] = useState<"outgoing" | "incoming" | "overview" | "zenipay">("overview");
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -173,12 +173,34 @@ export default function InvoicesPage() {
 
   const fetchInvoices = useCallback(async () => {
     setLoading(true);
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/invoices?select=*&order=created_at.desc`, {
-      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
-    });
+    const [res, zpRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/invoices?select=*&order=created_at.desc`, {
+        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+      }),
+      fetch(`${SUPABASE_URL}/rest/v1/zenipay_invoices?select=*&order=created_at.desc`, {
+        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+      }),
+    ]);
     if (!res.ok) { setTableError(true); setLoading(false); return; }
     const data = await res.json();
-    setInvoices(Array.isArray(data) ? data : []);
+    const zpData = zpRes.ok ? await zpRes.json() : [];
+    // Normalize zenipay_invoices to same shape
+    const zpNormalized = (Array.isArray(zpData) ? zpData : []).map((z: Record<string,unknown>) => ({
+      id: z.id as string,
+      type: "outgoing" as const,
+      client_name: z.customer_name as string,
+      client_email: z.customer_email as string,
+      amount: z.total as number,
+      currency: "USD",
+      status: z.status as Invoice["status"],
+      items: (() => { try { return JSON.parse(z.items as string || "[]"); } catch { return []; } })(),
+      notes: `ZeniPay Payment — ${z.payment_id as string}`,
+      source: "zenipay",
+      created_at: z.created_at as string,
+      _zenipay: true,
+    }));
+    const allInvoices = [...zpNormalized, ...(Array.isArray(data) ? data : [])];
+    setInvoices(allInvoices);
     setLoading(false);
   }, []);
 
@@ -222,7 +244,8 @@ export default function InvoicesPage() {
   const totalExpenses = incoming.filter(i => i.status === "paid").reduce((s, i) => s + i.amount, 0);
   const pendingBills = incoming.filter(i => ["pending", "overdue"].includes(i.status)).reduce((s, i) => s + i.amount, 0);
 
-  const listToShow = tab === "outgoing" ? outgoing : tab === "incoming" ? incoming : [];
+  const zenipayInvoices = invoices.filter((i) => (i as Invoice & { _zenipay?: boolean })._zenipay);
+  const listToShow = tab === "outgoing" ? outgoing : tab === "incoming" ? incoming : tab === "zenipay" ? zenipayInvoices : [];
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -295,7 +318,7 @@ export default function InvoicesPage() {
 
         {/* Tabs */}
         <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit">
-          {([["overview", "📊 Overview"], ["outgoing", "📤 Client Invoices"], ["incoming", "📥 Bills & Receipts"]] as const).map(([key, label]) => (
+          {([["overview", "📊 Overview"], ["zenipay", "💳 ZeniPay"], ["outgoing", "📤 Client Invoices"], ["incoming", "📥 Bills & Receipts"]] as const).map(([key, label]) => (
             <button key={key} onClick={() => setTab(key)}
               className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${tab === key ? "bg-white text-slate-800 shadow" : "text-slate-600 hover:text-slate-800"}`}>
               {label}
@@ -328,6 +351,47 @@ export default function InvoicesPage() {
                 <InvoiceTable invoices={invoices.slice(0, 10)} onMarkPaid={markPaid} onDelete={deleteInvoice} />
               )}
             </div>
+          </div>
+        )}
+
+        {/* ZeniPay Tab */}
+        {tab === "zenipay" && (
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h2 className="font-semibold text-slate-800">💳 ZeniPay Invoices</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Auto-generated on every confirmed payment</p>
+              </div>
+              <span className="text-xs bg-blue-50 text-blue-700 font-bold px-3 py-1 rounded-full">{zenipayInvoices.length} invoice{zenipayInvoices.length !== 1 ? "s" : ""}</span>
+            </div>
+            {loading ? (
+              <div className="p-8 text-center text-slate-400">Loading...</div>
+            ) : zenipayInvoices.length === 0 ? (
+              <div className="p-12 text-center">
+                <div className="text-5xl mb-3">💳</div>
+                <p className="text-slate-500 font-medium">No ZeniPay invoices yet</p>
+                <p className="text-slate-400 text-sm mt-1">Invoices appear here automatically after a payment is processed</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {zenipayInvoices.map(inv => (
+                  <div key={inv.id} className="flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-lg">🧾</div>
+                      <div>
+                        <p className="font-semibold text-slate-800 text-sm">{inv.id}</p>
+                        <p className="text-xs text-slate-500">{inv.client_name || "Client"} · {new Date(inv.created_at).toLocaleDateString("en-CA")}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <p className="font-bold text-blue-600">${Number(inv.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
+                      <span className="text-xs font-bold px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">✓ Paid</span>
+                      <a href={`/agent/invoices/${inv.id}`} className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700">View →</a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
