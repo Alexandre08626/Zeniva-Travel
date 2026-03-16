@@ -20,7 +20,7 @@ const WALLETS = {
   platform:   { available: 0, pending: 0, paid: 0, currency: "USD" },
   agent:      { available: 0, pending: 0, paid: 0, currency: "USD" },
   influencer: { available: 0, pending: 0, paid: 0, currency: "USD" },
-  supplier:   { available: 281400.00, pending: 89200.00, paid: 1423000.00, currency: "USD" },
+  supplier:   { available: 0, pending: 0, paid: 0, currency: "USD" },
 };
 
 const TRANSACTIONS: { id: string; customer: string; booking: string; amount: number; currency: string; method: string; gateway: string; status: string; date: string }[] = [];
@@ -773,7 +773,7 @@ export default function ZeniPayDashboard() {
     const responses: Record<string, string> = {
       "revenue": `📊 Revenue Analysis:\n• Total today: ${fmt(totalRevenue)}\n• MTD: ${fmt(totalRevenue)}\n• Active agents: Louis, Jason, Luca\n• Success rate: ${successRate}%`,
       "fraud": `🛡️ Fraud Monitoring:\n• No high-risk transactions detected\n• Carlos Ruiz failure flagged: card declined (3x attempt)\n• Recommendation: request alternative payment method`,
-      "payout": `💸 Upcoming Payouts (March 1st):\n• Noah Martin: $8,400 commission\n• Sofia Rivera: $5,200 commission\n• Camille Beaumont: $3,200 influencer referral\n• Total outgoing: $16,800`,
+      "payout": `💸 Upcoming Payouts:\n• Platform Balance: ${fmt(platformBalance, true)}\n• Agents: Louis, Jason, Luca — $0 pending\n• No payouts scheduled yet — activate Finix live to begin`,
       "rapport": `📄 Financial Report — Current:\n• Gross Revenue: ${fmt(totalRevenue)}\n• Platform Margin: ${fmt(totalRevenue * 0.0296)} (2.96%)\n• Agent Commissions: ${fmt(WALLETS.agent.available)} (10.4%)\n• Influencer Referrals: ${fmt(WALLETS.influencer.available)} (1.95%)\n• Supplier Balance: ${fmt(WALLETS.supplier.available)}`,
     };
     const keyword = Object.keys(responses).find(k => userMsg.toLowerCase().includes(k));
@@ -1692,18 +1692,18 @@ export default function ZeniPayDashboard() {
                   </select>
                 </div>
                 {[
-                  { label: "Travel Bookings Revenue", amount: 1_284_000, type: "income" },
-                  { label: "ZeniStay Revenue", amount: 187_400, type: "income" },
-                  { label: "Agent Commissions (in)", amount: 142_800, type: "income" },
-                  { label: "ZeniYacht Revenue", amount: 278_200, type: "income" },
-                  { label: "TOTAL REVENUE", amount: 1_892_400, type: "total-income" },
-                  { label: "Supplier Payouts", amount: -848_200, type: "expense" },
-                  { label: "Agent Commissions (out)", amount: -47_200, type: "expense" },
-                  { label: "Influencer Payouts", amount: -18_400, type: "expense" },
-                  { label: "Tech Infrastructure", amount: -22_400, type: "expense" },
-                  { label: "Marketing", amount: -12_000, type: "expense" },
-                  { label: "TOTAL EXPENSES", amount: -948_200, type: "total-expense" },
-                  { label: "NET INCOME", amount: 944_200, type: "net" },
+                  { label: "Travel Bookings Revenue", amount: 0, type: "income" },
+                  { label: "ZeniStay Revenue", amount: 0, type: "income" },
+                  { label: "Agent Commissions (in)", amount: 0, type: "income" },
+                  { label: "ZeniYacht Revenue", amount: 0, type: "income" },
+                  { label: "TOTAL REVENUE", amount: 0, type: "total-income" },
+                  { label: "Supplier Payouts", amount: 0, type: "expense" },
+                  { label: "Agent Commissions (out)", amount: 0, type: "expense" },
+                  { label: "Influencer Payouts", amount: 0, type: "expense" },
+                  { label: "Tech Infrastructure", amount: 0, type: "expense" },
+                  { label: "Marketing", amount: 0, type: "expense" },
+                  { label: "TOTAL EXPENSES", amount: 0, type: "total-expense" },
+                  { label: "NET INCOME", amount: 0, type: "net" },
                 ].map((row, i) => (
                   <div key={i} style={{
                     display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -1726,11 +1726,11 @@ export default function ZeniPayDashboard() {
                 <div style={{ marginBottom: 16 }}>
                   <p style={{ margin: "0 0 10px", fontWeight: 700, fontSize: 12, color: "#64748b", textTransform: "uppercase" as const }}>Assets</p>
                   {[
-                    { label: "ZeniPay Platform Wallet", value: 94_302 },
-                    { label: "Agent Wallets", value: 47_230 },
-                    { label: "Supplier Wallets", value: 281_400 },
-                    { label: "Accounts Receivable", value: 182_000 },
-                    { label: "Cash & Equivalents", value: 94_302 },
+                    { label: "ZeniPay Platform Wallet", value: 0 },
+                    { label: "Agent Wallets", value: 0 },
+                    { label: "Supplier Wallets", value: 0 },
+                    { label: "Accounts Receivable", value: 0 },
+                    { label: "Cash & Equivalents", value: 0 },
                   ].map(a => (
                     <div key={a.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 10px", fontSize: 13 }}>
                       <span style={{ color: "#374151" }}>{a.label}</span>
@@ -1738,15 +1738,15 @@ export default function ZeniPayDashboard() {
                     </div>
                   ))}
                   <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 10px", background: "#f0fdf4", borderRadius: 8, fontWeight: 800, fontSize: 13, marginTop: 4 }}>
-                    <span>TOTAL ASSETS</span><span style={{ color: GREEN }}>$699k</span>
+                    <span>TOTAL ASSETS</span><span style={{ color: GREEN }}>$0</span>
                   </div>
                 </div>
                 <div>
                   <p style={{ margin: "0 0 10px", fontWeight: 700, fontSize: 12, color: "#64748b", textTransform: "uppercase" as const }}>Liabilities & Equity</p>
                   {[
-                    { label: "Pending Payouts", value: 89_200 },
-                    { label: "Agent Pending", value: 18_900 },
-                    { label: "Tax Provision", value: 141_630 },
+                    { label: "Pending Payouts", value: 0 },
+                    { label: "Agent Pending", value: 0 },
+                    { label: "Tax Provision", value: 0 },
                   ].map(l => (
                     <div key={l.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 10px", fontSize: 13 }}>
                       <span style={{ color: "#374151" }}>{l.label}</span>
@@ -1758,7 +1758,7 @@ export default function ZeniPayDashboard() {
                     <span style={{ fontWeight: 700, color: BLUE }}>$449k</span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 10px", background: "#eff6ff", borderRadius: 8, fontWeight: 800, fontSize: 13, marginTop: 4 }}>
-                    <span>TOTAL L+E</span><span style={{ color: BLUE }}>$699k</span>
+                    <span>TOTAL L+E</span><span style={{ color: BLUE }}>$0</span>
                   </div>
                 </div>
               </div>
@@ -1774,11 +1774,11 @@ export default function ZeniPayDashboard() {
                 </div>
                 {[
                   { code: "1000", name: "Cash & ZeniPay Wallets", type: "Asset", balance: 699_000 },
-                  { code: "1200", name: "Accounts Receivable", type: "Asset", balance: 182_000 },
+                  { code: "1200", name: "Accounts Receivable", type: "Asset", balance: 0 },
                   { code: "2000", name: "Accounts Payable", type: "Liability", balance: -89_200 },
-                  { code: "2500", name: "Tax Payable", type: "Liability", balance: -141_630 },
+                  { code: "2500", name: "Tax Payable", type: "Liability", balance: 0 },
                   { code: "3000", name: "Retained Earnings", type: "Equity", balance: 449_000 },
-                  { code: "4000", name: "Travel Revenue", type: "Income", balance: 1_892_400 },
+                  { code: "4000", name: "Travel Revenue", type: "Income", balance: 0 },
                   { code: "5000", name: "Supplier Costs (COGS)", type: "Expense", balance: -848_200 },
                   { code: "6000", name: "Commission Expense", type: "Expense", balance: -65_600 },
                   { code: "7000", name: "Operating Expenses", type: "Expense", balance: -34_400 },
@@ -1801,23 +1801,10 @@ export default function ZeniPayDashboard() {
                     <h3 style={{ margin: 0, fontWeight: 800, fontSize: 15 }}>📝 Recent Journal Entries</h3>
                     <button style={{ background: BLUE, color: "white", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>+ New Entry</button>
                   </div>
-                  {[
-                    { date: "Mar 1", ref: "JE-0042", desc: "ZeniStay AIKA booking - client payment", dr: "Cash 7,677", cr: "Revenue 7,677", status: "Posted" },
-                    { date: "Feb 28", ref: "JE-0041", desc: "Agent commission payout - Noah Martin", dr: "Commission Exp 799", cr: "Cash 799", status: "Posted" },
-                    { date: "Feb 28", ref: "JE-0040", desc: "Supplier payout - ZeniYacht booking", dr: "COGS 4,200", cr: "AP 4,200", status: "Posted" },
-                    { date: "Feb 27", ref: "JE-0039", desc: "Influencer referral commission", dr: "Inf. Exp 150", cr: "Cash 150", status: "Posted" },
-                  ].map((je, i) => (
-                    <div key={i} style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: 10, marginBottom: 10 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: BLUE }}>{je.ref}</span>
-                        <span style={{ fontSize: 10, background: "#dcfce7", color: "#065f46", borderRadius: 6, padding: "2px 7px", fontWeight: 700 }}>{je.status}</span>
-                      </div>
-                      <p style={{ margin: "0 0 4px", fontSize: 12, color: "#374151" }}>{je.desc}</p>
-                      <div style={{ display: "flex", gap: 12, fontSize: 11, color: "#94a3b8" }}>
-                        <span>DR: {je.dr}</span><span>CR: {je.cr}</span><span>{je.date}</span>
-                      </div>
-                    </div>
-                  ))}
+                  <div style={{ background: "#f8fafc", borderRadius: 10, padding: "16px", textAlign: "center" as const, border: "1px dashed #e2e8f0" }}>
+                    <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151", fontSize: 13 }}>No journal entries yet</p>
+                    <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>Entries will be generated automatically from real Finix payments</p>
+                  </div>
                 </div>
 
                 {/* Tax Summary */}
@@ -1825,7 +1812,7 @@ export default function ZeniPayDashboard() {
                   <h4 style={{ margin: "0 0 14px", fontWeight: 800 }}>🧾 Tax Summary</h4>
                   {[
                     { label: "Gross Revenue", v: "$0" },
-                    { label: "Total Deductions", v: "-$948,200" },
+                    { label: "Total Deductions", v: "$0" },
                     { label: "Net Taxable Income", v: "$0" },
                     { label: "Corp Tax Rate (est.)", v: "15%" },
                     { label: "Tax Provision", v: "$0" },
