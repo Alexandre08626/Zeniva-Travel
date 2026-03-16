@@ -293,16 +293,12 @@ export default function ZeniPayDashboard() {
   // Real mode — activity feed starts empty, populated from real Finix webhooks
   const [liveActivity, setLiveActivity] = useState<{ id: number; text: string; time: string; type: string }[]>([]);
 
-  // Simulate live payment feed
-  useEffect(() => {
-// Real mode — no fake payment simulation. Feed comes from real Finix webhooks.
-    // TODO: connect to /api/zenipay/webhooks/finix for live events
-    return () => clearInterval(interval);
-  }, []);
+  // Real mode — no fake simulation; feed populated by real Finix webhooks
+  // useEffect(() => { ... }, []);
 
   const totalRevenue = TRANSACTIONS.filter(t => t.status === "completed").reduce((a, t) => a + t.amount, 0);
   const platformBalance = WALLETS.platform.available + WALLETS.agent.available + WALLETS.influencer.available + WALLETS.supplier.available;
-  const successRate = Math.round(TRANSACTIONS.filter(t => t.status === "completed").length / TRANSACTIONS.length * 100);
+  const successRate = TRANSACTIONS.length > 0 ? Math.round(TRANSACTIONS.filter(t => t.status === "completed").length / TRANSACTIONS.length * 100) : 0;
 
   const filteredTx = TRANSACTIONS.filter(t => {
     const matchSearch = !txSearch || t.customer.toLowerCase().includes(txSearch.toLowerCase()) || t.id.includes(txSearch) || t.booking.includes(txSearch);
