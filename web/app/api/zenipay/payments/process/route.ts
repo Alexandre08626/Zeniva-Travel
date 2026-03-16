@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       transactionId = `ACH-${Date.now().toString(36).toUpperCase()}`;
     } else if (card_number && expiry_month && expiry_year && cvc) {
       // Real card payment via Finix
-      const { processPayment } = await import("../../../../../../modules/zenipay/gateways/index");
+      const { processPayment } = await import("../../../../../modules/zenipay/gateways/index");
       const result = await processPayment({
         cardNumber: card_number,
         expiryMonth: expiry_month,
