@@ -889,6 +889,7 @@ export default function ZeniPayDashboard() {
   const [openWallet, setOpenWallet] = useState<{name:string;data:typeof DEFAULT_WALLETS.platform;icon:string;color:string}|null>(null);
   const [liveActivity, setLiveActivity] = useState<{ id: number; text: string; time: string; type: string }[]>([]);
   const [recentBookings, setRecentBookings] = useState<{ id: string; client_name: string; destination: string; total_price: number; status: string; created_at: string }[]>([]);
+  const [zpInvoices, setZpInvoices] = useState<{ id: string; customer_name: string; customer_email: string; total: number; status: string; payment_id: string; created_at: string }[]>([]);
 
   // ── Fetch live stats from /api/zenipay/stats ──────────────────────────
   useEffect(() => {
@@ -936,10 +937,22 @@ export default function ZeniPayDashboard() {
       } catch {}
     }
 
+    async function fetchZpInvoices() {
+      try {
+        const r = await fetch(
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/zenipay_invoices?select=*&order=created_at.desc`,
+          { headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}` } }
+        );
+        const d = await r.json();
+        setZpInvoices(Array.isArray(d) ? d : []);
+      } catch {}
+    }
+
     void fetchStats();
     void fetchBookings();
+    void fetchZpInvoices();
     // Refresh every 30s
-    const interval = setInterval(() => { void fetchStats(); void fetchBookings(); }, 30_000);
+    const interval = setInterval(() => { void fetchStats(); void fetchBookings(); void fetchZpInvoices(); }, 30_000);
     return () => clearInterval(interval);
   }, []);
 
@@ -1510,38 +1523,47 @@ export default function ZeniPayDashboard() {
               </div>
             </div>
 
-            {/* Empty state or list */}
+            {/* Live invoice list from Supabase */}
             <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
-              {INVOICES.length === 0 ? (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                <div>
+                  <p style={{ margin: 0, fontWeight: 800, fontSize: 15, color: DARK }}>Zeniva Travel — Client Invoices</p>
+                  <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>Auto-generated on every confirmed ZeniPay payment</p>
+                </div>
+                <span style={{ background: `${BLUE}12`, color: BLUE, fontWeight: 700, fontSize: 12, padding: "4px 12px", borderRadius: 9999 }}>{zpInvoices.length} invoice{zpInvoices.length !== 1 ? "s" : ""}</span>
+              </div>
+              {zpInvoices.length === 0 ? (
                 <div style={{ textAlign: "center" as const, padding: "40px 20px" }}>
                   <div style={{ fontSize: 64, marginBottom: 16 }}>📄</div>
                   <h3 style={{ margin: "0 0 8px", fontWeight: 800, color: DARK }}>No invoices yet</h3>
-                  <p style={{ color: "#64748b", margin: "0 0 20px" }}>Invoices are auto-created when a client completes payment. You can also create them manually.</p>
-                  <a href="/agent/invoices" style={{ background: BLUE, color: "white", textDecoration: "none", borderRadius: 9999, padding: "12px 28px", fontWeight: 700, fontSize: 14 }}>
-                    + Create First Invoice
+                  <p style={{ color: "#64748b", margin: "0 0 20px" }}>Invoices are auto-generated when a client completes payment via ZeniPay.</p>
+                  <a href="/zenipay/checkout" style={{ background: BLUE, color: "white", textDecoration: "none", borderRadius: 9999, padding: "12px 28px", fontWeight: 700, fontSize: 14 }}>
+                    Test a Payment →
                   </a>
                 </div>
               ) : (
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead>
                     <tr style={{ background: "#f8fafc" }}>
-                      {["Invoice #","Client","Amount","Date","Status","Actions"].map(h => (
+                      {["Invoice #", "Client", "Amount", "Date", "Status", ""].map(h => (
                         <th key={h} style={{ padding: "10px 16px", textAlign: "left" as const, fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase" as const }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {INVOICES.map(inv => (
+                    {zpInvoices.map(inv => (
                       <tr key={inv.id} style={{ borderTop: "1px solid #f1f5f9" }}>
-                        <td style={{ padding: "12px 16px", fontSize: 12, fontFamily: "monospace", color: BLUE, fontWeight: 600 }}>{inv.id}</td>
-                        <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 500 }}>{inv.client}</td>
-                        <td style={{ padding: "12px 16px", fontWeight: 700 }}>{fmt(inv.amount)}</td>
-                        <td style={{ padding: "12px 16px", fontSize: 12, color: "#94a3b8" }}>{inv.date}</td>
-                        <td style={{ padding: "12px 16px" }}><StatusBadge status={inv.status} /></td>
+                        <td style={{ padding: "12px 16px", fontSize: 12, fontFamily: "monospace", color: BLUE, fontWeight: 700 }}>{inv.id}</td>
+                        <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 500, color: DARK }}>{inv.customer_name || "—"}</td>
+                        <td style={{ padding: "12px 16px", fontWeight: 800, color: GREEN }}>{fmt(inv.total)}</td>
+                        <td style={{ padding: "12px 16px", fontSize: 12, color: "#94a3b8" }}>{new Date(inv.created_at).toLocaleDateString("en-CA")}</td>
+                        <td style={{ padding: "12px 16px" }}>
+                          <span style={{ background: "#d1fae5", color: "#065f46", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 9999 }}>✓ Paid</span>
+                        </td>
                         <td style={{ padding: "12px 16px" }}>
                           <a href={`/agent/invoices/${inv.id}`} target="_blank"
-                            style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 6, padding: "5px 12px", fontSize: 11, cursor: "pointer", textDecoration: "none", color: BLUE, fontWeight: 600 }}>
-                            👁 View & Edit
+                            style={{ background: `${BLUE}10`, border: `1px solid ${BLUE}30`, borderRadius: 8, padding: "6px 14px", fontSize: 11, cursor: "pointer", textDecoration: "none", color: BLUE, fontWeight: 700 }}>
+                            📄 View Invoice
                           </a>
                         </td>
                       </tr>
