@@ -54,7 +54,7 @@ export async function createPaymentInstrument(params: {
     security_code: params.cvc,
     name: params.cardholderName,
     address: { postal_code: params.postalCode || "00000" },
-    ...(params.identityId ? { identity: params.identityId } : {}),
+    identity: params.identityId || process.env.FINIX_MERCHANT_IDENTITY_ID || "",
   };
   const result = await finixRequest("POST", "/payment_instruments", body);
   return { instrumentId: result.id as string, brand: result.brand, last4: result.last_four };
