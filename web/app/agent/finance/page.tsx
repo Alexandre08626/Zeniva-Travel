@@ -1,543 +1,345 @@
 "use client";
+import { useState, useEffect } from "react";
 
-import { useEffect, useState, useCallback } from "react";
-import { useAuthStore, isHQ } from "@/src/lib/authStore";
+const BLUE = "#0F6CF5";
+const DARK = "#0B1B4D";
+const GREEN = "#10b981";
+const RED = "#ef4444";
+const AMBER = "#f59e0b";
+const PURPLE = "#8b5cf6";
 
-const PREMIUM_BLUE = "#0B1B4D";
-const BRAND_BLUE = "#0F6CF5";
-const ACCENT_GOLD = "#E6B85A";
-
-// ─── Finance types ─────────────────────────────────────────────────────────
-interface FinanceStats {
-  total_revenue: number; commissions_paid: number; commissions_pending: number;
-  bookings_this_month: number; revenue_this_month: number; avg_deal_value: number;
-}
-interface Commission {
-  id: string; agent_name: string; agent_email: string; client_name: string;
-  trip: string; sale_amount: number; zeniva_profit: number; commission: number;
-  status: "pending" | "paid"; created_at: string;
-}
-interface Booking {
-  id: string; client_name: string; destination: string; total_price: number;
-  status: string; departure_date: string; agent_email?: string;
+function fmt(n: number) { return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n); }
+function fmtSmall(n: number) { return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 }).format(n); }
+function timeAgo(iso: string) {
+  const d = Date.now() - new Date(iso).getTime();
+  if (d < 60000) return `${Math.floor(d/1000)}s ago`;
+  if (d < 3600000) return `${Math.floor(d/60000)}m ago`;
+  if (d < 86400000) return `${Math.floor(d/3600000)}h ago`;
+  return `${Math.floor(d/86400000)}d ago`;
 }
 
-// ─── Invoice types ─────────────────────────────────────────────────────────
-type InvoiceItem = { description: string; qty: number; unitPrice: number };
-type Invoice = {
-  id: string; type: "outgoing" | "incoming"; client_name?: string; client_email?: string;
-  amount: number; currency: string;
-  status: "draft" | "sent" | "paid" | "overdue" | "pending" | "cancelled";
-  items: InvoiceItem[]; notes?: string; due_date?: string; paid_at?: string;
-  source?: string; email_subject?: string; email_from?: string; email_date?: string;
-  created_at: string;
+type TxStatus = "completed" | "pending" | "failed" | "refunded";
+interface Tx { id: string; customerName: string; amount: number; currency: string; status: TxStatus; paymentMethod: string; gateway: string; bookingRef?: string; createdAt: string; }
+interface Stats { totalRevenue: number; netRevenue: number; pendingPayments: number; successfulPayments: number; failedPayments: number; refunds: number; agentCommissions: number; platformMargin: number; revenueChange: number; transactionCount: number; }
+
+const statusConfig: Record<TxStatus, { label: string; bg: string; color: string; dot: string }> = {
+  completed: { label: "Completed", bg: "#d1fae5", color: "#065f46", dot: GREEN },
+  pending: { label: "Pending", bg: "#fef3c7", color: "#92400e", dot: AMBER },
+  failed: { label: "Failed", bg: "#fee2e2", color: "#991b1b", dot: RED },
+  refunded: { label: "Refunded", bg: "#ede9fe", color: "#4c1d95", dot: PURPLE },
 };
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+export default function ZeniPayDashboard() {
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [txs, setTxs] = useState<Tx[]>([]);
+  const [tab, setTab] = useState<"overview" | "transactions" | "links" | "payouts">("overview");
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [showCreateLink, setShowCreateLink] = useState(false);
+  const [linkForm, setLinkForm] = useState({ amount: "", description: "", customerName: "", customerEmail: "" });
+  const [createdLink, setCreatedLink] = useState<{ url: string; amount: string } | null>(null);
+  const [linkLoading, setLinkLoading] = useState(false);
+  const [live, setLive] = useState(true);
 
-const INV_STATUS_COLORS: Record<string, string> = {
-  draft: "bg-slate-100 text-slate-600", sent: "bg-blue-100 text-blue-700",
-  paid: "bg-emerald-100 text-emerald-700", overdue: "bg-red-100 text-red-700",
-  pending: "bg-amber-100 text-amber-700", cancelled: "bg-gray-100 text-gray-500",
-};
-function fmtMoney(n: number, cur = "CAD") {
-  return new Intl.NumberFormat("en-CA", { style: "currency", currency: cur }).format(n);
-}
-function fmtDate(s?: string) {
-  if (!s) return "—";
-  return new Date(s).toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" });
-}
+  useEffect(() => {
+    fetchData();
+    const iv = setInterval(() => { if (live) fetchData(); }, 30000);
+    return () => clearInterval(iv);
+  }, [live]);
 
-// ─── Create Invoice Modal ──────────────────────────────────────────────────
-function CreateInvoiceModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
-  const [form, setForm] = useState({ client_name: "", client_email: "", currency: "CAD", due_date: "", notes: "" });
-  const [items, setItems] = useState<InvoiceItem[]>([{ description: "", qty: 1, unitPrice: 0 }]);
-  const [saving, setSaving] = useState(false);
-  const total = items.reduce((s, i) => s + i.qty * i.unitPrice, 0);
-  const addItem = () => setItems([...items, { description: "", qty: 1, unitPrice: 0 }]);
-  const updateItem = (idx: number, field: keyof InvoiceItem, val: string | number) =>
-    setItems(items.map((it, i) => i === idx ? { ...it, [field]: val } : it));
-  const removeItem = (idx: number) => setItems(items.filter((_, i) => i !== idx));
-  const save = async (status: "draft" | "sent") => {
-    if (!form.client_name || items.every(i => !i.description)) return;
-    setSaving(true);
-    await fetch(`${SUPABASE_URL}/rest/v1/invoices`, {
-      method: "POST",
-      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", Prefer: "return=representation" },
-      body: JSON.stringify({ ...form, type: "outgoing", status, items, amount: total, source: "manual", created_at: new Date().toISOString() }),
-    });
-    setSaving(false); onSaved(); onClose();
-  };
-  return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-800">New Client Invoice</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-2xl">×</button>
-        </div>
-        <div className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div><label className="text-xs font-semibold text-slate-600 mb-1 block">Client Name *</label>
-              <input className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm" value={form.client_name} onChange={e => setForm(f => ({ ...f, client_name: e.target.value }))} placeholder="John Smith" /></div>
-            <div><label className="text-xs font-semibold text-slate-600 mb-1 block">Client Email</label>
-              <input type="email" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm" value={form.client_email} onChange={e => setForm(f => ({ ...f, client_email: e.target.value }))} placeholder="john@email.com" /></div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div><label className="text-xs font-semibold text-slate-600 mb-1 block">Currency</label>
-              <select className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm" value={form.currency} onChange={e => setForm(f => ({ ...f, currency: e.target.value }))}>
-                <option>CAD</option><option>USD</option><option>EUR</option>
-              </select></div>
-            <div><label className="text-xs font-semibold text-slate-600 mb-1 block">Due Date</label>
-              <input type="date" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm" value={form.due_date} onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))} /></div>
-          </div>
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-semibold text-slate-600">Line Items *</label>
-              <button onClick={addItem} className="text-xs px-3 py-1 rounded-lg font-semibold" style={{ background: BRAND_BLUE, color: "white" }}>+ Add Item</button>
-            </div>
-            {items.map((it, idx) => (
-              <div key={idx} className="grid grid-cols-12 gap-2 mb-2">
-                <input className="col-span-6 border border-slate-200 rounded-xl px-3 py-2 text-sm" placeholder="Description" value={it.description} onChange={e => updateItem(idx, "description", e.target.value)} />
-                <input type="number" className="col-span-2 border border-slate-200 rounded-xl px-3 py-2 text-sm" placeholder="Qty" value={it.qty} min={1} onChange={e => updateItem(idx, "qty", Number(e.target.value))} />
-                <input type="number" className="col-span-3 border border-slate-200 rounded-xl px-3 py-2 text-sm" placeholder="Price" value={it.unitPrice} min={0} onChange={e => updateItem(idx, "unitPrice", Number(e.target.value))} />
-                <button onClick={() => removeItem(idx)} className="col-span-1 text-red-400 hover:text-red-600 text-lg">×</button>
-              </div>
-            ))}
-            <div className="text-right font-bold text-lg mt-2" style={{ color: PREMIUM_BLUE }}>
-              Total: {fmtMoney(total, form.currency)}
-            </div>
-          </div>
-          <div><label className="text-xs font-semibold text-slate-600 mb-1 block">Notes</label>
-            <textarea className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm" rows={2} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Payment terms, additional info..." /></div>
-        </div>
-        <div className="p-6 border-t border-slate-100 flex justify-between">
-          <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200">Cancel</button>
-          <div className="flex gap-2">
-            <button onClick={() => save("draft")} disabled={saving} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 border border-slate-200 hover:bg-slate-50">Save Draft</button>
-            <button onClick={() => save("sent")} disabled={saving} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background: BRAND_BLUE }}>
-              {saving ? "Sending..." : "Send to Client"}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Invoice Tab Content ───────────────────────────────────────────────────
-function InvoiceTab() {
-  const [invoiceTab, setInvoiceTab] = useState<"outgoing" | "incoming">("outgoing");
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [invLoading, setInvLoading] = useState(false);
-  const [showCreate, setShowCreate] = useState(false);
-  const [scanning, setScanning] = useState(false);
-  const [scanMsg, setScanMsg] = useState("");
-  const [invStats, setInvStats] = useState({ revenuePaid: 0, outstanding: 0, expensesPaid: 0, billsPending: 0 });
-
-  const loadInvoices = useCallback(async () => {
-    setInvLoading(true);
+  async function fetchData() {
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/invoices?select=*&order=created_at.desc&limit=200`, {
-        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
-      });
-      if (!res.ok) throw new Error("table_missing");
-      const data: Invoice[] = await res.json();
-      setInvoices(data);
-      const out = data.filter(i => i.type === "outgoing");
-      const inc = data.filter(i => i.type === "incoming");
-      setInvStats({
-        revenuePaid: out.filter(i => i.status === "paid").reduce((s, i) => s + i.amount, 0),
-        outstanding: out.filter(i => i.status === "sent" || i.status === "overdue").reduce((s, i) => s + i.amount, 0),
-        expensesPaid: inc.filter(i => i.status === "paid").reduce((s, i) => s + i.amount, 0),
-        billsPending: inc.filter(i => i.status === "pending").reduce((s, i) => s + i.amount, 0),
-      });
-    } catch {
-      setInvoices([]);
-    } finally {
-      setInvLoading(false);
-    }
-  }, []);
+      const [sRes, tRes] = await Promise.all([
+        fetch("/api/zenipay/stats"),
+        fetch("/api/zenipay/transactions"),
+      ]);
+      const sd = await sRes.json();
+      const td = await tRes.json();
+      setStats(sd.stats);
+      setTxs(td.transactions || []);
+    } catch { /* silent */ }
+  }
 
-  useEffect(() => { loadInvoices(); }, [loadInvoices]);
-
-  const scanEmails = async () => {
-    setScanning(true); setScanMsg("");
+  async function createLink() {
+    setLinkLoading(true);
     try {
-      const res = await fetch("/api/invoices/scan-emails", {
-        method: "POST", headers: { Authorization: "Bearer zeniva-secret-2025" },
+      const res = await fetch("/api/zenipay/create-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...linkForm, amount: parseFloat(linkForm.amount), currency: "USD" }),
       });
-      const d = await res.json();
-      setScanMsg(d.message || `${d.added} new invoices imported`);
-      if ((d.added || 0) > 0) loadInvoices();
-    } catch { setScanMsg("Scan failed — try again"); }
-    finally { setScanning(false); }
-  };
+      const data = await res.json();
+      setCreatedLink({ url: data.url, amount: fmtSmall(data.amount) });
+    } catch { /* silent */ }
+    setLinkLoading(false);
+  }
 
-  const markPaid = async (id: string) => {
-    await fetch(`${SUPABASE_URL}/rest/v1/invoices?id=eq.${id}`, {
-      method: "PATCH", headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "paid", paid_at: new Date().toISOString() }),
-    });
-    loadInvoices();
-  };
+  const filteredTxs = txs.filter(t => {
+    const matchSearch = !search || t.customerName.toLowerCase().includes(search.toLowerCase()) || t.id.toLowerCase().includes(search.toLowerCase()) || (t.bookingRef || "").includes(search);
+    const matchStatus = filterStatus === "all" || t.status === filterStatus;
+    return matchSearch && matchStatus;
+  });
 
-  const deleteInv = async (id: string) => {
-    if (!confirm("Delete this invoice?")) return;
-    await fetch(`${SUPABASE_URL}/rest/v1/invoices?id=eq.${id}`, {
-      method: "DELETE", headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
-    });
-    loadInvoices();
-  };
-
-  const filtered = invoices.filter(i => i.type === invoiceTab);
+  const payouts = [
+    { name: "Marie Laurent", earnings: 12450, commission: 1245, pending: 890, paid: 355 },
+    { name: "James Park", earnings: 8920, commission: 892, pending: 450, paid: 442 },
+    { name: "Sofia Mendez", earnings: 15670, commission: 1567, pending: 1200, paid: 367 },
+  ];
 
   return (
-    <div className="space-y-4">
-      {/* Invoice KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {[
-          { label: "Revenue Paid", value: fmtMoney(invStats.revenuePaid), icon: "💵", color: "bg-emerald-500" },
-          { label: "Outstanding", value: fmtMoney(invStats.outstanding), icon: "⏳", color: "bg-amber-500" },
-          { label: "Expenses Paid", value: fmtMoney(invStats.expensesPaid), icon: "💳", color: "bg-blue-500" },
-          { label: "Bills Pending", value: fmtMoney(invStats.billsPending), icon: "📬", color: "bg-red-500" },
-        ].map(k => (
-          <div key={k.label} className={`${k.color} rounded-2xl p-4 text-white`}>
-            <div className="text-xl mb-1">{k.icon}</div>
-            <div className="text-xl font-black">{k.value}</div>
-            <div className="text-xs text-white/80">{k.label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Actions bar */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex gap-2">
-          <button onClick={() => setInvoiceTab("outgoing")}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold ${invoiceTab === "outgoing" ? "text-white" : "bg-white/10 text-white/70"}`}
-            style={invoiceTab === "outgoing" ? { background: BRAND_BLUE } : {}}>
-            📤 Client Invoices ({invoices.filter(i => i.type === "outgoing").length})
-          </button>
-          <button onClick={() => setInvoiceTab("incoming")}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold ${invoiceTab === "incoming" ? "text-white" : "bg-white/10 text-white/70"}`}
-            style={invoiceTab === "incoming" ? { background: BRAND_BLUE } : {}}>
-            📥 Bills & Receipts ({invoices.filter(i => i.type === "incoming").length})
-          </button>
-        </div>
-        <div className="flex gap-2">
-          {invoiceTab === "outgoing" && (
-            <button onClick={() => setShowCreate(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white"
-              style={{ background: ACCENT_GOLD, color: PREMIUM_BLUE }}>
-              ➕ New Invoice
-            </button>
-          )}
-          {invoiceTab === "incoming" && (
-            <button onClick={scanEmails} disabled={scanning}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-60">
-              {scanning ? "⏳ Scanning..." : "📧 Scan Emails"}
-            </button>
-          )}
-        </div>
-      </div>
-      {scanMsg && <div className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl text-sm font-semibold border border-emerald-200">✅ {scanMsg}</div>}
-
-      {/* Invoice list */}
-      <div className="bg-white rounded-2xl overflow-hidden">
-        {invLoading ? (
-          <div className="p-8 text-center text-slate-400">Loading invoices...</div>
-        ) : filtered.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="text-4xl mb-3">{invoiceTab === "outgoing" ? "📤" : "📥"}</div>
-            <p className="text-slate-500 font-semibold">{invoiceTab === "outgoing" ? "No client invoices yet" : "No bills or receipts yet"}</p>
-            <p className="text-slate-400 text-sm mt-1">{invoiceTab === "outgoing" ? "Click '+ New Invoice' to create one" : "Click '📧 Scan Emails' to import from Gmail"}</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-100">
-            {filtered.map(inv => (
-              <div key={inv.id} className="p-4 hover:bg-slate-50 flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className="font-bold text-slate-800 text-sm truncate">
-                      {inv.type === "outgoing" ? (inv.client_name || "Unknown Client") : (inv.email_from || inv.email_subject || "Receipt")}
-                    </span>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${INV_STATUS_COLORS[inv.status] || "bg-slate-100 text-slate-600"}`}>
-                      {inv.status}
-                    </span>
-                  </div>
-                  {inv.type === "incoming" && inv.email_subject && (
-                    <p className="text-xs text-slate-500 truncate">{inv.email_subject}</p>
-                  )}
-                  {inv.type === "outgoing" && inv.notes && (
-                    <p className="text-xs text-slate-400 truncate">{inv.notes}</p>
-                  )}
-                  <div className="flex items-center gap-3 mt-1">
-                    <span className="font-black text-sm" style={{ color: PREMIUM_BLUE }}>{fmtMoney(inv.amount || 0, inv.currency)}</span>
-                    {inv.due_date && <span className="text-xs text-slate-400">Due: {fmtDate(inv.due_date)}</span>}
-                    {inv.email_date && <span className="text-xs text-slate-400">{fmtDate(inv.email_date)}</span>}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  {inv.status !== "paid" && (
-                    <button onClick={() => markPaid(inv.id)} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
-                      ✓ Paid
-                    </button>
-                  )}
-                  <button onClick={() => deleteInv(inv.id)} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-50 text-red-500 hover:bg-red-100">
-                    🗑
-                  </button>
+    <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "system-ui,sans-serif" }}>
+      {/* HEADER */}
+      <div style={{ background: `linear-gradient(135deg, ${DARK} 0%, #1e3a8a 100%)`, padding: "24px 32px", color: "white" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 36, height: 36, background: BLUE, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>💳</div>
+                <div>
+                  <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: "-0.5px" }}>ZeniPay</h1>
+                  <p style={{ margin: 0, fontSize: 11, opacity: 0.7 }}>Financial Infrastructure · Zeniva Travel</p>
                 </div>
               </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.1)", borderRadius: 20, padding: "6px 14px", fontSize: 12 }}>
+                <div style={{ width: 7, height: 7, borderRadius: "50%", background: live ? GREEN : "#94a3b8", animation: live ? "pulse 2s infinite" : "none" }} />
+                {live ? "Live" : "Paused"}
+              </div>
+              <button onClick={() => setLive(v => !v)} style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "white", borderRadius: 8, padding: "7px 14px", fontSize: 12, cursor: "pointer" }}>
+                {live ? "⏸ Pause" : "▶ Resume"}
+              </button>
+            </div>
+          </div>
+          {/* TABS */}
+          <div style={{ display: "flex", gap: 4, marginTop: 20, overflowX: "auto" }}>
+            {(["overview", "transactions", "links", "payouts"] as const).map(t => (
+              <button key={t} onClick={() => setTab(t)} style={{
+                background: tab === t ? "rgba(255,255,255,0.2)" : "transparent",
+                border: tab === t ? "1px solid rgba(255,255,255,0.3)" : "1px solid transparent",
+                color: "white", borderRadius: 8, padding: "7px 16px", fontSize: 13, fontWeight: tab === t ? 700 : 400,
+                cursor: "pointer", textTransform: "capitalize", whiteSpace: "nowrap",
+              }}>
+                {t === "overview" ? "📊 Overview" : t === "transactions" ? "💳 Transactions" : t === "links" ? "🔗 Payment Links" : "💰 Payouts"}
+              </button>
             ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px 16px" }}>
+        {/* ====== OVERVIEW ====== */}
+        {tab === "overview" && (
+          <>
+            {/* METRICS */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 14, marginBottom: 24 }}>
+              {[
+                { label: "Total Revenue", value: fmt(stats?.totalRevenue || 0), sub: `+${stats?.revenueChange || 0}% vs last month`, color: BLUE, icon: "💵" },
+                { label: "Net Revenue", value: fmt(stats?.netRevenue || 0), sub: "After fees & refunds", color: GREEN, icon: "✅" },
+                { label: "Pending", value: fmt(stats?.pendingPayments || 0), sub: `${Math.round((stats?.pendingPayments || 0) / (stats?.totalRevenue || 1) * 100)}% of total`, color: AMBER, icon: "⏳" },
+                { label: "Failed Payments", value: fmt(stats?.failedPayments || 0), sub: "Needs attention", color: RED, icon: "⚠️" },
+                { label: "Commissions", value: fmt(stats?.agentCommissions || 0), sub: "Agent earnings (10%)", color: PURPLE, icon: "🤝" },
+                { label: "Platform Margin", value: fmt(stats?.platformMargin || 0), sub: "Zeniva keep (20%)", color: DARK, icon: "🏢" },
+                { label: "Refunds", value: fmt(stats?.refunds || 0), sub: "Processed refunds", color: "#64748b", icon: "↩️" },
+                { label: "Transactions", value: String(stats?.transactionCount || 0), sub: "This period", color: "#0ea5e9", icon: "📋" },
+              ].map(c => (
+                <div key={c.label} style={{ background: "white", borderRadius: 14, padding: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.07)", border: "1px solid #f1f5f9" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div>
+                      <p style={{ margin: 0, fontSize: 11, color: "#64748b", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.5px" }}>{c.label}</p>
+                      <p style={{ margin: "4px 0", fontSize: 22, fontWeight: 800, color: "#0f172a" }}>{stats ? c.value : "—"}</p>
+                      <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>{c.sub}</p>
+                    </div>
+                    <span style={{ fontSize: 20 }}>{c.icon}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* LIVE FEED */}
+            <div style={{ background: "white", borderRadius: 14, padding: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.07)", border: "1px solid #f1f5f9" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: GREEN, animation: "pulse 2s infinite" }} />
+                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>Live Payment Activity</h3>
+              </div>
+              {txs.slice(0, 5).map((tx) => {
+                const cfg = statusConfig[tx.status];
+                return (
+                  <div key={tx.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid #f8fafc", flexWrap: "wrap", gap: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, background: tx.status === "completed" ? "#d1fae5" : tx.status === "failed" ? "#fee2e2" : "#fef3c7", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>
+                        {tx.status === "completed" ? "✅" : tx.status === "failed" ? "❌" : tx.status === "refunded" ? "↩️" : "⏳"}
+                      </div>
+                      <div>
+                        <p style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>{fmtSmall(tx.amount)} {tx.status === "completed" ? "received" : tx.status}</p>
+                        <p style={{ margin: 0, fontSize: 12, color: "#64748b" }}>
+                          {tx.bookingRef && `Booking ${tx.bookingRef} · `}{tx.customerName} · {tx.paymentMethod}
+                        </p>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 20, background: cfg.bg, color: cfg.color, fontWeight: 600 }}>{cfg.label}</span>
+                      <span style={{ fontSize: 11, color: "#94a3b8" }}>{timeAgo(tx.createdAt)}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {/* ====== TRANSACTIONS ====== */}
+        {tab === "transactions" && (
+          <div style={{ background: "white", borderRadius: 14, boxShadow: "0 1px 3px rgba(0,0,0,0.07)", border: "1px solid #f1f5f9", overflow: "hidden" }}>
+            <div style={{ padding: "16px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>All Transactions</h3>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Search customer, ID..." style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: "7px 12px", fontSize: 13, outline: "none", minWidth: 200 }} />
+                <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: "7px 12px", fontSize: 13, background: "white", cursor: "pointer" }}>
+                  <option value="all">All Status</option>
+                  <option value="completed">Completed</option>
+                  <option value="pending">Pending</option>
+                  <option value="failed">Failed</option>
+                  <option value="refunded">Refunded</option>
+                </select>
+                <button onClick={() => {
+                  const csv = ["ID,Customer,Amount,Currency,Status,Method,Gateway,Booking,Date",
+                    ...filteredTxs.map(t => `${t.id},${t.customerName},${t.amount},${t.currency},${t.status},${t.paymentMethod},${t.gateway},${t.bookingRef||""},${t.createdAt}`)
+                  ].join("\n");
+                  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "zenipay-transactions.csv"; a.click();
+                }} style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "7px 14px", fontSize: 13, cursor: "pointer", fontWeight: 600 }}>
+                  ⬇ Export CSV
+                </button>
+              </div>
+            </div>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: "#f8fafc" }}>
+                    {["Transaction ID", "Customer", "Amount", "Method", "Gateway", "Booking", "Status", "Date"].map(h => (
+                      <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px", whiteSpace: "nowrap" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTxs.map((tx, i) => {
+                    const cfg = statusConfig[tx.status];
+                    return (
+                      <tr key={tx.id} style={{ borderTop: "1px solid #f1f5f9", background: i % 2 === 0 ? "white" : "#fafbfc" }}>
+                        <td style={{ padding: "12px 14px", fontWeight: 700, color: BLUE, whiteSpace: "nowrap" }}>{tx.id}</td>
+                        <td style={{ padding: "12px 14px" }}>{tx.customerName}</td>
+                        <td style={{ padding: "12px 14px", fontWeight: 700, whiteSpace: "nowrap" }}>{fmtSmall(tx.amount)}</td>
+                        <td style={{ padding: "12px 14px", color: "#64748b", whiteSpace: "nowrap", fontSize: 12 }}>{tx.paymentMethod}</td>
+                        <td style={{ padding: "12px 14px", color: "#64748b" }}>{tx.gateway}</td>
+                        <td style={{ padding: "12px 14px", color: "#64748b" }}>{tx.bookingRef || "—"}</td>
+                        <td style={{ padding: "12px 14px" }}>
+                          <span style={{ padding: "3px 10px", borderRadius: 20, background: cfg.bg, color: cfg.color, fontSize: 11, fontWeight: 600 }}>{cfg.label}</span>
+                        </td>
+                        <td style={{ padding: "12px 14px", color: "#94a3b8", whiteSpace: "nowrap", fontSize: 12 }}>{timeAgo(tx.createdAt)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              {filteredTxs.length === 0 && <div style={{ textAlign: "center", padding: 40, color: "#94a3b8" }}>No transactions found</div>}
+            </div>
+          </div>
+        )}
+
+        {/* ====== PAYMENT LINKS ====== */}
+        {tab === "links" && (
+          <div style={{ maxWidth: 720, margin: "0 auto" }}>
+            <div style={{ background: "white", borderRadius: 14, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.07)", border: "1px solid #f1f5f9", marginBottom: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>🔗 Payment Links</h3>
+                <button onClick={() => { setShowCreateLink(true); setCreatedLink(null); }} style={{ background: BLUE, color: "white", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                  + Create Link
+                </button>
+              </div>
+
+              {showCreateLink && !createdLink && (
+                <div style={{ background: "#f8fafc", borderRadius: 12, padding: 20, marginBottom: 16 }}>
+                  <h4 style={{ margin: "0 0 16px", fontSize: 14, fontWeight: 700 }}>New Payment Link</h4>
+                  <div style={{ display: "grid", gap: 12 }}>
+                    <input value={linkForm.amount} onChange={e => setLinkForm(f => ({...f, amount: e.target.value}))} placeholder="Amount (USD)" type="number" style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 14px", fontSize: 14, outline: "none" }} />
+                    <input value={linkForm.description} onChange={e => setLinkForm(f => ({...f, description: e.target.value}))} placeholder="Description (e.g. Paris Trip Deposit)" style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 14px", fontSize: 14, outline: "none" }} />
+                    <input value={linkForm.customerName} onChange={e => setLinkForm(f => ({...f, customerName: e.target.value}))} placeholder="Customer Name (optional)" style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 14px", fontSize: 14, outline: "none" }} />
+                    <input value={linkForm.customerEmail} onChange={e => setLinkForm(f => ({...f, customerEmail: e.target.value}))} placeholder="Customer Email (optional)" style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 14px", fontSize: 14, outline: "none" }} />
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button onClick={createLink} disabled={!linkForm.amount || linkLoading} style={{ flex: 1, background: linkForm.amount ? BLUE : "#94a3b8", color: "white", border: "none", borderRadius: 8, padding: "10px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                        {linkLoading ? "Creating…" : "Generate Link"}
+                      </button>
+                      <button onClick={() => setShowCreateLink(false)} style={{ background: "#f1f5f9", border: "none", borderRadius: 8, padding: "10px 16px", fontSize: 14, cursor: "pointer" }}>Cancel</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {createdLink && (
+                <div style={{ background: "#d1fae5", borderRadius: 12, padding: 20, marginBottom: 16 }}>
+                  <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#065f46", fontSize: 15 }}>✅ Payment link created — {createdLink.amount}</p>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, background: "white", borderRadius: 8, padding: "10px 14px", marginTop: 10 }}>
+                    <code style={{ flex: 1, fontSize: 12, wordBreak: "break-all", color: "#0f172a" }}>{createdLink.url}</code>
+                    <button onClick={() => navigator.clipboard.writeText(createdLink.url)} style={{ background: BLUE, color: "white", border: "none", borderRadius: 6, padding: "5px 12px", fontSize: 12, cursor: "pointer", whiteSpace: "nowrap" }}>Copy</button>
+                  </div>
+                  <button onClick={() => { setCreatedLink(null); setLinkForm({ amount: "", description: "", customerName: "", customerEmail: "" }); }} style={{ marginTop: 10, background: "transparent", border: "none", color: "#065f46", fontSize: 12, cursor: "pointer", textDecoration: "underline" }}>Create another</button>
+                </div>
+              )}
+
+              <div style={{ padding: 32, textAlign: "center", color: "#94a3b8", fontSize: 13 }}>
+                <div style={{ fontSize: 32, marginBottom: 8 }}>🔗</div>
+                <p>Create secure payment links and send them to clients.<br />They can pay directly via the Zeniva checkout.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ====== PAYOUTS ====== */}
+        {tab === "payouts" && (
+          <div style={{ background: "white", borderRadius: 14, boxShadow: "0 1px 3px rgba(0,0,0,0.07)", border: "1px solid #f1f5f9", overflow: "hidden" }}>
+            <div style={{ padding: "16px 20px", borderBottom: "1px solid #f1f5f9" }}>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>💰 Agent Payouts</h3>
+              <p style={{ margin: "4px 0 0", fontSize: 12, color: "#64748b" }}>May 2025 · Commission: 10% of booking value</p>
+            </div>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: "#f8fafc" }}>
+                    {["Agent", "Total Earnings", "Commission (10%)", "Pending", "Paid", "Action"].map(h => (
+                      <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {payouts.map((p, i) => (
+                    <tr key={p.name} style={{ borderTop: "1px solid #f1f5f9", background: i % 2 === 0 ? "white" : "#fafbfc" }}>
+                      <td style={{ padding: "14px 16px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <div style={{ width: 34, height: 34, borderRadius: "50%", background: `hsl(${i * 80 + 200}, 70%, 90%)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: `hsl(${i * 80 + 200}, 70%, 35%)` }}>
+                            {p.name.charAt(0)}
+                          </div>
+                          <span style={{ fontWeight: 600 }}>{p.name}</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: "14px 16px", fontWeight: 700 }}>{fmt(p.earnings)}</td>
+                      <td style={{ padding: "14px 16px", color: PURPLE, fontWeight: 700 }}>{fmt(p.commission)}</td>
+                      <td style={{ padding: "14px 16px" }}><span style={{ background: "#fef3c7", color: "#92400e", padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>{fmt(p.pending)}</span></td>
+                      <td style={{ padding: "14px 16px" }}><span style={{ background: "#d1fae5", color: "#065f46", padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>{fmt(p.paid)}</span></td>
+                      <td style={{ padding: "14px 16px" }}>
+                        <button style={{ background: BLUE, color: "white", border: "none", borderRadius: 7, padding: "6px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Pay Now</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
-      {showCreate && <CreateInvoiceModal onClose={() => setShowCreate(false)} onSaved={loadInvoices} />}
-    </div>
-  );
-}
 
-// ─── Main Finance Page ─────────────────────────────────────────────────────
-export default function FinancePage() {
-  const { user } = useAuthStore();
-  const hq = isHQ(user);
-  const [stats, setStats] = useState<FinanceStats | null>(null);
-  const [commissions, setCommissions] = useState<Commission[]>([]);
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [tab, setTab] = useState<"overview" | "commissions" | "bookings" | "invoices">("overview");
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!hq) return;
-    const fetchAll = async () => {
-      setLoading(true);
-      try {
-        const [cRes, bRes] = await Promise.all([
-          fetch("/api/agents-proxy?path=admin/commissions"),
-          fetch("/api/agents-proxy?path=admin/bookings"),
-        ]);
-        const cData = await cRes.json().catch(() => []);
-        const bData = await bRes.json().catch(() => []);
-        const comms: Commission[] = Array.isArray(cData) ? cData : [];
-        const books: Booking[] = Array.isArray(bData) ? bData : [];
-        setCommissions(comms);
-        setBookings(books);
-        const totalRev = books.reduce((s, b) => s + (b.total_price || 0), 0);
-        const commPaid = comms.filter(c => c.status === "paid").reduce((s, c) => s + c.commission, 0);
-        const commPending = comms.filter(c => c.status === "pending").reduce((s, c) => s + c.commission, 0);
-        const now = new Date();
-        const thisMonth = books.filter(b => new Date(b.departure_date).getMonth() === now.getMonth());
-        setStats({
-          total_revenue: totalRev, commissions_paid: commPaid, commissions_pending: commPending,
-          bookings_this_month: thisMonth.length,
-          revenue_this_month: thisMonth.reduce((s, b) => s + (b.total_price || 0), 0),
-          avg_deal_value: books.length ? Math.round(totalRev / books.length) : 0,
-        });
-      } catch { setStats(null); }
-      finally { setLoading(false); }
-    };
-    fetchAll();
-  }, [hq]);
-
-  if (!hq) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: PREMIUM_BLUE }}>
-        <div className="bg-white rounded-2xl p-10 text-center shadow-xl max-w-sm">
-          <div className="text-5xl mb-4">🔒</div>
-          <h2 className="text-xl font-black text-slate-800 mb-2">HQ Access Only</h2>
-          <p className="text-slate-500 text-sm">Finance is restricted to Zeniva headquarters.</p>
-        </div>
-      </div>
-    );
-  }
-
-  const fmt = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 0 })}`;
-
-  const kpis = [
-    { label: "Total Revenue", value: fmt(stats?.total_revenue ?? 0), icon: "💵", color: "from-blue-500 to-blue-700", sub: "All time" },
-    { label: "This Month", value: fmt(stats?.revenue_this_month ?? 0), icon: "📅", color: "from-emerald-500 to-emerald-700", sub: `${stats?.bookings_this_month ?? 0} bookings` },
-    { label: "Commissions Paid", value: fmt(stats?.commissions_paid ?? 0), icon: "✅", color: "from-purple-500 to-purple-700", sub: "To agents" },
-    { label: "Commissions Pending", value: fmt(stats?.commissions_pending ?? 0), icon: "⏳", color: "from-amber-500 to-amber-700", sub: "Awaiting payout" },
-    { label: "Avg Deal Value", value: fmt(stats?.avg_deal_value ?? 0), icon: "📊", color: "from-rose-500 to-rose-700", sub: "Per booking" },
-    { label: "Net Profit Est.", value: fmt(Math.round((stats?.total_revenue ?? 0) * 0.2)), icon: "🏦", color: "from-slate-600 to-slate-800", sub: "~20% margin" },
-  ];
-
-  const tabs = [
-    { id: "overview", label: "📊 Overview" },
-    { id: "commissions", label: "💰 Commissions" },
-    { id: "bookings", label: "✈️ Revenue" },
-    { id: "invoices", label: "🧾 Invoices" },
-  ];
-
-  return (
-    <div className="min-h-screen p-6 space-y-6" style={{ background: PREMIUM_BLUE }}>
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-black text-white">📊 Finance & Invoices</h1>
-          <p className="text-white/60 text-sm mt-1">Revenue, commissions, invoices & accounting</p>
-        </div>
-        <button
-          onClick={() => {
-            const csv = commissions.map(c => `${c.agent_name},${c.client_name},${c.trip},${c.sale_amount},${c.commission},${c.status},${c.created_at}`).join("\n");
-            const blob = new Blob(["Agent,Client,Trip,Sale,Commission,Status,Date\n" + csv], { type: "text/csv" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a"); a.href = url; a.download = "zeniva-finance.csv"; a.click();
-          }}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
-          style={{ background: ACCENT_GOLD, color: PREMIUM_BLUE }}
-        >
-          ⬇️ Export CSV
-        </button>
-      </div>
-
-      {/* KPI Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {kpis.map(k => (
-          <div key={k.label} className={`bg-gradient-to-br ${k.color} rounded-2xl p-5 text-white`}>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-2xl">{k.icon}</span>
-              <span className="text-xs text-white/70">{k.sub}</span>
-            </div>
-            <div className="text-2xl font-black">{loading ? "—" : k.value}</div>
-            <div className="text-xs text-white/80 mt-1">{k.label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-2 flex-wrap">
-        {tabs.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id as typeof tab)}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${tab === t.id ? "text-white shadow-lg" : "bg-white/10 text-white/70 hover:bg-white/20"}`}
-            style={tab === t.id ? { background: BRAND_BLUE } : {}}>
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Overview Tab */}
-      {tab === "overview" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-            <h3 className="font-black text-slate-800 mb-4">Revenue Breakdown</h3>
-            {[
-              { label: "Gross Revenue", value: stats?.total_revenue ?? 0, color: "bg-blue-500", max: stats?.total_revenue ?? 1 },
-              { label: "Commissions Paid", value: stats?.commissions_paid ?? 0, color: "bg-purple-500", max: stats?.total_revenue ?? 1 },
-              { label: "Commissions Pending", value: stats?.commissions_pending ?? 0, color: "bg-amber-500", max: stats?.total_revenue ?? 1 },
-              { label: "Est. Net Profit (20%)", value: Math.round((stats?.total_revenue ?? 0) * 0.2), color: "bg-emerald-500", max: stats?.total_revenue ?? 1 },
-            ].map(row => (
-              <div key={row.label} className="mb-3">
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-600">{row.label}</span>
-                  <span className="font-bold text-slate-800">{fmt(row.value)}</span>
-                </div>
-                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div className={`h-full ${row.color} rounded-full transition-all duration-700`}
-                    style={{ width: `${row.max > 0 ? Math.min(100, (row.value / row.max) * 100) : 0}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-            <h3 className="font-black text-slate-800 mb-4">Commission Structures</h3>
-            {[
-              { icon: "✈️", label: "Travel Agents", pct: "70%", sub: "agent · 30% Zeniva", color: "bg-blue-50 border-blue-200", textColor: "text-blue-700" },
-              { icon: "🤖", label: "Lina Books Alone", pct: "70%", sub: "Zeniva · 30% agent", color: "bg-amber-50 border-amber-200", textColor: "text-amber-700" },
-              { icon: "⛵", label: "Yacht Brokers", pct: "5%", sub: "agent · 95% Zeniva", color: "bg-indigo-50 border-indigo-200", textColor: "text-indigo-700" },
-              { icon: "⭐", label: "Influencers", pct: "5%", sub: "influencer · 95% Zeniva", color: "bg-purple-50 border-purple-200", textColor: "text-purple-700" },
-            ].map(row => (
-              <div key={row.label} className={`rounded-xl p-3 mb-2 border ${row.color} flex items-center gap-3`}>
-                <span className="text-xl">{row.icon}</span>
-                <div className="flex-1">
-                  <div className="font-bold text-slate-800 text-sm">{row.label}</div>
-                  <div className="text-xs text-slate-500">{row.sub}</div>
-                </div>
-                <span className={`text-xl font-black ${row.textColor}`}>{row.pct}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Commissions Tab */}
-      {tab === "commissions" && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-slate-100">
-            <h3 className="font-black text-slate-800">All Commissions</h3>
-            <p className="text-slate-500 text-sm">{commissions.length} total records</p>
-          </div>
-          {loading ? <div className="p-8 text-center text-slate-400">Loading...</div> :
-           commissions.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="text-4xl mb-3">💰</div>
-              <p className="text-slate-500 font-semibold">No commissions yet</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50">
-                  <tr>{["Agent", "Client", "Trip", "Sale", "Commission", "Status", "Date"].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wide">{h}</th>
-                  ))}</tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {commissions.map(c => (
-                    <tr key={c.id} className="hover:bg-slate-50">
-                      <td className="px-4 py-3"><div className="font-semibold">{c.agent_name || c.agent_email?.split("@")[0]}</div><div className="text-xs text-slate-400">{c.agent_email}</div></td>
-                      <td className="px-4 py-3">{c.client_name}</td>
-                      <td className="px-4 py-3">{c.trip}</td>
-                      <td className="px-4 py-3 font-semibold">{fmt(c.sale_amount)}</td>
-                      <td className="px-4 py-3 font-bold" style={{ color: ACCENT_GOLD }}>{fmt(c.commission)}</td>
-                      <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-bold ${c.status === "paid" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>{c.status === "paid" ? "✅ Paid" : "⏳ Pending"}</span></td>
-                      <td className="px-4 py-3 text-slate-400 text-xs">{c.created_at ? new Date(c.created_at).toLocaleDateString() : "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Revenue Tab */}
-      {tab === "bookings" && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-slate-100">
-            <h3 className="font-black text-slate-800">Revenue by Booking</h3>
-            <p className="text-slate-500 text-sm">{bookings.length} total bookings</p>
-          </div>
-          {loading ? <div className="p-8 text-center text-slate-400">Loading...</div> :
-           bookings.length === 0 ? (
-            <div className="p-12 text-center"><div className="text-4xl mb-3">✈️</div><p className="text-slate-500 font-semibold">No bookings yet</p></div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50">
-                  <tr>{["Client", "Destination", "Departure", "Revenue", "Agent", "Status"].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wide">{h}</th>
-                  ))}</tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {bookings.map(b => (
-                    <tr key={b.id} className="hover:bg-slate-50">
-                      <td className="px-4 py-3 font-semibold">{b.client_name}</td>
-                      <td className="px-4 py-3">{b.destination}</td>
-                      <td className="px-4 py-3 text-slate-500 text-xs">{b.departure_date ? new Date(b.departure_date).toLocaleDateString() : "—"}</td>
-                      <td className="px-4 py-3 font-bold">{fmt(b.total_price || 0)}</td>
-                      <td className="px-4 py-3 text-slate-500 text-xs">{b.agent_email?.split("@")[0] || "—"}</td>
-                      <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-bold ${b.status === "confirmed" ? "bg-emerald-100 text-emerald-700" : b.status === "pending_payment" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>{b.status?.replace("_", " ") || "upcoming"}</span></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Invoices Tab */}
-      {tab === "invoices" && <InvoiceTab />}
+      <style>{`
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+      `}</style>
     </div>
   );
 }
