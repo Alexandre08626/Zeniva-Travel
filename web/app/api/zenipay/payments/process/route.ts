@@ -150,7 +150,6 @@ export async function POST(request: Request) {
           return_date: checkout || null,
           travelers: guests,
           total_price: parsedAmount,
-          currency,
           status: "confirmed",
           notes: `ZeniPay payment ${paymentId} — Finix ${result.transactionId}`,
           created_at: new Date().toISOString(),

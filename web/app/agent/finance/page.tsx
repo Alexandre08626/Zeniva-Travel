@@ -1670,42 +1670,41 @@ export default function ZeniPayDashboard() {
         {tab === "analytics" && (
           <div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 16, marginBottom: 20 }}>
-              {[
-                { title: "Revenue by Month", data: [48200, 62400, 78900, 91200, 84500, 102400, 118700, 134200, 156800, 184500, 218900, 284500] },
-                { title: "Transaction Volume", data: [12, 18, 24, 29, 27, 34, 41, 47, 58, 71, 89, 127] },
-              ].map(chart => (
-                <div key={chart.title} style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
-                  <h3 style={{ margin: "0 0 16px", fontWeight: 700, fontSize: 14 }}>📈 {chart.title}</h3>
+              <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)", gridColumn: "span 2" }}>
+                <h3 style={{ margin: "0 0 8px", fontWeight: 700, fontSize: 14 }}>📈 Revenue Chart</h3>
+                {TRANSACTIONS.length === 0 ? (
+                  <div style={{ textAlign: "center" as const, padding: "32px 0", color: "#94a3b8" }}>
+                    <div style={{ fontSize: 32, marginBottom: 8 }}>📊</div>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>No transactions yet</p>
+                    <p style={{ margin: "4px 0 0", fontSize: 11 }}>Chart will populate from real Finix payments</p>
+                  </div>
+                ) : (
                   <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 80 }}>
-                    {chart.data.map((v, i) => {
-                      const max = Math.max(...chart.data);
-                      return <div key={i} style={{ flex: 1, background: `linear-gradient(${BLUE}, #60a5fa)`, borderRadius: "3px 3px 0 0", height: `${(v/max*100)}%`, opacity: 0.7 + i/chart.data.length*0.3 }} />;
-                    })}
+                    {TRANSACTIONS.slice(-12).map((t, i) => (
+                      <div key={i} title={`$${t.amount}`} style={{ flex: 1, background: `linear-gradient(${BLUE}, #60a5fa)`, borderRadius: "3px 3px 0 0", height: `${Math.min(100, (t.amount / Math.max(...TRANSACTIONS.map(x => x.amount))) * 100)}%`, opacity: 0.7 + i / TRANSACTIONS.length * 0.3 }} />
+                    ))}
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 10, color: "#94a3b8" }}>
-                    <span>Feb 2025</span><span>Feb 2026</span>
-                  </div>
-                </div>
-              ))}
+                )}
+              </div>
             </div>
             <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
               <h3 style={{ margin: "0 0 16px", fontWeight: 700 }}>🥇 Top Revenue Sources</h3>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12 }}>
                 {[
-                  { label: "ZeniStay", value: "$142,800", pct: 50, icon: "🏡" },
-                  { label: "ZeniHotel", value: "$71,400", pct: 25, icon: "🏨" },
-                  { label: "ZeniFlights", value: "$42,840", pct: 15, icon: "✈️" },
-                  { label: "ZeniYacht", value: "$21,420", pct: 7.5, icon: "⛵" },
-                  { label: "ZeniCruise", value: "$7,140", pct: 2.5, icon: "🚢" },
+                  { label: "ZeniStay", icon: "🏡" },
+                  { label: "ZeniHotel", icon: "🏨" },
+                  { label: "ZeniFlights", icon: "✈️" },
+                  { label: "ZeniYacht", icon: "⛵" },
+                  { label: "ZeniCruise", icon: "🚢" },
                 ].map(s => (
                   <div key={s.label} style={{ background: "#f8fafc", borderRadius: 12, padding: 16 }}>
                     <div style={{ fontSize: 24, marginBottom: 8 }}>{s.icon}</div>
                     <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 13 }}>{s.label}</p>
-                    <p style={{ margin: "0 0 8px", fontWeight: 800, fontSize: 16, color: BLUE }}>{s.value}</p>
+                    <p style={{ margin: "0 0 8px", fontWeight: 800, fontSize: 16, color: BLUE }}>$0</p>
                     <div style={{ background: "#e2e8f0", borderRadius: 3, height: 4 }}>
-                      <div style={{ background: BLUE, width: `${s.pct}%`, height: "100%", borderRadius: 3 }} />
+                      <div style={{ background: "#e2e8f0", width: "0%", height: "100%", borderRadius: 3 }} />
                     </div>
-                    <p style={{ margin: "4px 0 0", fontSize: 10, color: "#94a3b8" }}>{s.pct}% of revenue</p>
+                    <p style={{ margin: "4px 0 0", fontSize: 10, color: "#94a3b8" }}>0% of revenue</p>
                   </div>
                 ))}
               </div>
