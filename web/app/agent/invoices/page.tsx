@@ -401,6 +401,10 @@ function InvoiceTable({ invoices, onMarkPaid, onDelete }: { invoices: Invoice[];
               <td className="px-4 py-4 text-slate-500">{fmtDate(inv.due_date)}</td>
               <td className="px-4 py-4">
                 <div className="flex gap-2">
+                  <a href={`/agent/invoices/${inv.id}`} target="_blank"
+                    className="text-xs text-blue-600 hover:text-blue-800 font-medium border border-blue-200 px-2 py-1 rounded-lg hover:bg-blue-50">
+                    👁 View
+                  </a>
                   {inv.status !== "paid" && inv.status !== "cancelled" && (
                     <button onClick={() => onMarkPaid(inv.id)}
                       className="text-xs text-emerald-600 hover:text-emerald-800 font-medium border border-emerald-200 px-2 py-1 rounded-lg hover:bg-emerald-50">

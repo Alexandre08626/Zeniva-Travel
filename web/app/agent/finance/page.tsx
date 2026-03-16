@@ -577,39 +577,82 @@ export default function ZeniPayDashboard() {
 
         {/* ════ INVOICES ════ */}
         {tab === "invoices" && (
-          <div style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
-            <div style={{ padding: "16px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0, fontWeight: 700 }}>📄 Invoices</h3>
-              <button style={{ background: BLUE, color: "white", border: "none", borderRadius: 8, padding: "8px 16px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>+ New Invoice</button>
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {/* Info Banner */}
+            <div style={{ background: `linear-gradient(135deg, ${DARK}, #1a2f6e)`, borderRadius: 16, padding: "20px 24px", color: "white", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <h3 style={{ margin: "0 0 4px", fontWeight: 800, fontSize: 16 }}>📄 ZeniPay Invoices</h3>
+                <p style={{ margin: 0, fontSize: 12, opacity: 0.6 }}>Auto-generated on booking · Editable HTML · Print-ready</p>
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <a href="/agent/invoices" style={{ background: BLUE, color: "white", textDecoration: "none", borderRadius: 9999, padding: "9px 18px", fontSize: 13, fontWeight: 700 }}>
+                  + New Invoice
+                </a>
+                <a href="/agent/invoices" style={{ background: "rgba(255,255,255,0.1)", color: "white", textDecoration: "none", borderRadius: 9999, padding: "9px 18px", fontSize: 13, fontWeight: 600 }}>
+                  View All Invoices →
+                </a>
+              </div>
             </div>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ background: "#f8fafc" }}>
-                  {["Invoice #","Client","Booking","Amount","Date","Due Date","Status","Actions"].map(h => (
-                    <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {INVOICES.map(inv => (
-                  <tr key={inv.id} style={{ borderTop: "1px solid #f1f5f9" }}>
-                    <td style={{ padding: "12px 16px", fontSize: 12, fontFamily: "monospace", color: BLUE, fontWeight: 600 }}>{inv.id}</td>
-                    <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 500 }}>{inv.client}</td>
-                    <td style={{ padding: "12px 16px", fontSize: 12, color: "#64748b" }}>—</td>
-                    <td style={{ padding: "12px 16px", fontWeight: 700 }}>{fmt(inv.amount)}</td>
-                    <td style={{ padding: "12px 16px", fontSize: 12, color: "#94a3b8" }}>{inv.date}</td>
-                    <td style={{ padding: "12px 16px", fontSize: 12, color: "#94a3b8" }}>{inv.due}</td>
-                    <td style={{ padding: "12px 16px" }}><StatusBadge status={inv.status} /></td>
-                    <td style={{ padding: "12px 16px" }}>
-                      <div style={{ display: "flex", gap: 6 }}>
-                        <button style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 6, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>📧 Send</button>
-                        <button style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 6, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>⬇ PDF</button>
-                      </div>
-                    </td>
-                  </tr>
+
+            {/* How it works */}
+            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+              <h4 style={{ margin: "0 0 16px", fontWeight: 700, fontSize: 14 }}>🔄 How Invoices Work</h4>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
+                {[
+                  { icon: "💳", title: "Client Pays", desc: "Payment processed via ZeniPay checkout" },
+                  { icon: "📄", title: "Auto-Generated", desc: "Invoice created automatically with booking details" },
+                  { icon: "✉️", title: "Emailed", desc: "Sent to client via info@zeniva.ca" },
+                  { icon: "✏️", title: "Editable", desc: "Admin can modify any invoice and reprint" },
+                ].map(s => (
+                  <div key={s.title} style={{ background: "#f8fafc", borderRadius: 12, padding: 16, textAlign: "center" as const }}>
+                    <div style={{ fontSize: 28, marginBottom: 8 }}>{s.icon}</div>
+                    <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 13 }}>{s.title}</p>
+                    <p style={{ margin: 0, fontSize: 11, color: "#64748b" }}>{s.desc}</p>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </div>
+
+            {/* Empty state or list */}
+            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+              {INVOICES.length === 0 ? (
+                <div style={{ textAlign: "center" as const, padding: "40px 20px" }}>
+                  <div style={{ fontSize: 64, marginBottom: 16 }}>📄</div>
+                  <h3 style={{ margin: "0 0 8px", fontWeight: 800, color: DARK }}>No invoices yet</h3>
+                  <p style={{ color: "#64748b", margin: "0 0 20px" }}>Invoices are auto-created when a client completes payment. You can also create them manually.</p>
+                  <a href="/agent/invoices" style={{ background: BLUE, color: "white", textDecoration: "none", borderRadius: 9999, padding: "12px 28px", fontWeight: 700, fontSize: 14 }}>
+                    + Create First Invoice
+                  </a>
+                </div>
+              ) : (
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ background: "#f8fafc" }}>
+                      {["Invoice #","Client","Amount","Date","Status","Actions"].map(h => (
+                        <th key={h} style={{ padding: "10px 16px", textAlign: "left" as const, fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase" as const }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {INVOICES.map(inv => (
+                      <tr key={inv.id} style={{ borderTop: "1px solid #f1f5f9" }}>
+                        <td style={{ padding: "12px 16px", fontSize: 12, fontFamily: "monospace", color: BLUE, fontWeight: 600 }}>{inv.id}</td>
+                        <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 500 }}>{inv.client}</td>
+                        <td style={{ padding: "12px 16px", fontWeight: 700 }}>{fmt(inv.amount)}</td>
+                        <td style={{ padding: "12px 16px", fontSize: 12, color: "#94a3b8" }}>{inv.date}</td>
+                        <td style={{ padding: "12px 16px" }}><StatusBadge status={inv.status} /></td>
+                        <td style={{ padding: "12px 16px" }}>
+                          <a href={`/agent/invoices/${inv.id}`} target="_blank"
+                            style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 6, padding: "5px 12px", fontSize: 11, cursor: "pointer", textDecoration: "none", color: BLUE, fontWeight: 600 }}>
+                            👁 View & Edit
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
         )}
 
