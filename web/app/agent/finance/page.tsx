@@ -6,12 +6,15 @@ import { useState, useEffect } from "react";
 //  Built like Stripe. Thinks like a bank.
 // ═══════════════════════════════════════════════════════
 
-const BLUE = "#0F6CF5";
+const BLUE = "#0066FF";
+const NAVY = "#0A0F1E";
 const DARK = "#0B1B4D";
 const GREEN = "#10B981";
 const GOLD = "#F59E0B";
 const RED = "#EF4444";
 const PURPLE = "#8B5CF6";
+const GLASS = "rgba(255,255,255,0.06)";
+const GLASS_BORDER = "rgba(255,255,255,0.12)";
 
 // ── Default wallets — overwritten by live API on mount ────────────────
 const DEFAULT_WALLETS = {
@@ -39,6 +42,77 @@ const fmt = (n: number, compact?: boolean) =>
   compact
     ? n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `$${(n / 1000).toFixed(0)}k` : `$${n}`
     : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
+
+// ── BANK CARD COMPONENT ───────────────────────────────
+function BankCard({
+  label, sub, balance, last4 = "4242", expiry = "03/28",
+  gradient, network = "VISA", cardholder = "ZENIVA TRAVEL LLC",
+}: {
+  label: string; sub?: string; balance?: number; last4?: string; expiry?: string;
+  gradient: string; network?: string; cardholder?: string;
+}) {
+  return (
+    <div style={{
+      background: gradient, borderRadius: 20, padding: "26px 28px", color: "white",
+      position: "relative", overflow: "hidden", minHeight: 180,
+      boxShadow: "0 20px 60px rgba(0,0,102,0.35), 0 4px 20px rgba(0,0,0,0.3)",
+      transition: "transform 0.2s, box-shadow 0.2s", cursor: "default",
+      fontFamily: "system-ui, -apple-system, sans-serif",
+    }}
+      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 28px 70px rgba(0,0,102,0.45), 0 8px 30px rgba(0,0,0,0.35)"; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 20px 60px rgba(0,0,102,0.35), 0 4px 20px rgba(0,0,0,0.3)"; }}
+    >
+      {/* Shine overlay */}
+      <div style={{ position: "absolute", top: -60, right: -60, width: 200, height: 200, background: "radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", bottom: -40, left: -20, width: 160, height: 160, background: "radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" }} />
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+        <div>
+          <p style={{ margin: 0, fontWeight: 900, fontSize: 16, letterSpacing: "0.04em" }}>Z ZENIPAY</p>
+          <p style={{ margin: "2px 0 0", fontSize: 10, opacity: 0.55, letterSpacing: "0.1em", textTransform: "uppercase" as const }}>{label}</p>
+        </div>
+        {/* EMV Chip */}
+        <div style={{
+          width: 38, height: 30, borderRadius: 5,
+          background: "linear-gradient(135deg, #d4af37 0%, #f5e06e 40%, #b8960c 100%)",
+          boxShadow: "inset 0 1px 2px rgba(255,255,255,0.4), 0 1px 4px rgba(0,0,0,0.3)",
+          display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gridTemplateRows: "1fr 1fr 1fr",
+          gap: 1, padding: 3,
+        }}>
+          {Array.from({length: 9}).map((_,i) => (
+            <div key={i} style={{ background: "rgba(0,0,0,0.15)", borderRadius: 1 }} />
+          ))}
+        </div>
+      </div>
+      {/* Balance */}
+      {balance !== undefined && (
+        <div style={{ marginBottom: 16 }}>
+          <p style={{ margin: "0 0 2px", fontSize: 10, opacity: 0.45, letterSpacing: "0.1em", textTransform: "uppercase" as const }}>Available Balance</p>
+          <p style={{ margin: 0, fontSize: 28, fontWeight: 900, letterSpacing: "-0.5px" }}>{fmt(balance)}</p>
+        </div>
+      )}
+      {/* Card Number */}
+      <p style={{ margin: "0 0 16px", fontSize: 15, fontWeight: 700, letterSpacing: "0.2em", fontFamily: "monospace", opacity: 0.9 }}>
+        •••• •••• •••• {last4}
+      </p>
+      {/* Footer */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+        <div>
+          <p style={{ margin: "0 0 2px", fontSize: 8, opacity: 0.4, letterSpacing: "0.1em" }}>CARDHOLDER</p>
+          <p style={{ margin: 0, fontSize: 11, fontWeight: 700, letterSpacing: "0.05em" }}>{cardholder}</p>
+        </div>
+        <div style={{ textAlign: "right" as const }}>
+          <p style={{ margin: "0 0 2px", fontSize: 8, opacity: 0.4, letterSpacing: "0.1em" }}>VALID THRU</p>
+          <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700 }}>{expiry}</p>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 900, fontStyle: "italic", opacity: 0.85, letterSpacing: "0.05em" }}>{network}</p>
+        </div>
+      </div>
+      {sub && <p style={{ position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)", margin: 0, fontSize: 9, opacity: 0.3, whiteSpace: "nowrap" }}>{sub}</p>}
+    </div>
+  );
+}
+
+
 
 const STATUS_COLORS: Record<string, string> = {
   completed: GREEN, pending: GOLD, failed: RED, refunded: PURPLE,
@@ -1058,6 +1132,7 @@ export default function ZeniPayDashboard() {
   const totalRevenue = TRANSACTIONS.filter(t => t.status === "succeeded" || t.status === "completed").reduce((a, t) => a + t.amount, 0);
   const platformBalance = WALLETS.platform.available + WALLETS.agent.available + WALLETS.influencer.available + WALLETS.supplier.available;
   const successRate = TRANSACTIONS.length > 0 ? Math.round(TRANSACTIONS.filter(t => t.status === "succeeded" || t.status === "completed").length / TRANSACTIONS.length * 100) : 0;
+  const isLive = STATS.env === "production" || STATS.env === "live";
 
   const filteredTx = TRANSACTIONS.filter(t => {
     const matchSearch = !txSearch || t.customer.toLowerCase().includes(txSearch.toLowerCase()) || t.id.includes(txSearch) || t.booking.includes(txSearch);
@@ -1119,13 +1194,14 @@ export default function ZeniPayDashboard() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f0f4ff", fontFamily: "'Inter',system-ui,sans-serif", display: "flex" }}>
-      {/* ══ LEFT SIDEBAR ══ */}
+    <div style={{ minHeight: "100vh", background: NAVY, fontFamily: "'Inter',system-ui,sans-serif", display: "flex" }}>
+      {/* ══ LEFT SIDEBAR — Dark Glassmorphism ══ */}
       <div style={{
-        width: sidebarOpen ? 240 : 60,
+        width: sidebarOpen ? 240 : 64,
         minHeight: "100vh",
-        background: `linear-gradient(180deg, ${DARK} 0%, #0a1f5c 100%)`,
-        transition: "width 0.25s ease",
+        background: `linear-gradient(180deg, #0d1829 0%, #091220 100%)`,
+        borderRight: `1px solid ${GLASS_BORDER}`,
+        transition: "width 0.25s cubic-bezier(0.4,0,0.2,1)",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column" as const,
@@ -1136,62 +1212,78 @@ export default function ZeniPayDashboard() {
         zIndex: 100,
       }}>
         {/* Logo + toggle */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: sidebarOpen ? "space-between" : "center", padding: "20px 16px", borderBottom: "1px solid rgba(255,255,255,0.08)", minHeight: 72 }}>
-          {sidebarOpen && <div>
-            <p style={{ margin: 0, fontWeight: 900, fontSize: 14, color: "white", letterSpacing: "-0.3px" }}>ZeniPay</p>
-            <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 600, textTransform: "uppercase" as const }}>Financial Dashboard</p>
-          </div>}
-          <button onClick={() => setSidebarOpen((o: boolean) => !o)} style={{ background: "rgba(255,255,255,0.08)", border: "none", borderRadius: 8, width: 28, height: 28, cursor: "pointer", color: "white", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            {sidebarOpen ? "◀" : "▶"}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: sidebarOpen ? "space-between" : "center", padding: "18px 14px", borderBottom: `1px solid ${GLASS_BORDER}`, minHeight: 70 }}>
+          {sidebarOpen && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: `linear-gradient(135deg, ${BLUE}, #004acc)`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 14px ${BLUE}60`, flexShrink: 0 }}>
+                <span style={{ color: "white", fontWeight: 900, fontSize: 14 }}>Z</span>
+              </div>
+              <div>
+                <p style={{ margin: 0, fontWeight: 900, fontSize: 15, color: "white", letterSpacing: "-0.5px" }}>ZeniPay</p>
+                <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.1em" }}>Finance Platform</p>
+              </div>
+            </div>
+          )}
+          {!sidebarOpen && (
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: `linear-gradient(135deg, ${BLUE}, #004acc)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ color: "white", fontWeight: 900, fontSize: 14 }}>Z</span>
+            </div>
+          )}
+          <button onClick={() => setSidebarOpen((o: boolean) => !o)} style={{ background: GLASS, border: `1px solid ${GLASS_BORDER}`, borderRadius: 8, width: 26, height: 26, cursor: "pointer", color: "rgba(255,255,255,0.6)", fontSize: 11, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginLeft: sidebarOpen ? 0 : "auto" }}>
+            {sidebarOpen ? "‹" : "›"}
           </button>
         </div>
         {/* Nav items */}
-        <div style={{ flex: 1, overflowY: "auto" as const, padding: "10px 8px", scrollbarWidth: "none" as const }}>
+        <div style={{ flex: 1, overflowY: "auto" as const, padding: "8px 6px", scrollbarWidth: "none" as const }}>
           {TABS.map(t => {
-            const isLink = !!(t as any).href;
+            const isLink = !!(t as unknown as { href?: string }).href;
             const isActive = tab === t.id;
             const btnStyle = {
               width: "100%",
               display: "flex" as const,
               alignItems: "center" as const,
               gap: 10,
-              padding: sidebarOpen ? "10px 12px" : "10px 0",
+              padding: sidebarOpen ? "9px 12px" : "9px 0",
               justifyContent: sidebarOpen ? "flex-start" as const : "center" as const,
-              border: "none",
+              border: isActive ? `1px solid ${BLUE}40` : "1px solid transparent",
               borderRadius: 10,
-              background: isActive ? "rgba(255,255,255,0.12)" : isLink ? "rgba(255,255,255,0.04)" : "transparent",
+              background: isActive ? `linear-gradient(135deg, ${BLUE}25, ${BLUE}10)` : "transparent",
               cursor: "pointer",
-              marginBottom: 2,
-              transition: "background 0.15s",
+              marginBottom: 1,
+              transition: "all 0.15s",
               color: "white",
               textDecoration: "none" as const,
+              boxShadow: isActive ? `0 0 16px ${BLUE}20` : "none",
             };
             return isLink ? (
-              <a key={t.id} href={(t as any).href} style={btnStyle}>
-                <span style={{ fontSize: 16, flexShrink: 0 }}>{t.icon}</span>
-                {sidebarOpen && <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.7)", whiteSpace: "nowrap" as const }}>{t.label}</span>}
+              <a key={t.id} href={(t as unknown as { href: string }).href} style={btnStyle}>
+                <span style={{ fontSize: 15, flexShrink: 0, opacity: 0.85 }}>{t.icon}</span>
+                {sidebarOpen && <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.55)", whiteSpace: "nowrap" as const }}>{t.label}</span>}
               </a>
             ) : (
               <button key={t.id} onClick={() => setTab(t.id)} style={btnStyle}>
-                <span style={{ fontSize: 16, flexShrink: 0 }}>{t.icon}</span>
-                {sidebarOpen && <span style={{ fontSize: 12, fontWeight: isActive ? 700 : 500, color: isActive ? "white" : "rgba(255,255,255,0.55)", whiteSpace: "nowrap" as const }}>{t.label}</span>}
-                {sidebarOpen && isActive && <div style={{ marginLeft: "auto", width: 3, height: 16, background: BLUE, borderRadius: 9999 }} />}
+                <span style={{ fontSize: 15, flexShrink: 0, opacity: isActive ? 1 : 0.7 }}>{t.icon}</span>
+                {sidebarOpen && <span style={{ fontSize: 12, fontWeight: isActive ? 700 : 400, color: isActive ? "white" : "rgba(255,255,255,0.45)", whiteSpace: "nowrap" as const }}>{t.label}</span>}
+                {sidebarOpen && isActive && <div style={{ marginLeft: "auto", width: 4, height: 16, background: BLUE, borderRadius: 9999, boxShadow: `0 0 8px ${BLUE}` }} />}
               </button>
             );
           })}
         </div>
         {/* Bottom status */}
         {sidebarOpen && (
-          <div style={{ padding: "14px 16px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-              <div style={{ width: 7, height: 7, background: GREEN, borderRadius: "50%" }} />
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>Finix · Sandbox</span>
+          <div style={{ padding: "14px", borderTop: `1px solid ${GLASS_BORDER}` }}>
+            <div style={{ background: isLive ? `${GREEN}15` : `${GOLD}15`, border: `1px solid ${isLive ? GREEN : GOLD}30`, borderRadius: 10, padding: "10px 12px", marginBottom: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{ width: 6, height: 6, background: isLive ? GREEN : GOLD, borderRadius: "50%", boxShadow: `0 0 6px ${isLive ? GREEN : GOLD}` }} />
+                <span style={{ fontSize: 10, color: isLive ? GREEN : GOLD, fontWeight: 700, letterSpacing: "0.05em" }}>{isLive ? "LIVE MODE" : "SANDBOX MODE"}</span>
+              </div>
+              <p style={{ margin: "4px 0 0", fontSize: 9, color: "rgba(255,255,255,0.3)" }}>Finix · {isLive ? "Production" : "Testing"}</p>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 28, height: 28, background: `${BLUE}30`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>👑</div>
+              <div style={{ width: 30, height: 30, borderRadius: 8, background: `linear-gradient(135deg, ${BLUE}, ${PURPLE})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "white", fontWeight: 900 }}>A</div>
               <div>
-                <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.8)" }}>Admin</p>
-                <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.35)" }}>Zeniva Travel LLC</p>
+                <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>Admin</p>
+                <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.3)" }}>Zeniva Travel LLC</p>
               </div>
             </div>
           </div>
@@ -1199,47 +1291,77 @@ export default function ZeniPayDashboard() {
       </div>
 
       {/* ══ MAIN CONTENT ══ */}
-      <div style={{ flex: 1, minHeight: "100vh", overflow: "auto" }}>
+      <div style={{ flex: 1, minHeight: "100vh", overflow: "auto", background: NAVY }}>
       {/* Hide duplicate Help button on desktop */}
       <style>{`
         @media (min-width: 640px) { .help-float { display: none !important; } }
+        .zp-tab-btn:hover { background: rgba(0,102,255,0.1) !important; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
       `}</style>
       {/* ── HEADER ── */}
-      <div style={{ background: `linear-gradient(135deg, ${DARK} 0%, #1a2f6e 100%)`, padding: "0 24px", boxShadow: "0 2px 20px rgba(0,0,0,0.3)" }}>
-        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 0", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-            <div style={{ width: 40, height: 40, background: BLUE, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, boxShadow: `0 0 20px ${BLUE}60` }}>💳</div>
-            <div>
-              <p style={{ margin: 0, fontWeight: 900, fontSize: 18, color: "white", letterSpacing: "-0.5px" }}>ZeniPay</p>
-              <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.5)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Financial Core · Zeniva Travel</p>
+      <div style={{ background: `linear-gradient(90deg, #0d1829 0%, #0a1535 100%)`, padding: "0 24px", borderBottom: `1px solid ${GLASS_BORDER}` }}>
+        <div style={{ maxWidth: 1600, margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 0", borderBottom: `1px solid ${GLASS_BORDER}` }}>
+            {/* Brand */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 38, height: 38, borderRadius: 10, background: `linear-gradient(135deg, ${BLUE}, #004acc)`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 14px ${BLUE}50` }}>
+                <span style={{ color: "white", fontWeight: 900, fontSize: 16 }}>Z</span>
+              </div>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontWeight: 900, fontSize: 16, color: "white", letterSpacing: "-0.5px" }}>ZeniPay</span>
+                  <span style={{ background: isLive ? `${GREEN}25` : `${GOLD}25`, border: `1px solid ${isLive ? GREEN : GOLD}50`, color: isLive ? GREEN : GOLD, fontSize: 8, fontWeight: 800, borderRadius: 4, padding: "2px 6px", letterSpacing: "0.1em" }}>
+                    {isLive ? "● LIVE" : "● SANDBOX"}
+                  </span>
+                </div>
+                <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.06em" }}>Powered by Finix · Banking by Unit.co</p>
+              </div>
             </div>
-            <div style={{ marginLeft: "auto", display: "flex", gap: 20, alignItems: "center" }}>
-              <div style={{ textAlign: "right" }}>
-                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Platform Balance</p>
-                <p style={{ margin: 0, fontWeight: 800, fontSize: 20, color: "white" }}>{fmt(platformBalance)}</p>
+            {/* Balance display */}
+            <div style={{ marginLeft: "auto", display: "flex", gap: 24, alignItems: "center" }}>
+              <div>
+                <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)", textTransform: "uppercase" as const, letterSpacing: "0.08em" }}>Platform Balance</p>
+                <p style={{ margin: 0, fontWeight: 900, fontSize: 22, color: "white", letterSpacing: "-0.5px" }}>{fmt(platformBalance)}</p>
               </div>
-              <div style={{ width: 1, height: 40, background: "rgba(255,255,255,0.1)" }} />
-              <div style={{ textAlign: "right" }}>
-                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Gateway</p>
-                <p style={{ margin: 0, fontWeight: 700, fontSize: 12, color: GREEN }}>● Finix · Sandbox</p>
+              <div style={{ width: 1, height: 36, background: GLASS_BORDER }} />
+              <div>
+                <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)" }}>Transactions</p>
+                <p style={{ margin: 0, fontWeight: 800, fontSize: 18, color: "white" }}>{STATS.totalTransactions}</p>
               </div>
-              <div style={{ background: `${BLUE}22`, border: `1px solid ${BLUE}44`, borderRadius: 8, padding: "6px 12px", fontSize: 11, color: BLUE, fontWeight: 700 }}>
-                🤖 Ben AI Online
+              <div style={{ width: 1, height: 36, background: GLASS_BORDER }} />
+              <div>
+                <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)" }}>Success Rate</p>
+                <p style={{ margin: 0, fontWeight: 800, fontSize: 18, color: STATS.successRate > 80 ? GREEN : GOLD }}>{STATS.successRate.toFixed(0)}%</p>
+              </div>
+              <div style={{ width: 1, height: 36, background: GLASS_BORDER }} />
+              {/* Quick actions */}
+              <div style={{ display: "flex", gap: 8 }}>
+                <button onClick={() => window.open("/zenipay/checkout/test", "_blank")} style={{ background: BLUE, border: "none", borderRadius: 8, padding: "8px 14px", color: "white", fontSize: 11, fontWeight: 700, cursor: "pointer", boxShadow: `0 4px 12px ${BLUE}40` }}>
+                  + New Payment
+                </button>
+                <button onClick={() => setTab("payouts")} style={{ background: GLASS, border: `1px solid ${GLASS_BORDER}`, borderRadius: 8, padding: "8px 14px", color: "rgba(255,255,255,0.7)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+                  ↑ Payout
+                </button>
+                <button onClick={() => setTab("ben")} style={{ background: `${BLUE}15`, border: `1px solid ${BLUE}30`, borderRadius: 8, padding: "8px 14px", color: BLUE, fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+                  🤖 Ben AI
+                </button>
               </div>
             </div>
           </div>
 
           {/* ── TAB BAR ── */}
-          <div style={{ display: "flex", gap: 0, overflowX: "auto", padding: "0 0 0", scrollbarWidth: "none" as const }}>
+          <div style={{ display: "flex", gap: 0, overflowX: "auto", scrollbarWidth: "none" as const }}>
             {TABS.map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)} style={{
-                background: tab === t.id ? `${BLUE}25` : "transparent",
+              <button key={t.id} onClick={() => setTab(t.id)} className="zp-tab-btn" style={{
+                background: tab === t.id ? `${BLUE}15` : "transparent",
                 border: "none", borderBottom: tab === t.id ? `2px solid ${BLUE}` : "2px solid transparent",
-                color: tab === t.id ? BLUE : "rgba(255,255,255,0.5)",
-                padding: "12px 10px", fontSize: 11, fontWeight: tab === t.id ? 700 : 500,
-                cursor: "pointer", whiteSpace: "nowrap" as const, transition: "all 0.15s", display: "flex", gap: 4, alignItems: "center", flexShrink: 0,
+                color: tab === t.id ? BLUE : "rgba(255,255,255,0.35)",
+                padding: "11px 11px", fontSize: 11, fontWeight: tab === t.id ? 700 : 400,
+                cursor: "pointer", whiteSpace: "nowrap" as const, transition: "all 0.15s", display: "flex", gap: 5, alignItems: "center", flexShrink: 0,
               }}>
-                <span>{t.icon}</span> {t.label}
+                <span style={{ fontSize: 13 }}>{t.icon}</span> {t.label}
               </button>
             ))}
           </div>
@@ -1247,39 +1369,57 @@ export default function ZeniPayDashboard() {
       </div>
 
       {/* ── CONTENT ── */}
-      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "24px 24px" }}>
+      <div style={{ maxWidth: 1600, margin: "0 auto", padding: "28px 28px" }}>
 
         {/* ════ OVERVIEW ════ */}
         {tab === "overview" && (
           <div>
-            {/* KPI Cards */}
+            {/* KPI Cards — Dark glass */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 14, marginBottom: 24 }}>
-              <StatCard icon="💰" label="Total Revenue (MTD)" value={fmt(totalRevenue)} sub="Real payments only" color={GREEN} />
-              <StatCard icon="📥" label="Platform Margin" value={fmt(WALLETS.platform.available)} sub="Zeniva net (after payouts)" color={BLUE} />
-              <StatCard icon="✅" label="Success Rate" value={`${successRate}%`} sub={TRANSACTIONS.length === 0 ? "No transactions yet" : `${TRANSACTIONS.length} transactions`} color={GREEN} />
-              <StatCard icon="⏳" label="Pending Payments" value={fmt(WALLETS.platform.pending + WALLETS.agent.pending)} sub="Awaiting settlement" color={GOLD} />
-              <StatCard icon="👤" label="Agent Commissions" value={fmt(WALLETS.agent.paid)} sub="3 agents — Louis, Jason, Luca" color={PURPLE} />
-              <StatCard icon="⭐" label="Influencer Revenue" value={fmt(WALLETS.influencer.paid)} sub="0 active influencers" color={GOLD} />
-              <StatCard icon="💸" label="Total Payouts" value={fmt(WALLETS.agent.paid + WALLETS.influencer.paid + WALLETS.supplier.paid)} sub="Platform → Agents / Suppliers" color={RED} />
-              <StatCard icon="🔄" label="Refunds" value={fmt(0)} sub="No refunds yet" color={PURPLE} />
+              {[
+                { icon: "💰", label: "Total Revenue", value: fmt(totalRevenue), sub: "Real payments only", color: GREEN },
+                { icon: "🏛️", label: "Platform Balance", value: fmt(WALLETS.platform.available), sub: "Available", color: BLUE },
+                { icon: "✅", label: "Success Rate", value: `${successRate}%`, sub: `${TRANSACTIONS.length} txns`, color: GREEN },
+                { icon: "⏳", label: "Pending", value: fmt(WALLETS.platform.pending + WALLETS.agent.pending), sub: "Awaiting settlement", color: GOLD },
+                { icon: "👤", label: "Agent Pool", value: fmt(WALLETS.agent.available), sub: "Louis · Jason · Luca", color: PURPLE },
+                { icon: "💸", label: "Paid Out", value: fmt(WALLETS.agent.paid + WALLETS.influencer.paid + WALLETS.supplier.paid), sub: "All wallets", color: RED },
+                { icon: "🧾", label: "Invoices", value: String(zpInvoices.length), sub: "ZeniPay invoices", color: GOLD },
+                { icon: "🔄", label: "Refunds", value: fmt(0), sub: "No refunds yet", color: PURPLE },
+              ].map(s => (
+                <div key={s.label} style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 16, padding: "18px 20px", border: `1px solid ${GLASS_BORDER}`, borderLeft: `3px solid ${s.color}`, boxShadow: `0 4px 20px rgba(0,0,0,0.3)` }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div>
+                      <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>{s.label}</p>
+                      <p style={{ margin: 0, fontWeight: 900, fontSize: 22, color: "white", letterSpacing: "-0.5px" }}>{s.value}</p>
+                      {s.sub && <p style={{ margin: "4px 0 0", fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{s.sub}</p>}
+                    </div>
+                    <span style={{ fontSize: 22, opacity: 0.7 }}>{s.icon}</span>
+                  </div>
+                </div>
+              ))}
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 20 }}>
               {/* Live Feed */}
-              <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+              <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", border: `1px solid ${GLASS_BORDER}`, borderRadius: 16, padding: 24 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                  <h3 style={{ margin: 0, fontWeight: 700, fontSize: 15 }}>⚡ Live Payment Activity</h3>
+                  <h3 style={{ margin: 0, fontWeight: 700, fontSize: 15, color: "white" }}>⚡ Live Payment Activity</h3>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: GREEN, fontWeight: 600 }}>
-                    <div style={{ width: 7, height: 7, background: GREEN, borderRadius: "50%", animation: "pulse 1.5s infinite" }} />
+                    <div style={{ width: 6, height: 6, background: GREEN, borderRadius: "50%", boxShadow: `0 0 6px ${GREEN}`, animation: "pulse 1.5s infinite" }} />
                     Real-time
                     <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
                   </div>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {liveActivity.map(a => (
-                    <div key={a.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: a.type === "alert" ? "#fff1f2" : "#f0fdf4", borderRadius: 10, padding: "10px 14px" }}>
-                      <span style={{ fontSize: 13, color: a.type === "alert" ? RED : "#065f46", fontWeight: 500 }}>{a.text}</span>
-                      <span style={{ fontSize: 11, color: "#94a3b8", whiteSpace: "nowrap", marginLeft: 12 }}>{a.time}</span>
+                  {liveActivity.length === 0 ? (
+                    <div style={{ textAlign: "center" as const, padding: "28px 0" }}>
+                      <div style={{ fontSize: 32, marginBottom: 8 }}>⚡</div>
+                      <p style={{ margin: 0, color: "rgba(255,255,255,0.25)", fontSize: 13 }}>Awaiting first payment…</p>
+                    </div>
+                  ) : liveActivity.map(a => (
+                    <div key={a.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: a.type === "alert" ? `${RED}15` : `${GREEN}10`, border: `1px solid ${a.type === "alert" ? RED : GREEN}25`, borderRadius: 10, padding: "10px 14px" }}>
+                      <span style={{ fontSize: 13, color: a.type === "alert" ? RED : GREEN, fontWeight: 500 }}>{a.text}</span>
+                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", whiteSpace: "nowrap" as const, marginLeft: 12 }}>{a.time}</span>
                     </div>
                   ))}
                 </div>
@@ -1290,29 +1430,28 @@ export default function ZeniPayDashboard() {
             </div>
 
             {/* ── Recent Bookings Panel ── */}
-            <div style={{ background: "white", borderRadius: 16, padding: 0, boxShadow: "0 1px 4px rgba(0,0,0,0.07)", overflow: "hidden" }}>
-              <div style={{ padding: "16px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <h3 style={{ margin: 0, fontWeight: 700, fontSize: 15 }}>✈️ Recent Bookings</h3>
+            <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", border: `1px solid ${GLASS_BORDER}`, borderRadius: 16, overflow: "hidden", marginTop: 20 }}>
+              <div style={{ padding: "16px 20px", borderBottom: `1px solid ${GLASS_BORDER}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <h3 style={{ margin: 0, fontWeight: 700, fontSize: 15, color: "white" }}>✈️ Recent Bookings</h3>
                 <a href="/agent/bookings" style={{ fontSize: 12, color: BLUE, fontWeight: 700, textDecoration: "none" }}>View All →</a>
               </div>
               {recentBookings.length === 0 ? (
-                <div style={{ padding: 32, textAlign: "center", color: "#94a3b8" }}>
+                <div style={{ padding: 32, textAlign: "center" as const }}>
                   <div style={{ fontSize: 32, marginBottom: 8 }}>✈️</div>
-                  <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>No bookings yet</p>
-                  <p style={{ margin: "4px 0 0", fontSize: 11 }}>Bookings appear here after payment is received</p>
-                  <a href="/agent/bookings" style={{ display: "inline-block", marginTop: 12, background: BLUE, color: "white", borderRadius: 8, padding: "7px 16px", fontSize: 12, fontWeight: 700, textDecoration: "none" }}>+ New Booking</a>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.5)" }}>No bookings yet</p>
+                  <p style={{ margin: "4px 0 0", fontSize: 11, color: "rgba(255,255,255,0.25)" }}>Bookings appear after payment is received</p>
                 </div>
               ) : (
                 <div>
                   {recentBookings.map((b, i) => {
-                    const statusColor = b.status === "confirmed" ? GREEN : b.status === "pending_payment" ? "#F59E0B" : "#94a3b8";
+                    const statusColor = b.status === "confirmed" ? GREEN : b.status === "pending_payment" ? GOLD : "rgba(255,255,255,0.3)";
                     const statusLabel = b.status === "confirmed" ? "✓ Confirmed" : b.status === "pending_payment" ? "⏳ Pending" : b.status;
                     return (
-                      <div key={b.id} style={{ display: "flex", alignItems: "center", padding: "12px 20px", borderTop: i > 0 ? "1px solid #f8fafc" : "none", gap: 12 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#f0f7ff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>✈️</div>
+                      <div key={b.id} style={{ display: "flex", alignItems: "center", padding: "12px 20px", borderTop: i > 0 ? `1px solid ${GLASS_BORDER}` : "none", gap: 12 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: "50%", background: `${BLUE}20`, border: `1px solid ${BLUE}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>✈️</div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: DARK }}>{b.client_name}</p>
-                          <p style={{ margin: 0, fontSize: 11, color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.destination}</p>
+                          <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: "white" }}>{b.client_name}</p>
+                          <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.35)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{b.destination}</p>
                         </div>
                         <div style={{ textAlign: "right" as const, flexShrink: 0 }}>
                           <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: GREEN }}>${(b.total_price || 0).toLocaleString()}</p>
@@ -1321,7 +1460,7 @@ export default function ZeniPayDashboard() {
                       </div>
                     );
                   })}
-                  <div style={{ padding: "12px 20px", borderTop: "1px solid #f1f5f9", textAlign: "center" as const }}>
+                  <div style={{ padding: "12px 20px", borderTop: `1px solid ${GLASS_BORDER}`, textAlign: "center" as const }}>
                     <a href="/agent/bookings" style={{ fontSize: 12, color: BLUE, fontWeight: 700, textDecoration: "none" }}>View All Bookings →</a>
                   </div>
                 </div>
@@ -1332,40 +1471,40 @@ export default function ZeniPayDashboard() {
 
         {/* ════ TRANSACTIONS ════ */}
         {tab === "transactions" && (
-          <div style={{ background: "white", borderRadius: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
-            <div style={{ padding: 20, borderBottom: "1px solid #f1f5f9", display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-              <h3 style={{ margin: 0, fontWeight: 700, fontSize: 15, flex: 1 }}>💳 Transactions</h3>
+          <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", border: `1px solid ${GLASS_BORDER}`, borderRadius: 16 }}>
+            <div style={{ padding: 20, borderBottom: `1px solid ${GLASS_BORDER}`, display: "flex", gap: 12, flexWrap: "wrap" as const, alignItems: "center" }}>
+              <h3 style={{ margin: 0, fontWeight: 700, fontSize: 15, flex: 1, color: "white" }}>💳 Transactions</h3>
               <input value={txSearch} onChange={e => setTxSearch(e.target.value)} placeholder="Search customer, ID, booking…"
-                style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: "7px 12px", fontSize: 13, width: 220, outline: "none" }} />
+                style={{ background: GLASS, border: `1px solid ${GLASS_BORDER}`, borderRadius: 8, padding: "7px 12px", fontSize: 13, width: 220, outline: "none", color: "white" }} />
               <select value={txFilter} onChange={e => setTxFilter(e.target.value)}
-                style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: "7px 12px", fontSize: 13, outline: "none" }}>
+                style={{ background: GLASS, border: `1px solid ${GLASS_BORDER}`, borderRadius: 8, padding: "7px 12px", fontSize: 13, outline: "none", color: "white" }}>
                 <option value="all">All Status</option>
                 {["completed","pending","failed","refunded"].map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase()+s.slice(1)}</option>)}
               </select>
-              <button onClick={exportCSV} style={{ background: BLUE, color: "white", border: "none", borderRadius: 8, padding: "7px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+              <button onClick={exportCSV} style={{ background: BLUE, color: "white", border: "none", borderRadius: 8, padding: "7px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer", boxShadow: `0 4px 12px ${BLUE}40` }}>
                 ⬇ Export CSV
               </button>
             </div>
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <div style={{ overflowX: "auto" as const }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
                 <thead>
-                  <tr style={{ background: "#f8fafc" }}>
+                  <tr style={{ background: "rgba(0,0,0,0.3)" }}>
                     {["Transaction ID","Customer","Booking","Amount","Method","Gateway","Status","Date"].map(h => (
-                      <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap" }}>{h}</th>
+                      <th key={h} style={{ padding: "10px 16px", textAlign: "left" as const, fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.35)", textTransform: "uppercase" as const, letterSpacing: "0.08em", whiteSpace: "nowrap" as const }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {filteredTx.map((t, i) => (
-                    <tr key={t.id} style={{ borderTop: "1px solid #f1f5f9", background: i % 2 === 0 ? "white" : "#fafbff" }}>
+                    <tr key={t.id} style={{ borderTop: `1px solid ${GLASS_BORDER}`, background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.02)" }}>
                       <td style={{ padding: "12px 16px", fontSize: 12, fontFamily: "monospace", color: BLUE, fontWeight: 600 }}>{t.id}</td>
-                      <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 500 }}>{t.customer}</td>
-                      <td style={{ padding: "12px 16px", fontSize: 12, color: "#64748b" }}>{t.booking}</td>
-                      <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 700 }}>{fmt(t.amount)}</td>
-                      <td style={{ padding: "12px 16px", fontSize: 12, color: "#374151" }}>{t.method}</td>
-                      <td style={{ padding: "12px 16px", fontSize: 12, color: "#64748b" }}>{t.gateway}</td>
+                      <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 500, color: "white" }}>{t.customer}</td>
+                      <td style={{ padding: "12px 16px", fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{t.booking}</td>
+                      <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 700, color: GREEN }}>{fmt(t.amount)}</td>
+                      <td style={{ padding: "12px 16px", fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{t.method}</td>
+                      <td style={{ padding: "12px 16px", fontSize: 12, color: BLUE }}>{t.gateway}</td>
                       <td style={{ padding: "12px 16px" }}><StatusBadge status={t.status} /></td>
-                      <td style={{ padding: "12px 16px", fontSize: 12, color: "#94a3b8", whiteSpace: "nowrap" }}>{t.date}</td>
+                      <td style={{ padding: "12px 16px", fontSize: 11, color: "rgba(255,255,255,0.3)", whiteSpace: "nowrap" as const }}>{new Date(t.date).toLocaleDateString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1376,11 +1515,111 @@ export default function ZeniPayDashboard() {
 
         {/* ════ WALLETS ════ */}
         {tab === "wallets" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             {/* Wallet Modal */}
             {openWallet && (
               <WalletModal name={openWallet.name} data={openWallet.data} icon={openWallet.icon} color={openWallet.color} onClose={() => setOpenWallet(null)} />
             )}
+
+            {/* ═══ BANK CARDS SHOWCASE ═══ */}
+            <div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                <div>
+                  <h2 style={{ margin: 0, fontWeight: 900, fontSize: 20, color: "white" }}>💳 ZeniPay Accounts</h2>
+                  <p style={{ margin: "4px 0 0", fontSize: 12, color: "rgba(255,255,255,0.35)" }}>Virtual accounts · Powered by Finix + Unit.co</p>
+                </div>
+                <span style={{ background: `${BLUE}20`, border: `1px solid ${BLUE}40`, color: BLUE, fontSize: 11, fontWeight: 700, borderRadius: 8, padding: "5px 12px" }}>
+                  {isLive ? "🟢 Live" : "🟡 Sandbox"}
+                </span>
+              </div>
+              {/* Platform card — full width */}
+              <div style={{ marginBottom: 16 }}>
+                <BankCard
+                  label="Platform Account"
+                  sub="All incoming payments"
+                  balance={platformBalance}
+                  gradient={`linear-gradient(135deg, ${NAVY} 0%, #001a80 50%, ${BLUE} 100%)`}
+                  cardholder="ZENIVA TRAVEL LLC"
+                  last4="0001"
+                  expiry="12/28"
+                  network="VISA"
+                />
+              </div>
+              {/* Agent cards */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 16 }}>
+                {[
+                  { name: "Louis", gradient: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)", last4: "1001" },
+                  { name: "Jason", gradient: "linear-gradient(135deg, #141e30 0%, #243b55 100%)", last4: "1002" },
+                  { name: "Luca",  gradient: "linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)", last4: "1003" },
+                ].map(a => (
+                  <BankCard
+                    key={a.name}
+                    label={`Agent · ${a.name}`}
+                    balance={WALLETS.agent.available}
+                    gradient={a.gradient}
+                    cardholder={a.name.toUpperCase()}
+                    last4={a.last4}
+                    expiry="12/28"
+                    network="VISA"
+                  />
+                ))}
+              </div>
+              {/* Corporate card */}
+              <BankCard
+                label="Zeniva Corporate"
+                balance={WALLETS.platform.available}
+                gradient={`linear-gradient(135deg, ${DARK} 0%, #2d1b69 50%, ${PURPLE} 100%)`}
+                cardholder="ZENIVA TRAVEL LLC"
+                last4="9999"
+                expiry="12/28"
+                network="MASTERCARD"
+              />
+            </div>
+
+            {/* Money Flow Diagram */}
+            <div style={{ background: "linear-gradient(135deg, #0d1829, #091220)", border: `1px solid ${GLASS_BORDER}`, borderRadius: 20, padding: 28 }}>
+              <h3 style={{ margin: "0 0 20px", fontWeight: 800, fontSize: 15, color: "white" }}>⚡ Money Flow</h3>
+              <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto" as const }}>
+                {/* Client */}
+                <div style={{ textAlign: "center" as const, flexShrink: 0 }}>
+                  <div style={{ width: 80, height: 60, borderRadius: 14, background: `${GREEN}20`, border: `1px solid ${GREEN}40`, display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", gap: 4 }}>
+                    <span style={{ fontSize: 18 }}>👤</span>
+                    <span style={{ fontSize: 9, color: GREEN, fontWeight: 700 }}>CLIENT</span>
+                  </div>
+                </div>
+                {/* Arrow 1 */}
+                <div style={{ flex: 1, height: 2, background: `linear-gradient(90deg, ${GREEN}, ${BLUE})`, position: "relative", minWidth: 40 }}>
+                  <div style={{ position: "absolute", right: -6, top: -4, width: 0, height: 0, borderTop: "5px solid transparent", borderBottom: "5px solid transparent", borderLeft: `8px solid ${BLUE}` }} />
+                  <span style={{ position: "absolute", top: -16, left: "50%", transform: "translateX(-50%)", fontSize: 9, color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap" as const }}>Finix</span>
+                </div>
+                {/* ZeniPay */}
+                <div style={{ textAlign: "center" as const, flexShrink: 0 }}>
+                  <div style={{ width: 100, height: 70, borderRadius: 14, background: `${BLUE}20`, border: `2px solid ${BLUE}60`, display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", gap: 4, boxShadow: `0 0 20px ${BLUE}30` }}>
+                    <span style={{ fontSize: 20 }}>Z</span>
+                    <span style={{ fontSize: 9, color: BLUE, fontWeight: 800, letterSpacing: "0.05em" }}>ZENIPAY</span>
+                    <span style={{ fontSize: 10, color: "white", fontWeight: 700 }}>{fmt(platformBalance)}</span>
+                  </div>
+                </div>
+                {/* Arrows out */}
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 8, paddingLeft: 8, flex: 1 }}>
+                  {[
+                    { label: "Agents (70%)", color: PURPLE, icon: "👤" },
+                    { label: "Suppliers (net)", color: GOLD, icon: "🏨" },
+                    { label: "Zeniva (30%)", color: BLUE, icon: "🏛️" },
+                  ].map(r => (
+                    <div key={r.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ height: 1.5, width: 30, background: r.color, flexShrink: 0 }}>
+                        <div style={{ float: "right", width: 0, height: 0, borderTop: "4px solid transparent", borderBottom: "4px solid transparent", borderLeft: `6px solid ${r.color}`, marginTop: -3 }} />
+                      </div>
+                      <div style={{ background: `${r.color}15`, border: `1px solid ${r.color}30`, borderRadius: 8, padding: "4px 10px", display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ fontSize: 12 }}>{r.icon}</span>
+                        <span style={{ fontSize: 10, color: r.color, fontWeight: 700 }}>{r.label}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
 
             {/* HERO BANNER */}
             <div style={{ background: `linear-gradient(135deg, ${DARK} 0%, #1e3a8a 60%, ${BLUE} 100%)`, borderRadius: 24, padding: "32px 36px", color: "white", position: "relative", overflow: "hidden" }}>
