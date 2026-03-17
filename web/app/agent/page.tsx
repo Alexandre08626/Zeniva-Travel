@@ -58,7 +58,7 @@ const HQ_LINKS = [
   { label: "Agent Requests", href: "/agent/requests", icon: "📨" },
   { label: "Influencer", href: "/agent/influencer", icon: "⭐" },
   { label: "AI Agents Hub", href: "/ai-agents", icon: "🤖" },
-  { label: "Finance", href: "/agent/finance", icon: "📊" },
+  { label: "ZeniPay", href: "/agent/finance", icon: "💳" },
 
 ];
 

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 // ═══════════════════════════════════════════════════════
 //  ZeniPay — The Financial Core of Zeniva Travel
@@ -61,6 +61,7 @@ function BankCard({
   balance?: number; last4?: string; expiry?: string;
   cardholder?: string; subtitle?: string; network?: "VISA" | "MASTERCARD";
 }) {
+  const [revealed, setRevealed] = React.useState(false);
   const isVisa = network === "VISA";
   // Visa: orange-magenta-violet (wallet body colors from logo)
   // Mastercard: teal-cyan-green (wordmark colors from logo)
@@ -132,14 +133,15 @@ function BankCard({
         {/* TOP */}
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
           <div>
-            {/* Real ZeniPay logo small */}
+            {/* ZeniPay logo — no white background */}
             <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:3 }}>
-              <div style={{ width:30, height:30, borderRadius:8, background:"rgba(255,255,255,0.9)", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", padding:3, boxShadow:"0 2px 8px rgba(0,0,0,0.2)" }}>
-                <img src="/zenipay-logo.png" alt="ZeniPay" style={{ width:"100%", height:"100%", objectFit:"contain" }} />
-              </div>
+              <img src="/zenipay-logo.png" alt="ZeniPay" style={{ width:32, height:32, objectFit:"contain", filter:"drop-shadow(0 2px 8px rgba(255,255,255,0.4)) drop-shadow(0 1px 4px rgba(0,0,0,0.3))" }} />
               <span style={{ fontWeight:800, fontSize:15, letterSpacing:"-0.3px", textShadow:"0 1px 6px rgba(0,0,0,0.4)" }}>ZeniPay</span>
             </div>
-            <p style={{ margin:0, fontSize:8.5, opacity:0.55, letterSpacing:"0.14em", textTransform:"uppercase" as const }}>{subtitle}</p>
+            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+              <p style={{ margin:0, fontSize:8.5, opacity:0.55, letterSpacing:"0.14em", textTransform:"uppercase" as const }}>{subtitle}</p>
+              <span style={{ background:"rgba(255,255,255,0.2)", borderRadius:4, padding:"1px 6px", fontSize:7, fontWeight:800, letterSpacing:"0.1em", textTransform:"uppercase" as const }}>{isVisa ? "DEBIT" : "CREDIT"}</span>
+            </div>
           </div>
           {/* EMV Chip */}
           <div style={{ width:40, height:30, borderRadius:5, position:"relative", background:"linear-gradient(145deg,#c9a84c 0%,#f2d76a 30%,#e5c035 65%,#b8900a 100%)", boxShadow:"inset 0 1px 2px rgba(255,255,255,0.55),0 2px 6px rgba(0,0,0,0.4)" }}>
@@ -168,8 +170,11 @@ function BankCard({
 
         {/* CARD NUMBER + FOOTER */}
         <div>
-          <p style={{ margin:"0 0 8px", fontSize:13, fontWeight:500, letterSpacing:"0.24em", fontFamily:"monospace", opacity:0.9, textShadow:"0 1px 4px rgba(0,0,0,0.3)" }}>
-            ••••&nbsp;&nbsp;••••&nbsp;&nbsp;••••&nbsp;&nbsp;{last4}
+          <p onClick={() => setRevealed(r => !r)} style={{ margin:"0 0 8px", fontSize:13, fontWeight:500, letterSpacing:"0.24em", fontFamily:"monospace", opacity:0.9, textShadow:"0 1px 4px rgba(0,0,0,0.3)", cursor:"pointer" }}>
+            {revealed
+              ? `4275  9031  6847  ${last4}`
+              : `••••  ••••  ••••  ${last4}`}
+            <span style={{ fontSize:7, fontFamily:"system-ui", letterSpacing:"0.05em", opacity:0.5, marginLeft:6, fontStyle:"italic" }}>{revealed ? "tap to hide" : "tap to reveal"}</span>
           </p>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end" }}>
             <div>
@@ -922,7 +927,7 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
 const TABS = [
   { id: "overview", icon: "📊", label: "Overview" },
   { id: "transactions", icon: "💳", label: "Transactions" },
-  { id: "wallets", icon: "🏦", label: "Wallets" },
+  { id: "wallets", icon: "🏦", label: "Banking" },
   { id: "paylinks", icon: "🔗", label: "Pay Links" },
   { id: "invoices", icon: "📄", label: "Invoices" },
   { id: "payouts", icon: "💸", label: "Payouts" },
@@ -1469,7 +1474,7 @@ export default function ZeniPayDashboard() {
             <div style={{ background: "linear-gradient(135deg, #0d1633 0%, #1a2a5e 40%, #7B4FBF 80%, #E5247B 100%)", borderRadius: 24, padding: "32px 40px", marginBottom: 24, color: "white", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", gap: 32 }}>
               <style>{`@keyframes logoBounce{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-6px) rotate(3deg)}}`}</style>
               {/* Big logo */}
-              <div style={{ flexShrink: 0, width: 140, height: 140, display: "flex", alignItems: "center", justifyContent: "center", overflow: "visible", animation: "logoBounce 5s ease-in-out infinite" }}>
+              <div style={{ flexShrink: 0, width: 280, height: 280, display: "flex", alignItems: "center", justifyContent: "center", overflow: "visible", animation: "logoBounce 5s ease-in-out infinite" }}>
                 <img src="/zenipay-logo.png" alt="ZeniPay" style={{ width: "100%", height: "100%", objectFit: "contain", filter: "drop-shadow(0 8px 32px rgba(123,79,191,0.6)) drop-shadow(0 0 20px rgba(21,184,201,0.4))" }} />
               </div>
               {/* Text */}
