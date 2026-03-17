@@ -73,11 +73,19 @@ export async function GET() {
         id: card.id,
         type: card.type,
         accountId: KNOWN_ACCOUNT_ID,
+        // Flat fields (used by 360° modal)
         last4: cardAttrs.last4Digits || "5050",
         expiry: cardAttrs.expirationDate || "2030-03",
         status: cardAttrs.status || "Active",
         bin: cardAttrs.bin || "",
         holderName: "Zeniva Travel LLC",
+        // attributes object (required by existing debit card display)
+        attributes: {
+          last4Digits: cardAttrs.last4Digits || "5050",
+          expirationDate: cardAttrs.expirationDate || "2030-03",
+          status: cardAttrs.status || "Active",
+          bin: cardAttrs.bin || "",
+        },
       }] : [],
       transactions: txs.map((tx: {
         id: string;
