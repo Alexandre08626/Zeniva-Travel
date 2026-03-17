@@ -62,10 +62,12 @@ function BankCard({
   cardholder?: string; subtitle?: string; network?: "VISA" | "MASTERCARD";
 }) {
   const isVisa = network === "VISA";
+  // Visa: orange-magenta-violet (wallet body colors from logo)
+  // Mastercard: teal-cyan-green (wordmark colors from logo)
   const gradient = isVisa
-    ? "linear-gradient(135deg, #E5247B 0%, #c4196b 30%, #9B59B6 65%, #7B4FBF 100%)"
-    : "linear-gradient(135deg, #0d1633 0%, #0a2a8a 35%, #15B8C9 70%, #7B4FBF 100%)";
-  const glowColor = isVisa ? "rgba(229,36,123,0.45)" : "rgba(21,184,201,0.4)";
+    ? "linear-gradient(135deg, #F5A623 0%, #E5247B 45%, #7B4FBF 100%)"
+    : "linear-gradient(135deg, #2DBE60 0%, #15B8C9 45%, #2A8FE0 100%)";
+  const glowColor = isVisa ? "rgba(245,166,35,0.55)" : "rgba(45,190,96,0.5)";
 
   return (
     <div style={{
@@ -94,33 +96,33 @@ function BankCard({
         @keyframes logoPulse{0%,100%{opacity:0.12}50%{opacity:0.2}}
       `}</style>
 
-      {/* BIG LOGO WATERMARK in background */}
+      {/* FULL-BLEED LOGO BACKGROUND — fills entire card like a wallpaper */}
       <div style={{
         position: "absolute",
-        right: "-8%",
-        top: "50%",
-        transform: "translateY(-50%)",
-        width: "70%",
-        height: "70%",
+        inset: 0,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        animation: "logoPulse 6s ease-in-out infinite",
         pointerEvents: "none",
+        animation: "logoPulse 6s ease-in-out infinite",
       }}>
         <img
           src="/zenipay-logo.png"
           alt=""
           style={{
-            width: "100%",
-            height: "100%",
+            position: "absolute",
+            width: "110%",
+            height: "110%",
             objectFit: "contain",
-            filter: "brightness(10) saturate(0)",
+            opacity: 0.28,
+            filter: "brightness(2) saturate(0.3) contrast(1.1)",
             mixBlendMode: "overlay",
-            opacity: 0.18,
+            transform: "scale(1.1) rotate(-5deg)",
           }}
         />
       </div>
+      {/* Dark overlay for text readability */}
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 60%, rgba(0,0,0,0.25) 100%)", pointerEvents: "none" }} />
 
       {/* Shimmer sweep */}
       <div style={{ position:"absolute", inset:0, background:"linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.22) 50%,transparent 65%)", animation:"shimmerCard 4s ease-in-out infinite", pointerEvents:"none" }} />
@@ -1425,7 +1427,7 @@ export default function ZeniPayDashboard() {
               <div style={{ width: 1, height: 36, background: "rgba(255,255,255,0.25)" }} />
               {/* Quick actions */}
               <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={() => window.open("/zenipay/checkout/test", "_blank")} style={{ background: BLUE, border: "none", borderRadius: 8, padding: "8px 14px", color: "white", fontSize: 11, fontWeight: 700, cursor: "pointer", boxShadow: `0 4px 12px ${BLUE}40` }}>
+                <button onClick={() => window.open("/zenipay/checkout/test", "_blank")} style={{ background: "linear-gradient(90deg, #F5A623, #E5247B)", border: "none", borderRadius: 8, padding: "8px 14px", color: "white", fontSize: 11, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 12px rgba(245,166,35,0.5)" }}>
                   + New Payment
                 </button>
                 <button onClick={() => setTab("payouts")} style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 8, padding: "8px 14px", color: "white", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
@@ -1485,7 +1487,7 @@ export default function ZeniPayDashboard() {
                     { v: String(STATS.totalTransactions), l: "Transactions" },
                   ].map(s => (
                     <div key={s.l} style={{ background: "rgba(255,255,255,0.1)", borderRadius: 12, padding: "10px 16px", backdropFilter: "blur(4px)" }}>
-                      <p style={{ margin: "0 0 2px", fontWeight: 900, fontSize: 18 }}>{s.v}</p>
+                      <p style={{ margin: "0 0 2px", fontWeight: 900, fontSize: 18, background: "linear-gradient(90deg, #F5A623, #ffffff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{s.v}</p>
                       <p style={{ margin: 0, fontSize: 10, opacity: 0.55, letterSpacing: "0.1em", textTransform: "uppercase" as const }}>{s.l}</p>
                     </div>
                   ))}
@@ -1499,7 +1501,7 @@ export default function ZeniPayDashboard() {
             {/* KPI Cards — Dark glass */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 14, marginBottom: 24 }}>
               {[
-                { icon: "💰", label: "Total Revenue", value: fmt(totalRevenue), sub: "Real payments only", color: GREEN },
+                { icon: "💰", label: "Total Revenue", value: fmt(totalRevenue), sub: "Real payments only", color: ORANGE },
                 { icon: "🏛️", label: "Platform Balance", value: fmt(WALLETS.platform.available), sub: "Available", color: BLUE },
                 { icon: "✅", label: "Success Rate", value: `${successRate}%`, sub: `${TRANSACTIONS.length} txns`, color: GREEN },
                 { icon: "⏳", label: "Pending", value: fmt(WALLETS.platform.pending + WALLETS.agent.pending), sub: "Awaiting settlement", color: GOLD },
