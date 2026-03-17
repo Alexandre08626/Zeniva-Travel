@@ -1,14 +1,19 @@
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const token = process.env.UNIT_API_TOKEN || "";
-  const url = process.env.UNIT_API_URL || "";
+  // List ALL env var names that are present (not values, just keys)
+  const allKeys = Object.keys(process.env);
+  const unitKeys = allKeys.filter(k => k.includes("UNIT"));
+  const supaKeys = allKeys.filter(k => k.includes("SUPA") || k.includes("supabase") || k.includes("SUPABASE"));
+  const finixKeys = allKeys.filter(k => k.includes("FINIX"));
+  
   return Response.json({
-    tokenExists: token.length > 0,
-    tokenLen: token.length,
-    tokenStart: token.slice(0, 15),
-    urlExists: url.length > 0,
-    url: url,
-    allEnvKeys: Object.keys(process.env).filter(k => k.includes("UNIT")).join(", "),
+    unitKeys,
+    supaKeys,
+    finixKeys,
+    totalEnvVars: allKeys.length,
+    sampleKeys: allKeys.slice(0, 20),
+    unitTokenDirect: process.env["UNIT_API_TOKEN"]?.slice(0, 15) || "(empty)",
+    unitUrlDirect: process.env["UNIT_API_URL"] || "(empty)",
   });
 }
