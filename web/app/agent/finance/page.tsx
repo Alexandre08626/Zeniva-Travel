@@ -1937,8 +1937,9 @@ export default function ZeniPayDashboard() {
                     {unitLoading && <span style={{ fontSize: 11, opacity: 0.7 }}>⏳ Loading…</span>}
                     <button onClick={async () => {
                       setUnitLoading(true);
-                      const [r1, r2] = await Promise.all([fetch("/api/unit/accounts"), fetch("/api/unit/transactions")]);
-                      if(r1.ok){const d=await r1.json();setUnitAccounts(d.accounts||[]);}
+                      const r = await fetch("/api/zenipay/bank-balance");
+                      if(r.ok){const d=await r.json();setUnitAccounts(d.accounts||[]);setUnitCards(d.cards||[]);}
+                      const r2 = await fetch("/api/unit/transactions");
                       if(r2.ok){const d=await r2.json();setUnitTxns(d.transactions||[]);}
                       setUnitLoading(false);
                     }} style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", color: "white", borderRadius: 8, padding: "6px 12px", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
@@ -1946,13 +1947,18 @@ export default function ZeniPayDashboard() {
                     </button>
                     <button onClick={async () => {
                       setUnitLoading(true);
-                      const r = await fetch("/api/unit/accounts/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: "Zeniva Travel LLC" }) });
+                      const r = await fetch("/api/zenipay/provision", { method: "POST" });
                       const d = await r.json();
-                      if (d.ok) { const r2 = await fetch("/api/unit/accounts"); if(r2.ok){const d2=await r2.json();setUnitAccounts(d2.accounts||[]);} }
-                      else alert("Error: " + (d.error || JSON.stringify(d.details?.errors?.[0]?.detail || d.details || {})));
+                      if (d.ok) {
+                        // Refresh accounts + cards
+                        const r2 = await fetch("/api/zenipay/bank-balance");
+                        if(r2.ok){const d2=await r2.json();setUnitAccounts(d2.accounts||[]);setUnitCards(d2.cards||[]);}
+                        alert(`✅ Account created! Routing: ${d.account?.routingNumber} | Card: ****${d.card?.last4}`);
+                      }
+                      else alert("Error: " + (d.error || JSON.stringify(d.details || {})));
                       setUnitLoading(false);
-                    }} style={{ background: "rgba(45,190,96,0.9)", border: "none", color: "white", borderRadius: 8, padding: "6px 14px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
-                      + Open Account
+                    }} style={{ background: "linear-gradient(90deg, #2DBE60, #15B8C9)", border: "none", color: "white", borderRadius: 8, padding: "6px 14px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+                      🏦 Open Account + Card
                     </button>
                   </div>
                 </div>
