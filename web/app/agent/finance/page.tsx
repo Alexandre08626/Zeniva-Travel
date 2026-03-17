@@ -949,6 +949,10 @@ export default function ZeniPayDashboard() {
   const [liveActivity, setLiveActivity] = useState<{ id: number; text: string; time: string; type: string }[]>([]);
   const [recentBookings, setRecentBookings] = useState<{ id: string; client_name: string; destination: string; total_price: number; status: string; created_at: string }[]>([]);
   const [zpInvoices, setZpInvoices] = useState<{ id: string; customer_name: string; customer_email: string; total: number; status: string; payment_id: string; created_at: string }[]>([]);
+  // Unit.co banking layer
+  const [unitAccounts, setUnitAccounts] = useState<{ id: string; type: string; name: string; status: string; balanceCents: number; availableCents: number; routingNumber: string; accountNumber: string; currency: string; createdAt: string }[]>([]);
+  const [unitCards, setUnitCards] = useState<{ id: string; type: string; attributes: { status?: string; last4Digits?: string; expirationDate?: string; bin?: string; cardQualifier?: string } }[]>([]);
+  const [unitLoading, setUnitLoading] = useState(false);
 
   // ── Fetch live stats from /api/zenipay/stats ──────────────────────────
   useEffect(() => {
@@ -1032,6 +1036,20 @@ export default function ZeniPayDashboard() {
     void fetchZpInvoices();
     void fetchAccountingSummary();
     void fetchPayLinks();
+    // Fetch Unit accounts + cards
+    async function fetchUnit() {
+      setUnitLoading(true);
+      try {
+        const [accRes, cardRes] = await Promise.all([
+          fetch("/api/unit/accounts"),
+          fetch("/api/unit/cards"),
+        ]);
+        if (accRes.ok) { const d = await accRes.json(); setUnitAccounts(d.accounts || []); }
+        if (cardRes.ok) { const d = await cardRes.json(); setUnitCards(d.cards || []); }
+      } catch { /* silent — Unit may not be configured yet */ }
+      finally { setUnitLoading(false); }
+    }
+    void fetchUnit();
     // Refresh every 30s
     const interval = setInterval(() => { void fetchStats(); void fetchBookings(); void fetchZpInvoices(); }, 30_000);
     return () => clearInterval(interval);
@@ -1520,24 +1538,117 @@ export default function ZeniPayDashboard() {
               </div>
             </div>
 
-            {/* BANK ACCOUNT STATUS */}
+            {/* UNIT.CO — REAL BANK ACCOUNTS */}
             <div style={{ background: "white", borderRadius: 20, padding: 28, boxShadow: "0 1px 8px rgba(0,0,0,0.07)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16 }}>🏦 Connected Bank Accounts</h3>
-                <button onClick={() => setOpenWallet({ name: "Platform", data: WALLETS.platform, icon: "🏛️", color: BLUE })}
-                  style={{ background: BLUE, color: "white", border: "none", borderRadius: 9999, padding: "8px 18px", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
-                  + Add Account
-                </button>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16 }}>🏦 Unit Banking — Real Accounts</h3>
+                  <span style={{ background: `${BLUE}15`, color: BLUE, fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px", border: `1px solid ${BLUE}30` }}>Powered by Unit.co</span>
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {unitLoading && <span style={{ fontSize: 12, color: "#94a3b8" }}>⏳ Loading…</span>}
+                  <button onClick={async () => { setUnitLoading(true); const r = await fetch("/api/unit/accounts"); if(r.ok){const d=await r.json();setUnitAccounts(d.accounts||[]);} setUnitLoading(false); }}
+                    style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", color: "#374151" }}>
+                    🔄 Refresh
+                  </button>
+                </div>
               </div>
-              <div style={{ background: "#f8fafc", borderRadius: 14, padding: "20px 24px", border: "2px dashed #e2e8f0", textAlign: "center" as const }}>
-                <div style={{ fontSize: 40, marginBottom: 10 }}>🏦</div>
-                <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151" }}>No bank accounts linked yet</p>
-                <p style={{ margin: "0 0 16px", fontSize: 12, color: "#94a3b8" }}>Add your Zeniva Travel LLC bank account to receive payouts from Finix</p>
-                <button onClick={() => setOpenWallet({ name: "Platform", data: WALLETS.platform, icon: "🏛️", color: BLUE })}
-                  style={{ background: BLUE, color: "white", border: "none", borderRadius: 9999, padding: "10px 24px", fontWeight: 700, cursor: "pointer" }}>
-                  Connect Bank Account →
-                </button>
+              {unitAccounts.length === 0 ? (
+                <div style={{ background: "#f8fafc", borderRadius: 14, padding: "24px", border: "2px dashed #e2e8f0", textAlign: "center" as const }}>
+                  <div style={{ fontSize: 36, marginBottom: 10 }}>🏦</div>
+                  <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151" }}>No Unit accounts yet</p>
+                  <p style={{ margin: "0 0 16px", fontSize: 12, color: "#94a3b8" }}>Unit.co banking is configured — create your first account to get routing/account numbers</p>
+                  <a href="https://app.s.unit.sh" target="_blank" rel="noreferrer"
+                    style={{ display: "inline-block", background: BLUE, color: "white", borderRadius: 9999, padding: "10px 24px", fontWeight: 700, textDecoration: "none", fontSize: 13 }}>
+                    Open Unit Dashboard →
+                  </a>
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 }}>
+                  {unitAccounts.map(acc => (
+                    <div key={acc.id} style={{ background: `linear-gradient(135deg, ${DARK}, #1a2f6e)`, borderRadius: 18, padding: 22, color: "white", position: "relative", overflow: "hidden" }}>
+                      <div style={{ position: "absolute", top: -20, right: -20, width: 100, height: 100, background: "rgba(255,255,255,0.04)", borderRadius: "50%" }} />
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                        <div>
+                          <p style={{ margin: "0 0 2px", fontSize: 11, opacity: 0.55, textTransform: "uppercase" as const, fontWeight: 700, letterSpacing: "0.1em" }}>
+                            {acc.type === "depositAccount" ? "Checking Account" : acc.type}
+                          </p>
+                          <p style={{ margin: 0, fontWeight: 800, fontSize: 15 }}>{acc.name}</p>
+                        </div>
+                        <span style={{ background: acc.status === "Open" ? `${GREEN}30` : "#ffffff20", color: acc.status === "Open" ? GREEN : "white", fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px" }}>
+                          {acc.status}
+                        </span>
+                      </div>
+                      <p style={{ margin: "0 0 4px", fontWeight: 900, fontSize: 32, letterSpacing: "-1px" }}>
+                        ${(acc.availableCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                      </p>
+                      <p style={{ margin: "0 0 16px", fontSize: 11, opacity: 0.5 }}>Available · {acc.currency}</p>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                        <div style={{ background: "rgba(255,255,255,0.08)", borderRadius: 8, padding: "8px 10px" }}>
+                          <p style={{ margin: "0 0 2px", fontSize: 9, opacity: 0.55, textTransform: "uppercase" as const }}>Routing</p>
+                          <p style={{ margin: 0, fontWeight: 700, fontSize: 12, fontFamily: "monospace" }}>{acc.routingNumber || "—"}</p>
+                        </div>
+                        <div style={{ background: "rgba(255,255,255,0.08)", borderRadius: 8, padding: "8px 10px" }}>
+                          <p style={{ margin: "0 0 2px", fontSize: 9, opacity: 0.55, textTransform: "uppercase" as const }}>Account</p>
+                          <p style={{ margin: 0, fontWeight: 700, fontSize: 12, fontFamily: "monospace" }}>{acc.accountNumber || "—"}</p>
+                        </div>
+                      </div>
+                      <div style={{ marginTop: 12, display: "flex", gap: 6 }}>
+                        <span style={{ background: "rgba(255,255,255,0.1)", borderRadius: 6, padding: "4px 10px", fontSize: 10, fontWeight: 600 }}>ID: {acc.id}</span>
+                        <span style={{ background: "rgba(255,255,255,0.1)", borderRadius: 6, padding: "4px 10px", fontSize: 10, fontWeight: 600 }}>Unit.co</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* UNIT.CO — VIRTUAL CARDS */}
+            <div style={{ background: "white", borderRadius: 20, padding: 28, boxShadow: "0 1px 8px rgba(0,0,0,0.07)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16 }}>💳 Virtual Cards</h3>
+                  <span style={{ background: `${PURPLE}15`, color: PURPLE, fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px", border: `1px solid ${PURPLE}30` }}>Unit.co Issuing</span>
+                </div>
+                <a href="https://app.s.unit.sh" target="_blank" rel="noreferrer"
+                  style={{ background: PURPLE, color: "white", border: "none", borderRadius: 9999, padding: "7px 16px", fontWeight: 700, fontSize: 12, cursor: "pointer", textDecoration: "none" }}>
+                  + Issue Card
+                </a>
               </div>
+              {unitCards.length === 0 ? (
+                <div style={{ background: "#f8fafc", borderRadius: 14, padding: "24px", border: "2px dashed #e2e8f0", textAlign: "center" as const }}>
+                  <div style={{ fontSize: 36, marginBottom: 10 }}>💳</div>
+                  <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151" }}>No virtual cards yet</p>
+                  <p style={{ margin: "0 0 12px", fontSize: 12, color: "#94a3b8" }}>Issue virtual Visa debit cards for agents and company expenses</p>
+                  <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>Cards include: instant issuance · $0 card fee · custom limits · freeze/unfreeze</p>
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 16 }}>
+                  {unitCards.map((card: { id: string; type: string; attributes: { status?: string; last4Digits?: string; expirationDate?: string; bin?: string } }) => (
+                    <div key={card.id} style={{ background: `linear-gradient(135deg, ${PURPLE}, #6d28d9)`, borderRadius: 18, padding: 22, color: "white", position: "relative", overflow: "hidden" }}>
+                      <div style={{ position: "absolute", top: -20, right: -20, width: 100, height: 100, background: "rgba(255,255,255,0.06)", borderRadius: "50%" }} />
+                      <p style={{ margin: "0 0 20px", fontSize: 11, opacity: 0.6, textTransform: "uppercase" as const, fontWeight: 700, letterSpacing: "0.1em" }}>
+                        {card.type === "virtualDebitCard" ? "Virtual Debit" : card.type}
+                      </p>
+                      <p style={{ margin: "0 0 16px", fontWeight: 700, fontSize: 18, fontFamily: "monospace", letterSpacing: "0.1em" }}>
+                        •••• •••• •••• {card.attributes.last4Digits || "????"}
+                      </p>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                        <div>
+                          <p style={{ margin: "0 0 2px", fontSize: 9, opacity: 0.55 }}>EXPIRES</p>
+                          <p style={{ margin: 0, fontSize: 13, fontWeight: 700 }}>{card.attributes.expirationDate || "—"}</p>
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+                          <span style={{ background: card.attributes.status === "Active" ? `${GREEN}30` : "#ffffff20", color: card.attributes.status === "Active" ? GREEN : "#fbbf24", fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px" }}>
+                            {card.attributes.status || "Unknown"}
+                          </span>
+                          <span style={{ marginTop: 4, opacity: 0.4, fontSize: 10 }}>VISA</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
