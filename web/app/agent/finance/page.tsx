@@ -122,12 +122,12 @@ const STATUS_COLORS: Record<string, string> = {
 // ── COMPONENTS ────────────────────────────────────────
 function StatCard({ icon, label, value, sub, color = BLUE }: { icon: string; label: string; value: string; sub?: string; color?: string }) {
   return (
-    <div style={{ background: "white", borderRadius: 16, padding: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.07)", borderLeft: `4px solid ${color}` }}>
+    <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 16, padding: 20, border: "1px solid rgba(255,255,255,0.08)", borderLeft: `4px solid ${color}` }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
-          <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</p>
-          <p style={{ margin: 0, fontWeight: 800, fontSize: 22, color: "#0f172a" }}>{value}</p>
-          {sub && <p style={{ margin: "4px 0 0", fontSize: 11, color: "#94a3b8" }}>{sub}</p>}
+          <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</p>
+          <p style={{ margin: 0, fontWeight: 800, fontSize: 22, color: "white" }}>{value}</p>
+          {sub && <p style={{ margin: "4px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>{sub}</p>}
         </div>
         <span style={{ fontSize: 24 }}>{icon}</span>
       </div>
@@ -151,33 +151,33 @@ function StatusBadge({ status }: { status: string }) {
 function WalletCard({ name, data, icon, color, onOpen }: { name: string; data: { available: number; pending: number; paid: number; currency: string }; icon: string; color: string; onOpen: () => void }) {
   const pct = Math.round((data.available / (data.available + data.pending + 1)) * 100);
   return (
-    <div onClick={onOpen} style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 16px rgba(0,0,0,0.08)", cursor: "pointer", transition: "transform 0.15s, box-shadow 0.15s", border: `1px solid ${color}18` }}
+    <div onClick={onOpen} style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 20, padding: 24, cursor: "pointer", transition: "transform 0.15s, box-shadow 0.15s", border: `1px solid ${color}30` }}
       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 32px ${color}22`; }}
       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 16px rgba(0,0,0,0.08)"; }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         <div style={{ width: 46, height: 46, background: `linear-gradient(135deg, ${color}22, ${color}11)`, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, border: `1px solid ${color}30` }}>{icon}</div>
         <div style={{ flex: 1 }}>
-          <p style={{ margin: 0, fontWeight: 800, fontSize: 15, color: "#0f172a" }}>{name} Wallet</p>
-          <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>ZeniPay · USD</p>
+          <p style={{ margin: 0, fontWeight: 800, fontSize: 15, color: "white" }}>{name} Wallet</p>
+          <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.35)" }}>ZeniPay · USD</p>
         </div>
         <span style={{ fontSize: 11, color: color, fontWeight: 700, background: `${color}15`, borderRadius: 6, padding: "3px 8px" }}>Open →</span>
       </div>
       {/* Main Balance */}
       <div style={{ background: `linear-gradient(135deg, ${color}12, ${color}06)`, borderRadius: 14, padding: "14px 18px", marginBottom: 14 }}>
-        <p style={{ margin: "0 0 2px", fontSize: 11, color: "#64748b", fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Available Balance</p>
+        <p style={{ margin: "0 0 2px", fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Available Balance</p>
         <p style={{ margin: 0, fontSize: 28, fontWeight: 900, color: color }}>{fmt(data.available, true)}</p>
       </div>
       {/* Mini bar */}
-      <div style={{ background: "#f1f5f9", borderRadius: 9999, height: 5, marginBottom: 12, overflow: "hidden" }}>
+      <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: 9999, height: 5, marginBottom: 12, overflow: "hidden" }}>
         <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 9999 }} />
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
         <div style={{ background: "#fef3c722", borderRadius: 10, padding: "8px 12px" }}>
-          <p style={{ margin: "0 0 2px", fontSize: 9, color: "#64748b", fontWeight: 700, textTransform: "uppercase" as const }}>Pending</p>
+          <p style={{ margin: "0 0 2px", fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase" as const }}>Pending</p>
           <p style={{ margin: 0, fontWeight: 800, fontSize: 14, color: GOLD }}>{fmt(data.pending, true)}</p>
         </div>
         <div style={{ background: "#eff6ff", borderRadius: 10, padding: "8px 12px" }}>
-          <p style={{ margin: "0 0 2px", fontSize: 9, color: "#64748b", fontWeight: 700, textTransform: "uppercase" as const }}>Paid Out</p>
+          <p style={{ margin: "0 0 2px", fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase" as const }}>Paid Out</p>
           <p style={{ margin: 0, fontWeight: 800, fontSize: 14, color: BLUE }}>{fmt(data.paid, true)}</p>
         </div>
       </div>
@@ -226,7 +226,7 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
       onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "white", borderRadius: 24, width: "100%", maxWidth: isPlatform ? 620 : 560, maxHeight: "92vh", overflowY: "auto", boxShadow: "0 24px 80px rgba(0,0,0,0.3)" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#0d1829", borderRadius: 24, width: "100%", maxWidth: isPlatform ? 620 : 560, maxHeight: "92vh", overflowY: "auto", boxShadow: "0 24px 80px rgba(0,0,0,0.3)" }}>
         {/* Header */}
         <div style={{ background: isPlatform ? `linear-gradient(135deg, #0B1B4D, #0F6CF5)` : `linear-gradient(135deg, ${DARK}, #1a2f6e)`, borderRadius: "24px 24px 0 0", padding: "24px 28px", color: "white" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: isPlatform ? 16 : 0 }}>
@@ -265,7 +265,7 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
         </div>
 
         {/* Tabs */}
-        <div style={{ display: "flex", gap: 0, borderBottom: "1px solid #f1f5f9" }}>
+        <div style={{ display: "flex", gap: 0, borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
           {tabs.map(t => (
             <button key={t.id} onClick={() => setTab(t.id as ModalTab)} style={{
               flex: 1, padding: "13px 8px", border: "none", background: "none", cursor: "pointer", fontSize: 11, fontWeight: 700,
@@ -281,8 +281,8 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
             <div style={{ display: "grid", gap: 14 }}>
               {isPlatform && (
                 <div style={{ background: `${BLUE}08`, border: `1px solid ${BLUE}20`, borderRadius: 14, padding: 18 }}>
-                  <p style={{ margin: "0 0 10px", fontWeight: 800, fontSize: 14, color: DARK }}>🏛️ Platform Control Center</p>
-                  <p style={{ margin: "0 0 14px", fontSize: 12, color: "#64748b" }}>All client payments land in this wallet. You control how funds are distributed to agents, suppliers, and influencers.</p>
+                  <p style={{ margin: "0 0 10px", fontWeight: 800, fontSize: 14, color: "white" }}>🏛️ Platform Control Center</p>
+                  <p style={{ margin: "0 0 14px", fontSize: 12, color: "rgba(255,255,255,0.4)" }}>All client payments land in this wallet. You control how funds are distributed to agents, suppliers, and influencers.</p>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                     {[
                       { label: "💸 Distribute Funds", action: () => setTab("distribute"), highlight: true },
@@ -292,7 +292,7 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
                     ].map(a => (
                       <button key={a.label} onClick={a.action} style={{
                         background: a.highlight ? BLUE : "white",
-                        border: a.highlight ? "none" : "1px solid #e2e8f0",
+                        border: a.highlight ? "none" : "1px solid rgba(255,255,255,0.1)",
                         borderRadius: 10, padding: "11px 12px", fontSize: 12, fontWeight: 700,
                         cursor: "pointer", color: a.highlight ? "white" : "#374151", textAlign: "left" as const
                       }}>
@@ -303,8 +303,8 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
                 </div>
               )}
               {!isPlatform && (
-                <div style={{ background: "#f8fafc", borderRadius: 14, padding: 18 }}>
-                  <p style={{ margin: "0 0 12px", fontWeight: 700, fontSize: 14 }}>💳 Quick Actions</p>
+                <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 14, padding: 18 }}>
+                  <p style={{ margin: "0 0 12px", fontWeight: 700, fontSize: 14, color: "white" }}>💳 Quick Actions</p>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                     {[
                       { label: "💸 Request Payout", action: () => setTab("bank") },
@@ -312,7 +312,7 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
                       { label: "🔗 Add Payout Method", action: () => setTab("bank") },
                       { label: "📋 View History", action: () => setTab("history") },
                     ].map(a => (
-                      <button key={a.label} onClick={a.action} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", color: "#374151", textAlign: "left" as const }}>
+                      <button key={a.label} onClick={a.action} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", color: "rgba(255,255,255,0.75)", textAlign: "left" as const }}>
                         {a.label}
                       </button>
                     ))}
@@ -320,18 +320,18 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
                 </div>
               )}
               <div style={{ background: `${color}10`, borderRadius: 14, padding: 18, border: `1px solid ${color}20` }}>
-                <p style={{ margin: "0 0 8px", fontWeight: 700, fontSize: 13, color: DARK }}>📅 {isPlatform ? "Finix Settlement" : "Next Scheduled Payout"}</p>
+                <p style={{ margin: "0 0 8px", fontWeight: 700, fontSize: 13, color: "white" }}>📅 {isPlatform ? "Finix Settlement" : "Next Scheduled Payout"}</p>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-                  <span style={{ color: "#64748b" }}>Schedule</span>
+                  <span style={{ color: "rgba(255,255,255,0.4)" }}>Schedule</span>
                   <span style={{ fontWeight: 700, color: color }}>{isPlatform ? "T+1 business day" : "Every Friday"}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 6 }}>
-                  <span style={{ color: "#64748b" }}>Next Amount</span>
+                  <span style={{ color: "rgba(255,255,255,0.4)" }}>Next Amount</span>
                   <span style={{ fontWeight: 800, color: color }}>{fmt(data.available, true)}</span>
                 </div>
                 {isPlatform && (
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 6 }}>
-                    <span style={{ color: "#64748b" }}>Processor</span>
+                    <span style={{ color: "rgba(255,255,255,0.4)" }}>Processor</span>
                     <span style={{ fontWeight: 700, color: "#60a5fa" }}>Finix (Sandbox)</span>
                   </div>
                 )}
@@ -346,7 +346,7 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
                 <div style={{ textAlign: "center" as const, padding: "32px 20px" }}>
                   <div style={{ fontSize: 56, marginBottom: 12 }}>✅</div>
                   <h3 style={{ margin: "0 0 8px", fontWeight: 800, color: "#065f46" }}>Transfer Recorded!</h3>
-                  <p style={{ color: "#64748b", fontSize: 13, margin: "0 0 20px" }}>The distribution will be processed once Finix live mode is activated.</p>
+                  <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, margin: "0 0 20px" }}>The distribution will be processed once Finix live mode is activated.</p>
                   <button onClick={() => { setDistSent(false); setDistForm({ to: "agent", amount: "", note: "" }); }}
                     style={{ background: BLUE, color: "white", border: "none", borderRadius: 9999, padding: "10px 24px", fontWeight: 700, cursor: "pointer" }}>
                     New Transfer
@@ -355,9 +355,9 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
               ) : (
                 <div style={{ display: "grid", gap: 16 }}>
                   <div style={{ background: `${BLUE}08`, borderRadius: 14, padding: 16, border: `1px solid ${BLUE}15` }}>
-                    <p style={{ margin: "0 0 6px", fontWeight: 700, fontSize: 13, color: DARK }}>💰 Platform Balance Available</p>
+                    <p style={{ margin: "0 0 6px", fontWeight: 700, fontSize: 13, color: "white" }}>💰 Platform Balance Available</p>
                     <p style={{ margin: 0, fontSize: 32, fontWeight: 900, color: BLUE }}>{fmt(data.available, true)}</p>
-                    <p style={{ margin: "4px 0 0", fontSize: 11, color: "#94a3b8" }}>Zeniva Travel LLC · USD · Finix</p>
+                    <p style={{ margin: "4px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Zeniva Travel LLC · USD · Finix</p>
                   </div>
 
                   <div>
@@ -397,14 +397,14 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
                       value={distForm.note}
                       onChange={e => setDistForm(p => ({ ...p, note: e.target.value }))}
                       placeholder="e.g. Agent commission — Booking #1042"
-                      style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 10, padding: "11px 14px", fontSize: 14, outline: "none", boxSizing: "border-box" as const }}
+                      style={{ width: "100%", background: "rgba(255,255,255,0.07)", border: "1.5px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 14px", fontSize: 14, outline: "none", color: "white", boxSizing: "border-box" as const }}
                     />
                   </div>
 
                   {distForm.amount && Number(distForm.amount) > 0 && (
-                    <div style={{ background: "#f0fdf4", borderRadius: 12, padding: "14px 16px", border: "1px solid #bbf7d0" }}>
+                    <div style={{ background: "rgba(16,185,129,0.1)", borderRadius: 12, padding: "14px 16px", border: "1px solid #bbf7d0" }}>
                       <p style={{ margin: "0 0 6px", fontWeight: 700, fontSize: 13, color: "#065f46" }}>Transfer Summary</p>
-                      <div style={{ fontSize: 13, color: "#374151", display: "grid", gap: 4 }}>
+                      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", display: "grid", gap: 4 }}>
                         <div style={{ display: "flex", justifyContent: "space-between" }}>
                           <span>From</span><span style={{ fontWeight: 700 }}>Platform Wallet (Zeniva Travel LLC)</span>
                         </div>
@@ -437,12 +437,12 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
                 <div style={{ textAlign: "center" as const, padding: "32px 20px" }}>
                   <div style={{ fontSize: 56, marginBottom: 12 }}>✅</div>
                   <h3 style={{ margin: "0 0 8px", fontWeight: 800, color: "#065f46" }}>Bank Account Saved!</h3>
-                  <p style={{ color: "#64748b", fontSize: 13, margin: "0 0 20px" }}>Verification micro-deposits will arrive in 1-2 business days.</p>
+                  <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, margin: "0 0 20px" }}>Verification micro-deposits will arrive in 1-2 business days.</p>
                   <button onClick={() => setSaved(false)} style={{ background: BLUE, color: "white", border: "none", borderRadius: 9999, padding: "10px 24px", fontWeight: 700, cursor: "pointer" }}>Update Account</button>
                 </div>
               ) : (
                 <div style={{ display: "grid", gap: 14 }}>
-                  <p style={{ margin: "0 0 4px", fontSize: 13, color: "#374151", fontWeight: 600 }}>
+                  <p style={{ margin: "0 0 4px", fontSize: 13, color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>
                     {isPlatform ? "Add Zeniva Travel LLC bank account to receive Finix settlements." : "Add your bank account to receive payouts from ZeniPay."}
                   </p>
                   {[
@@ -454,13 +454,13 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
                     <div key={f.key}>
                       <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#374151", marginBottom: 5, textTransform: "uppercase" as const }}>{f.label}</label>
                       <input value={(bankForm as Record<string,string>)[f.key]} onChange={e => setBankForm(p => ({...p,[f.key]:e.target.value}))} placeholder={f.ph}
-                        style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 10, padding: "11px 14px", fontSize: 14, outline: "none", boxSizing: "border-box" as const }} />
+                        style={{ width: "100%", background: "rgba(255,255,255,0.07)", border: "1.5px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 14px", fontSize: 14, outline: "none", color: "white", boxSizing: "border-box" as const }} />
                     </div>
                   ))}
                   <div>
                     <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#374151", marginBottom: 5, textTransform: "uppercase" as const }}>Account Type</label>
                     <select value={bankForm.type} onChange={e => setBankForm(p => ({...p,type:e.target.value}))}
-                      style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 10, padding: "11px 14px", fontSize: 14, outline: "none" }}>
+                      style={{ width: "100%", background: "rgba(255,255,255,0.07)", border: "1.5px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 14px", fontSize: 14, outline: "none", color: "white" }}>
                       <option value="checking">Checking / Chequing</option>
                       <option value="savings">Savings</option>
                       <option value="business">Business Checking</option>
@@ -477,11 +477,11 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
           {/* HISTORY */}
           {tab === "history" && (
             <div style={{ display: "grid", gap: 10 }}>
-              <div style={{ background: "#f8fafc", borderRadius: 12, padding: "14px 16px", textAlign: "center" as const, border: "1px dashed #e2e8f0" }}>
-                <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151" }}>No transactions yet</p>
-                <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>Transactions will appear here once Finix live payments are active</p>
+              <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 12, padding: "14px 16px", textAlign: "center" as const, border: "1px dashed rgba(255,255,255,0.15)" }}>
+                <p style={{ margin: "0 0 4px", fontWeight: 700, color: "rgba(255,255,255,0.75)" }}>No transactions yet</p>
+                <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.35)" }}>Transactions will appear here once Finix live payments are active</p>
               </div>
-              <button style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: "11px", fontWeight: 700, fontSize: 13, cursor: "pointer", color: "#374151", marginTop: 8 }}>
+              <button style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "11px", fontWeight: 700, fontSize: 13, cursor: "pointer", color: "#374151", marginTop: 8 }}>
                 📥 Download Full Statement
               </button>
             </div>
@@ -565,19 +565,19 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
       {/* LEFT: Transfer Form */}
-      <div style={{ background: "white", borderRadius: 20, padding: 28, boxShadow: "0 2px 16px rgba(0,0,0,0.08)" }}>
+      <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 20, padding: 28, border: "1px solid rgba(255,255,255,0.08)" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
           <div style={{ width: 44, height: 44, background: `${BLUE}12`, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>💸</div>
           <div>
-            <p style={{ margin: 0, fontWeight: 900, fontSize: 17, color: DARK }}>Send Payment</p>
-            <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>Internal bank transfer · ZeniPay</p>
+            <p style={{ margin: 0, fontWeight: 900, fontSize: 17, color: "white" }}>Send Payment</p>
+            <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.35)" }}>Internal bank transfer · ZeniPay</p>
           </div>
         </div>
 
         {/* Platform balance pill */}
         <div style={{ background: `${BLUE}08`, borderRadius: 12, padding: "10px 16px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: 12, color: "#64748b", fontWeight: 600 }}>🏛️ Platform Balance Available</span>
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>🏛️ Platform Balance Available</span>
           <span style={{ fontSize: 18, fontWeight: 900, color: BLUE }}>{fmt(platformBalance, true)}</span>
         </div>
 
@@ -585,8 +585,8 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
           <div style={{ textAlign: "center" as const, padding: "20px 0" }}>
             <div style={{ fontSize: 64, marginBottom: 12 }}>✅</div>
             <h3 style={{ margin: "0 0 6px", fontWeight: 900, color: "#065f46", fontSize: 20 }}>Transfer Sent!</h3>
-            <p style={{ margin: "0 0 4px", fontSize: 15, color: "#374151", fontWeight: 600 }}>${Number(amount).toLocaleString()} → {selectedAgent?.name}</p>
-            <p style={{ margin: "0 0 4px", fontSize: 12, color: "#94a3b8" }}>{method === "instant" ? "Instant Transfer" : "Bank Wire — arrives in 1-2 business days"}</p>
+            <p style={{ margin: "0 0 4px", fontSize: 15, color: "rgba(255,255,255,0.8)", fontWeight: 600 }}>${Number(amount).toLocaleString()} → {selectedAgent?.name}</p>
+            <p style={{ margin: "0 0 4px", fontSize: 12, color: "rgba(255,255,255,0.35)" }}>{method === "instant" ? "Instant Transfer" : "Bank Wire — arrives in 1-2 business days"}</p>
             {sentResult && <p style={{ margin: "0 0 20px", fontSize: 11, color: BLUE, fontWeight: 600 }}>Payout ID: {sentResult.id} · Status: {sentResult.status}</p>}
             <button onClick={reset} style={{ background: BLUE, color: "white", border: "none", borderRadius: 9999, padding: "12px 32px", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>
               + New Transfer
@@ -600,7 +600,7 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
                 📍 Step 1 — Select Recipient
               </label>
               {agents.length === 0 ? (
-                <div style={{ background: "#f8fafc", borderRadius: 10, padding: "14px", textAlign: "center" as const, color: "#94a3b8", fontSize: 13 }}>
+                <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, padding: "14px", textAlign: "center" as const, color: "rgba(255,255,255,0.35)", fontSize: 13 }}>
                   No agents configured yet
                 </div>
               ) : (
@@ -609,7 +609,7 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
                     { type: "owner", name: "Zeniva Travel LLC", sub: "Owner payout — company account", icon: "🏢", color: "#0F6CF5", data: { id: "owner-001", name: "Zeniva Travel LLC", code: "ZENIVA", bookings: 0, revenue: 0, commission: 0, pending: 0, rate: "100%", role: "Owner · Platform Revenue" } },
                     ...agents.map(a => ({ type: "agent", name: a.name, sub: a.role || "Travel Agent", icon: "👤", color: PURPLE, data: a })),
                     { type: "supplier", name: "Supplier / Hotel", sub: "Direct supplier payment", icon: "✈️", color: GREEN, data: null },
-                    { type: "other", name: "Other Recipient", sub: "Bank wire to custom account", icon: "🏦", color: "#64748b", data: null },
+                    { type: "other", name: "Other Recipient", sub: "Bank wire to custom account", icon: "🏦", color: "rgba(255,255,255,0.4)", data: null },
                   ].map((r, i) => (
                     <button key={i} onClick={() => {
                       setSelectedAgent(r.data as AgentType || { id: `other-${i}`, name: r.name, code: r.type.toUpperCase(), bookings: 0, revenue: 0, commission: 0, pending: 0, rate: "-" });
@@ -622,8 +622,8 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
                     }}>
                       <div style={{ width: 36, height: 36, background: `${r.color}15`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>{r.icon}</div>
                       <div style={{ flex: 1 }}>
-                        <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: DARK }}>{r.name}</p>
-                        <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>{r.sub}</p>
+                        <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: "white" }}>{r.name}</p>
+                        <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.35)" }}>{r.sub}</p>
                       </div>
                       {selectedAgent?.name === r.name && <span style={{ color: r.color, fontSize: 18 }}>✓</span>}
                     </button>
@@ -639,13 +639,13 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
                   💵 Step 2 — Amount
                 </label>
                 <div style={{ position: "relative" as const }}>
-                  <span style={{ position: "absolute" as const, left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 20, fontWeight: 900, color: "#94a3b8" }}>$</span>
+                  <span style={{ position: "absolute" as const, left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 20, fontWeight: 900, color: "rgba(255,255,255,0.35)" }}>$</span>
                   <input
                     type="number"
                     value={amount}
                     onChange={e => { setAmount(e.target.value); setStep("amount"); }}
                     placeholder="0.00"
-                    style={{ width: "100%", border: "2px solid #e2e8f0", borderRadius: 12, padding: "14px 14px 14px 36px", fontSize: 24, fontWeight: 900, outline: "none", boxSizing: "border-box" as const, color: DARK }}
+                    style={{ width: "100%", border: "2px solid #e2e8f0", borderRadius: 12, padding: "14px 14px 14px 36px", fontSize: 24, fontWeight: 900, outline: "none", boxSizing: "border-box" as const, color: "white" }}
                   />
                 </div>
                 {/* Quick amounts */}
@@ -675,7 +675,7 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
                       <button key={m.id} onClick={() => setMethod(m.id as "bank"|"instant")}
                         style={{ padding: "12px 10px", background: method === m.id ? `${m.color}10` : "#f8fafc", border: `2px solid ${method === m.id ? m.color : "#e2e8f0"}`, borderRadius: 12, cursor: "pointer", textAlign: "left" as const }}>
                         <p style={{ margin: "0 0 2px", fontSize: 12, fontWeight: 700, color: method === m.id ? m.color : DARK }}>{m.label}</p>
-                        <p style={{ margin: 0, fontSize: 10, color: "#94a3b8" }}>{m.sub}</p>
+                        <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)" }}>{m.sub}</p>
                       </button>
                     ))}
                   </div>
@@ -685,11 +685,11 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
                     📝 Reference / Note
                   </label>
                   <input value={note} onChange={e => setNote(e.target.value)} placeholder="e.g. Agent commission — Booking #ZNV-1042"
-                    style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 10, padding: "11px 14px", fontSize: 13, outline: "none", boxSizing: "border-box" as const }} />
+                    style={{ width: "100%", background: "rgba(255,255,255,0.07)", border: "1.5px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "11px 14px", fontSize: 13, outline: "none", color: "white", boxSizing: "border-box" as const }} />
                 </div>
 
                 {/* Summary */}
-                <div style={{ background: "#f0fdf4", borderRadius: 14, padding: "16px 18px", border: "1px solid #bbf7d0" }}>
+                <div style={{ background: "rgba(16,185,129,0.1)", borderRadius: 14, padding: "16px 18px", border: "1px solid #bbf7d0" }}>
                   <p style={{ margin: "0 0 10px", fontWeight: 800, fontSize: 13, color: "#065f46" }}>Transfer Summary</p>
                   {[
                     { l: "From", v: "Platform Wallet (Zeniva Travel LLC)" },
@@ -700,8 +700,8 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
                     { l: "Ref", v: note || "Agent payment" },
                   ].map(s => (
                     <div key={s.l} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 5 }}>
-                      <span style={{ color: "#64748b" }}>{s.l}</span>
-                      <span style={{ fontWeight: 700, color: "#0f172a" }}>{s.v}</span>
+                      <span style={{ color: "rgba(255,255,255,0.4)" }}>{s.l}</span>
+                      <span style={{ fontWeight: 700, color: "white" }}>{s.v}</span>
                     </div>
                   ))}
                   <div style={{ borderTop: "1px solid #bbf7d0", marginTop: 10, paddingTop: 10, display: "flex", justifyContent: "space-between" }}>
@@ -711,7 +711,7 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
                 </div>
 
                 {sendError && (
-                  <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: RED, fontWeight: 600 }}>
+                  <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid #fca5a5", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: RED, fontWeight: 600 }}>
                     ⚠️ {sendError}
                   </div>
                 )}
@@ -732,21 +732,21 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
       {/* RIGHT: History + Agent Balances */}
       <div style={{ display: "grid", gap: 16, alignContent: "start" }}>
         {/* Agent Balances */}
-        <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 16px rgba(0,0,0,0.08)" }}>
+        <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 20, padding: 24, border: "1px solid rgba(255,255,255,0.08)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <h3 style={{ margin: 0, fontWeight: 800, fontSize: 15 }}>👥 Recipients</h3>
-            <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600 }}>Quick Pay</span>
+            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>Quick Pay</span>
           </div>
           <div style={{ display: "grid", gap: 10 }}>
             {/* Zeniva Travel LLC — toujours en premier */}
             <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", background: `${BLUE}08`, borderRadius: 12, border: `1.5px solid ${BLUE}20` }}>
               <div style={{ width: 40, height: 40, background: `${BLUE}15`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🏢</div>
               <div style={{ flex: 1 }}>
-                <p style={{ margin: 0, fontWeight: 800, fontSize: 14, color: DARK }}>Zeniva Travel LLC</p>
-                <p style={{ margin: 0, fontSize: 11, color: "#64748b" }}>Owner · Platform Revenue · 100%</p>
+                <p style={{ margin: 0, fontWeight: 800, fontSize: 14, color: "white" }}>Zeniva Travel LLC</p>
+                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Owner · Platform Revenue · 100%</p>
               </div>
               <div style={{ textAlign: "right" as const }}>
-                <p style={{ margin: "0 0 2px", fontSize: 10, color: "#94a3b8" }}>Available</p>
+                <p style={{ margin: "0 0 2px", fontSize: 10, color: "rgba(255,255,255,0.35)" }}>Available</p>
                 <p style={{ margin: 0, fontWeight: 900, fontSize: 14, color: BLUE }}>{fmt(platformBalance, true)}</p>
               </div>
               <button onClick={() => {
@@ -759,16 +759,16 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
             </div>
             {/* Agents */}
             {agents.map(a => (
-              <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px", background: "#f8fafc", borderRadius: 12 }}>
+              <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px", background: "rgba(255,255,255,0.05)", borderRadius: 12 }}>
                 <div style={{ width: 40, height: 40, background: `${PURPLE}15`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 700, color: PURPLE }}>
                   {a.name.charAt(0)}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: DARK }}>{a.name}</p>
-                  <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>{a.bookings} bookings · {a.rate}</p>
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: "white" }}>{a.name}</p>
+                  <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.35)" }}>{a.bookings} bookings · {a.rate}</p>
                 </div>
                 <div style={{ textAlign: "right" as const }}>
-                  <p style={{ margin: "0 0 2px", fontSize: 11, color: "#94a3b8" }}>Pending</p>
+                  <p style={{ margin: "0 0 2px", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Pending</p>
                   <p style={{ margin: 0, fontWeight: 800, fontSize: 14, color: a.pending > 0 ? GOLD : "#94a3b8" }}>{fmt(a.pending, true)}</p>
                 </div>
                 <button onClick={() => {
@@ -784,7 +784,7 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
         </div>
 
         {/* Commission Breakdown */}
-        <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 16px rgba(0,0,0,0.08)" }}>
+        <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 20, padding: 24, border: "1px solid rgba(255,255,255,0.08)" }}>
           <h3 style={{ margin: "0 0 16px", fontWeight: 800, fontSize: 15 }}>📊 Commission Structure</h3>
           {[
             { role: "Travel Agent", pct: "70%", desc: "Of booking (agent involved)", color: PURPLE },
@@ -792,13 +792,13 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
             { role: "Influencer Referral", pct: "5%", desc: "Of Zeniva net profit", color: GOLD },
             { role: "ZeniYacht", pct: "100% Zeniva", desc: "All yacht revenue stays in Zeniva", color: GREEN },
           ].map(r => (
-            <div key={r.role} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
+            <div key={r.role} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
               <div style={{ width: 36, height: 36, background: `${r.color}12`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <div style={{ width: 14, height: 14, background: r.color, borderRadius: "50%" }} />
               </div>
               <div style={{ flex: 1 }}>
-                <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: DARK }}>{r.role}</p>
-                <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>{r.desc}</p>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: "white" }}>{r.role}</p>
+                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.35)" }}>{r.desc}</p>
               </div>
               <span style={{ fontWeight: 900, fontSize: 16, color: r.color }}>{r.pct}</span>
             </div>
@@ -806,21 +806,21 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
         </div>
 
         {/* Transfer History */}
-        <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 16px rgba(0,0,0,0.08)" }}>
+        <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 20, padding: 24, border: "1px solid rgba(255,255,255,0.08)" }}>
           <h3 style={{ margin: "0 0 16px", fontWeight: 800, fontSize: 15 }}>📋 Transfer History</h3>
           {history.length === 0 ? (
             <div style={{ textAlign: "center" as const, padding: "20px 0" }}>
-              <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 600, color: "#374151" }}>No transfers yet</p>
-              <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>Your sent payments will appear here</p>
+              <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>No transfers yet</p>
+              <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.35)" }}>Your sent payments will appear here</p>
             </div>
           ) : (
             <div style={{ display: "grid", gap: 8 }}>
               {history.map(h => (
-                <div key={h.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", background: "#f8fafc", borderRadius: 10 }}>
+                <div key={h.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", background: "rgba(255,255,255,0.05)", borderRadius: 10 }}>
                   <div style={{ width: 32, height: 32, background: "#dcfce7", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>✓</div>
                   <div style={{ flex: 1 }}>
-                    <p style={{ margin: 0, fontWeight: 700, fontSize: 13 }}>→ {h.agent}</p>
-                    <p style={{ margin: 0, fontSize: 10, color: "#94a3b8" }}>{h.id} · {h.date} · {h.method}</p>
+                    <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: "white" }}>→ {h.agent}</p>
+                    <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)" }}>{h.id} · {h.date} · {h.method}</p>
                   </div>
                   <span style={{ fontWeight: 900, fontSize: 14, color: GREEN }}>-${h.amount.toLocaleString()}</span>
                 </div>
@@ -923,23 +923,23 @@ function RevenueSplitWidget() {
   const margin = bookingAmt > 0 ? Math.round(netProfit / bookingAmt * 100) : 0;
 
   return (
-    <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
-      <h3 style={{ margin: "0 0 14px", fontWeight: 700, fontSize: 15 }}>💡 Revenue Split</h3>
+    <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 16, padding: 24, border: "1px solid rgba(255,255,255,0.08)" }}>
+      <h3 style={{ margin: "0 0 14px", fontWeight: 700, fontSize: 15, color: "white" }}>💡 Revenue Split</h3>
 
       {/* Inputs row */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 16 }}>
-        <div style={{ background: "#f8fafc", borderRadius: 10, padding: "10px 12px" }}>
-          <p style={{ margin: "0 0 4px", fontSize: 10, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase" as const }}>💰 Booking (brut)</p>
+        <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, padding: "10px 12px" }}>
+          <p style={{ margin: "0 0 4px", fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 600, textTransform: "uppercase" as const }}>💰 Booking (brut)</p>
           <input type="number" value={bookingAmt} onChange={e => setBookingAmt(Number(e.target.value) || 0)}
-            style={{ width: "100%", border: "none", background: "transparent", fontSize: 15, fontWeight: 800, color: "#0F6CF5", outline: "none" }} />
+            style={{ width: "100%", border: "none", background: "transparent", fontSize: 15, fontWeight: 800, color: "#0066FF", outline: "none" }} />
         </div>
-        <div style={{ background: "#fef2f2", borderRadius: 10, padding: "10px 12px" }}>
-          <p style={{ margin: "0 0 4px", fontSize: 10, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase" as const }}>🏨 Coût fournisseur</p>
+        <div style={{ background: "rgba(239,68,68,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+          <p style={{ margin: "0 0 4px", fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 600, textTransform: "uppercase" as const }}>🏨 Coût fournisseur</p>
           <input type="number" value={supplierCost} onChange={e => setSupplierCost(Number(e.target.value) || 0)}
             style={{ width: "100%", border: "none", background: "transparent", fontSize: 15, fontWeight: 800, color: "#ef4444", outline: "none" }} />
         </div>
-        <div style={{ background: "#f0fdf4", borderRadius: 10, padding: "10px 12px" }}>
-          <p style={{ margin: "0 0 4px", fontSize: 10, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase" as const }}>✅ Profit net ({margin}%)</p>
+        <div style={{ background: "rgba(16,185,129,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+          <p style={{ margin: "0 0 4px", fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 600, textTransform: "uppercase" as const }}>✅ Profit net ({margin}%)</p>
           <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: "#10B981" }}>${netProfit.toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
         </div>
       </div>
@@ -959,9 +959,9 @@ function RevenueSplitWidget() {
       </div>
 
       {/* Active scenario label */}
-      <div style={{ padding: "8px 12px", background: "#f0f7ff", borderRadius: 10, marginBottom: 14, borderLeft: "3px solid #0F6CF5" }}>
+      <div style={{ padding: "8px 12px", background: "rgba(0,102,255,0.1)", borderRadius: 10, marginBottom: 14, borderLeft: "3px solid #0F6CF5" }}>
         <p style={{ margin: 0, fontSize: 11, color: "#0F6CF5", fontWeight: 600 }}>{active.icon} {active.label} — {active.desc}
-          <span style={{ marginLeft: 8, fontWeight: 400, color: "#94a3b8" }}>sur profit net de ${netProfit.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+          <span style={{ marginLeft: 8, fontWeight: 400, color: "rgba(255,255,255,0.35)" }}>sur profit net de ${netProfit.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
         </p>
       </div>
 
@@ -970,22 +970,22 @@ function RevenueSplitWidget() {
         <div key={r.label} style={{ marginBottom: 14 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
             <div>
-              <span style={{ fontSize: 12, color: "#374151", fontWeight: 600 }}>{r.label}</span>
-              <span style={{ fontSize: 10, color: "#94a3b8", marginLeft: 6 }}>{r.sub}</span>
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>{r.label}</span>
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginLeft: 6 }}>{r.sub}</span>
             </div>
             <span style={{ fontSize: 13, fontWeight: 700, color: r.color }}>
               ${r.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
               <span style={{ fontSize: 11, fontWeight: 400, marginLeft: 4 }}>({r.pct}%)</span>
             </span>
           </div>
-          <div style={{ background: "#f1f5f9", borderRadius: 4, height: 7 }}>
+          <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: 4, height: 7 }}>
             <div style={{ background: r.color, width: `${r.pct}%`, height: "100%", borderRadius: 4, transition: "width 0.3s" }} />
           </div>
         </div>
       ))}
 
       {/* Summary note */}
-      <div style={{ marginTop: 14, padding: "8px 12px", background: "#fefce8", borderRadius: 8, borderLeft: "3px solid #F59E0B" }}>
+      <div style={{ marginTop: 14, padding: "8px 12px", background: "rgba(245,158,11,0.1)", borderRadius: 8, borderLeft: "3px solid #F59E0B" }}>
         <p style={{ margin: 0, fontSize: 10, color: "#92400e", lineHeight: 1.7 }}>
           <strong>⚠️ Split sur profit net :</strong> Booking ${bookingAmt.toLocaleString()} − Fournisseur ${supplierCost.toLocaleString()} = <strong>Net ${netProfit.toLocaleString()}</strong> · 
           Direct → 100% Zeniva · Lina seule → 70% Zeniva / 30% Agent · Agent humain → 70% Agent / 30% Zeniva · ZeniYacht → 100% Zeniva · +Influenceur → 5% du net Zeniva
@@ -1716,8 +1716,8 @@ export default function ZeniPayDashboard() {
             </div>
 
             {/* MONEY FLOW */}
-            <div style={{ background: "white", borderRadius: 20, padding: 28, boxShadow: "0 1px 8px rgba(0,0,0,0.07)" }}>
-              <h3 style={{ margin: "0 0 20px", fontWeight: 800, fontSize: 16 }}>💰 Money Flow — How ZeniPay Distributes Funds</h3>
+            <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 20, padding: 28, border: "1px solid rgba(255,255,255,0.08)" }}>
+              <h3 style={{ margin: "0 0 20px", fontWeight: 800, fontSize: 16, color: "white" }}>💰 Money Flow — How ZeniPay Distributes Funds</h3>
               <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto", paddingBottom: 8 }}>
                 {[
                   { icon: "👤", label: "Client Pays", sub: "ZeniPay Checkout", color: "#6366f1" },
@@ -1734,8 +1734,8 @@ export default function ZeniPayDashboard() {
                 ) : (
                   <div key={i} style={{ flexShrink: 0, textAlign: "center" as const, minWidth: 90 }}>
                     <div style={{ width: 48, height: 48, background: `${s.color}15`, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, margin: "0 auto 6px", border: `1px solid ${s.color}25` }}>{s.icon}</div>
-                    <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 11, color: "#374151" }}>{s.label}</p>
-                    <p style={{ margin: 0, fontSize: 9, color: "#94a3b8" }}>{s.sub}</p>
+                    <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 11, color: "rgba(255,255,255,0.75)" }}>{s.label}</p>
+                    <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.35)" }}>{s.sub}</p>
                   </div>
                 ))}
               </div>
@@ -1743,8 +1743,8 @@ export default function ZeniPayDashboard() {
 
             {/* PAYOUT RULES */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
-              <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 1px 8px rgba(0,0,0,0.07)" }}>
-                <h4 style={{ margin: "0 0 16px", fontWeight: 800, fontSize: 14 }}>📋 Commission Structure</h4>
+              <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 20, padding: 24, border: "1px solid rgba(255,255,255,0.08)" }}>
+                <h4 style={{ margin: "0 0 16px", fontWeight: 800, fontSize: 14, color: "white" }}>📋 Commission Structure</h4>
                 {[
                   { role: "✈️ Travel Agent", pct: "70%", color: PURPLE },
                   { role: "⭐ Influencer", pct: "5% net", color: GOLD },
@@ -1752,14 +1752,14 @@ export default function ZeniPayDashboard() {
                   { role: "⛵ ZeniYacht", pct: "100% Zeniva", color: GREEN },
                 ].map(r => (
                   <div key={r.role} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #f8fafc", alignItems: "center" }}>
-                    <span style={{ fontSize: 13, color: "#374151" }}>{r.role}</span>
+                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)" }}>{r.role}</span>
                     <span style={{ fontWeight: 800, fontSize: 13, color: r.color, background: `${r.color}12`, borderRadius: 6, padding: "2px 8px" }}>{r.pct}</span>
                   </div>
                 ))}
-                <p style={{ margin: "12px 0 0", fontSize: 11, color: "#94a3b8" }}>Lina books alone: Zeniva 70% · Agent 30% (reversed)</p>
+                <p style={{ margin: "12px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Lina books alone: Zeniva 70% · Agent 30% (reversed)</p>
               </div>
-              <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 1px 8px rgba(0,0,0,0.07)" }}>
-                <h4 style={{ margin: "0 0 16px", fontWeight: 800, fontSize: 14 }}>🏦 Payout Schedule</h4>
+              <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 20, padding: 24, border: "1px solid rgba(255,255,255,0.08)" }}>
+                <h4 style={{ margin: "0 0 16px", fontWeight: 800, fontSize: 14, color: "white" }}>🏦 Payout Schedule</h4>
                 {[
                   { label: "Platform (You)", freq: "Instant / On-demand", color: BLUE },
                   { label: "Agents", freq: "Every Friday", color: PURPLE },
@@ -1767,7 +1767,7 @@ export default function ZeniPayDashboard() {
                   { label: "Suppliers", freq: "Net-30 / On invoice", color: GREEN },
                 ].map(r => (
                   <div key={r.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #f8fafc", alignItems: "center" }}>
-                    <span style={{ fontSize: 13, color: "#374151", fontWeight: 600 }}>{r.label}</span>
+                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>{r.label}</span>
                     <span style={{ fontSize: 12, color: r.color, fontWeight: 700 }}>{r.freq}</span>
                   </div>
                 ))}
@@ -1778,25 +1778,25 @@ export default function ZeniPayDashboard() {
             </div>
 
             {/* UNIT.CO — REAL BANK ACCOUNTS */}
-            <div style={{ background: "white", borderRadius: 20, padding: 28, boxShadow: "0 1px 8px rgba(0,0,0,0.07)" }}>
+            <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 20, padding: 28, border: "1px solid rgba(255,255,255,0.08)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16 }}>🏦 Unit Banking — Real Accounts</h3>
+                  <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16, color: "white" }}>🏦 Unit Banking — Real Accounts</h3>
                   <span style={{ background: `${BLUE}15`, color: BLUE, fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px", border: `1px solid ${BLUE}30` }}>Powered by Unit.co</span>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
-                  {unitLoading && <span style={{ fontSize: 12, color: "#94a3b8" }}>⏳ Loading…</span>}
+                  {unitLoading && <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>⏳ Loading…</span>}
                   <button onClick={async () => { setUnitLoading(true); const r = await fetch("/api/unit/accounts"); if(r.ok){const d=await r.json();setUnitAccounts(d.accounts||[]);} setUnitLoading(false); }}
-                    style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", color: "#374151" }}>
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", color: "rgba(255,255,255,0.75)" }}>
                     🔄 Refresh
                   </button>
                 </div>
               </div>
               {unitAccounts.length === 0 ? (
-                <div style={{ background: "#f8fafc", borderRadius: 14, padding: "24px", border: "2px dashed #e2e8f0", textAlign: "center" as const }}>
+                <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 14, padding: "24px", border: "1px dashed rgba(255,255,255,0.15)", textAlign: "center" as const }}>
                   <div style={{ fontSize: 36, marginBottom: 10 }}>🏦</div>
-                  <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151" }}>No Unit accounts yet</p>
-                  <p style={{ margin: "0 0 16px", fontSize: 12, color: "#94a3b8" }}>Unit.co banking is configured — create your first account to get routing/account numbers</p>
+                  <p style={{ margin: "0 0 4px", fontWeight: 700, color: "rgba(255,255,255,0.75)" }}>No Unit accounts yet</p>
+                  <p style={{ margin: "0 0 16px", fontSize: 12, color: "rgba(255,255,255,0.35)" }}>Unit.co banking is configured — create your first account to get routing/account numbers</p>
                   <a href="https://app.s.unit.sh" target="_blank" rel="noreferrer"
                     style={{ display: "inline-block", background: BLUE, color: "white", borderRadius: 9999, padding: "10px 24px", fontWeight: 700, textDecoration: "none", fontSize: 13 }}>
                     Open Unit Dashboard →
@@ -1843,10 +1843,10 @@ export default function ZeniPayDashboard() {
             </div>
 
             {/* UNIT.CO — VIRTUAL CARDS */}
-            <div style={{ background: "white", borderRadius: 20, padding: 28, boxShadow: "0 1px 8px rgba(0,0,0,0.07)" }}>
+            <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 20, padding: 28, border: "1px solid rgba(255,255,255,0.08)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16 }}>💳 Virtual Cards</h3>
+                  <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16, color: "white" }}>💳 Virtual Cards</h3>
                   <span style={{ background: `${PURPLE}15`, color: PURPLE, fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px", border: `1px solid ${PURPLE}30` }}>Unit.co Issuing</span>
                 </div>
                 <a href="https://app.s.unit.sh" target="_blank" rel="noreferrer"
@@ -1855,11 +1855,11 @@ export default function ZeniPayDashboard() {
                 </a>
               </div>
               {unitCards.length === 0 ? (
-                <div style={{ background: "#f8fafc", borderRadius: 14, padding: "24px", border: "2px dashed #e2e8f0", textAlign: "center" as const }}>
+                <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 14, padding: "24px", border: "1px dashed rgba(255,255,255,0.15)", textAlign: "center" as const }}>
                   <div style={{ fontSize: 36, marginBottom: 10 }}>💳</div>
-                  <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151" }}>No virtual cards yet</p>
-                  <p style={{ margin: "0 0 12px", fontSize: 12, color: "#94a3b8" }}>Issue virtual Visa debit cards for agents and company expenses</p>
-                  <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>Cards include: instant issuance · $0 card fee · custom limits · freeze/unfreeze</p>
+                  <p style={{ margin: "0 0 4px", fontWeight: 700, color: "rgba(255,255,255,0.75)" }}>No virtual cards yet</p>
+                  <p style={{ margin: "0 0 12px", fontSize: 12, color: "rgba(255,255,255,0.35)" }}>Issue virtual Visa debit cards for agents and company expenses</p>
+                  <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Cards include: instant issuance · $0 card fee · custom limits · freeze/unfreeze</p>
                 </div>
               ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 16 }}>
@@ -1896,32 +1896,32 @@ export default function ZeniPayDashboard() {
         {tab === "paylinks" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             {/* Create form */}
-            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+            <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 16, padding: 24, border: "1px solid rgba(255,255,255,0.08)" }}>
               <h3 style={{ margin: "0 0 16px", fontWeight: 700 }}>🔗 Create Payment Link</h3>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 16 }}>
                 <div>
                   <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#374151", marginBottom: 5, textTransform: "uppercase" as const }}>Amount (USD)</label>
                   <input type="number" value={linkForm.amount} onChange={e => setLinkForm(p => ({...p, amount: e.target.value}))} placeholder="500"
-                    style={{ width:"100%",border:"1px solid #e2e8f0",borderRadius:8,padding:"10px 12px",fontSize:13,outline:"none",boxSizing:"border-box" as const }} />
+                    style={{ width:"100%",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,padding:"10px 12px",fontSize:13,outline:"none",boxSizing:"border-box" as const }} />
                 </div>
                 <div>
                   <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#374151", marginBottom: 5, textTransform: "uppercase" as const }}>Description</label>
                   <input type="text" value={linkForm.desc} onChange={e => setLinkForm(p => ({...p, desc: e.target.value}))} placeholder="Maldives Trip — 7 nights"
-                    style={{ width:"100%",border:"1px solid #e2e8f0",borderRadius:8,padding:"10px 12px",fontSize:13,outline:"none",boxSizing:"border-box" as const }} />
+                    style={{ width:"100%",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,padding:"10px 12px",fontSize:13,outline:"none",boxSizing:"border-box" as const }} />
                 </div>
                 <div>
                   <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#374151", marginBottom: 5, textTransform: "uppercase" as const }}>Expiry (optional)</label>
                   <input type="date" value={linkForm.expiry} onChange={e => setLinkForm(p => ({...p, expiry: e.target.value}))}
-                    style={{ width:"100%",border:"1px solid #e2e8f0",borderRadius:8,padding:"10px 12px",fontSize:13,outline:"none",boxSizing:"border-box" as const }} />
+                    style={{ width:"100%",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,padding:"10px 12px",fontSize:13,outline:"none",boxSizing:"border-box" as const }} />
                 </div>
               </div>
               <button onClick={handleCreateLink} disabled={payLinksLoading || !linkForm.amount} style={{ background: payLinksLoading ? "#94a3b8" : `linear-gradient(135deg,${BLUE},${DARK})`,color:"white",border:"none",borderRadius:9999,padding:"12px 28px",fontWeight:800,fontSize:14,cursor:"pointer" }}>
                 {payLinksLoading ? "⏳ Creating…" : "🔗 Generate Payment Link"}
               </button>
               {linkCreated && (
-                <div style={{ marginTop: 16, background: "#f0fdf4", borderRadius: 12, padding: 16 }}>
+                <div style={{ marginTop: 16, background: "rgba(16,185,129,0.1)", borderRadius: 12, padding: 16 }}>
                   <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 600, color: GREEN }}>✅ Payment link created!</p>
-                  <code style={{ fontSize: 12, color: "#0f172a", wordBreak: "break-all" as const }}>{linkCreated}</code>
+                  <code style={{ fontSize: 12, color: "white", wordBreak: "break-all" as const }}>{linkCreated}</code>
                   <br />
                   <button onClick={() => navigator.clipboard?.writeText(linkCreated)} style={{ marginTop: 8, background: BLUE, color: "white", border: "none", borderRadius: 6, padding: "6px 14px", fontSize: 12, cursor: "pointer" }}>
                     📋 Copy Link
@@ -1931,31 +1931,31 @@ export default function ZeniPayDashboard() {
             </div>
 
             {/* Pay Links List */}
-            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+            <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 16, padding: 24, border: "1px solid rgba(255,255,255,0.08)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                 <h3 style={{ margin: 0, fontWeight: 700 }}>📋 Active Pay Links</h3>
-                <button onClick={fetchPayLinks} style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", color: "#374151" }}>
+                <button onClick={fetchPayLinks} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", color: "rgba(255,255,255,0.75)" }}>
                   🔄 Refresh
                 </button>
               </div>
               {payLinks.length === 0 ? (
-                <div style={{ background: "#f8fafc", borderRadius: 10, padding: "24px", textAlign: "center" as const, border: "1px dashed #e2e8f0" }}>
+                <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, padding: "24px", textAlign: "center" as const, border: "1px dashed rgba(255,255,255,0.15)" }}>
                   <div style={{ fontSize: 32, marginBottom: 8 }}>🔗</div>
-                  <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151" }}>No pay links yet</p>
-                  <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>Create your first payment link above</p>
+                  <p style={{ margin: "0 0 4px", fontWeight: 700, color: "rgba(255,255,255,0.75)" }}>No pay links yet</p>
+                  <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.35)" }}>Create your first payment link above</p>
                 </div>
               ) : (
                 <div style={{ display: "grid", gap: 10 }}>
                   {payLinks.map(link => (
-                    <div key={link.id} style={{ background: "#f8fafc", borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, border: "1px solid #e2e8f0" }}>
+                    <div key={link.id} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, border: "1px solid rgba(255,255,255,0.1)" }}>
                       <div style={{ width: 40, height: 40, background: `${BLUE}12`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🔗</div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 13, color: DARK }}>{link.description || "Payment Link"}</p>
-                        <p style={{ margin: 0, fontSize: 11, color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{link.url}</p>
+                        <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 13, color: "white" }}>{link.description || "Payment Link"}</p>
+                        <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.35)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{link.url}</p>
                       </div>
                       <div style={{ textAlign: "right" as const, flexShrink: 0 }}>
                         <p style={{ margin: "0 0 2px", fontWeight: 900, fontSize: 14, color: BLUE }}>${Number(link.amount).toLocaleString()}</p>
-                        <p style={{ margin: 0, fontSize: 10, color: "#94a3b8" }}>{link.uses || 0} uses · {new Date(link.created_at).toLocaleDateString()}</p>
+                        <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)" }}>{link.uses || 0} uses · {new Date(link.created_at).toLocaleDateString()}</p>
                       </div>
                       <StatusBadge status={link.status || "active"} />
                       <button onClick={() => navigator.clipboard?.writeText(link.url)} style={{ background: BLUE, color: "white", border: "none", borderRadius: 8, padding: "7px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
@@ -1975,7 +1975,7 @@ export default function ZeniPayDashboard() {
             {/* Info Banner */}
             <div style={{ background: `linear-gradient(135deg, ${DARK}, #1a2f6e)`, borderRadius: 16, padding: "20px 24px", color: "white", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <h3 style={{ margin: "0 0 4px", fontWeight: 800, fontSize: 16 }}>📄 ZeniPay Invoices</h3>
+                <h3 style={{ margin: "0 0 4px", fontWeight: 800, fontSize: 16, color: "white" }}>📄 ZeniPay Invoices</h3>
                 <p style={{ margin: 0, fontSize: 12, opacity: 0.6 }}>Auto-generated on booking · Editable HTML · Print-ready</p>
               </div>
               <div style={{ display: "flex", gap: 8 }}>
@@ -1989,8 +1989,8 @@ export default function ZeniPayDashboard() {
             </div>
 
             {/* How it works */}
-            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
-              <h4 style={{ margin: "0 0 16px", fontWeight: 700, fontSize: 14 }}>🔄 How Invoices Work</h4>
+            <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 16, padding: 24, border: "1px solid rgba(255,255,255,0.08)" }}>
+              <h4 style={{ margin: "0 0 16px", fontWeight: 700, fontSize: 14, color: "white" }}>🔄 How Invoices Work</h4>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
                 {[
                   { icon: "💳", title: "Client Pays", desc: "Payment processed via ZeniPay checkout" },
@@ -1998,29 +1998,29 @@ export default function ZeniPayDashboard() {
                   { icon: "✉️", title: "Emailed", desc: "Sent to client via info@zeniva.ca" },
                   { icon: "✏️", title: "Editable", desc: "Admin can modify any invoice and reprint" },
                 ].map(s => (
-                  <div key={s.title} style={{ background: "#f8fafc", borderRadius: 12, padding: 16, textAlign: "center" as const }}>
+                  <div key={s.title} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 12, padding: 16, textAlign: "center" as const }}>
                     <div style={{ fontSize: 28, marginBottom: 8 }}>{s.icon}</div>
-                    <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 13 }}>{s.title}</p>
-                    <p style={{ margin: 0, fontSize: 11, color: "#64748b" }}>{s.desc}</p>
+                    <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 13, color: "white" }}>{s.title}</p>
+                    <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{s.desc}</p>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Live invoice list from Supabase */}
-            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+            <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 16, padding: 24, border: "1px solid rgba(255,255,255,0.08)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                 <div>
-                  <p style={{ margin: 0, fontWeight: 800, fontSize: 15, color: DARK }}>Zeniva Travel — Client Invoices</p>
-                  <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>Auto-generated on every confirmed ZeniPay payment</p>
+                  <p style={{ margin: 0, fontWeight: 800, fontSize: 15, color: "white" }}>Zeniva Travel — Client Invoices</p>
+                  <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Auto-generated on every confirmed ZeniPay payment</p>
                 </div>
                 <span style={{ background: `${BLUE}12`, color: BLUE, fontWeight: 700, fontSize: 12, padding: "4px 12px", borderRadius: 9999 }}>{zpInvoices.length} invoice{zpInvoices.length !== 1 ? "s" : ""}</span>
               </div>
               {zpInvoices.length === 0 ? (
                 <div style={{ textAlign: "center" as const, padding: "40px 20px" }}>
                   <div style={{ fontSize: 64, marginBottom: 16 }}>📄</div>
-                  <h3 style={{ margin: "0 0 8px", fontWeight: 800, color: DARK }}>No invoices yet</h3>
-                  <p style={{ color: "#64748b", margin: "0 0 20px" }}>Invoices are auto-generated when a client completes payment via ZeniPay.</p>
+                  <h3 style={{ margin: "0 0 8px", fontWeight: 800, color: "white" }}>No invoices yet</h3>
+                  <p style={{ color: "rgba(255,255,255,0.4)", margin: "0 0 20px" }}>Invoices are auto-generated when a client completes payment via ZeniPay.</p>
                   <a href="/zenipay/checkout" style={{ background: BLUE, color: "white", textDecoration: "none", borderRadius: 9999, padding: "12px 28px", fontWeight: 700, fontSize: 14 }}>
                     Test a Payment →
                   </a>
@@ -2030,17 +2030,17 @@ export default function ZeniPayDashboard() {
                   <thead>
                     <tr style={{ background: "#f8fafc" }}>
                       {["Invoice #", "Client", "Amount", "Date", "Status", ""].map(h => (
-                        <th key={h} style={{ padding: "10px 16px", textAlign: "left" as const, fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase" as const }}>{h}</th>
+                        <th key={h} style={{ padding: "10px 16px", textAlign: "left" as const, fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" as const }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {zpInvoices.map(inv => (
-                      <tr key={inv.id} style={{ borderTop: "1px solid #f1f5f9" }}>
+                      <tr key={inv.id} style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
                         <td style={{ padding: "12px 16px", fontSize: 12, fontFamily: "monospace", color: BLUE, fontWeight: 700 }}>{inv.id}</td>
-                        <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 500, color: DARK }}>{inv.customer_name || "—"}</td>
+                        <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 500, color: "white" }}>{inv.customer_name || "—"}</td>
                         <td style={{ padding: "12px 16px", fontWeight: 800, color: GREEN }}>{fmt(inv.total)}</td>
-                        <td style={{ padding: "12px 16px", fontSize: 12, color: "#94a3b8" }}>{new Date(inv.created_at).toLocaleDateString("en-CA")}</td>
+                        <td style={{ padding: "12px 16px", fontSize: 12, color: "rgba(255,255,255,0.35)" }}>{new Date(inv.created_at).toLocaleDateString("en-CA")}</td>
                         <td style={{ padding: "12px 16px" }}>
                           <span style={{ background: "#d1fae5", color: "#065f46", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 9999 }}>✓ Paid</span>
                         </td>
@@ -2070,12 +2070,12 @@ export default function ZeniPayDashboard() {
           <div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 16 }}>
               {AGENTS.map(a => (
-                <div key={a.id} style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)", borderTop: a.id === "AGT-001" ? `3px solid ${GOLD}` : `3px solid ${BLUE}` }}>
+                <div key={a.id} style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 16, padding: 24, border: "1px solid rgba(255,255,255,0.08)", borderTop: a.id === "AGT-001" ? `3px solid ${GOLD}` : `3px solid ${BLUE}` }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
                     <div style={{ width: 44, height: 44, background: `${BLUE}15`, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>{a.avatar}</div>
                     <div style={{ flex: 1 }}>
-                      <p style={{ margin: 0, fontWeight: 700, fontSize: 15 }}>{a.name}</p>
-                      <p style={{ margin: 0, fontSize: 11, color: "#64748b" }}>{a.role}</p>
+                      <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: "white" }}>{a.name}</p>
+                      <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{a.role}</p>
                     </div>
                     {a.badge && <span style={{ background: `${GOLD}22`, color: GOLD, fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px" }}>{a.badge}</span>}
                   </div>
@@ -2086,14 +2086,14 @@ export default function ZeniPayDashboard() {
                       { label: "Pending Payout", value: fmt(a.pending, true), color: GOLD },
                       { label: "Commission Rate", value: a.rate, color: GREEN },
                     ].map(s => (
-                      <div key={s.label} style={{ background: "#f8fafc", borderRadius: 10, padding: "10px 12px" }}>
-                        <p style={{ margin: "0 0 2px", fontSize: 10, color: "#64748b", fontWeight: 600, textTransform: "uppercase" }}>{s.label}</p>
+                      <div key={s.label} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, padding: "10px 12px" }}>
+                        <p style={{ margin: "0 0 2px", fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 600, textTransform: "uppercase" }}>{s.label}</p>
                         <p style={{ margin: 0, fontWeight: 800, fontSize: 15, color: s.color }}>{s.value}</p>
                       </div>
                     ))}
                   </div>
                   <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-                    <div style={{ flex: 1, background: "#f0fdf4", borderRadius: 8, padding: "6px 10px", textAlign: "center" }}>
+                    <div style={{ flex: 1, background: "rgba(16,185,129,0.1)", borderRadius: 8, padding: "6px 10px", textAlign: "center" }}>
                       <span style={{ fontSize: 12, fontWeight: 600, color: GREEN }}>📋 {a.bookings} bookings</span>
                     </div>
                     <button style={{ background: `${BLUE}15`, color: BLUE, border: "none", borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Pay Now</button>
@@ -2108,11 +2108,11 @@ export default function ZeniPayDashboard() {
         {tab === "influencers" && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 16 }}>
             {INFLUENCERS.map(inf => (
-              <div key={inf.id} style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)", borderTop: `3px solid ${GOLD}` }}>
+              <div key={inf.id} style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 16, padding: 24, border: "1px solid rgba(255,255,255,0.08)", borderTop: `3px solid ${GOLD}` }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
                   <div>
-                    <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 15 }}>{inf.name}</p>
-                    <p style={{ margin: "0 0 4px", fontSize: 12, color: "#64748b" }}>{inf.handle} · {inf.platform}</p>
+                    <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 15, color: "white" }}>{inf.name}</p>
+                    <p style={{ margin: "0 0 4px", fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{inf.handle} · {inf.platform}</p>
                     <span style={{ background: `${GOLD}22`, color: GOLD, fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px" }}>🏅 {inf.tier}</span>
                   </div>
                   <StatusBadge status={inf.status || "pending"} />
@@ -2124,8 +2124,8 @@ export default function ZeniPayDashboard() {
                     { label: "Revenue", value: fmt(inf.revenue, true), color: PURPLE },
                     { label: "Earned", value: fmt(inf.commission, true), color: GOLD },
                   ].map(s => (
-                    <div key={s.label} style={{ background: "#f8fafc", borderRadius: 10, padding: "10px 12px" }}>
-                      <p style={{ margin: "0 0 2px", fontSize: 10, color: "#64748b", fontWeight: 600, textTransform: "uppercase" }}>{s.label}</p>
+                    <div key={s.label} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, padding: "10px 12px" }}>
+                      <p style={{ margin: "0 0 2px", fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 600, textTransform: "uppercase" }}>{s.label}</p>
                       <p style={{ margin: 0, fontWeight: 800, fontSize: 15, color: s.color }}>{s.value}</p>
                     </div>
                   ))}
@@ -2148,22 +2148,22 @@ export default function ZeniPayDashboard() {
                 { title: "Deposit + Balance", icon: "📅", desc: "30% deposit now, balance before travel.", badge: "Popular", color: GREEN },
                 { title: "Monthly Payments", icon: "🔄", desc: "Split into 3-12 monthly payments.", badge: "Flexible", color: PURPLE },
               ].map(p => (
-                <div key={p.title} style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)", borderTop: `3px solid ${p.color}` }}>
+                <div key={p.title} style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 16, padding: 24, border: "1px solid rgba(255,255,255,0.08)", borderTop: `3px solid ${p.color}` }}>
                   <div style={{ fontSize: 32, marginBottom: 12 }}>{p.icon}</div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                    <h3 style={{ margin: 0, fontWeight: 700, fontSize: 16 }}>{p.title}</h3>
+                    <h3 style={{ margin: 0, fontWeight: 700, fontSize: 16, color: "white" }}>{p.title}</h3>
                     <span style={{ background: `${p.color}22`, color: p.color, fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px" }}>{p.badge}</span>
                   </div>
-                  <p style={{ margin: "0 0 16px", color: "#64748b", fontSize: 13 }}>{p.desc}</p>
+                  <p style={{ margin: "0 0 16px", color: "rgba(255,255,255,0.4)", fontSize: 13 }}>{p.desc}</p>
                   <button style={{ background: `${p.color}15`, color: p.color, border: "none", borderRadius: 8, padding: "8px 16px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
                     Configure Plan
                   </button>
                 </div>
               ))}
             </div>
-            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+            <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 16, padding: 24, border: "1px solid rgba(255,255,255,0.08)" }}>
               <h3 style={{ margin: "0 0 16px", fontWeight: 700 }}>📊 Active Financing Plans</h3>
-              <div style={{ textAlign: "center", padding: 40, color: "#94a3b8" }}>
+              <div style={{ textAlign: "center", padding: 40, color: "rgba(255,255,255,0.35)" }}>
                 <div style={{ fontSize: 48, marginBottom: 12 }}>🏛️</div>
                 <p>Financing plans will appear here once travelers choose installment payment options.</p>
                 <p style={{ fontSize: 12, marginTop: 8 }}>Connect Finix financing module to enable installments.</p>
@@ -2176,10 +2176,10 @@ export default function ZeniPayDashboard() {
         {tab === "analytics" && (
           <div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 16, marginBottom: 20 }}>
-              <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)", gridColumn: "span 2" }}>
-                <h3 style={{ margin: "0 0 8px", fontWeight: 700, fontSize: 14 }}>📈 Revenue Chart</h3>
+              <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 16, padding: 24, border: "1px solid rgba(255,255,255,0.08)", gridColumn: "span 2" }}>
+                <h3 style={{ margin: "0 0 8px", fontWeight: 700, fontSize: 14, color: "white" }}>📈 Revenue Chart</h3>
                 {TRANSACTIONS.length === 0 ? (
-                  <div style={{ textAlign: "center" as const, padding: "32px 0", color: "#94a3b8" }}>
+                  <div style={{ textAlign: "center" as const, padding: "32px 0", color: "rgba(255,255,255,0.35)" }}>
                     <div style={{ fontSize: 32, marginBottom: 8 }}>📊</div>
                     <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>No transactions yet</p>
                     <p style={{ margin: "4px 0 0", fontSize: 11 }}>Chart will populate from real Finix payments</p>
@@ -2193,7 +2193,7 @@ export default function ZeniPayDashboard() {
                 )}
               </div>
             </div>
-            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+            <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 16, padding: 24, border: "1px solid rgba(255,255,255,0.08)" }}>
               <h3 style={{ margin: "0 0 16px", fontWeight: 700 }}>🥇 Top Revenue Sources</h3>
               {(() => {
                 const SERVICE_ICONS: Record<string, string> = { ZeniStay: "🏡", ZeniHotel: "🏨", ZeniFlights: "✈️", ZeniYacht: "⛵", ZeniCruise: "🚢", Other: "📦" };
@@ -2215,14 +2215,14 @@ export default function ZeniPayDashboard() {
                       const rev = revenueByService[s] || 0;
                       const pct = totalRev > 0 ? Math.round((rev / totalRev) * 100) : 0;
                       return (
-                        <div key={s} style={{ background: "#f8fafc", borderRadius: 12, padding: 16 }}>
+                        <div key={s} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 12, padding: 16 }}>
                           <div style={{ fontSize: 24, marginBottom: 8 }}>{SERVICE_ICONS[s]}</div>
-                          <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 13 }}>{s}</p>
+                          <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 13, color: "white" }}>{s}</p>
                           <p style={{ margin: "0 0 8px", fontWeight: 800, fontSize: 16, color: BLUE }}>{fmt(rev)}</p>
                           <div style={{ background: "#e2e8f0", borderRadius: 3, height: 4 }}>
                             <div style={{ background: BLUE, width: `${pct}%`, height: "100%", borderRadius: 3 }} />
                           </div>
-                          <p style={{ margin: "4px 0 0", fontSize: 10, color: "#94a3b8" }}>{pct}% of revenue</p>
+                          <p style={{ margin: "4px 0 0", fontSize: 10, color: "rgba(255,255,255,0.35)" }}>{pct}% of revenue</p>
                         </div>
                       );
                     })}
@@ -2300,7 +2300,7 @@ export default function ZeniPayDashboard() {
             {/* CHAT + LIVE LOG */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
               {/* Chat Interface */}
-              <div style={{ background: "white", borderRadius: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", display: "flex", flexDirection: "column" }}>
+              <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 20, border: "1px solid rgba(255,255,255,0.08)", display: "flex", flexDirection: "column" }}>
                 <div style={{ background: `linear-gradient(135deg, ${DARK}, #1a2f6e)`, borderRadius: "20px 20px 0 0", padding: "14px 18px", display: "flex", alignItems: "center", gap: 12 }}>
                   <div style={{ width: 36, height: 36, borderRadius: 10, overflow: "hidden", border: `1px solid ${BLUE}60`, background: DARK }}>
                     <img src="/agents/noah.png" alt="Ben" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -2332,7 +2332,7 @@ export default function ZeniPayDashboard() {
                   {aiLoading && (
                     <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
                       <div style={{ width: 28, height: 28, background: `${BLUE}20`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🤖</div>
-                      <div style={{ background: "#f0f4ff", borderRadius: "16px 16px 16px 4px", padding: "12px 16px" }}>
+                      <div style={{ background: "rgba(0,102,255,0.08)", borderRadius: "16px 16px 16px 4px", padding: "12px 16px" }}>
                         <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
                           {[0,1,2].map(i => <div key={i} style={{ width: 6, height: 6, background: BLUE, borderRadius: "50%", opacity: 0.6, animation: `bounce 1s ${i*0.2}s infinite` }} />)}
                         </div>
@@ -2344,22 +2344,22 @@ export default function ZeniPayDashboard() {
                 <div style={{ padding: "0 16px 8px", display: "flex", gap: 6, flexWrap: "wrap" }}>
                   {["💰 Revenue du jour", "🛡️ Fraud check", "💸 Payout status", "📊 Rapport mensuel"].map(s => (
                     <button key={s} onClick={() => setBenMsg(s.replace(/^[^ ]+ /, ""))}
-                      style={{ background: "#f0f4ff", color: BLUE, border: "1px solid #dbeafe", borderRadius: 8, padding: "5px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>{s}</button>
+                      style={{ background: "rgba(0,102,255,0.08)", color: BLUE, border: "1px solid #dbeafe", borderRadius: 8, padding: "5px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>{s}</button>
                   ))}
                 </div>
                 <div style={{ padding: "0 16px 16px", display: "flex", gap: 8 }}>
                   <input value={benMsg} onChange={e => setBenMsg(e.target.value)} onKeyDown={e => e.key === "Enter" && handleBenSend()}
                     placeholder="Ask Ben: revenue, fraud, payout, rapport…"
-                    style={{ flex: 1, border: "1.5px solid #e2e8f0", borderRadius: 12, padding: "11px 14px", fontSize: 13, outline: "none", background: "#fafbff" }} />
+                    style={{ flex: 1, border: "1.5px solid #e2e8f0", borderRadius: 12, padding: "11px 14px", fontSize: 13, outline: "none", background: "rgba(255,255,255,0.03)" }} />
                   <button onClick={handleBenSend} style={{ background: `linear-gradient(135deg, ${BLUE}, ${DARK})`, color: "white", border: "none", borderRadius: 12, padding: "11px 20px", fontWeight: 800, cursor: "pointer", fontSize: 14 }}>↑</button>
                 </div>
               </div>
 
               {/* Live Activity Log */}
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                <div style={{ background: "white", borderRadius: 20, padding: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", flex: 1 }}>
+                <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 20, padding: 20, border: "1px solid rgba(255,255,255,0.08)", flex: 1 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                    <h3 style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>⚡ Ben Live Activity</h3>
+                    <h3 style={{ margin: 0, fontWeight: 700, fontSize: 14, color: "white" }}>⚡ Ben Live Activity</h3>
                     <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: GREEN, fontWeight: 600 }}>
                       <div style={{ width: 6, height: 6, background: GREEN, borderRadius: "50%", animation: "pulse 1.5s infinite" }} /> Real-time
                     </div>
@@ -2368,14 +2368,14 @@ export default function ZeniPayDashboard() {
                     {liveActivity.map(a => (
                       <div key={a.id} style={{ background: a.type === "alert" ? "#fff1f2" : "#f0fdf4", borderRadius: 10, padding: "10px 14px", borderLeft: `3px solid ${a.type === "alert" ? RED : GREEN}` }}>
                         <p style={{ margin: "0 0 2px", fontSize: 12, fontWeight: 600, color: a.type === "alert" ? RED : "#065f46" }}>{a.text}</p>
-                        <p style={{ margin: 0, fontSize: 10, color: "#94a3b8" }}>{a.time}</p>
+                        <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)" }}>{a.time}</p>
                       </div>
                     ))}
                   </div>
                 </div>
                 {/* Quick Actions */}
-                <div style={{ background: "white", borderRadius: 20, padding: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
-                  <h3 style={{ margin: "0 0 12px", fontWeight: 700, fontSize: 14 }}>⚡ Quick Actions</h3>
+                <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 20, padding: 20, border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <h3 style={{ margin: "0 0 12px", fontWeight: 700, fontSize: 14, color: "white" }}>⚡ Quick Actions</h3>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                     {[
                       { label: "📊 Generate Report", color: BLUE },
@@ -2417,7 +2417,7 @@ export default function ZeniPayDashboard() {
                   { label: "Gross Revenue", value: fmt(accountingSummary?.totalRevenue ?? 0), sub: "FY 2025-2026", color: GREEN },
                   { label: "Total Expenses", value: fmt(accountingSummary?.totalExpenses ?? 0), sub: "Operating costs", color: RED },
                   { label: "Net Income", value: fmt(accountingSummary?.netProfit ?? 0), sub: "Before tax", color: GOLD },
-                  { label: "Tax Provision", value: fmt((accountingSummary?.netProfit ?? 0) * 0.15), sub: "Est. 15% corp tax", color: "#94a3b8" },
+                  { label: "Tax Provision", value: fmt((accountingSummary?.netProfit ?? 0) * 0.15), sub: "Est. 15% corp tax", color: "rgba(255,255,255,0.35)" },
                 ].map(s => (
                   <div key={s.label} style={{ background: "rgba(255,255,255,0.08)", borderRadius: 12, padding: "14px 16px" }}>
                     <p style={{ margin: "0 0 4px", fontSize: 10, opacity: 0.6, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>{s.label}</p>
@@ -2431,10 +2431,10 @@ export default function ZeniPayDashboard() {
             {/* P&L + Balance Sheet side by side */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
               {/* P&L Statement */}
-              <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+              <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 20, padding: 24, border: "1px solid rgba(255,255,255,0.08)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-                  <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16 }}>📊 Profit & Loss</h3>
-                  <select style={{ border: "1px solid #e2e8f0", borderRadius: 8, padding: "4px 10px", fontSize: 12 }}>
+                  <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16, color: "white" }}>📊 Profit & Loss</h3>
+                  <select style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "4px 10px", fontSize: 12 }}>
                     <option>Q1 2026</option><option>Q4 2025</option><option>Annual 2025</option>
                   </select>
                 </div>
@@ -2459,7 +2459,7 @@ export default function ZeniPayDashboard() {
                     marginBottom: 2,
                     borderTop: (row.type === "total-income" || row.type === "total-expense" || row.type === "net") ? "2px solid #e2e8f0" : "none",
                   }}>
-                    <span style={{ fontSize: 13, fontWeight: (row.type.startsWith("total") || row.type === "net") ? 800 : 500, color: "#374151" }}>{row.label}</span>
+                    <span style={{ fontSize: 13, fontWeight: (row.type.startsWith("total") || row.type === "net") ? 800 : 500, color: "rgba(255,255,255,0.75)" }}>{row.label}</span>
                     <span style={{ fontWeight: 800, fontSize: 13, color: row.amount > 0 ? GREEN : row.amount < 0 ? RED : BLUE }}>
                       {row.amount > 0 ? "+" : ""}{new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(row.amount)}
                     </span>
@@ -2468,10 +2468,10 @@ export default function ZeniPayDashboard() {
               </div>
 
               {/* Balance Sheet */}
-              <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
-                <h3 style={{ margin: "0 0 18px", fontWeight: 800, fontSize: 16 }}>🏛️ Balance Sheet</h3>
+              <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 20, padding: 24, border: "1px solid rgba(255,255,255,0.08)" }}>
+                <h3 style={{ margin: "0 0 18px", fontWeight: 800, fontSize: 16, color: "white" }}>🏛️ Balance Sheet</h3>
                 <div style={{ marginBottom: 16 }}>
-                  <p style={{ margin: "0 0 10px", fontWeight: 700, fontSize: 12, color: "#64748b", textTransform: "uppercase" as const }}>Assets</p>
+                  <p style={{ margin: "0 0 10px", fontWeight: 700, fontSize: 12, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" as const }}>Assets</p>
                   {[
                     { label: "ZeniPay Platform Wallet", value: 0 },
                     { label: "Agent Wallets", value: 0 },
@@ -2484,12 +2484,12 @@ export default function ZeniPayDashboard() {
                       <span style={{ fontWeight: 700, color: GREEN }}>${(a.value/1000).toFixed(0)}k</span>
                     </div>
                   ))}
-                  <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 10px", background: "#f0fdf4", borderRadius: 8, fontWeight: 800, fontSize: 13, marginTop: 4 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 10px", background: "rgba(16,185,129,0.1)", borderRadius: 8, fontWeight: 800, fontSize: 13, marginTop: 4 }}>
                     <span>TOTAL ASSETS</span><span style={{ color: GREEN }}>$0</span>
                   </div>
                 </div>
                 <div>
-                  <p style={{ margin: "0 0 10px", fontWeight: 700, fontSize: 12, color: "#64748b", textTransform: "uppercase" as const }}>Liabilities & Equity</p>
+                  <p style={{ margin: "0 0 10px", fontWeight: 700, fontSize: 12, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" as const }}>Liabilities & Equity</p>
                   {[
                     { label: "Pending Payouts", value: 0 },
                     { label: "Agent Pending", value: 0 },
@@ -2514,7 +2514,7 @@ export default function ZeniPayDashboard() {
             {/* Chart of Accounts + Journal Entries */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
               {/* Chart of Accounts */}
-              <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+              <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 20, padding: 24, border: "1px solid rgba(255,255,255,0.08)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                   <h3 style={{ margin: 0, fontWeight: 800, fontSize: 15 }}>📋 Chart of Accounts</h3>
                   <button style={{ background: BLUE, color: "white", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>+ New Account</button>
@@ -2543,9 +2543,9 @@ export default function ZeniPayDashboard() {
                   <div key={a.code} style={{ display: "flex", alignItems: "center", padding: "7px 10px", borderRadius: 8, marginBottom: 2, cursor: "pointer" }}
                     onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#f8fafc"}
                     onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}>
-                    <span style={{ fontSize: 11, color: "#94a3b8", width: 36, fontFamily: "monospace" }}>{a.code}</span>
-                    <span style={{ flex: 1, fontSize: 12, color: "#374151" }}>{a.name}</span>
-                    <span style={{ fontSize: 10, color: "#94a3b8", marginRight: 8 }}>{a.type}</span>
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", width: 36, fontFamily: "monospace" }}>{a.code}</span>
+                    <span style={{ flex: 1, fontSize: 12, color: "rgba(255,255,255,0.7)" }}>{a.name}</span>
+                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginRight: 8 }}>{a.type}</span>
                     <span style={{ fontSize: 12, fontWeight: 700, color: a.balance > 0 ? GREEN : RED }}>{a.balance > 0 ? "+" : ""}{(a.balance/1000).toFixed(0)}k</span>
                   </div>
                 ))}
@@ -2553,7 +2553,7 @@ export default function ZeniPayDashboard() {
 
               {/* Journal Entries */}
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+                <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 20, padding: 24, border: "1px solid rgba(255,255,255,0.08)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
                     <h3 style={{ margin: 0, fontWeight: 800, fontSize: 15 }}>📝 Recent Journal Entries</h3>
                     <button style={{ background: BLUE, color: "white", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>+ New Entry</button>
@@ -2564,7 +2564,7 @@ export default function ZeniPayDashboard() {
                         <thead>
                           <tr style={{ background: "#f8fafc" }}>
                             {["Date", "Description", "Account", "Debit", "Credit"].map(h => (
-                              <th key={h} style={{ padding: "8px 10px", textAlign: "left" as const, fontWeight: 700, color: "#64748b", borderBottom: "1px solid #e2e8f0", fontSize: 11 }}>{h}</th>
+                              <th key={h} style={{ padding: "8px 10px", textAlign: "left" as const, fontWeight: 700, color: "rgba(255,255,255,0.4)", borderBottom: "1px solid rgba(255,255,255,0.08)", fontSize: 11 }}>{h}</th>
                             ))}
                           </tr>
                         </thead>
@@ -2572,9 +2572,9 @@ export default function ZeniPayDashboard() {
                           {accountingSummary?.journalEntries && accountingSummary.journalEntries.length > 0
                             ? (accountingSummary.journalEntries as Array<Record<string,unknown>>).map((e, i) => (
                               <tr key={`je-${i}`} style={{ borderBottom: "1px solid #f8fafc" }}>
-                                <td style={{ padding: "7px 10px", color: "#94a3b8" }}>{String(e.date ?? e.created_at ?? "").slice(0,10)}</td>
+                                <td style={{ padding: "7px 10px", color: "rgba(255,255,255,0.35)" }}>{String(e.date ?? e.created_at ?? "").slice(0,10)}</td>
                                 <td style={{ padding: "7px 10px", color: "#374151", fontWeight: 500 }}>{String(e.description ?? "")}</td>
-                                <td style={{ padding: "7px 10px", color: "#64748b" }}>{String(e.account_code ?? "")} {String(e.account_name ?? "")}</td>
+                                <td style={{ padding: "7px 10px", color: "rgba(255,255,255,0.4)" }}>{String(e.account_code ?? "")} {String(e.account_name ?? "")}</td>
                                 <td style={{ padding: "7px 10px", fontWeight: 700, color: e.entry_type === "debit" ? "#10B981" : "#94a3b8" }}>{e.entry_type === "debit" ? `$${Number(e.amount).toFixed(2)}` : "—"}</td>
                                 <td style={{ padding: "7px 10px", fontWeight: 700, color: e.entry_type === "credit" ? BLUE : "#94a3b8" }}>{e.entry_type === "credit" ? `$${Number(e.amount).toFixed(2)}` : "—"}</td>
                               </tr>
@@ -2584,9 +2584,9 @@ export default function ZeniPayDashboard() {
                               { key: `${i}b`, date: t.date?.slice(0,10), desc: `Revenue ${t.id}`, account: "4000 Travel Revenue", debit: "—", credit: `$${t.amount.toFixed(2)}` },
                             ]).map(row => (
                               <tr key={row.key} style={{ borderBottom: "1px solid #f8fafc" }}>
-                                <td style={{ padding: "7px 10px", color: "#94a3b8" }}>{row.date}</td>
+                                <td style={{ padding: "7px 10px", color: "rgba(255,255,255,0.35)" }}>{row.date}</td>
                                 <td style={{ padding: "7px 10px", color: "#374151", fontWeight: 500 }}>{row.desc}</td>
-                                <td style={{ padding: "7px 10px", color: "#64748b" }}>{row.account}</td>
+                                <td style={{ padding: "7px 10px", color: "rgba(255,255,255,0.4)" }}>{row.account}</td>
                                 <td style={{ padding: "7px 10px", fontWeight: 700, color: row.debit !== "—" ? "#10B981" : "#94a3b8" }}>{row.debit}</td>
                                 <td style={{ padding: "7px 10px", fontWeight: 700, color: row.credit !== "—" ? BLUE : "#94a3b8" }}>{row.credit}</td>
                               </tr>
@@ -2596,9 +2596,9 @@ export default function ZeniPayDashboard() {
                       </table>
                     </div>
                   ) : (
-                    <div style={{ background: "#f8fafc", borderRadius: 10, padding: "16px", textAlign: "center" as const, border: "1px dashed #e2e8f0" }}>
+                    <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, padding: "16px", textAlign: "center" as const, border: "1px dashed rgba(255,255,255,0.15)" }}>
                       <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151", fontSize: 13 }}>No journal entries yet</p>
-                      <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>Generated automatically from real Finix payments</p>
+                      <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Generated automatically from real Finix payments</p>
                     </div>
                   )}
                 </div>
@@ -2626,10 +2626,10 @@ export default function ZeniPayDashboard() {
             </div>
 
             {/* Reports */}
-            <div style={{ background: "white", borderRadius: 20, padding: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+            <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 20, padding: 24, border: "1px solid rgba(255,255,255,0.08)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16 }}>📄 Financial Reports</h3>
-                <span style={{ fontSize: 12, color: "#94a3b8" }}>Auto-generated by ZeniPay AI</span>
+                <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16, color: "white" }}>📄 Financial Reports</h3>
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>Auto-generated by ZeniPay AI</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
                 {[
@@ -2640,12 +2640,12 @@ export default function ZeniPayDashboard() {
                   { icon: "👤", title: "Agent Payroll Report", desc: "Commissions & 1099s", color: "#ec4899" },
                   { icon: "📦", title: "COGS Report", desc: "Supplier costs by booking", color: RED },
                   { icon: "📈", title: "Revenue by Channel", desc: "Hotel, Yacht, Flights, Stay", color: BLUE },
-                  { icon: "🌍", title: "Multi-Currency Report", desc: "CAD/USD/EUR reconciliation", color: DARK },
+                  { icon: "🌍", title: "Multi-Currency Report", desc: "CAD/USD/EUR reconciliation", color: "white" },
                 ].map(r => (
                   <button key={r.title} style={{ background: `${r.color}10`, border: `1px solid ${r.color}25`, borderRadius: 14, padding: "16px 14px", cursor: "pointer", textAlign: "left" as const }}>
                     <div style={{ fontSize: 24, marginBottom: 8 }}>{r.icon}</div>
-                    <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 13, color: DARK }}>{r.title}</p>
-                    <p style={{ margin: 0, fontSize: 11, color: "#64748b" }}>{r.desc}</p>
+                    <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 13, color: "white" }}>{r.title}</p>
+                    <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{r.desc}</p>
                   </button>
                 ))}
               </div>
@@ -2657,7 +2657,7 @@ export default function ZeniPayDashboard() {
         {tab === "settings" && (
           <div style={{ display: "grid", gap: 16 }}>
             {/* Payment Gateway */}
-            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+            <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 16, padding: 24, border: "1px solid rgba(255,255,255,0.08)" }}>
               <h3 style={{ margin: "0 0 16px", fontWeight: 700 }}>🏦 Payment Gateway</h3>
               <div style={{ display: "grid", gap: 10 }}>
                 {[
@@ -2666,10 +2666,10 @@ export default function ZeniPayDashboard() {
                   { label: "Webhook Endpoint", value: "/api/zenipay/webhooks/finix", status: null },
                   { label: "Merchant ID", value: "●●●●●●●●●●●●", status: null },
                 ].map(item => (
-                  <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
-                    <span style={{ fontSize: 13, color: "#374151" }}>{item.label}</span>
+                  <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)" }}>{item.label}</span>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{item.value}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{item.value}</span>
                       {item.status && <StatusBadge status={item.status} />}
                     </div>
                   </div>
@@ -2678,9 +2678,9 @@ export default function ZeniPayDashboard() {
             </div>
 
             {/* Commission Structure */}
-            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+            <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 16, padding: 24, border: "1px solid rgba(255,255,255,0.08)" }}>
               <h3 style={{ margin: "0 0 16px", fontWeight: 700 }}>💸 Commission Structure</h3>
-              <p style={{ margin: "0 0 14px", fontSize: 12, color: "#64748b" }}>All splits calculated on net profit (after supplier costs)</p>
+              <p style={{ margin: "0 0 14px", fontSize: 12, color: "rgba(255,255,255,0.4)" }}>All splits calculated on net profit (after supplier costs)</p>
               <div style={{ display: "grid", gap: 10 }}>
                 {[
                   { label: "Direct Booking", value: "100% Zeniva Travel", status: "active" },
@@ -2689,10 +2689,10 @@ export default function ZeniPayDashboard() {
                   { label: "ZeniYacht", value: "100% Zeniva Travel", status: "active" },
                   { label: "+ Influencer", value: "+5% from Zeniva share (influencer)", status: "active" },
                 ].map(item => (
-                  <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
-                    <span style={{ fontSize: 13, color: "#374151" }}>{item.label}</span>
+                  <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)" }}>{item.label}</span>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{item.value}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{item.value}</span>
                       {item.status && <StatusBadge status={item.status} />}
                     </div>
                   </div>
@@ -2701,7 +2701,7 @@ export default function ZeniPayDashboard() {
             </div>
 
             {/* Security & Compliance */}
-            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+            <div style={{ background: "linear-gradient(135deg, #0d1829, #111f38)", borderRadius: 16, padding: 24, border: "1px solid rgba(255,255,255,0.08)" }}>
               <h3 style={{ margin: "0 0 16px", fontWeight: 700 }}>🔒 Security & Compliance</h3>
               <div style={{ display: "grid", gap: 10 }}>
                 {[
@@ -2710,10 +2710,10 @@ export default function ZeniPayDashboard() {
                   { label: "Encryption", value: "TLS 1.3 · AES-256", status: "active" },
                   { label: "Fraud Detection", value: "Ben AI · Real-time monitoring", status: "active" },
                 ].map(item => (
-                  <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
-                    <span style={{ fontSize: 13, color: "#374151" }}>{item.label}</span>
+                  <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)" }}>{item.label}</span>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{item.value}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{item.value}</span>
                       {item.status && <StatusBadge status={item.status} />}
                     </div>
                   </div>
