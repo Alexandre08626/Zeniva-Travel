@@ -457,6 +457,19 @@ function ProposalReviewPageInner() {
             total_price: totalPrice,
             travel_dates: travelDates,
             agent_name: "Zeniva Travel",
+            // Full trip details for rich email
+            departure_city: tripDraft?.departureCity || "",
+            check_in: tripDraft?.checkIn || "",
+            check_out: tripDraft?.checkOut || "",
+            adults: tripDraft?.adults || 1,
+            budget: tripDraft?.budget || "",
+            currency: tripDraft?.currency || "USD",
+            accommodation_type: tripDraft?.accommodationType || "Hotel",
+            transport_type: tripDraft?.transportationType || "Flights",
+            travel_style: tripDraft?.style || "",
+            hotel_name: tripDraft?.hotelName || "",
+            notes: tripDraft?.notes || "",
+            sections: proposal?.sections || [],
           }),
         });
         const data = await res.json();
