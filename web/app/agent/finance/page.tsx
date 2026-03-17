@@ -1199,16 +1199,16 @@ export default function ZeniPayDashboard() {
     void fetchZpInvoices();
     void fetchAccountingSummary();
     void fetchPayLinks();
-    // Fetch Unit accounts + cards
+    // Fetch Unit banking accounts + cards via unified endpoint
     async function fetchUnit() {
       setUnitLoading(true);
       try {
-        const [accRes, cardRes] = await Promise.all([
-          fetch("/api/unit/accounts"),
-          fetch("/api/unit/cards"),
-        ]);
-        if (accRes.ok) { const d = await accRes.json(); setUnitAccounts(d.accounts || []); }
-        if (cardRes.ok) { const d = await cardRes.json(); setUnitCards(d.cards || []); }
+        const r = await fetch("/api/zenipay/bank-balance");
+        if (r.ok) {
+          const d = await r.json();
+          setUnitAccounts(d.accounts || []);
+          setUnitCards(d.cards || []);
+        }
       } catch { /* silent — Unit may not be configured yet */ }
       finally { setUnitLoading(false); }
     }

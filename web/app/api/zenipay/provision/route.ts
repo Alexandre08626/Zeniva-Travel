@@ -161,30 +161,35 @@ export async function POST() {
     const last4 = card?.attributes?.last4Digits || "****";
     const expiry = card?.attributes?.expirationDate || "";
 
-    // ── Step 4: Persist to Supabase ─────────────────────────────────
-    await sb.from("zenipay_unit_accounts").upsert({
-      id: accountId,
-      customer_id: customerId,
-      account_type: "depositAccount",
-      routing_number: routingNumber,
-      account_number: accountNumber,
-      balance_cents: balance,
-      available_cents: balance,
-      status: account?.attributes?.status || "Open",
-      currency: "USD",
-      created_at: new Date().toISOString(),
-    }, { onConflict: "id" });
-
-    if (cardId) {
-      await sb.from("zenipay_unit_cards").upsert({
-        id: cardId,
-        account_id: accountId,
-        card_type: "businessVirtualDebitCard",
-        last4,
-        expiry_date: expiry,
-        status: card?.attributes?.status || "Active",
+    // ── Step 4: Persist to Supabase (non-fatal) ────────────────────
+    try {
+      await sb.from("zenipay_unit_accounts").upsert({
+        id: accountId,
+        customer_id: customerId,
+        account_type: "depositAccount",
+        routing_number: routingNumber,
+        account_number: accountNumber,
+        balance_cents: balance,
+        available_cents: balance,
+        status: account?.attributes?.status || "Open",
+        currency: "USD",
         created_at: new Date().toISOString(),
       }, { onConflict: "id" });
+
+      if (cardId) {
+        await sb.from("zenipay_unit_cards").upsert({
+          id: cardId,
+          account_id: accountId,
+          card_type: "businessVirtualDebitCard",
+          last4,
+          expiry_date: expiry,
+          status: card?.attributes?.status || "Active",
+          created_at: new Date().toISOString(),
+        }, { onConflict: "id" });
+      }
+    } catch (dbErr) {
+      // Non-fatal: Supabase tables may not exist yet — account is still created
+      console.warn("[provision] Supabase persist failed:", dbErr);
     }
 
     // ── Response ─────────────────────────────────────────────────────
