@@ -52,7 +52,7 @@ const fmt = (n: number, compact?: boolean) =>
     ? n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `$${(n / 1000).toFixed(0)}k` : `$${n}`
     : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
 
-// ── BANK CARDS — Premium Holographic Dual Cards ─────────────────────
+// ── BANK CARDS — Logo Watermark Design ──────────────────────────────
 function BankCard({
   balance, last4 = "4242", expiry = "03/28",
   cardholder = "ZENIVA TRAVEL LLC", subtitle = "Platform Account",
@@ -63,15 +63,16 @@ function BankCard({
 }) {
   const isVisa = network === "VISA";
   const gradient = isVisa
-    ? "linear-gradient(135deg, #0B2A7A 0%, #0052CC 45%, #0077FF 75%, #00AAFF 100%)"
-    : "linear-gradient(135deg, #0d1633 0%, #15B8C9 40%, #2A8FE0 70%, #7B4FBF 100%)";
-  const glowColor = isVisa ? "rgba(229,36,123,0.4)" : "rgba(21,184,201,0.4)";
+    ? "linear-gradient(135deg, #E5247B 0%, #c4196b 30%, #9B59B6 65%, #7B4FBF 100%)"
+    : "linear-gradient(135deg, #0d1633 0%, #0a2a8a 35%, #15B8C9 70%, #7B4FBF 100%)";
+  const glowColor = isVisa ? "rgba(229,36,123,0.45)" : "rgba(21,184,201,0.4)";
+
   return (
     <div style={{
       width: "100%", borderRadius: 20, position: "relative",
       overflow: "hidden", aspectRatio: "1.586",
       background: gradient,
-      boxShadow: `0 20px 50px ${glowColor}, 0 6px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2)`,
+      boxShadow: `0 24px 60px ${glowColor}, 0 8px 20px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.18)`,
       transition: "transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s",
       cursor: "default", color: "white",
       fontFamily: "system-ui, sans-serif",
@@ -79,38 +80,74 @@ function BankCard({
     }}
       onMouseEnter={e => {
         const el = e.currentTarget as HTMLDivElement;
-        el.style.transform = "translateY(-8px) scale(1.01)";
-        el.style.boxShadow = `0 32px 70px ${glowColor}, 0 10px 24px rgba(0,0,0,0.25)`;
+        el.style.transform = "translateY(-10px) scale(1.02)";
+        el.style.boxShadow = `0 36px 80px ${glowColor}, 0 12px 28px rgba(0,0,0,0.25)`;
       }}
       onMouseLeave={e => {
         const el = e.currentTarget as HTMLDivElement;
         el.style.transform = "translateY(0) scale(1)";
-        el.style.boxShadow = `0 20px 50px ${glowColor}, 0 6px 16px rgba(0,0,0,0.2)`;
+        el.style.boxShadow = `0 24px 60px ${glowColor}, 0 8px 20px rgba(0,0,0,0.2)`;
       }}
     >
-      <style>{`@keyframes shimmer{0%{transform:translateX(-120%) skewX(-20deg)}100%{transform:translateX(350%) skewX(-20deg)}}@keyframes holo{0%,100%{opacity:0.08}50%{opacity:0.2}}`}</style>
-      <div style={{ position:"absolute", inset:0, background:"linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.25) 50%,transparent 65%)", animation:"shimmer 4s ease-in-out infinite", pointerEvents:"none" }} />
-      <div style={{ position:"absolute", inset:0, background:"linear-gradient(45deg,rgba(255,50,128,0.06),rgba(0,255,200,0.06),rgba(255,220,0,0.06),rgba(150,0,255,0.06))", animation:"holo 5s ease-in-out infinite", pointerEvents:"none" }} />
-      <div style={{ position:"absolute", top:-50, right:-50, width:160, height:160, borderRadius:"50%", background:"rgba(255,255,255,0.07)", pointerEvents:"none" }} />
-      <div style={{ position:"absolute", bottom:-70, left:-30, width:200, height:200, borderRadius:"50%", background:"rgba(255,255,255,0.04)", pointerEvents:"none" }} />
+      <style>{`
+        @keyframes shimmerCard{0%{transform:translateX(-120%) skewX(-20deg)}100%{transform:translateX(350%) skewX(-20deg)}}
+        @keyframes logoPulse{0%,100%{opacity:0.12}50%{opacity:0.2}}
+      `}</style>
+
+      {/* BIG LOGO WATERMARK in background */}
+      <div style={{
+        position: "absolute",
+        right: "-8%",
+        top: "50%",
+        transform: "translateY(-50%)",
+        width: "70%",
+        height: "70%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        animation: "logoPulse 6s ease-in-out infinite",
+        pointerEvents: "none",
+      }}>
+        <img
+          src="/zenipay-logo.png"
+          alt=""
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            filter: "brightness(10) saturate(0)",
+            mixBlendMode: "overlay",
+            opacity: 0.18,
+          }}
+        />
+      </div>
+
+      {/* Shimmer sweep */}
+      <div style={{ position:"absolute", inset:0, background:"linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.22) 50%,transparent 65%)", animation:"shimmerCard 4s ease-in-out infinite", pointerEvents:"none" }} />
+
+      {/* Card content */}
       <div style={{ position:"relative", height:"100%", padding:"6% 7%", display:"flex", flexDirection:"column" as const, justifyContent:"space-between" }}>
+        {/* TOP */}
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
           <div>
+            {/* Real ZeniPay logo small */}
             <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:3 }}>
-              <div style={{ width:28, height:28, borderRadius:7, background:"rgba(255,255,255,0.9)", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", padding:2 }}>
+              <div style={{ width:30, height:30, borderRadius:8, background:"rgba(255,255,255,0.9)", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", padding:3, boxShadow:"0 2px 8px rgba(0,0,0,0.2)" }}>
                 <img src="/zenipay-logo.png" alt="ZeniPay" style={{ width:"100%", height:"100%", objectFit:"contain" }} />
               </div>
               <span style={{ fontWeight:800, fontSize:15, letterSpacing:"-0.3px", textShadow:"0 1px 6px rgba(0,0,0,0.4)" }}>ZeniPay</span>
             </div>
-            <p style={{ margin:0, fontSize:8.5, opacity:0.5, letterSpacing:"0.14em", textTransform:"uppercase" as const }}>{subtitle}</p>
+            <p style={{ margin:0, fontSize:8.5, opacity:0.55, letterSpacing:"0.14em", textTransform:"uppercase" as const }}>{subtitle}</p>
           </div>
+          {/* EMV Chip */}
           <div style={{ width:40, height:30, borderRadius:5, position:"relative", background:"linear-gradient(145deg,#c9a84c 0%,#f2d76a 30%,#e5c035 65%,#b8900a 100%)", boxShadow:"inset 0 1px 2px rgba(255,255,255,0.55),0 2px 6px rgba(0,0,0,0.4)" }}>
             <div style={{ position:"absolute", inset:3.5, border:"1px solid rgba(0,0,0,0.18)", borderRadius:2.5 }} />
             <div style={{ position:"absolute", left:"50%", top:0, bottom:0, width:1, background:"rgba(0,0,0,0.12)", transform:"translateX(-50%)" }} />
             <div style={{ position:"absolute", top:"50%", left:0, right:0, height:1, background:"rgba(0,0,0,0.12)", transform:"translateY(-50%)" }} />
+            {/* Contactless */}
             <div style={{ position:"absolute", right:-18, top:"50%", transform:"translateY(-50%)" }}>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <circle cx="7" cy="11" r="1.2" fill="rgba(255,255,255,0.75)"/>
+                <circle cx="7" cy="11" r="1.2" fill="rgba(255,255,255,0.8)"/>
                 <path d="M4.5 8.5 A3.5 3.5 0 0 1 9.5 8.5" stroke="rgba(255,255,255,0.7)" strokeWidth="1.1" strokeLinecap="round" fill="none"/>
                 <path d="M2.5 6 A6 6 0 0 1 11.5 6" stroke="rgba(255,255,255,0.55)" strokeWidth="1.1" strokeLinecap="round" fill="none"/>
                 <path d="M0.5 3.5 A8.5 8.5 0 0 1 13.5 3.5" stroke="rgba(255,255,255,0.35)" strokeWidth="1.1" strokeLinecap="round" fill="none"/>
@@ -118,29 +155,33 @@ function BankCard({
             </div>
           </div>
         </div>
+
+        {/* BALANCE */}
         <div>
-          <p style={{ margin:"0 0 2px", fontSize:9, opacity:0.45, letterSpacing:"0.14em", textTransform:"uppercase" as const }}>Available Balance</p>
-          <p style={{ margin:0, fontWeight:900, fontSize:24, letterSpacing:"-0.8px", textShadow:"0 2px 8px rgba(0,0,0,0.35)" }}>
+          <p style={{ margin:"0 0 2px", fontSize:9, opacity:0.5, letterSpacing:"0.14em", textTransform:"uppercase" as const }}>Available Balance</p>
+          <p style={{ margin:0, fontWeight:900, fontSize:24, letterSpacing:"-0.8px", textShadow:"0 2px 10px rgba(0,0,0,0.4)" }}>
             {balance !== undefined ? fmt(balance) : "$0.00"}
           </p>
         </div>
+
+        {/* CARD NUMBER + FOOTER */}
         <div>
-          <p style={{ margin:"0 0 8px", fontSize:13, fontWeight:500, letterSpacing:"0.24em", fontFamily:"monospace", opacity:0.9 }}>
+          <p style={{ margin:"0 0 8px", fontSize:13, fontWeight:500, letterSpacing:"0.24em", fontFamily:"monospace", opacity:0.9, textShadow:"0 1px 4px rgba(0,0,0,0.3)" }}>
             ••••&nbsp;&nbsp;••••&nbsp;&nbsp;••••&nbsp;&nbsp;{last4}
           </p>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end" }}>
             <div>
-              <p style={{ margin:"0 0 1px", fontSize:7, opacity:0.38, letterSpacing:"0.15em" }}>CARDHOLDER</p>
-              <p style={{ margin:0, fontSize:10.5, fontWeight:700, letterSpacing:"0.06em" }}>{cardholder}</p>
+              <p style={{ margin:"0 0 1px", fontSize:7, opacity:0.4, letterSpacing:"0.15em" }}>CARDHOLDER</p>
+              <p style={{ margin:0, fontSize:10.5, fontWeight:700, letterSpacing:"0.06em", textShadow:"0 1px 3px rgba(0,0,0,0.3)" }}>{cardholder}</p>
             </div>
             <div style={{ textAlign:"right" as const, display:"flex", flexDirection:"column" as const, alignItems:"flex-end", gap:3 }}>
-              <div><span style={{ fontSize:7, opacity:0.38, letterSpacing:"0.12em", marginRight:4 }}>VALID</span><span style={{ fontSize:10.5, fontWeight:700 }}>{expiry}</span></div>
+              <div><span style={{ fontSize:7, opacity:0.4, letterSpacing:"0.12em", marginRight:4 }}>VALID</span><span style={{ fontSize:10.5, fontWeight:700 }}>{expiry}</span></div>
               {isVisa ? (
-                <span style={{ fontWeight:900, fontStyle:"italic", fontSize:16, letterSpacing:"-0.5px", textShadow:"0 1px 4px rgba(0,0,0,0.4)", opacity:0.92 }}>VISA</span>
+                <span style={{ fontWeight:900, fontStyle:"italic", fontSize:17, letterSpacing:"-0.5px", textShadow:"0 1px 4px rgba(0,0,0,0.4)", opacity:0.95 }}>VISA</span>
               ) : (
-                <div style={{ display:"flex", position:"relative", width:36, height:22 }}>
-                  <div style={{ width:22, height:22, borderRadius:"50%", background:"#EB001B", position:"absolute", left:0, opacity:0.95 }} />
-                  <div style={{ width:22, height:22, borderRadius:"50%", background:"#F79E1B", position:"absolute", left:12, opacity:0.95 }} />
+                <div style={{ display:"flex", position:"relative", width:38, height:24 }}>
+                  <div style={{ width:24, height:24, borderRadius:"50%", background:"#EB001B", position:"absolute", left:0, opacity:0.95 }} />
+                  <div style={{ width:24, height:24, borderRadius:"50%", background:"#F79E1B", position:"absolute", left:14, opacity:0.95 }} />
                 </div>
               )}
             </div>
@@ -150,6 +191,7 @@ function BankCard({
     </div>
   );
 }
+
 
 
 
@@ -1256,8 +1298,8 @@ export default function ZeniPayDashboard() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: sidebarOpen ? "space-between" : "center", padding: "18px 14px", borderBottom: `1px solid rgba(255,255,255,0.15)`, minHeight: 70 }}>
           {sidebarOpen && (
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 34, height: 34, borderRadius: 10, background: `linear-gradient(135deg, ${BLUE}, #004acc)`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 14px ${BLUE}60`, flexShrink: 0 }}>
-                <span style={{ color: "white", fontWeight: 900, fontSize: 14 }}>Z</span>
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden", padding: 4, boxShadow: "0 4px 14px rgba(21,184,201,0.4)" }}>
+                <img src="/zenipay-logo.png" alt="ZeniPay" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
               </div>
               <div>
                 <p style={{ margin: 0, fontWeight: 900, fontSize: 15, color: "white", letterSpacing: "-0.5px" }}>ZeniPay</p>
@@ -1266,8 +1308,8 @@ export default function ZeniPayDashboard() {
             </div>
           )}
           {!sidebarOpen && (
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: `linear-gradient(135deg, ${BLUE}, #004acc)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ color: "white", fontWeight: 900, fontSize: 14 }}>Z</span>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: "white", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: 4 }}>
+              <img src="/zenipay-logo.png" alt="ZeniPay" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </div>
           )}
           <button onClick={() => setSidebarOpen((o: boolean) => !o)} style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", borderRadius: 8, width: 26, height: 26, cursor: "pointer", color: "white", fontSize: 11, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginLeft: sidebarOpen ? 0 : "auto" }}>
@@ -1347,8 +1389,8 @@ export default function ZeniPayDashboard() {
           <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 0", borderBottom: `1px solid rgba(255,255,255,0.15)` }}>
             {/* Brand */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 38, height: 38, borderRadius: 10, background: `linear-gradient(135deg, ${BLUE}, #004acc)`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 14px ${BLUE}50` }}>
-                <span style={{ color: "white", fontWeight: 900, fontSize: 16 }}>Z</span>
+              <div style={{ width: 38, height: 38, borderRadius: 10, background: "white", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: 4, boxShadow: "0 4px 14px rgba(21,184,201,0.4)" }}>
+                <img src="/zenipay-logo.png" alt="ZeniPay" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
               </div>
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -1653,7 +1695,7 @@ export default function ZeniPayDashboard() {
                 {/* ZeniPay */}
                 <div style={{ textAlign: "center" as const, flexShrink: 0 }}>
                   <div style={{ width: 100, height: 70, borderRadius: 14, background: "rgba(21,184,201,0.08)", border: `2px solid ${BLUE}60`, display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", gap: 4, boxShadow: `0 0 20px ${BLUE}30` }}>
-                    <span style={{ fontSize: 20 }}>Z</span>
+                    <img src="/zenipay-logo.png" alt="ZP" style={{ width: 28, height: 28, objectFit: "contain" }} />
                     <span style={{ fontSize: 9, color: BLUE, fontWeight: 800, letterSpacing: "0.05em" }}>ZENIPAY</span>
                     <span style={{ fontSize: 10, color: BLUE, fontWeight: 700 }}>{fmt(platformBalance)}</span>
                   </div>
