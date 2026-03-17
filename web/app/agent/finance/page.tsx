@@ -1838,8 +1838,8 @@ export default function ZeniPayDashboard() {
             <div style={{ background: "white", borderRadius: 20, padding: 28, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16, color: "#0f172a" }}>🏦 Unit Banking — Real Accounts</h3>
-                  <span style={{ background: `${BLUE}15`, color: BLUE, fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px", border: `1px solid ${BLUE}30` }}>Powered by Unit.co</span>
+                  <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16, color: "#0f172a" }}>🏦 Banking Account</h3>
+                  <span style={{ background: "rgba(21,184,201,0.1)", color: "#15B8C9", fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px", border: "1px solid rgba(21,184,201,0.2)" }}>Unit.co · Real-time</span>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
                   {unitLoading && <span style={{ fontSize: 12, color: "#94a3b8" }}>⏳ Loading…</span>}
@@ -1847,51 +1847,76 @@ export default function ZeniPayDashboard() {
                     style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", color: "#374151" }}>
                     🔄 Refresh
                   </button>
+                  <button
+                    onClick={async () => {
+                      setUnitLoading(true);
+                      const r = await fetch("/api/unit/accounts/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: "Zeniva Travel LLC" }) });
+                      const d = await r.json();
+                      if (d.ok) { const r2 = await fetch("/api/unit/accounts"); if(r2.ok){const d2=await r2.json();setUnitAccounts(d2.accounts||[]);} }
+                      else alert("Account creation: " + (d.error || JSON.stringify(d.details || {})));
+                      setUnitLoading(false);
+                    }}
+                    style={{ background: "linear-gradient(90deg, #2DBE60, #15B8C9)", color: "white", border: "none", borderRadius: 8, padding: "6px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                    + Create Account
+                  </button>
                 </div>
               </div>
               {unitAccounts.length === 0 ? (
-                <div style={{ background: "#f8fafc", borderRadius: 14, padding: "24px", border: "1px dashed #e2e8f0", textAlign: "center" as const }}>
-                  <div style={{ fontSize: 36, marginBottom: 10 }}>🏦</div>
-                  <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151" }}>No Unit accounts yet</p>
-                  <p style={{ margin: "0 0 16px", fontSize: 12, color: "#94a3b8" }}>Unit.co banking is configured — create your first account to get routing/account numbers</p>
-                  <a href="https://app.s.unit.sh" target="_blank" rel="noreferrer"
-                    style={{ display: "inline-block", background: BLUE, color: "white", borderRadius: 9999, padding: "10px 24px", fontWeight: 700, textDecoration: "none", fontSize: 13 }}>
-                    Open Unit Dashboard →
-                  </a>
+                <div style={{ background: "#f0fdf4", borderRadius: 14, padding: "28px 24px", border: "1px dashed rgba(21,184,201,0.3)", textAlign: "center" as const }}>
+                  <div style={{ fontSize: 40, marginBottom: 10 }}>🏦</div>
+                  <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151" }}>No banking account yet</p>
+                  <p style={{ margin: "0 0 16px", fontSize: 12, color: "#94a3b8" }}>Create your Zeniva Travel LLC account — get routing & account numbers instantly</p>
+                  <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap" as const, marginBottom: 20 }}>
+                    {["🏦 Real routing number", "💳 ACH transfers", "💸 Wire payments", "📊 Real-time balance"].map(f => (
+                      <span key={f} style={{ background: "white", borderRadius: 8, padding: "4px 12px", fontSize: 11, color: "#374151", fontWeight: 600, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>{f}</span>
+                    ))}
+                  </div>
+                  <button
+                    onClick={async () => {
+                      setUnitLoading(true);
+                      const r = await fetch("/api/unit/accounts/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: "Zeniva Travel LLC" }) });
+                      const d = await r.json();
+                      if (d.ok) { const r2 = await fetch("/api/unit/accounts"); if(r2.ok){const d2=await r2.json();setUnitAccounts(d2.accounts||[]);} }
+                      else alert("Error: " + (d.error || JSON.stringify(d.details || {})));
+                      setUnitLoading(false);
+                    }}
+                    style={{ background: "linear-gradient(90deg, #2DBE60, #15B8C9)", color: "white", border: "none", borderRadius: 12, padding: "12px 28px", fontWeight: 800, fontSize: 14, cursor: "pointer", boxShadow: "0 4px 16px rgba(21,184,201,0.35)" }}>
+                    🏦 Create Banking Account
+                  </button>
                 </div>
               ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 }}>
                   {unitAccounts.map(acc => (
-                    <div key={acc.id} style={{ background: `linear-gradient(135deg, ${DARK}, #1a2f6e)`, borderRadius: 18, padding: 22, color: "white", position: "relative", overflow: "hidden" }}>
-                      <div style={{ position: "absolute", top: -20, right: -20, width: 100, height: 100, background: "#f8fafc", borderRadius: "50%" }} />
+                    <div key={acc.id} style={{ background: "white", borderRadius: 18, padding: 22, position: "relative", overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.07)", border: "1px solid #e2e8f0" }}>
+                      
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                         <div>
-                          <p style={{ margin: "0 0 2px", fontSize: 11, opacity: 0.55, textTransform: "uppercase" as const, fontWeight: 700, letterSpacing: "0.1em" }}>
+                          <p style={{ margin: "0 0 2px", fontSize: 11, color: "#64748b", textTransform: "uppercase" as const, fontWeight: 700, letterSpacing: "0.1em" }}>
                             {acc.type === "depositAccount" ? "Checking Account" : acc.type}
                           </p>
-                          <p style={{ margin: 0, fontWeight: 800, fontSize: 15 }}>{acc.name}</p>
+                          <p style={{ margin: 0, fontWeight: 800, fontSize: 15, color: "#0f172a" }}>{acc.name}</p>
                         </div>
-                        <span style={{ background: acc.status === "Open" ? `${GREEN}30` : "#ffffff20", color: acc.status === "Open" ? GREEN : "white", fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px" }}>
+                        <span style={{ background: acc.status === "Open" ? "rgba(45,190,96,0.12)" : "#fff3cd", color: acc.status === "Open" ? "#2DBE60" : "#92400e", fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px" }}>
                           {acc.status}
                         </span>
                       </div>
-                      <p style={{ margin: "0 0 4px", fontWeight: 900, fontSize: 32, letterSpacing: "-1px" }}>
+                      <p style={{ margin: "0 0 4px", fontWeight: 900, fontSize: 32, letterSpacing: "-1px", color: "#0f172a" }}>
                         ${(acc.availableCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}
                       </p>
-                      <p style={{ margin: "0 0 16px", fontSize: 11, opacity: 0.5 }}>Available · {acc.currency}</p>
+                      <p style={{ margin: "0 0 16px", fontSize: 11, color: "#94a3b8" }}>Available · {acc.currency}</p>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                        <div style={{ background: "rgba(255,255,255,0.08)", borderRadius: 8, padding: "8px 10px" }}>
-                          <p style={{ margin: "0 0 2px", fontSize: 9, opacity: 0.55, textTransform: "uppercase" as const }}>Routing</p>
-                          <p style={{ margin: 0, fontWeight: 700, fontSize: 12, fontFamily: "monospace" }}>{acc.routingNumber || "—"}</p>
+                        <div style={{ background: "#f8fafc", borderRadius: 8, padding: "8px 10px" }}>
+                          <p style={{ margin: "0 0 2px", fontSize: 9, color: "#94a3b8", textTransform: "uppercase" as const }}>Routing</p>
+                          <p style={{ margin: 0, fontWeight: 700, fontSize: 12, fontFamily: "monospace", color: "#0f172a" }}>{acc.routingNumber || "—"}</p>
                         </div>
-                        <div style={{ background: "rgba(255,255,255,0.08)", borderRadius: 8, padding: "8px 10px" }}>
-                          <p style={{ margin: "0 0 2px", fontSize: 9, opacity: 0.55, textTransform: "uppercase" as const }}>Account</p>
-                          <p style={{ margin: 0, fontWeight: 700, fontSize: 12, fontFamily: "monospace" }}>{acc.accountNumber || "—"}</p>
+                        <div style={{ background: "#f8fafc", borderRadius: 8, padding: "8px 10px" }}>
+                          <p style={{ margin: "0 0 2px", fontSize: 9, color: "#94a3b8", textTransform: "uppercase" as const }}>Account</p>
+                          <p style={{ margin: 0, fontWeight: 700, fontSize: 12, fontFamily: "monospace", color: "#0f172a" }}>{acc.accountNumber || "—"}</p>
                         </div>
                       </div>
                       <div style={{ marginTop: 12, display: "flex", gap: 6 }}>
-                        <span style={{ background: "rgba(255,255,255,0.1)", borderRadius: 6, padding: "4px 10px", fontSize: 10, fontWeight: 600 }}>ID: {acc.id}</span>
-                        <span style={{ background: "rgba(255,255,255,0.1)", borderRadius: 6, padding: "4px 10px", fontSize: 10, fontWeight: 600 }}>Unit.co</span>
+                        <span style={{ background: "#f1f5f9", borderRadius: 6, padding: "4px 10px", fontSize: 10, fontWeight: 600, color: "#374151" }}>ID: {acc.id}</span>
+                        <span style={{ background: "#f1f5f9", borderRadius: 6, padding: "4px 10px", fontSize: 10, fontWeight: 600, color: "#374151" }}>Unit.co</span>
                       </div>
                     </div>
                   ))}
@@ -1899,46 +1924,71 @@ export default function ZeniPayDashboard() {
               )}
             </div>
 
-            {/* UNIT.CO — VIRTUAL CARDS */}
+            {/* DEBIT CARDS — UNIT.CO */}
             <div style={{ background: "white", borderRadius: 20, padding: 28, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16, color: "#0f172a" }}>💳 Virtual Cards</h3>
-                  <span style={{ background: `${PURPLE}15`, color: PURPLE, fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px", border: `1px solid ${PURPLE}30` }}>Unit.co Issuing</span>
+                  <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16, color: "#0f172a" }}>💳 Debit Cards</h3>
+                  <span style={{ background: "rgba(123,79,191,0.1)", color: "#7B4FBF", fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px", border: "1px solid rgba(123,79,191,0.2)" }}>Virtual Visa · Unit.co</span>
                 </div>
-                <a href="https://app.s.unit.sh" target="_blank" rel="noreferrer"
-                  style={{ background: PURPLE, color: "white", border: "none", borderRadius: 9999, padding: "7px 16px", fontWeight: 700, fontSize: 12, cursor: "pointer", textDecoration: "none" }}>
-                  + Issue Card
-                </a>
+                <button
+                  disabled={unitAccounts.length === 0}
+                  onClick={async () => {
+                    if (unitAccounts.length === 0) { alert("Create a Banking Account first"); return; }
+                    const acc = unitAccounts[0];
+                    const r = await fetch("/api/unit/cards/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ accountId: acc.id, cardholderName: "ZENIVA TRAVEL LLC" }) });
+                    const d = await r.json();
+                    if (d.ok) { const r2 = await fetch("/api/unit/cards"); if (r2.ok) { const d2 = await r2.json(); setUnitCards(d2.cards || []); } }
+                    else alert("Card creation: " + (d.error || "error"));
+                  }}
+                  style={{ background: unitAccounts.length === 0 ? "#e2e8f0" : "linear-gradient(90deg, #7B4FBF, #E5247B)", color: "white", border: "none", borderRadius: 10, padding: "8px 18px", fontWeight: 700, fontSize: 12, cursor: unitAccounts.length === 0 ? "not-allowed" : "pointer", transition: "opacity 0.2s" }}>
+                  + Issue Debit Card
+                </button>
               </div>
               {unitCards.length === 0 ? (
-                <div style={{ background: "#f8fafc", borderRadius: 14, padding: "24px", border: "1px dashed #e2e8f0", textAlign: "center" as const }}>
-                  <div style={{ fontSize: 36, marginBottom: 10 }}>💳</div>
-                  <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151" }}>No virtual cards yet</p>
-                  <p style={{ margin: "0 0 12px", fontSize: 12, color: "#94a3b8" }}>Issue virtual Visa debit cards for agents and company expenses</p>
-                  <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>Cards include: instant issuance · $0 card fee · custom limits · freeze/unfreeze</p>
+                <div style={{ background: "#fafbff", borderRadius: 14, padding: "28px 24px", border: "1px dashed #ddd6fe", textAlign: "center" as const }}>
+                  <div style={{ fontSize: 40, marginBottom: 10 }}>💳</div>
+                  <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151" }}>No debit cards yet</p>
+                  <p style={{ margin: "0 0 8px", fontSize: 12, color: "#94a3b8" }}>Issue virtual Visa debit cards — instant issuance, $0 fee</p>
+                  <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap" as const }}>
+                    {["⚡ Instant issuance", "💰 $0 card fee", "🔒 Custom limits", "❄️ Freeze/unfreeze"].map(f => (
+                      <span key={f} style={{ background: "#f1f5f9", borderRadius: 8, padding: "4px 10px", fontSize: 11, color: "#64748b", fontWeight: 600 }}>{f}</span>
+                    ))}
+                  </div>
                 </div>
               ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 }}>
                   {unitCards.map((card: { id: string; type: string; attributes: { status?: string; last4Digits?: string; expirationDate?: string; bin?: string } }) => (
-                    <div key={card.id} style={{ background: `linear-gradient(135deg, ${PURPLE}, #6d28d9)`, borderRadius: 18, padding: 22, color: "white", position: "relative", overflow: "hidden" }}>
-                      <div style={{ position: "absolute", top: -20, right: -20, width: 100, height: 100, background: "#f1f5f9", borderRadius: "50%" }} />
-                      <p style={{ margin: "0 0 20px", fontSize: 11, opacity: 0.6, textTransform: "uppercase" as const, fontWeight: 700, letterSpacing: "0.1em" }}>
-                        {card.type === "virtualDebitCard" ? "Virtual Debit" : card.type}
-                      </p>
-                      <p style={{ margin: "0 0 16px", fontWeight: 700, fontSize: 18, fontFamily: "monospace", letterSpacing: "0.1em" }}>
-                        •••• •••• •••• {card.attributes.last4Digits || "????"}
+                    <div key={card.id} style={{ borderRadius: 18, overflow: "hidden", position: "relative", aspectRatio: "1.586", background: "linear-gradient(135deg, #0d1633 0%, #15B8C9 40%, #7B4FBF 100%)", color: "white", padding: "6% 7%", display: "flex", flexDirection: "column" as const, justifyContent: "space-between", boxShadow: "0 16px 40px rgba(21,184,201,0.35)" }}>
+                      <style>{`@keyframes sc{0%{transform:translateX(-120%) skewX(-20deg)}100%{transform:translateX(350%) skewX(-20deg)}}`}</style>
+                      <div style={{ position:"absolute", inset:0, background:"linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.2) 50%,transparent 65%)", animation:"sc 4s ease-in-out infinite", pointerEvents:"none" }} />
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                        <div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                            <div style={{ width: 24, height: 24, borderRadius: 5, background: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: 2 }}>
+                              <img src="/zenipay-logo.png" alt="ZP" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                            </div>
+                            <span style={{ fontWeight: 800, fontSize: 13 }}>ZeniPay</span>
+                          </div>
+                          <p style={{ margin: 0, fontSize: 8, opacity: 0.5, letterSpacing: "0.1em", textTransform: "uppercase" as const }}>Virtual Debit</p>
+                        </div>
+                        <div style={{ width: 36, height: 27, borderRadius: 4, background: "linear-gradient(145deg,#c9a84c,#f2d76a,#b8900a)", boxShadow: "0 2px 4px rgba(0,0,0,0.3)" }}>
+                          <div style={{ margin: "3px", border: "1px solid rgba(0,0,0,0.15)", borderRadius: 2, height: "calc(100% - 6px)" }} />
+                        </div>
+                      </div>
+                      <p style={{ margin: 0, fontSize: 12, fontFamily: "monospace", letterSpacing: "0.2em", opacity: 0.9 }}>
+                        ••••&nbsp;&nbsp;••••&nbsp;&nbsp;••••&nbsp;&nbsp;{card.attributes.last4Digits || "••••"}
                       </p>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
                         <div>
-                          <p style={{ margin: "0 0 2px", fontSize: 9, opacity: 0.55 }}>EXPIRES</p>
-                          <p style={{ margin: 0, fontSize: 13, fontWeight: 700 }}>{card.attributes.expirationDate || "—"}</p>
+                          <p style={{ margin: "0 0 1px", fontSize: 7, opacity: 0.4, letterSpacing: "0.1em" }}>VALID THRU</p>
+                          <p style={{ margin: 0, fontSize: 10, fontWeight: 700 }}>{card.attributes.expirationDate || "—"}</p>
                         </div>
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                          <span style={{ background: card.attributes.status === "Active" ? `${GREEN}30` : "#ffffff20", color: card.attributes.status === "Active" ? GREEN : "#fbbf24", fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px" }}>
-                            {card.attributes.status || "Unknown"}
+                        <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "flex-end", gap: 3 }}>
+                          <span style={{ background: card.attributes.status === "Active" ? "rgba(45,190,96,0.25)" : "rgba(245,158,11,0.25)", color: card.attributes.status === "Active" ? "#2DBE60" : "#F59E0B", fontSize: 9, fontWeight: 700, borderRadius: 5, padding: "2px 7px" }}>
+                            {card.attributes.status || "Pending"}
                           </span>
-                          <span style={{ marginTop: 4, opacity: 0.4, fontSize: 10 }}>VISA</span>
+                          <span style={{ fontStyle: "italic", fontWeight: 900, fontSize: 14, opacity: 0.9 }}>VISA</span>
                         </div>
                       </div>
                     </div>
