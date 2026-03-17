@@ -236,9 +236,9 @@ export default function InvoicesPage() {
     setScanningEmail(false);
   };
 
-  // Stats
-  const outgoing = invoices.filter(i => i.type === "outgoing");
-  const incoming = invoices.filter(i => i.type === "incoming");
+  // Stats — filter out $0 invoices
+  const outgoing = invoices.filter(i => i.type === "outgoing" && Number(i.amount) > 0);
+  const incoming = invoices.filter(i => i.type === "incoming" && Number(i.amount) > 0);
   const totalRevenue = outgoing.filter(i => i.status === "paid").reduce((s, i) => s + i.amount, 0);
   const outstanding = outgoing.filter(i => ["sent", "overdue"].includes(i.status)).reduce((s, i) => s + i.amount, 0);
   const totalExpenses = incoming.filter(i => i.status === "paid").reduce((s, i) => s + i.amount, 0);
