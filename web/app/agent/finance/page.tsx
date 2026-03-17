@@ -1286,7 +1286,7 @@ export default function ZeniPayDashboard() {
       <div style={{
         width: sidebarOpen ? 240 : 64,
         minHeight: "100vh",
-        background: `linear-gradient(180deg, #1a1f4e 0%, #0d1633 100%)`,
+        background: `linear-gradient(180deg, #0d1633 0%, #1a2a5e 30%, #2A8FE0 70%, #7B4FBF 100%)`,
         borderRight: `1px solid rgba(255,255,255,0.15)`,
         transition: "width 0.25s cubic-bezier(0.4,0,0.2,1)",
         overflow: "hidden",
@@ -1388,13 +1388,13 @@ export default function ZeniPayDashboard() {
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
       `}</style>
       {/* ── HEADER ── */}
-      <div style={{ background: `linear-gradient(90deg, #0d1633 0%, #1a1f4e 60%, #7B4FBF 100%)`, padding: "0 24px", borderBottom: `1px solid rgba(255,255,255,0.18)` }}>
+      <div style={{ background: `linear-gradient(135deg, #0d1633 0%, #1a2a5e 25%, #2DBE60 55%, #15B8C9 75%, #7B4FBF 100%)`, padding: "0 24px", borderBottom: "1px solid rgba(255,255,255,0.15)" }}>
         <div style={{ maxWidth: 1600, margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 0", borderBottom: `1px solid rgba(255,255,255,0.15)` }}>
             {/* Brand */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 38, height: 38, borderRadius: 10, background: "white", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: 4, boxShadow: "0 4px 14px rgba(21,184,201,0.4)" }}>
-                <img src="/zenipay-logo.png" alt="ZeniPay" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+              <div style={{ width: 42, height: 42, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                <img src="/zenipay-logo.png" alt="ZeniPay" style={{ width: "100%", height: "100%", objectFit: "contain", filter: "drop-shadow(0 2px 8px rgba(45,190,96,0.5))" }} />
               </div>
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -1409,26 +1409,26 @@ export default function ZeniPayDashboard() {
             {/* Balance display */}
             <div style={{ marginLeft: "auto", display: "flex", gap: 24, alignItems: "center" }}>
               <div>
-                <p style={{ margin: 0, fontSize: 10, color: "#94a3b8", textTransform: "uppercase" as const, letterSpacing: "0.08em" }}>Platform Balance</p>
-                <p style={{ margin: 0, fontWeight: 900, fontSize: 22, color: "#0f172a", letterSpacing: "-0.5px" }}>{fmt(platformBalance)}</p>
+                <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.65)", textTransform: "uppercase" as const, letterSpacing: "0.08em" }}>Platform Balance</p>
+                <p style={{ margin: 0, fontWeight: 900, fontSize: 22, color: "#ffffff", letterSpacing: "-0.5px" }}>{fmt(platformBalance)}</p>
               </div>
-              <div style={{ width: 1, height: 36, background: GLASS_BORDER }} />
+              <div style={{ width: 1, height: 36, background: "rgba(255,255,255,0.25)" }} />
               <div>
-                <p style={{ margin: 0, fontSize: 10, color: "#94a3b8" }}>Transactions</p>
-                <p style={{ margin: 0, fontWeight: 800, fontSize: 18, color: "#0f172a" }}>{STATS.totalTransactions}</p>
+                <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.65)" }}>Transactions</p>
+                <p style={{ margin: 0, fontWeight: 800, fontSize: 18, color: "#ffffff" }}>{STATS.totalTransactions}</p>
               </div>
-              <div style={{ width: 1, height: 36, background: GLASS_BORDER }} />
+              <div style={{ width: 1, height: 36, background: "rgba(255,255,255,0.25)" }} />
               <div>
-                <p style={{ margin: 0, fontSize: 10, color: "#94a3b8" }}>Success Rate</p>
-                <p style={{ margin: 0, fontWeight: 800, fontSize: 18, color: STATS.successRate > 80 ? GREEN : GOLD }}>{STATS.successRate.toFixed(0)}%</p>
+                <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.65)" }}>Success Rate</p>
+                <p style={{ margin: 0, fontWeight: 800, fontSize: 18, color: STATS.successRate > 80 ? "#7fffb2" : "#fde68a" }}>{STATS.successRate.toFixed(0)}%</p>
               </div>
-              <div style={{ width: 1, height: 36, background: GLASS_BORDER }} />
+              <div style={{ width: 1, height: 36, background: "rgba(255,255,255,0.25)" }} />
               {/* Quick actions */}
               <div style={{ display: "flex", gap: 8 }}>
                 <button onClick={() => window.open("/zenipay/checkout/test", "_blank")} style={{ background: BLUE, border: "none", borderRadius: 8, padding: "8px 14px", color: "white", fontSize: 11, fontWeight: 700, cursor: "pointer", boxShadow: `0 4px 12px ${BLUE}40` }}>
                   + New Payment
                 </button>
-                <button onClick={() => setTab("payouts")} style={{ background: GLASS, border: `1px solid ${GLASS_BORDER}`, borderRadius: 8, padding: "8px 14px", color: "#374151", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+                <button onClick={() => setTab("payouts")} style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 8, padding: "8px 14px", color: "white", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
                   ↑ Payout
                 </button>
                 <button onClick={() => setTab("ben")} style={{ background: `${BLUE}15`, border: `1px solid ${BLUE}30`, borderRadius: 8, padding: "8px 14px", color: BLUE, fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
@@ -1465,8 +1465,8 @@ export default function ZeniPayDashboard() {
             <div style={{ background: "linear-gradient(135deg, #0d1633 0%, #1a2a5e 40%, #7B4FBF 80%, #E5247B 100%)", borderRadius: 24, padding: "32px 40px", marginBottom: 24, color: "white", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", gap: 32 }}>
               <style>{`@keyframes logoBounce{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-6px) rotate(3deg)}}`}</style>
               {/* Big logo */}
-              <div style={{ flexShrink: 0, width: 120, height: 120, borderRadius: 24, background: "rgba(255,255,255,0.95)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: 10, boxShadow: "0 16px 40px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.2)", animation: "logoBounce 5s ease-in-out infinite" }}>
-                <img src="/zenipay-logo.png" alt="ZeniPay" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+              <div style={{ flexShrink: 0, width: 140, height: 140, display: "flex", alignItems: "center", justifyContent: "center", overflow: "visible", animation: "logoBounce 5s ease-in-out infinite" }}>
+                <img src="/zenipay-logo.png" alt="ZeniPay" style={{ width: "100%", height: "100%", objectFit: "contain", filter: "drop-shadow(0 8px 32px rgba(123,79,191,0.6)) drop-shadow(0 0 20px rgba(21,184,201,0.4))" }} />
               </div>
               {/* Text */}
               <div style={{ flex: 1 }}>
@@ -1807,7 +1807,7 @@ export default function ZeniPayDashboard() {
               style={{ background: `linear-gradient(135deg, ${DARK} 0%, #0a2070 50%, ${BLUE} 100%)`, borderRadius: 20, padding: "28px 32px", color: "white", cursor: "pointer", position: "relative", overflow: "hidden" }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
-              <div style={{ position: "absolute", top: -20, right: -20, width: 160, height: 160, background: "#f8fafc", borderRadius: "50%", pointerEvents: "none" }} />
+              
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" as const, position: "relative" }}>
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
