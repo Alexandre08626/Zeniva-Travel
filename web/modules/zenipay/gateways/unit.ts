@@ -8,18 +8,25 @@
  * Docs: https://docs.unit.co
  */
 
-const UNIT_API_URL = process.env.UNIT_API_URL || "https://api.s.unit.co";
-const UNIT_TOKEN = process.env.UNIT_API_TOKEN || "";
+// Read env vars lazily at call time (not at module load time) to ensure Vercel picks them up
+function getUnitConfig() {
+  const token = process.env.UNIT_API_TOKEN || "";
+  const url = process.env.UNIT_API_URL || "https://api.s.unit.co";
+  return { token, url };
+}
 
 function unitHeaders() {
+  const { token } = getUnitConfig();
   return {
-    Authorization: `Bearer ${UNIT_TOKEN}`,
+    Authorization: `Bearer ${token}`,
     "Content-Type": "application/vnd.api+json",
   };
 }
 
 async function unitFetch(path: string, options?: RequestInit) {
-  if (!UNIT_TOKEN) throw new Error("UNIT_API_TOKEN not configured");
+  const { token, url: UNIT_API_URL } = getUnitConfig();
+  if (!token) throw new Error("UNIT_API_TOKEN not configured");
+  // Keep UNIT_API_URL in scope for the fetch below
   const res = await fetch(`${UNIT_API_URL}${path}`, {
     ...options,
     headers: { ...unitHeaders(), ...(options?.headers || {}) },

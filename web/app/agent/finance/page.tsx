@@ -1461,6 +1461,41 @@ export default function ZeniPayDashboard() {
         {/* ════ OVERVIEW ════ */}
         {tab === "overview" && (
           <div>
+            {/* ── ZENIPAY HERO BANNER ── */}
+            <div style={{ background: "linear-gradient(135deg, #0d1633 0%, #1a2a5e 40%, #7B4FBF 80%, #E5247B 100%)", borderRadius: 24, padding: "32px 40px", marginBottom: 24, color: "white", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", gap: 32 }}>
+              <style>{`@keyframes logoBounce{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-6px) rotate(3deg)}}`}</style>
+              {/* Big logo */}
+              <div style={{ flexShrink: 0, width: 120, height: 120, borderRadius: 24, background: "rgba(255,255,255,0.95)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: 10, boxShadow: "0 16px 40px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.2)", animation: "logoBounce 5s ease-in-out infinite" }}>
+                <img src="/zenipay-logo.png" alt="ZeniPay" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+              </div>
+              {/* Text */}
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+                  <h1 style={{ margin: 0, fontWeight: 900, fontSize: 32, letterSpacing: "-1px", background: "linear-gradient(90deg, #ffffff, #c4b5fd)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>ZeniPay</h1>
+                  <span style={{ background: isLive ? "rgba(45,190,96,0.3)" : "rgba(245,166,35,0.3)", border: `1px solid ${isLive ? "#2DBE60" : "#F5A623"}60`, color: isLive ? "#86efac" : "#fde68a", fontSize: 10, fontWeight: 800, borderRadius: 6, padding: "3px 10px", letterSpacing: "0.1em" }}>
+                    {isLive ? "● LIVE" : "● SANDBOX"}
+                  </span>
+                </div>
+                <p style={{ margin: "0 0 16px", fontSize: 14, opacity: 0.75 }}>The future of travel fintech · Mercury + Stripe combined · Your money, your rules</p>
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" as const }}>
+                  {[
+                    { v: fmt(totalRevenue), l: "Total Volume" },
+                    { v: fmt(platformBalance), l: "Platform Balance" },
+                    { v: `${successRate}%`, l: "Success Rate" },
+                    { v: String(STATS.totalTransactions), l: "Transactions" },
+                  ].map(s => (
+                    <div key={s.l} style={{ background: "rgba(255,255,255,0.1)", borderRadius: 12, padding: "10px 16px", backdropFilter: "blur(4px)" }}>
+                      <p style={{ margin: "0 0 2px", fontWeight: 900, fontSize: 18 }}>{s.v}</p>
+                      <p style={{ margin: 0, fontSize: 10, opacity: 0.55, letterSpacing: "0.1em", textTransform: "uppercase" as const }}>{s.l}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Sparkles decoration */}
+              <div style={{ position: "absolute", top: 16, right: 24, fontSize: 28, opacity: 0.5 }}>✨</div>
+              <div style={{ position: "absolute", bottom: 14, right: 80, fontSize: 20, opacity: 0.4 }}>💫</div>
+              <div style={{ position: "absolute", top: 40, right: 120, fontSize: 16, opacity: 0.35 }}>⭐</div>
+            </div>
             {/* KPI Cards — Dark glass */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 14, marginBottom: 24 }}>
               {[
