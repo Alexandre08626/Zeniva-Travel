@@ -1110,6 +1110,10 @@ export default function ZeniPayDashboard() {
   const [unitAccounts, setUnitAccounts] = useState<{ id: string; type: string; name: string; status: string; balanceCents: number; availableCents: number; routingNumber: string; accountNumber: string; currency: string; createdAt: string }[]>([]);
   const [unitCards, setUnitCards] = useState<{ id: string; type: string; attributes: { status?: string; last4Digits?: string; expirationDate?: string; bin?: string; cardQualifier?: string } }[]>([]);
   const [unitLoading, setUnitLoading] = useState(false);
+  const [bankAction, setBankAction] = useState<"wire"|"ach"|"transfer"|"savings"|null>(null);
+  const [bankActionForm, setBankActionForm] = useState<Record<string,string>>({});
+  const [bankActionLoading, setBankActionLoading] = useState(false);
+  const [unitTxns, setUnitTxns] = useState<{id:string;type:string;attributes:{amount:number;balance:number;direction:string;status:string;description?:string;summary?:string;createdAt?:string}}[]>([]);
 
   // ── Fetch live stats from /api/zenipay/stats ──────────────────────────
   useEffect(() => {
@@ -1876,92 +1880,203 @@ export default function ZeniPayDashboard() {
               </div>
             </div>
 
-            {/* UNIT.CO — REAL BANK ACCOUNTS */}
-            <div style={{ background: "white", borderRadius: 20, padding: 28, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16, color: "#0f172a" }}>🏦 Banking Account</h3>
-                  <span style={{ background: "rgba(21,184,201,0.1)", color: "#15B8C9", fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px", border: "1px solid rgba(21,184,201,0.2)" }}>Unit.co · Real-time</span>
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  {unitLoading && <span style={{ fontSize: 12, color: "#94a3b8" }}>⏳ Loading…</span>}
-                  <button onClick={async () => { setUnitLoading(true); const r = await fetch("/api/unit/accounts"); if(r.ok){const d=await r.json();setUnitAccounts(d.accounts||[]);} setUnitLoading(false); }}
-                    style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", color: "#374151" }}>
-                    🔄 Refresh
-                  </button>
-                  <button
-                    onClick={async () => {
-                      setUnitLoading(true);
-                      const r = await fetch("/api/unit/accounts/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: "Zeniva Travel LLC" }) });
-                      const d = await r.json();
-                      if (d.ok) { const r2 = await fetch("/api/unit/accounts"); if(r2.ok){const d2=await r2.json();setUnitAccounts(d2.accounts||[]);} }
-                      else alert("Account creation: " + (d.error || JSON.stringify(d.details || {})));
-                      setUnitLoading(false);
-                    }}
-                    style={{ background: "linear-gradient(90deg, #2DBE60, #15B8C9)", color: "white", border: "none", borderRadius: 8, padding: "6px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-                    + Create Account
-                  </button>
-                </div>
-              </div>
-              {unitAccounts.length === 0 ? (
-                <div style={{ background: "#f0fdf4", borderRadius: 14, padding: "28px 24px", border: "1px dashed rgba(21,184,201,0.3)", textAlign: "center" as const }}>
-                  <div style={{ fontSize: 40, marginBottom: 10 }}>🏦</div>
-                  <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151" }}>No banking account yet</p>
-                  <p style={{ margin: "0 0 16px", fontSize: 12, color: "#94a3b8" }}>Create your Zeniva Travel LLC account — get routing & account numbers instantly</p>
-                  <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap" as const, marginBottom: 20 }}>
-                    {["🏦 Real routing number", "💳 ACH transfers", "💸 Wire payments", "📊 Real-time balance"].map(f => (
-                      <span key={f} style={{ background: "white", borderRadius: 8, padding: "4px 12px", fontSize: 11, color: "#374151", fontWeight: 600, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>{f}</span>
-                    ))}
-                  </div>
-                  <button
-                    onClick={async () => {
-                      setUnitLoading(true);
-                      const r = await fetch("/api/unit/accounts/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: "Zeniva Travel LLC" }) });
-                      const d = await r.json();
-                      if (d.ok) { const r2 = await fetch("/api/unit/accounts"); if(r2.ok){const d2=await r2.json();setUnitAccounts(d2.accounts||[]);} }
-                      else alert("Error: " + (d.error || JSON.stringify(d.details || {})));
-                      setUnitLoading(false);
-                    }}
-                    style={{ background: "linear-gradient(90deg, #2DBE60, #15B8C9)", color: "white", border: "none", borderRadius: 12, padding: "12px 28px", fontWeight: 800, fontSize: 14, cursor: "pointer", boxShadow: "0 4px 16px rgba(21,184,201,0.35)" }}>
-                    🏦 Create Banking Account
-                  </button>
-                </div>
-              ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 }}>
-                  {unitAccounts.map(acc => (
-                    <div key={acc.id} style={{ background: "white", borderRadius: 18, padding: 22, position: "relative", overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.07)", border: "1px solid #e2e8f0" }}>
-                      
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-                        <div>
-                          <p style={{ margin: "0 0 2px", fontSize: 11, color: "#64748b", textTransform: "uppercase" as const, fontWeight: 700, letterSpacing: "0.1em" }}>
-                            {acc.type === "depositAccount" ? "Checking Account" : acc.type}
-                          </p>
-                          <p style={{ margin: 0, fontWeight: 800, fontSize: 15, color: "#0f172a" }}>{acc.name}</p>
-                        </div>
-                        <span style={{ background: acc.status === "Open" ? "rgba(45,190,96,0.12)" : "#fff3cd", color: acc.status === "Open" ? "#2DBE60" : "#92400e", fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px" }}>
-                          {acc.status}
-                        </span>
+            {/* ═══ MERCURY-STYLE BANKING DASHBOARD ═══ */}
+            <div style={{ background: "white", borderRadius: 20, overflow: "hidden", boxShadow: "0 2px 16px rgba(0,0,0,0.08)" }}>
+              {/* Header */}
+              <div style={{ background: "linear-gradient(135deg, #0d1633 0%, #1a2a5e 50%, #7B4FBF 100%)", padding: "24px 28px", color: "white" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: 3 }}>
+                        <img src="/zenipay-logo.png" alt="ZP" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                       </div>
-                      <p style={{ margin: "0 0 4px", fontWeight: 900, fontSize: 32, letterSpacing: "-1px", color: "#0f172a" }}>
-                        ${(acc.availableCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                      </p>
-                      <p style={{ margin: "0 0 16px", fontSize: 11, color: "#94a3b8" }}>Available · {acc.currency}</p>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                        <div style={{ background: "#f8fafc", borderRadius: 8, padding: "8px 10px" }}>
-                          <p style={{ margin: "0 0 2px", fontSize: 9, color: "#94a3b8", textTransform: "uppercase" as const }}>Routing</p>
-                          <p style={{ margin: 0, fontWeight: 700, fontSize: 12, fontFamily: "monospace", color: "#0f172a" }}>{acc.routingNumber || "—"}</p>
-                        </div>
-                        <div style={{ background: "#f8fafc", borderRadius: 8, padding: "8px 10px" }}>
-                          <p style={{ margin: "0 0 2px", fontSize: 9, color: "#94a3b8", textTransform: "uppercase" as const }}>Account</p>
-                          <p style={{ margin: 0, fontWeight: 700, fontSize: 12, fontFamily: "monospace", color: "#0f172a" }}>{acc.accountNumber || "—"}</p>
-                        </div>
-                      </div>
-                      <div style={{ marginTop: 12, display: "flex", gap: 6 }}>
-                        <span style={{ background: "#f1f5f9", borderRadius: 6, padding: "4px 10px", fontSize: 10, fontWeight: 600, color: "#374151" }}>ID: {acc.id}</span>
-                        <span style={{ background: "#f1f5f9", borderRadius: 6, padding: "4px 10px", fontSize: 10, fontWeight: 600, color: "#374151" }}>Unit.co</span>
+                      <div>
+                        <p style={{ margin: 0, fontWeight: 900, fontSize: 16 }}>ZeniPay Banking</p>
+                        <p style={{ margin: 0, fontSize: 10, opacity: 0.6 }}>Powered by Unit.co · FDIC Insured up to $250K</p>
                       </div>
                     </div>
-                  ))}
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    {unitLoading && <span style={{ fontSize: 11, opacity: 0.7 }}>⏳ Loading…</span>}
+                    <button onClick={async () => {
+                      setUnitLoading(true);
+                      const [r1, r2] = await Promise.all([fetch("/api/unit/accounts"), fetch("/api/unit/transactions")]);
+                      if(r1.ok){const d=await r1.json();setUnitAccounts(d.accounts||[]);}
+                      if(r2.ok){const d=await r2.json();setUnitTxns(d.transactions||[]);}
+                      setUnitLoading(false);
+                    }} style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", color: "white", borderRadius: 8, padding: "6px 12px", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+                      🔄 Refresh
+                    </button>
+                    <button onClick={async () => {
+                      setUnitLoading(true);
+                      const r = await fetch("/api/unit/accounts/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: "Zeniva Travel LLC" }) });
+                      const d = await r.json();
+                      if (d.ok) { const r2 = await fetch("/api/unit/accounts"); if(r2.ok){const d2=await r2.json();setUnitAccounts(d2.accounts||[]);} }
+                      else alert("Error: " + (d.error || JSON.stringify(d.details?.errors?.[0]?.detail || d.details || {})));
+                      setUnitLoading(false);
+                    }} style={{ background: "rgba(45,190,96,0.9)", border: "none", color: "white", borderRadius: 8, padding: "6px 14px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+                      + Open Account
+                    </button>
+                  </div>
+                </div>
+                {/* Accounts row */}
+                {unitAccounts.length > 0 && (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 12, marginTop: 20 }}>
+                    {unitAccounts.map(acc => (
+                      <div key={acc.id} style={{ background: "rgba(255,255,255,0.1)", borderRadius: 14, padding: "14px 16px", backdropFilter: "blur(4px)", border: "1px solid rgba(255,255,255,0.15)" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                          <div>
+                            <p style={{ margin: 0, fontSize: 9, opacity: 0.55, letterSpacing: "0.1em", textTransform: "uppercase" as const, fontWeight: 700 }}>
+                              {acc.type === "depositAccount" ? "Checking" : acc.type}
+                            </p>
+                            <p style={{ margin: "2px 0 0", fontWeight: 800, fontSize: 13 }}>Zeniva Travel LLC</p>
+                          </div>
+                          <span style={{ background: acc.status === "Open" ? "rgba(45,190,96,0.3)" : "rgba(245,158,11,0.3)", color: acc.status === "Open" ? "#86efac" : "#fde68a", fontSize: 9, fontWeight: 700, borderRadius: 5, padding: "2px 7px" }}>
+                            {acc.status}
+                          </span>
+                        </div>
+                        <p style={{ margin: "0 0 10px", fontWeight: 900, fontSize: 26, letterSpacing: "-0.8px" }}>
+                          ${(acc.availableCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                        </p>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                          <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 7, padding: "6px 8px" }}>
+                            <p style={{ margin: "0 0 1px", fontSize: 8, opacity: 0.5, textTransform: "uppercase" as const }}>Routing</p>
+                            <p style={{ margin: 0, fontSize: 11, fontFamily: "monospace", fontWeight: 700 }}>{acc.routingNumber || "—"}</p>
+                          </div>
+                          <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 7, padding: "6px 8px" }}>
+                            <p style={{ margin: "0 0 1px", fontSize: 8, opacity: 0.5, textTransform: "uppercase" as const }}>Account #</p>
+                            <p style={{ margin: 0, fontSize: 11, fontFamily: "monospace", fontWeight: 700 }}>{acc.accountNumber || "—"}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {unitAccounts.length === 0 && (
+                  <div style={{ marginTop: 16, padding: "16px", background: "rgba(255,255,255,0.07)", borderRadius: 12, border: "1px dashed rgba(255,255,255,0.2)", textAlign: "center" as const }}>
+                    <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 700, opacity: 0.9 }}>No banking account yet</p>
+                    <p style={{ margin: 0, fontSize: 12, opacity: 0.55 }}>Click "+ Open Account" to create your Zeniva Travel LLC checking account with real routing & account numbers</p>
+                  </div>
+                )}
+              </div>
+              {/* Action buttons: Wire, ACH, Transfer, Savings */}
+              {unitAccounts.length > 0 && (
+                <div style={{ padding: "0 28px", borderBottom: "1px solid #f1f5f9" }}>
+                  <div style={{ display: "flex", gap: 0, overflowX: "auto" as const }}>
+                    {[
+                      { id: "wire", icon: "⚡", label: "Wire Transfer", color: "#7B4FBF" },
+                      { id: "ach", icon: "🏦", label: "ACH Payment", color: "#15B8C9" },
+                      { id: "transfer", icon: "↔️", label: "Book Transfer", color: "#2DBE60" },
+                      { id: "savings", icon: "🐷", label: "Savings Goal", color: "#F5A623" },
+                    ].map(a => (
+                      <button key={a.id} onClick={() => setBankAction(bankAction === a.id as "wire"|"ach"|"transfer"|"savings" ? null : a.id as "wire"|"ach"|"transfer"|"savings")}
+                        style={{ flex: "0 0 auto", padding: "14px 20px", background: bankAction === a.id ? `${a.color}10` : "transparent", color: bankAction === a.id ? a.color : "#374151", border: "none", borderBottom: bankAction === a.id ? `2px solid ${a.color}` : "2px solid transparent", fontWeight: 700, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" as const, transition: "all 0.15s" }}>
+                        {a.icon} {a.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* Action forms */}
+              {bankAction && unitAccounts.length > 0 && (
+                <div style={{ padding: "20px 28px", background: "#fafbff", borderBottom: "1px solid #f1f5f9" }}>
+                  {bankAction === "wire" && (
+                    <div>
+                      <h4 style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 700, color: "#0f172a" }}>⚡ Wire Transfer</h4>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 14 }}>
+                        {[{k:"beneficiaryName",l:"Beneficiary Name"},{k:"routingNumber",l:"Routing Number"},{k:"accountNumber",l:"Account Number"},{k:"amount",l:"Amount (USD)"},{k:"description",l:"Description"}].map(f => (
+                          <div key={f.k}>
+                            <label style={{ display:"block", fontSize:10, fontWeight:700, color:"#64748b", marginBottom:4, textTransform:"uppercase" as const }}>{f.l}</label>
+                            <input value={bankActionForm[f.k]||""} onChange={e=>setBankActionForm(p=>({...p,[f.k]:e.target.value}))} style={{ width:"100%", border:"1px solid #e2e8f0", borderRadius:8, padding:"8px 10px", fontSize:13, outline:"none" }} />
+                          </div>
+                        ))}
+                      </div>
+                      <button onClick={async()=>{setBankActionLoading(true);alert("Wire transfer API — coming when Unit.co account is live");setBankActionLoading(false);}} style={{ background:"linear-gradient(90deg,#7B4FBF,#E5247B)", color:"white", border:"none", borderRadius:10, padding:"10px 24px", fontWeight:700, fontSize:13, cursor:"pointer" }}>
+                        {bankActionLoading ? "⏳ Processing…" : "Send Wire →"}
+                      </button>
+                    </div>
+                  )}
+                  {bankAction === "ach" && (
+                    <div>
+                      <h4 style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 700, color: "#0f172a" }}>🏦 ACH Payment</h4>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 14 }}>
+                        {[{k:"beneficiaryName",l:"Recipient Name"},{k:"routingNumber",l:"Routing Number"},{k:"accountNumber",l:"Account Number"},{k:"amount",l:"Amount (USD)"},{k:"memo",l:"Memo"},{k:"direction",l:"Credit or Debit"}].map(f => (
+                          <div key={f.k}>
+                            <label style={{ display:"block", fontSize:10, fontWeight:700, color:"#64748b", marginBottom:4, textTransform:"uppercase" as const }}>{f.l}</label>
+                            <input value={bankActionForm[f.k]||""} onChange={e=>setBankActionForm(p=>({...p,[f.k]:e.target.value}))} style={{ width:"100%", border:"1px solid #e2e8f0", borderRadius:8, padding:"8px 10px", fontSize:13, outline:"none" }} />
+                          </div>
+                        ))}
+                      </div>
+                      <button onClick={async()=>{setBankActionLoading(true);alert("ACH API — available once Unit.co account is open");setBankActionLoading(false);}} style={{ background:"linear-gradient(90deg,#15B8C9,#2A8FE0)", color:"white", border:"none", borderRadius:10, padding:"10px 24px", fontWeight:700, fontSize:13, cursor:"pointer" }}>
+                        {bankActionLoading ? "⏳ Processing…" : "Send ACH →"}
+                      </button>
+                    </div>
+                  )}
+                  {bankAction === "transfer" && (
+                    <div>
+                      <h4 style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 700, color: "#0f172a" }}>↔️ Book Transfer (Internal)</h4>
+                      <p style={{ margin: "0 0 14px", fontSize: 12, color: "#64748b" }}>Instant transfer between ZeniPay accounts — no fees, immediate settlement</p>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 14 }}>
+                        {[{k:"toAccount",l:"To Account ID"},{k:"amount",l:"Amount (USD)"},{k:"description",l:"Description"}].map(f => (
+                          <div key={f.k}>
+                            <label style={{ display:"block", fontSize:10, fontWeight:700, color:"#64748b", marginBottom:4, textTransform:"uppercase" as const }}>{f.l}</label>
+                            <input value={bankActionForm[f.k]||""} onChange={e=>setBankActionForm(p=>({...p,[f.k]:e.target.value}))} style={{ width:"100%", border:"1px solid #e2e8f0", borderRadius:8, padding:"8px 10px", fontSize:13, outline:"none" }} />
+                          </div>
+                        ))}
+                      </div>
+                      <button style={{ background:"linear-gradient(90deg,#2DBE60,#15B8C9)", color:"white", border:"none", borderRadius:10, padding:"10px 24px", fontWeight:700, fontSize:13, cursor:"pointer" }}>Transfer →</button>
+                    </div>
+                  )}
+                  {bankAction === "savings" && (
+                    <div>
+                      <h4 style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 700, color: "#0f172a" }}>🐷 Savings Goal</h4>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 14 }}>
+                        {[{k:"goalName",l:"Goal Name (e.g. Tax Reserve)"},{k:"targetAmount",l:"Target Amount (USD)"},{k:"monthlyContrib",l:"Monthly Contribution"}].map(f => (
+                          <div key={f.k}>
+                            <label style={{ display:"block", fontSize:10, fontWeight:700, color:"#64748b", marginBottom:4, textTransform:"uppercase" as const }}>{f.l}</label>
+                            <input value={bankActionForm[f.k]||""} onChange={e=>setBankActionForm(p=>({...p,[f.k]:e.target.value}))} style={{ width:"100%", border:"1px solid #e2e8f0", borderRadius:8, padding:"8px 10px", fontSize:13, outline:"none" }} />
+                          </div>
+                        ))}
+                      </div>
+                      <button style={{ background:"linear-gradient(90deg,#F5A623,#E5247B)", color:"white", border:"none", borderRadius:10, padding:"10px 24px", fontWeight:700, fontSize:13, cursor:"pointer" }}>Create Goal →</button>
+                    </div>
+                  )}
+                </div>
+              )}
+              {/* Account transactions */}
+              {unitAccounts.length > 0 && (
+                <div style={{ padding: "20px 28px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                    <h4 style={{ margin: 0, fontWeight: 700, fontSize: 14, color: "#0f172a" }}>Recent Transactions</h4>
+                    <button onClick={async()=>{const r=await fetch("/api/unit/transactions");if(r.ok){const d=await r.json();setUnitTxns(d.transactions||[]);}}} style={{ background:"#f8fafc", border:"1px solid #e2e8f0", borderRadius:7, padding:"5px 12px", fontSize:11, fontWeight:600, cursor:"pointer", color:"#374151" }}>Load →</button>
+                  </div>
+                  {unitTxns.length === 0 ? (
+                    <div style={{ background: "#f8fafc", borderRadius: 12, padding: "20px", textAlign: "center" as const, border: "1px dashed #e2e8f0" }}>
+                      <p style={{ margin: 0, fontSize: 13, color: "#94a3b8" }}>No transactions yet — click "Load" to fetch from Unit.co</p>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column" as const, gap: 1 }}>
+                      {unitTxns.slice(0,20).map((txn, i) => (
+                        <div key={txn.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", background: i % 2 === 0 ? "white" : "#fafbff", borderRadius: 8 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                            <div style={{ width: 32, height: 32, borderRadius: "50%", background: txn.attributes.direction === "Credit" ? "rgba(45,190,96,0.12)" : "rgba(229,36,123,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>
+                              {txn.attributes.direction === "Credit" ? "↓" : "↑"}
+                            </div>
+                            <div>
+                              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{txn.attributes.summary || txn.attributes.description || txn.type}</p>
+                              <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>{txn.attributes.createdAt ? new Date(txn.attributes.createdAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"} · {txn.attributes.status}</p>
+                            </div>
+                          </div>
+                          <div style={{ textAlign: "right" as const }}>
+                            <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: txn.attributes.direction === "Credit" ? "#2DBE60" : "#E5247B" }}>
+                              {txn.attributes.direction === "Credit" ? "+" : "-"}${Math.abs(txn.attributes.amount / 100).toLocaleString("en-US",{minimumFractionDigits:2})}
+                            </p>
+                            <p style={{ margin: 0, fontSize: 10, color: "#94a3b8" }}>Bal: ${(txn.attributes.balance / 100).toFixed(2)}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
