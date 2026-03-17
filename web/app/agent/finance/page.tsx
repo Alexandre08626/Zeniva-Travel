@@ -6,15 +6,24 @@ import { useState, useEffect } from "react";
 //  Built like Stripe. Thinks like a bank.
 // ═══════════════════════════════════════════════════════
 
-const BLUE = "#0066FF";
+// ZeniPay brand colors (from official logo)
+const BLUE = "#15B8C9";       // Cyan/teal (logo center)
+const BLUE2 = "#2A8FE0";      // Blue (logo right)
+const ZPGREEN = "#2DBE60";    // Green (logo left)
+const PURPLE = "#7B4FBF";     // Purple (logo far right)
+const PINK = "#E5247B";       // Wallet magenta
+const ORANGE = "#F5A623";     // Wallet orange
 const NAVY = "#0A0F1E";
 const DARK = "#0B1B4D";
-const GREEN = "#10B981";
-const GOLD = "#F59E0B";
+const GREEN = "#2DBE60";
+const GOLD = "#F5A623";
 const RED = "#EF4444";
-const PURPLE = "#8B5CF6";
 const GLASS = "rgba(255,255,255,0.06)";
 const GLASS_BORDER = "rgba(255,255,255,0.12)";
+// ZeniPay gradient: green→cyan→purple (matches wordmark)
+const ZP_GRAD = "linear-gradient(90deg, #2DBE60 0%, #15B8C9 45%, #7B4FBF 100%)";
+// Card gradient: pink/magenta → orange → purple (wallet body)
+const CARD_GRAD = "linear-gradient(135deg, #E5247B 0%, #F5A623 40%, #7B4FBF 100%)";
 
 // ── Default wallets — overwritten by live API on mount ────────────────
 const DEFAULT_WALLETS = {
@@ -55,8 +64,8 @@ function BankCard({
   const isVisa = network === "VISA";
   const gradient = isVisa
     ? "linear-gradient(135deg, #0B2A7A 0%, #0052CC 45%, #0077FF 75%, #00AAFF 100%)"
-    : "linear-gradient(135deg, #1A1A2E 0%, #16213E 35%, #0F3460 70%, #533483 100%)";
-  const glowColor = isVisa ? "rgba(0,102,255,0.45)" : "rgba(83,52,131,0.45)";
+    : "linear-gradient(135deg, #0d1633 0%, #15B8C9 40%, #2A8FE0 70%, #7B4FBF 100%)";
+  const glowColor = isVisa ? "rgba(229,36,123,0.4)" : "rgba(21,184,201,0.4)";
   return (
     <div style={{
       width: "100%", borderRadius: 20, position: "relative",
@@ -88,8 +97,8 @@ function BankCard({
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:3 }}>
-              <div style={{ width:28, height:28, borderRadius:7, background:"rgba(255,255,255,0.2)", border:"1px solid rgba(255,255,255,0.35)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                <span style={{ color:"white", fontWeight:900, fontSize:12 }}>Z</span>
+              <div style={{ width:28, height:28, borderRadius:7, background:"rgba(255,255,255,0.9)", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", padding:2 }}>
+                <img src="/zenipay-logo.png" alt="ZeniPay" style={{ width:"100%", height:"100%", objectFit:"contain" }} />
               </div>
               <span style={{ fontWeight:800, fontSize:15, letterSpacing:"-0.3px", textShadow:"0 1px 6px rgba(0,0,0,0.4)" }}>ZeniPay</span>
             </div>
@@ -1231,7 +1240,7 @@ export default function ZeniPayDashboard() {
       <div style={{
         width: sidebarOpen ? 240 : 64,
         minHeight: "100vh",
-        background: `linear-gradient(180deg, #0052CC 0%, #003A9E 100%)`,
+        background: `linear-gradient(180deg, #1a1f4e 0%, #0d1633 100%)`,
         borderRight: `1px solid rgba(255,255,255,0.15)`,
         transition: "width 0.25s cubic-bezier(0.4,0,0.2,1)",
         overflow: "hidden",
@@ -1333,7 +1342,7 @@ export default function ZeniPayDashboard() {
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
       `}</style>
       {/* ── HEADER ── */}
-      <div style={{ background: `linear-gradient(90deg, #0052CC 0%, #0066FF 100%)`, padding: "0 24px", borderBottom: `1px solid rgba(255,255,255,0.18)` }}>
+      <div style={{ background: `linear-gradient(90deg, #0d1633 0%, #1a1f4e 60%, #7B4FBF 100%)`, padding: "0 24px", borderBottom: `1px solid rgba(255,255,255,0.18)` }}>
         <div style={{ maxWidth: 1600, margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 0", borderBottom: `1px solid rgba(255,255,255,0.15)` }}>
             {/* Brand */}
@@ -1418,7 +1427,7 @@ export default function ZeniPayDashboard() {
                 { icon: "🧾", label: "Invoices", value: String(zpInvoices.length), sub: "ZeniPay invoices", color: GOLD },
                 { icon: "🔄", label: "Refunds", value: fmt(0), sub: "No refunds yet", color: PURPLE },
               ].map(s => (
-                <div key={s.label} style={{ background: "white", borderRadius: 16, padding: "18px 20px", boxShadow: "0 1px 6px rgba(0,0,0,0.06)", borderLeft: `3px solid ${s.color}` }}>
+                <div key={s.label} style={{ background: "white", borderRadius: 16, padding: "18px 20px", boxShadow: "0 1px 6px rgba(0,0,0,0.06)", borderLeft: `4px solid ${s.color}` }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div>
                       <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 600, color: "#64748b", textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>{s.label}</p>
@@ -1480,7 +1489,7 @@ export default function ZeniPayDashboard() {
                     const statusLabel = b.status === "confirmed" ? "✓ Confirmed" : b.status === "pending_payment" ? "⏳ Pending" : b.status;
                     return (
                       <div key={b.id} style={{ display: "flex", alignItems: "center", padding: "12px 20px", borderTop: i > 0 ? `1px solid ${GLASS_BORDER}` : "none", gap: 12 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: "50%", background: `${BLUE}20`, border: `1px solid ${BLUE}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>✈️</div>
+                        <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(21,184,201,0.08)", border: `1px solid ${BLUE}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>✈️</div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: "#374151" }}>{b.client_name}</p>
                           <p style={{ margin: 0, fontSize: 11, color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{b.destination}</p>
@@ -1554,7 +1563,7 @@ export default function ZeniPayDashboard() {
             )}
 
             {/* ═══ ZENIPAY DUAL CARD SHOWCASE ═══ */}
-            <div style={{ background: "linear-gradient(135deg, #f0f4ff 0%, #e8f0ff 100%)", borderRadius: 24, padding: "36px 40px", border: "1px solid #dbeafe" }}>
+            <div style={{ background: "linear-gradient(135deg, #f8f4ff 0%, #f0f8ff 50%, #f4fff8 100%)", borderRadius: 24, padding: "36px 40px", border: "1px solid rgba(21,184,201,0.2)" }}>
               <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 28 }}>
                 {/* Header */}
                 <div style={{ textAlign: "center" as const }}>
@@ -1569,8 +1578,8 @@ export default function ZeniPayDashboard() {
                   {/* VISA */}
                   <div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#0052CC" }} />
-                      <span style={{ fontSize: 11, fontWeight: 700, color: "#1e3a5f", letterSpacing: "0.06em", textTransform: "uppercase" as const }}>Visa Platform</span>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#E5247B" }} />
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#7B4FBF", letterSpacing: "0.06em", textTransform: "uppercase" as const }}>Visa Platform</span>
                     </div>
                     <BankCard
                       balance={platformBalance}
@@ -1584,8 +1593,8 @@ export default function ZeniPayDashboard() {
                   {/* MASTERCARD */}
                   <div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#533483" }} />
-                      <span style={{ fontSize: 11, fontWeight: 700, color: "#3b1d6e", letterSpacing: "0.06em", textTransform: "uppercase" as const }}>Mastercard Business</span>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#15B8C9" }} />
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#0ea5b0", letterSpacing: "0.06em", textTransform: "uppercase" as const }}>Mastercard Business</span>
                     </div>
                     <BankCard
                       balance={WALLETS.platform.available}
@@ -1643,7 +1652,7 @@ export default function ZeniPayDashboard() {
                 </div>
                 {/* ZeniPay */}
                 <div style={{ textAlign: "center" as const, flexShrink: 0 }}>
-                  <div style={{ width: 100, height: 70, borderRadius: 14, background: `${BLUE}20`, border: `2px solid ${BLUE}60`, display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", gap: 4, boxShadow: `0 0 20px ${BLUE}30` }}>
+                  <div style={{ width: 100, height: 70, borderRadius: 14, background: "rgba(21,184,201,0.08)", border: `2px solid ${BLUE}60`, display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", gap: 4, boxShadow: `0 0 20px ${BLUE}30` }}>
                     <span style={{ fontSize: 20 }}>Z</span>
                     <span style={{ fontSize: 9, color: BLUE, fontWeight: 800, letterSpacing: "0.05em" }}>ZENIPAY</span>
                     <span style={{ fontSize: 10, color: BLUE, fontWeight: 700 }}>{fmt(platformBalance)}</span>
@@ -1671,7 +1680,7 @@ export default function ZeniPayDashboard() {
             </div>
 
             {/* HERO BANNER */}
-            <div style={{ background: `linear-gradient(135deg, #0033A0 0%, #0052CC 45%, #0077FF 100%)`, borderRadius: 24, padding: "32px 36px", color: "white", position: "relative", overflow: "hidden" }}>
+            <div style={{ background: `linear-gradient(135deg, #1a1050 0%, #0d1633 40%, #1e0d3e 70%, #2d1b4e 100%)`, borderRadius: 24, padding: "32px 36px", color: "white", position: "relative", overflow: "hidden" }}>
               {/* no decorative circles */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 24, flexWrap: "wrap" as const, position: "relative" }}>
                 <div>
@@ -2286,7 +2295,7 @@ export default function ZeniPayDashboard() {
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             {/* HERO CARD — same visual style as /ai-agents */}
             <div style={{ background: `linear-gradient(135deg, ${DARK} 0%, #1a2f6e 60%, #0d2257 100%)`, borderRadius: 24, padding: 32, color: "white", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: -40, right: -40, width: 200, height: 200, background: `${BLUE}20`, borderRadius: "50%", filter: "blur(40px)" }} />
+              <div style={{ position: "absolute", top: -40, right: -40, width: 200, height: 200, background: "rgba(21,184,201,0.08)", borderRadius: "50%", filter: "blur(40px)" }} />
               <div style={{ display: "flex", alignItems: "flex-start", gap: 24, position: "relative" }}>
                 {/* Avatar */}
                 <div style={{ flexShrink: 0 }}>
@@ -2379,7 +2388,7 @@ export default function ZeniPayDashboard() {
                   ))}
                   {aiLoading && (
                     <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
-                      <div style={{ width: 28, height: 28, background: `${BLUE}20`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🤖</div>
+                      <div style={{ width: 28, height: 28, background: "rgba(21,184,201,0.08)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🤖</div>
                       <div style={{ background: "#f0f4ff", borderRadius: "16px 16px 16px 4px", padding: "12px 16px" }}>
                         <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
                           {[0,1,2].map(i => <div key={i} style={{ width: 6, height: 6, background: BLUE, borderRadius: "50%", opacity: 0.6, animation: `bounce 1s ${i*0.2}s infinite` }} />)}
