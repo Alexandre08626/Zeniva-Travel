@@ -209,6 +209,37 @@ export async function POST(request: Request) {
         }).catch(e => console.error("[ZeniPay] Email error:", e));
       }
 
+      // ── COMMISSION AUTO-CALCULATION ──────────────────────────────────
+      const scenario = body.booking_scenario || "direct"; // "direct" | "lina" | "agent" | "yacht"
+      const agentId = body.agent_id || null;
+      const supplierCost = parseFloat(body.supplier_cost || "0") || 0;
+      const netProfit = parsedAmount - supplierCost;
+
+      let zenivaPct = 1.0, agentPct = 0, commissionType = "direct";
+      if (scenario === "lina") { zenivaPct = 0.70; agentPct = 0.30; commissionType = "lina_booking"; }
+      else if (scenario === "agent") { zenivaPct = 0.30; agentPct = 0.70; commissionType = "agent_booking"; }
+      else if (scenario === "yacht") { zenivaPct = 1.0; agentPct = 0; commissionType = "yacht"; }
+
+      const zenivaCut = Math.round(netProfit * zenivaPct * 100) / 100;
+      const agentCut = Math.round(netProfit * agentPct * 100) / 100;
+
+      if (supabase && netProfit > 0) {
+        await supabase.from("zenipay_commissions").insert({
+          id: `COMM-${Date.now().toString(36).toUpperCase()}`,
+          payment_id: paymentId,
+          agent_id: agentId,
+          commission_type: commissionType,
+          gross_amount: parsedAmount,
+          net_profit: netProfit,
+          supplier_cost: supplierCost,
+          zeniva_amount: zenivaCut,
+          agent_amount: agentCut,
+          commission_rate: agentPct,
+          status: "pending",
+          created_at: new Date().toISOString(),
+        }).then(() => {});
+      }
+
       // Append-only ledger entry (100% → Platform Wallet)
       await recordPaymentReceived({
         paymentId,

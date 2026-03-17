@@ -429,23 +429,53 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
   const [note, setNote] = useState("");
   const [method, setMethod] = useState<"bank"|"instant">("bank");
   const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState("");
+  const [sentResult, setSentResult] = useState<{id:string;status:string}|null>(null);
   const [history, setHistory] = useState<{id:string;agent:string;amount:number;method:string;note:string;date:string;status:string}[]>([]);
 
   const handleSend = async () => {
+    if (Number(amount) > platformBalance) {
+      setSendError(`Insufficient balance. Available: $${platformBalance.toLocaleString()}`);
+      return;
+    }
+    setSendError("");
     setSending(true);
-    await new Promise(r => setTimeout(r, 2000));
-    const ref = "ZNV-PAY-" + Math.random().toString(36).slice(2,8).toUpperCase();
-    setHistory(h => [{
-      id: ref,
-      agent: selectedAgent!.name,
-      amount: Number(amount),
-      method: method === "instant" ? "Instant Transfer" : "Bank Wire (ACH)",
-      note: note || "Agent commission payment",
-      date: new Date().toLocaleDateString("en-CA"),
-      status: "completed",
-    }, ...h]);
+    try {
+      const res = await fetch("/api/zenipay/payouts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipient_type: selectedAgent?.role?.includes("Owner") ? "owner" : "agent",
+          recipient_name: selectedAgent!.name,
+          recipient_id: selectedAgent?.id,
+          amount: Number(amount),
+          currency: "USD",
+          method: method === "instant" ? "instant" : "ach",
+          from_wallet: "platform",
+          note: note || "Agent commission payment",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setSendError(data.error || "Payout failed. Please try again.");
+        setSending(false);
+        return;
+      }
+      setSentResult({ id: data.payout_id, status: data.status });
+      setHistory(h => [{
+        id: data.payout_id,
+        agent: selectedAgent!.name,
+        amount: Number(amount),
+        method: method === "instant" ? "Instant Transfer" : "Bank Wire (ACH)",
+        note: note || "Agent commission payment",
+        date: new Date().toLocaleDateString("en-CA"),
+        status: data.status || "paid",
+      }, ...h]);
+      setStep("sent");
+    } catch {
+      setSendError("Network error. Please try again.");
+    }
     setSending(false);
-    setStep("sent");
   };
 
   const reset = () => {
@@ -454,6 +484,8 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
     setAmount("");
     setNote("");
     setMethod("bank");
+    setSendError("");
+    setSentResult(null);
   };
 
   return (
@@ -480,7 +512,8 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
             <div style={{ fontSize: 64, marginBottom: 12 }}>✅</div>
             <h3 style={{ margin: "0 0 6px", fontWeight: 900, color: "#065f46", fontSize: 20 }}>Transfer Sent!</h3>
             <p style={{ margin: "0 0 4px", fontSize: 15, color: "#374151", fontWeight: 600 }}>${Number(amount).toLocaleString()} → {selectedAgent?.name}</p>
-            <p style={{ margin: "0 0 20px", fontSize: 12, color: "#94a3b8" }}>{method === "instant" ? "Instant Transfer" : "Bank Wire — arrives in 1-2 business days"}</p>
+            <p style={{ margin: "0 0 4px", fontSize: 12, color: "#94a3b8" }}>{method === "instant" ? "Instant Transfer" : "Bank Wire — arrives in 1-2 business days"}</p>
+            {sentResult && <p style={{ margin: "0 0 20px", fontSize: 11, color: BLUE, fontWeight: 600 }}>Payout ID: {sentResult.id} · Status: {sentResult.status}</p>}
             <button onClick={reset} style={{ background: BLUE, color: "white", border: "none", borderRadius: 9999, padding: "12px 32px", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>
               + New Transfer
             </button>
@@ -603,10 +636,15 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
                   </div>
                 </div>
 
-                <button onClick={handleSend} disabled={sending || Number(amount) <= 0} style={{
-                  background: sending ? "#94a3b8" : `linear-gradient(135deg, ${BLUE}, ${DARK})`,
+                {sendError && (
+                  <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: RED, fontWeight: 600 }}>
+                    ⚠️ {sendError}
+                  </div>
+                )}
+                <button onClick={handleSend} disabled={sending || Number(amount) <= 0 || Number(amount) > platformBalance} style={{
+                  background: sending ? "#94a3b8" : Number(amount) > platformBalance ? "#94a3b8" : `linear-gradient(135deg, ${BLUE}, ${DARK})`,
                   color: "white", border: "none", borderRadius: 9999, padding: "16px",
-                  fontWeight: 900, fontSize: 16, cursor: sending ? "not-allowed" : "pointer",
+                  fontWeight: 900, fontSize: 16, cursor: (sending || Number(amount) > platformBalance) ? "not-allowed" : "pointer",
                   boxShadow: sending ? "none" : `0 4px 20px ${BLUE}40`,
                 }}>
                   {sending ? "⏳ Processing Transfer…" : `💸 Send $${Number(amount).toLocaleString()} to ${selectedAgent?.name}`}
@@ -892,8 +930,10 @@ export default function ZeniPayDashboard() {
   const [txSearch, setTxSearch] = useState("");
   const [txFilter, setTxFilter] = useState("all");
   const [linkModal, setLinkModal] = useState(false);
-  const [linkForm, setLinkForm] = useState({ amount: "", desc: "", type: "trip", email: "" });
+  const [linkForm, setLinkForm] = useState({ amount: "", desc: "", type: "trip", email: "", expiry: "" });
   const [linkCreated, setLinkCreated] = useState("");
+  const [payLinks, setPayLinks] = useState<{ id: string; url: string; amount: number; description: string; status: string; uses: number; created_at: string; expires_at?: string }[]>([]);
+  const [payLinksLoading, setPayLinksLoading] = useState(false);
   const [benMsg, setBenMsg] = useState("");
   const [benChat, setBenChat] = useState<{ role: "user" | "ben"; text: string }[]>([
     { role: "ben", text: "Bonjour! Je suis Ben, votre agent IA ZeniPay. Je surveille les paiements, détecte les anomalies et génère vos rapports financiers en temps réel. Comment puis-je vous aider?" }
@@ -902,6 +942,8 @@ export default function ZeniPayDashboard() {
   // Live data from API
   const [WALLETS, setWALLETS] = useState(DEFAULT_WALLETS);
   const [TRANSACTIONS, setTRANSACTIONS] = useState<{ id: string; customer: string; booking: string; amount: number; currency: string; method: string; gateway: string; status: string; date: string }[]>([]);
+  const [STATS, setSTATS] = useState<{ totalTransactions: number; totalRevenue: number; successRate: number; env: string }>({ totalTransactions: 0, totalRevenue: 0, successRate: 0, env: "sandbox" });
+  const [accountingSummary, setAccountingSummary] = useState<{ totalRevenue: number; totalExpenses: number; netProfit: number; platformFees: number; agentCommissions: number; journalEntries: unknown[]; chartOfAccounts: {code:string;name:string;balance:number;type:string}[] } | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [openWallet, setOpenWallet] = useState<{name:string;data:typeof DEFAULT_WALLETS.platform;icon:string;color:string}|null>(null);
   const [liveActivity, setLiveActivity] = useState<{ id: number; text: string; time: string; type: string }[]>([]);
@@ -938,10 +980,30 @@ export default function ZeniPayDashboard() {
             date: String(t.date || new Date().toISOString()),
           })));
         }
-      } catch (e) {
+
+        if (data.stats) {
+          setSTATS({
+            totalTransactions: data.stats.total_payments || 0,
+            totalRevenue: data.stats.total_revenue || 0,
+            successRate: data.stats.success_rate || 0,
+            env: data.env || "sandbox",
+          });
+        }
+      } catch {
         // API not reachable — stay at $0
       } finally {
         setStatsLoading(false);
+      }
+    }
+
+    async function fetchAccountingSummary() {
+      try {
+        const res = await fetch("/api/zenipay/accounting/summary");
+        if (!res.ok) return;
+        const data = await res.json();
+        setAccountingSummary(data);
+      } catch {
+        // silently fail
       }
     }
 
@@ -968,6 +1030,8 @@ export default function ZeniPayDashboard() {
     void fetchStats();
     void fetchBookings();
     void fetchZpInvoices();
+    void fetchAccountingSummary();
+    void fetchPayLinks();
     // Refresh every 30s
     const interval = setInterval(() => { void fetchStats(); void fetchBookings(); void fetchZpInvoices(); }, 30_000);
     return () => clearInterval(interval);
@@ -983,10 +1047,30 @@ export default function ZeniPayDashboard() {
     return matchSearch && matchFilter;
   });
 
-  const handleCreateLink = () => {
-    const id = `ZNV-${Date.now().toString(36).toUpperCase()}`;
-    const url = `https://zenivatravel.com/zenipay/checkout/${id}?amount=${linkForm.amount}&desc=${encodeURIComponent(linkForm.desc)}&currency=USD`;
-    setLinkCreated(url);
+  const handleCreateLink = async () => {
+    if (!linkForm.amount || parseFloat(linkForm.amount) <= 0) return;
+    setPayLinksLoading(true);
+    try {
+      const res = await fetch("/api/zenipay/create-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: linkForm.amount, description: linkForm.desc, expiry: linkForm.expiry || undefined }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        setLinkCreated(data.url);
+        setPayLinks(prev => [{ id: data.id, url: data.url, amount: data.amount, description: data.description || "", status: "active", uses: 0, created_at: new Date().toISOString() }, ...prev]);
+      }
+    } catch { /* ignore */ }
+    setPayLinksLoading(false);
+  };
+
+  const fetchPayLinks = async () => {
+    try {
+      const res = await fetch("/api/zenipay/create-link");
+      const data = await res.json();
+      if (data.links) setPayLinks(data.links);
+    } catch { /* ignore */ }
   };
 
   const handleBenSend = async () => {
@@ -1460,33 +1544,29 @@ export default function ZeniPayDashboard() {
 
         {/* ════ PAY LINKS ════ */}
         {tab === "paylinks" && (
-          <div>
-            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)", marginBottom: 20 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {/* Create form */}
+            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
               <h3 style={{ margin: "0 0 16px", fontWeight: 700 }}>🔗 Create Payment Link</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
-                {[
-                  { label: "Amount (USD)", key: "amount", ph: "7677", type: "number" },
-                  { label: "Client Email", key: "email", ph: "client@example.com" },
-                  { label: "Description", key: "desc", ph: "Maldives Trip — 7 nights" },
-                  { label: "Payment Type", key: "type", ph: "", select: ["trip","deposit","balance","custom"] },
-                ].map(f => (
-                  <div key={f.key}>
-                    <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#374151", marginBottom: 5, textTransform: "uppercase" }}>{f.label}</label>
-                    {f.select ? (
-                      <select value={(linkForm as Record<string,string>)[f.key]} onChange={e => setLinkForm(p => ({...p,[f.key]:e.target.value}))}
-                        style={{ width:"100%",border:"1px solid #e2e8f0",borderRadius:8,padding:"10px 12px",fontSize:13,outline:"none",boxSizing:"border-box" as const }}>
-                        {f.select.map(o => <option key={o} value={o}>{o.charAt(0).toUpperCase()+o.slice(1)}</option>)}
-                      </select>
-                    ) : (
-                      <input type={f.type || "text"} value={(linkForm as Record<string,string>)[f.key]}
-                        onChange={e => setLinkForm(p => ({...p,[f.key]:e.target.value}))} placeholder={f.ph}
-                        style={{ width:"100%",border:"1px solid #e2e8f0",borderRadius:8,padding:"10px 12px",fontSize:13,outline:"none",boxSizing:"border-box" as const }} />
-                    )}
-                  </div>
-                ))}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 16 }}>
+                <div>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#374151", marginBottom: 5, textTransform: "uppercase" as const }}>Amount (USD)</label>
+                  <input type="number" value={linkForm.amount} onChange={e => setLinkForm(p => ({...p, amount: e.target.value}))} placeholder="500"
+                    style={{ width:"100%",border:"1px solid #e2e8f0",borderRadius:8,padding:"10px 12px",fontSize:13,outline:"none",boxSizing:"border-box" as const }} />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#374151", marginBottom: 5, textTransform: "uppercase" as const }}>Description</label>
+                  <input type="text" value={linkForm.desc} onChange={e => setLinkForm(p => ({...p, desc: e.target.value}))} placeholder="Maldives Trip — 7 nights"
+                    style={{ width:"100%",border:"1px solid #e2e8f0",borderRadius:8,padding:"10px 12px",fontSize:13,outline:"none",boxSizing:"border-box" as const }} />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#374151", marginBottom: 5, textTransform: "uppercase" as const }}>Expiry (optional)</label>
+                  <input type="date" value={linkForm.expiry} onChange={e => setLinkForm(p => ({...p, expiry: e.target.value}))}
+                    style={{ width:"100%",border:"1px solid #e2e8f0",borderRadius:8,padding:"10px 12px",fontSize:13,outline:"none",boxSizing:"border-box" as const }} />
+                </div>
               </div>
-              <button onClick={handleCreateLink} style={{ background:`linear-gradient(135deg,${BLUE},${DARK})`,color:"white",border:"none",borderRadius:9999,padding:"12px 28px",fontWeight:800,fontSize:14,cursor:"pointer" }}>
-                🔗 Generate Payment Link
+              <button onClick={handleCreateLink} disabled={payLinksLoading || !linkForm.amount} style={{ background: payLinksLoading ? "#94a3b8" : `linear-gradient(135deg,${BLUE},${DARK})`,color:"white",border:"none",borderRadius:9999,padding:"12px 28px",fontWeight:800,fontSize:14,cursor:"pointer" }}>
+                {payLinksLoading ? "⏳ Creating…" : "🔗 Generate Payment Link"}
               </button>
               {linkCreated && (
                 <div style={{ marginTop: 16, background: "#f0fdf4", borderRadius: 12, padding: 16 }}>
@@ -1496,6 +1576,43 @@ export default function ZeniPayDashboard() {
                   <button onClick={() => navigator.clipboard?.writeText(linkCreated)} style={{ marginTop: 8, background: BLUE, color: "white", border: "none", borderRadius: 6, padding: "6px 14px", fontSize: 12, cursor: "pointer" }}>
                     📋 Copy Link
                   </button>
+                </div>
+              )}
+            </div>
+
+            {/* Pay Links List */}
+            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <h3 style={{ margin: 0, fontWeight: 700 }}>📋 Active Pay Links</h3>
+                <button onClick={fetchPayLinks} style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", color: "#374151" }}>
+                  🔄 Refresh
+                </button>
+              </div>
+              {payLinks.length === 0 ? (
+                <div style={{ background: "#f8fafc", borderRadius: 10, padding: "24px", textAlign: "center" as const, border: "1px dashed #e2e8f0" }}>
+                  <div style={{ fontSize: 32, marginBottom: 8 }}>🔗</div>
+                  <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151" }}>No pay links yet</p>
+                  <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>Create your first payment link above</p>
+                </div>
+              ) : (
+                <div style={{ display: "grid", gap: 10 }}>
+                  {payLinks.map(link => (
+                    <div key={link.id} style={{ background: "#f8fafc", borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, border: "1px solid #e2e8f0" }}>
+                      <div style={{ width: 40, height: 40, background: `${BLUE}12`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🔗</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 13, color: DARK }}>{link.description || "Payment Link"}</p>
+                        <p style={{ margin: 0, fontSize: 11, color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{link.url}</p>
+                      </div>
+                      <div style={{ textAlign: "right" as const, flexShrink: 0 }}>
+                        <p style={{ margin: "0 0 2px", fontWeight: 900, fontSize: 14, color: BLUE }}>${Number(link.amount).toLocaleString()}</p>
+                        <p style={{ margin: 0, fontSize: 10, color: "#94a3b8" }}>{link.uses || 0} uses · {new Date(link.created_at).toLocaleDateString()}</p>
+                      </div>
+                      <StatusBadge status={link.status || "active"} />
+                      <button onClick={() => navigator.clipboard?.writeText(link.url)} style={{ background: BLUE, color: "white", border: "none", borderRadius: 8, padding: "7px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
+                        📋 Copy
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -1728,25 +1845,40 @@ export default function ZeniPayDashboard() {
             </div>
             <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
               <h3 style={{ margin: "0 0 16px", fontWeight: 700 }}>🥇 Top Revenue Sources</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12 }}>
-                {[
-                  { label: "ZeniStay", icon: "🏡" },
-                  { label: "ZeniHotel", icon: "🏨" },
-                  { label: "ZeniFlights", icon: "✈️" },
-                  { label: "ZeniYacht", icon: "⛵" },
-                  { label: "ZeniCruise", icon: "🚢" },
-                ].map(s => (
-                  <div key={s.label} style={{ background: "#f8fafc", borderRadius: 12, padding: 16 }}>
-                    <div style={{ fontSize: 24, marginBottom: 8 }}>{s.icon}</div>
-                    <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 13 }}>{s.label}</p>
-                    <p style={{ margin: "0 0 8px", fontWeight: 800, fontSize: 16, color: BLUE }}>$0</p>
-                    <div style={{ background: "#e2e8f0", borderRadius: 3, height: 4 }}>
-                      <div style={{ background: "#e2e8f0", width: "0%", height: "100%", borderRadius: 3 }} />
-                    </div>
-                    <p style={{ margin: "4px 0 0", fontSize: 10, color: "#94a3b8" }}>0% of revenue</p>
+              {(() => {
+                const SERVICE_ICONS: Record<string, string> = { ZeniStay: "🏡", ZeniHotel: "🏨", ZeniFlights: "✈️", ZeniYacht: "⛵", ZeniCruise: "🚢", Other: "📦" };
+                const revenueByService: Record<string, number> = {};
+                TRANSACTIONS.filter(t => t.status === "succeeded" || t.status === "completed").forEach(t => {
+                  const desc = String(t.booking || t.id || "Other");
+                  const service = desc.startsWith("ZeniStay") ? "ZeniStay" :
+                    desc.startsWith("ZeniYacht") ? "ZeniYacht" :
+                    desc.startsWith("Flight") || desc.toLowerCase().includes("flight") ? "ZeniFlights" :
+                    desc.startsWith("Hotel") || desc.toLowerCase().includes("hotel") ? "ZeniHotel" :
+                    desc.startsWith("Cruise") || desc.toLowerCase().includes("cruise") ? "ZeniCruise" : "Other";
+                  revenueByService[service] = (revenueByService[service] || 0) + t.amount;
+                });
+                const totalRev = Object.values(revenueByService).reduce((a, b) => a + b, 0);
+                const services = ["ZeniStay", "ZeniHotel", "ZeniFlights", "ZeniYacht", "ZeniCruise", "Other"];
+                return (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12 }}>
+                    {services.map(s => {
+                      const rev = revenueByService[s] || 0;
+                      const pct = totalRev > 0 ? Math.round((rev / totalRev) * 100) : 0;
+                      return (
+                        <div key={s} style={{ background: "#f8fafc", borderRadius: 12, padding: 16 }}>
+                          <div style={{ fontSize: 24, marginBottom: 8 }}>{SERVICE_ICONS[s]}</div>
+                          <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 13 }}>{s}</p>
+                          <p style={{ margin: "0 0 8px", fontWeight: 800, fontSize: 16, color: BLUE }}>{fmt(rev)}</p>
+                          <div style={{ background: "#e2e8f0", borderRadius: 3, height: 4 }}>
+                            <div style={{ background: BLUE, width: `${pct}%`, height: "100%", borderRadius: 3 }} />
+                          </div>
+                          <p style={{ margin: "4px 0 0", fontSize: 10, color: "#94a3b8" }}>{pct}% of revenue</p>
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
-              </div>
+                );
+              })()}
             </div>
           </div>
         )}
@@ -1785,9 +1917,9 @@ export default function ZeniPayDashboard() {
                 {/* Stats */}
                 <div style={{ display: "grid", gap: 8, flexShrink: 0 }}>
                   {[
-                    { label: "Transactions Monitored", value: "2,847" },
-                    { label: "Platform Balance", value: "$475k" },
-                    { label: "Success Rate", value: "94.2%" },
+                    { label: "Transactions Monitored", value: STATS.totalTransactions > 0 ? STATS.totalTransactions.toLocaleString() : "0" },
+                    { label: "Platform Balance", value: fmt(platformBalance, true) },
+                    { label: "Success Rate", value: TRANSACTIONS.length > 0 ? `${successRate}%` : (STATS.successRate > 0 ? `${STATS.successRate}%` : "—") },
                     { label: "Uptime", value: "99.9%" },
                   ].map(s => (
                     <div key={s.label} style={{ background: "rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 14px", textAlign: "center" }}>
@@ -1932,10 +2064,10 @@ export default function ZeniPayDashboard() {
               {/* Fiscal summary */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginTop: 20 }}>
                 {[
-                  { label: "Gross Revenue", value: "$0", sub: "FY 2025-2026", color: GREEN },
-                  { label: "Total Expenses", value: "$0", sub: "Operating costs", color: RED },
-                  { label: "Net Income", value: "$0", sub: "Before tax", color: GOLD },
-                  { label: "Tax Provision", value: "$0", sub: "Est. 15% corp tax", color: "#94a3b8" },
+                  { label: "Gross Revenue", value: fmt(accountingSummary?.totalRevenue ?? 0), sub: "FY 2025-2026", color: GREEN },
+                  { label: "Total Expenses", value: fmt(accountingSummary?.totalExpenses ?? 0), sub: "Operating costs", color: RED },
+                  { label: "Net Income", value: fmt(accountingSummary?.netProfit ?? 0), sub: "Before tax", color: GOLD },
+                  { label: "Tax Provision", value: fmt((accountingSummary?.netProfit ?? 0) * 0.15), sub: "Est. 15% corp tax", color: "#94a3b8" },
                 ].map(s => (
                   <div key={s.label} style={{ background: "rgba(255,255,255,0.08)", borderRadius: 12, padding: "14px 16px" }}>
                     <p style={{ margin: "0 0 4px", fontSize: 10, opacity: 0.6, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>{s.label}</p>
@@ -1957,18 +2089,18 @@ export default function ZeniPayDashboard() {
                   </select>
                 </div>
                 {[
-                  { label: "Travel Bookings Revenue", amount: 0, type: "income" },
+                  { label: "Travel Bookings Revenue", amount: accountingSummary?.totalRevenue ?? 0, type: "income" },
                   { label: "ZeniStay Revenue", amount: 0, type: "income" },
                   { label: "Agent Commissions (in)", amount: 0, type: "income" },
                   { label: "ZeniYacht Revenue", amount: 0, type: "income" },
-                  { label: "TOTAL REVENUE", amount: 0, type: "total-income" },
+                  { label: "TOTAL REVENUE", amount: accountingSummary?.totalRevenue ?? 0, type: "total-income" },
                   { label: "Supplier Payouts", amount: 0, type: "expense" },
-                  { label: "Agent Commissions (out)", amount: 0, type: "expense" },
+                  { label: "Agent Commissions (out)", amount: accountingSummary?.agentCommissions ?? 0, type: "expense" },
                   { label: "Influencer Payouts", amount: 0, type: "expense" },
                   { label: "Tech Infrastructure", amount: 0, type: "expense" },
                   { label: "Marketing", amount: 0, type: "expense" },
-                  { label: "TOTAL EXPENSES", amount: 0, type: "total-expense" },
-                  { label: "NET INCOME", amount: 0, type: "net" },
+                  { label: "TOTAL EXPENSES", amount: accountingSummary?.totalExpenses ?? 0, type: "total-expense" },
+                  { label: "NET INCOME", amount: accountingSummary?.netProfit ?? 0, type: "net" },
                 ].map((row, i) => (
                   <div key={i} style={{
                     display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -2037,17 +2169,27 @@ export default function ZeniPayDashboard() {
                   <h3 style={{ margin: 0, fontWeight: 800, fontSize: 15 }}>📋 Chart of Accounts</h3>
                   <button style={{ background: BLUE, color: "white", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>+ New Account</button>
                 </div>
-                {[
-                  { code: "1000", name: "Cash & ZeniPay Wallets", type: "Asset", balance: 699_000 },
+                {(accountingSummary?.chartOfAccounts ? [
+                  { code: "1000", name: "Platform Wallet", type: "Asset", balance: accountingSummary.chartOfAccounts.find(a => a.code === "1000")?.balance ?? 0 },
                   { code: "1200", name: "Accounts Receivable", type: "Asset", balance: 0 },
-                  { code: "2000", name: "Accounts Payable", type: "Liability", balance: -89_200 },
+                  { code: "2000", name: "Commissions Payable", type: "Liability", balance: -(accountingSummary.chartOfAccounts.find(a => a.code === "2000")?.balance ?? 0) },
                   { code: "2500", name: "Tax Payable", type: "Liability", balance: 0 },
-                  { code: "3000", name: "Retained Earnings", type: "Equity", balance: 449_000 },
+                  { code: "3000", name: "Retained Earnings", type: "Equity", balance: accountingSummary.netProfit },
+                  { code: "4000", name: "Travel Revenue", type: "Income", balance: accountingSummary.chartOfAccounts.find(a => a.code === "4000")?.balance ?? 0 },
+                  { code: "5000", name: "Agent Commissions", type: "Expense", balance: -(accountingSummary.chartOfAccounts.find(a => a.code === "5000")?.balance ?? 0) },
+                  { code: "5100", name: "Processor Fees", type: "Expense", balance: -(accountingSummary.chartOfAccounts.find(a => a.code === "5100")?.balance ?? 0) },
+                  { code: "7000", name: "Operating Expenses", type: "Expense", balance: 0 },
+                ] : [
+                  { code: "1000", name: "Platform Wallet", type: "Asset", balance: 0 },
+                  { code: "1200", name: "Accounts Receivable", type: "Asset", balance: 0 },
+                  { code: "2000", name: "Commissions Payable", type: "Liability", balance: 0 },
+                  { code: "2500", name: "Tax Payable", type: "Liability", balance: 0 },
+                  { code: "3000", name: "Retained Earnings", type: "Equity", balance: 0 },
                   { code: "4000", name: "Travel Revenue", type: "Income", balance: 0 },
-                  { code: "5000", name: "Supplier Costs (COGS)", type: "Expense", balance: -848_200 },
-                  { code: "6000", name: "Commission Expense", type: "Expense", balance: -65_600 },
-                  { code: "7000", name: "Operating Expenses", type: "Expense", balance: -34_400 },
-                ].map(a => (
+                  { code: "5000", name: "Agent Commissions", type: "Expense", balance: 0 },
+                  { code: "5100", name: "Processor Fees", type: "Expense", balance: 0 },
+                  { code: "7000", name: "Operating Expenses", type: "Expense", balance: 0 },
+                ]).map(a => (
                   <div key={a.code} style={{ display: "flex", alignItems: "center", padding: "7px 10px", borderRadius: 8, marginBottom: 2, cursor: "pointer" }}
                     onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#f8fafc"}
                     onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}>
@@ -2066,12 +2208,7 @@ export default function ZeniPayDashboard() {
                     <h3 style={{ margin: 0, fontWeight: 800, fontSize: 15 }}>📝 Recent Journal Entries</h3>
                     <button style={{ background: BLUE, color: "white", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>+ New Entry</button>
                   </div>
-                  {TRANSACTIONS.length === 0 ? (
-                    <div style={{ background: "#f8fafc", borderRadius: 10, padding: "16px", textAlign: "center" as const, border: "1px dashed #e2e8f0" }}>
-                      <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151", fontSize: 13 }}>No journal entries yet</p>
-                      <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>Generated automatically from real Finix payments</p>
-                    </div>
-                  ) : (
+                  {((accountingSummary?.journalEntries?.length ?? 0) > 0 || TRANSACTIONS.length > 0) ? (
                     <div style={{ overflowX: "auto" as const }}>
                       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                         <thead>
@@ -2082,20 +2219,36 @@ export default function ZeniPayDashboard() {
                           </tr>
                         </thead>
                         <tbody>
-                          {TRANSACTIONS.flatMap((t, i) => [
-                            { key: `${i}a`, date: t.date?.slice(0,10), desc: `Payment ${t.id}`, account: "1000 Platform Wallet", debit: `$${t.amount.toFixed(2)}`, credit: "—", color: "#10B981" },
-                            { key: `${i}b`, date: t.date?.slice(0,10), desc: `Revenue ${t.id}`, account: "4000 Travel Revenue", debit: "—", credit: `$${t.amount.toFixed(2)}`, color: "#0F6CF5" },
-                          ]).map(row => (
-                            <tr key={row.key} style={{ borderBottom: "1px solid #f8fafc" }}>
-                              <td style={{ padding: "7px 10px", color: "#94a3b8" }}>{row.date}</td>
-                              <td style={{ padding: "7px 10px", color: "#374151", fontWeight: 500 }}>{row.desc}</td>
-                              <td style={{ padding: "7px 10px", color: "#64748b" }}>{row.account}</td>
-                              <td style={{ padding: "7px 10px", fontWeight: 700, color: row.debit !== "—" ? "#10B981" : "#94a3b8" }}>{row.debit}</td>
-                              <td style={{ padding: "7px 10px", fontWeight: 700, color: row.credit !== "—" ? BLUE : "#94a3b8" }}>{row.credit}</td>
-                            </tr>
-                          ))}
+                          {accountingSummary?.journalEntries && accountingSummary.journalEntries.length > 0
+                            ? (accountingSummary.journalEntries as Array<Record<string,unknown>>).map((e, i) => (
+                              <tr key={`je-${i}`} style={{ borderBottom: "1px solid #f8fafc" }}>
+                                <td style={{ padding: "7px 10px", color: "#94a3b8" }}>{String(e.date ?? e.created_at ?? "").slice(0,10)}</td>
+                                <td style={{ padding: "7px 10px", color: "#374151", fontWeight: 500 }}>{String(e.description ?? "")}</td>
+                                <td style={{ padding: "7px 10px", color: "#64748b" }}>{String(e.account_code ?? "")} {String(e.account_name ?? "")}</td>
+                                <td style={{ padding: "7px 10px", fontWeight: 700, color: e.entry_type === "debit" ? "#10B981" : "#94a3b8" }}>{e.entry_type === "debit" ? `$${Number(e.amount).toFixed(2)}` : "—"}</td>
+                                <td style={{ padding: "7px 10px", fontWeight: 700, color: e.entry_type === "credit" ? BLUE : "#94a3b8" }}>{e.entry_type === "credit" ? `$${Number(e.amount).toFixed(2)}` : "—"}</td>
+                              </tr>
+                            ))
+                            : TRANSACTIONS.flatMap((t, i) => [
+                              { key: `${i}a`, date: t.date?.slice(0,10), desc: `Payment ${t.id}`, account: "1000 Platform Wallet", debit: `$${t.amount.toFixed(2)}`, credit: "—" },
+                              { key: `${i}b`, date: t.date?.slice(0,10), desc: `Revenue ${t.id}`, account: "4000 Travel Revenue", debit: "—", credit: `$${t.amount.toFixed(2)}` },
+                            ]).map(row => (
+                              <tr key={row.key} style={{ borderBottom: "1px solid #f8fafc" }}>
+                                <td style={{ padding: "7px 10px", color: "#94a3b8" }}>{row.date}</td>
+                                <td style={{ padding: "7px 10px", color: "#374151", fontWeight: 500 }}>{row.desc}</td>
+                                <td style={{ padding: "7px 10px", color: "#64748b" }}>{row.account}</td>
+                                <td style={{ padding: "7px 10px", fontWeight: 700, color: row.debit !== "—" ? "#10B981" : "#94a3b8" }}>{row.debit}</td>
+                                <td style={{ padding: "7px 10px", fontWeight: 700, color: row.credit !== "—" ? BLUE : "#94a3b8" }}>{row.credit}</td>
+                              </tr>
+                            ))
+                          }
                         </tbody>
                       </table>
+                    </div>
+                  ) : (
+                    <div style={{ background: "#f8fafc", borderRadius: 10, padding: "16px", textAlign: "center" as const, border: "1px dashed #e2e8f0" }}>
+                      <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151", fontSize: 13 }}>No journal entries yet</p>
+                      <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>Generated automatically from real Finix payments</p>
                     </div>
                   )}
                 </div>
@@ -2104,11 +2257,11 @@ export default function ZeniPayDashboard() {
                 <div style={{ background: `linear-gradient(135deg, ${DARK}, #1a2f6e)`, borderRadius: 20, padding: 20, color: "white" }}>
                   <h4 style={{ margin: "0 0 14px", fontWeight: 800 }}>🧾 Tax Summary</h4>
                   {[
-                    { label: "Gross Revenue", v: "$0" },
-                    { label: "Total Deductions", v: "$0" },
-                    { label: "Net Taxable Income", v: "$0" },
+                    { label: "Gross Revenue", v: fmt(accountingSummary?.totalRevenue ?? 0) },
+                    { label: "Total Deductions", v: fmt(accountingSummary?.totalExpenses ?? 0) },
+                    { label: "Net Taxable Income", v: fmt(accountingSummary?.netProfit ?? 0) },
                     { label: "Corp Tax Rate (est.)", v: "15%" },
-                    { label: "Tax Provision", v: "$0" },
+                    { label: "Tax Provision", v: fmt((accountingSummary?.netProfit ?? 0) * 0.15) },
                   ].map(t => (
                     <div key={t.label} style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13 }}>
                       <span style={{ opacity: 0.6 }}>{t.label}</span>
@@ -2153,41 +2306,70 @@ export default function ZeniPayDashboard() {
         {/* ════ SETTINGS ════ */}
         {tab === "settings" && (
           <div style={{ display: "grid", gap: 16 }}>
-            {[
-              { title: "🏦 Payment Gateway", items: [
-                { label: "Primary Gateway", value: "Finix", status: "sandbox" },
-                { label: "API Login ID", value: "●●●●●●●●●●●●", status: null },
-                { label: "Environment", value: "Sandbox · Test Mode", status: "pending" },
-                { label: "Production", value: "Pending merchant account approval", status: "pending" },
-              ]},
-              { title: "💸 Commission Structure", items: [
-                { label: "Agent Commission", value: "10.4% of booking total", status: null },
-                { label: "Influencer Referral", value: "1.95% of booking total", status: null },
-                { label: "Platform Margin", value: "2.96% of booking total", status: null },
-                { label: "Supplier Payout", value: "84.7% of booking total (remainder)", status: null },
-              ]},
-              { title: "🔒 Security & Compliance", items: [
-                { label: "PCI Compliance", value: "SAQ-A (card tokenization via Accept.js)", status: "active" },
-                { label: "Card Storage", value: "Never stored — processor tokens only", status: "active" },
-                { label: "Encryption", value: "TLS 1.3 · AES-256", status: "active" },
-                { label: "Fraud Detection", value: "Ben AI · Real-time monitoring", status: "active" },
-              ]},
-            ].map(section => (
-              <div key={section.title} style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
-                <h3 style={{ margin: "0 0 16px", fontWeight: 700 }}>{section.title}</h3>
-                <div style={{ display: "grid", gap: 10 }}>
-                  {section.items.map(item => (
-                    <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
-                      <span style={{ fontSize: 13, color: "#374151" }}>{item.label}</span>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{item.value}</span>
-                        {item.status && <StatusBadge status={item.status} />}
-                      </div>
+            {/* Payment Gateway */}
+            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+              <h3 style={{ margin: "0 0 16px", fontWeight: 700 }}>🏦 Payment Gateway</h3>
+              <div style={{ display: "grid", gap: 10 }}>
+                {[
+                  { label: "Primary Gateway", value: "Finix ✅", status: "active" },
+                  { label: "Environment", value: STATS.env === "production" ? "Live" : "Sandbox · Test Mode", status: STATS.env === "production" ? "active" : "pending" },
+                  { label: "Webhook Endpoint", value: "/api/zenipay/webhooks/finix", status: null },
+                  { label: "Merchant ID", value: "●●●●●●●●●●●●", status: null },
+                ].map(item => (
+                  <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
+                    <span style={{ fontSize: 13, color: "#374151" }}>{item.label}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{item.value}</span>
+                      {item.status && <StatusBadge status={item.status} />}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* Commission Structure */}
+            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+              <h3 style={{ margin: "0 0 16px", fontWeight: 700 }}>💸 Commission Structure</h3>
+              <p style={{ margin: "0 0 14px", fontSize: 12, color: "#64748b" }}>All splits calculated on net profit (after supplier costs)</p>
+              <div style={{ display: "grid", gap: 10 }}>
+                {[
+                  { label: "Direct Booking", value: "100% Zeniva Travel", status: "active" },
+                  { label: "Lina AI Only", value: "70% Zeniva / 30% Agent", status: "active" },
+                  { label: "Human Agent", value: "70% Agent / 30% Zeniva", status: "active" },
+                  { label: "ZeniYacht", value: "100% Zeniva Travel", status: "active" },
+                  { label: "+ Influencer", value: "+5% from Zeniva share (influencer)", status: "active" },
+                ].map(item => (
+                  <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
+                    <span style={{ fontSize: 13, color: "#374151" }}>{item.label}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{item.value}</span>
+                      {item.status && <StatusBadge status={item.status} />}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Security & Compliance */}
+            <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+              <h3 style={{ margin: "0 0 16px", fontWeight: 700 }}>🔒 Security & Compliance</h3>
+              <div style={{ display: "grid", gap: 10 }}>
+                {[
+                  { label: "PCI Compliance", value: "Tokenization via Finix ✅", status: "active" },
+                  { label: "Card Storage", value: "Never stored — Finix tokens only", status: "active" },
+                  { label: "Encryption", value: "TLS 1.3 · AES-256", status: "active" },
+                  { label: "Fraud Detection", value: "Ben AI · Real-time monitoring", status: "active" },
+                ].map(item => (
+                  <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
+                    <span style={{ fontSize: 13, color: "#374151" }}>{item.label}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{item.value}</span>
+                      {item.status && <StatusBadge status={item.status} />}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
