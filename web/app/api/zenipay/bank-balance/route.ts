@@ -5,12 +5,7 @@
  */
 export const dynamic = "force-dynamic";
 
-import { createClient } from "@supabase/supabase-js";
-
-const sb = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
+// supabase not needed for balance fetch
 
 const UNIT_URL = () => process.env.UNIT_API_URL || "https://api.s.unit.co";
 const UNIT_TOKEN = () => process.env.UNIT_API_TOKEN || "";

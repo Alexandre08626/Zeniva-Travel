@@ -14,12 +14,7 @@
  */
 export const dynamic = "force-dynamic";
 
-import { createClient } from "@supabase/supabase-js";
-
-const sb = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
+// createClient imported lazily inside handler
 
 const UNIT_URL = () => process.env.UNIT_API_URL || "https://api.s.unit.co";
 const UNIT_TOKEN = () => process.env.UNIT_API_TOKEN || "";
@@ -60,6 +55,12 @@ export async function POST() {
   if (!token) {
     return Response.json({ error: "UNIT_API_TOKEN not configured" }, { status: 500 });
   }
+  // Lazy-load Supabase client (avoid build-time errors)
+  const { createClient: sbCreate } = await import("@supabase/supabase-js");
+  const sb = sbCreate(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  );
 
   try {
     // ── Step 1: Create business customer ──────────────────────────────
