@@ -52,7 +52,7 @@ const CLIENT_TABS = [
 // ─── AGENT TABS ───────────────────────────────────────────────────────────────
 const AGENT_TABS = [
   {
-    id: "dashboard", label: "Dashboard", href: "/agent",
+    id: "dashboard", label: "ZeniAgent", href: "/agent",
     icon: (a: boolean) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={a ? "#E6B85A" : "rgba(255,255,255,0.35)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
@@ -69,18 +69,18 @@ const AGENT_TABS = [
     badge: true,
   },
   {
-    id: "clients", label: "Clients", href: "/agent/clients",
+    id: "zenipay", label: "ZeniPay", href: "/agent/finance",
     icon: (a: boolean) => (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={a ? "#E6B85A" : "rgba(255,255,255,0.35)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={a ? "#2DBE60" : "rgba(255,255,255,0.35)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="1" y="4" width="22" height="16" rx="3" ry="3"/><line x1="1" y1="10" x2="23" y2="10"/>
       </svg>
     ),
   },
   {
-    id: "leads", label: "Leads", href: "/agent/leads",
+    id: "clients", label: "Clients", href: "/agent/clients",
     icon: (a: boolean) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={a ? "#E6B85A" : "rgba(255,255,255,0.35)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
       </svg>
     ),
   },
@@ -128,6 +128,7 @@ export default function AppShell() {
     if (isAgentMode) {
       if (path === "/agent" || path === "/agent/") return "dashboard";
       if (path.startsWith("/agent/chat")) return "inbox";
+      if (path.startsWith("/agent/finance") || path.startsWith("/agent/zenipay") || path.startsWith("/zenipay")) return "zenipay";
       if (path.startsWith("/agent/clients")) return "clients";
       if (path.startsWith("/agent/leads")) return "leads";
       return "";
@@ -270,8 +271,8 @@ export default function AppShell() {
                   <div style={{
                     position: "absolute", top: 8,
                     width: 4, height: 4, borderRadius: "50%",
-                    background: "#E6B85A",
-                    boxShadow: "0 0 8px rgba(230,184,90,0.8)",
+                    background: tab.id === "zenipay" ? "#2DBE60" : "#E6B85A",
+                    boxShadow: tab.id === "zenipay" ? "0 0 8px rgba(45,190,96,0.9)" : "0 0 8px rgba(230,184,90,0.8)",
                   }} />
                 )}
                 {/* Badge */}
@@ -290,7 +291,7 @@ export default function AppShell() {
                 <div style={{
                   width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
                   borderRadius: 10,
-                  background: active && !isExitTab ? "rgba(230,184,90,0.08)" : "transparent",
+                  background: active && !isExitTab ? (tab.id === "zenipay" ? "rgba(45,190,96,0.1)" : "rgba(230,184,90,0.08)") : "transparent",
                   transition: "all 0.2s ease",
                   animation: active && !isExitTab ? "goldGlow 2.5s ease-in-out infinite" : "none",
                 }}>
@@ -298,7 +299,7 @@ export default function AppShell() {
                 </div>
                 <span style={{
                   fontSize: 9, fontWeight: active ? 800 : 500,
-                  color: isExitTab ? "rgba(255,255,255,0.25)" : active ? "#E6B85A" : "rgba(255,255,255,0.3)",
+                  color: isExitTab ? "rgba(255,255,255,0.25)" : active ? (tab.id === "zenipay" ? "#2DBE60" : "#E6B85A") : "rgba(255,255,255,0.3)",
                   letterSpacing: "0.02em", transition: "color 0.2s ease",
                 }}>
                   {tab.label}

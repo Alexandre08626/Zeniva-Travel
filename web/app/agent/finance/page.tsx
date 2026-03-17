@@ -1125,6 +1125,13 @@ export default function ZeniPayDashboard() {
   const [unitRealTxns, setUnitRealTxns] = useState<{id:string;type:string;date:string;description:string;direction:string;amountCents:number;balanceCents:number;status:string}[]>([]);
   const [revealCardId, setRevealCardId] = useState<string|null>(null);
   const [revealedCardNum, setRevealedCardNum] = useState<string|null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   // ── Fetch live stats from /api/zenipay/stats ──────────────────────────
   useEffect(() => {
@@ -1291,6 +1298,203 @@ export default function ZeniPayDashboard() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url; a.download = "zenipay_transactions.csv"; a.click();
   };
+
+  // ── MOBILE ZeniPay ─────────────────────────────────────
+  if (isMobile) {
+    const zpGrad = "linear-gradient(90deg,#2DBE60 0%,#15B8C9 45%,#7B4FBF 100%)";
+    const cardBalance = unitAccounts[0] ? (unitAccounts[0].availableCents / 100) : 0;
+    const debitCard = unitCards[0];
+    const goTab = (tab: string) => { setTab(tab); setIsMobile(false); };
+    return (
+      <div style={{ background:"linear-gradient(170deg,#080C1A 0%,#0B1740 45%,#0F1F5C 100%)", minHeight:"100vh", color:"white", fontFamily:"'Inter',system-ui,sans-serif", paddingBottom:110, overflowX:"hidden" }}>
+        <style>{`@keyframes zpPulse{0%,100%{opacity:.7}50%{opacity:1}} @keyframes zpFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}} @keyframes zpShimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}`}</style>
+
+        {/* ── HEADER ── */}
+        <div style={{ padding:"env(safe-area-inset-top) 0 0", background:"rgba(8,12,26,0.8)", backdropFilter:"blur(20px)", borderBottom:"1px solid rgba(255,255,255,0.07)", position:"sticky", top:0, zIndex:50 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 20px" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+              <img src="/zenipay-logo.png" style={{ width:36, height:36, objectFit:"contain", filter:"drop-shadow(0 0 12px rgba(45,190,96,0.8))", animation:"zpFloat 3s ease-in-out infinite" }} alt="ZP" />
+              <div>
+                <div style={{ fontSize:17, fontWeight:900, background:zpGrad, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>ZeniPay</div>
+                <div style={{ fontSize:9, color:"rgba(255,255,255,0.35)", letterSpacing:"0.18em", marginTop:-1 }}>FINANCE PLATFORM</div>
+              </div>
+            </div>
+            <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+              <span style={{ background:"rgba(245,166,35,0.15)", border:"1px solid rgba(245,166,35,0.35)", borderRadius:20, padding:"3px 10px", fontSize:9, fontWeight:800, color:"#F5A623", letterSpacing:"0.1em" }}>SANDBOX</span>
+              <button onClick={() => { void fetch("/api/zenipay/stats").then(r=>r.json()).then(d=>{ if(d.available_balance!==undefined) setWALLETS(w=>({...w,platform:{...w.platform,available:d.available_balance||0,pending:d.pending_balance||0,paid_out:d.paid_out||0}})); }); void fetch("/api/zenipay/bank-balance").then(r=>r.json()).then(d=>{ setUnitAccounts(d.accounts||[]); setUnitCards(d.cards||[]); }); }} style={{ background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:20, padding:"5px 11px", color:"rgba(255,255,255,0.6)", fontSize:12, cursor:"pointer" }}>🔄</button>
+              <button onClick={() => setIsMobile(false)} style={{ background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:20, padding:"5px 11px", color:"rgba(255,255,255,0.5)", fontSize:11, cursor:"pointer" }}>⊞</button>
+            </div>
+          </div>
+        </div>
+
+        {/* ── BALANCE HERO ── */}
+        <div style={{ margin:"20px 16px 0", background:"rgba(255,255,255,0.04)", borderRadius:28, border:"1px solid rgba(255,255,255,0.09)", padding:"22px 20px", position:"relative", overflow:"hidden" }}>
+          <div style={{ position:"absolute", top:-60, right:-40, width:180, height:180, borderRadius:"50%", background:"radial-gradient(circle,rgba(45,190,96,0.15) 0%,transparent 70%)", pointerEvents:"none" }} />
+          <div style={{ position:"absolute", bottom:-40, left:-20, width:140, height:140, borderRadius:"50%", background:"radial-gradient(circle,rgba(123,79,191,0.12) 0%,transparent 70%)", pointerEvents:"none" }} />
+          <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)", letterSpacing:"0.2em", textTransform:"uppercase", marginBottom:6 }}>Platform Balance</div>
+          <div style={{ fontSize:42, fontWeight:900, letterSpacing:"-1.5px", lineHeight:1 }}>{fmt(WALLETS.platform.available||0)}</div>
+          <div style={{ fontSize:11, color:"rgba(255,255,255,0.3)", marginTop:4 }}>USD · Real-time · {STATS.env==="production"?"🟢 Live":"🟡 Sandbox"}</div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:1, marginTop:18, background:"rgba(255,255,255,0.05)", borderRadius:16, overflow:"hidden" }}>
+            {[{label:"Available",value:fmt(WALLETS.platform.available||0),color:"#2DBE60"},{label:"Pending",value:fmt(WALLETS.platform.pending||0),color:"#F5A623"},{label:"Paid Out",value:fmt(WALLETS.platform.paid||0),color:"#2A8FE0"}].map((s,i)=>(
+              <div key={i} style={{ padding:"11px 6px", textAlign:"center", borderRight:i<2?"1px solid rgba(255,255,255,0.07)":"none" }}>
+                <div style={{ fontSize:14, fontWeight:800, color:s.color }}>{s.value}</div>
+                <div style={{ fontSize:9, color:"rgba(255,255,255,0.35)", marginTop:3, letterSpacing:"0.08em" }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── QUICK ACTIONS ── */}
+        <div style={{ margin:"16px 16px 0", display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
+          {[
+            { icon:"💸", label:"Pay", color:"#2DBE60", bg:"rgba(45,190,96,0.12)", action:()=>goTab("paylinks") },
+            { icon:"📤", label:"Payout", color:"#2A8FE0", bg:"rgba(42,143,224,0.12)", action:()=>goTab("payouts") },
+            { icon:"🧾", label:"Invoice", color:"#F5A623", bg:"rgba(245,166,35,0.12)", action:()=>goTab("invoices") },
+            { icon:"📊", label:"Stats", color:"#7B4FBF", bg:"rgba(123,79,191,0.12)", action:()=>goTab("analytics") },
+          ].map((a,i)=>(
+            <button key={i} onClick={a.action} style={{ background:a.bg, border:`1px solid ${a.color}33`, borderRadius:18, padding:"14px 4px", display:"flex", flexDirection:"column", alignItems:"center", gap:6, cursor:"pointer", WebkitTapHighlightColor:"transparent" }}>
+              <span style={{ fontSize:24 }}>{a.icon}</span>
+              <span style={{ fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.75)", letterSpacing:"0.03em" }}>{a.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* ── CARDS CAROUSEL ── */}
+        <div style={{ marginTop:24 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"0 16px 10px" }}>
+            <div style={{ fontSize:13, fontWeight:800, color:"rgba(255,255,255,0.85)", letterSpacing:"0.02em" }}>💳 Your Cards</div>
+            <button onClick={()=>goTab("wallets")} style={{ background:"none", border:"none", fontSize:11, color:"#2DBE60", fontWeight:700, cursor:"pointer", padding:0 }}>See all →</button>
+          </div>
+          <div style={{ display:"flex", gap:14, overflowX:"auto", padding:"4px 16px 12px", scrollbarWidth:"none", WebkitOverflowScrolling:"touch" } as React.CSSProperties}>
+            {/* Visa */}
+            <div style={{ minWidth:200, height:120, borderRadius:20, background:"linear-gradient(135deg,#F5A623 0%,#E5247B 45%,#7B4FBF 100%)", position:"relative", overflow:"hidden", flexShrink:0, padding:"14px 16px", display:"flex", flexDirection:"column", justifyContent:"space-between", boxShadow:"0 8px 30px rgba(229,36,123,0.35)" }}>
+              <img src="/zenipay-logo.png" style={{ position:"absolute", inset:"-5%", width:"110%", height:"110%", objectFit:"cover", opacity:0.22, mixBlendMode:"overlay" as React.CSSProperties["mixBlendMode"] }} />
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <div>
+                  <div style={{ fontSize:8, fontWeight:800, opacity:0.7, letterSpacing:"0.15em" }}>VISA PLATFORM</div>
+                  <div style={{ display:"flex", gap:4, marginTop:2 }}>
+                    <span style={{ background:"rgba(255,255,255,0.2)", borderRadius:4, padding:"1px 5px", fontSize:7, fontWeight:700 }}>DEBIT</span>
+                  </div>
+                </div>
+                <div style={{ width:32, height:22, borderRadius:4, background:"linear-gradient(145deg,#c9a84c,#f2d76a,#b8900a)", opacity:0.9 }} />
+              </div>
+              <div>
+                <div style={{ fontSize:12, fontFamily:"monospace", letterSpacing:"0.2em", opacity:0.9 }}>•••• •••• •••• 4242</div>
+                <div style={{ fontSize:10, fontWeight:900, fontStyle:"italic", marginTop:3, textShadow:"0 1px 4px rgba(0,0,0,0.4)" }}>VISA</div>
+              </div>
+            </div>
+            {/* Mastercard */}
+            <div style={{ minWidth:200, height:120, borderRadius:20, background:"linear-gradient(135deg,#2DBE60 0%,#15B8C9 45%,#2A8FE0 100%)", position:"relative", overflow:"hidden", flexShrink:0, padding:"14px 16px", display:"flex", flexDirection:"column", justifyContent:"space-between", boxShadow:"0 8px 30px rgba(21,184,201,0.3)" }}>
+              <img src="/zenipay-logo.png" style={{ position:"absolute", inset:"-5%", width:"110%", height:"110%", objectFit:"cover", opacity:0.22, mixBlendMode:"overlay" as React.CSSProperties["mixBlendMode"] }} />
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <div>
+                  <div style={{ fontSize:8, fontWeight:800, opacity:0.7, letterSpacing:"0.15em" }}>MASTERCARD BIZ</div>
+                  <span style={{ background:"rgba(255,255,255,0.2)", borderRadius:4, padding:"1px 5px", fontSize:7, fontWeight:700, display:"inline-block", marginTop:2 }}>CREDIT</span>
+                </div>
+                <div style={{ display:"flex", position:"relative", width:36, height:22 }}>
+                  <div style={{ width:22, height:22, borderRadius:"50%", background:"#EB001B", position:"absolute", left:0, opacity:0.95 }} />
+                  <div style={{ width:22, height:22, borderRadius:"50%", background:"#F79E1B", position:"absolute", left:13, opacity:0.95 }} />
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize:12, fontFamily:"monospace", letterSpacing:"0.2em", opacity:0.9 }}>•••• •••• •••• 1337</div>
+                <div style={{ fontSize:9, opacity:0.6, marginTop:3 }}>Mastercard Business</div>
+              </div>
+            </div>
+            {/* ZeniPay Debit */}
+            {debitCard ? (
+              <div onClick={()=>{ setTab("wallets"); setShow360(true); setIsMobile(false); }} style={{ minWidth:200, height:120, borderRadius:20, background:"linear-gradient(135deg,#0d1633 0%,#1a2a5e 40%,#2DBE60 80%,#15B8C9 100%)", position:"relative", overflow:"hidden", flexShrink:0, padding:"14px 16px", display:"flex", flexDirection:"column", justifyContent:"space-between", cursor:"pointer", boxShadow:"0 8px 30px rgba(45,190,96,0.3)", border:"1px solid rgba(45,190,96,0.3)" }}>
+                <img src="/zenipay-logo.png" style={{ position:"absolute", inset:"-5%", width:"110%", height:"110%", objectFit:"cover", opacity:0.28, mixBlendMode:"overlay" as React.CSSProperties["mixBlendMode"] }} />
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <div style={{ fontSize:8, fontWeight:800, opacity:0.7, letterSpacing:"0.15em" }}>ZENIPAY DEBIT</div>
+                  <span style={{ background:"rgba(45,190,96,0.25)", border:"1px solid rgba(45,190,96,0.5)", borderRadius:4, padding:"1px 6px", fontSize:7, fontWeight:800, color:"#2DBE60" }}>ACTIVE</span>
+                </div>
+                <div>
+                  <div style={{ fontSize:12, fontFamily:"monospace", letterSpacing:"0.2em", opacity:0.9 }}>•••• •••• •••• {debitCard.attributes?.last4Digits||"5050"}</div>
+                  <div style={{ fontSize:9, opacity:0.5, marginTop:3 }}>Unit.co · Tap for 360° ↗</div>
+                </div>
+              </div>
+            ) : (
+              <div style={{ minWidth:160, height:120, borderRadius:20, background:"rgba(255,255,255,0.04)", border:"2px dashed rgba(45,190,96,0.25)", flexShrink:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:6 }}>
+                <span style={{ fontSize:22 }}>🏦</span>
+                <span style={{ fontSize:10, color:"rgba(255,255,255,0.4)", textAlign:"center", padding:"0 12px" }}>Banking loading…</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── STATS ROW ── */}
+        <div style={{ margin:"0 16px 20px", display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
+          {[
+            { icon:"💳", label:"Transactions", value:String(STATS.totalTransactions||0), color:"#2A8FE0" },
+            { icon:"💰", label:"Revenue", value:fmt(STATS.totalRevenue||0), color:"#2DBE60" },
+            { icon:"✅", label:"Success Rate", value:`${STATS.successRate||0}%`, color:"#7B4FBF" },
+          ].map((s,i)=>(
+            <div key={i} style={{ background:"rgba(255,255,255,0.04)", border:`1px solid ${s.color}22`, borderRadius:18, padding:"14px 10px", textAlign:"center" }}>
+              <div style={{ fontSize:20, marginBottom:6 }}>{s.icon}</div>
+              <div style={{ fontSize:15, fontWeight:900, color:s.color }}>{s.value}</div>
+              <div style={{ fontSize:9, color:"rgba(255,255,255,0.4)", marginTop:3, letterSpacing:"0.07em" }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── RECENT TRANSACTIONS ── */}
+        <div style={{ margin:"0 16px 20px" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+            <div style={{ fontSize:13, fontWeight:800, color:"rgba(255,255,255,0.85)" }}>Recent Activity</div>
+            <button onClick={()=>goTab("transactions")} style={{ background:"none", border:"none", fontSize:11, color:"#15B8C9", fontWeight:700, cursor:"pointer", padding:0 }}>See all →</button>
+          </div>
+          {TRANSACTIONS.length===0 ? (
+            <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:18, border:"1px solid rgba(255,255,255,0.06)", padding:"28px 20px", textAlign:"center" }}>
+              <div style={{ fontSize:32, marginBottom:8 }}>💳</div>
+              <div style={{ fontSize:13, color:"rgba(255,255,255,0.4)", fontWeight:600 }}>No transactions yet</div>
+              <div style={{ fontSize:11, color:"rgba(255,255,255,0.25)", marginTop:4 }}>Client payments will appear here</div>
+            </div>
+          ) : (
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {TRANSACTIONS.slice(0,5).map((tx,i)=>{
+                const ok = tx.status==="succeeded"||tx.status==="completed";
+                return (
+                  <div key={i} style={{ background:"rgba(255,255,255,0.04)", borderRadius:16, border:"1px solid rgba(255,255,255,0.07)", padding:"12px 14px", display:"flex", alignItems:"center", gap:12 }}>
+                    <div style={{ width:38, height:38, borderRadius:12, background:ok?"rgba(45,190,96,0.15)":"rgba(239,68,68,0.12)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:17, flexShrink:0 }}>{ok?"💳":"⏳"}</div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:12, fontWeight:700, color:"rgba(255,255,255,0.85)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{tx.customer||"Client"}</div>
+                      <div style={{ fontSize:10, color:"rgba(255,255,255,0.35)", marginTop:2 }}>{tx.date} · {tx.method}</div>
+                    </div>
+                    <div style={{ fontSize:14, fontWeight:800, color:ok?"#2DBE60":"#F5A623", flexShrink:0 }}>{fmt(tx.amount)}</div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* ── MORE FEATURES GRID ── */}
+        <div style={{ margin:"0 16px 20px" }}>
+          <div style={{ fontSize:11, fontWeight:800, color:"rgba(255,255,255,0.6)", marginBottom:12, letterSpacing:"0.05em", textTransform:"uppercase" as const }}>More</div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10 }}>
+            {[
+              {icon:"🏛️",label:"Wallets",tab:"wallets"},{icon:"🔗",label:"Pay Links",tab:"paylinks"},
+              {icon:"💸",label:"Payouts",tab:"payouts"},{icon:"👤",label:"Agents",tab:"agents"},
+              {icon:"📚",label:"Accounting",tab:"accounting"},{icon:"🤖",label:"Ben AI",tab:"ai"},
+            ].map((item,i)=>(
+              <button key={i} onClick={()=>goTab(item.tab)} style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, padding:"14px 8px", display:"flex", flexDirection:"column", alignItems:"center", gap:6, cursor:"pointer", WebkitTapHighlightColor:"transparent" }}>
+                <span style={{ fontSize:22 }}>{item.icon}</span>
+                <span style={{ fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.6)" }}>{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── FULL DASHBOARD CTA ── */}
+        <div style={{ margin:"0 16px" }}>
+          <button onClick={()=>setIsMobile(false)} style={{ width:"100%", background:"linear-gradient(90deg,#2DBE60,#15B8C9,#7B4FBF)", borderRadius:18, padding:"15px", border:"none", fontSize:14, fontWeight:800, color:"white", cursor:"pointer", letterSpacing:"0.04em", boxShadow:"0 6px 24px rgba(45,190,96,0.35)", WebkitTapHighlightColor:"transparent" }}>
+            🖥️ Open Full ZeniPay Dashboard →
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
