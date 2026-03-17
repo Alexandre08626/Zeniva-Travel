@@ -1118,6 +1118,8 @@ export default function ZeniPayDashboard() {
   const [unitTxns, setUnitTxns] = useState<{id:string;type:string;attributes:{amount:number;balance:number;direction:string;status:string;description?:string;summary?:string;createdAt?:string}}[]>([]);
   const [show360, setShow360] = useState(false);
   const [unitRealTxns, setUnitRealTxns] = useState<{id:string;type:string;date:string;description:string;direction:string;amountCents:number;balanceCents:number;status:string}[]>([]);
+  const [revealCardId, setRevealCardId] = useState<string|null>(null);
+  const [revealedCardNum, setRevealedCardNum] = useState<string|null>(null);
 
   // ── Fetch live stats from /api/zenipay/stats ──────────────────────────
   useEffect(() => {
@@ -1308,9 +1310,7 @@ export default function ZeniPayDashboard() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: sidebarOpen ? "space-between" : "center", padding: "18px 14px", borderBottom: `1px solid rgba(255,255,255,0.15)`, minHeight: 70 }}>
           {sidebarOpen && (
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 34, height: 34, borderRadius: 10, background: "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden", padding: 4, boxShadow: "0 4px 14px rgba(21,184,201,0.4)" }}>
-                <img src="/zenipay-logo.png" alt="ZeniPay" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-              </div>
+              <img src="/zenipay-logo.png" alt="ZeniPay" style={{ width: 38, height: 38, objectFit: "contain", filter: "drop-shadow(0 4px 14px rgba(21,184,201,0.6))", flexShrink: 0 }} />
               <div>
                 <p style={{ margin: 0, fontWeight: 900, fontSize: 15, color: "white", letterSpacing: "-0.5px" }}>ZeniPay</p>
                 <p style={{ margin: 0, fontSize: 8, color: "rgba(255,255,255,0.6)", fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.1em" }}>Finance Platform</p>
@@ -1318,9 +1318,7 @@ export default function ZeniPayDashboard() {
             </div>
           )}
           {!sidebarOpen && (
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: "white", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: 4 }}>
-              <img src="/zenipay-logo.png" alt="ZeniPay" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-            </div>
+            <img src="/zenipay-logo.png" alt="ZeniPay" style={{ width: 34, height: 34, objectFit: "contain", filter: "drop-shadow(0 2px 8px rgba(21,184,201,0.5))" }} />
           )}
           <button onClick={() => setSidebarOpen((o: boolean) => !o)} style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", borderRadius: 8, width: 26, height: 26, cursor: "pointer", color: "white", fontSize: 11, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginLeft: sidebarOpen ? 0 : "auto" }}>
             {sidebarOpen ? "‹" : "›"}
@@ -1709,43 +1707,64 @@ export default function ZeniPayDashboard() {
                         transition: "transform 0.3s cubic-bezier(0.34,1.56,0.64,1)",
                         cursor: "pointer", color: "white",
                       }}
-                        onClick={() => setShow360(true)}
+                        onClick={async () => {
+                          // Reveal card number if not yet done
+                          if (revealCardId !== unitCards[0].id) {
+                            try {
+                              const r = await fetch(`/api/unit/cards?sensitive=true&cardId=${unitCards[0].id}`);
+                              if (r.ok) { const d = await r.json(); setRevealedCardNum(d.cardNumber || null); }
+                            } catch {}
+                            setRevealCardId(unitCards[0].id);
+                          }
+                          setShow360(true);
+                        }}
                         onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-10px) scale(1.02)"; }}
                         onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(0) scale(1)"; }}
                       >
                         <style>{`@keyframes shimmerDebit{0%{transform:translateX(-120%) skewX(-20deg)}100%{transform:translateX(350%) skewX(-20deg)}}`}</style>
-                        <img src="/zenipay-logo.png" alt="" style={{ position:"absolute", width:"110%", height:"110%", objectFit:"contain", opacity:0.18, filter:"brightness(2) saturate(0.5)", mixBlendMode:"overlay", transform:"scale(1.1) rotate(-5deg)", top:0, left:0 }} />
-                        <div style={{ position:"absolute", inset:0, background:"linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.15) 50%,transparent 65%)", animation:"shimmerDebit 4s ease-in-out infinite" }} />
+                        {/* Full-bleed logo wallpaper - more opaque */}
+                        <img src="/zenipay-logo.png" alt="" style={{ position:"absolute", width:"130%", height:"130%", objectFit:"contain", opacity:0.32, filter:"brightness(1.8) saturate(0.6) contrast(1.1)", mixBlendMode:"overlay", transform:"scale(1.15) rotate(-8deg)", top:"-15%", left:"-15%" }} />
+                        <div style={{ position:"absolute", inset:0, background:"linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.12) 50%,transparent 65%)", animation:"shimmerDebit 4s ease-in-out infinite" }} />
                         <div style={{ position:"relative", padding:"6% 7%", height:"100%", boxSizing:"border-box" as const, display:"flex", flexDirection:"column" as const, justifyContent:"space-between" }}>
+                          {/* Top row: logo + chip */}
                           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
-                            <div>
-                              <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:2 }}>
-                                <div style={{ width:20, height:20, borderRadius:4, background:"rgba(255,255,255,0.9)", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", padding:2 }}>
-                                  <img src="/zenipay-logo.png" alt="ZP" style={{ width:"100%", height:"100%", objectFit:"contain" }} />
-                                </div>
-                                <span style={{ fontWeight:800, fontSize:11 }}>ZeniPay</span>
+                            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                              <img src="/zenipay-logo.png" alt="ZP" style={{ width:28, height:28, objectFit:"contain", filter:"drop-shadow(0 2px 6px rgba(45,190,96,0.8))" }} />
+                              <div>
+                                <div style={{ fontWeight:900, fontSize:12, letterSpacing:"-0.3px" }}>ZeniPay</div>
+                                <div style={{ fontSize:7, opacity:0.65, letterSpacing:"0.12em", textTransform:"uppercase" as const, marginTop:1 }}>DEBIT · Unit.co</div>
                               </div>
-                              <p style={{ margin:0, fontSize:7, opacity:0.5, letterSpacing:"0.1em", textTransform:"uppercase" as const }}>Virtual Debit · Unit.co</p>
                             </div>
-                            <div style={{ width:30, height:22, borderRadius:3, background:"linear-gradient(145deg,#c9a84c,#f2d76a,#b8900a)", boxShadow:"0 2px 4px rgba(0,0,0,0.3)" }}>
-                              <div style={{ margin:"2px", border:"1px solid rgba(0,0,0,0.15)", borderRadius:2, height:"calc(100% - 4px)" }} />
+                            <div style={{ width:32, height:24, borderRadius:4, background:"linear-gradient(145deg,#c9a84c,#f2d76a,#b8900a)", boxShadow:"0 2px 4px rgba(0,0,0,0.3)" }}>
+                              <div style={{ margin:"3px", border:"1px solid rgba(0,0,0,0.15)", borderRadius:2, height:"calc(100% - 6px)" }} />
                             </div>
                           </div>
-                          <p style={{ margin:0, fontSize:11, fontFamily:"monospace", letterSpacing:"0.2em", opacity:0.9 }}>
-                            ••••&nbsp;&nbsp;••••&nbsp;&nbsp;••••&nbsp;&nbsp;{(unitCards[0] as {last4?:string;attributes?:{last4Digits?:string}}).last4 || unitCards[0].attributes?.last4Digits || "5050"}
-                          </p>
+                          {/* Card number */}
+                          <div onClick={e => { e.stopPropagation(); setRevealCardId(unitCards[0].id); }} style={{ cursor:"pointer" }}>
+                            {revealCardId === unitCards[0].id && revealedCardNum ? (
+                              <p style={{ margin:0, fontSize:10, fontFamily:"monospace", letterSpacing:"0.18em", color:"white", textShadow:"0 1px 4px rgba(0,0,0,0.5)" }}>
+                                {revealedCardNum.match(/.{1,4}/g)?.join("  ")}
+                              </p>
+                            ) : (
+                              <p style={{ margin:0, fontSize:11, fontFamily:"monospace", letterSpacing:"0.2em", opacity:0.9 }}>
+                                ••••&nbsp;&nbsp;••••&nbsp;&nbsp;••••&nbsp;&nbsp;{(unitCards[0] as {last4?:string;attributes?:{last4Digits?:string}}).last4 || unitCards[0].attributes?.last4Digits || "5050"}
+                                <span style={{ fontSize:7, opacity:0.55, marginLeft:6, fontFamily:"system-ui", fontStyle:"italic" }}>tap to reveal</span>
+                              </p>
+                            )}
+                          </div>
+                          {/* Bottom row */}
                           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end" }}>
                             <div>
-                              <p style={{ margin:"0 0 1px", fontSize:6, opacity:0.4, letterSpacing:"0.1em" }}>VALID THRU</p>
-                              <p style={{ margin:0, fontSize:9, fontWeight:700 }}>{(unitCards[0] as {expiry?:string;attributes?:{expirationDate?:string}}).expiry || unitCards[0].attributes?.expirationDate || "2030-03"}</p>
+                              <p style={{ margin:"0 0 1px", fontSize:6, opacity:0.45, letterSpacing:"0.12em", textTransform:"uppercase" as const }}>VALID THRU</p>
+                              <p style={{ margin:0, fontSize:10, fontWeight:700 }}>{(unitCards[0] as {expiry?:string;attributes?:{expirationDate?:string}}).expiry || unitCards[0].attributes?.expirationDate || "2030-03"}</p>
                             </div>
                             <div style={{ display:"flex", flexDirection:"column" as const, alignItems:"flex-end", gap:2 }}>
-                              <span style={{ background:"rgba(45,190,96,0.3)", color:"#7fffaa", fontSize:8, fontWeight:700, borderRadius:4, padding:"2px 6px" }}>ACTIVE</span>
-                              <span style={{ fontStyle:"italic", fontWeight:900, fontSize:12, opacity:0.9 }}>VISA</span>
+                              <span style={{ background:"rgba(45,190,96,0.35)", color:"#7fffaa", fontSize:8, fontWeight:800, borderRadius:4, padding:"2px 7px", letterSpacing:"0.06em" }}>ACTIVE</span>
+                              <span style={{ fontStyle:"italic", fontWeight:900, fontSize:13, opacity:0.9 }}>VISA</span>
                             </div>
                           </div>
                         </div>
-                        <div style={{ position:"absolute", bottom:4, right:8, fontSize:9, color:"rgba(255,255,255,0.4)", fontWeight:600 }}>Tap for 360° →</div>
+                        <div style={{ position:"absolute", bottom:5, right:9, fontSize:9, color:"rgba(255,255,255,0.35)", fontWeight:600 }}>360° →</div>
                       </div>
                     ) : (
                       <div style={{ width:"100%", aspectRatio:"1.586", borderRadius:20, background:"linear-gradient(135deg,#1a2a5e,#0d1633)", border:"2px dashed rgba(45,190,96,0.3)", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column" as const, gap:8, color:"white", cursor:"pointer" }} onClick={() => {}} >
@@ -1990,9 +2009,7 @@ export default function ZeniPayDashboard() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div>
                     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-                      <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: 3 }}>
-                        <img src="/zenipay-logo.png" alt="ZP" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-                      </div>
+                      <img src="/zenipay-logo.png" alt="ZP" style={{ width: 32, height: 32, objectFit: "contain", filter: "drop-shadow(0 2px 8px rgba(123,79,191,0.5))" }} />
                       <div>
                         <p style={{ margin: 0, fontWeight: 900, fontSize: 16 }}>ZeniPay Banking</p>
                         <p style={{ margin: 0, fontSize: 10, opacity: 0.6 }}>Powered by Unit.co · FDIC Insured up to $250K</p>
