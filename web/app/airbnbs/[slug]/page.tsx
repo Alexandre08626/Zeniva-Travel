@@ -36,12 +36,55 @@ function cleanDescription(description: string) {
 export default async function AirbnbDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const data = getAirbnbs();
-  const item = data.find((p: any) => (p.id && p.id === slug) || slugify(p.title) === slug);
+  let item = data.find((p: any) => (p.id && p.id === slug) || slugify(p.title) === slug);
+
+  // If not found in static data and slug looks like a numeric Airbnb ID → fetch live
+  if (!item && /^\d+$/.test(slug)) {
+    try {
+      const res = await fetch(
+        `https://airbnb13.p.rapidapi.com/get-listing?id=${slug}`,
+        {
+          headers: {
+            "x-rapidapi-key": "d419651e5cmsh76cbc669953ebcdp12735cjsn05db8e98a883",
+            "x-rapidapi-host": "airbnb13.p.rapidapi.com",
+          },
+          next: { revalidate: 3600 },
+        }
+      );
+      if (res.ok) {
+        const d = await res.json();
+        if (d && (d.id || d.name)) {
+          const imgs: string[] = [];
+          if (d.images) imgs.push(...(d.images as string[]));
+          else if (d.photos) imgs.push(...(d.photos as { url?: string; picture?: string }[]).map((p) => p.url || p.picture || "").filter(Boolean));
+          item = {
+            id: slug,
+            title: d.name || d.title || "ZeniStay Property",
+            thumbnail: imgs[0] || "",
+            images: imgs.slice(1),
+            location: d.city || d.location || d.address || "",
+            price_per_night: d.price ? Math.round(d.price.rate * 1.10) : (d.priceRate ? Math.round(d.priceRate * 1.10) : 0),
+            description: [
+              d.type ? `Property Type: ${d.type}` : "",
+              d.bedrooms ? `Bedrooms: ${d.bedrooms}` : "",
+              d.bathrooms ? `Bathrooms: ${d.bathrooms}` : "",
+              d.persons ? `Max Guests: ${d.persons}` : "",
+              d.city ? `Property Location: ${d.city}` : "",
+              d.description || "",
+            ].filter(Boolean).join("\n"),
+          };
+        }
+      }
+    } catch { /* fallthrough to not-found */ }
+  }
 
   if (!item) {
     return (
       <main className="min-h-screen p-10 bg-slate-50">
-        <div className="max-w-4xl mx-auto bg-white p-6 rounded-2xl shadow">Residence not found.</div>
+        <div className="max-w-4xl mx-auto bg-white p-6 rounded-2xl shadow">
+          <Link href="/residences" className="text-blue-700 font-semibold">← Back to residences</Link>
+          <p className="mt-4 text-slate-600">This property could not be found. It may have been removed or the link is invalid.</p>
+        </div>
       </main>
     );
   }
