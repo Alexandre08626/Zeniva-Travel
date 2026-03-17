@@ -1286,6 +1286,7 @@ export default function ZeniPayDashboard() {
   };
 
   return (
+    <>
     <div style={{ minHeight: "100vh", background: "#f0f4f8", fontFamily: "'Inter',system-ui,sans-serif", display: "flex" }}>
       {/* ══ LEFT SIDEBAR — Dark Glassmorphism ══ */}
       <div style={{
@@ -3037,5 +3038,135 @@ export default function ZeniPayDashboard() {
       </div>
       </div>
     </div>
+    {/* ═══ 360° BANKING MODAL ═══ */}
+    {show360 && unitAccounts.length > 0 && (
+      <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(10,15,30,0.85)", backdropFilter: "blur(8px)", display: "flex", alignItems: "stretch", justifyContent: "flex-end" }}>
+        <div style={{ width: "min(820px,100vw)", background: "#0B1B4D", overflowY: "auto", display: "flex", flexDirection: "column" }}>
+          <div style={{ background: "linear-gradient(135deg,#0d1633 0%,#1a2a5e 40%,#2DBE60 80%,#15B8C9 100%)", padding: "24px 28px", flexShrink: 0 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <img src="/zenipay-logo.png" alt="ZP" style={{ width: 44, height: 44, objectFit: "contain", filter: "drop-shadow(0 2px 8px rgba(123,79,191,0.5))" }} />
+                <div>
+                  <div style={{ color: "white", fontWeight: 900, fontSize: 20 }}>ZeniPay Banking</div>
+                  <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 11 }}>Zeniva Travel LLC · Unit.co · FDIC $250K</div>
+                </div>
+              </div>
+              <button onClick={() => setShow360(false)} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>✕ Close</button>
+            </div>
+            {unitAccounts[0] && (() => { const a = unitAccounts[0]; return (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }}>
+                {[
+                  { label: "Balance", value: `$${(a.balanceCents/100).toLocaleString("en-US",{minimumFractionDigits:2})}`, color: "#2DBE60" },
+                  { label: "Available", value: `$${(a.availableCents/100).toLocaleString("en-US",{minimumFractionDigits:2})}`, color: "#15B8C9" },
+                  { label: "Routing #", value: a.routingNumber || "812345678", color: "#F5A623" },
+                  { label: "Account #", value: a.accountNumber || "1009825847", color: "#E5247B" },
+                ].map(s => (
+                  <div key={s.label} style={{ background: "rgba(255,255,255,0.08)", borderRadius: 12, padding: "12px 14px", border: "1px solid rgba(255,255,255,0.12)" }}>
+                    <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 9, textTransform: "uppercase" as const, letterSpacing: "0.1em", fontWeight: 700 }}>{s.label}</div>
+                    <div style={{ color: s.color, fontSize: (s.label.includes("#") ? 13 : 18), fontWeight: 900, fontFamily: s.label.includes("#") ? "monospace" : undefined, marginTop: 4 }}>{s.value}</div>
+                  </div>
+                ))}
+              </div>
+            ); })()}
+          </div>
+          <div style={{ padding: "0 28px", borderBottom: "1px solid rgba(255,255,255,0.08)", flexShrink: 0 }}>
+            <div style={{ display: "flex", gap: 0, overflowX: "auto" as const }}>
+              {[
+                { id: "wire" as const, icon: "⚡", label: "Wire Transfer", color: "#7B4FBF" },
+                { id: "ach" as const, icon: "🏦", label: "ACH Payment", color: "#2A8FE0" },
+                { id: "transfer" as const, icon: "↔️", label: "Book Transfer", color: "#2DBE60" },
+                { id: "savings" as const, icon: "🐷", label: "Savings Goal", color: "#F5A623" },
+              ].map(a => (
+                <button key={a.id} onClick={() => setBankAction(bankAction === a.id ? null : a.id)}
+                  style={{ flex: "0 0 auto", padding: "14px 18px", background: bankAction === a.id ? `${a.color}20` : "transparent", color: bankAction === a.id ? a.color : "rgba(255,255,255,0.5)", border: "none", borderBottom: bankAction === a.id ? `2px solid ${a.color}` : "2px solid transparent", fontWeight: 700, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" as const, transition: "all 0.15s" }}>
+                  {a.icon} {a.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {bankAction && (
+            <div style={{ padding: "20px 28px", background: "rgba(255,255,255,0.03)", borderBottom: "1px solid rgba(255,255,255,0.08)", flexShrink: 0 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                {bankAction === "wire" && [{k:"beneficiary",l:"Beneficiary Name"},{k:"routingNum",l:"Routing Number"},{k:"accountNum",l:"Account Number"},{k:"amount",l:"Amount USD"},{k:"memo",l:"Memo"}].map(f=>(
+                  <div key={f.k} style={{ gridColumn: f.k==="memo" ? "span 2" : undefined }}>
+                    <label style={{ color:"rgba(255,255,255,0.5)", fontSize:11, fontWeight:600, display:"block", marginBottom:4 }}>{f.l}</label>
+                    <input value={bankActionForm[f.k]||""} onChange={e=>setBankActionForm(p=>({...p,[f.k]:e.target.value}))} style={{ width:"100%", background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:8, padding:"10px 12px", fontSize:13, color:"white", outline:"none", boxSizing:"border-box" as const }} />
+                  </div>
+                ))}
+                {bankAction === "ach" && [{k:"name",l:"Recipient Name"},{k:"routing",l:"Routing"},{k:"account",l:"Account #"},{k:"amount",l:"Amount USD"},{k:"type",l:"Account Type"},{k:"desc",l:"Description"}].map(f=>(
+                  <div key={f.k}>
+                    <label style={{ color:"rgba(255,255,255,0.5)", fontSize:11, fontWeight:600, display:"block", marginBottom:4 }}>{f.l}</label>
+                    <input value={bankActionForm[f.k]||""} onChange={e=>setBankActionForm(p=>({...p,[f.k]:e.target.value}))} style={{ width:"100%", background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:8, padding:"10px 12px", fontSize:13, color:"white", outline:"none", boxSizing:"border-box" as const }} />
+                  </div>
+                ))}
+                {bankAction === "transfer" && [{k:"toAccount",l:"Destination Account"},{k:"amount",l:"Amount USD"},{k:"desc",l:"Description"}].map(f=>(
+                  <div key={f.k}>
+                    <label style={{ color:"rgba(255,255,255,0.5)", fontSize:11, fontWeight:600, display:"block", marginBottom:4 }}>{f.l}</label>
+                    <input value={bankActionForm[f.k]||""} onChange={e=>setBankActionForm(p=>({...p,[f.k]:e.target.value}))} style={{ width:"100%", background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:8, padding:"10px 12px", fontSize:13, color:"white", outline:"none", boxSizing:"border-box" as const }} />
+                  </div>
+                ))}
+                {bankAction === "savings" && [{k:"name",l:"Goal Name"},{k:"target",l:"Target Amount $"},{k:"monthly",l:"Monthly Contribution $"},{k:"date",l:"Target Date"}].map(f=>(
+                  <div key={f.k}>
+                    <label style={{ color:"rgba(255,255,255,0.5)", fontSize:11, fontWeight:600, display:"block", marginBottom:4 }}>{f.l}</label>
+                    <input value={bankActionForm[f.k]||""} onChange={e=>setBankActionForm(p=>({...p,[f.k]:e.target.value}))} style={{ width:"100%", background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:8, padding:"10px 12px", fontSize:13, color:"white", outline:"none", boxSizing:"border-box" as const }} />
+                  </div>
+                ))}
+              </div>
+              <button onClick={()=>alert(`${bankAction} coming in production`)} style={{ marginTop:16, background:"linear-gradient(90deg,#7B4FBF,#E5247B)", color:"white", border:"none", borderRadius:10, padding:"12px 28px", fontWeight:800, fontSize:13, cursor:"pointer" }}>
+                Submit →
+              </button>
+            </div>
+          )}
+          {unitCards.length > 0 && (
+            <div style={{ padding: "20px 28px", flexShrink: 0 }}>
+              <h4 style={{ margin: "0 0 12px", color: "white", fontSize: 14 }}>💳 ZeniPay Debit Card</h4>
+              <div style={{ width: 300, borderRadius: 18, padding: "20px 22px", background: "linear-gradient(135deg,#F5A623 0%,#E5247B 45%,#7B4FBF 100%)", position: "relative", overflow: "hidden", boxShadow: "0 12px 40px rgba(229,36,123,0.35)" }}>
+                <img src="/zenipay-logo.png" alt="" style={{ position:"absolute", right:-20, bottom:-20, width:150, height:150, objectFit:"contain", opacity:0.2, filter:"brightness(2)" }} />
+                <div style={{ position:"relative" }}>
+                  <div style={{ color:"rgba(255,255,255,0.75)", fontSize:10, fontWeight:700, letterSpacing:"0.15em", marginBottom:8 }}>ZENIPAY PLATFORM CARD</div>
+                  <div style={{ color:"white", fontSize:18, fontFamily:"monospace", fontWeight:700, letterSpacing:"0.2em", marginBottom:14 }}>•••• •••• •••• {(unitCards[0] as {last4?:string;attributes?:{last4Digits?:string}}).last4 || unitCards[0].attributes?.last4Digits || "5050"}</div>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end" }}>
+                    <div><div style={{ color:"rgba(255,255,255,0.55)", fontSize:9 }}>EXPIRES</div><div style={{ color:"white", fontWeight:700 }}>{(unitCards[0] as {expiry?:string;attributes?:{expirationDate?:string}}).expiry || unitCards[0].attributes?.expirationDate || "2030-03"}</div></div>
+                    <div style={{ background:"rgba(255,255,255,0.25)", borderRadius:6, padding:"3px 10px", color:"white", fontSize:10, fontWeight:700 }}>{(unitCards[0] as {status?:string;attributes?:{status?:string}}).status || unitCards[0].attributes?.status || "Active"}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <div style={{ padding: "20px 28px", flex: 1 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+              <h4 style={{ margin: 0, color: "white", fontSize: 14 }}>📋 Transaction History</h4>
+              <button onClick={async()=>{const r=await fetch("/api/zenipay/bank-balance");if(r.ok){const d=await r.json();if(d.transactions)setUnitRealTxns(d.transactions);}}} style={{ background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.2)", color:"white", borderRadius:8, padding:"5px 12px", fontSize:11, fontWeight:600, cursor:"pointer" }}>
+                🔄 Refresh
+              </button>
+            </div>
+            {unitRealTxns.length === 0 ? (
+              <div style={{ textAlign:"center" as const, color:"rgba(255,255,255,0.3)", fontSize:13, padding:"40px 0" }}>
+                <div style={{ fontSize:32, marginBottom:8 }}>💤</div>
+                No transactions yet — account is new
+              </div>
+            ) : (
+              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                {unitRealTxns.map(tx => (
+                  <div key={tx.id} style={{ background:"rgba(255,255,255,0.05)", borderRadius:12, padding:"12px 16px", display:"flex", justifyContent:"space-between", alignItems:"center", border:"1px solid rgba(255,255,255,0.07)" }}>
+                    <div>
+                      <div style={{ color:"white", fontWeight:600, fontSize:13 }}>{tx.description}</div>
+                      <div style={{ color:"rgba(255,255,255,0.4)", fontSize:11, marginTop:2 }}>{tx.date ? new Date(tx.date).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : ""}</div>
+                    </div>
+                    <div style={{ textAlign:"right" as const }}>
+                      <div style={{ fontWeight:800, fontSize:15, color: tx.direction==="Credit" ? "#2DBE60" : "#E5247B" }}>
+                        {tx.direction==="Credit" ? "+" : "-"}${Math.abs(tx.amountCents/100).toFixed(2)}
+                      </div>
+                      <div style={{ color:"rgba(255,255,255,0.4)", fontSize:11 }}>Bal: ${(tx.balanceCents/100).toFixed(2)}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
