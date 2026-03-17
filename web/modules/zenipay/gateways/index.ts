@@ -27,10 +27,27 @@ export async function processPayment(params: {
   description?: string;
   paymentId: string;
 }): Promise<GatewayResult> {
-  const gateway = process.env.FINIX_MERCHANT_ID ? "finix" : "authorizenet";
-  
-  if (gateway === "finix") {
-    const { processFinixPayment } = await import("./finix");
+  // Always use Finix — no silent fallback
+  const finixUser = process.env.FINIX_API_USERNAME;
+  const finixPass = process.env.FINIX_API_PASSWORD;
+  const finixMerchant = process.env.FINIX_MERCHANT_ID;
+
+  if (!finixUser || !finixPass || !finixMerchant) {
+    console.error("[ZeniPay] MISSING FINIX ENV VARS:", {
+      hasUser: !!finixUser,
+      hasPass: !!finixPass,
+      hasMerchant: !!finixMerchant,
+    });
+    return {
+      success: false,
+      transactionId: "",
+      state: "FAILED",
+      error: "Payment processor not configured. Contact support.",
+    };
+  }
+
+  const { processFinixPayment } = await import("./finix");
+  try {
     const result = await processFinixPayment(params);
     return {
       success: result.success,
@@ -40,12 +57,14 @@ export async function processPayment(params: {
       last4: result.last4,
       state: result.state,
     };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[ZeniPay] Finix error:", msg);
+    return {
+      success: false,
+      transactionId: "",
+      state: "FAILED",
+      error: msg,
+    };
   }
-
-  // Fallback: Authorize.net (sandbox simulation)
-  return {
-    success: true,
-    transactionId: `SANDBOX-${Date.now().toString(36).toUpperCase()}`,
-    state: "SUCCEEDED",
-  };
 }

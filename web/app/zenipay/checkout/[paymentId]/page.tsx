@@ -80,7 +80,7 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
         }),
       });
       const data = await res.json();
-      if (data.status === "completed") {
+      if (data.status === "completed" || data.status === "succeeded" || data.success === true) {
         setStep("success");
         setTimeout(() => {
           window.location.href = data.confirmation_url || `/booking/confirmation?ref=${paymentId}&total=${fmt(amount)}`;

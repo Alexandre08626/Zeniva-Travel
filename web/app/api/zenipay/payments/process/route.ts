@@ -117,6 +117,7 @@ export async function POST(request: Request) {
 
         return Response.json({
           success: false,
+          status: "failed",
           error: result.error || "Payment declined. Please try another card.",
         }, { status: 402 });
       }
