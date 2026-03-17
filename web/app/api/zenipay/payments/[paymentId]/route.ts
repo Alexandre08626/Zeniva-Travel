@@ -17,10 +17,10 @@ function getSupabase(): any {
 
 export async function GET(
   _request: Request,
-  { params }: { params: { paymentId: string } }
+  { params }: { params: Promise<{ paymentId: string }> }
 ) {
   try {
-    const { paymentId } = params;
+    const { paymentId } = await params;
 
     if (!paymentId) {
       return Response.json({ error: "Missing paymentId" }, { status: 400 });
