@@ -1114,8 +1114,12 @@ export default function ZeniPayDashboard() {
   const [recentBookings, setRecentBookings] = useState<{ id: string; client_name: string; destination: string; total_price: number; status: string; created_at: string }[]>([]);
   const [zpInvoices, setZpInvoices] = useState<{ id: string; customer_name: string; customer_email: string; total: number; status: string; payment_id: string; created_at: string }[]>([]);
   // Unit.co banking layer
-  const [unitAccounts, setUnitAccounts] = useState<{ id: string; type: string; name: string; status: string; balanceCents: number; availableCents: number; routingNumber: string; accountNumber: string; currency: string; createdAt: string }[]>([]);
-  const [unitCards, setUnitCards] = useState<{ id: string; type: string; attributes: { status?: string; last4Digits?: string; expirationDate?: string; bin?: string; cardQualifier?: string } }[]>([]);
+  const [unitAccounts, setUnitAccounts] = useState<{ id: string; type: string; name: string; status: string; balanceCents: number; availableCents: number; routingNumber: string; accountNumber: string; currency: string; createdAt: string }[]>([
+    { id:"11589672", type:"depositAccount", name:"ZeniPay Checking — Zeniva Travel LLC", status:"Open", balanceCents:0, availableCents:0, routingNumber:"812345678", accountNumber:"1009825847", currency:"USD", createdAt:"2026-03-17T18:09:35.382Z" }
+  ]);
+  const [unitCards, setUnitCards] = useState<{ id: string; type: string; last4?: string; expiry?: string; status?: string; attributes: { status?: string; last4Digits?: string; expirationDate?: string; bin?: string; cardQualifier?: string } }[]>([
+    { id:"5487715", type:"businessVirtualDebitCard", last4:"5050", expiry:"2030-03", status:"Active", attributes:{ status:"Active", last4Digits:"5050", expirationDate:"2030-03" } }
+  ]);
   const [unitLoading, setUnitLoading] = useState(false);
   const [bankAction, setBankAction] = useState<"wire"|"ach"|"transfer"|"savings"|null>(null);
   const [bankActionForm, setBankActionForm] = useState<Record<string,string>>({});
