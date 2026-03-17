@@ -99,10 +99,15 @@ export async function GET(request: Request) {
 
       const { data, error } = await query;
       if (error) throw error;
-      // Exclude forwarded email notifications (they clutter the inbox)
-      const filtered = (data || []).filter((msg: any) =>
-        !String(msg.message || "").match(/^Email from .+:/i)
-      );
+      // Exclude email-session messages (session-email-* channel IDs) — show only site/web chat
+      const filtered = (data || []).filter((msg: any) => {
+        const channelIds = String(msg.channel_ids || "");
+        // Exclude messages that only exist in email sessions
+        if (channelIds.includes("session-email-")) return false;
+        // Exclude forwarded email notifications
+        if (String(msg.message || "").match(/^Email from .+:/i)) return false;
+        return true;
+      });
       return NextResponse.json({ data: filtered });
 
     } else {
