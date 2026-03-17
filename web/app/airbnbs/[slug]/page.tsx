@@ -33,13 +33,35 @@ function cleanDescription(description: string) {
 }
 
 
-export default async function AirbnbDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function AirbnbDetailPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string>> }) {
   const { slug } = await params;
+  const sp = await searchParams;
   const data = getAirbnbs();
   let item = data.find((p: any) => (p.id && p.id === slug) || slugify(p.title) === slug);
 
-  // If not found in static data and slug looks like a numeric Airbnb ID → fetch live
-  if (!item && /^\d+$/.test(slug)) {
+  // If not found in static data — try to build from URL query params (passed by /residences page)
+  if (!item && sp.name) {
+    const pricePerNight = sp.price ? Number(sp.price) : 0;
+    item = {
+      id: slug,
+      title: sp.name || "ZeniStay Property",
+      thumbnail: sp.photo || "",
+      images: [],
+      location: sp.city || "",
+      price_per_night: pricePerNight,
+      description: [
+        sp.type ? `Property Type: ${sp.type}` : "",
+        sp.bedrooms ? `Bedrooms: ${sp.bedrooms}` : "",
+        sp.bathrooms ? `Bathrooms: ${sp.bathrooms}` : "",
+        sp.maxGuests ? `Max Guests: ${sp.maxGuests}` : "",
+        sp.city ? `Property Location: ${sp.city}` : "",
+        sp.desc || "",
+      ].filter(Boolean).join("\n"),
+    };
+  }
+
+  // Last resort: try RapidAPI for short numeric IDs (standard Airbnb IDs ≤ 12 digits)
+  if (!item && /^\d+$/.test(slug) && slug.length <= 12) {
     try {
       const res = await fetch(
         `https://airbnb13.p.rapidapi.com/get-listing?id=${slug}`,
