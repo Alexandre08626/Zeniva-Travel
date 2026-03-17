@@ -742,14 +742,15 @@ const TABS = [
 // ══════════════════════════════════════════════════════
 //  REVENUE SPLIT WIDGET
 // ══════════════════════════════════════════════════════
+// Revenue split — calculates on NET profit (after supplier costs)
 const SPLIT_SCENARIOS = [
   {
     id: "no_agent",
     label: "Direct / No Agent",
     icon: "🏦",
     desc: "Zeniva platform only",
-    rows: (b: number) => [
-      { label: "🏦 Zeniva Travel", pct: 100, amount: b, color: "#0F6CF5", sub: "100% platform revenue" },
+    rows: (net: number) => [
+      { label: "🏦 Zeniva Travel", pct: 100, amount: net, color: "#0F6CF5", sub: "100% net profit" },
     ],
   },
   {
@@ -757,9 +758,9 @@ const SPLIT_SCENARIOS = [
     label: "Lina AI seule",
     icon: "🤖",
     desc: "Lina book without human agent",
-    rows: (b: number) => [
-      { label: "🏦 Zeniva Travel (70%)", pct: 70, amount: Math.round(b*0.70*100)/100, color: "#0F6CF5", sub: "Lina-only booking" },
-      { label: "👤 Agent assigné (30%)", pct: 30, amount: Math.round(b*0.30*100)/100, color: "#8B5CF6", sub: "Agent de suivi" },
+    rows: (net: number) => [
+      { label: "🏦 Zeniva Travel (70%)", pct: 70, amount: Math.round(net*0.70*100)/100, color: "#0F6CF5", sub: "Net après coûts" },
+      { label: "👤 Agent assigné (30%)", pct: 30, amount: Math.round(net*0.30*100)/100, color: "#8B5CF6", sub: "Agent de suivi" },
     ],
   },
   {
@@ -767,9 +768,9 @@ const SPLIT_SCENARIOS = [
     label: "Agent humain",
     icon: "👤",
     desc: "Full agent involvement",
-    rows: (b: number) => [
-      { label: "👤 Agent de voyage (70%)", pct: 70, amount: Math.round(b*0.70*100)/100, color: "#8B5CF6", sub: "Louis / Jason / Luca" },
-      { label: "🏦 Zeniva Travel (30%)", pct: 30, amount: Math.round(b*0.30*100)/100, color: "#0F6CF5", sub: "Platform margin" },
+    rows: (net: number) => [
+      { label: "👤 Agent de voyage (70%)", pct: 70, amount: Math.round(net*0.70*100)/100, color: "#8B5CF6", sub: "Louis / Jason / Luca" },
+      { label: "🏦 Zeniva Travel (30%)", pct: 30, amount: Math.round(net*0.30*100)/100, color: "#0F6CF5", sub: "Platform margin net" },
     ],
   },
   {
@@ -777,15 +778,15 @@ const SPLIT_SCENARIOS = [
     label: "+ Influenceur",
     icon: "⭐",
     desc: "Agent + influencer referral",
-    rows: (b: number) => {
-      const agent = Math.round(b*0.70*100)/100;
-      const zenivaGross = Math.round(b*0.30*100)/100;
+    rows: (net: number) => {
+      const agent = Math.round(net*0.70*100)/100;
+      const zenivaGross = Math.round(net*0.30*100)/100;
       const inf = Math.round(zenivaGross*0.05*100)/100;
       const zenivaNet = Math.round((zenivaGross - inf)*100)/100;
       return [
         { label: "👤 Agent de voyage (70%)", pct: 70, amount: agent, color: "#8B5CF6", sub: "Louis / Jason / Luca" },
-        { label: "🏦 Zeniva Travel (~28.5%)", pct: Math.round(zenivaNet/b*100), amount: zenivaNet, color: "#0F6CF5", sub: "Net après influenceur" },
-        { label: "⭐ Influenceur (5% du net)", pct: Math.round(inf/b*100), amount: inf, color: "#F59E0B", sub: "5% du 30% Zeniva" },
+        { label: "🏦 Zeniva Travel (~28.5%)", pct: Math.round(zenivaNet/net*100), amount: zenivaNet, color: "#0F6CF5", sub: "Net après influenceur" },
+        { label: "⭐ Influenceur (5% du net)", pct: Math.round(inf/net*100), amount: inf, color: "#F59E0B", sub: "5% du 30% Zeniva" },
       ];
     },
   },
@@ -794,8 +795,8 @@ const SPLIT_SCENARIOS = [
     label: "ZeniYacht",
     icon: "⛵",
     desc: "100% Zeniva — always",
-    rows: (b: number) => [
-      { label: "⛵ Zeniva Travel — ZeniYacht (100%)", pct: 100, amount: b, color: "#10B981", sub: "100% — broker commissions handled separately" },
+    rows: (net: number) => [
+      { label: "⛵ Zeniva Travel — ZeniYacht (100%)", pct: 100, amount: net, color: "#10B981", sub: "100% net — broker séparé" },
     ],
   },
 ];
@@ -803,24 +804,36 @@ const SPLIT_SCENARIOS = [
 function RevenueSplitWidget() {
   const [scenario, setScenario] = useState("no_agent");
   const [bookingAmt, setBookingAmt] = useState(7677);
+  const [supplierCost, setSupplierCost] = useState(5078);
+  const netProfit = Math.max(0, bookingAmt - supplierCost);
   const active = SPLIT_SCENARIOS.find(s => s.id === scenario)!;
-  const rows = active.rows(bookingAmt);
+  const rows = active.rows(netProfit);
+  const margin = bookingAmt > 0 ? Math.round(netProfit / bookingAmt * 100) : 0;
+
   return (
     <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
-        <h3 style={{ margin: 0, fontWeight: 700, fontSize: 15 }}>💡 Revenue Split</h3>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ fontSize: 11, color: "#94a3b8" }}>Booking:</span>
-          <input
-            type="number"
-            value={bookingAmt}
-            onChange={e => setBookingAmt(Number(e.target.value) || 0)}
-            style={{ width: 80, border: "1px solid #e2e8f0", borderRadius: 6, padding: "3px 8px", fontSize: 12, fontWeight: 700, color: "#0F6CF5", textAlign: "right" }}
-          />
+      <h3 style={{ margin: "0 0 14px", fontWeight: 700, fontSize: 15 }}>💡 Revenue Split</h3>
+
+      {/* Inputs row */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 16 }}>
+        <div style={{ background: "#f8fafc", borderRadius: 10, padding: "10px 12px" }}>
+          <p style={{ margin: "0 0 4px", fontSize: 10, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase" as const }}>💰 Booking (brut)</p>
+          <input type="number" value={bookingAmt} onChange={e => setBookingAmt(Number(e.target.value) || 0)}
+            style={{ width: "100%", border: "none", background: "transparent", fontSize: 15, fontWeight: 800, color: "#0F6CF5", outline: "none" }} />
+        </div>
+        <div style={{ background: "#fef2f2", borderRadius: 10, padding: "10px 12px" }}>
+          <p style={{ margin: "0 0 4px", fontSize: 10, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase" as const }}>🏨 Coût fournisseur</p>
+          <input type="number" value={supplierCost} onChange={e => setSupplierCost(Number(e.target.value) || 0)}
+            style={{ width: "100%", border: "none", background: "transparent", fontSize: 15, fontWeight: 800, color: "#ef4444", outline: "none" }} />
+        </div>
+        <div style={{ background: "#f0fdf4", borderRadius: 10, padding: "10px 12px" }}>
+          <p style={{ margin: "0 0 4px", fontSize: 10, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase" as const }}>✅ Profit net ({margin}%)</p>
+          <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: "#10B981" }}>${netProfit.toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
         </div>
       </div>
+
       {/* Scenario tabs */}
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" as const, marginBottom: 14 }}>
         {SPLIT_SCENARIOS.map(s => (
           <button key={s.id} onClick={() => setScenario(s.id)} style={{
             padding: "5px 10px", borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: "pointer", border: "1px solid",
@@ -832,10 +845,15 @@ function RevenueSplitWidget() {
           </button>
         ))}
       </div>
-      {/* Active scenario */}
-      <div style={{ padding: "10px 14px", background: "#f0f7ff", borderRadius: 10, marginBottom: 14, borderLeft: "3px solid #0F6CF5" }}>
-        <p style={{ margin: 0, fontSize: 11, color: "#0F6CF5", fontWeight: 600 }}>{active.icon} {active.label} — {active.desc}</p>
+
+      {/* Active scenario label */}
+      <div style={{ padding: "8px 12px", background: "#f0f7ff", borderRadius: 10, marginBottom: 14, borderLeft: "3px solid #0F6CF5" }}>
+        <p style={{ margin: 0, fontSize: 11, color: "#0F6CF5", fontWeight: 600 }}>{active.icon} {active.label} — {active.desc}
+          <span style={{ marginLeft: 8, fontWeight: 400, color: "#94a3b8" }}>sur profit net de ${netProfit.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+        </p>
       </div>
+
+      {/* Split bars */}
       {rows.map(r => (
         <div key={r.label} style={{ marginBottom: 14 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
@@ -853,13 +871,12 @@ function RevenueSplitWidget() {
           </div>
         </div>
       ))}
-      <div style={{ marginTop: 16, padding: "8px 12px", background: "#fefce8", borderRadius: 8, borderLeft: "3px solid #F59E0B" }}>
+
+      {/* Summary note */}
+      <div style={{ marginTop: 14, padding: "8px 12px", background: "#fefce8", borderRadius: 8, borderLeft: "3px solid #F59E0B" }}>
         <p style={{ margin: 0, fontSize: 10, color: "#92400e", lineHeight: 1.7 }}>
-          <strong>Règle de base :</strong> Sans agent ni influenceur → <strong>100% Zeniva</strong> · 
-          Lina seule → <strong>70% Zeniva / 30% Agent</strong> · 
-          Agent humain → <strong>70% Agent / 30% Zeniva</strong> · 
-          ZeniYacht → <strong>100% Zeniva toujours</strong> · 
-          Influenceur → <strong>+5% du net Zeniva</strong>
+          <strong>⚠️ Split sur profit net :</strong> Booking ${bookingAmt.toLocaleString()} − Fournisseur ${supplierCost.toLocaleString()} = <strong>Net ${netProfit.toLocaleString()}</strong> · 
+          Direct → 100% Zeniva · Lina seule → 70% Zeniva / 30% Agent · Agent humain → 70% Agent / 30% Zeniva · ZeniYacht → 100% Zeniva · +Influenceur → 5% du net Zeniva
         </p>
       </div>
     </div>
