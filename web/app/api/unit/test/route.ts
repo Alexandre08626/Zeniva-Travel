@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   const token = process.env.UNIT_API_TOKEN || "";
-  const url = process.env.UNIT_API_URL || "https://api.s.unit.co";
+  const url = process.env.UNIT_API_URL || "https://api.s.unit.sh";
 
   // Test 1: DNS resolution
   let dnsOk = false;

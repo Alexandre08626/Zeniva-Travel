@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 
-const UNIT_URL = () => process.env.UNIT_API_URL || "https://api.s.unit.co";
+const UNIT_URL = () => process.env.UNIT_API_URL || "https://api.s.unit.sh";
 const UNIT_TOKEN = () => process.env.UNIT_API_TOKEN || "";
 
 function unitHeaders() {
