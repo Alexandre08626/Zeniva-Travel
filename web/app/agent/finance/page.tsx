@@ -1660,8 +1660,8 @@ export default function ZeniPayDashboard() {
                   </p>
                 </div>
 
-                {/* TWO CARDS SIDE BY SIDE */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, width: "100%", maxWidth: 780 }}>
+                {/* THREE CARDS SIDE BY SIDE */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, width: "100%", maxWidth: 1050 }}>
                   {/* VISA */}
                   <div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
@@ -1691,6 +1691,68 @@ export default function ZeniPayDashboard() {
                       expiry="12/28"
                       network="MASTERCARD"
                     />
+                  </div>
+                  {/* ZENIPAY DEBIT — Unit.co */}
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#2DBE60" }} />
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#2DBE60", letterSpacing: "0.06em", textTransform: "uppercase" as const }}>
+                        ZeniPay Debit {unitCards.length > 0 ? "· Active" : "· Unit.co"}
+                      </span>
+                    </div>
+                    {unitCards.length > 0 ? (
+                      <div style={{
+                        width: "100%", borderRadius: 20, position: "relative",
+                        overflow: "hidden", aspectRatio: "1.586",
+                        background: "linear-gradient(135deg, #0d1633 0%, #1a2a5e 40%, #2DBE60 80%, #15B8C9 100%)",
+                        boxShadow: "0 24px 60px rgba(45,190,96,0.4), 0 8px 20px rgba(0,0,0,0.2)",
+                        transition: "transform 0.3s cubic-bezier(0.34,1.56,0.64,1)",
+                        cursor: "pointer", color: "white",
+                      }}
+                        onClick={() => setShow360(true)}
+                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-10px) scale(1.02)"; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(0) scale(1)"; }}
+                      >
+                        <style>{`@keyframes shimmerDebit{0%{transform:translateX(-120%) skewX(-20deg)}100%{transform:translateX(350%) skewX(-20deg)}}`}</style>
+                        <img src="/zenipay-logo.png" alt="" style={{ position:"absolute", width:"110%", height:"110%", objectFit:"contain", opacity:0.18, filter:"brightness(2) saturate(0.5)", mixBlendMode:"overlay", transform:"scale(1.1) rotate(-5deg)", top:0, left:0 }} />
+                        <div style={{ position:"absolute", inset:0, background:"linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.15) 50%,transparent 65%)", animation:"shimmerDebit 4s ease-in-out infinite" }} />
+                        <div style={{ position:"relative", padding:"6% 7%", height:"100%", boxSizing:"border-box" as const, display:"flex", flexDirection:"column" as const, justifyContent:"space-between" }}>
+                          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+                            <div>
+                              <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:2 }}>
+                                <div style={{ width:20, height:20, borderRadius:4, background:"rgba(255,255,255,0.9)", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", padding:2 }}>
+                                  <img src="/zenipay-logo.png" alt="ZP" style={{ width:"100%", height:"100%", objectFit:"contain" }} />
+                                </div>
+                                <span style={{ fontWeight:800, fontSize:11 }}>ZeniPay</span>
+                              </div>
+                              <p style={{ margin:0, fontSize:7, opacity:0.5, letterSpacing:"0.1em", textTransform:"uppercase" as const }}>Virtual Debit · Unit.co</p>
+                            </div>
+                            <div style={{ width:30, height:22, borderRadius:3, background:"linear-gradient(145deg,#c9a84c,#f2d76a,#b8900a)", boxShadow:"0 2px 4px rgba(0,0,0,0.3)" }}>
+                              <div style={{ margin:"2px", border:"1px solid rgba(0,0,0,0.15)", borderRadius:2, height:"calc(100% - 4px)" }} />
+                            </div>
+                          </div>
+                          <p style={{ margin:0, fontSize:11, fontFamily:"monospace", letterSpacing:"0.2em", opacity:0.9 }}>
+                            ••••&nbsp;&nbsp;••••&nbsp;&nbsp;••••&nbsp;&nbsp;{(unitCards[0] as {last4?:string;attributes?:{last4Digits?:string}}).last4 || unitCards[0].attributes?.last4Digits || "5050"}
+                          </p>
+                          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end" }}>
+                            <div>
+                              <p style={{ margin:"0 0 1px", fontSize:6, opacity:0.4, letterSpacing:"0.1em" }}>VALID THRU</p>
+                              <p style={{ margin:0, fontSize:9, fontWeight:700 }}>{(unitCards[0] as {expiry?:string;attributes?:{expirationDate?:string}}).expiry || unitCards[0].attributes?.expirationDate || "2030-03"}</p>
+                            </div>
+                            <div style={{ display:"flex", flexDirection:"column" as const, alignItems:"flex-end", gap:2 }}>
+                              <span style={{ background:"rgba(45,190,96,0.3)", color:"#7fffaa", fontSize:8, fontWeight:700, borderRadius:4, padding:"2px 6px" }}>ACTIVE</span>
+                              <span style={{ fontStyle:"italic", fontWeight:900, fontSize:12, opacity:0.9 }}>VISA</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ position:"absolute", bottom:4, right:8, fontSize:9, color:"rgba(255,255,255,0.4)", fontWeight:600 }}>Tap for 360° →</div>
+                      </div>
+                    ) : (
+                      <div style={{ width:"100%", aspectRatio:"1.586", borderRadius:20, background:"linear-gradient(135deg,#1a2a5e,#0d1633)", border:"2px dashed rgba(45,190,96,0.3)", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column" as const, gap:8, color:"white", cursor:"pointer" }} onClick={() => {}} >
+                        <span style={{ fontSize:24 }}>🏦</span>
+                        <span style={{ fontSize:11, opacity:0.6, fontWeight:600 }}>Loading account…</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -2129,78 +2191,27 @@ export default function ZeniPayDashboard() {
               )}
             </div>
 
-            {/* DEBIT CARDS — UNIT.CO */}
-            <div style={{ background: "white", borderRadius: 20, padding: 28, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            {/* DEBIT CARDS — compact summary */}
+            {unitCards.length > 0 && (
+              <div style={{ background: "white", borderRadius: 16, padding: "16px 24px", boxShadow: "0 1px 6px rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" as const, gap: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16, color: "#0f172a" }}>💳 Debit Cards</h3>
-                  <span style={{ background: "rgba(123,79,191,0.1)", color: "#7B4FBF", fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "2px 8px", border: "1px solid rgba(123,79,191,0.2)" }}>Virtual Visa · Unit.co</span>
-                </div>
-                <button
-                  disabled={unitAccounts.length === 0}
-                  onClick={async () => {
-                    if (unitAccounts.length === 0) { alert("Create a Banking Account first"); return; }
-                    const acc = unitAccounts[0];
-                    const r = await fetch("/api/unit/cards/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ accountId: acc.id, cardholderName: "ZENIVA TRAVEL LLC" }) });
-                    const d = await r.json();
-                    if (d.ok) { const r2 = await fetch("/api/unit/cards"); if (r2.ok) { const d2 = await r2.json(); setUnitCards(d2.cards || []); } }
-                    else alert("Card creation: " + (d.error || "error"));
-                  }}
-                  style={{ background: unitAccounts.length === 0 ? "#e2e8f0" : "linear-gradient(90deg, #7B4FBF, #E5247B)", color: "white", border: "none", borderRadius: 10, padding: "8px 18px", fontWeight: 700, fontSize: 12, cursor: unitAccounts.length === 0 ? "not-allowed" : "pointer", transition: "opacity 0.2s" }}>
-                  + Issue Debit Card
-                </button>
-              </div>
-              {unitCards.length === 0 ? (
-                <div style={{ background: "#fafbff", borderRadius: 14, padding: "28px 24px", border: "1px dashed #ddd6fe", textAlign: "center" as const }}>
-                  <div style={{ fontSize: 40, marginBottom: 10 }}>💳</div>
-                  <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151" }}>No debit cards yet</p>
-                  <p style={{ margin: "0 0 8px", fontSize: 12, color: "#94a3b8" }}>Issue virtual Visa debit cards — instant issuance, $0 fee</p>
-                  <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap" as const }}>
-                    {["⚡ Instant issuance", "💰 $0 card fee", "🔒 Custom limits", "❄️ Freeze/unfreeze"].map(f => (
-                      <span key={f} style={{ background: "#f1f5f9", borderRadius: 8, padding: "4px 10px", fontSize: 11, color: "#64748b", fontWeight: 600 }}>{f}</span>
-                    ))}
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg,#0d1633,#2DBE60)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: 22 }}>💳</span>
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: 14, color: "#0f172a" }}>ZeniPay Debit — Visa Virtual</div>
+                    <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
+                      •••• •••• •••• {(unitCards[0] as {last4?:string;attributes?:{last4Digits?:string}}).last4 || unitCards[0].attributes?.last4Digits || "5050"}
+                      &nbsp;·&nbsp;Expires {(unitCards[0] as {expiry?:string;attributes?:{expirationDate?:string}}).expiry || unitCards[0].attributes?.expirationDate || "2030-03"}
+                      &nbsp;·&nbsp;<span style={{ color: "#2DBE60", fontWeight: 700 }}>Active</span>
+                    </div>
                   </div>
                 </div>
-              ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 }}>
-                  {unitCards.map((card: { id: string; type: string; attributes: { status?: string; last4Digits?: string; expirationDate?: string; bin?: string } }) => (
-                    <div key={card.id} style={{ borderRadius: 18, overflow: "hidden", position: "relative", aspectRatio: "1.586", background: "linear-gradient(135deg, #0d1633 0%, #15B8C9 40%, #7B4FBF 100%)", color: "white", padding: "6% 7%", display: "flex", flexDirection: "column" as const, justifyContent: "space-between", boxShadow: "0 16px 40px rgba(21,184,201,0.35)" }}>
-                      <style>{`@keyframes sc{0%{transform:translateX(-120%) skewX(-20deg)}100%{transform:translateX(350%) skewX(-20deg)}}`}</style>
-                      <div style={{ position:"absolute", inset:0, background:"linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.2) 50%,transparent 65%)", animation:"sc 4s ease-in-out infinite", pointerEvents:"none" }} />
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                        <div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                            <div style={{ width: 24, height: 24, borderRadius: 5, background: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: 2 }}>
-                              <img src="/zenipay-logo.png" alt="ZP" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-                            </div>
-                            <span style={{ fontWeight: 800, fontSize: 13 }}>ZeniPay</span>
-                          </div>
-                          <p style={{ margin: 0, fontSize: 8, opacity: 0.5, letterSpacing: "0.1em", textTransform: "uppercase" as const }}>Virtual Debit</p>
-                        </div>
-                        <div style={{ width: 36, height: 27, borderRadius: 4, background: "linear-gradient(145deg,#c9a84c,#f2d76a,#b8900a)", boxShadow: "0 2px 4px rgba(0,0,0,0.3)" }}>
-                          <div style={{ margin: "3px", border: "1px solid rgba(0,0,0,0.15)", borderRadius: 2, height: "calc(100% - 6px)" }} />
-                        </div>
-                      </div>
-                      <p style={{ margin: 0, fontSize: 12, fontFamily: "monospace", letterSpacing: "0.2em", opacity: 0.9 }}>
-                        ••••&nbsp;&nbsp;••••&nbsp;&nbsp;••••&nbsp;&nbsp;{card.attributes.last4Digits || "••••"}
-                      </p>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-                        <div>
-                          <p style={{ margin: "0 0 1px", fontSize: 7, opacity: 0.4, letterSpacing: "0.1em" }}>VALID THRU</p>
-                          <p style={{ margin: 0, fontSize: 10, fontWeight: 700 }}>{card.attributes.expirationDate || "—"}</p>
-                        </div>
-                        <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "flex-end", gap: 3 }}>
-                          <span style={{ background: card.attributes.status === "Active" ? "rgba(45,190,96,0.25)" : "rgba(245,158,11,0.25)", color: card.attributes.status === "Active" ? "#2DBE60" : "#F59E0B", fontSize: 9, fontWeight: 700, borderRadius: 5, padding: "2px 7px" }}>
-                            {card.attributes.status || "Pending"}
-                          </span>
-                          <span style={{ fontStyle: "italic", fontWeight: 900, fontSize: 14, opacity: 0.9 }}>VISA</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                <button onClick={() => setShow360(true)} style={{ background: "linear-gradient(90deg,#2DBE60,#15B8C9)", color: "white", border: "none", borderRadius: 10, padding: "10px 20px", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
+                  Open 360° Banking View →
+                </button>
+              </div>
+            )}
           </div>
         )}
 
