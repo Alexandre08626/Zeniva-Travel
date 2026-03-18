@@ -114,7 +114,7 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
           <div style={{ position:"absolute", inset:8, background:`${BLUE}20`, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28 }}>💳</div>
         </div>
         <h2 style={{ margin:"0 0 8px", fontWeight:900, color:"white", fontSize:22 }}>Securing Your Payment…</h2>
-        <p style={{ color:"rgba(255,255,255,0.5)", margin:"0 0 16px", fontSize:13 }}>ZeniPay Encrypted · Finix Secured · PCI Compliant</p>
+        <p style={{ color:"rgba(255,255,255,0.5)", margin:"0 0 16px", fontSize:13 }}>ZeniPay Encrypted · Tilled Secured · PCI Compliant</p>
         <p style={{ color:BLUE, fontWeight:900, fontSize:28, margin:0 }}>{fmt(amount)}</p>
         <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
       </div>
@@ -132,7 +132,7 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
         <p style={{ color:"#94a3b8", fontSize:12, marginBottom:24 }}>Ref: {params.paymentId}</p>
         <div style={{ background:"#f8fafc", borderRadius:12, padding:16, marginBottom:20, display:"flex", justifyContent:"space-between", fontSize:13 }}>
           <span style={{ color:"#64748b" }}>Processed by</span>
-          <span style={{ fontWeight:700, color:DARK }}>ZeniPay · Finix Network</span>
+          <span style={{ fontWeight:700, color:DARK }}>ZeniPay · Tilled Network</span>
         </div>
         <p style={{ color:"#94a3b8", fontSize:12 }}>Redirecting to confirmation…</p>
       </div>
@@ -170,7 +170,7 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
           <div style={{ width:44, height:44, background:BLUE, borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>💳</div>
           <div style={{ flex:1 }}>
             <p style={{ margin:0, fontWeight:900, fontSize:17, color:"white" }}>ZeniPay Secure Checkout</p>
-            <p style={{ margin:0, fontSize:11, color:"rgba(255,255,255,0.45)" }}>256-bit SSL · PCI DSS Level 1 · Powered by Finix</p>
+            <p style={{ margin:0, fontSize:11, color:"rgba(255,255,255,0.45)" }}>256-bit SSL · PCI DSS Level 1 · Powered by Tilled</p>
           </div>
           <div style={{ textAlign:"right" }}>
             <p style={{ margin:0, fontWeight:900, fontSize:26, color:"white" }}>{fmt(amount)}</p>
@@ -259,7 +259,7 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
               </div>
             </div>
             <div style={{ marginTop:14, background:"#f0f9ff", borderRadius:10, padding:"10px 14px", fontSize:12, color:"#0369a1", display:"flex", gap:8, alignItems:"center" }}>
-              🔒 Card tokenized via Finix secure gateway — never stored on Zeniva servers
+              🔒 Card tokenized via Tilled secure gateway — never stored on Zeniva servers
             </div>
           </div>
         )}
@@ -307,7 +307,7 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
           </button>
           <div style={{ textAlign:"center", marginTop:14, fontSize:11, color:"#94a3b8", lineHeight:1.6 }}>
             🛡️ <strong>ZeniPay</strong> Secured · PCI DSS Level 1 · 256-bit Encryption<br/>
-            Processed by <strong>Finix</strong> financial infrastructure<br/>
+            Processed by <strong>Tilled</strong> financial infrastructure<br/>
             💳 Visa · Mastercard · Amex · Discover · 🏦 ACH
           </div>
         </div>

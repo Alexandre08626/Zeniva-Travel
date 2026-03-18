@@ -333,7 +333,7 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
                 { l: "Available", v: fmt(data.available, true), c: "#4ade80" },
                 { l: "Pending", v: fmt(data.pending, true), c: GOLD },
                 { l: "Paid Out", v: fmt(data.paid, true), c: "#94a3b8" },
-                { l: "Gateway", v: "Finix", c: "#60a5fa" },
+                { l: "Gateway", v: "Tilled", c: "#60a5fa" },
               ].map(s => (
                 <div key={s.l} style={{ textAlign: "center" as const }}>
                   <p style={{ margin: "0 0 2px", fontSize: 9, opacity: 0.55, fontWeight: 700, textTransform: "uppercase" as const }}>{s.l}</p>
@@ -410,7 +410,7 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
                 </div>
               )}
               <div style={{ background: `${color}10`, borderRadius: 14, padding: 18, border: `1px solid ${color}20` }}>
-                <p style={{ margin: "0 0 8px", fontWeight: 700, fontSize: 13, color: "#374151" }}>📅 {isPlatform ? "Finix Settlement" : "Next Scheduled Payout"}</p>
+                <p style={{ margin: "0 0 8px", fontWeight: 700, fontSize: 13, color: "#374151" }}>📅 {isPlatform ? "Tilled Settlement" : "Next Scheduled Payout"}</p>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
                   <span style={{ color: "rgba(255,255,255,0.4)" }}>Schedule</span>
                   <span style={{ fontWeight: 700, color: color }}>{isPlatform ? "T+1 business day" : "Every Friday"}</span>
@@ -422,7 +422,7 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
                 {isPlatform && (
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 6 }}>
                     <span style={{ color: "rgba(255,255,255,0.4)" }}>Processor</span>
-                    <span style={{ fontWeight: 700, color: "#60a5fa" }}>Finix (Sandbox)</span>
+                    <span style={{ fontWeight: 700, color: "#60a5fa" }}>Tilled (Sandbox)</span>
                   </div>
                 )}
               </div>
@@ -436,7 +436,7 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
                 <div style={{ textAlign: "center" as const, padding: "32px 20px" }}>
                   <div style={{ fontSize: 56, marginBottom: 12 }}>✅</div>
                   <h3 style={{ margin: "0 0 8px", fontWeight: 800, color: "#065f46" }}>Transfer Recorded!</h3>
-                  <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, margin: "0 0 20px" }}>The distribution will be processed once Finix live mode is activated.</p>
+                  <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, margin: "0 0 20px" }}>The distribution will be processed once Tilled live mode is activated.</p>
                   <button onClick={() => { setDistSent(false); setDistForm({ to: "agent", amount: "", note: "" }); }}
                     style={{ background: BLUE, color: "white", border: "none", borderRadius: 9999, padding: "10px 24px", fontWeight: 700, cursor: "pointer" }}>
                     New Transfer
@@ -447,7 +447,7 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
                   <div style={{ background: `${BLUE}08`, borderRadius: 14, padding: 16, border: `1px solid ${BLUE}15` }}>
                     <p style={{ margin: "0 0 6px", fontWeight: 700, fontSize: 13, color: "#374151" }}>💰 Platform Balance Available</p>
                     <p style={{ margin: 0, fontSize: 32, fontWeight: 900, color: BLUE }}>{fmt(data.available, true)}</p>
-                    <p style={{ margin: "4px 0 0", fontSize: 11, color: "#94a3b8" }}>Zeniva Travel LLC · USD · Finix</p>
+                    <p style={{ margin: "4px 0 0", fontSize: 11, color: "#94a3b8" }}>Zeniva Travel LLC · USD · Tilled</p>
                   </div>
 
                   <div>
@@ -533,7 +533,7 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
               ) : (
                 <div style={{ display: "grid", gap: 14 }}>
                   <p style={{ margin: "0 0 4px", fontSize: 13, color: "#374151", fontWeight: 600 }}>
-                    {isPlatform ? "Add Zeniva Travel LLC bank account to receive Finix settlements." : "Add your bank account to receive payouts from ZeniPay."}
+                    {isPlatform ? "Add Zeniva Travel LLC bank account to receive Tilled settlements." : "Add your bank account to receive payouts from ZeniPay."}
                   </p>
                   {[
                     { label: "Account Holder Name", key: "holder", ph: isPlatform ? "Zeniva Travel LLC" : "Full Name" },
@@ -569,7 +569,7 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
             <div style={{ display: "grid", gap: 10 }}>
               <div style={{ background: "#f8fafc", borderRadius: 12, padding: "14px 16px", textAlign: "center" as const, border: "1px dashed #e2e8f0" }}>
                 <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151" }}>No transactions yet</p>
-                <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>Transactions will appear here once Finix live payments are active</p>
+                <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>Transactions will appear here once Tilled live payments are active</p>
               </div>
               <button style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: "11px", fontWeight: 700, fontSize: 13, cursor: "pointer", color: "#374151", marginTop: 8 }}>
                 📥 Download Full Statement
@@ -1162,7 +1162,7 @@ export default function ZeniPayDashboard() {
             amount: Number(t.amount || 0),
             currency: String(t.currency || "USD"),
             method: "card",
-            gateway: "Finix",
+            gateway: "Tilled",
             status: String(t.status || "pending"),
             date: String(t.date || new Date().toISOString()),
           })));
@@ -1286,7 +1286,7 @@ export default function ZeniPayDashboard() {
     const responses: Record<string, string> = {
       "revenue": `📊 Revenue Analysis:\n• Total today: ${fmt(totalRevenue)}\n• MTD: ${fmt(totalRevenue)}\n• Active agents: Louis, Jason, Luca\n• Success rate: ${successRate}%`,
       "fraud": `🛡️ Fraud Monitoring:\n• No high-risk transactions detected\n• Carlos Ruiz failure flagged: card declined (3x attempt)\n• Recommendation: request alternative payment method`,
-      "payout": `💸 Upcoming Payouts:\n• Platform Balance: ${fmt(platformBalance, true)}\n• Agents: Louis, Jason, Luca — $0 pending\n• No payouts scheduled yet — activate Finix live to begin`,
+      "payout": `💸 Upcoming Payouts:\n• Platform Balance: ${fmt(platformBalance, true)}\n• Agents: Louis, Jason, Luca — $0 pending\n• No payouts scheduled yet — activate Tilled live to begin`,
       "rapport": `📄 Financial Report — Current:\n• Gross Revenue: ${fmt(totalRevenue)}\n• Platform Wallet: ${fmt(WALLETS.platform.available)} available\n• Agent Commissions Paid: ${fmt(WALLETS.agent.paid)} (70% travel agents)\n• Influencer Referrals Paid: ${fmt(WALLETS.influencer.paid)} (5% net profit)\n• Supplier Balance: ${fmt(WALLETS.supplier.available)}\n• ZeniYacht: 100% Zeniva`,
     };
     const keyword = Object.keys(responses).find(k => userMsg.toLowerCase().includes(k));
@@ -1581,7 +1581,7 @@ export default function ZeniPayDashboard() {
                 <div style={{ width: 6, height: 6, background: isLive ? GREEN : GOLD, borderRadius: "50%", boxShadow: `0 0 6px ${isLive ? GREEN : GOLD}` }} />
                 <span style={{ fontSize: 10, color: isLive ? GREEN : GOLD, fontWeight: 700, letterSpacing: "0.05em" }}>{isLive ? "LIVE MODE" : "SANDBOX MODE"}</span>
               </div>
-              <p style={{ margin: "4px 0 0", fontSize: 9, color: "rgba(255,255,255,0.55)" }}>Finix · {isLive ? "Production" : "Testing"}</p>
+              <p style={{ margin: "4px 0 0", fontSize: 9, color: "rgba(255,255,255,0.55)" }}>Tilled · {isLive ? "Production" : "Testing"}</p>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{ width: 30, height: 30, borderRadius: 8, background: `linear-gradient(135deg, ${BLUE}, ${PURPLE})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "white", fontWeight: 900 }}>A</div>
@@ -1620,7 +1620,7 @@ export default function ZeniPayDashboard() {
                     {isLive ? "● LIVE" : "● SANDBOX"}
                   </span>
                 </div>
-                <p style={{ margin: 0, fontSize: 9, color: "#94a3b8", letterSpacing: "0.06em" }}>Powered by Finix · Banking by Unit.co</p>
+                <p style={{ margin: 0, fontSize: 9, color: "#94a3b8", letterSpacing: "0.06em" }}>Powered by Tilled · Banking by Unit.co</p>
               </div>
             </div>
             {/* Balance display */}
@@ -1867,7 +1867,7 @@ export default function ZeniPayDashboard() {
                 <div style={{ textAlign: "center" as const }}>
                   <h2 style={{ margin: 0, fontWeight: 900, fontSize: 22, color: "#0f172a" }}>💳 Your ZeniPay Cards</h2>
                   <p style={{ margin: "6px 0 0", fontSize: 13, color: "#64748b" }}>
-                    Platform account · All client payments land here · Powered by Finix + Unit.co
+                    Platform account · All client payments land here · Powered by Tilled + Unit.co
                   </p>
                 </div>
 
@@ -2009,7 +2009,7 @@ export default function ZeniPayDashboard() {
                     {isLive ? "🟢 Live Mode" : "🟡 Sandbox Mode"}
                   </span>
                   <span style={{ background: "#eff6ff", border: "1px solid #bfdbfe", color: "#1d4ed8", fontSize: 11, fontWeight: 700, borderRadius: 8, padding: "5px 14px" }}>🏦 Unit.co Banking</span>
-                  <span style={{ background: "#f5f3ff", border: "1px solid #ddd6fe", color: "#5b21b6", fontSize: 11, fontWeight: 700, borderRadius: 8, padding: "5px 14px" }}>⚡ Finix Processor</span>
+                  <span style={{ background: "#f5f3ff", border: "1px solid #ddd6fe", color: "#5b21b6", fontSize: 11, fontWeight: 700, borderRadius: 8, padding: "5px 14px" }}>⚡ Tilled Processor</span>
                   <span style={{ background: "#fff7ed", border: "1px solid #fed7aa", color: "#c2410c", fontSize: 11, fontWeight: 700, borderRadius: 8, padding: "5px 14px" }}>🛡️ PCI Compliant</span>
                 </div>
               </div>
@@ -2029,7 +2029,7 @@ export default function ZeniPayDashboard() {
                 {/* Arrow 1 */}
                 <div style={{ flex: 1, height: 2, background: `linear-gradient(90deg, ${GREEN}, ${BLUE})`, position: "relative", minWidth: 40 }}>
                   <div style={{ position: "absolute", right: -6, top: -4, width: 0, height: 0, borderTop: "5px solid transparent", borderBottom: "5px solid transparent", borderLeft: `8px solid ${BLUE}` }} />
-                  <span style={{ position: "absolute", top: -16, left: "50%", transform: "translateX(-50%)", fontSize: 9, color: "#64748b", whiteSpace: "nowrap" as const }}>Finix</span>
+                  <span style={{ position: "absolute", top: -16, left: "50%", transform: "translateX(-50%)", fontSize: 9, color: "#64748b", whiteSpace: "nowrap" as const }}>Tilled</span>
                 </div>
                 {/* ZeniPay */}
                 <div style={{ textAlign: "center" as const, flexShrink: 0 }}>
@@ -2074,7 +2074,7 @@ export default function ZeniPayDashboard() {
                     { l: "Available", v: platformBalance, c: GREEN },
                     { l: "Pending", v: 0, c: GOLD },
                     { l: "Paid Out", v: 0, c: "#94a3b8" },
-                    { l: "Gateway", v: "Finix", c: BLUE, txt: true },
+                    { l: "Gateway", v: "Tilled", c: BLUE, txt: true },
                   ].map(s => (
                     <div key={s.l} style={{ background: "rgba(255,255,255,0.08)", borderRadius: 12, padding: "10px 14px", backdropFilter: "blur(8px)" }}>
                       <p style={{ margin: "0 0 2px", fontSize: 9, opacity: 0.6, fontWeight: 700, textTransform: "uppercase" as const }}>{s.l}</p>
@@ -2125,7 +2125,7 @@ export default function ZeniPayDashboard() {
                   {[
                     { l: "Pending", v: fmt(WALLETS.platform.pending, true), c: GOLD },
                     { l: "Paid Out", v: fmt(WALLETS.platform.paid, true), c: "#94a3b8" },
-                    { l: "Processor", v: "Finix", c: "#60a5fa" },
+                    { l: "Processor", v: "Tilled", c: "#60a5fa" },
                     { l: "Mode", v: "Sandbox", c: GOLD },
                   ].map(s => (
                     <div key={s.l} style={{ background: "rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 12px", backdropFilter: "blur(4px)" }}>
@@ -2160,7 +2160,7 @@ export default function ZeniPayDashboard() {
                 {[
                   { icon: "👤", label: "Client Pays", sub: "ZeniPay Checkout", color: "#6366f1" },
                   { arrow: true },
-                  { icon: "🔄", label: "Finix Processes", sub: "Card Network", color: BLUE },
+                  { icon: "🔄", label: "Tilled Processes", sub: "Card Network", color: BLUE },
                   { arrow: true },
                   { icon: "🏛️", label: "Platform Wallet", sub: "100% lands here", color: BLUE },
                   { arrow: true },
@@ -2719,7 +2719,7 @@ export default function ZeniPayDashboard() {
               <div style={{ textAlign: "center", padding: 40, color: "#94a3b8" }}>
                 <div style={{ fontSize: 48, marginBottom: 12 }}>🏛️</div>
                 <p>Financing plans will appear here once travelers choose installment payment options.</p>
-                <p style={{ fontSize: 12, marginTop: 8 }}>Connect Finix financing module to enable installments.</p>
+                <p style={{ fontSize: 12, marginTop: 8 }}>Connect Tilled financing module to enable installments.</p>
               </div>
             </div>
           </div>
@@ -2735,7 +2735,7 @@ export default function ZeniPayDashboard() {
                   <div style={{ textAlign: "center" as const, padding: "32px 0", color: "#94a3b8" }}>
                     <div style={{ fontSize: 32, marginBottom: 8 }}>📊</div>
                     <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>No transactions yet</p>
-                    <p style={{ margin: "4px 0 0", fontSize: 11 }}>Chart will populate from real Finix payments</p>
+                    <p style={{ margin: "4px 0 0", fontSize: 11 }}>Chart will populate from real Tilled payments</p>
                   </div>
                 ) : (
                   <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 80 }}>
@@ -3151,7 +3151,7 @@ export default function ZeniPayDashboard() {
                   ) : (
                     <div style={{ background: "#f8fafc", borderRadius: 10, padding: "16px", textAlign: "center" as const, border: "1px dashed #e2e8f0" }}>
                       <p style={{ margin: "0 0 4px", fontWeight: 700, color: "#374151", fontSize: 13 }}>No journal entries yet</p>
-                      <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>Generated automatically from real Finix payments</p>
+                      <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>Generated automatically from real Tilled payments</p>
                     </div>
                   )}
                 </div>
@@ -3214,9 +3214,9 @@ export default function ZeniPayDashboard() {
               <h3 style={{ margin: "0 0 16px", fontWeight: 700 }}>🏦 Payment Gateway</h3>
               <div style={{ display: "grid", gap: 10 }}>
                 {[
-                  { label: "Primary Gateway", value: "Finix ✅", status: "active" },
+                  { label: "Primary Gateway", value: "Tilled ✅", status: "active" },
                   { label: "Environment", value: STATS.env === "production" ? "Live" : "Sandbox · Test Mode", status: STATS.env === "production" ? "active" : "pending" },
-                  { label: "Webhook Endpoint", value: "/api/zenipay/webhooks/finix", status: null },
+                  { label: "Webhook Endpoint", value: "/api/zenipay/webhooks/tilled", status: null },
                   { label: "Merchant ID", value: "●●●●●●●●●●●●", status: null },
                 ].map(item => (
                   <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
@@ -3258,8 +3258,8 @@ export default function ZeniPayDashboard() {
               <h3 style={{ margin: "0 0 16px", fontWeight: 700 }}>🔒 Security & Compliance</h3>
               <div style={{ display: "grid", gap: 10 }}>
                 {[
-                  { label: "PCI Compliance", value: "Tokenization via Finix ✅", status: "active" },
-                  { label: "Card Storage", value: "Never stored — Finix tokens only", status: "active" },
+                  { label: "PCI Compliance", value: "Tokenization via Tilled ✅", status: "active" },
+                  { label: "Card Storage", value: "Never stored — Tilled tokens only", status: "active" },
                   { label: "Encryption", value: "TLS 1.3 · AES-256", status: "active" },
                   { label: "Fraud Detection", value: "Ben AI · Real-time monitoring", status: "active" },
                 ].map(item => (
