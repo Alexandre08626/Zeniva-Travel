@@ -4,7 +4,10 @@
  * Auth: Bearer {secret_key}, Header: tilled-account: {account_id}
  */
 
-const TILLED_BASE = "https://api.tilled.com";
+// Use sandbox URL if env is not explicitly "production"
+const TILLED_BASE = process.env.TILLED_ENV === "production"
+  ? "https://api.tilled.com"
+  : "https://sandbox-api.tilled.com";
 
 function tilledHeaders() {
   const sk = process.env.TILLED_SECRET_KEY || "";
