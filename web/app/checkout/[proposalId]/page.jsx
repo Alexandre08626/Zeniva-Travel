@@ -7,6 +7,8 @@ import ZeniPayButton from "../../../src/components/ZeniPayButton.client";
 import { useTripsStore } from "../../../lib/store/tripsStore";
 import { useAuthStore } from "../../../src/lib/authStore";
 import { getImagesForDestination } from "../../../src/lib/images";
+import { computePrice, parseMoney, formatCurrency } from "../../../src/lib/pricing";
+import { MUTED_TEXT, TITLE_TEXT } from "../../../src/design/tokens";
 
 export default function CheckoutPage() {
   const params = useParams();
