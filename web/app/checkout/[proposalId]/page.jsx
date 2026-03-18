@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
 import ZeniPayButton from "../../../src/components/ZeniPayButton.client";
+import { useTripsStore } from "../../../lib/store/tripsStore";
+import { useAuthStore } from "../../../src/lib/authStore";
+import { getImagesForDestination } from "../../../src/lib/images";
 
 export default function CheckoutPage() {
   const params = useParams();
