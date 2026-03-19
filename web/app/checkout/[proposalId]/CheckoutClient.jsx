@@ -386,7 +386,7 @@ export default function CheckoutPage() {
             <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>Payment</div>
-                <span className="text-[11px] font-bold text-emerald-600">🔒 Secured by ZeniPay</span>
+                <span className="text-[11px] font-bold text-emerald-600">🔒 Paiement Sécurisé</span>
               </div>
               <p className="text-sm text-slate-600">
                 Fill in your traveler details above, then click the button below to proceed to our secure payment page.

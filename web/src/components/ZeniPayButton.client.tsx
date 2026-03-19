@@ -67,10 +67,10 @@ export default function ZeniPayButton({
       }}
     >
       {loading
-        ? "🔄 Preparing checkout…"
+        ? "🔄 Préparation du paiement…"
         : disabled
-        ? "Complete your details first"
-        : label || `💳 Pay ${displayAmount} — Secure Checkout`}
+        ? "Complétez vos informations d'abord"
+        : label || `🔒 Payer ${displayAmount} — Paiement Sécurisé`}
     </button>
   );
 }

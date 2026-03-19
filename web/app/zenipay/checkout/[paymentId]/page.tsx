@@ -113,8 +113,8 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
           <div style={{ position:"absolute", inset:0, border:`4px solid ${BLUE}`, borderTopColor:"transparent", borderRadius:"50%", animation:"spin 0.9s linear infinite" }} />
           <div style={{ position:"absolute", inset:8, background:`${BLUE}20`, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28 }}>💳</div>
         </div>
-        <h2 style={{ margin:"0 0 8px", fontWeight:900, color:"white", fontSize:22 }}>Securing Your Payment…</h2>
-        <p style={{ color:"rgba(255,255,255,0.5)", margin:"0 0 16px", fontSize:13 }}>ZeniPay Encrypted · Tilled Secured · PCI Compliant</p>
+        <h2 style={{ margin:"0 0 8px", fontWeight:900, color:"white", fontSize:22 }}>Sécurisation du paiement…</h2>
+        <p style={{ color:"rgba(255,255,255,0.5)", margin:"0 0 16px", fontSize:13 }}>Zeniva Travel · Chiffrement 256-bit · PCI Compliant</p>
         <p style={{ color:BLUE, fontWeight:900, fontSize:28, margin:0 }}>{fmt(amount)}</p>
         <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
       </div>
@@ -132,7 +132,7 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
         <p style={{ color:"#94a3b8", fontSize:12, marginBottom:24 }}>Ref: {params.paymentId}</p>
         <div style={{ background:"#f8fafc", borderRadius:12, padding:16, marginBottom:20, display:"flex", justifyContent:"space-between", fontSize:13 }}>
           <span style={{ color:"#64748b" }}>Processed by</span>
-          <span style={{ fontWeight:700, color:DARK }}>ZeniPay · Tilled Network</span>
+          <span style={{ fontWeight:700, color:DARK }}>Zeniva Travel · Tilled Network</span>
         </div>
         <p style={{ color:"#94a3b8", fontSize:12 }}>Redirecting to confirmation…</p>
       </div>
@@ -169,7 +169,7 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
         <div style={{ maxWidth:560, margin:"0 auto", display:"flex", alignItems:"center", gap:14 }}>
           <div style={{ width:44, height:44, background:BLUE, borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>💳</div>
           <div style={{ flex:1 }}>
-            <p style={{ margin:0, fontWeight:900, fontSize:17, color:"white" }}>ZeniPay Secure Checkout</p>
+            <p style={{ margin:0, fontWeight:900, fontSize:17, color:"white" }}>Zeniva Travel · Paiement Sécurisé</p>
             <p style={{ margin:0, fontSize:11, color:"rgba(255,255,255,0.45)" }}>256-bit SSL · PCI DSS Level 1 · Powered by Tilled</p>
           </div>
           <div style={{ textAlign:"right" }}>
@@ -259,7 +259,7 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
               </div>
             </div>
             <div style={{ marginTop:14, background:"#f0f9ff", borderRadius:10, padding:"10px 14px", fontSize:12, color:"#0369a1", display:"flex", gap:8, alignItems:"center" }}>
-              🔒 Card tokenized via Tilled secure gateway — never stored on Zeniva servers
+              🔒 Carte tokenisée via Tilled · Jamais stockée sur les serveurs Zeniva
             </div>
           </div>
         )}
@@ -283,7 +283,7 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
               ))}
             </div>
             <div style={{ marginTop:14, background:"#fef3c7", borderRadius:10, padding:"10px 14px", fontSize:12, color:"#92400e" }}>
-              ⏱ ACH transfers take 1-3 business days to settle in ZeniPay
+              ⏱ Les virements ACH prennent 1 à 3 jours ouvrables pour être traités
             </div>
           </div>
         )}
@@ -306,8 +306,8 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
             🔒 Pay {fmt(amount)} Now
           </button>
           <div style={{ textAlign:"center", marginTop:14, fontSize:11, color:"#94a3b8", lineHeight:1.6 }}>
-            🛡️ <strong>ZeniPay</strong> Secured · PCI DSS Level 1 · 256-bit Encryption<br/>
-            Processed by <strong>Tilled</strong> financial infrastructure<br/>
+            🛡️ <strong>Zeniva Travel</strong> · PCI DSS Level 1 · Chiffrement 256-bit<br/>
+            Traité par <strong>Tilled</strong> infrastructure financière<br/>
             💳 Visa · Mastercard · Amex · Discover · 🏦 ACH
           </div>
         </div>
