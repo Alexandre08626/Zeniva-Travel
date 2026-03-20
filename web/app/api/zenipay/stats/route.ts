@@ -33,12 +33,32 @@ export async function GET() {
     let recentTransactions: unknown[] = [];
 
     if (supabase) {
-      // Aggregate from payments table
-      const { data: payments } = await supabase
+      // ── Read from zenipay_payments table ──────────────────────────────
+      const { data: tablePays } = await supabase
         .from("zenipay_payments")
         .select("id, amount, status, created_at, customer_name, currency, description") as { data: Array<{ id: string; amount: number; status: string; created_at: string; customer_name: string; currency: string; description: string }> | null };
 
-      if (payments && payments.length > 0) {
+      // ── Read from merchant_data.transactions (ZeniPay /pay/[id] payments) ─
+      const { data: merchants } = await supabase
+        .from("zenipay_merchants")
+        .select("merchant_data");
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mdTxns: any[] = [];
+      for (const m of (merchants || [])) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const txns: any[] = Array.isArray(m.merchant_data?.transactions) ? m.merchant_data.transactions : (typeof m.merchant_data === "string" ? JSON.parse(m.merchant_data)?.transactions || [] : []);
+        for (const t of txns) mdTxns.push(t);
+      }
+
+      // ── Merge & deduplicate by id ──────────────────────────────────────
+      const existingIds = new Set((tablePays || []).map(p => p.id));
+      const payments = [
+        ...(tablePays || []).map(p => ({ id: p.id, amount: Number(p.amount), status: p.status, created_at: p.created_at, customer_name: p.customer_name || "—", currency: p.currency || "USD", description: p.description || "" })),
+        ...mdTxns.filter(t => !existingIds.has(t.id)).map(t => ({ id: t.id, amount: Number(t.amount), status: t.status || "succeeded", created_at: t.createdAt, customer_name: t.customer_name || "—", currency: t.currency || "USD", description: t.description || "" })),
+      ];
+
+      if (payments.length > 0) {
         const succeeded = payments.filter((p) => p.status === "succeeded");
         const failed = payments.filter((p) => p.status === "failed");
         const pending = payments.filter((p) => p.status === "pending");
@@ -56,7 +76,7 @@ export async function GET() {
 
         recentTransactions = payments
           .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-          .slice(0, 20)
+          .slice(0, 50)
           .map((p) => ({
             id: p.id,
             customer: p.customer_name || "—",
@@ -65,7 +85,7 @@ export async function GET() {
             status: p.status,
             description: p.description || "",
             date: p.created_at,
-            gateway: "Finix",
+            gateway: "ZeniPay",
           }));
       }
 
