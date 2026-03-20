@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import puppeteer from 'puppeteer';
+import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer-core';
 import fs from 'fs';
 import path from 'path';
 import { computePrice, formatCurrency } from '../../../../src/lib/pricing';
@@ -370,9 +371,12 @@ export async function POST(request: NextRequest) {
             });
         }
 
+        const executablePath = await chromium.executablePath();
         const browser = await puppeteer.launch({
+            args: chromium.args,
+            defaultViewport: chromium.defaultViewport,
+            executablePath,
             headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
 
         const page = await browser.newPage();
