@@ -14,7 +14,7 @@
     "vercel-build": "next build"
   },
   "dependencies": {
-    "@sparticuz/chromium": "^143.0.4",
+    "@sparticuz/chromium-min": "^143.0.4",
     "@supabase/supabase-js": "^2.93.1",
     "@tanstack/react-table": "^8.21.3",
     "@types/nodemailer": "^7.0.11",
@@ -22,7 +22,6 @@
     "date-fns": "^4.1.0",
     "dotenv": "^17.3.1",
     "geist": "^1.7.0",
-    "html-pdf-node": "^1.0.8",
     "imapflow": "^1.2.13",
     "lucide-react": "^0.562.0",
     "marked": "^12.0.2",

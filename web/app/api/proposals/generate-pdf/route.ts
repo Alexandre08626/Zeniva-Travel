@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import chromium from '@sparticuz/chromium';
+import chromium from '@sparticuz/chromium-min';
 import puppeteer from 'puppeteer-core';
 import fs from 'fs';
 import path from 'path';
@@ -371,7 +371,9 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        const executablePath = await chromium.executablePath();
+        const executablePath = await chromium.executablePath(
+          'https://github.com/Sparticuz/chromium/releases/download/v143.0.0/chromium-v143.0.0-pack.tar'
+        );
         const browser = await puppeteer.launch({
             args: chromium.args,
             executablePath,
