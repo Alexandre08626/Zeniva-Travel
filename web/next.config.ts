@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
     // Disable PPR — can cause workUnitAsyncStorage crash
     ppr: false,
   },
+  // Keep these packages as external (not bundled) to avoid 3GB Chromium in function bundle
+  serverExternalPackages: ['@sparticuz/chromium-min', 'puppeteer-core'],
 
 
   env: {
