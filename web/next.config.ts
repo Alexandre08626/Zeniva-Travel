@@ -21,6 +21,10 @@ const nextConfig: NextConfig = {
   // Turbopack root forced to the `web` directory to avoid workspace-root resolution
   // Turbopack removed — use webpack to avoid /_global-error workUnitAsyncStorage crash
   outputFileTracingRoot: rootDir,
+  outputFileTracingExcludes: {
+    // Exclude large public assets from being traced into serverless function bundles
+    '*': ['public/**/*'],
+  },
   images: {
     qualities: [70, 75, 100],
     remotePatterns: [
