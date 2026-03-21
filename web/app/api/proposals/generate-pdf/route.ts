@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import chromium from '@sparticuz/chromium-min';
-import puppeteer from 'puppeteer-core';
 import fs from 'fs';
 import path from 'path';
 import { computePrice, formatCurrency } from '../../../../src/lib/pricing';
@@ -371,38 +369,14 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        const executablePath = await chromium.executablePath(
-          'https://github.com/Sparticuz/chromium/releases/download/v143.0.0/chromium-v143.0.0-pack.tar'
-        );
-        const browser = await puppeteer.launch({
-            args: chromium.args,
-            executablePath,
-            headless: true,
+        // PDF generation via headless browser is not supported on serverless.
+        // Return HTML instead — users can print-to-PDF from their browser (Ctrl+P).
+        return new NextResponse(html, {
+            headers: {
+                'Content-Type': 'text/html; charset=utf-8',
+                'Content-Disposition': `inline; filename="Proposal-${proposal.clientName}-${proposal.destination}.html"`
+            }
         });
-
-        const page = await browser.newPage();
-
-    await page.setContent(html, { waitUntil: 'networkidle0' });
-
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: {
-        top: '20px',
-        right: '20px',
-        bottom: '20px',
-        left: '20px'
-      }
-    });
-
-    await browser.close();
-
-    return new NextResponse(Buffer.from(pdfBuffer), {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="Proposal-${proposal.clientName}-${proposal.destination}.pdf"`
-      }
-    });
 
   } catch (error) {
     console.error('PDF generation error:', error);
