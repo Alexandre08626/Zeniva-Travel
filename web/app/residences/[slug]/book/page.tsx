@@ -7,6 +7,8 @@ import Image from "next/image";
 const VPS = "https://vmi3097009.contaboserver.net";
 
 function BookingForm() {
+  const MAINTENANCE_MODE = false; // Change to true to show maintenance message
+
   const params = useSearchParams();
   const router = useRouter();
 
@@ -18,6 +20,61 @@ function BookingForm() {
   const pricePerNight = parseFloat(params.get("price") || "0");
   const total = parseFloat(params.get("total") || "0");
   const image = params.get("image") || "";
+
+  // Show maintenance message if enabled
+  if (MAINTENANCE_MODE) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center px-4 py-12">
+        <div className="max-w-md w-full">
+          {/* Logo/Icon */}
+          <div className="text-center mb-8">
+            <div className="text-6xl mb-4">⚙️</div>
+            <h1 className="text-3xl font-black text-white mb-3">System Maintenance</h1>
+            <p className="text-slate-300 text-base leading-relaxed">
+              Our payment system is temporarily unavailable. We'll be back online shortly.
+            </p>
+          </div>
+
+          {/* Info box */}
+          <div className="bg-white/10 border border-white/20 rounded-2xl p-6 mb-6 backdrop-blur">
+            <div className="text-white font-bold mb-3">📋 Complete Your Booking</div>
+            <p className="text-slate-200 text-sm mb-4">
+              Email us with your booking details and we'll send you a secure payment link:
+            </p>
+            <a
+              href="mailto:info@zeniva.ca?subject=ZeniStay Booking"
+              className="inline-block w-full text-center py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition"
+            >
+              📧 Email info@zeniva.ca
+            </a>
+          </div>
+
+          {/* Property info if available */}
+          {property && (
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 mb-6">
+              <div className="text-slate-300 text-xs font-semibold uppercase tracking-wide mb-2">Your Booking</div>
+              <div className="text-white font-bold text-sm mb-2">🏡 {property}</div>
+              {checkin && checkout && (
+                <div className="text-slate-400 text-xs">
+                  {checkin} → {checkout} · {nights} night{nights > 1 ? "s" : ""}
+                </div>
+              )}
+              {total > 0 && (
+                <div className="text-white font-bold text-sm mt-3 pt-3 border-t border-white/10">
+                  Total: ${total.toLocaleString()}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Security message */}
+          <p className="text-center text-slate-400 text-xs">
+            🔒 Your payment information is safe with us
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
