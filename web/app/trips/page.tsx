@@ -84,14 +84,33 @@ export default function TripsPage() {
           <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 2 }}>MY TRIPS</div>
           <div style={{ fontSize: 20, fontWeight: 900, letterSpacing: "-0.02em", color: "#0B1B4D" }}>✈️ Journeys</div>
         </div>
-        <button onClick={() => router.push("/chat")} style={{
-          background: BLUE, border: "none", borderRadius: 14, padding: "10px 16px",
-          fontSize: 13, fontWeight: 800, color: "#fff", cursor: "pointer",
-          boxShadow: "0 4px 16px rgba(15,108,245,0.3)",
-          WebkitTapHighlightColor: "transparent",
-          display: "flex", alignItems: "center", gap: 6,
-        }}>
-          <span style={{ fontSize: 15 }}>+</span> New Trip
+        <button
+          onClick={() => {
+            if (trips.length >= 5) {
+              alert("You have reached the maximum of 5 trips. Please delete one to start a new trip.");
+              return;
+            }
+            router.push("/chat");
+          }}
+          disabled={trips.length >= 5}
+          style={{
+            background: trips.length >= 5 ? "#94a3b8" : BLUE,
+            border: "none",
+            borderRadius: 14,
+            padding: "10px 16px",
+            fontSize: 13,
+            fontWeight: 800,
+            color: "#fff",
+            cursor: trips.length >= 5 ? "not-allowed" : "pointer",
+            boxShadow: trips.length >= 5 ? "none" : "0 4px 16px rgba(15,108,245,0.3)",
+            WebkitTapHighlightColor: "transparent",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            opacity: trips.length >= 5 ? 0.6 : 1,
+          }}
+        >
+          <span style={{ fontSize: 15 }}>+</span> New Trip{trips.length >= 5 ? " (Max reached)" : ""}
         </button>
       </div>
 

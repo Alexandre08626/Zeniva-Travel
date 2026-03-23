@@ -68,10 +68,15 @@ export async function sendMessageToLina(
         .map((m: any) => ({ role: m.role === "lina" ? "assistant" : m.role, content: m.content || m.text || "" }))
     : [];
 
+  // Detect if this is agent mode (from /agent/lina path)
+  const isAgentMode = typeof window !== "undefined" && window.location.pathname.includes("/agent/lina");
+  const mode = isAgentMode ? "agent" : "client";
+
   const body: any = {
     prompt,           // /api/lina expects `prompt` not `message`
     sessionId,
     history,          // history items must have `content` not `text`
+    mode,             // "client" or "agent"
   };
 
   const url = "/api/lina";  // Always route through Next.js API → VPS /chat

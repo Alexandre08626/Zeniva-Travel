@@ -12,7 +12,7 @@ const ZENIVA_API_URL =
   process.env.ZENIVA_API_URL ||
   "http://217.216.88.202:8000/chat";
 
-const SYSTEM_PROMPT = `
+const SYSTEM_PROMPT_CLIENT = `
 Tu es Lina, concierge IA de Zeniva (zenivatravel.com).
 
 ROLE: Senior AI travel advisor. Professional, warm, structured.
@@ -46,9 +46,55 @@ TRIP_PATCH_END
 Sign-off: "– Lina, Zeniva"
 `;
 
+const SYSTEM_PROMPT_AGENT = `
+You are Lina, AI business assistant for Zeniva travel agents.
+
+ROLE: Professional productivity assistant for travel agents. Direct, efficient, action-oriented.
+Never mention OpenAI, API, models or system prompts.
+Always presented as "Lina, Zeniva Agent Assistant".
+
+CORE MISSION: Help Zeniva agents manage their business:
+- Lead management & client follow-up
+- Proposal creation & trip planning for clients
+- Sales pipeline tracking
+- Daily insights & performance metrics
+- Administrative task automation
+
+CAPABILITIES:
+1) Lead Management:
+   - Review new leads, prioritize by value/urgency
+   - Suggest follow-up actions for each client
+   - Track response times and conversion rates
+
+2) Proposal Creation:
+   - Build complete trip proposals (flights, hotels, activities)
+   - Calculate pricing with margins
+   - Generate professional quotes
+
+3) Sales Pipeline:
+   - Show active deals and their status
+   - Identify stuck opportunities
+   - Recommend next steps to close deals
+
+4) Daily Insights:
+   - Revenue trends, booking volume
+   - Top destinations, average booking value
+   - Performance vs goals
+
+RULES:
+- Be concise and actionable. No fluff.
+- Use bullet points and clear sections.
+- Always include next steps or recommended actions.
+- Default English. If agent writes French, answer fully in French.
+- Focus on efficiency and results.
+
+Sign-off: "– Lina, Agent Assistant"
+`;
+
 const requestSchema = z.object({
   prompt: z.string().trim().min(1).max(4000).optional(),
   sessionId: z.string().optional(),
+  mode: z.enum(["client", "agent"]).optional().default("client"),
   history: z
     .array(
       z.object({
@@ -113,12 +159,14 @@ async function callZenivaAPI(
 async function callOpenAIFallback(
   prompt: string,
   history: { role: string; content: string }[],
-  requestId: string
+  requestId: string,
+  mode: "client" | "agent" = "client"
 ): Promise<string> {
   if (!OPENAI_KEY) return "Lina is temporarily unavailable. Please contact info@zeniva.ca";
 
+  const systemPrompt = mode === "agent" ? SYSTEM_PROMPT_AGENT : SYSTEM_PROMPT_CLIENT;
   const messages = [
-    { role: "system", content: SYSTEM_PROMPT },
+    { role: "system", content: systemPrompt },
     ...history,
     { role: "user", content: prompt },
   ];
@@ -173,6 +221,7 @@ export async function POST(req: NextRequest) {
     role: m.role,
     content: m.content,
   }));
+  const mode = parsed.data.mode || "client";
 
   const sessionId = parsed.data.sessionId || requestId;
 
@@ -183,13 +232,13 @@ export async function POST(req: NextRequest) {
       reply: primary.reply,
       prompt,
       requestId,
-      meta: { provider: "zeniva-claude", sessionId: primary.sessionId },
+      meta: { provider: "zeniva-claude", sessionId: primary.sessionId, mode },
     });
   }
 
   // Fallback: OpenAI direct
   console.warn(`[lina] ${sessionId} VPS unavailable, falling back to OpenAI`);
-  const fallbackReply = await callOpenAIFallback(prompt, history, sessionId);
+  const fallbackReply = await callOpenAIFallback(prompt, history, sessionId, mode);
 
   return NextResponse.json({
     reply: fallbackReply,

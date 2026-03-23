@@ -140,6 +140,12 @@ export default function AgentChatClient() {
         const channelMap: Record<string, ChatMessage[]> = {};
 
         rows.forEach((row) => {
+          // Filter out email messages - only show chat messages
+          const source = String(row?.source || "").toLowerCase();
+          if (source.includes("email") || source.includes("notification")) {
+            return; // Skip email/notification messages
+          }
+
           const ids: string[] = Array.isArray(row?.channel_ids) ? row.channel_ids : [row?.channel_id || "hq"];
           const msg = buildMessageFromRow(row);
           ids.forEach((cid) => {

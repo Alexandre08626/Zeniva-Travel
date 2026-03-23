@@ -218,13 +218,19 @@ function ensureTrip(tripId) {
 }
 
 export function createTrip(initial = {}) {
+  // Enforce 5 trip limit - block creation if limit reached
+  if (state.trips.length >= 5) {
+    console.warn("Cannot create trip: maximum of 5 trips reached. Please delete one first.");
+    return null; // Return null instead of tripId when limit is reached
+  }
+
   const id = uid();
   const title = initial.title || "New Trip";
   const createdAt = new Date().toISOString();
   const trip = { id, title, status: initial.status || "Draft", lastMessage: "", updatedAt: createdAt };
   setState((s) => ({
     ...s,
-    trips: [trip, ...s.trips].slice(0, 5),
+    trips: [trip, ...s.trips],
     messages: { ...s.messages, [id]: [] },
     snapshots: {
       ...s.snapshots,
