@@ -60,7 +60,7 @@ export default function AgentChatClient() {
 
   // Track deleted message IDs to prevent them from coming back on reload
   // Initialize from localStorage SYNCHRONOUSLY to avoid race condition
-  const deletedMsgIds = useRef<Set<string>>(() => {
+  const getInitialDeletedIds = (): Set<string> => {
     if (typeof window === "undefined") return new Set();
     try {
       const stored = localStorage.getItem("agent_deleted_messages");
@@ -72,7 +72,8 @@ export default function AgentChatClient() {
       // ignore
     }
     return new Set();
-  }());
+  };
+  const deletedMsgIds = useRef<Set<string>>(getInitialDeletedIds());
 
   const nonDeletableChannels = useMemo(() => new Set(["hq"]), []);
 
