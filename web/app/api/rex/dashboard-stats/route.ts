@@ -70,91 +70,105 @@ export async function GET(req: NextRequest) {
     stats.leads_today = leadsToday || 0;
 
     // 4. Emails sent (from email_logs if exists, else 0)
-    const { count: emailsCount } = await supabase
-      .from("email_logs")
-      .select("*", { count: "exact", head: true })
-      .catch(() => ({ count: 0 }));
+    try {
+      const { count: emailsCount } = await supabase
+        .from("email_logs")
+        .select("*", { count: "exact", head: true });
+      stats.emails_sent = emailsCount || 0;
 
-    stats.emails_sent = emailsCount || 0;
-
-    const { count: emailsToday } = await supabase
-      .from("email_logs")
-      .select("*", { count: "exact", head: true })
-      .gte("created_at", todayISO)
-      .catch(() => ({ count: 0 }));
-
-    stats.emails_today = emailsToday || 0;
+      const { count: emailsToday } = await supabase
+        .from("email_logs")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", todayISO);
+      stats.emails_today = emailsToday || 0;
+    } catch {
+      stats.emails_sent = 0;
+      stats.emails_today = 0;
+    }
 
     // 5. SMS sent (from sms_logs if exists, else 0)
-    const { count: smsCount } = await supabase
-      .from("sms_logs")
-      .select("*", { count: "exact", head: true })
-      .catch(() => ({ count: 0 }));
+    try {
+      const { count: smsCount } = await supabase
+        .from("sms_logs")
+        .select("*", { count: "exact", head: true });
+      stats.sms_sent = smsCount || 0;
 
-    stats.sms_sent = smsCount || 0;
-
-    const { count: smsToday } = await supabase
-      .from("sms_logs")
-      .select("*", { count: "exact", head: true })
-      .gte("created_at", todayISO)
-      .catch(() => ({ count: 0 }));
-
-    stats.sms_today = smsToday || 0;
+      const { count: smsToday } = await supabase
+        .from("sms_logs")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", todayISO);
+      stats.sms_today = smsToday || 0;
+    } catch {
+      stats.sms_sent = 0;
+      stats.sms_today = 0;
+    }
 
     // 6. Commission Pipeline - SUM of all open proposals/bookings not yet confirmed
-    const { data: openBookings } = await supabase
-      .from("bookings")
-      .select("commission_amount")
-      .in("status", ["pending", "confirmed", "processing"])
-      .catch(() => ({ data: [] }));
+    try {
+      const { data: openBookings } = await supabase
+        .from("bookings")
+        .select("commission_amount")
+        .in("status", ["pending", "confirmed", "processing"]);
 
-    if (openBookings && openBookings.length > 0) {
-      stats.commission_pipeline = openBookings.reduce(
-        (sum: number, b: any) => sum + (Number(b.commission_amount) || 0),
-        0
-      );
+      if (openBookings && openBookings.length > 0) {
+        stats.commission_pipeline = openBookings.reduce(
+          (sum: number, b: any) => sum + (Number(b.commission_amount) || 0),
+          0
+        );
+      }
+    } catch {
+      // Table might not exist or query failed
     }
 
     // Also check commissions table for pending commissions
-    const { data: pendingCommissions } = await supabase
-      .from("commissions")
-      .select("amount")
-      .eq("status", "pending")
-      .catch(() => ({ data: [] }));
+    try {
+      const { data: pendingCommissions } = await supabase
+        .from("commissions")
+        .select("amount")
+        .eq("status", "pending");
 
-    if (pendingCommissions && pendingCommissions.length > 0) {
-      const commSum = pendingCommissions.reduce(
-        (sum: number, c: any) => sum + (Number(c.amount) || 0),
-        0
-      );
-      stats.commission_pipeline += commSum;
+      if (pendingCommissions && pendingCommissions.length > 0) {
+        const commSum = pendingCommissions.reduce(
+          (sum: number, c: any) => sum + (Number(c.amount) || 0),
+          0
+        );
+        stats.commission_pipeline += commSum;
+      }
+    } catch {
+      // Commissions table might not exist
     }
 
     // 7. Lina Chats - total messages
-    const { count: messagesCount } = await supabase
-      .from("agent_inbox_messages")
-      .select("*", { count: "exact", head: true })
-      .catch(() => ({ count: 0 }));
-
-    stats.total_messages = messagesCount || 0;
+    try {
+      const { count: messagesCount } = await supabase
+        .from("agent_inbox_messages")
+        .select("*", { count: "exact", head: true });
+      stats.total_messages = messagesCount || 0;
+    } catch {
+      stats.total_messages = 0;
+    }
 
     // 8. Open dossiers (trips/bookings in progress)
-    const { count: dossiers } = await supabase
-      .from("bookings")
-      .select("*", { count: "exact", head: true })
-      .in("status", ["pending", "confirmed", "processing"])
-      .catch(() => ({ count: 0 }));
-
-    stats.open_dossiers = dossiers || 0;
+    try {
+      const { count: dossiers } = await supabase
+        .from("bookings")
+        .select("*", { count: "exact", head: true })
+        .in("status", ["pending", "confirmed", "processing"]);
+      stats.open_dossiers = dossiers || 0;
+    } catch {
+      stats.open_dossiers = 0;
+    }
 
     // 9. Follow-ups due (bookings/leads with follow_up_date <= today)
-    const { count: followups } = await supabase
-      .from("bookings")
-      .select("*", { count: "exact", head: true })
-      .lte("follow_up_date", new Date().toISOString())
-      .catch(() => ({ count: 0 }));
-
-    stats.followups_due = followups || 0;
+    try {
+      const { count: followups } = await supabase
+        .from("bookings")
+        .select("*", { count: "exact", head: true })
+        .lte("follow_up_date", new Date().toISOString());
+      stats.followups_due = followups || 0;
+    } catch {
+      stats.followups_due = 0;
+    }
 
     // Log successful stats fetch
     await supabase.from("rex_maintenance_log").insert({
