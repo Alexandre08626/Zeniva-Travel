@@ -77,10 +77,38 @@ export async function POST(req: NextRequest) {
       console.log(`[Zeniva Webhook] Booking auto-created: ${bookingId}`);
     }
 
+    // ── AUTO-GENERATE INVOICE ─────────────────────────────────────────────
+    const generatedInvoiceId = invoice_id || `INV-${payment_id}`;
+    const dest = metadata.destination || description || "Zeniva";
+    const { error: invoiceError } = await supabase.from("zenipay_invoices").upsert({
+      id: generatedInvoiceId,
+      payment_id,
+      booking_id: bookingId,
+      customer_name: customer_name || "Client",
+      customer_email: customer_email || "",
+      items: JSON.stringify([{ description: dest, qty: 1, unit_price: amount, total: amount }]),
+      subtotal: amount,
+      tax: 0,
+      total: amount,
+      currency: "USD",
+      status: "paid",
+      paid_at: paid_at || new Date().toISOString(),
+      notes: `ZeniPay: ${payment_id} | Finix: ${transaction_id}`,
+      created_at: paid_at || new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "id" });
+
+    if (invoiceError) {
+      console.error("[Zeniva Webhook] Invoice upsert error:", invoiceError);
+    } else {
+      console.log(`[Zeniva Webhook] Invoice auto-created: ${generatedInvoiceId}`);
+    }
+
     return NextResponse.json({
       received: true,
       booking_id: bookingId,
-      invoice_url,
+      invoice_id: generatedInvoiceId,
+      invoice_url: invoice_url || `https://www.zenivatravel.com/agent/invoices/${generatedInvoiceId}`,
     });
 
   } catch (err) {
