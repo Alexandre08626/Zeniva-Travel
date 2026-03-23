@@ -145,6 +145,7 @@ export default function Header({
             <Link href="/partners/resorts" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="ZeniHotel" className="inline" /></Link>
             <Link href="/collections/group" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="ZeniGroup" className="inline" /></Link>
             <Link href="/zenistay" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="ZeniStays" className="inline" /></Link>
+            <Link href="/agents" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="Agents" className="inline" /></Link>
             {loggedIn && (
               <>
                 <Link href="/documents" className="text-sm text-slate-900 font-semibold hover:underline"><AutoTranslate text="Dashboard" className="inline" /></Link>
@@ -286,6 +287,7 @@ export default function Header({
                   { href: "/search/cars", icon: "🚗", label: "ZeniCar" },
                   { href: "/cruises", icon: "🚢", label: "ZeniCruise" },
                   { href: "/collections/group", icon: "👥", label: "ZeniGroup" },
+                  { href: "/agents", icon: "💼", label: "Become an Agent" },
                   { href: "/destinations", icon: "🌍", label: "Destinations" },
                   { href: "/trips", icon: "✈️", label: "My Trips" },
                 ].map(item => (
