@@ -89,7 +89,7 @@ export default function BookingConfirmation({ booking, businessInfo }: { booking
           <Image src="/branding/logo.png" alt="Company logo" width={72} height={72} className="rounded-md" />
           <div>
             <h1 className="text-2xl font-bold">Booking confirmation</h1>
-            <div className="text-sm text-slate-600">{businessInfo?.name || process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva Travel'}</div>
+            <div className="text-sm text-slate-600">{businessInfo?.name || process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva'}</div>
           </div>
         </div>
 
@@ -191,7 +191,7 @@ export default function BookingConfirmation({ booking, businessInfo }: { booking
       <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <h4 className="font-bold">Business info</h4>
-          <div>{businessInfo?.name || process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva Travel'}</div>
+          <div>{businessInfo?.name || process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva'}</div>
           <div>{businessInfo?.address || process.env.NEXT_PUBLIC_BUSINESS_ADDRESS || 'Montreal, QC'}</div>
           <div className="text-sm">Contact: {businessInfo?.support_email || process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'contact@zenivatravel.com'}</div>
           <div className="text-sm">Phone: {businessInfo?.support_phone || process.env.NEXT_PUBLIC_SUPPORT_PHONE || ''}</div>

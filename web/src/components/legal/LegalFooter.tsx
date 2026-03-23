@@ -19,7 +19,7 @@ export default function LegalFooter() {
           <CookieSettingsLink className="legal-link-button" />
         </div>
         <div className="legal-footer-note">
-          Zeniva Travel is operated by Zeniva LLC. For privacy questions, email
+          Zeniva is operated by Zeniva LLC. For privacy questions, email
           privacy@zeniva.ca.
         </div>
       </div>

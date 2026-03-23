@@ -255,14 +255,14 @@ export default function TravelSearchWidget() {
     e?.preventDefault();
     const params = new URLSearchParams();
     if (yachtCountry) params.set("country", yachtCountry);
-    router.push(`/yachts${params.toString() ? `?${params.toString()}` : ""}`);
+    router.push(`/zeniyacht${params.toString() ? `?${params.toString()}` : ""}`);
   };
 
   const searchResidences = (e?: React.FormEvent) => {
     e?.preventDefault();
     const params = new URLSearchParams();
     if (residenceCountry) params.set("country", residenceCountry);
-    router.push(`/residences${params.toString() ? `?${params.toString()}` : ""}`);
+    router.push(`/zenistay${params.toString() ? `?${params.toString()}` : ""}`);
   };
 
   const askLina = (prompt?: string) => {

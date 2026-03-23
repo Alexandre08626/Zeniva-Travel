@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "AI Trip Proposals",
   description:
-    "Review and finalize your AI travel proposals from Lina AI and Zeniva Travel’s concierge team.",
+    "Review and finalize your AI travel proposals from Lina AI and Zeniva’s concierge team.",
   alternates: {
     canonical: "https://zenivatravel.com/proposals",
     languages: {
@@ -14,11 +14,11 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Zeniva Travel AI | Trip Proposals",
+    title: "Zeniva AI | Trip Proposals",
     description:
       "AI travel proposals created by Lina AI and validated by human concierge experts.",
     url: "https://zenivatravel.com/proposals",
-    siteName: "Zeniva Travel",
+    siteName: "Zeniva",
     type: "website",
     images: [
       {
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zeniva Travel AI | Trip Proposals",
+    title: "Zeniva AI | Trip Proposals",
     description:
       "AI travel proposals created by Lina AI and validated by human concierge experts.",
     images: ["/branding/lina-avatar.png"],

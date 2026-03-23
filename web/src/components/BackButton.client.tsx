@@ -13,7 +13,7 @@ export default function BackButton() {
   }
 
   // Pages with a tall hero (Lina face) — push button lower
-  const lowPages = new Set(["/packages", "/destinations", "/yachts", "/residences"]);
+  const lowPages = new Set(["/packages", "/destinations", "/zeniyacht", "/yachts", "/zenistay", "/residences"]);
   const topClass = lowPages.has(pathname) || pathname.startsWith("/destinations/") ? "top-20" : "top-4";
 
   return (

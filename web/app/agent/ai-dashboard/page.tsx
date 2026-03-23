@@ -477,7 +477,7 @@ export default function AgentAIDashboard() {
 
         {/* Footer */}
         <div className="text-center text-xs text-slate-400 py-4">
-          Zeniva Travel Agent Command Center · Powered by Lina IA
+          Zeniva Agent Command Center · Powered by Lina IA
         </div>
       </div>
     </main>

@@ -47,7 +47,7 @@ export default function WalletSettings() {
         {activeTab === "company" && (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
             <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
-              <h3 style={{ margin: "0 0 6px", fontWeight: 800 }}>🏛️ Zeniva Travel Bank Account</h3>
+              <h3 style={{ margin: "0 0 6px", fontWeight: 800 }}>🏛️ Zeniva Bank Account</h3>
               <p style={{ margin: "0 0 20px", color: "#64748b", fontSize: 13 }}>ZeniPay will deposit your net revenue here every Friday.</p>
               {saved ? (
                 <div style={{ background: "#f0fdf4", borderRadius: 12, padding: 20, textAlign: "center" }}>
@@ -58,7 +58,7 @@ export default function WalletSettings() {
               ) : (
                 <div style={{ display: "grid", gap: 12 }}>
                   {[
-                    { label: "Account Holder Name", key: "holder", ph: "Zeniva Travel LLC" },
+                    { label: "Account Holder Name", key: "holder", ph: "Zeniva LLC" },
                     { label: "Bank Name", key: "bank", ph: "Chase, Bank of America, Wells Fargo…" },
                     { label: "Routing Number", key: "routing", ph: "021000021", max: 9 },
                     { label: "Account Number", key: "account", ph: "••••••••••" },

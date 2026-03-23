@@ -1037,7 +1037,7 @@ export default function AIAgentsPageClient() {
       features: ["Facebook scan", "GPT scoring 0-10", "Auto-pipeline", "Outreach AI", "Destination detect", "Budget signals"],
       scenarios: [
         { icon: "🔍", title: "Facebook post detected", desc: "Someone posts 'Looking for a travel agent for a May cruise for 8 people' — Marco scores it 9/10 and auto-saves to pipeline with destination + budget hint." },
-        { icon: "✉️", title: "Personalized outreach generated", desc: "Marco writes: 'Hi! I saw you're planning a cruise in May — Lina at Zeniva Travel can plan the entire thing for free! zenivatravel.com/chat?...'" },
+        { icon: "✉️", title: "Personalized outreach generated", desc: "Marco writes: 'Hi! I saw you're planning a cruise in May — Lina at Zeniva can plan the entire thing for free! zenivatravel.com/chat?...'" },
         { icon: "🧠", title: "AI qualification engine", desc: "GPT-4o-mini analyzes intent, urgency, budget signals and destination — eliminates spam and irrelevant posts automatically." },
         { icon: "📊", title: "Auto pipeline save", desc: "Hot leads (score ≥ 6) are saved instantly to /agent/leads with source URL, destination, deal value estimate and outreach message." },
       ],
@@ -2139,7 +2139,7 @@ export default function AIAgentsPageClient() {
                       <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3 bg-gray-50">
                         <div className="flex items-center gap-3">
                           <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${video.account === "zeniva" ? "bg-blue-100 text-blue-600 border-blue-200" : "bg-pink-100 text-pink-600 border-pink-200"}`}>
-                            {video.account === "zeniva" ? "🌍 Zeniva Travel" : "👩 Lina"}
+                            {video.account === "zeniva" ? "🌍 Zeniva" : "👩 Lina"}
                           </span>
                           <span className="text-xs text-gray-400">{video.created}</span>
                         </div>
@@ -2499,7 +2499,7 @@ export default function AIAgentsPageClient() {
 
         {/* ─── Footer ─────────────────────────────────────────────────────────── */}
         <div className="text-center text-xs text-slate-700 py-4">
-          Zeniva Travel AI Command Center · {activeAgents}/{agents.length} agents running · Powered by OpenAI + n8n + Supabase
+          Zeniva AI Command Center · {activeAgents}/{agents.length} agents running · Powered by OpenAI + n8n + Supabase
         </div>
       </div>
 

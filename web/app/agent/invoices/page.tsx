@@ -256,7 +256,7 @@ export default function InvoicesPage() {
           <span className="text-2xl">🧾</span>
           <div>
             <h1 className="text-xl font-bold text-slate-800">Invoices & Accounting</h1>
-            <p className="text-xs text-slate-500">Zeniva Travel — Financial Center</p>
+            <p className="text-xs text-slate-500">Zeniva — Financial Center</p>
           </div>
         </div>
         <div className="flex gap-2">

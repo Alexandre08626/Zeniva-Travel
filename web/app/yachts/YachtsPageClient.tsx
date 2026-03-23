@@ -237,7 +237,7 @@ export default function YachtsPageClient() {
   };
 
     return (
-    <AppDarkPageWrapper title="Yacht Charters" emoji="🛥️" subtitle="YCN Premium Fleet · Miami & Caribbean">
+    <AppDarkPageWrapper title="ZeniYacht" emoji="🛥️" subtitle="YCN Premium Fleet · Miami & Caribbean">
     <main className="min-h-screen bg-slate-50">
       <div className="mx-auto w-full px-4 sm:px-6 pt-5">
         <Header isLoggedIn={isLoggedIn} userEmail={userEmail} />
@@ -251,7 +251,7 @@ export default function YachtsPageClient() {
             <div className="text-white">
               <p className="text-xs font-bold uppercase tracking-[0.25em] text-white/70 mb-2">⛵ Zeniva Yacht Collection</p>
               <h1 className="text-4xl sm:text-5xl font-black leading-tight">
-                Luxury Yacht<br className="hidden sm:block" /> Charters
+                ZeniYacht
               </h1>
               <p className="text-white/80 mt-3 text-base max-w-xl">
                 <AutoTranslate text="Private yacht charters curated by YCN Miami — from intimate catamarans to mega-yachts. Expert brokers, instant quotes." className="inline" />
@@ -329,8 +329,8 @@ export default function YachtsPageClient() {
           <div className="flex flex-wrap gap-2 mt-4">
             {[
               { label: "Hotels & Resorts", href: "/partners/resorts" },
-              { label: "⛵ Yachts", href: "/yachts", active: true },
-              { label: "🏠 Short-term Rentals", href: "/residences" },
+              { label: "⛵ Yachts", href: "/zeniyacht", active: true },
+              { label: "🏠 Short-term Rentals", href: "/zenistay" },
               { label: "✈️ ZeniFlights", href: "/" },
             ].map(({ label, href, active }) => (
               <Link key={href} href={href}

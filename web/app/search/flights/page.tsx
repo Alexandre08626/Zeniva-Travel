@@ -440,7 +440,7 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
       <div style={{ background: "linear-gradient(135deg, #0B1B4D 0%, #0F6CF5 100%)" }} className="px-4 py-6 sm:py-10">
         <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="text-white">
-            <p className="text-xs font-bold uppercase tracking-widest text-blue-200 mb-1">Zeniva Travel</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-blue-200 mb-1">Zeniva</p>
             <div className="flex items-center gap-3 mb-1">
               <span className="text-3xl sm:text-4xl">✈️</span>
               <h1 className="text-3xl sm:text-4xl font-black">ZeniFlights</h1>

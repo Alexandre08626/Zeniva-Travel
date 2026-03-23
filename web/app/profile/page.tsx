@@ -139,8 +139,8 @@ export default function ProfilePage() {
 
           {/* Explore */}
           <Section title="Explore">
-            <Row icon="🛥️" label="Yacht Charters" sub="25+ luxury boats · Miami" onClick={() => router.push("/yachts")} />
-            <Row icon="🏡" label="Villas & Rentals" sub="Premium short-term stays" onClick={() => router.push("/residences")} last />
+            <Row icon="🛥️" label="Yacht Charters" sub="25+ luxury boats · Miami" onClick={() => router.push("/zeniyacht")} />
+            <Row icon="🏡" label="Villas & Rentals" sub="Premium short-term stays" onClick={() => router.push("/zenistay")} last />
           </Section>
 
           {/* Agent only */}
@@ -163,7 +163,7 @@ export default function ProfilePage() {
             ) : (
               <>
                 <Row icon="🔑" label="Sign In" sub="Access your trips & proposals" onClick={() => router.push("/login")} gold />
-                <Row icon="✨" label="Create Account" sub="Join Zeniva Travel" onClick={() => router.push("/register")} last />
+                <Row icon="✨" label="Create Account" sub="Join Zeniva" onClick={() => router.push("/register")} last />
               </>
             )}
           </Section>

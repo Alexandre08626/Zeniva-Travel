@@ -1,7 +1,7 @@
 import { YachtComponent, Pricing } from "../types";
 
 function price(total: number, currency = "USD"): Pricing {
-  // Total net/sell of the yacht. Commission for agent will be applied only on 5% (Zeniva Travel share).
+  // Total net/sell of the yacht. Commission for agent will be applied only on 5% (Zeniva share).
   const net = total;
   const sell = Math.round(total * 1.08); // modest markup for example
   const travelShareSell = sell * 0.05;

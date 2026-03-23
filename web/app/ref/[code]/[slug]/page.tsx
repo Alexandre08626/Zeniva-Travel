@@ -87,7 +87,7 @@ export default function ReferralFormPage() {
     <main className="min-h-screen" style={{ backgroundColor: "#F7F7FB" }}>
       <div className="mx-auto max-w-4xl px-5 py-10">
         <header className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Zeniva Travel</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Zeniva</p>
           <h1 className="mt-2 text-3xl font-black" style={{ color: TITLE_TEXT }}>{formTitle}</h1>
           <p className="mt-2 text-sm" style={{ color: MUTED_TEXT }}>
             Share your trip details. Our concierge team will reach out within 1 business day.

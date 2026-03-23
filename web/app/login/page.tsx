@@ -200,7 +200,7 @@ function LoginContent() {
         </div>
 
         <div style={{ textAlign: "center", marginTop: 24, fontSize: 12, color: "rgba(255,255,255,0.3)" }}>
-          🔒 Secure · Zeniva Travel © 2025 · Delaware, USA
+          🔒 Secure · Zeniva © 2025 · Delaware, USA
         </div>
       </div>
     </div>

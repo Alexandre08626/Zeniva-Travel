@@ -340,7 +340,7 @@ function CruisesContent() {
             ← Back to home
           </Link>
           <div className="mb-4">
-            <p className="text-blue-200 text-xs font-bold uppercase tracking-widest mb-1">Zeniva Travel</p>
+            <p className="text-blue-200 text-xs font-bold uppercase tracking-widest mb-1">Zeniva</p>
             <div className="flex items-center gap-3">
               <span className="text-3xl sm:text-4xl">🚢</span>
               <h1 className="text-3xl sm:text-4xl font-black">ZeniCruise</h1>

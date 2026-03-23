@@ -8,7 +8,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const accountName = body.name || "Zeniva Travel LLC";
+    const accountName = body.name || "Zeniva LLC";
 
     // Step 1: Create business customer
     const custResp = await fetch(`${UNIT_API}/customers`, {

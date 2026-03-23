@@ -53,7 +53,7 @@ function MeetLinaForm() {
         {/* Logo + badge */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-400/30 rounded-full px-4 py-1.5 text-blue-200 text-xs font-bold mb-6">
-            ✈️ Zeniva Travel
+            ✈️ Zeniva
           </div>
 
           {/* Lina avatar */}

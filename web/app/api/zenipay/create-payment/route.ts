@@ -14,8 +14,8 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         amount,
         currency,
-        description: description || "Zeniva Travel",
-        merchant: "Zeniva Travel",
+        description: description || "Zeniva",
+        merchant: "Zeniva",
         api_key: ZENIPAY_API_KEY,
       }),
     });
@@ -36,8 +36,8 @@ export async function POST(req: NextRequest) {
   const paymentId = `LINK-${Date.now().toString(36).toUpperCase()}`;
   const params = new URLSearchParams({
     amount: String(amount), currency,
-    desc: description || "Zeniva Travel",
-    m: "Zeniva Travel",
+    desc: description || "Zeniva",
+    m: "Zeniva",
   });
   const url = `https://zenipay.ca/pay/${paymentId}?${params}`;
   return NextResponse.json({

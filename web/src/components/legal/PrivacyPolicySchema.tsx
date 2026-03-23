@@ -33,7 +33,7 @@ export default function PrivacyPolicySchema({
       },
       {
         "@type": "LegalService",
-        name: "Zeniva Travel Privacy Program",
+        name: "Zeniva Privacy Program",
         serviceType: "Privacy compliance and data protection",
         provider: {
           "@type": "Organization",

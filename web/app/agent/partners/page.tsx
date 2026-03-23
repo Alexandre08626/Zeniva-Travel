@@ -145,7 +145,7 @@ export default function PartnersPage() {
         <div>
           <h3 className="text-2xl font-black text-white">🌟 Become a Partner</h3>
           <p className="text-white/70 mt-1 max-w-md">
-            Are you a hotel, airline, or experience provider? Join the Zeniva Travel network and reach premium clients worldwide.
+            Are you a hotel, airline, or experience provider? Join the Zeniva network and reach premium clients worldwide.
           </p>
         </div>
         <button

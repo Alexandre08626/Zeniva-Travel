@@ -83,7 +83,7 @@ export default function InvoiceViewPage() {
             items: [
               { description: "ZeniStay AIKA — 7 nights (March 21–28, 2026)", qty: 1, unitPrice: 7677 },
             ],
-            notes: "Thank you for choosing Zeniva Travel. We look forward to making your trip unforgettable.",
+            notes: "Thank you for choosing Zeniva. We look forward to making your trip unforgettable.",
             due_date: new Date(Date.now() + 7 * 86400000).toISOString(),
             created_at: new Date().toISOString(),
           };
@@ -201,8 +201,8 @@ export default function InvoiceViewPage() {
         {/* Header */}
         <div style={{ background: `linear-gradient(135deg, ${NAVY}, #1a2f6e)`, padding: "40px 48px", color: "white", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
-            <div style={{ fontSize: 28, fontWeight: 900, letterSpacing: "-0.5px" }}>✈️ Zeniva Travel</div>
-            <div style={{ fontSize: 12, opacity: 0.6, marginTop: 4 }}>Zeniva Travel LLC · Delaware, USA</div>
+            <div style={{ fontSize: 28, fontWeight: 900, letterSpacing: "-0.5px" }}>✈️ Zeniva</div>
+            <div style={{ fontSize: 12, opacity: 0.6, marginTop: 4 }}>Zeniva LLC · Delaware, USA</div>
             <div style={{ fontSize: 12, opacity: 0.6 }}>info@zeniva.ca · +1 (332) 290-0021</div>
             <div style={{ fontSize: 12, opacity: 0.6 }}>zenivatravel.com</div>
           </div>
@@ -362,14 +362,14 @@ export default function InvoiceViewPage() {
             <textarea value={editForm.notes || ""} onChange={e => setEditForm(p => ({...p, notes: e.target.value}))} rows={3}
               style={{ width: "100%", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px", fontSize: 13, boxSizing: "border-box" as const, resize: "vertical" as const }} />
           ) : (
-            <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>{editForm.notes || "Thank you for choosing Zeniva Travel. We look forward to making your trip unforgettable."}</p>
+            <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>{editForm.notes || "Thank you for choosing Zeniva. We look forward to making your trip unforgettable."}</p>
           )}
         </div>
 
         {/* Footer */}
         <div style={{ background: LIGHT, padding: "20px 48px", borderTop: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ fontSize: 11, color: "#94a3b8" }}>
-            Zeniva Travel LLC · Delaware, USA · EIN: [your EIN]<br />
+            Zeniva LLC · Delaware, USA · EIN: [your EIN]<br />
             info@zeniva.ca · zenivatravel.com · +1 (332) 290-0021
           </div>
           <div style={{ fontSize: 11, color: "#94a3b8", textAlign: "right" as const }}>

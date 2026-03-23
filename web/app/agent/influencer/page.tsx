@@ -80,12 +80,12 @@ export default function InfluencerPage() {
           .filter((v: any) => v.youtube_video_id && (v.status === "published" || v.status === "approved"))
           .map((v: any) => ({
             id: v.id,
-            title: v.title || "Zeniva Travel Video",
+            title: v.title || "Zeniva Video",
             description: v.description || "Share this video with your audience to generate travel leads for your referral link.",
             thumbnail: `https://img.youtube.com/vi/${v.youtube_video_id}/maxresdefault.jpg`,
             youtubeId: v.youtube_video_id,
             youtubeUrl: v.youtube_url || `https://www.youtube.com/watch?v=${v.youtube_video_id}`,
-            tags: ["Zeniva Travel", "Luxury Travel", "AI Travel"],
+            tags: ["Zeniva", "Luxury Travel", "AI Travel"],
             approved: true,
             approvedDate: (v.actioned_at || v.generated_at || "").split("T")[0],
             category: "Travel",
@@ -312,7 +312,7 @@ export default function InfluencerPage() {
                         </button>
                         {/* WhatsApp */}
                         <a
-                          href={`https://wa.me/?text=${encodeURIComponent(`🌴 Zeniva Travel te planifie ton voyage de rêve! Regarde ça: ${videoShareLink(video.id)}`)}`}
+                          href={`https://wa.me/?text=${encodeURIComponent(`🌴 Zeniva te planifie ton voyage de rêve! Regarde ça: ${videoShareLink(video.id)}`)}`}
                           target="_blank"
                           rel="noreferrer"
                           title="Share on WhatsApp"
@@ -331,8 +331,8 @@ export default function InfluencerPage() {
                       <div className="mt-2 space-y-2">
                         {[
                           { platform: "Instagram/TikTok", text: `🌴 Dreaming of a luxury trip? Lina AI handles everything — hotels, flights, VIP experiences. Fill out the form and get your proposal in 24h! ✈️\n\n${videoShareLink(video.id)}\n\n#travel #luxurytravel #zenivatravel #aitravel` },
-                          { platform: "Facebook/LinkedIn", text: `🚀 I work with Zeniva Travel — an AI travel agency that plans personalized luxury trips. Fill out their form and get a custom proposal in 24h. 100% free, no commitment.\n\n${videoShareLink(video.id)}` },
-                          { platform: "WhatsApp/SMS", text: `Hey! Wanted to share this with you — Zeniva Travel creates dream trips with Lina AI. Fill out the form, it's free and you get a proposal in 24h: ${videoShareLink(video.id)}` },
+                          { platform: "Facebook/LinkedIn", text: `🚀 I work with Zeniva — an AI travel agency that plans personalized luxury trips. Fill out their form and get a custom proposal in 24h. 100% free, no commitment.\n\n${videoShareLink(video.id)}` },
+                          { platform: "WhatsApp/SMS", text: `Hey! Wanted to share this with you — Zeniva creates dream trips with Lina AI. Fill out the form, it's free and you get a proposal in 24h: ${videoShareLink(video.id)}` },
                         ].map(c => (
                           <div key={c.platform} className="rounded-lg border border-white/5 bg-white/5 p-2">
                             <div className="text-[10px] font-bold text-slate-500">{c.platform}</div>
@@ -542,9 +542,9 @@ export default function InfluencerPage() {
               <div className="space-y-3">
                 {[
                   "🌴 Planning a luxury trip? Lina AI handles everything — flights, hotels, VIP experiences. Link in bio! ✈️",
-                  "🔥 Discovered Zeniva Travel — an AI travel agency that creates 100% personalized trips. Fill out the form and get your free proposal in 24h!",
-                  "✈️ Dream vacation = Zeniva Travel. Lina AI analyzes your preferences and finds the best options. Check the link in my bio to get started!",
-                  "🏝️ No more cookie-cutter vacations! Zeniva Travel creates unique experiences with Lina AI — Cancún, Maldives, Paris, anywhere. Your dream trip is waiting!",
+                  "🔥 Discovered Zeniva — an AI travel agency that creates 100% personalized trips. Fill out the form and get your free proposal in 24h!",
+                  "✈️ Dream vacation = Zeniva. Lina AI analyzes your preferences and finds the best options. Check the link in my bio to get started!",
+                  "🏝️ No more cookie-cutter vacations! Zeniva creates unique experiences with Lina AI — Cancún, Maldives, Paris, anywhere. Your dream trip is waiting!",
                 ].map((caption, i) => (
                   <div key={i} className="rounded-xl border border-white/10 bg-white/5 p-3">
                     <p className="text-sm text-slate-300">{caption}</p>
@@ -587,7 +587,7 @@ export default function InfluencerPage() {
                   <li>✅ Share approved videos with your unique link</li>
                   <li>✅ Copy and adapt the approved captions</li>
                   <li>✅ Use the official logo and brand colors</li>
-                  <li>✅ Talk about your experience with Zeniva Travel</li>
+                  <li>✅ Talk about your experience with Zeniva</li>
                   <li>✅ Post stories and reels with the link in bio</li>
                 </ul>
               </div>

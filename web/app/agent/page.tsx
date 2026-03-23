@@ -326,7 +326,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
           {/* TOP HEADER */}
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Zeniva Travel · Agent Portal</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Zeniva · Agent Portal</p>
               <h1 className="text-4xl font-black mt-1" style={{ color: PREMIUM_BLUE }}>
                 Good morning{user?.name ? `, ${user.name.split(" ")[0]}` : ""} 👋
               </h1>

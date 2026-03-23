@@ -7,8 +7,8 @@ export default function LegalHeader() {
     <header className="legal-header">
       <div className="legal-container legal-header-inner">
         <Link href="/" className="legal-logo">
-          <Image src="/branding/logo.png" alt="Zeniva Travel" width={44} height={44} />
-          <span>Zeniva Travel</span>
+          <Image src="/branding/logo.png" alt="Zeniva" width={44} height={44} />
+          <span>Zeniva</span>
         </Link>
         <Link href="/" className="legal-back">
           Back to Home

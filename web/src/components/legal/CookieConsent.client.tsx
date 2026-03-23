@@ -205,7 +205,7 @@ export default function CookieConsent() {
   }, [closeModal, modalOpen]);
 
   const bannerLabel = useMemo(() => {
-    return "Zeniva Travel uses cookies for essential, analytics, and marketing purposes.";
+    return "Zeniva uses cookies for essential, analytics, and marketing purposes.";
   }, []);
 
   if (!bannerOpen && !modalOpen) return null;

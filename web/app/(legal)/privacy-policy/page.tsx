@@ -13,9 +13,9 @@ import {
 } from "../../../src/components/legal/legal-constants";
 
 export const metadata = createLegalMetadata({
-  title: "Privacy Policy | Zeniva Travel",
+  title: "Privacy Policy | Zeniva",
   description:
-    "How Zeniva Travel collects, uses and protects personal information across our website, Lina AI concierge, WhatsApp, Instagram and Messenger.",
+    "How Zeniva collects, uses and protects personal information across our website, Lina AI concierge, WhatsApp, Instagram and Messenger.",
   path: "/privacy-policy",
 });
 
@@ -54,7 +54,7 @@ export default function PrivacyPolicyPage() {
         <span className="legal-badge">Policy</span>
         <h1 className="legal-title">Privacy Policy</h1>
         <p className="legal-subtitle">
-          This Privacy Policy explains how Zeniva Travel collects, uses, and protects
+          This Privacy Policy explains how Zeniva collects, uses, and protects
           personal information across our website, Lina AI concierge, and messaging
           platforms.
         </p>

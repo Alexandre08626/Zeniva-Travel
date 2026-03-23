@@ -10,7 +10,7 @@ type Message = {
 };
 
 const COMPANY_INFO = {
-  name: process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva Travel',
+  name: process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva',
   address: process.env.NEXT_PUBLIC_BUSINESS_ADDRESS || '780 Lynnhaven Parkway, Virginia Beach, 23452',
   headquarters: process.env.NEXT_PUBLIC_BUSINESS_HEADQUARTERS || '8 The Green, Dover, Delaware',
   phone: process.env.NEXT_PUBLIC_SUPPORT_PHONE || '(332) 290-0021',
@@ -198,7 +198,7 @@ export default function HelpCenterButton() {
       {
         id: 1,
         type: 'bot',
-        content: "Hello! Welcome to Zeniva Travel Customer Support. I'm here to help you with any questions, issues, or assistance you need. How can I help you today?"
+        content: "Hello! Welcome to Zeniva Customer Support. I'm here to help you with any questions, issues, or assistance you need. How can I help you today?"
       }
     ]);
     setShowForm(false);
@@ -269,7 +269,7 @@ export default function HelpCenterButton() {
             <div style={{ padding: 20, height: 400, overflowY: "auto", display: "flex", flexDirection: "column" }}>
               {/* Company Info - Always Visible */}
               <div style={{ background: "#f0f9ff", border: "1px solid #e0f2fe", borderRadius: 8, padding: 15, marginBottom: 20 }}>
-                <h4 style={{ margin: 0, marginBottom: 8, fontSize: 16, fontWeight: 600, color: "#1e40af" }}>Contact Zeniva Travel</h4>
+                <h4 style={{ margin: 0, marginBottom: 8, fontSize: 16, fontWeight: 600, color: "#1e40af" }}>Contact Zeniva</h4>
                 <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.5 }}>
                   <p style={{ margin: 0, marginBottom: 4 }}><strong>Address:</strong> {COMPANY_INFO.address}</p>
                   <p style={{ margin: 0, marginBottom: 4 }}><strong>Headquarters:</strong> {COMPANY_INFO.headquarters}</p>

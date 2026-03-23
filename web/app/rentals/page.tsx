@@ -78,7 +78,7 @@ function RentalsContent() {
           <div className="flex items-center gap-3 mb-2">
             <span className="text-3xl">🏠</span>
             <div>
-              <p className="text-blue-200 text-xs font-bold uppercase tracking-widest">Zeniva Travel</p>
+              <p className="text-blue-200 text-xs font-bold uppercase tracking-widest">Zeniva</p>
               <h1 className="text-3xl sm:text-4xl font-black">ZeniStay</h1>
             </div>
           </div>
@@ -150,7 +150,7 @@ function RentalsContent() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-black text-slate-800">{villas.length} properties in <span className="capitalize">{destination}</span></h2>
-                <p className="text-xs text-slate-400 mt-0.5">All bookings handled exclusively by Zeniva Travel</p>
+                <p className="text-xs text-slate-400 mt-0.5">All bookings handled exclusively by Zeniva</p>
               </div>
               <span className="hidden sm:block text-xs bg-blue-50 text-blue-700 font-bold px-3 py-1.5 rounded-full border border-blue-100">🔒 Zeniva-exclusive</span>
             </div>

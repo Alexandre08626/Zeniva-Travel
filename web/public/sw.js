@@ -1,4 +1,4 @@
-// Zeniva Travel Service Worker v3.1 — PWA + Push Notifications
+// Zeniva Service Worker v3.1 — PWA + Push Notifications
 const CACHE_NAME = "zeniva-v4";
 const STATIC_ASSETS = ["/offline", "/branding/lina-avatar.png", "/branding/lina-hero.png", "/icons/icon-192x192.png"];
 
@@ -26,6 +26,7 @@ self.addEventListener("fetch", (e) => {
     url.pathname.startsWith("/_next/static/") ||
     url.pathname.startsWith("/icons/") ||
     url.pathname.startsWith("/branding/") ||
+    url.pathname.startsWith("/zeniyacht/") ||
     url.pathname.startsWith("/yachts/") ||
     url.pathname.startsWith("/residence-photos/")
   ) {
@@ -51,7 +52,7 @@ self.addEventListener("fetch", (e) => {
 self.addEventListener("push", (event) => {
   if (!event.data) return;
   let data = {};
-  try { data = event.data.json(); } catch { data = { title: "Zeniva Travel", body: event.data.text() }; }
+  try { data = event.data.json(); } catch { data = { title: "Zeniva", body: event.data.text() }; }
 
   const options = {
     body: data.body || "You have a new message",
@@ -71,7 +72,7 @@ self.addEventListener("push", (event) => {
 
   event.waitUntil(
     Promise.all([
-      self.registration.showNotification(data.title || "✈️ Zeniva Travel", options),
+      self.registration.showNotification(data.title || "✈️ Zeniva", options),
       // Increment badge count on app icon
       (async () => {
         try {

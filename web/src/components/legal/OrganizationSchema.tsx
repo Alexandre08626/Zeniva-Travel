@@ -42,7 +42,7 @@ export default function OrganizationSchema() {
       areaServed: "US",
     },
     description:
-      "Zeniva Travel provides concierge travel planning, proposals, and booking coordination powered by Lina AI.",
+      "Zeniva provides concierge travel planning, proposals, and booking coordination powered by Lina AI.",
     location: [LEGAL_REGISTERED_OFFICE, LEGAL_OPERATIONAL_OFFICE],
   };
 

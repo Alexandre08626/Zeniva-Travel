@@ -65,7 +65,7 @@ function docHeader(type: string, ref: string) {
       <div class="logo-area">
         <img src="https://www.zenivatravel.com/branding/lina-avatar.png" alt="Lina" style="width:40px;height:40px;border-radius:50%;border:2px solid rgba(230,184,90,0.8);object-fit:cover;" />
         <div class="logo-text">
-          <div class="name">Zeniva Travel</div>
+          <div class="name">Zeniva</div>
           <div class="tag">AI-Powered Luxury Travel</div>
         </div>
       </div>
@@ -81,10 +81,10 @@ function docFooter() {
   return `
     <div class="footer">
       <div style="margin-bottom:6px;">
-        <strong style="color:#E6B85A;">Zeniva Travel</strong> — AI-Powered Luxury Travel Concierge
+        <strong style="color:#E6B85A;">Zeniva</strong> — AI-Powered Luxury Travel Concierge
       </div>
       <div>📧 <a href="mailto:info@zeniva.ca">info@zeniva.ca</a> &nbsp;·&nbsp; 📞 <a href="tel:+13322900021">+1 (332) 290-0021</a> &nbsp;·&nbsp; 🌐 <a href="https://www.zenivatravel.com">zenivatravel.com</a></div>
-      <div style="margin-top:8px;font-size:10px;">Zeniva Travel Inc. — Delaware, USA &nbsp;·&nbsp; Available 24/7</div>
+      <div style="margin-top:8px;font-size:10px;">Zeniva Inc. — Delaware, USA &nbsp;·&nbsp; Available 24/7</div>
     </div>
   `;
 }
@@ -285,7 +285,7 @@ function generateHotelDoc(params: URLSearchParams) {
         </div>
         <div class="info-box">
           <div class="label">Booked By</div>
-          <div class="value">Zeniva Travel</div>
+          <div class="value">Zeniva</div>
         </div>
       </div>
     </div>
@@ -451,7 +451,7 @@ function generateInvoiceDoc(params: URLSearchParams) {
   const grandTotal = total || (subtotal - discountAmt + taxAmt);
   const generatedDate = new Date(date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Invoice ${ref} — Zeniva Travel</title>${zenivaBranding()}</head><body>
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Invoice ${ref} — Zeniva</title>${zenivaBranding()}</head><body>
 <div class="page">
   <div class="card">
     ${docHeader("invoice", ref)}
@@ -530,7 +530,7 @@ function generateInvoiceDoc(params: URLSearchParams) {
 
     <div class="section" style="background:#f8fafc;">
       <div style="font-size:11px;color:#94a3b8;line-height:1.7;text-align:center;">
-        This invoice serves as official proof of payment for services rendered by <strong>Zeniva Travel Inc.</strong>, incorporated in Delaware, USA.<br>
+        This invoice serves as official proof of payment for services rendered by <strong>Zeniva Inc.</strong>, incorporated in Delaware, USA.<br>
         For questions or support: <strong>info@zeniva.ca</strong> · <strong>+1 (332) 290-0021</strong> · <strong>zenivatravel.com</strong>
       </div>
     </div>
@@ -621,7 +621,7 @@ function generateExcursionDoc(params: URLSearchParams) {
         </div>
         <div class="info-box">
           <div class="label">Booked By</div>
-          <div class="value">Zeniva Travel</div>
+          <div class="value">Zeniva</div>
         </div>
       </div>
     </div>

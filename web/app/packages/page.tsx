@@ -5,7 +5,7 @@ import Header from "../../src/components/Header";
 import Footer from "../../src/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Travel Packages 2025 — Luxury Vacations, All-Inclusive Deals | Zeniva Travel USA",
+  title: "Travel Packages 2025 — Luxury Vacations, All-Inclusive Deals | Zeniva USA",
   description:
     "Discover the best travel packages for 2025. Luxury vacations, all-inclusive deals, Caribbean getaways, Europe tours, and more — planned by Lina AI in seconds. Serving USA & Canada.",
   alternates: {
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     "group vacation packages", "honeymoon packages", "beach vacation packages"
   ],
   openGraph: {
-    title: "Best Travel Packages 2025 | Zeniva Travel — AI Concierge USA",
+    title: "Best Travel Packages 2025 | Zeniva — AI Concierge USA",
     description: "Luxury vacations, all-inclusive deals, Caribbean & Europe packages. Planned by Lina AI — America's #1 AI travel concierge.",
     url: "https://zenivatravel.com/packages",
     type: "website",
@@ -88,7 +88,7 @@ export default function PackagesPage() {
   const schema = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    "name": "Zeniva Travel — Best Travel Packages 2025",
+    "name": "Zeniva — Best Travel Packages 2025",
     "description": "Luxury vacation packages, all-inclusive deals, and custom trips planned by Lina AI for travelers in USA and Canada",
     "url": "https://zenivatravel.com/packages",
     "numberOfItems": packages.length,

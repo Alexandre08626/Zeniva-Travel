@@ -24,7 +24,7 @@ export default function DoNotSellPage() {
         <span className="legal-badge">California</span>
         <h1 className="legal-title">Do Not Sell or Share</h1>
         <p className="legal-subtitle">
-          Zeniva Travel does not sell or share personal information as defined by
+          Zeniva does not sell or share personal information as defined by
           the California Consumer Privacy Act (CCPA/CPRA).
         </p>
         <div className="legal-meta">

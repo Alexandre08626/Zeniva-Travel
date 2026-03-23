@@ -148,7 +148,7 @@ export default function AgentSettingsPage() {
               onChange={(e) => setSignature(e.target.value)}
               rows={4}
               className="w-full bg-slate-800 rounded-xl px-4 py-2.5 text-white border border-slate-600 focus:border-blue-500 outline-none resize-none font-mono text-sm"
-              placeholder={`${firstName || "Louis"} ${lastName || "Blais"}\nTravel Specialist · Zeniva Travel\n${phone || "+1 514 000-0000"}`}
+              placeholder={`${firstName || "Louis"} ${lastName || "Blais"}\nTravel Specialist · Zeniva\n${phone || "+1 514 000-0000"}`}
             />
           </div>
 

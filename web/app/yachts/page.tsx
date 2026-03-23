@@ -6,7 +6,7 @@ import YachtsPageClient from "./YachtsPageClient";
 export const metadata: Metadata = {
   title: "Luxury Yacht Charters USA — Private Yacht Rentals & Sailing Trips",
   description:
-    "Book private yacht charters with Zeniva Travel. Luxury sailing trips, mega-yacht rentals and ocean cruises worldwide — curated by Lina AI and validated by expert brokers. Serving all 50 states & Caribbean.",
+    "Book private yacht charters with Zeniva. Luxury sailing trips, mega-yacht rentals and ocean cruises worldwide — curated by Lina AI and validated by expert brokers. Serving all 50 states & Caribbean.",
   keywords: [
     "luxury yacht charter USA",
     "private yacht rental",
@@ -34,14 +34,14 @@ export const metadata: Metadata = {
     description:
       "Private yacht charters worldwide. Sailing trips, mega-yachts, ocean cruises — curated by Lina AI. Expert brokers validate every booking.",
     url: "https://www.zenivatravel.com/yachts",
-    siteName: "Zeniva Travel",
+    siteName: "Zeniva",
     type: "website",
     images: [
       {
         url: "/branding/lina-avatar.png",
         width: 1200,
         height: 630,
-        alt: "Zeniva Travel — Luxury Yacht Charters",
+        alt: "Zeniva — Luxury Yacht Charters",
       },
     ],
   },

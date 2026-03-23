@@ -51,9 +51,9 @@ const DESTINATIONS = [
 ];
 
 const QUICK_CHIPS = [
-  { emoji:"⛵", label:"ZeniYacht",   href:"/yachts" },
+  { emoji:"⛵", label:"ZeniYacht",   href:"/zeniyacht" },
   { emoji:"🏨", label:"ZeniHotel",   href:"/partners/resorts" },
-  { emoji:"🏡", label:"ZeniStay",    href:"/residences" },
+  { emoji:"🏡", label:"ZeniStay",    href:"/zenistay" },
   { emoji:"✈️", label:"ZeniFlights", href:"/search/flights" },
   { emoji:"🚗", label:"ZeniCar",     href:"/search/cars" },
   { emoji:"🚢", label:"ZeniCruise",  href:"/cruises" },
@@ -370,7 +370,7 @@ export default function AppHome() {
           {/* 3 big category cards */}
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
             {/* ZeniYacht */}
-            <button onClick={()=>go("/yachts")} style={{
+            <button onClick={()=>go("/zeniyacht")} style={{
               display:"flex",alignItems:"center",gap:16,
               background:"linear-gradient(135deg,rgba(15,108,245,.12) 0%,rgba(11,27,77,.4) 100%)",
               border:"1px solid rgba(15,108,245,.25)",
@@ -408,7 +408,7 @@ export default function AppHome() {
             </button>
 
             {/* ZeniStay */}
-            <button onClick={()=>go("/residences")} style={{
+            <button onClick={()=>go("/zenistay")} style={{
               display:"flex",alignItems:"center",gap:16,
               background:"linear-gradient(135deg,rgba(16,185,129,.1) 0%,rgba(11,27,77,.4) 100%)",
               border:"1px solid rgba(16,185,129,.2)",

@@ -123,7 +123,7 @@ export default async function YcnPartnerPage({
     <main className="min-h-screen bg-slate-50">
       <div className="mx-auto max-w-6xl px-6 py-8 space-y-6">
         <div className="flex items-center justify-between text-sm">
-          <Link href="/yachts" className="text-blue-700 font-semibold">Back to yachts</Link>
+          <Link href="/zeniyacht" className="text-blue-700 font-semibold">Back to yachts</Link>
           <div className="flex items-center gap-2">
             <Link href="/chat?prompt=Plan%20a%20yacht%20charter" className="flex items-center gap-3 rounded-full border border-blue-200 bg-white px-3 py-2 shadow-sm hover:bg-blue-50 transition">
               <Image src="/branding/lina-avatar.png" alt="Lina" width={64} height={64} sizes="64px" quality={100} className="rounded-full ring-2 ring-blue-200" />

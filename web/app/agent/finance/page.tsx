@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 
 // ═══════════════════════════════════════════════════════
-//  ZeniPay — The Financial Core of Zeniva Travel
+//  ZeniPay — The Financial Core of Zeniva
 //  Built like Stripe. Thinks like a bank.
 // ═══════════════════════════════════════════════════════
 
@@ -323,7 +323,7 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
             <div style={{ width: 52, height: 52, background: `${color}30`, borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, border: `1px solid ${color}50` }}>{icon}</div>
             <div style={{ flex: 1 }}>
               <p style={{ margin: 0, fontWeight: 900, fontSize: 20 }}>{name} Wallet</p>
-              <p style={{ margin: "2px 0 0", fontSize: 12, opacity: 0.6 }}>{isPlatform ? "Zeniva Travel LLC — Master Control Account" : "ZeniPay Financial Account"}</p>
+              <p style={{ margin: "2px 0 0", fontSize: 12, opacity: 0.6 }}>{isPlatform ? "Zeniva LLC — Master Control Account" : "ZeniPay Financial Account"}</p>
             </div>
             <button onClick={onClose} style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 9999, width: 32, height: 32, color: "white", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
           </div>
@@ -447,7 +447,7 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
                   <div style={{ background: `${BLUE}08`, borderRadius: 14, padding: 16, border: `1px solid ${BLUE}15` }}>
                     <p style={{ margin: "0 0 6px", fontWeight: 700, fontSize: 13, color: "#374151" }}>💰 Platform Balance Available</p>
                     <p style={{ margin: 0, fontSize: 32, fontWeight: 900, color: BLUE }}>{fmt(data.available, true)}</p>
-                    <p style={{ margin: "4px 0 0", fontSize: 11, color: "#94a3b8" }}>Zeniva Travel LLC · USD · Tilled</p>
+                    <p style={{ margin: "4px 0 0", fontSize: 11, color: "#94a3b8" }}>Zeniva LLC · USD · Tilled</p>
                   </div>
 
                   <div>
@@ -496,7 +496,7 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
                       <p style={{ margin: "0 0 6px", fontWeight: 700, fontSize: 13, color: "#065f46" }}>Transfer Summary</p>
                       <div style={{ fontSize: 13, color: "#374151", display: "grid", gap: 4 }}>
                         <div style={{ display: "flex", justifyContent: "space-between" }}>
-                          <span>From</span><span style={{ fontWeight: 700 }}>Platform Wallet (Zeniva Travel LLC)</span>
+                          <span>From</span><span style={{ fontWeight: 700 }}>Platform Wallet (Zeniva LLC)</span>
                         </div>
                         <div style={{ display: "flex", justifyContent: "space-between" }}>
                           <span>To</span><span style={{ fontWeight: 700, textTransform: "capitalize" as const }}>{distForm.to} Wallet</span>
@@ -533,10 +533,10 @@ function WalletModal({ name, data, icon, color, onClose }: { name: string; data:
               ) : (
                 <div style={{ display: "grid", gap: 14 }}>
                   <p style={{ margin: "0 0 4px", fontSize: 13, color: "#374151", fontWeight: 600 }}>
-                    {isPlatform ? "Add Zeniva Travel LLC bank account to receive Tilled settlements." : "Add your bank account to receive payouts from ZeniPay."}
+                    {isPlatform ? "Add Zeniva LLC bank account to receive Tilled settlements." : "Add your bank account to receive payouts from ZeniPay."}
                   </p>
                   {[
-                    { label: "Account Holder Name", key: "holder", ph: isPlatform ? "Zeniva Travel LLC" : "Full Name" },
+                    { label: "Account Holder Name", key: "holder", ph: isPlatform ? "Zeniva LLC" : "Full Name" },
                     { label: "Bank Name", key: "bank", ph: "Chase, TD Bank, Royal Bank…" },
                     { label: "Routing / Transit Number", key: "routing", ph: "021000021" },
                     { label: "Account Number", key: "account", ph: "••••••••••" },
@@ -696,7 +696,7 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
               ) : (
                 <div style={{ display: "grid", gap: 8 }}>
                   {[
-                    { type: "owner", name: "Zeniva Travel LLC", sub: "Owner payout — company account", icon: "🏢", color: "#0F6CF5", data: { id: "owner-001", name: "Zeniva Travel LLC", code: "ZENIVA", bookings: 0, revenue: 0, commission: 0, pending: 0, rate: "100%", role: "Owner · Platform Revenue" } },
+                    { type: "owner", name: "Zeniva LLC", sub: "Owner payout — company account", icon: "🏢", color: "#0F6CF5", data: { id: "owner-001", name: "Zeniva LLC", code: "ZENIVA", bookings: 0, revenue: 0, commission: 0, pending: 0, rate: "100%", role: "Owner · Platform Revenue" } },
                     ...agents.map(a => ({ type: "agent", name: a.name, sub: a.role || "Travel Agent", icon: "👤", color: PURPLE, data: a })),
                     { type: "supplier", name: "Supplier / Hotel", sub: "Direct supplier payment", icon: "✈️", color: GREEN, data: null },
                     { type: "other", name: "Other Recipient", sub: "Bank wire to custom account", icon: "🏦", color: "#64748b", data: null },
@@ -782,7 +782,7 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
                 <div style={{ background: "#f0fdf4", borderRadius: 14, padding: "16px 18px", border: "1px solid #bbf7d0" }}>
                   <p style={{ margin: "0 0 10px", fontWeight: 800, fontSize: 13, color: "#065f46" }}>Transfer Summary</p>
                   {[
-                    { l: "From", v: "Platform Wallet (Zeniva Travel LLC)" },
+                    { l: "From", v: "Platform Wallet (Zeniva LLC)" },
                     { l: "To", v: selectedAgent?.name },
                     { l: "Amount", v: `$${Number(amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}` },
                     { l: "Method", v: method === "instant" ? "Instant Transfer" : "Bank Wire (ACH)" },
@@ -828,11 +828,11 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
             <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600 }}>Quick Pay</span>
           </div>
           <div style={{ display: "grid", gap: 10 }}>
-            {/* Zeniva Travel LLC — toujours en premier */}
+            {/* Zeniva LLC — toujours en premier */}
             <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", background: `${BLUE}08`, borderRadius: 12, border: `1.5px solid ${BLUE}20` }}>
               <div style={{ width: 40, height: 40, background: `${BLUE}15`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🏢</div>
               <div style={{ flex: 1 }}>
-                <p style={{ margin: 0, fontWeight: 800, fontSize: 14, color: "#0f172a" }}>Zeniva Travel LLC</p>
+                <p style={{ margin: 0, fontWeight: 800, fontSize: 14, color: "#0f172a" }}>Zeniva LLC</p>
                 <p style={{ margin: 0, fontSize: 11, color: "#64748b" }}>Owner · Platform Revenue · 100%</p>
               </div>
               <div style={{ textAlign: "right" as const }}>
@@ -840,7 +840,7 @@ function PayoutsPanel({ agents, platformBalance }: { agents: AgentType[]; platfo
                 <p style={{ margin: 0, fontWeight: 900, fontSize: 14, color: BLUE }}>{fmt(platformBalance, true)}</p>
               </div>
               <button onClick={() => {
-                setSelectedAgent({ id: "owner-001", name: "Zeniva Travel LLC", code: "ZENIVA", bookings: 0, revenue: 0, commission: 0, pending: platformBalance, rate: "100%", role: "Owner · Platform Revenue" });
+                setSelectedAgent({ id: "owner-001", name: "Zeniva LLC", code: "ZENIVA", bookings: 0, revenue: 0, commission: 0, pending: platformBalance, rate: "100%", role: "Owner · Platform Revenue" });
                 setAmount(String(platformBalance > 0 ? Math.floor(platformBalance) : ""));
                 setStep("amount");
               }} style={{ background: BLUE, color: "white", border: "none", borderRadius: 9999, padding: "7px 16px", fontSize: 11, fontWeight: 800, cursor: "pointer", flexShrink: 0 }}>
@@ -952,7 +952,7 @@ const SPLIT_SCENARIOS = [
     icon: "🏦",
     desc: "Zeniva platform only",
     rows: (net: number) => [
-      { label: "🏦 Zeniva Travel", pct: 100, amount: net, color: "#0F6CF5", sub: "100% net profit" },
+      { label: "🏦 Zeniva", pct: 100, amount: net, color: "#0F6CF5", sub: "100% net profit" },
     ],
   },
   {
@@ -961,7 +961,7 @@ const SPLIT_SCENARIOS = [
     icon: "🤖",
     desc: "Lina book without human agent",
     rows: (net: number) => [
-      { label: "🏦 Zeniva Travel (70%)", pct: 70, amount: Math.round(net*0.70*100)/100, color: "#0F6CF5", sub: "Net après coûts" },
+      { label: "🏦 Zeniva (70%)", pct: 70, amount: Math.round(net*0.70*100)/100, color: "#0F6CF5", sub: "Net après coûts" },
       { label: "👤 Agent assigné (30%)", pct: 30, amount: Math.round(net*0.30*100)/100, color: "#8B5CF6", sub: "Agent de suivi" },
     ],
   },
@@ -972,7 +972,7 @@ const SPLIT_SCENARIOS = [
     desc: "Full agent involvement",
     rows: (net: number) => [
       { label: "👤 Agent de voyage (70%)", pct: 70, amount: Math.round(net*0.70*100)/100, color: "#8B5CF6", sub: "Louis / Jason / Luca" },
-      { label: "🏦 Zeniva Travel (30%)", pct: 30, amount: Math.round(net*0.30*100)/100, color: "#0F6CF5", sub: "Platform margin net" },
+      { label: "🏦 Zeniva (30%)", pct: 30, amount: Math.round(net*0.30*100)/100, color: "#0F6CF5", sub: "Platform margin net" },
     ],
   },
   {
@@ -987,7 +987,7 @@ const SPLIT_SCENARIOS = [
       const zenivaNet = Math.round((zenivaGross - inf)*100)/100;
       return [
         { label: "👤 Agent de voyage (70%)", pct: 70, amount: agent, color: "#8B5CF6", sub: "Louis / Jason / Luca" },
-        { label: "🏦 Zeniva Travel (~28.5%)", pct: Math.round(zenivaNet/net*100), amount: zenivaNet, color: "#0F6CF5", sub: "Net après influenceur" },
+        { label: "🏦 Zeniva (~28.5%)", pct: Math.round(zenivaNet/net*100), amount: zenivaNet, color: "#0F6CF5", sub: "Net après influenceur" },
         { label: "⭐ Influenceur (5% du net)", pct: Math.round(inf/net*100), amount: inf, color: "#F59E0B", sub: "5% du 30% Zeniva" },
       ];
     },
@@ -998,7 +998,7 @@ const SPLIT_SCENARIOS = [
     icon: "⛵",
     desc: "100% Zeniva — always",
     rows: (net: number) => [
-      { label: "⛵ Zeniva Travel — ZeniYacht (100%)", pct: 100, amount: net, color: "#10B981", sub: "100% net — broker séparé" },
+      { label: "⛵ Zeniva — ZeniYacht (100%)", pct: 100, amount: net, color: "#10B981", sub: "100% net — broker séparé" },
     ],
   },
 ];
@@ -1115,7 +1115,7 @@ export default function ZeniPayDashboard() {
   const [zpInvoices, setZpInvoices] = useState<{ id: string; customer_name: string; customer_email: string; total: number; status: string; payment_id: string; created_at: string }[]>([]);
   // Unit.co banking layer
   const [unitAccounts, setUnitAccounts] = useState<{ id: string; type: string; name: string; status: string; balanceCents: number; availableCents: number; routingNumber: string; accountNumber: string; currency: string; createdAt: string }[]>([
-    { id:"11589672", type:"depositAccount", name:"ZeniPay Checking — Zeniva Travel LLC", status:"Open", balanceCents:0, availableCents:0, routingNumber:"812345678", accountNumber:"1009825847", currency:"USD", createdAt:"2026-03-17T18:09:35.382Z" }
+    { id:"11589672", type:"depositAccount", name:"ZeniPay Checking — Zeniva LLC", status:"Open", balanceCents:0, availableCents:0, routingNumber:"812345678", accountNumber:"1009825847", currency:"USD", createdAt:"2026-03-17T18:09:35.382Z" }
   ]);
   const [unitCards, setUnitCards] = useState<{ id: string; type: string; last4?: string; expiry?: string; status?: string; attributes: { status?: string; last4Digits?: string; expirationDate?: string; bin?: string; cardQualifier?: string } }[]>([
     { id:"5487715", type:"businessVirtualDebitCard", last4:"5050", expiry:"2030-03", status:"Active", attributes:{ status:"Active", last4Digits:"5050", expirationDate:"2030-03" } }
@@ -1587,7 +1587,7 @@ export default function ZeniPayDashboard() {
               <div style={{ width: 30, height: 30, borderRadius: 8, background: `linear-gradient(135deg, ${BLUE}, ${PURPLE})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "white", fontWeight: 900 }}>A</div>
               <div>
                 <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "white" }}>Admin</p>
-                <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.65)" }}>Zeniva Travel LLC</p>
+                <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.65)" }}>Zeniva LLC</p>
               </div>
             </div>
           </div>
@@ -2114,7 +2114,7 @@ export default function ZeniPayDashboard() {
                     <div style={{ width: 44, height: 44, background: "rgba(255,255,255,0.12)", borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, border: "1px solid rgba(255,255,255,0.2)" }}>🏛️</div>
                     <div>
                       <p style={{ margin: 0, fontWeight: 900, fontSize: 18 }}>Platform Wallet</p>
-                      <p style={{ margin: 0, fontSize: 11, opacity: 0.55 }}>Zeniva Travel LLC · Master Control</p>
+                      <p style={{ margin: 0, fontSize: 11, opacity: 0.55 }}>Zeniva LLC · Master Control</p>
                     </div>
                     <span style={{ marginLeft: 8, background: "#4ade8030", border: "1px solid #4ade8060", borderRadius: 9999, padding: "3px 10px", fontSize: 10, fontWeight: 700, color: "#4ade80" }}>ADMIN</span>
                   </div>
@@ -2266,7 +2266,7 @@ export default function ZeniPayDashboard() {
                             <p style={{ margin: 0, fontSize: 9, opacity: 0.55, letterSpacing: "0.1em", textTransform: "uppercase" as const, fontWeight: 700 }}>
                               {acc.type === "depositAccount" ? "Checking" : acc.type}
                             </p>
-                            <p style={{ margin: "2px 0 0", fontWeight: 800, fontSize: 13 }}>Zeniva Travel LLC</p>
+                            <p style={{ margin: "2px 0 0", fontWeight: 800, fontSize: 13 }}>Zeniva LLC</p>
                           </div>
                           <span style={{ background: acc.status === "Open" ? "rgba(45,190,96,0.3)" : "rgba(245,158,11,0.3)", color: acc.status === "Open" ? "#86efac" : "#fde68a", fontSize: 9, fontWeight: 700, borderRadius: 5, padding: "2px 7px" }}>
                             {acc.status}
@@ -2295,7 +2295,7 @@ export default function ZeniPayDashboard() {
                 {unitAccounts.length === 0 && (
                   <div style={{ marginTop: 16, padding: "16px", background: "rgba(255,255,255,0.07)", borderRadius: 12, border: "1px dashed rgba(255,255,255,0.2)", textAlign: "center" as const }}>
                     <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 700, opacity: 0.9 }}>No banking account yet</p>
-                    <p style={{ margin: 0, fontSize: 12, opacity: 0.55 }}>Click "+ Open Account" to create your Zeniva Travel LLC checking account with real routing & account numbers</p>
+                    <p style={{ margin: 0, fontSize: 12, opacity: 0.55 }}>Click "+ Open Account" to create your Zeniva LLC checking account with real routing & account numbers</p>
                   </div>
                 )}
               </div>
@@ -2564,7 +2564,7 @@ export default function ZeniPayDashboard() {
             <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 1px 6px rgba(0,0,0,0.06)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                 <div>
-                  <p style={{ margin: 0, fontWeight: 800, fontSize: 15, color: "white" }}>Zeniva Travel — Client Invoices</p>
+                  <p style={{ margin: 0, fontWeight: 800, fontSize: 15, color: "white" }}>Zeniva — Client Invoices</p>
                   <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>Auto-generated on every confirmed ZeniPay payment</p>
                 </div>
                 <span style={{ background: `${BLUE}12`, color: BLUE, fontWeight: 700, fontSize: 12, padding: "4px 12px", borderRadius: 9999 }}>{zpInvoices.length} invoice{zpInvoices.length !== 1 ? "s" : ""}</span>
@@ -3236,10 +3236,10 @@ export default function ZeniPayDashboard() {
               <p style={{ margin: "0 0 14px", fontSize: 12, color: "#64748b" }}>All splits calculated on net profit (after supplier costs)</p>
               <div style={{ display: "grid", gap: 10 }}>
                 {[
-                  { label: "Direct Booking", value: "100% Zeniva Travel", status: "active" },
+                  { label: "Direct Booking", value: "100% Zeniva", status: "active" },
                   { label: "Lina AI Only", value: "70% Zeniva / 30% Agent", status: "active" },
                   { label: "Human Agent", value: "70% Agent / 30% Zeniva", status: "active" },
-                  { label: "ZeniYacht", value: "100% Zeniva Travel", status: "active" },
+                  { label: "ZeniYacht", value: "100% Zeniva", status: "active" },
                   { label: "+ Influencer", value: "+5% from Zeniva share (influencer)", status: "active" },
                 ].map(item => (
                   <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
@@ -3289,7 +3289,7 @@ export default function ZeniPayDashboard() {
                 <img src="/zenipay-logo.png" alt="ZP" style={{ width: 44, height: 44, objectFit: "contain", filter: "drop-shadow(0 2px 8px rgba(123,79,191,0.5))" }} />
                 <div>
                   <div style={{ color: "white", fontWeight: 900, fontSize: 20 }}>ZeniPay Banking</div>
-                  <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 11 }}>Zeniva Travel LLC · Unit.co · FDIC $250K</div>
+                  <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 11 }}>Zeniva LLC · Unit.co · FDIC $250K</div>
                 </div>
               </div>
               <button onClick={() => setShow360(false)} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>✕ Close</button>

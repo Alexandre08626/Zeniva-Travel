@@ -11,7 +11,7 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
     bank: "", routing: "", account: "" });
   const [amount, setAmount] = useState(0);
   const [currency, setCurrency] = useState("USD");
-  const [desc, setDesc] = useState("Zeniva Travel");
+  const [desc, setDesc] = useState("Zeniva");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [errorMsg, setErrorMsg] = useState("");
   const [paymentId, setPaymentId] = useState<string>("");
@@ -26,7 +26,7 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
     const amt = parseFloat(p.get("amount") || "0");
     setAmount(amt);
     setCurrency(p.get("currency") || "USD");
-    setDesc(decodeURIComponent(p.get("desc") || "Zeniva Travel"));
+    setDesc(decodeURIComponent(p.get("desc") || "Zeniva"));
     const name = decodeURIComponent(p.get("customer") || "");
     const email = decodeURIComponent(p.get("email") || "");
     if (name || email) setForm(f => ({ ...f, name, email }));
@@ -114,7 +114,7 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
           <div style={{ position:"absolute", inset:8, background:`${BLUE}20`, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28 }}>💳</div>
         </div>
         <h2 style={{ margin:"0 0 8px", fontWeight:900, color:"white", fontSize:22 }}>Sécurisation du paiement…</h2>
-        <p style={{ color:"rgba(255,255,255,0.5)", margin:"0 0 16px", fontSize:13 }}>Zeniva Travel · Chiffrement 256-bit · PCI Compliant</p>
+        <p style={{ color:"rgba(255,255,255,0.5)", margin:"0 0 16px", fontSize:13 }}>Zeniva · Chiffrement 256-bit · PCI Compliant</p>
         <p style={{ color:BLUE, fontWeight:900, fontSize:28, margin:0 }}>{fmt(amount)}</p>
         <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
       </div>
@@ -132,7 +132,7 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
         <p style={{ color:"#94a3b8", fontSize:12, marginBottom:24 }}>Ref: {params.paymentId}</p>
         <div style={{ background:"#f8fafc", borderRadius:12, padding:16, marginBottom:20, display:"flex", justifyContent:"space-between", fontSize:13 }}>
           <span style={{ color:"#64748b" }}>Processed by</span>
-          <span style={{ fontWeight:700, color:DARK }}>Zeniva Travel · Tilled Network</span>
+          <span style={{ fontWeight:700, color:DARK }}>Zeniva · Tilled Network</span>
         </div>
         <p style={{ color:"#94a3b8", fontSize:12 }}>Redirecting to confirmation…</p>
       </div>
@@ -169,7 +169,7 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
         <div style={{ maxWidth:560, margin:"0 auto", display:"flex", alignItems:"center", gap:14 }}>
           <div style={{ width:44, height:44, background:BLUE, borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>💳</div>
           <div style={{ flex:1 }}>
-            <p style={{ margin:0, fontWeight:900, fontSize:17, color:"white" }}>Zeniva Travel · Paiement Sécurisé</p>
+            <p style={{ margin:0, fontWeight:900, fontSize:17, color:"white" }}>Zeniva · Paiement Sécurisé</p>
             <p style={{ margin:0, fontSize:11, color:"rgba(255,255,255,0.45)" }}>256-bit SSL · PCI DSS Level 1 · Powered by Tilled</p>
           </div>
           <div style={{ textAlign:"right" }}>
@@ -306,7 +306,7 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
             🔒 Pay {fmt(amount)} Now
           </button>
           <div style={{ textAlign:"center", marginTop:14, fontSize:11, color:"#94a3b8", lineHeight:1.6 }}>
-            🛡️ <strong>Zeniva Travel</strong> · PCI DSS Level 1 · Chiffrement 256-bit<br/>
+            🛡️ <strong>Zeniva</strong> · PCI DSS Level 1 · Chiffrement 256-bit<br/>
             Traité par <strong>Tilled</strong> infrastructure financière<br/>
             💳 Visa · Mastercard · Amex · Discover · 🏦 ACH
           </div>

@@ -56,7 +56,7 @@ export default function BookingConfirmationPage({
             📋 View My Trips
           </a>
           <a href="/" style={{ display: "block", color: "rgba(255,255,255,0.5)", textDecoration: "none", fontSize: 13, padding: "10px" }}>
-            ✈️ Back to Zeniva Travel
+            ✈️ Back to Zeniva
           </a>
         </div>
       </div>

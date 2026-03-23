@@ -367,7 +367,7 @@ export default function PWAInstallBanner() {
           {/* Text */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ color: "white", fontWeight: 800, fontSize: 13, margin: 0 }}>
-              📲 Install Zeniva Travel
+              📲 Install Zeniva
             </p>
             <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 11, margin: "3px 0 0", lineHeight: 1.4 }}>
               {ios

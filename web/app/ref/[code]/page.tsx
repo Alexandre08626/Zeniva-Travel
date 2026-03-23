@@ -69,7 +69,7 @@ export default function RefLandingPage() {
       {/* Header */}
       <div className="border-b border-white/10 px-6 py-4">
         <div className="mx-auto flex max-w-3xl items-center gap-3">
-          <Image src="/branding/logo.png" alt="Zeniva Travel" width={120} height={32} className="h-8 w-auto" />
+          <Image src="/branding/logo.png" alt="Zeniva" width={120} height={32} className="h-8 w-auto" />
           {agentName && (
             <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/80">
               via {agentName}

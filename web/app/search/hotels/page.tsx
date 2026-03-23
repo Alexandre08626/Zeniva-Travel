@@ -123,7 +123,7 @@ function HotelsSearchContent() {
   }, [checkIn, checkOut]);
 
   const businessInfo = useMemo(() => ({
-    name: process.env.NEXT_PUBLIC_BUSINESS_NAME || "Zeniva Travel",
+    name: process.env.NEXT_PUBLIC_BUSINESS_NAME || "Zeniva",
     address: process.env.NEXT_PUBLIC_BUSINESS_ADDRESS || "",
     support_email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "info@zenivatravel.com",
     support_phone: process.env.NEXT_PUBLIC_SUPPORT_PHONE || "",
@@ -772,7 +772,7 @@ function HotelsSearchContent() {
         <div className="mx-auto max-w-5xl">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
             <div className="text-white">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-200 mb-1">🏨 Zeniva Travel · Hotels</p>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-200 mb-1">🏨 Zeniva · Hotels</p>
               <h1 className="text-3xl font-black">
                 {bookingStep === "search" && (destination || "Find your hotel")}
                 {bookingStep === "rates" && (selectedSearchResult?.name || "Choose your room")}

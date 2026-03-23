@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
       pre_populated_data: {
         buyer_email: undefined,
       },
-      payment_note: `Zeniva Travel — ${description}`,
+      payment_note: `Zeniva — ${description}`,
     };
 
     const res = await fetch(`${SQUARE_BASE}/v2/online-checkout/payment-links`, {

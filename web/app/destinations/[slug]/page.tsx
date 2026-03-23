@@ -291,9 +291,9 @@ function getDestination(slug: string) {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const dest = getDestination(slug);
-  if (!dest) return { title: "Destination — Zeniva Travel" };
+  if (!dest) return { title: "Destination — Zeniva" };
   return {
-    title: `${dest.name}, ${dest.country} — Zeniva Travel`,
+    title: `${dest.name}, ${dest.country} — Zeniva`,
     description: dest.description.slice(0, 155),
   };
 }

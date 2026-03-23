@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 const UNIT_URL = () => process.env.UNIT_API_URL || "https://api.s.unit.sh";
 const UNIT_TOKEN = () => process.env.UNIT_API_TOKEN || "";
 
-// Known IDs for Zeniva Travel LLC (provisioned 2026-03-17)
+// Known IDs for Zeniva LLC (provisioned 2026-03-17)
 const KNOWN_ACCOUNT_ID = "11589672";
 const KNOWN_CARD_ID = "5487715";
 const KNOWN_CUSTOMER_ID = "4647873";
@@ -58,7 +58,7 @@ export async function GET() {
         id: acct.id,
         customerId: KNOWN_CUSTOMER_ID,
         type: acct.type,
-        name: "ZeniPay Checking — Zeniva Travel LLC",
+        name: "ZeniPay Checking — Zeniva LLC",
         status: attrs.status || "Open",
         balanceCents: attrs.balance || 0,
         availableCents: attrs.available || attrs.balance || 0,
@@ -78,7 +78,7 @@ export async function GET() {
         expiry: cardAttrs.expirationDate || "2030-03",
         status: cardAttrs.status || "Active",
         bin: cardAttrs.bin || "",
-        holderName: "Zeniva Travel LLC",
+        holderName: "Zeniva LLC",
         // attributes object (required by existing debit card display)
         attributes: {
           last4Digits: cardAttrs.last4Digits || "5050",

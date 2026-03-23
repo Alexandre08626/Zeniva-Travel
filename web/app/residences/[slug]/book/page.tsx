@@ -124,7 +124,7 @@ function BookingForm() {
         </div>
         <p className="text-xs text-slate-400 mb-6">A Zeniva agent will contact you at <strong>{email}</strong> to finalize your booking.</p>
         <div className="flex gap-3">
-          <button onClick={() => router.push("/residences")} className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition">← Browse more</button>
+          <button onClick={() => router.push("/zenistay")} className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition">← Browse more</button>
           <a href={`mailto:info@zeniva.ca?subject=Reservation ${confNum} — ${property}`} className="flex-1 py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm text-center hover:bg-blue-700 transition">✉️ Email us</a>
         </div>
       </div>

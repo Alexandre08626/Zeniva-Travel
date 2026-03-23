@@ -2,8 +2,8 @@ export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "AI Travel Agent Online — Plan & Book Trips Instantly | Zeniva Travel",
-  description: "Zeniva Travel's AI travel agent plans your perfect trip in seconds. Flights, hotels, villas, yachts & experiences — all in one chat. Available 24/7. No fees.",
+  title: "AI Travel Agent Online — Plan & Book Trips Instantly | Zeniva",
+  description: "Zeniva's AI travel agent plans your perfect trip in seconds. Flights, hotels, villas, yachts & experiences — all in one chat. Available 24/7. No fees.",
   openGraph: {
     title: "AI Travel Agent — Plan Any Trip in Seconds",
     description: "Talk to Lina, your AI travel agent. She plans flights, hotels, luxury villas, yacht charters and custom itineraries — 24/7, instantly, no booking fees.",
@@ -90,7 +90,7 @@ export default function AITravelAgentPage() {
         "@context": "https://schema.org",
         "@type": "Service",
         "name": "Lina AI Travel Agent",
-        "provider": { "@type": "TravelAgency", "name": "Zeniva Travel", "url": "https://zenivatravel.com" },
+        "provider": { "@type": "TravelAgency", "name": "Zeniva", "url": "https://zenivatravel.com" },
         "description": "AI-powered travel agent available 24/7. Plans flights, hotels, luxury villas, yacht charters and custom itineraries instantly.",
         "areaServed": "US",
         "hasOfferCatalog": { "@type": "OfferCatalog", "name": "Travel Services" }

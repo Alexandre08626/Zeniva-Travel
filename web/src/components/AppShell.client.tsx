@@ -32,7 +32,7 @@ const CLIENT_TABS = [
     ),
   },
   {
-    id: "explore", label: "Explore", href: "/yachts",
+    id: "explore", label: "Explore", href: "/zeniyacht",
     icon: (a: boolean) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={a ? "#E6B85A" : "rgba(255,255,255,0.35)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -137,7 +137,7 @@ export default function AppShell() {
     if (path.startsWith("/chat")) return "chat";
     if (path.startsWith("/call")) return "call";
     if (path.startsWith("/trips") || path.startsWith("/proposals")) return "trips";
-    if (path.startsWith("/yachts") || path.startsWith("/residences") || path.startsWith("/airbnbs") || path.startsWith("/search")) return "explore";
+    if (path.startsWith("/zeniyacht") || path.startsWith("/yachts") || path.startsWith("/zenistay") || path.startsWith("/residences") || path.startsWith("/airbnbs") || path.startsWith("/search")) return "explore";
     if (path.startsWith("/profile")) return "account";
     return "";
   }, [isAgentMode]);

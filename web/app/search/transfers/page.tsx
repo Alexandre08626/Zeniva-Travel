@@ -177,7 +177,7 @@ function TransfersContent() {
           <div className="flex items-center gap-3 mb-2">
             <span className="text-3xl">🚐</span>
             <div>
-              <p className="text-blue-200 text-xs font-bold uppercase tracking-widest">Zeniva Travel</p>
+              <p className="text-blue-200 text-xs font-bold uppercase tracking-widest">Zeniva</p>
               <h1 className="text-3xl sm:text-4xl font-black">ZeniTransfers</h1>
             </div>
           </div>

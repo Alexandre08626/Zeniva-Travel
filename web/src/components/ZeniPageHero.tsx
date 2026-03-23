@@ -68,7 +68,7 @@ export default function ZeniPageHero({
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 py-10 sm:py-14">
         {/* Brand title */}
         <div className="mb-6">
-          <p className="text-blue-200 text-xs font-bold uppercase tracking-widest mb-1">Zeniva Travel</p>
+          <p className="text-blue-200 text-xs font-bold uppercase tracking-widest mb-1">Zeniva</p>
           <div className="flex items-center gap-3">
             <span className="text-4xl">{emoji}</span>
             <h1 className="text-3xl sm:text-4xl font-black">{brand}</h1>

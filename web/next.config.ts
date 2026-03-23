@@ -121,12 +121,42 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/airbnbs",
-        destination: "/residences",
+        destination: "/zenistay",
         permanent: true,
       },
       {
         source: "/airbnbs/:slug",
-        destination: "/residences/:slug",
+        destination: "/zenistay/:slug",
+        permanent: true,
+      },
+      {
+        source: "/residences",
+        destination: "/zenistay",
+        permanent: true,
+      },
+      {
+        source: "/residences/:path*",
+        destination: "/zenistay/:path*",
+        permanent: true,
+      },
+      {
+        source: "/yachts",
+        destination: "/zeniyacht",
+        permanent: true,
+      },
+      {
+        source: "/yachts/:path*",
+        destination: "/zeniyacht/:path*",
+        permanent: true,
+      },
+      {
+        source: "/residences",
+        destination: "/zenistay",
+        permanent: true,
+      },
+      {
+        source: "/residences/:path*",
+        destination: "/zenistay/:path*",
         permanent: true,
       },
     ];

@@ -5,9 +5,9 @@ import Header from "../../src/components/Header";
 import Footer from "../../src/components/Footer";
 
 export const metadata: Metadata = {
-  title: "About Zeniva Travel — US AI Travel Agency | Delaware, New York, Virginia",
+  title: "About Zeniva — US AI Travel Agency | Delaware, New York, Virginia",
   description:
-    "Zeniva Travel is an AI-powered travel agency incorporated in Delaware, USA, with offices in New York and Virginia. We serve travelers across all 50 US states and Canada. Meet Lina AI, your 24/7 travel concierge.",
+    "Zeniva is an AI-powered travel agency incorporated in Delaware, USA, with offices in New York and Virginia. We serve travelers across all 50 US states and Canada. Meet Lina AI, your 24/7 travel concierge.",
   alternates: {
     canonical: "https://zenivatravel.com/about",
     languages: {
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "About Zeniva Travel — US AI Travel Agency",
+    title: "About Zeniva — US AI Travel Agency",
     description:
       "AI-powered travel agency based in the USA (Delaware, NY, Virginia). Serving all 50 states & Canada with luxury trip planning, custom vacations, and 24/7 AI concierge.",
     url: "https://zenivatravel.com/about",
@@ -28,8 +28,8 @@ export const metadata: Metadata = {
 const schemaOrg = {
   "@context": "https://schema.org",
   "@type": ["TravelAgency", "Organization"],
-  "name": "Zeniva Travel",
-  "legalName": "Zeniva Travel LLC",
+  "name": "Zeniva",
+  "legalName": "Zeniva LLC",
   "url": "https://zenivatravel.com",
   "logo": "https://zenivatravel.com/branding/logo.png",
   "description": "AI-powered travel agency incorporated in Delaware, USA. Offices in New York and Virginia. Serving all 50 US states and Canada.",
@@ -64,7 +64,7 @@ export default function AboutPage() {
               America's AI Travel Agency
             </h1>
             <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-              Zeniva Travel is a US-based travel technology company. We combine artificial intelligence with human expertise to plan the perfect trip — for every traveler, every destination, every budget.
+              Zeniva is a US-based travel technology company. We combine artificial intelligence with human expertise to plan the perfect trip — for every traveler, every destination, every budget.
             </p>
           </div>
         </section>
@@ -75,7 +75,7 @@ export default function AboutPage() {
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Who We Are</h2>
               <p className="text-gray-600 leading-relaxed mb-4">
-                Zeniva Travel LLC is a travel technology company incorporated in the state of Delaware, United States. We operate nationally across all 50 US states and serve customers throughout Canada.
+                Zeniva LLC is a travel technology company incorporated in the state of Delaware, United States. We operate nationally across all 50 US states and serve customers throughout Canada.
               </p>
               <p className="text-gray-600 leading-relaxed mb-4">
                 Our flagship product, <strong>Lina AI</strong>, is a 24/7 AI travel concierge that helps travelers plan luxury vacations, custom trips, ZeniGroup, and ZeniYacht — in minutes, not hours.
@@ -152,7 +152,7 @@ export default function AboutPage() {
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Serving All 50 US States & Canada</h2>
             <p className="text-gray-600 text-lg mb-8">
-              Zeniva Travel is a fully digital travel agency. We serve customers in every US state — including California, Texas, Florida, New York, Illinois, Pennsylvania, Ohio, Georgia, North Carolina, Michigan — and across all Canadian provinces.
+              Zeniva is a fully digital travel agency. We serve customers in every US state — including California, Texas, Florida, New York, Illinois, Pennsylvania, Ohio, Georgia, North Carolina, Michigan — and across all Canadian provinces.
             </p>
             <div className="flex flex-wrap justify-center gap-2 text-sm">
               {["New York", "California", "Texas", "Florida", "Illinois", "Virginia", "Delaware", "Pennsylvania", "Georgia", "North Carolina", "Ohio", "Michigan", "New Jersey", "Washington", "Colorado", "Arizona", "Ontario", "Quebec", "British Columbia", "Alberta"].map(state => (

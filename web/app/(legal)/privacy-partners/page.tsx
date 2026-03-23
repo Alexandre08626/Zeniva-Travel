@@ -12,9 +12,9 @@ import {
 } from "../../../src/components/legal/legal-constants";
 
 export const metadata = createLegalMetadata({
-  title: "Privacy Policy – Partners | Zeniva Travel",
+  title: "Privacy Policy – Partners | Zeniva",
   description:
-    "Privacy policy for Zeniva Travel Partner Mode, covering supplier data protection and US/Canada compliance.",
+    "Privacy policy for Zeniva Partner Mode, covering supplier data protection and US/Canada compliance.",
   path: "/privacy-partners",
 });
 
@@ -28,7 +28,7 @@ export default function PrivacyPartnersPage() {
         <h1 className="legal-title">Privacy Policy - Partner Mode</h1>
         <p className="legal-subtitle">
           This Privacy Policy applies to Partner Mode users, including hosts,
-          suppliers, and service providers operating on Zeniva Travel.
+          suppliers, and service providers operating on Zeniva.
         </p>
         <div className="legal-meta">
           <span>Effective date: {LEGAL_EFFECTIVE_DATE}</span>
@@ -59,7 +59,7 @@ export default function PrivacyPartnersPage() {
       <section id="introduction" className="legal-section">
         <h2>Introduction</h2>
         <p>
-          Zeniva Travel is an AI-powered travel agency platform operated by {LEGAL_OPERATOR}.
+          Zeniva is an AI-powered travel agency platform operated by {LEGAL_OPERATOR}.
           Partner Mode is designed for independent contractors such as property
           hosts, yacht providers, tour operators, and luxury service suppliers.
         </p>

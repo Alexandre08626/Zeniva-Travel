@@ -127,13 +127,13 @@ export default function Header({
           {/* Mobile: Lina avatar et titre centrés */}
           <div className="w-full flex flex-col items-center justify-center sm:hidden">
             <Image src="/branding/lina-hero.png" alt="Lina AI" width={56} height={56} className="mx-auto mb-1 rounded-full" />
-            <span className="text-lg font-extrabold text-center" style={{ color: TITLE_TEXT }}>{process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva Travel'}</span>
+            <span className="text-lg font-extrabold text-center" style={{ color: TITLE_TEXT }}>{process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva'}</span>
           </div>
           {/* Desktop: Lina avatar et titre */}
           <Link href="/" className="items-center gap-3 hidden sm:flex">
             <Image src="/branding/lina-hero.png" alt="Lina AI" width={56} height={56} className="rounded-full" />
             <div>
-              <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>{process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva Travel'}</div>
+              <div className="text-lg font-extrabold" style={{ color: TITLE_TEXT }}>{process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva'}</div>
               <div className="text-xs" style={{ color: MUTED_TEXT }}>
                 <AutoTranslate text="Powered by Lina AI" className="inline" />
               </div>
@@ -141,10 +141,10 @@ export default function Header({
           </Link>
           
           <nav className="hidden md:flex items-center gap-3 ml-4">
-            <Link href="/yachts" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="ZeniYacht" className="inline" /></Link>
+            <Link href="/zeniyacht" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="ZeniYacht" className="inline" /></Link>
             <Link href="/partners/resorts" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="ZeniHotel" className="inline" /></Link>
             <Link href="/collections/group" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="ZeniGroup" className="inline" /></Link>
-            <Link href="/residences" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="ZeniStays" className="inline" /></Link>
+            <Link href="/zenistay" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="ZeniStays" className="inline" /></Link>
             {loggedIn && (
               <>
                 <Link href="/documents" className="text-sm text-slate-900 font-semibold hover:underline"><AutoTranslate text="Dashboard" className="inline" /></Link>
@@ -265,7 +265,7 @@ export default function Header({
                 <img src="/branding/lina-avatar.png" alt="Lina" style={{ width: 44, height: 44, borderRadius: "50%", border: "2px solid #E6B85A", objectFit: "cover" }} />
                 <div>
                   <div style={{ fontWeight: 800, fontSize: 16, color: "#0B1B4D" }}>
-                    {loggedIn ? (authUser?.name?.split(" ")[0] || "Mon compte") : "Zeniva Travel"}
+                    {loggedIn ? (authUser?.name?.split(" ")[0] || "Mon compte") : "Zeniva"}
                   </div>
                   <div style={{ fontSize: 12, color: "#64748b" }}>
                     {loggedIn ? email : "AI Travel Concierge"}
@@ -279,9 +279,9 @@ export default function Header({
                 {[
                   { href: "/chat", icon: "💬", label: "Chat Lina" },
                   { href: "/call", icon: "📞", label: "Call Lina" },
-                  { href: "/yachts", icon: "⛵", label: "ZeniYacht" },
+                  { href: "/zeniyacht", icon: "⛵", label: "ZeniYacht" },
                   { href: "/partners/resorts", icon: "🏨", label: "ZeniHotel" },
-                  { href: "/residences", icon: "🏡", label: "ZeniStay" },
+                  { href: "/zenistay", icon: "🏡", label: "ZeniStay" },
                   { href: "/search/flights", icon: "✈️", label: "ZeniFlights" },
                   { href: "/search/cars", icon: "🚗", label: "ZeniCar" },
                   { href: "/cruises", icon: "🚢", label: "ZeniCruise" },

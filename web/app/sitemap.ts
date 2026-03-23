@@ -27,17 +27,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/packages/caribbean`, lastModified: NOW, changeFrequency: "weekly", priority: 0.86 },
     { url: `${BASE_URL}/packages/europe`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
 
-    // ─── YACHTS ───────────────────────────────────────
-    { url: `${BASE_URL}/yachts`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },
-    { url: `${BASE_URL}/fr/yachts`, lastModified: NOW, changeFrequency: "weekly", priority: 0.82 },
+    // ─── ZENIYACHT ────────────────────────────────────
+    { url: `${BASE_URL}/zeniyacht`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },
 
     // ─── PARTNERS & RESORTS ───────────────────────────
     { url: `${BASE_URL}/partners/resorts`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },
     { url: `${BASE_URL}/fr/partners/resorts`, lastModified: NOW, changeFrequency: "weekly", priority: 0.82 },
 
-    // ─── RESIDENCES / AIRBNBS ─────────────────────────
-    { url: `${BASE_URL}/residences`, lastModified: NOW, changeFrequency: "weekly", priority: 0.82 },
-    { url: `${BASE_URL}/airbnbs`, lastModified: NOW, changeFrequency: "weekly", priority: 0.78 },
+    // ─── ZENISTAY ─────────────────────────────────────
+    { url: `${BASE_URL}/zenistay`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
 
     // ─── SEARCH ───────────────────────────────────────
     { url: `${BASE_URL}/search/flights`, lastModified: NOW, changeFrequency: "daily", priority: 0.85 },

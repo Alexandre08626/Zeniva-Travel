@@ -13,7 +13,7 @@ import MobilePromoBadge from "../src/components/MobilePromoBadge.client";
 
 export const metadata: Metadata = {
   title: "#1 AI Travel Concierge USA — Luxury Trips & Custom Vacations",
-  description: "Zeniva Travel — America's AI travel agency. Plan luxury vacations, custom trips & group travel with Lina AI, available 24/7. Incorporated in Delaware. Start planning in seconds.",
+  description: "Zeniva — America's AI travel agency. Plan luxury vacations, custom trips & group travel with Lina AI, available 24/7. Incorporated in Delaware. Start planning in seconds.",
   alternates: {
     canonical: "https://zenivatravel.com",
     languages: { "en-US": "https://zenivatravel.com", "fr-CA": "https://zenivatravel.com/fr" },
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     title: "AI Travel Concierge USA",
     description: "America's AI travel agency. Luxury vacations, custom trips, yacht charters — planned by Lina AI in seconds.",
     url: "https://zenivatravel.com",
-    siteName: "Zeniva Travel",
+    siteName: "Zeniva",
     type: "website",
     images: [{ url: "/branding/lina-avatar.png", width: 1200, height: 630 }],
   },
@@ -40,10 +40,10 @@ const DESTINATIONS = [
 const SERVICES = [
   { icon: "✈️", title: "ZeniFlights", desc: "Best fares worldwide", href: "/search/flights", color: "#0F6CF5" },
   { icon: "🏨", title: "ZeniHotel", desc: "Curated luxury stays", href: "/partners/resorts", color: "#10b981" },
-  { icon: "🛥️", title: "ZeniYacht", desc: "Private charters", href: "/yachts", color: "#E6B85A" },
+  { icon: "🛥️", title: "ZeniYacht", desc: "Private charters", href: "/zeniyacht", color: "#E6B85A" },
   { icon: "🚗", title: "ZeniTransfers", desc: "Door-to-door service", href: "/chat?prompt=I+need+a+transfer", color: "#ec4899" },
   { icon: "🏖️", title: "ZeniPackages", desc: "All-inclusive deals", href: "/packages", color: "#8b5cf6" },
-  { icon: "🏠", title: "ZeniStay", desc: "Homes & villas", href: "/residences", color: "#f59e0b" },
+  { icon: "🏠", title: "ZeniStay", desc: "Homes & villas", href: "/zenistay", color: "#f59e0b" },
 ];
 
 const STATS = [
@@ -60,7 +60,7 @@ export default function HomePage() {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "TravelAgency",
-    name: "Zeniva Travel",
+    name: "Zeniva",
     url: "https://zenivatravel.com",
     logo: "https://zenivatravel.com/branding/logo.png",
     description: "AI-powered travel agency with Lina AI concierge",
@@ -91,7 +91,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between px-5 pt-5">
             <div className="flex items-center gap-2">
               <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full border-2 border-blue-100" />
-              <span className="font-black text-sm text-[#0B1B4D] tracking-tight">Zeniva Travel</span>
+              <span className="font-black text-sm text-[#0B1B4D] tracking-tight">Zeniva</span>
             </div>
             <div className="flex gap-2">
               <Link href="/login" className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600">Log in</Link>
@@ -158,10 +158,10 @@ export default function HomePage() {
             {/* Quick tags — Zeni brands */}
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               {[
-                { label: "🏡 ZeniStay",    href: "/residences" },
+                { label: "🏡 ZeniStay",    href: "/zenistay" },
                 { label: "🏨 ZeniHotel",   href: "/partners/resorts" },
                 { label: "✈️ ZeniFlights", href: "/search/flights" },
-                { label: "🛥️ ZeniYacht",   href: "/yachts" },
+                { label: "🛥️ ZeniYacht",   href: "/zeniyacht" },
                 { label: "🚢 ZeniCruise",  href: "/search/cruises" },
                 { label: "🚗 ZeniCar",     href: "/search/cars" },
               ].map((t) => (
@@ -219,7 +219,7 @@ export default function HomePage() {
         <div className="bg-white px-5 py-8 border-t border-slate-100">
           <div className="flex items-center gap-2 mb-4">
             <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full border border-slate-200" />
-            <span className="font-black text-[#0B1B4D]">Zeniva Travel</span>
+            <span className="font-black text-[#0B1B4D]">Zeniva</span>
           </div>
           <div className="flex flex-wrap gap-4 text-slate-500 text-xs mb-4 font-semibold">
             <Link href="/about">About</Link>
@@ -227,7 +227,7 @@ export default function HomePage() {
             <Link href="/terms">Terms</Link>
             <Link href="/agent">Agents</Link>
           </div>
-          <p className="text-slate-400 text-[10px]">© 2026 Zeniva Travel Inc. · Delaware, USA</p>
+          <p className="text-slate-400 text-[10px]">© 2026 Zeniva Inc. · Delaware, USA</p>
         </div>
       </section>
 
@@ -289,10 +289,10 @@ export default function HomePage() {
                   {/* Quick prompts — Zeni brands */}
                   <div className="mt-3 flex flex-wrap gap-2">
                     {[
-                      { label: "🏡 ZeniStay",    href: "/residences" },
+                      { label: "🏡 ZeniStay",    href: "/zenistay" },
                       { label: "🏨 ZeniHotel",   href: "/partners/resorts" },
                       { label: "✈️ ZeniFlights", href: "/search/flights" },
-                      { label: "🛥️ ZeniYacht",   href: "/yachts" },
+                      { label: "🛥️ ZeniYacht",   href: "/zeniyacht" },
                       { label: "🚢 ZeniCruise",  href: "/search/cruises" },
                     ].map((q) => (
                       <Link key={q.label} href={q.href} className="rounded-full bg-slate-100 hover:bg-blue-50 hover:text-blue-700 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors">

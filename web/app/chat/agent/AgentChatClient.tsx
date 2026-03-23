@@ -109,7 +109,7 @@ export default function TravelerAgentChatClient() {
     },
     {
       id: channelId,
-      title: "Zeniva Travel Agent",
+      title: "Zeniva Agent",
       listingTitle: "Real human — here to help",
       unread: 0,
       avatar: "/branding/logo.png",
@@ -118,7 +118,7 @@ export default function TravelerAgentChatClient() {
         {
           id: "welcome-agent",
           role: "agent",
-          text: "Hello! You're now connected with a real Zeniva Travel agent 👋 We typically respond within a few minutes during business hours. How can we help you today?",
+          text: "Hello! You're now connected with a real Zeniva agent 👋 We typically respond within a few minutes during business hours. How can we help you today?",
           ts: new Date().toLocaleTimeString().slice(0, 5),
         },
         ...loadLocalMessages(channelId),
@@ -295,7 +295,7 @@ export default function TravelerAgentChatClient() {
               Back
             </Link>
             <div className="w-px h-5 bg-slate-200" />
-            <img src="/branding/logo.png" alt="Zeniva Travel" className="h-7" />
+            <img src="/branding/logo.png" alt="Zeniva" className="h-7" />
           </div>
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full">
@@ -318,7 +318,7 @@ export default function TravelerAgentChatClient() {
               <img src="/branding/lina-avatar.png" alt="Lina" className="w-10 h-10 rounded-full border-2 border-white object-cover" />
             </div>
             <div>
-              <h1 className="text-white font-bold text-lg leading-tight">Zeniva Travel Support</h1>
+              <h1 className="text-white font-bold text-lg leading-tight">Zeniva Support</h1>
               <p className="text-blue-200 text-sm">Real humans + Lina AI — here to help you</p>
             </div>
           </div>
@@ -410,7 +410,7 @@ export default function TravelerAgentChatClient() {
               <User className="w-4 h-4 text-white" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-bold text-emerald-800">You are chatting with a real Zeniva Travel agent</p>
+              <p className="text-sm font-bold text-emerald-800">You are chatting with a real Zeniva agent</p>
               <p className="text-xs text-emerald-600">No bots — a certified travel professional will read and reply to your message</p>
             </div>
             <Shield className="w-5 h-5 text-emerald-500 flex-shrink-0" />
@@ -430,7 +430,7 @@ export default function TravelerAgentChatClient() {
             )}
             <div className="flex-1">
               <p className="font-bold text-slate-900 text-sm">
-                {activeTab === "lina" ? "Lina AI Concierge" : "Zeniva Travel Agent"}
+                {activeTab === "lina" ? "Lina AI Concierge" : "Zeniva Agent"}
               </p>
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
@@ -556,7 +556,7 @@ export default function TravelerAgentChatClient() {
 
         {/* Footer note */}
         <p className="text-center text-xs text-slate-400 pb-4">
-          Zeniva Travel · Delaware, USA · info@zeniva.ca · +1 (332) 290-0021 · Cell: +1 (581) 748-7017 ·{" "}
+          Zeniva · Delaware, USA · info@zeniva.ca · +1 (332) 290-0021 · Cell: +1 (581) 748-7017 ·{" "}
           <Link href="/privacy-policy" className="underline hover:text-slate-600">Privacy Policy</Link>
         </p>
       </div>

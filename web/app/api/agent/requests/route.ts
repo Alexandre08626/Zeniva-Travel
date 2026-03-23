@@ -22,7 +22,7 @@ async function sendEmailNotification(opts: {
 }) {
   try {
     await smtpTransporter.sendMail({
-      from: '"Zeniva Travel" <info@zeniva.ca>',
+      from: '"Zeniva" <info@zeniva.ca>',
       ...opts,
     });
   } catch (e) {
@@ -452,14 +452,14 @@ export async function POST(request: Request) {
         // 2. Confirmation email to client
         void sendEmailNotification({
           to: clientEmail,
-          subject: "✅ We received your message — Zeniva Travel",
+          subject: "✅ We received your message — Zeniva",
           html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto">
 <h2 style="color:#0B1B4D">We got your message!</h2>
 <p>Hi ${clientName},</p>
 <p>Our team has received your message and will get back to you shortly.</p>
 <blockquote style="border-left:4px solid #0F6CF5;padding:12px 16px;margin:16px 0;color:#555;">${msgText.replace(/\n/g,"<br/>")}</blockquote>
 <p>In the meantime, you can explore your trips at <a href="https://www.zenivatravel.com">zenivatravel.com</a>.</p>
-<p style="color:#888;font-size:12px">— The Zeniva Travel Team</p>
+<p style="color:#888;font-size:12px">— The Zeniva Team</p>
 </div>`,
         });
       }
@@ -472,14 +472,14 @@ export async function POST(request: Request) {
             if (clientInfo?.email) {
               void sendEmailNotification({
                 to: clientInfo.email,
-                subject: "💬 New reply from Zeniva Travel",
+                subject: "💬 New reply from Zeniva",
                 html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto">
 <h2 style="color:#0B1B4D">You have a new reply</h2>
 <p>Hi ${clientInfo.name},</p>
 <p>Our team has replied to your message:</p>
 <blockquote style="border-left:4px solid #E6B85A;padding:12px 16px;margin:16px 0;color:#333;">${msgText.replace(/\n/g,"<br/>")}</blockquote>
 <p><a href="https://www.zenivatravel.com/chat" style="background:#0B1B4D;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;">View your conversation →</a></p>
-<p style="color:#888;font-size:12px">— The Zeniva Travel Team</p>
+<p style="color:#888;font-size:12px">— The Zeniva Team</p>
 </div>`,
               });
             }

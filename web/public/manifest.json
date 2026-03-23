@@ -1,5 +1,5 @@
 {
-  "name": "Zeniva Travel",
+  "name": "Zeniva",
   "short_name": "Zeniva",
   "description": "AI Travel Concierge — Luxury Trips & Custom Vacations powered by Lina AI",
   "start_url": "/?pwa=1",
@@ -44,7 +44,7 @@
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Zeniva Travel — Chat with Lina AI"
+      "label": "Zeniva — Chat with Lina AI"
     }
   ]
 }

@@ -97,7 +97,7 @@ export default function AgentRequestsPage() {
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400">HQ</p>
             <h1 className="text-3xl font-black text-slate-900">Agent Requests</h1>
-            <p className="text-sm text-slate-500 mt-0.5">Review and approve new agents joining Zeniva Travel</p>
+            <p className="text-sm text-slate-500 mt-0.5">Review and approve new agents joining Zeniva</p>
           </div>
           <button onClick={() => void fetchRequests()} className="rounded-full px-5 py-2 text-sm font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm">
             🔄 Refresh

@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     }
 
     const payload = JSON.stringify({
-      title: title || "✈️ Zeniva Travel",
+      title: title || "✈️ Zeniva",
       body: body || "You have a new notification",
       url: url || "/",
       icon: icon || "/icons/icon-192x192.png",

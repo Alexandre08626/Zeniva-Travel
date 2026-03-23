@@ -288,7 +288,7 @@ export default function TravelFormClient() {
             ))}
           </div>
           <p style={{ color: "rgba(255,255,255,0.1)", fontSize: 10, lineHeight: 1.6 }}>
-            Zeniva Travel Inc. · Incorporated in Delaware, USA · Your info is protected under US privacy law
+            Zeniva Inc. · Incorporated in Delaware, USA · Your info is protected under US privacy law
           </p>
         </div>
 

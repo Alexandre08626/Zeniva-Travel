@@ -12,7 +12,7 @@ import {
 export const metadata = createLegalMetadata({
   title: "Cookie Policy",
   description:
-    "Details on how Zeniva Travel uses cookies, pixels, and SDKs, including categories and consent choices.",
+    "Details on how Zeniva uses cookies, pixels, and SDKs, including categories and consent choices.",
   path: "/cookie-policy",
 });
 
@@ -24,7 +24,7 @@ export default function CookiePolicyPage() {
         <span className="legal-badge">Policy</span>
         <h1 className="legal-title">Cookie Policy</h1>
         <p className="legal-subtitle">
-          This Cookie Policy explains how Zeniva Travel uses cookies, pixels, and
+          This Cookie Policy explains how Zeniva uses cookies, pixels, and
           SDKs, and how you can manage your preferences.
         </p>
         <div className="legal-meta">

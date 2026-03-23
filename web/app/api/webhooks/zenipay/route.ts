@@ -1,7 +1,7 @@
 /**
- * Zeniva Travel — ZeniPay Webhook Receiver
+ * Zeniva — ZeniPay Webhook Receiver
  * Called by ZeniPay when a payment is confirmed.
- * Automatically creates a booking in Zeniva Travel.
+ * Automatically creates a booking in Zeniva.
  *
  * Auth: Authorization: Bearer ZENIPAY_WEBHOOK_SECRET
  */
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
       id: bookingId,
       client_name: customer_name || "Client",
       client_email: customer_email || "",
-      destination: metadata.destination || description || "Zeniva Travel",
+      destination: metadata.destination || description || "Zeniva",
       departure_date: metadata.checkin || metadata.departure_date || null,
       return_date: metadata.checkout || metadata.return_date || null,
       travelers: metadata.guests || metadata.travelers || 1,

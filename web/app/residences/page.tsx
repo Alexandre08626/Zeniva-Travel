@@ -199,7 +199,7 @@ function ResidencesContent() {
                 maxGuests: String(villa.maxGuests || guests),
                 desc: villa.description || "",
               });
-              router.push(`/residences/${villa.id || villaId}?${params.toString()}`);
+              router.push(`/zenistay/${villa.id || villaId}?${params.toString()}`);
             }}
               className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-black py-3 hover:opacity-90 transition shadow">
               🏠 View & Book — Photos + Payment →
@@ -231,7 +231,7 @@ function ResidencesContent() {
           <div className="flex items-center gap-3 mb-2">
             <span className="text-3xl">🏠</span>
             <div>
-              <p className="text-blue-200 text-xs font-bold uppercase tracking-widest">Zeniva Travel</p>
+              <p className="text-blue-200 text-xs font-bold uppercase tracking-widest">Zeniva</p>
               <h1 className="text-3xl sm:text-4xl font-black">ZeniStay</h1>
             </div>
           </div>
@@ -336,7 +336,7 @@ function ResidencesContent() {
                 {searched ? (
                   <>
                     <h2 className="text-xl font-black text-slate-800">{apiResults.length} properties in <span className="capitalize">{destination}</span></h2>
-                    <p className="text-xs text-slate-400 mt-0.5">All bookings handled exclusively by Zeniva Travel</p>
+                    <p className="text-xs text-slate-400 mt-0.5">All bookings handled exclusively by Zeniva</p>
                   </>
                 ) : (
                   <>
@@ -402,7 +402,7 @@ function ResidencesContent() {
                     bedrooms: String(photoModal.bedrooms || ""), bathrooms: String(photoModal.bathrooms || ""),
                     maxGuests: String(photoModal.maxGuests || guests), desc: photoModal.description || "",
                   });
-                  router.push(`/residences/${photoModal.id}?${p.toString()}`);
+                  router.push(`/zenistay/${photoModal.id}?${p.toString()}`);
                   setPhotoModal(null);
                 }}
                   className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black py-3.5 hover:opacity-90 transition shadow">

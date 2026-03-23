@@ -46,7 +46,7 @@ export async function POST() {
         data: {
           type: "businessCustomer",
           attributes: {
-            name: "Zeniva Travel LLC",
+            name: "Zeniva LLC",
             ein: "12-3456789",
             phone: { countryCode: "1", number: "3322900021" },
             address: {

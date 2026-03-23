@@ -672,7 +672,7 @@ export default function TripWorkspacePage() {
               <p className="text-xs font-semibold text-slate-500">Revenue split (95/5 yacht)</p>
               <div className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 space-y-1">
                 <p className="font-semibold" style={{ color: TITLE_TEXT }}>Total sell ${split.totalSell}</p>
-                <p className="text-xs" style={{ color: MUTED_TEXT }}>Zeniva Travel share (incl yacht 5%): ${split.travelSell}</p>
+                <p className="text-xs" style={{ color: MUTED_TEXT }}>Zeniva share (incl yacht 5%): ${split.travelSell}</p>
                 {split.partnerFeeAmount > 0 && (
                   <p className="text-xs" style={{ color: MUTED_TEXT }}>Partner fee: ${split.partnerFeeAmount}</p>
                 )}
@@ -682,7 +682,7 @@ export default function TripWorkspacePage() {
                 {split.travelAgentShare > 0 && (
                   <p className="text-xs" style={{ color: MUTED_TEXT }}>Travel agent {Math.round(travelAgentPct * 100)}%: ${split.travelAgentShare}</p>
                 )}
-                <p className="text-xs" style={{ color: MUTED_TEXT }}>Zeniva Travel net after agent: ${split.travelNetAfterAgent}</p>
+                <p className="text-xs" style={{ color: MUTED_TEXT }}>Zeniva net after agent: ${split.travelNetAfterAgent}</p>
                 <p className="text-xs" style={{ color: MUTED_TEXT }}>Zeniva Yacht share (95% yachts): ${split.yachtSell}</p>
               </div>
             </div>

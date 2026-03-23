@@ -9,7 +9,7 @@ export default function AIAgentsLayout({ children }: { children: React.ReactNode
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-4">
             <Link href="/" className="text-lg font-black tracking-tight text-slate-900 hover:text-blue-600 transition">
-              ✈️ Zeniva Travel
+              ✈️ Zeniva
             </Link>
             <span className="text-xs font-bold text-indigo-600 bg-indigo-600/10 px-2 py-0.5 rounded-full">AI AGENTS</span>
           </div>

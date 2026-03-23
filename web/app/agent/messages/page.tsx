@@ -201,7 +201,7 @@ export default function MessagesPage() {
                           {statusLoading === lead.id ? "…" : s.charAt(0).toUpperCase() + s.slice(1)}
                         </button>
                       ))}
-                      <a href={`mailto:${lead.email}?subject=Your trip request — Zeniva Travel`}
+                      <a href={`mailto:${lead.email}?subject=Your trip request — Zeniva`}
                         className="ml-auto px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition">
                         ✉️ Reply by email
                       </a>

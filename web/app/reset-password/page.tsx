@@ -75,7 +75,7 @@ export default function ResetPasswordPage() {
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <img src="/branding/lina-avatar.png" alt="Zeniva" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', margin: '0 auto 12px' }} />
           <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px' }}>Change Password</div>
-          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>Zeniva Travel · Secure</div>
+          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>Zeniva · Secure</div>
         </div>
 
         {status === 'success' ? (

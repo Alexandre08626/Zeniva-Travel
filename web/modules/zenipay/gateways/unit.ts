@@ -64,7 +64,7 @@ export async function createDepositAccount(params: {
       type: "depositAccount",
       attributes: {
         depositProduct: "checking",
-        tags: params.tags || { org: "Zeniva Travel" },
+        tags: params.tags || { org: "Zeniva" },
       },
       relationships: {
         customer: { data: { type: "businessCustomer", id: params.customerId } },
@@ -112,7 +112,7 @@ export async function createBusinessCustomer(params: {
         ein: params.ein || "000000000",
         stateOfIncorporation: "DE",
         entityType: "LLC",
-        tags: { org: "Zeniva Travel" },
+        tags: { org: "Zeniva" },
       },
     },
   };
@@ -155,7 +155,7 @@ export async function createVirtualDebitCard(params: {
           dailyPurchase: params.limits.dailyPurchase || 10000_00,
           monthlyPurchase: params.limits.monthlyPurchase || 50000_00,
         } : undefined,
-        tags: { org: "Zeniva Travel" },
+        tags: { org: "Zeniva" },
       },
       relationships: {
         account: { data: { type: "depositAccount", id: params.accountId } },

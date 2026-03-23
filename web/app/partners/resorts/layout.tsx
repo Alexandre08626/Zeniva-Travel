@@ -2,9 +2,9 @@ export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Luxury Resort Partners — All-Inclusive Hotels & 5-Star Resorts | Zeniva Travel USA",
+  title: "Luxury Resort Partners — All-Inclusive Hotels & 5-Star Resorts | Zeniva USA",
   description:
-    "Discover Zeniva Travel's curated collection of 5-star resorts and all-inclusive hotels worldwide. Exclusive rates on luxury properties in Cancún, Maldives, Bali, Dubai, Caribbean & more. Book with Lina AI.",
+    "Discover Zeniva's curated collection of 5-star resorts and all-inclusive hotels worldwide. Exclusive rates on luxury properties in Cancún, Maldives, Bali, Dubai, Caribbean & more. Book with Lina AI.",
   keywords: [
     "luxury resorts USA",
     "best all-inclusive resorts 2025",
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     "Bali luxury hotels",
     "Dubai 5 star hotels",
     "best travel agency resorts",
-    "Zeniva Travel resorts",
+    "Zeniva resorts",
     "all-inclusive vacation packages",
   ],
   alternates: {
@@ -27,17 +27,17 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Luxury Resort Partners — All-Inclusive Hotels & 5-Star Resorts | Zeniva Travel",
+    title: "Luxury Resort Partners — All-Inclusive Hotels & 5-Star Resorts | Zeniva",
     description:
       "Exclusive access to 5-star resorts worldwide. All-inclusive Cancún, Maldives, Caribbean, Dubai & more. Booked by Lina AI, your personal travel concierge.",
     url: "https://www.zenivatravel.com/partners/resorts",
-    siteName: "Zeniva Travel",
+    siteName: "Zeniva",
     type: "website",
-    images: [{ url: "/branding/lina-avatar.png", width: 1200, height: 630, alt: "Zeniva Travel Luxury Resorts" }],
+    images: [{ url: "/branding/lina-avatar.png", width: 1200, height: 630, alt: "Zeniva Luxury Resorts" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Luxury Resort Partners | Zeniva Travel USA",
+    title: "Luxury Resort Partners | Zeniva USA",
     description: "5-star resorts worldwide — Cancún, Maldives, Dubai, Caribbean. Book with Lina AI 24/7.",
     images: ["/branding/lina-avatar.png"],
   },

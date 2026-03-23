@@ -11,7 +11,7 @@ import {
 export const metadata = createLegalMetadata({
   title: "AI Terms of Use",
   description:
-    "Terms governing Zeniva Travel AI features, including accuracy limits, human oversight, and acceptable use.",
+    "Terms governing Zeniva AI features, including accuracy limits, human oversight, and acceptable use.",
   path: "/ai-terms",
 });
 
@@ -24,7 +24,7 @@ export default function AiTermsPage() {
         <h1 className="legal-title">AI Terms of Use</h1>
         <p className="legal-subtitle">
           These AI Terms apply to Lina AI and any automated assistance provided
-          by Zeniva Travel.
+          by Zeniva.
         </p>
         <div className="legal-meta">
           <span>Last updated: {LEGAL_LAST_UPDATED}</span>

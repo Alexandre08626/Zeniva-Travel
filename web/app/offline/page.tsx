@@ -13,7 +13,7 @@ export default function OfflinePage() {
         textAlign: "center",
       }}
     >
-      <img src="/branding/logo.png" alt="Zeniva Travel" style={{ height: 60, marginBottom: "2rem", opacity: 0.9 }} />
+      <img src="/branding/logo.png" alt="Zeniva" style={{ height: 60, marginBottom: "2rem", opacity: 0.9 }} />
       <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>✈️</div>
       <h1 style={{ color: "white", fontSize: "1.75rem", fontWeight: 900, marginBottom: "0.75rem" }}>
         You're offline

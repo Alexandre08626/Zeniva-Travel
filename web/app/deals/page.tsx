@@ -219,7 +219,7 @@ export default function DealsPage() {
           </div>
         </div>
         <p style={{ color: '#475569', fontSize: '0.8rem', marginTop: '30px' }}>
-          Zeniva Travel · Delaware, USA · zenivatravel.com
+          Zeniva · Delaware, USA · zenivatravel.com
         </p>
       </div>
     </div>

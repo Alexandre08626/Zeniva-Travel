@@ -1,12 +1,12 @@
 export const dynamic = "force-dynamic";
 
 /**
- * Zeniva Travel — Payment Processing Route
+ * Zeniva — Payment Processing Route
  *
  * Flow:
  * 1. If ZENIPAY_API_URL is configured → calls ZeniPay external API
  *    ZeniPay processes the payment, generates the invoice, and sends
- *    a webhook to Zeniva Travel (/api/webhooks/zenipay) which auto-creates the booking.
+ *    a webhook to Zeniva (/api/webhooks/zenipay) which auto-creates the booking.
  * 2. Fallback → internal processing (gateway + booking + invoice locally)
  */
 
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
           id: bookingId,
           client_name: customer_name || cardholder_name || "Client",
           client_email: customer_email || "",
-          destination: meta.destination || description || "Zeniva Travel",
+          destination: meta.destination || description || "Zeniva",
           departure_date: meta.checkin || meta.departure_date || null,
           return_date: meta.checkout || meta.return_date || null,
           travelers: meta.guests || meta.travelers || 1,
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
         }, { onConflict: "id" }).then(() => {});
       }
 
-      const confirmUrl = `/booking/confirmation?ref=${paymentId}&total=$${parsedAmount}&trip=${encodeURIComponent(description || "Zeniva Travel Booking")}`;
+      const confirmUrl = `/booking/confirmation?ref=${paymentId}&total=$${parsedAmount}&trip=${encodeURIComponent(description || "Zeniva Booking")}`;
 
       return Response.json({
         success: true,
@@ -184,7 +184,7 @@ export async function POST(request: Request) {
 
       // Auto-create booking
       const meta = body.metadata || {};
-      const dest = meta.destination || description || "Zeniva Travel";
+      const dest = meta.destination || description || "Zeniva";
       const bookingId = meta.booking_id || `BK-${paymentId}`;
       const custEmail = meta.customer_email || body.customer_email || "";
 
@@ -253,7 +253,7 @@ export async function POST(request: Request) {
         amount: parsedAmount,
         currency,
         status: "succeeded",
-        confirmation_url: `/booking/confirmation?ref=${paymentId}&total=$${parsedAmount}&trip=${encodeURIComponent(description || "Zeniva Travel Booking")}`,
+        confirmation_url: `/booking/confirmation?ref=${paymentId}&total=$${parsedAmount}&trip=${encodeURIComponent(description || "Zeniva Booking")}`,
       };
 
       await saveIdempotency(idemKey, "payment", responsePayload as Record<string, unknown>);
@@ -266,7 +266,7 @@ export async function POST(request: Request) {
       payment_id: paymentId,
       status: "pending",
       message: "Reserve confirmed. Payment due at check-in.",
-      confirmation_url: `/booking/confirmation?ref=${paymentId}&total=$${parsedAmount}&trip=${encodeURIComponent(description || "Zeniva Travel Booking")}&payment=pending`,
+      confirmation_url: `/booking/confirmation?ref=${paymentId}&total=$${parsedAmount}&trip=${encodeURIComponent(description || "Zeniva Booking")}&payment=pending`,
     };
     return Response.json(pendingPayload);
 

@@ -100,7 +100,7 @@ export default function ControlTowerPage() {
             <span className="text-3xl">{allOnline ? "✅" : "⚠️"}</span>
             <div>
               <p className="font-black text-xl">{allOnline ? "All Systems Operational" : "Some Services Need Attention"}</p>
-              <p className="text-white/80 text-sm">Zeniva Travel infrastructure status · Auto-refreshes every 30s</p>
+              <p className="text-white/80 text-sm">Zeniva infrastructure status · Auto-refreshes every 30s</p>
             </div>
           </div>
         </div>

@@ -12,7 +12,7 @@ import {
 export const metadata = createLegalMetadata({
   title: "Terms of Service",
   description:
-    "Terms governing Zeniva Travel concierge services, bookings, payments, and liability limits.",
+    "Terms governing Zeniva concierge services, bookings, payments, and liability limits.",
   path: "/terms",
 });
 
@@ -24,7 +24,7 @@ export default function TermsPage() {
         <span className="legal-badge">Terms</span>
         <h1 className="legal-title">Terms of Service</h1>
         <p className="legal-subtitle">
-          These Terms of Service govern your use of Zeniva Travel and our concierge
+          These Terms of Service govern your use of Zeniva and our concierge
           services. By using our services, you agree to these terms.
         </p>
         <div className="legal-meta">
@@ -63,7 +63,7 @@ export default function TermsPage() {
       <section id="services" className="legal-section">
         <h2>Services and scope</h2>
         <p>
-          Zeniva Travel provides travel planning, concierge support, and booking
+          Zeniva provides travel planning, concierge support, and booking
           coordination. We are not the owner or operator of airlines, hotels,
           cruise lines, yacht operators, or other travel providers.
         </p>

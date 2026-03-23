@@ -216,7 +216,7 @@ export default function PartnerResortsPage() {
       <section className="mb-6 rounded-2xl sm:rounded-3xl px-4 sm:px-6 py-5 sm:py-8 overflow-hidden" style={{ background: `linear-gradient(110deg, ${GRADIENT_START} 0%, ${GRADIENT_END} 60%)` }}>
         <div className="mx-auto max-w-6xl text-white">
           <div className="flex flex-col gap-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-200">Zeniva Travel</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-200">Zeniva</p>
             <div className="flex items-center gap-3">
               <span className="text-4xl">🏨</span>
               <h1 className="text-3xl sm:text-4xl font-black">ZeniHotel</h1>
@@ -289,10 +289,10 @@ export default function PartnerResortsPage() {
               <Link href="/partners/resorts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white text-slate-900">
                 ZeniHotel
               </Link>
-              <Link href="/yachts" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
+              <Link href="/zeniyacht" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
                 Yachts
               </Link>
-              <Link href="/residences" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
+              <Link href="/zenistay" className="rounded-full px-4 py-2 text-sm font-semibold bg-white/10 text-white">
                 Short-term Rentals
               </Link>
               <Link href="/" className="rounded-full border border-white/50 px-4 py-2 text-sm font-semibold text-white">

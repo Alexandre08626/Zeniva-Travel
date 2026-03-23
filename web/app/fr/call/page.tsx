@@ -5,7 +5,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Concierge voyage vidéo",
   description:
-    "Planifiez une session vidéo avec Lina AI et les experts concierge de Zeniva Travel pour un voyage sur mesure.",
+    "Planifiez une session vidéo avec Lina AI et les experts concierge de Zeniva pour un voyage sur mesure.",
   alternates: {
     canonical: "https://zenivatravel.com/fr/call",
     languages: {
@@ -14,11 +14,11 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Zeniva Travel AI | Concierge vidéo",
+    title: "Zeniva AI | Concierge vidéo",
     description:
       "Conciergerie vidéo avec Lina AI : découverte d’intention, itinéraires intelligents, validation humaine.",
     url: "https://zenivatravel.com/fr/call",
-    siteName: "Zeniva Travel",
+    siteName: "Zeniva",
     type: "website",
     images: [
       {
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zeniva Travel AI | Concierge vidéo",
+    title: "Zeniva AI | Concierge vidéo",
     description:
       "Conciergerie vidéo avec Lina AI : découverte d’intention, itinéraires intelligents, validation humaine.",
     images: ["/branding/lina-avatar.png"],
@@ -42,7 +42,7 @@ export default function CallPageFr() {
   return (
     <main className="min-h-screen bg-white">
       <section className="mx-auto max-w-5xl px-6 py-16">
-        <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Zeniva Travel AI</p>
+        <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Zeniva AI</p>
         <h1 className="mt-4 text-4xl sm:text-5xl font-black text-slate-900">
           Parlez à un concierge en vidéo
         </h1>

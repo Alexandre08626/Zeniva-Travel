@@ -252,7 +252,7 @@ function AirbnbsContent() {
           <div className="flex items-center gap-3 mb-2">
             <span className="text-3xl">🏠</span>
             <div>
-              <p className="text-blue-200 text-xs font-bold uppercase tracking-widest">Zeniva Travel</p>
+              <p className="text-blue-200 text-xs font-bold uppercase tracking-widest">Zeniva</p>
               <h1 className="text-3xl sm:text-4xl font-black">ZeniStay</h1>
             </div>
           </div>
@@ -439,7 +439,7 @@ function AirbnbsContent() {
                   <div className="text-sm text-slate-500 mb-3">{p.location}</div>
                   <p className="text-sm text-slate-600 line-clamp-2 mb-4">{p.description}</p>
                   <div className="mt-auto flex items-center justify-between">
-                    <Link href={`/residences/${p.slug}`} className="text-sm font-semibold underline text-slate-700">
+                    <Link href={`/zenistay/${p.slug}`} className="text-sm font-semibold underline text-slate-700">
                       View details
                     </Link>
                     <Link href="/chat?prompt=Plan%20a%20short-term%20stay" className="text-sm font-semibold text-primary-700">

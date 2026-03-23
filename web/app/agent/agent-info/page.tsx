@@ -33,7 +33,7 @@ function downloadHtml(listing: Listing) {
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>${listing.title} | Zeniva Travel</title>
+<title>${listing.title} | Zeniva</title>
 <style>
 body { font-family: Arial, sans-serif; padding: 32px; color: #0f172a; }
 .hero { display: flex; gap: 24px; align-items: flex-start; }
@@ -55,7 +55,7 @@ body { font-family: Arial, sans-serif; padding: 32px; color: #0f172a; }
   </div>
   <div class="section">
     <h2>Overview</h2>
-    <p>${listing.description || "Curated by Zeniva Travel. Contact your agent to finalize booking details."}</p>
+    <p>${listing.description || "Curated by Zeniva. Contact your agent to finalize booking details."}</p>
   </div>
 </body>
 </html>`;
@@ -121,7 +121,7 @@ export default function AgentInfoPage() {
           images: item.images || [],
           price: normalizePriceLabel((item.prices && item.prices[0]) || "Request a quote", locale),
           category: "Yacht",
-          link: "/yachts",
+          link: "/zeniyacht",
         }));
 
         const partnerItems: Listing[] = (partnerList || []).map((p: any, idx: number) => {
@@ -141,7 +141,7 @@ export default function AgentInfoPage() {
             images: data.images || [],
             price: normalizePriceLabel(priceLabel, locale),
             category: "Yacht",
-            link: "/yachts",
+            link: "/zeniyacht",
           };
         });
 
@@ -172,7 +172,7 @@ export default function AgentInfoPage() {
             image: data.thumbnail || (data.images && data.images[0]) || "/branding/icon-proposals.svg",
             images: data.images || [],
             category: "Residence",
-            link: "/residences",
+            link: "/zenistay",
           };
         });
         const normalizedPartner: Listing[] = (Array.isArray(partnerData) ? partnerData : []).map((item: any, idx: number) => ({
@@ -183,7 +183,7 @@ export default function AgentInfoPage() {
           image: item.thumbnail || (item.images && item.images[0]) || "/branding/icon-proposals.svg",
           images: item.images || [],
           category: "Residence",
-          link: "/residences",
+          link: "/zenistay",
         }));
         if (active) setResidences([...(normalizedPartner || []), ...(normalizedPublic || [])]);
       } catch {

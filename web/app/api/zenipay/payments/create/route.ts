@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Zeniva Travel live API key for ZeniPay
+// Zeniva live API key for ZeniPay
 const ZENIPAY_API_KEY = process.env.ZENIPAY_API_KEY || "zpk_live_zeniva_3k9";
 
 export async function POST(req: NextRequest) {
   const { customer_id, booking_id, amount, currency = "USD", description, customerName, customerEmail } = await req.json();
 
-  // Create a pay link on zenipay.ca linked to the Zeniva Travel merchant account
+  // Create a pay link on zenipay.ca linked to the Zeniva merchant account
   try {
     const zpRes = await fetch("https://zenipay.ca/api/zenipay/create-link", {
       method: "POST",
@@ -14,8 +14,8 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         amount,
         currency,
-        description: description || "Zeniva Travel",
-        merchant: "Zeniva Travel",
+        description: description || "Zeniva",
+        merchant: "Zeniva",
         api_key: ZENIPAY_API_KEY,
       }),
     });
@@ -36,8 +36,8 @@ export async function POST(req: NextRequest) {
   const paymentId = `LINK-${Date.now().toString(36).toUpperCase()}`;
   const params = new URLSearchParams({
     amount: String(amount), currency,
-    desc: description || "Zeniva Travel",
-    m: "Zeniva Travel",
+    desc: description || "Zeniva",
+    m: "Zeniva",
   });
   return NextResponse.json({
     payment_id: paymentId,

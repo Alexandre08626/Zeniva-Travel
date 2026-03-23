@@ -5,7 +5,7 @@ import Header from "../../../src/components/Header";
 import Footer from "../../../src/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Cancun Vacation Packages 2025 — All-Inclusive Deals from $799 | Zeniva Travel",
+  title: "Cancun Vacation Packages 2025 — All-Inclusive Deals from $799 | Zeniva",
   description:
     "Best Cancun all-inclusive vacation packages 2025. 7 nights from $799/person with flights & hotel. Planned by Lina AI — book the perfect Cancun getaway in minutes. USA & Canada travelers.",
   alternates: { canonical: "https://zenivatravel.com/packages/cancun" },
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     "Cancun honeymoon packages", "Cancun family vacation"
   ],
   openGraph: {
-    title: "Cancun Vacation Packages 2025 — All-Inclusive from $799 | Zeniva Travel",
+    title: "Cancun Vacation Packages 2025 — All-Inclusive from $799 | Zeniva",
     description: "Plan your perfect Cancun vacation with Lina AI. All-inclusive deals, luxury resorts, custom itineraries — for USA & Canada travelers.",
     url: "https://zenivatravel.com/packages/cancun",
     type: "website",
@@ -41,7 +41,7 @@ export default function CancunPage() {
     "itinerary": { "@type": "ItemList", "name": "7-Night Cancun Itinerary" },
     "provider": {
       "@type": "TravelAgency",
-      "name": "Zeniva Travel",
+      "name": "Zeniva",
       "url": "https://zenivatravel.com"
     }
   };
@@ -95,13 +95,13 @@ export default function CancunPage() {
 
         <section className="py-16 px-6 bg-blue-50">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Why Book Cancun with Zeniva Travel?</h2>
+            <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Why Book Cancun with Zeniva?</h2>
             <div className="grid md:grid-cols-2 gap-6">
               {[
                 { icon: "🤖", title: "Lina AI Plans in 60 Seconds", desc: "Tell Lina your dates, budget, and group size — she instantly finds the best Cancun deals for you." },
                 { icon: "💰", title: "Best Price Guarantee", desc: "We compare hundreds of resorts and flight combinations to find you the lowest all-inclusive price." },
                 { icon: "🏖️", title: "Expert Resort Selection", desc: "From budget-friendly to ultra-luxury — Lina knows every resort in Cancun's Hotel Zone and Riviera Maya." },
-                { icon: "🇺🇸", title: "Serving USA & Canada", desc: "Flights from any US or Canadian city. Zeniva Travel is incorporated in the USA (Delaware)." },
+                { icon: "🇺🇸", title: "Serving USA & Canada", desc: "Flights from any US or Canadian city. Zeniva is incorporated in the USA (Delaware)." },
                 { icon: "📱", title: "24/7 AI Concierge", desc: "Questions at 2am? Lina is always available. No hold music, no wait times." },
                 { icon: "✈️", title: "Everything Included", desc: "Flights, hotels, transfers — one complete package. Nothing to figure out." },
               ].map(f => (

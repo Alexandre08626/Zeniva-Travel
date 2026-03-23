@@ -178,7 +178,7 @@ function PaymentContent() {
                 {residenceCheckin && residenceCheckout ? `${residenceCheckin} → ${residenceCheckout}` : `${residenceNights} nights`}
               </div>
               <div className="rounded-lg bg-white border border-slate-200 p-3 text-sm text-slate-700 space-y-1 mt-3">
-                <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-2">ZeniStay · Zeniva Travel</div>
+                <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-2">ZeniStay · Zeniva</div>
                 {residencePricePerNight > 0 && (
                   <div className="flex justify-between"><span>{residenceNights} nights × ${residencePricePerNight.toLocaleString()}/night</span><span>${(residenceNights * residencePricePerNight).toLocaleString()}</span></div>
                 )}
@@ -285,7 +285,7 @@ function PaymentContent() {
             Back to flights
           </Link>
         ) : (
-          <Link href="/yachts" className="underline">Back to yachts</Link>
+          <Link href="/zeniyacht" className="underline">Back to yachts</Link>
         )}
         <span>Payments secured by your provider (Stripe recommended).</span>
       </div>

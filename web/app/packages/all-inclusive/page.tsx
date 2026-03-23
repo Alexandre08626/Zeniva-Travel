@@ -5,7 +5,7 @@ import Header from "../../../src/components/Header";
 import Footer from "../../../src/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Best All-Inclusive Vacation Packages 2025 — From $599 | Zeniva Travel USA",
+  title: "Best All-Inclusive Vacation Packages 2025 — From $599 | Zeniva USA",
   description:
     "Best all-inclusive vacation deals 2025. Mexico, Caribbean, Dominican Republic, Jamaica — flights & hotel included from $599/person. Planned by Lina AI in 60 seconds. USA & Canada.",
   alternates: { canonical: "https://zenivatravel.com/packages/all-inclusive" },
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     "family all-inclusive packages", "all-inclusive vacation from USA", "all-inclusive from Canada"
   ],
   openGraph: {
-    title: "Best All-Inclusive Vacation Packages 2025 | Zeniva Travel USA",
+    title: "Best All-Inclusive Vacation Packages 2025 | Zeniva USA",
     description: "Top all-inclusive deals — Mexico, Caribbean, Dominican Republic, Jamaica. From $599/person with flights. Planned by Lina AI.",
     url: "https://zenivatravel.com/packages/all-inclusive",
     type: "website",

@@ -12,7 +12,7 @@ import DsarForm from "../../../src/components/legal/DsarForm.client";
 export const metadata = createLegalMetadata({
   title: "Data Requests",
   description:
-    "Submit a data access, deletion, correction, or portability request to Zeniva Travel.",
+    "Submit a data access, deletion, correction, or portability request to Zeniva.",
   path: "/data-requests",
 });
 

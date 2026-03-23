@@ -4,7 +4,7 @@ export function aggregatePricing(components: TripComponent[], commissionOverride
   if (!components.length) return null;
   const currency = components[0].pricing.currency;
 
-  // Apply yacht rule: 95% to Zeniva Yacht, 5% to Zeniva Travel; agent commission only on the 5% Travel share.
+  // Apply yacht rule: 95% to Zeniva Yacht, 5% to Zeniva; agent commission only on the 5% Travel share.
   let netTotal = 0;
   let sellTotal = 0;
   let marginBaseSell = 0;

@@ -5,7 +5,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Propositions de voyage",
   description:
-    "Consultez et finalisez vos propositions de voyage générées par Lina AI et validées par Zeniva Travel.",
+    "Consultez et finalisez vos propositions de voyage générées par Lina AI et validées par Zeniva.",
   alternates: {
     canonical: "https://zenivatravel.com/fr/proposals",
     languages: {
@@ -14,11 +14,11 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Zeniva Travel AI | Propositions de voyage",
+    title: "Zeniva AI | Propositions de voyage",
     description:
       "Propositions de voyage créées par Lina AI et validées par des experts concierge.",
     url: "https://zenivatravel.com/fr/proposals",
-    siteName: "Zeniva Travel",
+    siteName: "Zeniva",
     type: "website",
     images: [
       {
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zeniva Travel AI | Propositions de voyage",
+    title: "Zeniva AI | Propositions de voyage",
     description:
       "Propositions de voyage créées par Lina AI et validées par des experts concierge.",
     images: ["/branding/lina-avatar.png"],
@@ -42,7 +42,7 @@ export default function ProposalsPageFr() {
   return (
     <main className="min-h-screen bg-white">
       <section className="mx-auto max-w-5xl px-6 py-16">
-        <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Zeniva Travel AI</p>
+        <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Zeniva AI</p>
         <h1 className="mt-4 text-4xl sm:text-5xl font-black text-slate-900">
           Vos propositions de voyage
         </h1>

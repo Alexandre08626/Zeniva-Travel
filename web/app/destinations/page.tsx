@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 
 
 export const metadata: Metadata = {
-  title: "Top Destinations — Zeniva Travel",
+  title: "Top Destinations — Zeniva",
   description: "Discover the 30 most beautiful destinations in the world. Plan your dream trip with Lina AI — free, instant, personalized.",
 };
 

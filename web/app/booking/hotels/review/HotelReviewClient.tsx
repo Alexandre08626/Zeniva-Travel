@@ -312,7 +312,7 @@ export default function HotelReviewClient() {
                   <p className="text-sm text-slate-600">{selectedRate?.conditions || "See hotel cancellation terms."}</p>
                 )}
                 <p className="text-xs text-slate-400">
-                  Terms: <a href={termsUrl} target="_blank" rel="noreferrer" className="underline hover:text-blue-600">View Zeniva Travel terms</a>
+                  Terms: <a href={termsUrl} target="_blank" rel="noreferrer" className="underline hover:text-blue-600">View Zeniva terms</a>
                 </p>
               </div>
             </section>
@@ -400,7 +400,7 @@ export default function HotelReviewClient() {
                   </div>
                   <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} required className="sr-only" />
                   <span className="text-sm text-slate-700">
-                    I confirm I reviewed all booking details and accept the <a href={termsUrl} target="_blank" rel="noreferrer" className="underline text-blue-600">Zeniva Travel terms</a> and cancellation policies.
+                    I confirm I reviewed all booking details and accept the <a href={termsUrl} target="_blank" rel="noreferrer" className="underline text-blue-600">Zeniva terms</a> and cancellation policies.
                   </span>
                 </label>
               </form>
@@ -422,7 +422,7 @@ export default function HotelReviewClient() {
                       <span className="font-bold text-lg text-amber-400">{(draft as any)?.priceText || "Price on request"}</span>
                     </div>
                     <div className="rounded-xl bg-slate-700/50 border border-slate-600 px-3 py-2 text-xs text-slate-300">
-                      🏡 ZeniStay booking — final price confirmed by Zeniva Travel. Includes Zeniva service.
+                      🏡 ZeniStay booking — final price confirmed by Zeniva. Includes Zeniva service.
                     </div>
                   </>
                 ) : (
