@@ -3,7 +3,9 @@ import { useState, useEffect } from "react";
 
 const BLUE = "#0F6CF5", DARK = "#0B1B4D", GREEN = "#10B981", RED = "#EF4444", GOLD = "#F59E0B";
 
+const MAINTENANCE_MODE = false;
 export default function ZeniPayCheckout({ params }: { params: { paymentId: string } }) {
+  if (MAINTENANCE_MODE) { return (<div style={{ minHeight:"100vh", background:"#f0f4ff", fontFamily:"system-ui,sans-serif", display:"flex", alignItems:"center", justifyContent:"center", padding:"20px" }}><div style={{ maxWidth:560, width:"100%", background:"white", borderRadius:18, padding:40, boxShadow:"0 12px 48px rgba(0,0,0,0.12)" }}><div style={{ textAlign:"center", marginBottom:32 }}><div style={{ fontSize:56, marginBottom:16 }}>⚙️</div><h1 style={{ margin:"0 0 12px", fontWeight:900, fontSize:28, color:DARK }}>System Maintenance</h1><p style={{ margin:0, color:"#64748b", fontSize:16, lineHeight:1.6 }}>Our payment system is temporarily unavailable. Please contact us.</p></div><div style={{ background:"rgba(15, 108, 245, 0.08)", border:`1px solid ${BLUE}30`, borderRadius:12, padding:20, marginBottom:24 }}><a href="mailto:info@zeniva.ca" style={{ display:"inline-block", background:BLUE, color:"white", padding:"14px 24px", borderRadius:9999, textDecoration:"none", fontWeight:800, fontSize:16, cursor:"pointer" }}>✉️ Email info@zeniva.ca</a></div><div style={{ textAlign:"center", fontSize:12, color:"#94a3b8" }}>Reference: {params.paymentId}</div></div></div>); }
   const [step, setStep] = useState<"details" | "processing" | "success" | "failed">("details");
   const [payMethod, setPayMethod] = useState<"card" | "ach">("card");
   const [form, setForm] = useState({ name: "", email: "", phone: "",
