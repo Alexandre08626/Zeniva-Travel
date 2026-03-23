@@ -7,74 +7,10 @@ import Image from "next/image";
 const VPS = "https://vmi3097009.contaboserver.net";
 
 function BookingForm() {
-  const MAINTENANCE_MODE = false; // Change to true to show maintenance message
+  const MAINTENANCE_MODE = false; // Change to true to show maintenance banner
 
   const params = useSearchParams();
   const router = useRouter();
-
-  const property = params.get("property") || "";
-  const slug = params.get("slug") || "";
-  const checkin = params.get("checkin") || "";
-  const checkout = params.get("checkout") || "";
-  const nights = parseInt(params.get("nights") || "1", 10);
-  const pricePerNight = parseFloat(params.get("price") || "0");
-  const total = parseFloat(params.get("total") || "0");
-  const image = params.get("image") || "";
-
-  // Show maintenance message if enabled
-  if (MAINTENANCE_MODE) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center px-4 py-12">
-        <div className="max-w-md w-full">
-          {/* Logo/Icon */}
-          <div className="text-center mb-8">
-            <div className="text-6xl mb-4">⚙️</div>
-            <h1 className="text-3xl font-black text-white mb-3">System Maintenance</h1>
-            <p className="text-slate-300 text-base leading-relaxed">
-              Our payment system is temporarily unavailable. We'll be back online shortly.
-            </p>
-          </div>
-
-          {/* Info box */}
-          <div className="bg-white/10 border border-white/20 rounded-2xl p-6 mb-6 backdrop-blur">
-            <div className="text-white font-bold mb-3">📋 Complete Your Booking</div>
-            <p className="text-slate-200 text-sm mb-4">
-              Email us with your booking details and we'll send you a secure payment link:
-            </p>
-            <a
-              href="mailto:info@zeniva.ca?subject=ZeniStay Booking"
-              className="inline-block w-full text-center py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition"
-            >
-              📧 Email info@zeniva.ca
-            </a>
-          </div>
-
-          {/* Property info if available */}
-          {property && (
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 mb-6">
-              <div className="text-slate-300 text-xs font-semibold uppercase tracking-wide mb-2">Your Booking</div>
-              <div className="text-white font-bold text-sm mb-2">🏡 {property}</div>
-              {checkin && checkout && (
-                <div className="text-slate-400 text-xs">
-                  {checkin} → {checkout} · {nights} night{nights > 1 ? "s" : ""}
-                </div>
-              )}
-              {total > 0 && (
-                <div className="text-white font-bold text-sm mt-3 pt-3 border-t border-white/10">
-                  Total: ${total.toLocaleString()}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Security message */}
-          <p className="text-center text-slate-400 text-xs">
-            🔒 Your payment information is safe with us
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -190,6 +126,13 @@ function BookingForm() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Maintenance banner */}
+      {MAINTENANCE_MODE && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 text-center">
+          <p className="text-amber-900 font-semibold text-sm">⚠️ Payment system temporarily under maintenance. Please contact us to complete your booking.</p>
+        </div>
+      )}
+
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white border-b border-slate-100 px-4 py-3 flex items-center gap-3">
         <button onClick={() => router.back()} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition">←</button>
