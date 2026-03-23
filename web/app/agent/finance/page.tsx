@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { useAuthStore } from "../../../src/lib/authStore";
 
 // ═══════════════════════════════════════════════════════
 //  ZeniPay — The Financial Core of Zeniva
@@ -1089,6 +1090,8 @@ function RevenueSplitWidget() {
 //  MAIN COMPONENT
 // ══════════════════════════════════════════════════════
 export default function ZeniPayDashboard() {
+  const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.email === "info@zeniva.ca";
   const [tab, setTab] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [txSearch, setTxSearch] = useState("");
@@ -1576,13 +1579,16 @@ export default function ZeniPayDashboard() {
         {/* Bottom status */}
         {sidebarOpen && (
           <div style={{ padding: "14px", borderTop: `1px solid rgba(255,255,255,0.15)` }}>
-            <div style={{ background: isLive ? `${GREEN}15` : `${GOLD}15`, border: `1px solid ${isLive ? GREEN : GOLD}30`, borderRadius: 10, padding: "10px 12px", marginBottom: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 6, height: 6, background: isLive ? GREEN : GOLD, borderRadius: "50%", boxShadow: `0 0 6px ${isLive ? GREEN : GOLD}` }} />
-                <span style={{ fontSize: 10, color: isLive ? GREEN : GOLD, fontWeight: 700, letterSpacing: "0.05em" }}>{isLive ? "LIVE MODE" : "SANDBOX MODE"}</span>
+            {/* Only show sandbox badge to admin users */}
+            {(isAdmin || isLive) && (
+              <div style={{ background: isLive ? `${GREEN}15` : `${GOLD}15`, border: `1px solid ${isLive ? GREEN : GOLD}30`, borderRadius: 10, padding: "10px 12px", marginBottom: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ width: 6, height: 6, background: isLive ? GREEN : GOLD, borderRadius: "50%", boxShadow: `0 0 6px ${isLive ? GREEN : GOLD}` }} />
+                  <span style={{ fontSize: 10, color: isLive ? GREEN : GOLD, fontWeight: 700, letterSpacing: "0.05em" }}>{isLive ? "LIVE MODE" : "SANDBOX MODE"}</span>
+                </div>
+                <p style={{ margin: "4px 0 0", fontSize: 9, color: "rgba(255,255,255,0.55)" }}>Tilled · {isLive ? "Production" : "Testing"}</p>
               </div>
-              <p style={{ margin: "4px 0 0", fontSize: 9, color: "rgba(255,255,255,0.55)" }}>Tilled · {isLive ? "Production" : "Testing"}</p>
-            </div>
+            )}
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{ width: 30, height: 30, borderRadius: 8, background: `linear-gradient(135deg, ${BLUE}, ${PURPLE})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "white", fontWeight: 900 }}>A</div>
               <div>
