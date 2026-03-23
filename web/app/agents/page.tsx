@@ -30,7 +30,7 @@ export default function AgentsPage() {
               Join the future of travel. Earn 70% commission. Work from anywhere.
             </p>
             <Link
-              href="/agent/register"
+              href="/signup"
               className="inline-block rounded-2xl px-8 py-4 text-lg font-black shadow-2xl transition hover:scale-105"
               style={{ background: GOLD_GRADIENT, color: GRADIENT_START }}
             >
@@ -281,7 +281,7 @@ export default function AgentsPage() {
               Join hundreds of agents earning 70% commission with full tech setup and AI support
             </p>
             <Link
-              href="/agent/register"
+              href="/signup"
               className="inline-block rounded-2xl px-8 py-4 text-xl font-black shadow-2xl transition hover:scale-105"
               style={{ background: GOLD_GRADIENT, color: GRADIENT_START }}
             >

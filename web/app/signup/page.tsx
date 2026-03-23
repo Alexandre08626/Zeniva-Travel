@@ -43,6 +43,8 @@ function SignupContent() {
   const [inviteCode, setInviteCode] = useState("");
   const [agentStep, setAgentStep] = useState<"request" | "signup">("request");
   const [requestNote, setRequestNote] = useState("");
+  const [agentLocation, setAgentLocation] = useState("");
+  const [agentCertifications, setAgentCertifications] = useState("");
   const [requestSent, setRequestSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -60,7 +62,14 @@ function SignupContent() {
         const res = await fetch("/api/agent-requests", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: name.trim() || "Agent", email: email.trim(), role: agentRole, note: requestNote.trim() || undefined }),
+          body: JSON.stringify({
+            name: name.trim() || "Agent",
+            email: email.trim(),
+            role: agentRole,
+            location: agentLocation.trim() || undefined,
+            certifications: agentCertifications.trim() || undefined,
+            note: requestNote.trim() || undefined
+          }),
         });
         const payload = await res.json();
         if (!res.ok) throw new Error(payload?.error || "Request failed");
@@ -210,6 +219,14 @@ function SignupContent() {
                     <option value="hq">HQ</option>
                   </select>
                 </div>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 8 }}>Location (City, Country)</label>
+                  <input value={agentLocation} onChange={e => setAgentLocation(e.target.value)} placeholder="Montreal, Canada" style={inp()} required />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 8 }}>Certifications (if any)</label>
+                  <input value={agentCertifications} onChange={e => setAgentCertifications(e.target.value)} placeholder="TICO, IATA, CTC, etc." style={inp()} />
+                </div>
                 {agentStep === "signup" && (
                   <div>
                     <label style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 8 }}>Confirmation code</label>
@@ -219,7 +236,7 @@ function SignupContent() {
                 {agentStep === "request" && (
                   <div>
                     <label style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 8 }}>Note (optional)</label>
-                    <textarea value={requestNote} onChange={e => setRequestNote(e.target.value)} placeholder="Your region, specialty..." style={{ ...inp(), minHeight: 80, resize: "vertical" as const }} />
+                    <textarea value={requestNote} onChange={e => setRequestNote(e.target.value)} placeholder="Your specialty, experience..." style={{ ...inp(), minHeight: 80, resize: "vertical" as const }} />
                     {requestSent && <div style={{ color: "#34d399", fontSize: 13, marginTop: 8 }}>✅ Request sent — wait for HQ approval</div>}
                   </div>
                 )}
