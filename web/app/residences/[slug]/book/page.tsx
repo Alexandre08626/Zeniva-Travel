@@ -12,6 +12,15 @@ function BookingForm() {
   const params = useSearchParams();
   const router = useRouter();
 
+  const property = params.get("property") || "";
+  const slug = params.get("slug") || "";
+  const checkin = params.get("checkin") || "";
+  const checkout = params.get("checkout") || "";
+  const nights = parseInt(params.get("nights") || "1", 10);
+  const pricePerNight = parseFloat(params.get("price") || "0");
+  const total = parseFloat(params.get("total") || "0");
+  const image = params.get("image") || "";
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
