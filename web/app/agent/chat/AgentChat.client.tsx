@@ -57,6 +57,8 @@ export default function AgentChatClient() {
   const activeChannelRef = useRef(channelId);
   // Track which message IDs have been seen — fixes "stays unread after opening"
   const seenMsgIds = useRef<Set<string>>(new Set());
+  // Track deleted message IDs to prevent them from coming back on reload
+  const deletedMsgIds = useRef<Set<string>>(new Set());
   const nonDeletableChannels = useMemo(() => new Set(["hq"]), []);
 
   // Auto-scroll
@@ -146,8 +148,14 @@ export default function AgentChatClient() {
             return; // Skip email/notification messages
           }
 
-          const ids: string[] = Array.isArray(row?.channel_ids) ? row.channel_ids : [row?.channel_id || "hq"];
           const msg = buildMessageFromRow(row);
+
+          // Skip messages that have been deleted by the user
+          if (deletedMsgIds.current.has(msg.id)) {
+            return;
+          }
+
+          const ids: string[] = Array.isArray(row?.channel_ids) ? row.channel_ids : [row?.channel_id || "hq"];
           ids.forEach((cid) => {
             if (!channelMap[cid]) channelMap[cid] = [];
             if (!channelMap[cid].some((m) => m.id === msg.id)) {
@@ -402,6 +410,9 @@ export default function AgentChatClient() {
   };
 
   const removeMessageById = (id: string) => {
+    // Track this ID as deleted to prevent it from coming back on reload
+    deletedMsgIds.current.add(id);
+
     setMessages((prev) => {
       const next: Record<string, ChatMessage[]> = {};
       Object.entries(prev).forEach(([ch, list]) => {
