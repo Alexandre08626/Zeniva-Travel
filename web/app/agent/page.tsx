@@ -150,17 +150,18 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   const fetchAll = async () => {
       fetchNavBadges();
     try {
-      // Pass agent_email to scope data — HQ sees all, agents see only their data
-      const agentEmailParam = effectiveEmail ? `&agent_email=${encodeURIComponent(effectiveEmail)}` : "";
+      // Rex provides real-time dashboard stats directly from Supabase
       const actEmailParam = effectiveEmail ? `?agent_email=${encodeURIComponent(effectiveEmail)}` : "";
-      const [dashRes, statsRes, accountsRes, actRes] = await Promise.all([
-        fetch(`/api/agents-proxy?path=admin/dashboard-stats${agentEmailParam}`, { headers: { Authorization: AUTH } }),
-        fetch("/api/agents-proxy?endpoint=stats", { headers: { Authorization: AUTH } }),
+      const [dashRes, accountsRes, actRes] = await Promise.all([
+        fetch("/api/rex/dashboard-stats", { headers: { Authorization: AUTH } }),
         hq ? fetch("/api/accounts") : Promise.resolve(null),
         fetch(`/api/agents-proxy?path=admin/activity-log${actEmailParam}`, { headers: { Authorization: AUTH } }),
       ]);
-      if (dashRes.ok) setDashStats(await dashRes.json());
-      if (statsRes.ok) setVpsStats(await statsRes.json());
+      if (dashRes.ok) {
+        const stats = await dashRes.json();
+        setDashStats(stats);
+        setVpsStats(stats); // Use same stats for both to ensure consistency
+      }
       if (actRes.ok) { const d = await actRes.json(); setActivity(d?.activities || d?.activity || []); }
       if (accountsRes?.ok) {
         const d = await accountsRes.json();
@@ -168,11 +169,28 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
         setRecentTravelers(accounts.filter((a: any) => (a.roles || [a.role]).includes("traveler")).slice(0, 5));
         setRecentPartners(accounts.filter((a: any) => (a.roles || [a.role]).some((r: string) => r?.includes("partner"))).slice(0, 4));
       }
-    } catch {}
+    } catch (err) {
+      console.error("[Rex] Dashboard stats fetch failed:", err);
+      // Try to use last known values from localStorage
+      try {
+        const lastKnown = localStorage.getItem("rex_last_known_stats");
+        if (lastKnown) {
+          const stats = JSON.parse(lastKnown);
+          setDashStats(stats);
+          setVpsStats(stats);
+        }
+      } catch {}
+    }
     if (hq) {
       try {
         const reqRes = await fetch("/api/agent-requests");
         if (reqRes.ok) { const d = await reqRes.json(); setAgentRequests((d?.data || []).filter((r: any) => r.status === "pending").slice(0, 5)); }
+      } catch {}
+    }
+    // Store last successful stats in localStorage
+    if (dashStats) {
+      try {
+        localStorage.setItem("rex_last_known_stats", JSON.stringify(dashStats));
       } catch {}
     }
   };
