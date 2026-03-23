@@ -225,7 +225,18 @@ export async function POST(req: NextRequest) {
 
   const sessionId = parsed.data.sessionId || requestId;
 
-  // Primary: Zeniva VPS API (Claude)
+  // Agent mode: use OpenAI directly with SYSTEM_PROMPT_AGENT (skip VPS which has its own prompt)
+  if (mode === "agent") {
+    const agentReply = await callOpenAIFallback(prompt, history, sessionId, mode);
+    return NextResponse.json({
+      reply: agentReply,
+      prompt,
+      requestId,
+      meta: { provider: "openai-agent", sessionId, mode },
+    });
+  }
+
+  // Primary: Zeniva VPS API (Claude) - only for client mode
   const primary = await callZenivaAPI(prompt, history, sessionId);
   if (primary?.reply) {
     return NextResponse.json({
