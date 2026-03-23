@@ -3,9 +3,8 @@ import { useState, useEffect } from "react";
 
 const BLUE = "#0F6CF5", DARK = "#0B1B4D", GREEN = "#10B981", RED = "#EF4444", GOLD = "#F59E0B";
 
-const MAINTENANCE_MODE = false;
+const SANDBOX_MODE = false; // Change to true to show maintenance message
 export default function ZeniPayCheckout({ params }: { params: { paymentId: string } }) {
-  if (MAINTENANCE_MODE) { return (<div style={{ minHeight:"100vh", background:"#f0f4ff", fontFamily:"system-ui,sans-serif", display:"flex", alignItems:"center", justifyContent:"center", padding:"20px" }}><div style={{ maxWidth:560, width:"100%", background:"white", borderRadius:18, padding:40, boxShadow:"0 12px 48px rgba(0,0,0,0.12)" }}><div style={{ textAlign:"center", marginBottom:32 }}><div style={{ fontSize:56, marginBottom:16 }}>⚙️</div><h1 style={{ margin:"0 0 12px", fontWeight:900, fontSize:28, color:DARK }}>System Maintenance</h1><p style={{ margin:0, color:"#64748b", fontSize:16, lineHeight:1.6 }}>Our payment system is temporarily unavailable. Please contact us.</p></div><div style={{ background:"rgba(15, 108, 245, 0.08)", border:`1px solid ${BLUE}30`, borderRadius:12, padding:20, marginBottom:24 }}><a href="mailto:info@zeniva.ca" style={{ display:"inline-block", background:BLUE, color:"white", padding:"14px 24px", borderRadius:9999, textDecoration:"none", fontWeight:800, fontSize:16, cursor:"pointer" }}>✉️ Email info@zeniva.ca</a></div><div style={{ textAlign:"center", fontSize:12, color:"#94a3b8" }}>Reference: {params.paymentId}</div></div></div>); }
   const [step, setStep] = useState<"details" | "processing" | "success" | "failed">("details");
   const [payMethod, setPayMethod] = useState<"card" | "ach">("card");
   const [form, setForm] = useState({ name: "", email: "", phone: "",
@@ -290,6 +289,30 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
           </div>
         )}
 
+        {/* SANDBOX WARNING */}
+        {SANDBOX_MODE && (
+          <div style={{ background:"#fef3c7", borderLeft:`4px solid #f59e0b`, borderRadius:12, padding:16, marginBottom:16 }}>
+            <div style={{ display:"flex", gap:12 }}>
+              <span style={{ fontSize:20, flexShrink:0 }}>⚠️</span>
+              <div>
+                <p style={{ margin:"0 0 8px", fontWeight:700, fontSize:14, color:"#92400e" }}>
+                  Payment system temporarily unavailable
+                </p>
+                <p style={{ margin:"0 0 12px", fontSize:13, color:"#78350f", lineHeight:1.5 }}>
+                  Please contact us directly to complete your booking.
+                </p>
+                <a href="mailto:info@zeniva.ca" style={{
+                  display:"inline-block", background:"#f59e0b", color:"white",
+                  padding:"10px 18px", borderRadius:8, textDecoration:"none",
+                  fontWeight:700, fontSize:13, cursor:"pointer"
+                }}>
+                  📧 Email info@zeniva.ca
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* PAY BUTTON */}
         <div style={{ background:"white", borderRadius:18, padding:22, boxShadow:"0 4px 20px rgba(15,108,245,0.12)", border:`1px solid ${BLUE}20` }}>
           <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6, fontSize:14, color:"#64748b" }}>
@@ -299,13 +322,13 @@ export default function ZeniPayCheckout({ params }: { params: { paymentId: strin
             <span style={{ fontWeight:700, fontSize:16 }}>Total Due</span>
             <span style={{ fontWeight:900, fontSize:30, color:BLUE }}>{fmt(amount)}</span>
           </div>
-          <button onClick={handleSubmit} style={{
-            width:"100%", background:`linear-gradient(135deg,${BLUE} 0%,${DARK} 100%)`,
-            color:"white", border:"none", borderRadius:9999, padding:"17px",
-            fontSize:19, fontWeight:900, cursor:"pointer", boxShadow:`0 6px 24px ${BLUE}50`,
-            letterSpacing:"-0.3px",
+          <button onClick={handleSubmit} disabled={SANDBOX_MODE} style={{
+            width:"100%", background: SANDBOX_MODE ? "#cbd5e1" : `linear-gradient(135deg,${BLUE} 0%,${DARK} 100%)`,
+            color: SANDBOX_MODE ? "#64748b" : "white", border:"none", borderRadius:9999, padding:"17px",
+            fontSize:19, fontWeight:900, cursor: SANDBOX_MODE ? "not-allowed" : "pointer", boxShadow: SANDBOX_MODE ? "none" : `0 6px 24px ${BLUE}50`,
+            letterSpacing:"-0.3px", opacity: SANDBOX_MODE ? 0.6 : 1,
           }}>
-            🔒 Pay {fmt(amount)} Now
+            {SANDBOX_MODE ? "🔒 Payment Disabled" : `🔒 Pay ${fmt(amount)} Now`}
           </button>
           <div style={{ textAlign:"center", marginTop:14, fontSize:11, color:"#94a3b8", lineHeight:1.6 }}>
             🛡️ <strong>Zeniva</strong> · PCI DSS Level 1 · Chiffrement 256-bit<br/>
