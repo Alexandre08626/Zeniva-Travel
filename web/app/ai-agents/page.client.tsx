@@ -2427,7 +2427,7 @@ export default function AIAgentsPageClient() {
             <div className="bg-indigo-600 text-white px-6 py-4 flex items-center gap-3 shrink-0">
               <div className="h-10 w-10 rounded-full bg-indigo-500 flex items-center justify-center text-xl">✈️</div>
               <div className="flex-1">
-                <div className="font-bold">Zeniva AI</div>
+                <div className="font-bold">Zeniva</div>
                 <div className="text-xs text-indigo-200">AI Assistant · OpenClaw</div>
               </div>
               <div className="flex items-center gap-2">
@@ -2499,7 +2499,7 @@ export default function AIAgentsPageClient() {
 
         {/* ─── Footer ─────────────────────────────────────────────────────────── */}
         <div className="text-center text-xs text-slate-700 py-4">
-          Zeniva AI Command Center · {activeAgents}/{agents.length} agents running · Powered by OpenAI + n8n + Supabase
+          Zeniva Command Center · {activeAgents}/{agents.length} agents running · Powered by OpenAI + n8n + Supabase
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 // Lightweight Lina client for the web UI.
-// Routes messages through the Zeniva AI API (Claude) via VPS webhook.
+// Routes messages through the Zeniva API (Claude) via VPS webhook.
 export async function sendMessageToLina(
   historyOrPrompt: any
 ): Promise<{ reply: string; raw: string; tripPatch: any | null }> {

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Zeniva AI | Partenaires resorts",
+    title: "Zeniva | Partenaires resorts",
     description:
       "Resorts sélectionnés par Lina AI avec validation concierge.",
     url: "https://zenivatravel.com/fr/partners/resorts",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zeniva AI | Partenaires resorts",
+    title: "Zeniva | Partenaires resorts",
     description:
       "Resorts sélectionnés par Lina AI avec validation concierge.",
     images: ["/branding/lina-avatar.png"],

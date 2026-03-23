@@ -40,7 +40,7 @@ export const metadata: Metadata = {
         url: "/branding/lina-avatar.png",
         width: 1200,
         height: 630,
-        alt: "Lina — Zeniva AI Concierge",
+        alt: "Lina — Zeniva Concierge",
       },
     ],
   },
@@ -65,7 +65,7 @@ export default function AiTravelConciergePage() {
       },
       {
         "@type": "TravelAgency",
-        name: "Zeniva AI",
+        name: "Zeniva",
         url: "https://zenivatravel.com",
         image: "https://zenivatravel.com/branding/lina-avatar.png",
         description:
@@ -94,7 +94,7 @@ export default function AiTravelConciergePage() {
     <main className="min-h-screen bg-white">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <section className="mx-auto max-w-5xl px-6 py-16">
-        <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Zeniva AI</p>
+        <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Zeniva</p>
         <h1 className="mt-4 text-4xl sm:text-5xl font-black text-slate-900">
           AI Travel Concierge
         </h1>

@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Zeniva AI | Conciergerie yacht",
+    title: "Zeniva | Conciergerie yacht",
     description:
       "Charters de yachts avec Lina AI : conception intelligente et finalisation par un concierge.",
     url: "https://zenivatravel.com/fr/yachts",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zeniva AI | Conciergerie yacht",
+    title: "Zeniva | Conciergerie yacht",
     description:
       "Charters de yachts avec Lina AI : conception intelligente et finalisation par un concierge.",
     images: ["/branding/lina-avatar.png"],

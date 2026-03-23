@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Zeniva AI | Propositions de voyage",
+    title: "Zeniva | Propositions de voyage",
     description:
       "Propositions de voyage créées par Lina AI et validées par des experts concierge.",
     url: "https://zenivatravel.com/fr/proposals",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zeniva AI | Propositions de voyage",
+    title: "Zeniva | Propositions de voyage",
     description:
       "Propositions de voyage créées par Lina AI et validées par des experts concierge.",
     images: ["/branding/lina-avatar.png"],
@@ -42,7 +42,7 @@ export default function ProposalsPageFr() {
   return (
     <main className="min-h-screen bg-white">
       <section className="mx-auto max-w-5xl px-6 py-16">
-        <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Zeniva AI</p>
+        <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Zeniva</p>
         <h1 className="mt-4 text-4xl sm:text-5xl font-black text-slate-900">
           Vos propositions de voyage
         </h1>

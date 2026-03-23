@@ -11,7 +11,7 @@ import {
 export const metadata = createLegalMetadata({
   title: "AI Terms of Use",
   description:
-    "Terms governing Zeniva AI features, including accuracy limits, human oversight, and acceptable use.",
+    "Terms governing Zeniva features, including accuracy limits, human oversight, and acceptable use.",
   path: "/ai-terms",
 });
 

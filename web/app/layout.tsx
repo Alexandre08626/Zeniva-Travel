@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     "online travel agency",
     "plan a trip online",
     "Lina AI",
-    "Zeniva AI",
+    "Zeniva",
     "travel concierge online",
     "vacation planning service",
     "international travel agency",

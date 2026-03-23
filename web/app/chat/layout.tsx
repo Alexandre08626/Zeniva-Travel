@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Zeniva AI | AI Travel Agent Chat",
+    title: "Zeniva | AI Travel Agent Chat",
     description:
       "Chat with Lina AI to design a trip, then finalize with Zeniva’s concierge team.",
     url: "https://zenivatravel.com/chat",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zeniva AI | AI Travel Agent Chat",
+    title: "Zeniva | AI Travel Agent Chat",
     description:
       "Chat with Lina AI to design a trip, then finalize with Zeniva’s concierge team.",
     images: ["/branding/lina-avatar.png"],
