@@ -145,6 +145,11 @@ function hydrate() {
 
 async function hydrateFromServer() {
   if (typeof window === "undefined") return;
+  // Don't re-hydrate if logout just happened (within last 2 seconds)
+  const logoutTime = window.sessionStorage.getItem("zeniva_logout_timestamp");
+  if (logoutTime && Date.now() - parseInt(logoutTime, 10) < 2000) {
+    return;
+  }
   try {
     const res = await fetch("/api/auth/me", { method: "GET" });
     const payload = await res.json();
@@ -582,6 +587,14 @@ export async function logout(redirectTo = "/") {
         })
         .catch(() => undefined);
     }, 0);
+    // Clear all auth-related storage
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+      window.sessionStorage.removeItem("zeniva_logout_timestamp");
+      window.sessionStorage.setItem("zeniva_logout_timestamp", Date.now().toString());
+    } catch {
+      // ignore
+    }
     deleteCookie("zeniva_active_space");
     deleteCookie("zeniva_roles");
     deleteCookie("zeniva_email");
