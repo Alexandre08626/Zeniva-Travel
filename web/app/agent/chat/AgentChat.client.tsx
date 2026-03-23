@@ -58,7 +58,15 @@ export default function AgentChatClient() {
   // Track which message IDs have been seen — fixes "stays unread after opening"
   const seenMsgIds = useRef<Set<string>>(new Set());
   // Track deleted message IDs to prevent them from coming back on reload
-  const deletedMsgIds = useRef<Set<string>>(new Set());
+  const deletedMsgIds = useRef<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set();
+    try {
+      const stored = localStorage.getItem("agent_deleted_messages");
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  }());
   const nonDeletableChannels = useMemo(() => new Set(["hq"]), []);
 
   // Auto-scroll
@@ -412,6 +420,15 @@ export default function AgentChatClient() {
   const removeMessageById = (id: string) => {
     // Track this ID as deleted to prevent it from coming back on reload
     deletedMsgIds.current.add(id);
+
+    // Persist deleted IDs in localStorage
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("agent_deleted_messages", JSON.stringify(Array.from(deletedMsgIds.current)));
+      } catch {
+        // ignore
+      }
+    }
 
     setMessages((prev) => {
       const next: Record<string, ChatMessage[]> = {};
