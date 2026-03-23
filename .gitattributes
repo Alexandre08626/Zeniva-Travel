@@ -12,3 +12,4 @@
 web/app/icon.png -filter -diff -merge -text
 web/public/branding/lina-avatar.png -filter -diff -merge -text
 web/public/branding/logo.png -filter -diff -merge -text
+web/public/yachts/** -filter -diff -merge -text
