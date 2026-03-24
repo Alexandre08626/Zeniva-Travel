@@ -64,6 +64,7 @@ const HQ_LINKS = [
   { label: "Influencer", href: "/agent/influencer", icon: "⭐" },
   { label: "AI Agents Hub", href: "/ai-agents", icon: "🤖" },
   { label: "Sofia - Email AI", href: "/agent/sofia", icon: "📬" },
+  { label: "Luna - SMS AI", href: "/agent/luna", icon: "📱" },
   { label: "ZeniPay", href: "/agent/finance", icon: "💳" },
 
 ];
