@@ -573,12 +573,11 @@ export async function login(email: string, password: string, opts?: { role?: Rol
 export async function logout(redirectTo = "/") {
   setState((s) => ({ ...s, user: null }));
   if (typeof window !== "undefined") {
-    if (IS_PROD) {
-      try {
-        await fetch("/api/auth/logout", { method: "POST" });
-      } catch {
-        // ignore
-      }
+    // ALWAYS call logout API to properly clear cookies on server
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (error) {
+      console.error("[AUTH] Logout API call failed:", error);
     }
     setTimeout(() => {
       import("../../lib/store/tripsStore")
@@ -595,6 +594,8 @@ export async function logout(redirectTo = "/") {
     } catch {
       // ignore
     }
+    // Delete ALL session cookies including the main session token
+    deleteCookie("zeniva_session"); // CRITICAL: Delete the main session token!
     deleteCookie("zeniva_active_space");
     deleteCookie("zeniva_roles");
     deleteCookie("zeniva_email");
