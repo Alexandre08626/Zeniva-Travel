@@ -292,7 +292,7 @@ export default function ClientsPage() {
 
   return (
     <main className="min-h-screen bg-[#F3F6FB]">
-      <div className="mx-auto max-w-7xl px-5 py-8 space-y-6">
+      <div className="mx-auto max-w-7xl px-5 py-8 pb-24 space-y-6">
 
         {/* ── Header ── */}
         <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
