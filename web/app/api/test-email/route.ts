@@ -158,7 +158,7 @@ function generateWelcomeEmail() {
               </table>
 
               <p style="margin: 30px 0 0 0; color: #64748b; font-size: 14px; line-height: 1.6;">
-                Ready to start planning? I'm here to help you every step of the way. Just reply to this email or chat with me anytime at <a href="https://www.zenivatravel.com/chat" style="color: #0F6CF5; text-decoration: none;">zenivatravel.com/chat</a>
+                Ready to start planning? I'm here to help you every step of the way. Create your account now at <a href="https://www.zenivatravel.com/signup" style="color: #0F6CF5; text-decoration: none; font-weight: 600;">zenivatravel.com/signup</a>
               </p>
 
               <p style="margin: 20px 0 0 0; color: #1e293b; font-size: 16px;">
