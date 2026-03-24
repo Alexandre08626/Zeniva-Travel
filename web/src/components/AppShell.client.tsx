@@ -85,6 +85,14 @@ const AGENT_TABS = [
     ),
   },
   {
+    id: "calendar", label: "Calendar", href: "/agent/calendar",
+    icon: (a: boolean) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={a ? "#E6B85A" : "rgba(255,255,255,0.35)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+    ),
+  },
+  {
     id: "exit", label: "←", href: "/",
     icon: (a: boolean) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(100,116,139,0.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -130,6 +138,7 @@ export default function AppShell() {
       if (path.startsWith("/agent/chat")) return "inbox";
       if (path.startsWith("/agent/finance") || path.startsWith("/agent/zenipay") || path.startsWith("/zenipay")) return "zenipay";
       if (path.startsWith("/agent/clients")) return "clients";
+      if (path.startsWith("/agent/calendar")) return "calendar";
       if (path.startsWith("/agent/leads")) return "leads";
       return "";
     }

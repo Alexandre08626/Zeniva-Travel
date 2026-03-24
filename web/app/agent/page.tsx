@@ -49,6 +49,7 @@ const NAV_LINKS = [
   { label: "Proposals", href: "/agent/proposals", icon: "📋" },
   { label: "Bookings", href: "/agent/bookings", icon: "✈️" },
   { label: "Commissions", href: "/agent/commissions", icon: "💰" },
+  { label: "Calendar", href: "/agent/calendar", icon: "📅" },
   { label: "Chat Hub", href: "/agent/chat", icon: "💬" },
   { label: "Chat with Lina", href: "/agent/lina", icon: "lina" },
   { label: "Listings", href: "/agent/listings", icon: "🏨" },
