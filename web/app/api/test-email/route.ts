@@ -1,53 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
+import nodemailer from "nodemailer";
 
-const VPS_BASE = "http://217.216.88.202:8000";
-const AUTH = "Bearer zeniva-secret-2025";
+// Real SMTP Configuration - Same as agent/requests
+const smtpTransporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: "info@zeniva.ca",
+    pass: "zsyqqdjltafwhlyc"
+  },
+});
 
 export async function POST(req: NextRequest) {
   try {
     const { email, type } = await req.json();
+    const toEmail = email || "info@zeniva.ca";
 
-    // Email template from Lina
-    const emailContent = {
-      to: email || "info@zeniva.ca",
-      from: "Lina - Zeniva Travel <noreply@zenivatravel.com>",
-      subject: type === "sms"
-        ? "📱 Luna SMS Test - Your 15% Welcome Discount Awaits!"
-        : "✈️ Welcome to Zeniva Travel - Get 15% OFF Your First Trip!",
-      html: type === "sms"
-        ? generateSMSTestEmail()
-        : generateWelcomeEmail(),
-      text: type === "sms"
-        ? "Hi! This is a test SMS from Luna. Get 15% OFF your first trip with Zeniva Travel. Sign up at zenivatravel.com"
-        : "Welcome to Zeniva Travel! Get 15% OFF your first booking. Sign up at zenivatravel.com",
-    };
+    // Email content from Lina
+    const emailSubject = type === "sms"
+      ? "📱 Luna SMS Test - Your 15% Welcome Discount Awaits!"
+      : "✈️ Welcome to Zeniva Travel - Get 15% OFF Your First Trip!";
 
-    // Send email via VPS backend
-    const response = await fetch(`${VPS_BASE}/admin/send-email`, {
-      method: "POST",
-      headers: {
-        Authorization: AUTH,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(emailContent),
+    const emailHTML = type === "sms"
+      ? generateSMSTestEmail()
+      : generateWelcomeEmail();
+
+    // Send real email via nodemailer
+    await smtpTransporter.sendMail({
+      from: '"Lina - Zeniva Travel" <info@zeniva.ca>',
+      to: toEmail,
+      subject: emailSubject,
+      html: emailHTML,
     });
 
-    if (response.ok) {
-      return NextResponse.json({
-        success: true,
-        message: `Test email sent to ${email || 'info@zeniva.ca'}`
-      });
-    } else {
-      // If backend doesn't have email endpoint, return mock success for now
-      console.log("Email would be sent:", emailContent);
-      return NextResponse.json({
-        success: true,
-        message: "Test email queued (dev mode)",
-        preview: emailContent
-      });
-    }
+    return NextResponse.json({
+      success: true,
+      message: `✅ Email sent successfully to ${toEmail}!`
+    });
   } catch (error: any) {
-    console.error("Test email error:", error);
+    console.error("Email send error:", error);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }
