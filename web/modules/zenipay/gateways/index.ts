@@ -1,7 +1,10 @@
 /**
  * ZeniPay Gateway Abstraction Layer
- * Architecture: Zeniva → ZeniPay → Tilled → Card Network → Bank
- * Primary: Tilled (LIVE)
+ * Architecture: Zeniva → ZeniPay → Finix/Tilled → Card Network → Bank
+ *
+ * Gateway Priority:
+ * 1. Finix (if FINIX_MERCHANT_ID configured) - Primary processor
+ * 2. Tilled (fallback) - Legacy processor
  */
 
 export interface GatewayResult {
@@ -26,14 +29,53 @@ export async function processPayment(params: {
   description?: string;
   paymentId: string;
 }): Promise<GatewayResult> {
-  // Always use Tilled — live payment processor
+  // ── GATEWAY SELECTION ──────────────────────────────────────────────────
+  // Priority 1: Finix (primary processor)
+  const finixMerchantId = process.env.FINIX_MERCHANT_ID;
+  const finixUsername = process.env.FINIX_API_USERNAME;
+  const finixPassword = process.env.FINIX_API_PASSWORD;
+
+  if (finixMerchantId && finixUsername && finixPassword) {
+    console.log("[ZeniPay] Using Finix gateway");
+    const { processFinixPayment } = await import("./finix");
+
+    try {
+      const result = await processFinixPayment({
+        ...params,
+        currency: params.currency?.toUpperCase() || "USD",
+        description: params.description || `ZeniPay ${params.paymentId}`,
+      });
+
+      return {
+        success: result.success,
+        transactionId: result.transferId,
+        instrumentId: result.instrumentId,
+        brand: result.brand,
+        last4: result.last4,
+        state: result.state,
+        error: result.success ? undefined : "Payment declined",
+      };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[ZeniPay] Finix error:", msg);
+      return {
+        success: false,
+        transactionId: "",
+        state: "FAILED",
+        error: msg,
+      };
+    }
+  }
+
+  // ── FALLBACK: Tilled ───────────────────────────────────────────────────
+  console.log("[ZeniPay] Finix not configured, using Tilled fallback");
   const tilledSk = process.env.TILLED_SECRET_KEY;
   const tilledAccountId = process.env.TILLED_ACCOUNT_ID;
 
   if (!tilledSk || !tilledAccountId) {
-    console.error("[ZeniPay] MISSING TILLED ENV VARS:", {
-      hasSk: !!tilledSk,
-      hasAccountId: !!tilledAccountId,
+    console.error("[ZeniPay] No payment processor configured:", {
+      hasFinix: !!finixMerchantId,
+      hasTilled: !!tilledSk,
     });
     return {
       success: false,
