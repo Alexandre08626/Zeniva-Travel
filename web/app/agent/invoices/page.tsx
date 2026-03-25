@@ -170,6 +170,7 @@ export default function InvoicesPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [scanningEmail, setScanningEmail] = useState(false);
   const [tableError, setTableError] = useState(false);
+  const [backfilling, setBackfilling] = useState(false);
 
   const fetchInvoices = useCallback(async () => {
     setLoading(true);
@@ -236,6 +237,31 @@ export default function InvoicesPage() {
     setScanningEmail(false);
   };
 
+  const backfillInvoices = async () => {
+    if (!confirm("Generate missing invoices for all succeeded ZeniPay payments?")) return;
+    setBackfilling(true);
+    try {
+      const res = await fetch("/api/zenipay/invoices/backfill", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer zeniva-secret-2025",
+          "Content-Type": "application/json"
+        }
+      });
+      const d = await res.json();
+      if (d.success) {
+        alert(`✅ Success! Created ${d.created_invoices} invoice(s)\n\nTotal payments: ${d.total_payments}\nExisting invoices: ${d.existing_invoices}\nNew invoices: ${d.created_invoices}`);
+        fetchInvoices();
+      } else {
+        alert(`Error: ${d.error || "Failed to generate invoices"}`);
+      }
+    } catch (err) {
+      alert("Backfill failed. Check console for details.");
+      console.error(err);
+    }
+    setBackfilling(false);
+  };
+
   // Stats — filter out $0 invoices
   const outgoing = invoices.filter(i => i.type === "outgoing" && Number(i.amount) > 0);
   const incoming = invoices.filter(i => i.type === "incoming" && Number(i.amount) > 0);
@@ -260,6 +286,10 @@ export default function InvoicesPage() {
           </div>
         </div>
         <div className="flex gap-2">
+          <button onClick={backfillInvoices} disabled={backfilling}
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 disabled:opacity-50 font-medium">
+            {backfilling ? "⏳ Generating..." : "💳 Generate Missing Invoices"}
+          </button>
           <button onClick={scanEmails} disabled={scanningEmail}
             className="flex items-center gap-2 px-4 py-2 text-sm bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 disabled:opacity-50">
             {scanningEmail ? "⏳ Scanning..." : "📧 Scan Emails"}
