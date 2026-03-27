@@ -10,7 +10,30 @@ import { getImagesForDestination } from "../../../src/lib/images";
 import { computePrice, parseMoney, formatCurrency } from "../../../src/lib/pricing";
 import { MUTED_TEXT, TITLE_TEXT } from "../../../src/design/tokens";
 
-export default function CheckoutPage() {
+
+import React from "react";
+
+class CheckoutErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false }; }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:"#f8fafc"}}>
+          <div style={{textAlign:"center",maxWidth:400,padding:32}}>
+            <div style={{fontSize:48,marginBottom:16}}>✈️</div>
+            <h2 style={{fontSize:20,fontWeight:700,marginBottom:8}}>Trip not available</h2>
+            <p style={{color:"#64748b",marginBottom:24}}>This checkout session has expired. Please go back to chat and regenerate your proposal.</p>
+            <a href="/chat" style={{display:"inline-block",padding:"12px 24px",borderRadius:12,background:"linear-gradient(135deg,#2DBE60,#15B8C9)",color:"#fff",fontWeight:700,textDecoration:"none"}}>Back to Chat</a>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function CheckoutPageInner() {
   const params = useParams();
   const router = useRouter();
   const proposalId = Array.isArray(params.proposalId) ? params.proposalId[0] : params.proposalId;
@@ -479,4 +502,8 @@ export default function CheckoutPage() {
       </div>
     </main>
   );
+}
+
+export default function CheckoutPage() {
+  return <CheckoutErrorBoundary><CheckoutPageInner /></CheckoutErrorBoundary>;
 }
