@@ -428,6 +428,25 @@ export async function generateProposal(tripId) {
 
   // Activities/transfers provider integration removed (Hotelbeds).
 
+  // Persist to Supabase so checkout works across browsers/devices
+  try {
+    fetch("/api/proposals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: ensuredId,
+        ownerEmail: "client@zeniva.ca",
+        status: "Ready",
+        payload: {
+          proposal,
+          tripDraft,
+          selections: state.selections[ensuredId] || {},
+          trip: { title: trip.title, status: "Ready" },
+        },
+      }),
+    }).catch(() => {});
+  } catch {}
+
   return proposal;
 }
 
@@ -437,6 +456,13 @@ export function getProposal(tripId) {
 
 export function setProposalSelection(tripId, { flight, hotel, activity, transfer, villa, car, shortterm } = {}) {
   const ensuredId = ensureTrip(tripId);
+  // Sync selections to Supabase
+  try {
+    const sel = { flight: flight||null, hotel: hotel||null, activity: activity||null, transfer: transfer||null, villa: villa||null, car: car||null, shortterm: shortterm||null };
+    const draft = state.tripDrafts[ensuredId] || {};
+    const prop = state.proposals[ensuredId] || {};
+    fetch("/api/proposals", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: ensuredId, ownerEmail: "client@zeniva.ca", status: "Ready", payload: { proposal: prop, tripDraft: draft, selections: sel, trip: { title: (state.trips.find(t=>t.id===ensuredId)||{}).title || "Trip" } } }) }).catch(() => {});
+  } catch {}
   setState((s) => ({
     ...s,
     selections: {

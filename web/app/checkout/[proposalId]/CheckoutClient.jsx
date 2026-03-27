@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
@@ -37,11 +37,31 @@ function CheckoutPageInner() {
   const params = useParams();
   const router = useRouter();
   const proposalId = Array.isArray(params.proposalId) ? params.proposalId[0] : params.proposalId;
-  const { selection, tripDraft, trips } = useTripsStore((s) => ({
+  const storeData = useTripsStore((s) => ({
     selection: s.selections[proposalId] || { flight: null, hotel: null, activity: null, transfer: null, villa: null, shortterm: null, car: null },
     tripDraft: s.tripDrafts[proposalId] || {},
     trips: s.trips || [],
   }));
+  const [dbData, setDbData] = useState(null);
+  const [dbLoading, setDbLoading] = useState(true);
+
+  // Load from Supabase if localStorage is empty
+  useEffect(() => {
+    const hasLocal = storeData.tripDraft?.destination || storeData.selection?.flight || storeData.selection?.hotel;
+    if (hasLocal) { setDbLoading(false); return; }
+    fetch("/api/proposals?id=" + proposalId)
+      .then(r => r.json())
+      .then(d => {
+        const found = (d.data || []).find(p => p.id === proposalId);
+        if (found?.payload) setDbData(found.payload);
+      })
+      .catch(() => {})
+      .finally(() => setDbLoading(false));
+  }, [proposalId, storeData.tripDraft?.destination, storeData.selection?.flight, storeData.selection?.hotel]);
+
+  const selection = dbData?.selections || storeData.selection;
+  const tripDraft = (dbData?.tripDraft && Object.keys(dbData.tripDraft).length > 0) ? dbData.tripDraft : storeData.tripDraft;
+  const trips = storeData.trips;
   const user = useAuthStore((s) => s.user);
   const userId = user?.email || "";
   const [paymentStatus, setPaymentStatus] = useState("idle");
@@ -281,7 +301,18 @@ function CheckoutPageInner() {
     }, 700);
   };
 
-  if (!tripDraft?.destination && !selection?.flight && !selection?.hotel) {
+  if (dbLoading) {
+    return (
+      <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:"#f8fafc"}}>
+        <div style={{textAlign:"center"}}>
+          <div style={{fontSize:40,marginBottom:16}}>✈️</div>
+          <p style={{color:"#64748b"}}>Loading your trip...</p>
+        </div>
+      </div>
+    );
+  }
+
+    if (!tripDraft?.destination && !selection?.flight && !selection?.hotel) {
     return (
       <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:"#f8fafc"}}>
         <div style={{textAlign:"center",maxWidth:400,padding:32}}>

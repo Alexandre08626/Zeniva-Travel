@@ -31,6 +31,10 @@ export async function GET(request: Request) {
       .select("id, owner_email, status, created_at, updated_at, payload")
       .order("updated_at", { ascending: false });
 
+    const id = searchParams.get("id");
+    if (id) {
+      query = query.eq("id", id);
+    }
     if (ownerEmail) {
       query = query.eq("owner_email", ownerEmail.toLowerCase());
     }
