@@ -52,7 +52,7 @@ function CheckoutPageInner() {
     fetch("/api/proposals?id=" + proposalId)
       .then(r => r.json())
       .then(d => {
-        const found = (d.data || []).find(p => p.id === proposalId);
+        const found = (d.data || []).find(p => p.trip_id === proposalId || p.id === proposalId);
         if (found?.payload) setDbData(found.payload);
       })
       .catch(() => {})

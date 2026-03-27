@@ -28,12 +28,12 @@ export async function GET(request: Request) {
     const { client } = getSupabaseAdminClient();
     let query = client
       .from(TABLE)
-      .select("id, owner_email, status, created_at, updated_at, payload")
+      .select("id, trip_id, owner_email, status, created_at, updated_at, payload, destination, title, content")
       .order("updated_at", { ascending: false });
 
     const id = searchParams.get("id");
     if (id) {
-      query = query.eq("id", id);
+      query = query.eq("trip_id", id);
     }
     if (ownerEmail) {
       query = query.eq("owner_email", ownerEmail.toLowerCase());
@@ -58,16 +58,26 @@ export async function POST(request: Request) {
     }
     const now = new Date().toISOString();
     const record = {
-      id: body.id,
+      trip_id: body.id,
       owner_email: body.ownerEmail.toLowerCase(),
+      client_email: body.ownerEmail.toLowerCase(),
       status: body.status || "Draft",
-      created_at: body.createdAt || now,
-      updated_at: body.updatedAt || now,
+      destination: body.payload?.tripDraft?.destination || "",
+      title: body.payload?.trip?.title || body.payload?.proposal?.title || "Trip",
+      content: body.payload?.proposal || {},
       payload: body.payload || {},
+      updated_at: body.updatedAt || now,
     };
 
     const { client } = getSupabaseAdminClient();
-    const { error } = await client.from(TABLE).upsert(record, { onConflict: "id" });
+    // Check if trip_id exists, update if so
+    const { data: existing } = await client.from(TABLE).select("id").eq("trip_id", body.id).limit(1);
+    let error;
+    if (existing && existing.length > 0) {
+      ({ error } = await client.from(TABLE).update(record).eq("trip_id", body.id));
+    } else {
+      ({ error } = await client.from(TABLE).insert({ ...record, created_at: now }));
+    }
     if (error) throw error;
 
     return NextResponse.json({ data: record }, { status: 201 });

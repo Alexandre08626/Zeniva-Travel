@@ -303,7 +303,7 @@ function ProposalSelectPageInner() {
     if (hasLocal) { setDbLoading(false); return; }
     fetch("/api/proposals?id=" + tripId)
       .then(r => r.json())
-      .then(d => { const found = (d.data||[]).find(p => p.id === tripId); if (found?.payload) setDbPayload(found.payload); })
+      .then(d => { const found = (d.data||[]).find(p => p.trip_id === tripId || p.id === tripId); if (found?.payload) setDbPayload(found.payload); })
       .catch(() => {})
       .finally(() => setDbLoading(false));
   }, [tripId, storeData.proposal, storeData.tripDraft?.destination]);
@@ -334,7 +334,7 @@ function ProposalSelectPageInner() {
       .then(r => r.json())
       .then(d => {
         const proposals = d?.data || [];
-        const match = proposals.find(p => p.id === tripId);
+        const match = proposals.find(p => p.trip_id === tripId || p.id === tripId);
         if (!match?.payload) return;
         const { tripDraft: serverDraft, snapshot: serverSnap } = match.payload;
         if (serverDraft && Object.keys(serverDraft).length > 0) {

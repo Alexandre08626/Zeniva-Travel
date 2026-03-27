@@ -41,7 +41,7 @@ function ProposalReviewPageInner() {
     if (storeData.proposal) return;
     fetch("/api/proposals?id=" + tripId)
       .then(r => r.json())
-      .then(d => { const f = (d.data||[]).find(p => p.id === tripId); if (f?.payload) setDbPayload(f.payload); })
+      .then(d => { const f = (d.data||[]).find(p => p.trip_id === tripId || p.id === tripId); if (f?.payload) setDbPayload(f.payload); })
       .catch(() => {});
   }, [tripId, storeData.proposal]);
   const proposal = dbPayload?.proposal || storeData.proposal;
