@@ -202,7 +202,16 @@ function ProposalReviewPageInner() {
   const onPay = async () => {
     setPaying(true);
     try {
-      const total = pricing.total || 0;
+      // Calculate same total as displayed (matching the review page calculation)
+      const pm = (v) => { if (!v) return 0; const s = String(v).replace(/[^0-9.-]/g, ""); return parseFloat(s) || 0; };
+      const ft = pm(selection?.flight?.outbound ? (pm(selection.flight.outbound.price) + pm(selection.flight.inbound?.price)) : selection?.flight?.price) || 0;
+      const ht = pm(selection?.hotel?.price) || 0;
+      const vt = pm(selection?.villa?.price) || pm(selection?.shortterm?.price) || 0;
+      const at = pm(selection?.activity?.price) || 0;
+      const tt = pm(selection?.transfer?.price) || 0;
+      const ct = pm(selection?.car?.price) || 0;
+      const sub = ft + ht + vt + at + tt + ct;
+      const total = sub > 0 ? Math.round((sub * 1.06) * 100) / 100 : (pricing.total || 0);
       const dest = tripDraft?.destination || "Trip";
       const dates = tripDraft?.checkIn && tripDraft?.checkOut ? `(${tripDraft.checkIn} to ${tripDraft.checkOut})` : "";
       const desc = `Zeniva Travel - ${dest} ${dates}`.trim();
