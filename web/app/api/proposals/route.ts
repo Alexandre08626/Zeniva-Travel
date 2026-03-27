@@ -62,9 +62,9 @@ export async function POST(request: Request) {
       owner_email: body.ownerEmail.toLowerCase(),
       client_email: body.ownerEmail.toLowerCase(),
       status: body.status || "Draft",
-      destination: body.payload?.tripDraft?.destination || "",
-      title: body.payload?.trip?.title || body.payload?.proposal?.title || "Trip",
-      content: body.payload?.proposal || {},
+      destination: (body.payload as any)?.tripDraft?.destination || "",
+      title: (body.payload as any)?.trip?.title || (body.payload as any)?.proposal?.title || "Trip",
+      content: (body.payload as any)?.proposal || {},
       payload: body.payload || {},
       updated_at: body.updatedAt || now,
     };
