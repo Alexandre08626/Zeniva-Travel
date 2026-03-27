@@ -25,6 +25,8 @@ function extractTripInfoFromConversation(allMessages) {
   const tripPatchDestMatch = fullText.match(/["']destination["']\s*:\s*["']([A-Za-zÀ-ÿ\s,'-]+?)["']/i);
   const destKeywordMatch = fullText.match(/(?:^|\n)\s*(?:•\s*)?(?:Destination|destination)\s*[:=]\s*([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{1,30})/im)
     || fullText.match(/\bvoyage (?:à|au|en|aux)\s+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{1,25})\b/i)
+    || fullText.match(/\b(?:aller|allez|partir|veux aller|vais|allons) (?:à|au|en|aux)\s+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{1,25})\b/i)
+    || fullText.match(/\b(?:destination|dest)\s*:\s*([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{1,25})\b/i)
     || fullText.match(/\b(?:going to|trip to|travel to)\s+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{1,25})\b/i);
   const destMatch = tripPatchDestMatch || destKeywordMatch;
   if (destMatch) {
