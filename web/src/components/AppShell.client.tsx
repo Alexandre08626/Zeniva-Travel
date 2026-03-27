@@ -69,7 +69,7 @@ const AGENT_TABS = [
     badge: true,
   },
   {
-    id: "zenipay", label: "ZeniPay", href: "/agent/finance",
+    // ZeniPay removed - access via zenipay.ca
     icon: (a: boolean) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={a ? "#2DBE60" : "rgba(255,255,255,0.35)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="1" y="4" width="22" height="16" rx="3" ry="3"/><line x1="1" y1="10" x2="23" y2="10"/>
@@ -136,7 +136,7 @@ export default function AppShell() {
     if (isAgentMode) {
       if (path === "/agent" || path === "/agent/") return "dashboard";
       if (path.startsWith("/agent/chat")) return "inbox";
-      if (path.startsWith("/agent/finance") || path.startsWith("/agent/zenipay") || path.startsWith("/zenipay")) return "zenipay";
+
       if (path.startsWith("/agent/clients")) return "clients";
       if (path.startsWith("/agent/calendar")) return "calendar";
       if (path.startsWith("/agent/leads")) return "leads";

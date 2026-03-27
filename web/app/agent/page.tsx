@@ -63,7 +63,6 @@ const HQ_LINKS = [
   { label: "Agent Requests", href: "/agent/requests", icon: "📨" },
   { label: "Influencer", href: "/agent/influencer", icon: "⭐" },
   { label: "AI Agents Hub", href: "/ai-agents", icon: "🤖" },
-  { label: "ZeniPay", href: "/agent/finance", icon: "💳" },
 
 ];
 
@@ -693,10 +692,10 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
               </div>
               <div className="flex gap-2">
                 {selectedAgent.id === "noah" ? (
-                  <Link href="/agent/finance" onClick={() => setSelectedAgent(null)}
+                  <Link href="https://zenipay.ca/app" target="_blank" onClick={() => setSelectedAgent(null)}
                     className="flex-1 rounded-full py-2.5 text-sm font-bold text-white text-center"
                     style={{ background: "#0F6CF5" }}>
-                    💳 Open ZeniPay Dashboard →
+💳 View on zenipay.ca →
                   </Link>
                 ) : (
                   <Link href="/ai-agents" onClick={() => setSelectedAgent(null)}

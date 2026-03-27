@@ -42,8 +42,8 @@ export default function CheckoutPage() {
   // Guard: if trip data doesn't exist (shared URL or new browser), show error
   if (!tripDraft?.destination && !selection?.flight && !selection?.hotel) {
     return (
-      <div style={{display:flex,alignItems:center,justifyContent:center,minHeight:100vh,background:#f8fafc}}>
-        <div style={{textAlign:center,maxWidth:400,padding:32}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:"#f8fafc"}}>
+        <div style={{textAlign:"center",maxWidth:400,padding:32}}>
           <div style={{fontSize:48,marginBottom:16}}>✈️</div>
           <h2 style={{fontSize:20,fontWeight:700,marginBottom:8}}>Trip not found</h2>
           <p style={{color:"#64748b",marginBottom:24}}>This checkout link has expired or the trip data is not available in this browser. Please go back to the chat to regenerate your proposal.</p>

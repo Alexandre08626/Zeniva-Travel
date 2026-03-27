@@ -218,7 +218,7 @@ export default function AppAgentDashboard() {
         </div>
         {canHQ && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 14 }}>
-            <QBtn icon="💳" label="ZeniPay" onClick={() => router.push("/agent/finance")} />
+            <QBtn icon="💳" label="ZeniPay" onClick={() => window.open("https://zenipay.ca/app","_blank")} />
             <QBtn icon="🌐" label="Website" onClick={() => router.push("/")} />
             <QBtn icon="⚙️" label="Settings" onClick={() => router.push("/agent/settings")} />
           </div>
@@ -246,7 +246,7 @@ export default function AppAgentDashboard() {
                   { icon: "📝", label: "Forms", sub: "Lead capture forms", href: "/forms/travel" },
                 ]},
                 ...(canHQ ? [{ section: "💼 HQ Only", items: [
-                  { icon: "💳", label: "ZeniPay", sub: "Payments & banking", href: "/agent/finance" },
+                  
                   { icon: "👔", label: "Agent Team", sub: "Manage agents", href: "/agent/team" },
                   { icon: "⚙️", label: "Settings", sub: "Account & config", href: "/agent/settings" },
                   { icon: "🌐", label: "Website", sub: "View live site", href: "/" },

@@ -354,7 +354,7 @@ export default function AppAgentHome() {
               {icon:"👥",label:"Clients",   href:"/agent/clients",color:GREEN, badge:0},
               {icon:"🎯",label:"Leads",     href:"/agent/leads",  color:GOLD,  badge:0},
               {icon:"📋",label:"Proposals", href:"/agent",        color:"rgba(255,255,255,.4)", badge:0},
-              ...(hq?[{icon:"💰",label:"Finance",href:"/agent/finance",color:GREEN,badge:0}]:[]),
+              ...(hq?[]:[]),
               {icon:"⚙️",label:"Settings",  href:"/agent/settings",color:"rgba(255,255,255,.4)",badge:0},
               {icon:"🌐",label:"Website",   href:"/",             color:"rgba(255,255,255,.4)",badge:0},
               {icon:"🔐",label:"Exit",      href:null,            color:RED,   badge:0,red:true},
