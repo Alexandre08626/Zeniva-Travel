@@ -68,14 +68,7 @@ const AGENT_TABS = [
     ),
     badge: true,
   },
-  {
-    // ZeniPay removed - access via zenipay.ca
-    icon: (a: boolean) => (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={a ? "#2DBE60" : "rgba(255,255,255,0.35)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="1" y="4" width="22" height="16" rx="3" ry="3"/><line x1="1" y1="10" x2="23" y2="10"/>
-      </svg>
-    ),
-  },
+
   {
     id: "clients", label: "Clients", href: "/agent/clients",
     icon: (a: boolean) => (
