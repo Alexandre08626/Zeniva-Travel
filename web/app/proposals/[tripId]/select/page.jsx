@@ -290,12 +290,27 @@ function ProposalSelectPageInner() {
     transferMaxPrice: "",
   });
 
-  const { proposal, selection, tripDraft, snapshot } = useTripsStore((s) => ({
+  const storeData = useTripsStore((s) => ({
     proposal: s.proposals[tripId],
     selection: s.selections[tripId] || { flight: null, hotel: null, activity: null, transfer: null },
     tripDraft: s.tripDrafts[tripId] || {},
-    snapshot: s.snapshots[tripId] || {},
+    snapshot: s.snapshots[tripId],
   }));
+  const [dbPayload, setDbPayload] = useState(null);
+  const [dbLoading, setDbLoading] = useState(true);
+  useEffect(() => {
+    const hasLocal = storeData.proposal || storeData.tripDraft?.destination;
+    if (hasLocal) { setDbLoading(false); return; }
+    fetch("/api/proposals?id=" + tripId)
+      .then(r => r.json())
+      .then(d => { const found = (d.data||[]).find(p => p.id === tripId); if (found?.payload) setDbPayload(found.payload); })
+      .catch(() => {})
+      .finally(() => setDbLoading(false));
+  }, [tripId, storeData.proposal, storeData.tripDraft?.destination]);
+  const proposal = dbPayload?.proposal || storeData.proposal;
+  const selection = dbPayload?.selections || storeData.selection;
+  const tripDraft = (dbPayload?.tripDraft && Object.keys(dbPayload.tripDraft).length > 0) ? dbPayload.tripDraft : storeData.tripDraft;
+  const snapshot = storeData.snapshot;
 
   // Derived section visibility — show section if Lina requested it OR user manually added it
   const showFlights = tripDraft?.transportationType === "Flights" || showFlightsOverride;

@@ -31,11 +31,22 @@ function ProposalReviewPageInner() {
     hotelCancellationConfirmed: false,
   });
 
-  const { proposal, selection, tripDraft } = useTripsStore((s) => ({
+  const storeData = useTripsStore((s) => ({
     proposal: s.proposals[tripId],
     selection: s.selections[tripId] || { flight: null, hotel: null, activity: null, transfer: null },
     tripDraft: s.tripDrafts[tripId] || {},
   }));
+  const [dbPayload, setDbPayload] = useState(null);
+  useEffect(() => {
+    if (storeData.proposal) return;
+    fetch("/api/proposals?id=" + tripId)
+      .then(r => r.json())
+      .then(d => { const f = (d.data||[]).find(p => p.id === tripId); if (f?.payload) setDbPayload(f.payload); })
+      .catch(() => {});
+  }, [tripId, storeData.proposal]);
+  const proposal = dbPayload?.proposal || storeData.proposal;
+  const selection = dbPayload?.selections || storeData.selection;
+  const tripDraft = (dbPayload?.tripDraft && Object.keys(dbPayload.tripDraft).length > 0) ? dbPayload.tripDraft : storeData.tripDraft;
 
   useEffect(() => {
     if (tripId && !proposal) {

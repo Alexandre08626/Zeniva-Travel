@@ -1,5 +1,5 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -21,7 +21,7 @@ export default function ProposalPage() {
     return p;
   };
 
-  const p = proposal || ensureProposal();
+  const p = proposal || dbProposal || ensureProposal();
 
   if (!tripId) return null;
 
