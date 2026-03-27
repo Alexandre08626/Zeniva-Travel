@@ -39,20 +39,6 @@ export default function CheckoutPage() {
     cvc: "",
   });
 
-  // Guard: if trip data doesn't exist (shared URL or new browser), show error
-  if (!tripDraft?.destination && !selection?.flight && !selection?.hotel) {
-    return (
-      <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:"#f8fafc"}}>
-        <div style={{textAlign:"center",maxWidth:400,padding:32}}>
-          <div style={{fontSize:48,marginBottom:16}}>✈️</div>
-          <h2 style={{fontSize:20,fontWeight:700,marginBottom:8}}>Trip not found</h2>
-          <p style={{color:"#64748b",marginBottom:24}}>This checkout link has expired or the trip data is not available in this browser. Please go back to the chat to regenerate your proposal.</p>
-          <a href="/chat" style={{display:"inline-block",padding:"12px 24px",borderRadius:12,background:"linear-gradient(135deg,#2DBE60,#15B8C9)",color:"#fff",fontWeight:700,textDecoration:"none"}}>Back to Chat</a>
-        </div>
-      </div>
-    );
-  }
-
   const hero = useMemo(() => {
     // Use selected accommodation image if available, otherwise fallback to destination images
     if (selection?.hotel?.image) {
@@ -271,6 +257,19 @@ export default function CheckoutPage() {
       router.push(confirmationPath);
     }, 700);
   };
+
+  if (!tripDraft?.destination && !selection?.flight && !selection?.hotel) {
+    return (
+      <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:"#f8fafc"}}>
+        <div style={{textAlign:"center",maxWidth:400,padding:32}}>
+          <div style={{fontSize:48,marginBottom:16}}>✈️</div>
+          <h2 style={{fontSize:20,fontWeight:700,marginBottom:8}}>Trip not found</h2>
+          <p style={{color:"#64748b",marginBottom:24}}>This trip is not available. Go back to chat to regenerate.</p>
+          <a href="/chat" style={{display:"inline-block",padding:"12px 24px",borderRadius:12,background:"linear-gradient(135deg,#2DBE60,#15B8C9)",color:"#fff",fontWeight:700,textDecoration:"none"}}>Back to Chat</a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: LIGHT_BG }}>
