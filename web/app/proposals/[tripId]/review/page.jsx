@@ -198,8 +198,28 @@ function ProposalReviewPageInner() {
     { label: "Service fee (6%)", value: pricing.hasAnyPrice ? formatCurrency(pricing.fees) : "Included" },
   ];
 
-  const onPay = () => router.push(`/checkout/${tripId}`);
-  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/checkout/${tripId}` : "";
+  const [paying, setPaying] = useState(false);
+  const onPay = async () => {
+    setPaying(true);
+    try {
+      const total = pricing.total || 0;
+      const dest = tripDraft?.destination || "Trip";
+      const dates = tripDraft?.checkIn && tripDraft?.checkOut ? `(${tripDraft.checkIn} to ${tripDraft.checkOut})` : "";
+      const desc = `Zeniva Travel - ${dest} ${dates}`.trim();
+      const res = await fetch("/api/zenipay/payments/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: total, currency: "USD", description: desc, customerName: "", customerEmail: "" }),
+      });
+      const data = await res.json();
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url;
+        return;
+      }
+    } catch {}
+    setPaying(false);
+  };
+  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/proposals/${tripId}/review` : "";
 
   // Only require passenger details to proceed — seat/bags/policies are optional
   const allWorkflowComplete = true;
@@ -966,7 +986,7 @@ function ProposalReviewPageInner() {
                       boxShadow: allWorkflowComplete ? "0 4px 15px rgba(230,184,90,0.4)" : "none",
                     }}
                   >
-                    {"✓ Proceed to payment →"}
+                    {paying ? "Redirecting to ZeniPay..." : "✓ Pay securely via ZeniPay →"}
                   </button>
                 )}
                 <p className="text-center text-slate-500 text-[10px]">🔒 Secure · Cancellation policy applies</p>
