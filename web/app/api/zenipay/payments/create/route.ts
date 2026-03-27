@@ -14,8 +14,9 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         amount,
         currency,
-        description: description || "Zeniva",
+        description: description || "Zeniva Travel",
         merchant: "Zeniva",
+        merchant_id: "zeniva-001",
         api_key: ZENIPAY_API_KEY,
       }),
     });
@@ -38,6 +39,7 @@ export async function POST(req: NextRequest) {
     amount: String(amount), currency,
     desc: description || "Zeniva",
     m: "Zeniva",
+    merchant_id: "zeniva-001",
   });
   return NextResponse.json({
     payment_id: paymentId,
