@@ -82,7 +82,7 @@ function CheckoutPageInner() {
     cvc: "",
   });
 
-  const hero = useMemo(() => {
+  const hero = useMemo(() => { if (!tripDraft?.destination && !selection?.hotel) return "https://images.unsplash.com/photo-1502920917128-1aa500764b5d?auto=format&fit=crop&w=900&q=80";
     // Use selected accommodation image if available, otherwise fallback to destination images
     if (selection?.hotel?.image) {
       return selection.hotel.image;
@@ -105,7 +105,7 @@ function CheckoutPageInner() {
   const activity = selection?.activity || null;
   const transfer = selection?.transfer || null;
 
-  const pricing = computePrice({ flight: selection?.flight, hotel: selection?.hotel, activity, transfer }, {
+  const pricing = computePrice({ flight: selection?.flight || null, hotel: selection?.hotel || null, activity: activity || null, transfer: transfer || null }, {
     ...tripDraft,
     extraHotels,
     extraActivities,
@@ -113,7 +113,7 @@ function CheckoutPageInner() {
   });
 
   // Compute TRUE total including villa/car/shortterm (same logic as SelectedSummary)
-  const trueTotal = useMemo(() => {
+  const trueTotal = useMemo(() => { if (!selection?.flight && !selection?.hotel && !tripDraft?.destination) return 0;
     // Flight total
     let flightTotal = 0;
     const fl = selection?.flight;
