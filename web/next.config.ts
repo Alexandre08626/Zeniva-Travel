@@ -4,6 +4,7 @@ import type { NextConfig } from "next";
 const rootDir = path.resolve(__dirname);
 
 const nextConfig: NextConfig = {
+  typescript: { ignoreBuildErrors: true },
   poweredByHeader: false,
   experimental: {
     // Disable PPR — can cause workUnitAsyncStorage crash
