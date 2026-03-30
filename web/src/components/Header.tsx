@@ -139,13 +139,18 @@ export default function Header({
               </div>
             </div>
           </Link>
-          
+
           <nav className="hidden md:flex items-center gap-3 ml-4">
             <Link href="/zeniyacht" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="ZeniYacht" className="inline" /></Link>
             <Link href="/partners/resorts" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="ZeniHotel" className="inline" /></Link>
             <Link href="/collections/group" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="ZeniGroup" className="inline" /></Link>
             <Link href="/zenistay" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="ZeniStays" className="inline" /></Link>
-            <Link href="/agents" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="Agents" className="inline" /></Link>
+            {!loggedIn && (
+              <>
+                <Link href="/agents" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="For Agents" className="inline" /></Link>
+                <Link href="/for-agencies" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="For Agencies" className="inline" /></Link>
+              </>
+            )}
             {loggedIn && (
               <>
                 <Link href="/documents" className="text-sm text-slate-900 font-semibold hover:underline"><AutoTranslate text="Dashboard" className="inline" /></Link>
@@ -272,30 +277,33 @@ export default function Header({
                     {loggedIn ? email : "AI Travel Concierge"}
                   </div>
                 </div>
-                <button onClick={() => setMenuOpen(false)} style={{ marginLeft: "auto", background: "#f1f5f9", border: "none", borderRadius: "50%", width: 32, height: 32, cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+                <button onClick={() => setMenuOpen(false)} style={{ marginLeft: "auto", background: "#f1f5f9", border: "none", borderRadius: "50%", width: 32, height: 32, cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>&#10005;</button>
               </div>
 
               {/* Nav links — All Zeni products */}
               <div style={{ display: "flex", flexDirection: "column", gap: 2, marginBottom: 20 }}>
                 {[
-                  { href: "/chat", icon: "💬", label: "Chat Lina" },
-                  { href: "/call", icon: "📞", label: "Call Lina" },
-                  { href: "/zeniyacht", icon: "⛵", label: "ZeniYacht" },
-                  { href: "/partners/resorts", icon: "🏨", label: "ZeniHotel" },
-                  { href: "/zenistay", icon: "🏡", label: "ZeniStay" },
-                  { href: "/search/flights", icon: "✈️", label: "ZeniFlights" },
-                  { href: "/search/cars", icon: "🚗", label: "ZeniCar" },
-                  { href: "/cruises", icon: "🚢", label: "ZeniCruise" },
-                  { href: "/collections/group", icon: "👥", label: "ZeniGroup" },
-                  { href: "/agents", icon: "💼", label: "Become an Agent" },
-                  { href: "/destinations", icon: "🌍", label: "Destinations" },
-                  { href: "/trips", icon: "✈️", label: "My Trips" },
+                  { href: "/chat", icon: "\uD83D\uDCAC", label: "Chat Lina" },
+                  { href: "/call", icon: "\uD83D\uDCDE", label: "Call Lina" },
+                  { href: "/zeniyacht", icon: "\u26F5", label: "ZeniYacht" },
+                  { href: "/partners/resorts", icon: "\uD83C\uDFE8", label: "ZeniHotel" },
+                  { href: "/zenistay", icon: "\uD83C\uDFE1", label: "ZeniStay" },
+                  { href: "/search/flights", icon: "\u2708\uFE0F", label: "ZeniFlights" },
+                  { href: "/search/cars", icon: "\uD83D\uDE97", label: "ZeniCar" },
+                  { href: "/cruises", icon: "\uD83D\uDEA2", label: "ZeniCruise" },
+                  { href: "/collections/group", icon: "\uD83D\uDC65", label: "ZeniGroup" },
+                  ...(!loggedIn ? [
+                    { href: "/agents", icon: "\uD83D\uDCBC", label: "Become an Agent" },
+                    { href: "/for-agencies", icon: "\uD83C\uDFE2", label: "For Agencies" },
+                  ] : []),
+                  { href: "/destinations", icon: "\uD83C\uDF0D", label: "Destinations" },
+                  { href: "/trips", icon: "\u2708\uFE0F", label: "My Trips" },
                 ].map(item => (
                   <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)}
                     style={{ display: "flex", alignItems: "center", gap: 14, padding: "13px 12px", borderRadius: 14, textDecoration: "none", color: "#0B1B4D", fontSize: 15, fontWeight: 600 }}>
                     <span style={{ fontSize: 20, width: 28, textAlign: "center" }}>{item.icon}</span>
                     {item.label}
-                    <span style={{ marginLeft: "auto", color: "#cbd5e1", fontSize: 16 }}>›</span>
+                    <span style={{ marginLeft: "auto", color: "#cbd5e1", fontSize: 16 }}>&rsaquo;</span>
                   </Link>
                 ))}
 
@@ -303,9 +311,9 @@ export default function Header({
                 {agent && (
                   <Link href="/agent" onClick={() => setMenuOpen(false)}
                     style={{ display: "flex", alignItems: "center", gap: 14, padding: "13px 12px", borderRadius: 14, textDecoration: "none", color: "#0F6CF5", fontSize: 15, fontWeight: 700, background: "rgba(15,108,245,0.06)" }}>
-                    <span style={{ fontSize: 20, width: 28, textAlign: "center" }}>🏢</span>
+                    <span style={{ fontSize: 20, width: 28, textAlign: "center" }}>{"\uD83C\uDFE2"}</span>
                     Agent Dashboard
-                    <span style={{ marginLeft: "auto", color: "#0F6CF5", fontSize: 16 }}>›</span>
+                    <span style={{ marginLeft: "auto", color: "#0F6CF5", fontSize: 16 }}>&rsaquo;</span>
                   </Link>
                 )}
               </div>
@@ -315,7 +323,7 @@ export default function Header({
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   <Link href="/forms/travel?agent=info%40zeniva.ca" onClick={() => setMenuOpen(false)}
                     style={{ display: "block", textAlign: "center", background: "linear-gradient(135deg, #E6B85A, #C9941F)", color: "#0B1B4D", borderRadius: 50, padding: "14px", fontWeight: 900, fontSize: 15, textDecoration: "none" }}>
-                    🎁 Get 15% OFF — Start Planning
+                    {"\uD83C\uDF81"} Get 15% OFF — Start Planning
                   </Link>
                   <Link href="/login" onClick={() => setMenuOpen(false)}
                     style={{ display: "block", textAlign: "center", background: "#f8fafc", border: "1.5px solid #e2e8f0", color: "#0B1B4D", borderRadius: 50, padding: "13px", fontWeight: 700, fontSize: 15, textDecoration: "none" }}>
@@ -326,7 +334,7 @@ export default function Header({
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   <Link href="/trips" onClick={() => setMenuOpen(false)}
                     style={{ display: "block", textAlign: "center", background: "linear-gradient(135deg, #0F6CF5, #0851c4)", color: "white", borderRadius: 50, padding: "14px", fontWeight: 800, fontSize: 15, textDecoration: "none" }}>
-                    ✈️ My Trips
+                    {"\u2708\uFE0F"} My Trips
                   </Link>
                   <button onClick={() => { logout(); setMenuOpen(false); }}
                     style={{ width: "100%", background: "#f8fafc", border: "1.5px solid #e2e8f0", color: "#64748b", borderRadius: 50, padding: "13px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
