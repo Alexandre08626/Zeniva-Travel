@@ -510,6 +510,8 @@ export async function login(email: string, password: string, opts?: { role?: Rol
       setCookie("zeniva_roles", JSON.stringify(accountRoles), 7);
       setCookie("zeniva_email", account.email, 7);
     }
+    // Clear any residual impersonation from previous session
+    if (typeof window !== "undefined") try { window.localStorage.removeItem("zeniva_impersonating"); } catch {}
     setState((s) => ({ ...s, user: { ...account, activeSpace: defaultActiveSpace } }));
     return { name: account.name, email: account.email, roles: accountRoles, agentLevel: account.agentLevel, activeSpace: defaultActiveSpace };
   }
@@ -589,6 +591,7 @@ export async function logout(redirectTo = "/") {
     // Clear all auth-related storage
     try {
       window.localStorage.removeItem(STORAGE_KEY);
+      window.localStorage.removeItem("zeniva_impersonating");
       window.sessionStorage.removeItem("zeniva_logout_timestamp");
       window.sessionStorage.setItem("zeniva_logout_timestamp", Date.now().toString());
     } catch {
