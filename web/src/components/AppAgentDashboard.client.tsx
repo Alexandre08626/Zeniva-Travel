@@ -245,6 +245,11 @@ export default function AppAgentDashboard() {
                   { icon: "🤖", label: "AI Agents", sub: "Automation status", href: "/ai-agents" },
                   { icon: "📝", label: "Forms", sub: "Lead capture forms", href: "/forms/travel" },
                 ]},
+                ...(canHQ ? [{ section: "🏢 B2B & Agencies", items: [
+                  { icon: "🏢", label: "Agencies", sub: "Agency partners", href: "/agent/agencies" },
+                  { icon: "🗺️", label: "Network Map", sub: "Partners & agents map", href: "/agent/network-map" },
+                  { icon: "📋", label: "Agency Leads", sub: "B2B prospecting", href: "/agent/agency-leads" },
+                ]}] : []),
                 ...(canHQ ? [{ section: "💼 HQ Only", items: [
                   
                   { icon: "👔", label: "Agent Team", sub: "Manage agents", href: "/agent/team" },

@@ -132,6 +132,9 @@ export default function AppShell() {
 
       if (path.startsWith("/agent/clients")) return "clients";
       if (path.startsWith("/agent/calendar")) return "calendar";
+      if (path.startsWith("/agent/agencies")) return "dashboard";
+      if (path.startsWith("/agent/network-map")) return "dashboard";
+      if (path.startsWith("/agent/agency-leads")) return "dashboard";
       if (path.startsWith("/agent/leads")) return "leads";
       return "";
     }
