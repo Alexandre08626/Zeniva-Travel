@@ -323,3 +323,4 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
     </div>
   );
 }
+export const dynamic = "force-dynamic";

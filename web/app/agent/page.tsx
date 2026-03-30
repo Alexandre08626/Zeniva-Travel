@@ -769,3 +769,4 @@ export default function AgentPage() {
     </AppAgentGate>
   );
 }
+export const dynamic = "force-dynamic";

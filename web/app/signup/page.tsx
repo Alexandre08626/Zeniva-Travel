@@ -308,3 +308,4 @@ export default function SignupPage() {
     </Suspense>
   );
 }
+export const dynamic = "force-dynamic";
