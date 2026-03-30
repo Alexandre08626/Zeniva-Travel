@@ -1,37 +1,36 @@
 "use client";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { useAuthStore, isHQ } from "@/src/lib/authStore";
 import { getSupabaseClient } from "@/src/lib/supabase/client";
 
 const MapView = dynamic(() => import("./MapView"), {
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center" style={{ height: 600 }}>
-      <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" />
+    <div className="w-full h-[600px] rounded-2xl bg-slate-100 animate-pulse flex items-center justify-center text-slate-400 text-sm">
+      Loading map...
     </div>
   ),
 });
 
 /* ── Types ── */
-interface Partner {
+interface MapPin {
   id: string;
   name: string;
-  type: "agency" | "agent" | "lead";
+  type: string;
   city: string;
   lat: number;
   lng: number;
-  agents?: number;
-  status?: string;
+  extra?: string;
   created_at: string;
 }
 
-/* ── City coordinates ── */
+/* ── City coordinates (Canadian cities for agents/agencies) ── */
 const CITY_COORDS: Record<string, [number, number]> = {
   montreal: [45.5017, -73.5673],
-  montréal: [45.5017, -73.5673],
+  "montréal": [45.5017, -73.5673],
   quebec: [46.8139, -71.208],
-  québec: [46.8139, -71.208],
+  "québec": [46.8139, -71.208],
+  "quebec city": [46.8139, -71.208],
   laval: [45.6066, -73.7124],
   gatineau: [45.4765, -75.7013],
   sherbrooke: [45.4042, -71.8929],
@@ -44,7 +43,7 @@ const CITY_COORDS: Record<string, [number, number]> = {
   terrebonne: [45.7053, -73.6373],
   "trois-rivières": [46.3432, -72.5418],
   "trois-rivieres": [46.3432, -72.5418],
-  lévis: [46.8032, -71.1779],
+  "lévis": [46.8032, -71.1779],
   levis: [46.8032, -71.1779],
   saguenay: [48.4279, -71.0548],
   repentigny: [45.7422, -73.4502],
@@ -59,7 +58,39 @@ const CITY_COORDS: Record<string, [number, number]> = {
   edmonton: [53.5461, -113.4938],
   mississauga: [43.589, -79.6441],
   hamilton: [43.2557, -79.8711],
-  "quebec city": [46.8139, -71.208],
+};
+
+/* ── Destination coordinates (travel destinations for traveler leads) ── */
+const DEST_COORDS: Record<string, [number, number]> = {
+  mexico: [23.6345, -102.5528],
+  cancun: [21.1619, -86.8515],
+  "punta cana": [18.5601, -68.3725],
+  disney: [28.3852, -81.5639],
+  paris: [48.8566, 2.3522],
+  tulum: [20.2114, -87.4654],
+  bali: [-8.3405, 115.092],
+  "dominican republic": [18.7357, -70.1627],
+  bahamas: [25.0343, -77.3963],
+  "st. lucia": [13.9094, -60.9789],
+  "saint vincent": [13.2528, -61.1971],
+  "fort lauderdale": [26.1224, -80.1373],
+  hollywood: [26.0112, -80.1495],
+  "pompano beach": [26.2379, -80.1248],
+  "playa del carmen": [20.6296, -87.0739],
+  cuba: [21.5218, -77.7812],
+  jamaica: [18.1096, -77.2975],
+  aruba: [12.5093, -69.9688],
+  "costa rica": [9.7489, -83.7534],
+  hawaii: [19.8968, -155.5828],
+  maldives: [3.2028, 73.2207],
+  greece: [39.0742, 21.8243],
+  italy: [41.8719, 12.5674],
+  spain: [40.4168, -3.7038],
+  portugal: [38.7223, -9.1393],
+  london: [51.5074, -0.1278],
+  japan: [36.2048, 138.2529],
+  thailand: [15.87, 100.9925],
+  vietnam: [14.0583, 108.2772],
 };
 
 function getCityCoords(city: string): [number, number] {
@@ -69,32 +100,35 @@ function getCityCoords(city: string): [number, number] {
   return [46.8 + (Math.random() - 0.5) * 0.6, -71.2 + (Math.random() - 0.5) * 0.6];
 }
 
+function getDestCoords(dest: string): [number, number] {
+  const key = (dest || "").trim().toLowerCase();
+  if (DEST_COORDS[key]) return DEST_COORDS[key];
+  if (CITY_COORDS[key]) return CITY_COORDS[key];
+  // Default with slight random offset over Caribbean
+  return [20 + (Math.random() - 0.5) * 2, -60 + (Math.random() - 0.5) * 2];
+}
+
 /* ── Styling constants ── */
-const TYPE_COLORS: Record<string, string> = {
+const typeColors: Record<string, string> = {
   agency: "#3B82F6",
   agent: "#10B981",
-  lead: "#F59E0B",
+  traveler: "#F59E0B",
+  lead: "#8B5CF6",
 };
 
-const TYPE_LABELS: Record<string, string> = {
-  agency: "Agency",
-  agent: "Agent",
-  lead: "Signed Lead",
+const typeLabels: Record<string, string> = {
+  agency: "Agency Partner",
+  agent: "Travel Agent",
+  traveler: "Traveler Lead",
+  lead: "Signed B2B Lead",
 };
 
-const TYPE_BG: Record<string, string> = {
-  agency: "bg-blue-100 text-blue-700",
-  agent: "bg-green-100 text-green-700",
-  lead: "bg-amber-100 text-amber-700",
-};
+type FilterKey = "all" | "agency" | "agent" | "traveler" | "lead";
 
 export default function NetworkMapPage() {
-  const user = useAuthStore((s) => s.user);
-  const hq = isHQ(user);
-
-  const [partners, setPartners] = useState<Partner[]>([]);
+  const [pins, setPins] = useState<MapPin[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "agency" | "agent" | "lead">("all");
+  const [filter, setFilter] = useState<FilterKey>("all");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -102,80 +136,105 @@ export default function NetworkMapPage() {
       try {
         const { client } = getSupabaseClient();
 
-        // Fetch active agencies
+        // 1. Agencies
         const { data: agencies } = await client
           .from("agencies")
-          .select("id, name, city, created_at, status")
-          .eq("status", "active")
+          .select("id, name, city, config, domain, created_at")
           .order("created_at", { ascending: false });
 
-        const agencyPartners: Partner[] = (agencies || []).map(
-          (a: { id: string; name: string; city?: string; created_at: string; status?: string }) => {
-            const city = a.city || "";
+        const agencyPins: MapPin[] = (agencies || []).map(
+          (a: Record<string, unknown>) => {
+            const cfg = (a.config as Record<string, unknown>) || {};
+            const city = (cfg.city as string) || (a.city as string) || (a.domain as string) || "";
             const [lat, lng] = getCityCoords(city);
             return {
-              id: a.id,
-              name: a.name,
-              type: "agency" as const,
+              id: a.id as string,
+              name: (a.name as string) || "Unnamed Agency",
+              type: "agency",
               city,
               lat,
               lng,
-              status: a.status,
-              created_at: a.created_at,
+              created_at: a.created_at as string,
             };
           }
         );
 
-        // Fetch agents with an agency
+        // 2. Agents (profiles with agency_name)
         const { data: agents } = await client
           .from("profiles")
           .select("id, full_name, city, created_at, agency_name")
           .not("agency_name", "is", null)
           .order("created_at", { ascending: false });
 
-        const agentPartners: Partner[] = (agents || []).map(
-          (a: { id: string; full_name: string; city?: string; created_at: string; agency_name?: string }) => {
-            const city = a.city || "";
+        const agentPins: MapPin[] = (agents || []).map(
+          (a: Record<string, unknown>) => {
+            const city = (a.city as string) || "";
             const [lat, lng] = getCityCoords(city);
             return {
-              id: a.id,
-              name: a.full_name || "Unnamed Agent",
-              type: "agent" as const,
+              id: a.id as string,
+              name: (a.full_name as string) || "Unnamed Agent",
+              type: "agent",
               city,
               lat,
               lng,
-              created_at: a.created_at,
+              extra: a.agency_name as string,
+              created_at: a.created_at as string,
             };
           }
         );
 
-        // Fetch signed leads
-        const { data: leads } = await client
+        // 3. Traveler leads (leads with destination)
+        const { data: travelerLeads } = await client
+          .from("leads")
+          .select("id, first_name, last_name, destination, created_at")
+          .not("destination", "is", null)
+          .order("created_at", { ascending: false });
+
+        const travelerPins: MapPin[] = (travelerLeads || []).map(
+          (l: Record<string, unknown>) => {
+            const dest = (l.destination as string) || "";
+            const [lat, lng] = getDestCoords(dest);
+            const firstName = (l.first_name as string) || "";
+            const lastName = (l.last_name as string) || "";
+            return {
+              id: l.id as string,
+              name: `${firstName} ${lastName}`.trim() || "Unnamed Traveler",
+              type: "traveler",
+              city: dest,
+              lat,
+              lng,
+              extra: dest,
+              created_at: l.created_at as string,
+            };
+          }
+        );
+
+        // 4. Signed B2B leads
+        const { data: bizLeads } = await client
           .from("leads_business")
           .select("id, business_name, city, created_at, status")
           .eq("status", "signed")
           .order("created_at", { ascending: false });
 
-        const leadPartners: Partner[] = (leads || []).map(
-          (l: { id: string; business_name: string; city?: string; created_at: string; status?: string }) => {
-            const city = l.city || "";
+        const bizPins: MapPin[] = (bizLeads || []).map(
+          (l: Record<string, unknown>) => {
+            const city = (l.city as string) || "";
             const [lat, lng] = getCityCoords(city);
             return {
-              id: l.id,
-              name: l.business_name || "Unnamed Lead",
-              type: "lead" as const,
+              id: l.id as string,
+              name: (l.business_name as string) || "Unnamed Lead",
+              type: "lead",
               city,
               lat,
               lng,
-              status: l.status,
-              created_at: l.created_at,
+              created_at: l.created_at as string,
             };
           }
         );
 
-        setPartners([...agencyPartners, ...agentPartners, ...leadPartners]);
+        setPins([...agencyPins, ...agentPins, ...travelerPins, ...bizPins]);
       } catch {
-        setPartners([]);
+        setPins([]);
       }
       setLoading(false);
     };
@@ -183,33 +242,19 @@ export default function NetworkMapPage() {
   }, []);
 
   /* ── Derived data ── */
-  const filtered = partners.filter((p) => {
-    if (filter === "all") return true;
-    return p.type === filter;
-  });
+  const filtered = filter === "all" ? pins : pins.filter((p) => p.type === filter);
 
-  const totalAgencies = partners.filter((p) => p.type === "agency").length;
-  const totalAgents = partners.filter((p) => p.type === "agent").length;
-  const totalLeads = partners.filter((p) => p.type === "lead").length;
+  const totalAgencies = pins.filter((p) => p.type === "agency").length;
+  const totalAgents = pins.filter((p) => p.type === "agent").length;
+  const totalTravelers = pins.filter((p) => p.type === "traveler").length;
+  const totalLeads = pins.filter((p) => p.type === "lead").length;
 
-  const cityMap = new Map<string, Partner[]>();
-  filtered.forEach((p) => {
-    const city = p.city || "Unknown";
-    if (!cityMap.has(city)) cityMap.set(city, []);
-    cityMap.get(city)!.push(p);
-  });
-  const cityGroups = Array.from(cityMap.entries())
-    .map(([city, members]) => ({ city, members }))
-    .sort((a, b) => b.members.length - a.members.length);
-
-  const uniqueCities = new Set(filtered.map((p) => p.city || "Unknown")).size;
-  const maxCount = cityGroups.length > 0 ? cityGroups[0].members.length : 1;
-
-  const filterButtons: { key: typeof filter; label: string }[] = [
-    { key: "all", label: "All" },
-    { key: "agency", label: "Agency" },
-    { key: "agent", label: "Agent" },
-    { key: "lead", label: "Signed Lead" },
+  const filterButtons: { key: FilterKey; label: string; count: number }[] = [
+    { key: "all", label: "All", count: pins.length },
+    { key: "agency", label: "Agencies", count: totalAgencies },
+    { key: "agent", label: "Agents", count: totalAgents },
+    { key: "traveler", label: "Travelers", count: totalTravelers },
+    { key: "lead", label: "B2B Leads", count: totalLeads },
   ];
 
   return (
@@ -217,14 +262,16 @@ export default function NetworkMapPage() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-black text-slate-900">Network Map</h1>
-        <p className="text-slate-500 text-sm mt-1">Partners by city and region</p>
+        <p className="text-slate-500 text-sm mt-1">
+          Agencies, agents, and traveler leads across all regions
+        </p>
       </div>
 
       {/* Stats bar */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
-          <div className="text-2xl font-black text-slate-800">{partners.length}</div>
-          <div className="text-xs text-slate-500 mt-1">Total Partners</div>
+          <div className="text-2xl font-black text-slate-800">{filtered.length}</div>
+          <div className="text-xs text-slate-500 mt-1">Total Pins on Map</div>
         </div>
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
           <div className="text-2xl font-black text-blue-600">{totalAgencies}</div>
@@ -235,121 +282,51 @@ export default function NetworkMapPage() {
           <div className="text-xs text-slate-500 mt-1">Agents</div>
         </div>
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
-          <div className="text-2xl font-black text-purple-600">{uniqueCities}</div>
-          <div className="text-xs text-slate-500 mt-1">Cities</div>
+          <div className="text-2xl font-black text-amber-600">{totalTravelers}</div>
+          <div className="text-xs text-slate-500 mt-1">Traveler Leads</div>
         </div>
       </div>
 
       {/* Filter buttons */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6">
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-slate-700 font-medium">
-            {filtered.length} partners across {uniqueCities} cities
-          </p>
-          <div className="flex gap-2">
-            {filterButtons.map((f) => (
-              <button
-                key={f.key}
-                onClick={() => setFilter(f.key)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                  filter === f.key
-                    ? "bg-blue-600 text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        </div>
+      <div className="flex flex-wrap gap-2 mb-6">
+        {filterButtons.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
+              filter === f.key
+                ? "bg-blue-600 text-white shadow-md"
+                : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"
+            }`}
+          >
+            {f.label} ({f.count})
+          </button>
+        ))}
       </div>
 
       {/* Map */}
       {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" />
+        <div className="w-full h-[600px] rounded-2xl bg-slate-100 animate-pulse flex items-center justify-center text-slate-400 text-sm">
+          Loading map...
         </div>
       ) : (
         <>
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-4">
-            <MapView partners={filtered} typeColors={TYPE_COLORS} typeLabels={TYPE_LABELS} />
+            <MapView pins={filtered} typeColors={typeColors} typeLabels={typeLabels} />
           </div>
 
           {/* Legend */}
-          <div className="flex items-center gap-6 mb-8 px-1">
-            {Object.entries(TYPE_LABELS).map(([key, label]) => (
+          <div className="flex flex-wrap items-center gap-6 mb-8 px-1">
+            {Object.entries(typeLabels).map(([key, label]) => (
               <div key={key} className="flex items-center gap-2">
                 <span
                   className="inline-block w-3 h-3 rounded-full"
-                  style={{ backgroundColor: TYPE_COLORS[key] }}
+                  style={{ backgroundColor: typeColors[key] }}
                 />
                 <span className="text-xs text-slate-600 font-medium">{label}</span>
               </div>
             ))}
           </div>
-
-          {/* City breakdown */}
-          <div className="mb-4">
-            <h2 className="text-lg font-bold text-slate-900 mb-4">City Breakdown</h2>
-          </div>
-
-          {cityGroups.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-slate-100">
-              <div className="text-slate-500 text-sm">No partners registered yet.</div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {cityGroups.map((group) => (
-                <div
-                  key={group.city}
-                  className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-slate-900">{group.city}</span>
-                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
-                        {group.members.length}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Horizontal bar */}
-                  <div className="w-full bg-slate-100 rounded-full h-2 mb-4">
-                    <div
-                      className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                      style={{
-                        width: `${Math.max((group.members.length / maxCount) * 100, 5)}%`,
-                      }}
-                    />
-                  </div>
-
-                  {/* Partner entries */}
-                  <div className="space-y-2">
-                    {group.members.map((partner) => (
-                      <div
-                        key={partner.id}
-                        className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm text-slate-900 font-medium">{partner.name}</span>
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                              TYPE_BG[partner.type] || "bg-slate-100 text-slate-600"
-                            }`}
-                          >
-                            {TYPE_LABELS[partner.type] || partner.type}
-                          </span>
-                        </div>
-                        <div className="text-xs text-slate-400">
-                          {new Date(partner.created_at).toLocaleDateString()}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </>
       )}
     </div>
