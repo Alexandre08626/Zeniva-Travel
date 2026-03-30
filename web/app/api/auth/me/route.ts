@@ -92,6 +92,9 @@ export async function GET(request: Request) {
         effectiveRole,
       },
     });
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    response.headers.set("Pragma", "no-cache");
+    response.headers.set("Expires", "0");
 
     // Auto-refresh the session JWT on every /api/auth/me call (30-day rolling expiry)
     try {

@@ -117,6 +117,7 @@ function buildSessionResponse(request: Request, account: {
     });
   }
 
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
   return response;
 }
 
