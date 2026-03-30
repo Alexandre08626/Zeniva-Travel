@@ -60,7 +60,6 @@ const NAV_LINKS = [
 
 const HQ_LINKS = [
   { label: "Agencies", href: "/agent/agencies", icon: "🏢" },
-  { label: "Agency Leads", href: "/agent/agency-leads", icon: "📋" },
   { label: "Network Map", href: "/agent/network-map", icon: "🗺️" },
   { label: "Agent Command", href: "/agent/agents", icon: "🎯" },
   { label: "Agent Requests", href: "/agent/requests", icon: "📨" },
