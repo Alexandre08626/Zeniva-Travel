@@ -8,30 +8,70 @@ export async function GET() {
   const { client } = getSupabaseAdminClient();
   const pins: any[] = [];
 
-  // 1. Agencies
-  const { data: agencies } = await client.from("agencies").select("id, name, contact_email, config, is_active, created_at").eq("is_active", true);
+  // 1. Agencies - full details
+  const { data: agencies } = await client.from("agencies").select("*");
   for (const a of agencies || []) {
-    pins.push({ id: a.id, name: a.name, type: "agency", city: (a.config as any)?.city || "", extra: a.contact_email || "", created_at: a.created_at });
+    const cfg = (a.config || {}) as any;
+    pins.push({
+      id: a.id, name: a.name, type: "agency",
+      city: cfg?.city || a.domain || "",
+      email: a.contact_email, phone: a.contact_phone,
+      website: a.domain, status: a.is_active ? "active" : "inactive",
+      agents_count: cfg?.suppliers?.length || 0,
+      setup_paid: a.setup_fee_paid,
+      created_at: a.created_at,
+    });
   }
 
-  // 2. Agents
-  const { data: profiles } = await client.from("profiles").select("id, full_name, agency_name, country, created_at").not("agency_name", "is", null);
+  // 2. Agents - full profiles
+  const { data: profiles } = await client.from("profiles").select("*").not("agency_name", "is", null);
   for (const p of profiles || []) {
-    pins.push({ id: p.id, name: p.full_name || p.agency_name || "Agent", type: "agent", city: p.country || "", extra: p.agency_name || "", created_at: p.created_at });
+    pins.push({
+      id: p.id, name: p.full_name || p.agency_name || "Agent", type: "agent",
+      city: p.country || "", email: p.account_email, phone: p.phone,
+      agency: p.agency_name, specialties: p.specialties,
+      languages: p.languages_spoken, website: p.website,
+      created_at: p.created_at,
+    });
   }
 
-  // 3. Traveler leads with destination
-  const { data: travelers } = await client.from("leads").select("id, first_name, last_name, email, destination, status, source, created_at").not("destination", "is", null).neq("destination", "").limit(200);
+  // 3. Traveler leads - full info
+  const { data: travelers } = await client.from("leads").select("*").not("destination", "is", null).neq("destination", "").order("created_at", { ascending: false }).limit(200);
   for (const t of travelers || []) {
-    const name = `${t.first_name || ""} ${t.last_name || ""}`.trim() || t.email?.split("@")[0] || "Traveler";
-    pins.push({ id: t.id, name, type: "traveler", city: t.destination || "", extra: `${t.source || ""} - ${t.status || ""}`, created_at: t.created_at });
+    const name = `${t.first_name || ""} ${t.last_name || ""}`.trim() || "Traveler";
+    pins.push({
+      id: t.id, name, type: "traveler",
+      city: t.destination || "", email: t.email, phone: t.phone,
+      destination: t.destination, status: t.status, source: t.source,
+      language: t.language, deal_value: t.deal_value,
+      created_at: t.created_at,
+    });
   }
 
-  // 4. Business leads (all, not just signed)
-  const { data: biz } = await client.from("leads_business").select("id, contact_name, company_name, city, status, type, created_at");
+  // 4. Business leads - full info
+  const { data: biz } = await client.from("leads_business").select("*").order("priority", { ascending: false });
   for (const b of biz || []) {
-    pins.push({ id: b.id, name: b.company_name || b.contact_name, type: "lead", city: b.city || "", extra: `${b.type} - ${b.status}`, created_at: b.created_at });
+    pins.push({
+      id: b.id, name: b.company_name || b.contact_name, type: "lead",
+      city: b.city || "", email: b.contact_email, phone: b.contact_phone,
+      company: b.company_name, contact: b.contact_name,
+      website: b.website, status: b.status, priority: b.priority,
+      source: b.source, agents_count: b.number_of_agents,
+      suppliers: b.current_suppliers, notes: b.notes,
+      setup_value: b.estimated_setup_value, monthly_value: b.estimated_monthly_value,
+      next_followup: b.next_followup_at, last_contacted: b.last_contacted_at,
+      created_at: b.created_at,
+    });
   }
 
-  return NextResponse.json({ ok: true, pins, counts: { agencies: agencies?.length || 0, agents: profiles?.length || 0, travelers: travelers?.length || 0, leads: biz?.length || 0, total: pins.length } });
+  return NextResponse.json({
+    ok: true, pins,
+    counts: {
+      agencies: agencies?.length || 0,
+      agents: profiles?.length || 0,
+      travelers: travelers?.length || 0,
+      leads: biz?.length || 0,
+      total: pins.length,
+    },
+  });
 }
