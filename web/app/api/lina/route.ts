@@ -1,6 +1,64 @@
+import { logUsage } from "@/lib/usage-tracker";
+import { getAgencyContext } from "@/lib/agency-context";
 import crypto from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+
+
+/**
+ * Build agency-specific system prompt for Lina
+ */
+function buildAgencySystemPrompt(agencyConfig: Record<string, unknown> | null, agencyName?: string): string | null {
+  if (!agencyConfig) return null;
+  
+  const suppliers = (agencyConfig.suppliers as string[]) || [];
+  const greeting = (agencyConfig.lina_greeting as string) || "";
+  const overridePrompt = agencyConfig.lina_system_prompt_override as string;
+  const tone = (agencyConfig.lina_tone as string) || "professional";
+  const domain = (agencyConfig.agency_domain as string) || "";
+  
+  if (overridePrompt) return overridePrompt;
+  
+  const toneDesc: Record<string, string> = {
+    professional: "professionnelle, chaleureuse et structurée",
+    casual: "décontractée et amicale",
+    luxury: "luxueuse et raffinée",
+    adventure: "aventurière et énergique",
+  };
+  
+  return `Tu es Lina, l'assistante de voyage IA de ${agencyName || "l'agence"}.
+Tu travailles exclusivement avec les fournisseurs partenaires de ${agencyName || "l'agence"} :
+${suppliers.length > 0 ? suppliers.join(", ") : "tous les fournisseurs disponibles"}.
+${domain ? `Tu réponds aux visiteurs du site ${domain}.` : ""}
+Tu es là pour aider les voyageurs à planifier et réserver leur voyage.
+
+TON: ${toneDesc[tone] || toneDesc.professional}.
+
+TÂCHE PRINCIPALE: Aide les clients à planifier des voyages complets (vols, transferts, hébergements, activités).
+
+DONNÉES À COLLECTER:
+1) Ville et pays de départ
+2) Destination (ville ou région)
+3) Dates de voyage exactes (arrivée / départ, AAAA-MM-JJ)
+4) Nombre d'adultes
+5) Enfants + âges
+6) Budget approximatif (CAD)
+7) Type d'hébergement préféré
+8) Transport (vols inclus ou non)
+
+RÈGLES:
+- Pose les questions dans l'ordre logique, ne saute aucune étape.
+- Si les réponses sont vagues, pose des questions de suivi.
+- Une fois toutes les données collectées, fais un récapitulatif clair.
+- Réponds en français par défaut. Si le client écrit en anglais, réponds en anglais.
+- Paragraphes courts, points de forme. Concret, pas de blabla.
+
+Quand un visiteur est prêt à réserver, capture ses coordonnées et transfère le dossier à un agent de ${agencyName || "l'agence"}.
+Mentionne "Propulsé par Zeniva" uniquement si le client demande quelle technologie tu utilises.
+
+Signature: "– Lina, ${agencyName || "l'agence"}"
+`;
+}
 
 /**
  * Lina AI API Route
@@ -160,11 +218,12 @@ async function callOpenAIFallback(
   prompt: string,
   history: { role: string; content: string }[],
   requestId: string,
-  mode: "client" | "agent" = "client"
+  mode: "client" | "agent" = "client",
+  agencySystemPrompt?: string | null
 ): Promise<string> {
   if (!OPENAI_KEY) return "Lina is temporarily unavailable. Please contact info@zeniva.ca";
 
-  const systemPrompt = mode === "agent" ? SYSTEM_PROMPT_AGENT : SYSTEM_PROMPT_CLIENT;
+  const systemPrompt = agencySystemPrompt || (mode === "agent" ? SYSTEM_PROMPT_AGENT : SYSTEM_PROMPT_CLIENT);
   const messages = [
     { role: "system", content: systemPrompt },
     ...history,
@@ -225,9 +284,13 @@ export async function POST(req: NextRequest) {
 
   const sessionId = parsed.data.sessionId || requestId;
 
+  // B2B: extract agency context for multi-tenant tracking
+  const { agencyId, agentId } = await getAgencyContext(req);
+
   // Agent mode: use OpenAI directly with SYSTEM_PROMPT_AGENT (skip VPS which has its own prompt)
   if (mode === "agent") {
-    const agentReply = await callOpenAIFallback(prompt, history, sessionId, mode);
+    const agentReply = await callOpenAIFallback(prompt, history, sessionId, mode, null);
+    logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "openai-agent" } });
     return NextResponse.json({
       reply: agentReply,
       prompt,
@@ -236,9 +299,21 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // Primary: Zeniva VPS API (Claude) - only for client mode
-  const primary = await callZenivaAPI(prompt, history, sessionId);
+  // B2B: build agency-specific system prompt if agency context exists
+  const { agencyConfig } = await getAgencyContext(req);
+  let agencyName: string | undefined;
+  if (agencyId) {
+    const { getSupabaseAdminClient } = await import("@/src/lib/supabase/server");
+    const { client } = getSupabaseAdminClient();
+    const { data: agency } = await client.from("agencies").select("name").eq("id", agencyId).single();
+    agencyName = agency?.name;
+  }
+  const agencySystemPrompt = buildAgencySystemPrompt(agencyConfig, agencyName);
+
+  // Primary: Zeniva VPS API (Claude) - only for client mode (skip for agency-specific)
+  const primary = agencySystemPrompt ? null : await callZenivaAPI(prompt, history, sessionId);
   if (primary?.reply) {
+    logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "zeniva-claude" } });
     return NextResponse.json({
       reply: primary.reply,
       prompt,
@@ -249,7 +324,8 @@ export async function POST(req: NextRequest) {
 
   // Fallback: OpenAI direct
   console.warn(`[lina] ${sessionId} VPS unavailable, falling back to OpenAI`);
-  const fallbackReply = await callOpenAIFallback(prompt, history, sessionId, mode);
+  const fallbackReply = await callOpenAIFallback(prompt, history, sessionId, mode, agencySystemPrompt);
+  logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "openai-fallback" } });
 
   return NextResponse.json({
     reply: fallbackReply,

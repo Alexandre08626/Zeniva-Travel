@@ -1,3 +1,4 @@
+import { logUsage } from "@/lib/usage-tracker";
 import { NextResponse } from "next/server";
 import { searchAmadeusHotels } from "@/services/amadeus/hotelService";
 
@@ -18,6 +19,7 @@ export async function GET(req: Request) {
 
   try {
     const { hotels } = await searchAmadeusHotels({ destination, checkIn, checkOut, guests, rooms });
+    logUsage({ service: "api_search", action: "hotels_search", metadata: {} });
     return NextResponse.json({ ok: true, hotels });
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e?.message || "Amadeus hotel search failed", hotels: [] });

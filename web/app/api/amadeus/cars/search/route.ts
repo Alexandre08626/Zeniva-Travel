@@ -1,3 +1,4 @@
+import { logUsage } from "@/lib/usage-tracker";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -168,5 +169,6 @@ export async function GET(req: Request) {
     iata,
   })).sort((a, b) => a.totalPrice - b.totalPrice);
 
-  return NextResponse.json({ ok: true, offers, iata, nights });
+  logUsage({ service: "api_search", action: "amadeus_cars_search", metadata: {} });
+    return NextResponse.json({ ok: true, offers, iata, nights });
 }

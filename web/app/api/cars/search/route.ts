@@ -1,3 +1,4 @@
+import { logUsage } from "@/lib/usage-tracker";
 import { NextRequest, NextResponse } from "next/server";
 
 const VPS = "http://217.216.88.202:8000";
@@ -20,6 +21,7 @@ export async function GET(req: NextRequest) {
     const qs = new URLSearchParams({ pickup, dropoff, pickup_date, dropoff_date, pickup_time, dropoff_time, driver_age });
     const res = await fetch(`${VPS}/cars/search?${qs}`, { cache: "no-store" });
     const data = await res.json();
+    logUsage({ service: "api_search", action: "cars_search", metadata: {} });
     return NextResponse.json(data, { status: res.ok ? 200 : 400 });
   } catch (e: any) {
     return NextResponse.json({ error: e.message || "VPS error" }, { status: 500 });

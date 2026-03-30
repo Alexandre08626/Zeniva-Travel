@@ -1,3 +1,4 @@
+import { logUsage } from "@/lib/usage-tracker";
 import { NextRequest, NextResponse } from "next/server";
 
 const VPS = "http://217.216.88.202:8000";
@@ -24,6 +25,7 @@ export async function GET(req: NextRequest) {
       highlights: item.highlights || ["Meet & greet", "Flight monitoring", "Door-to-door"],
       productSlug: item.productSlug,
     }));
+    logUsage({ service: "api_search", action: "transfers_search", metadata: { city } });
     return NextResponse.json({ transfers, total: transfers.length });
   } catch (e: any) {
     return NextResponse.json({ error: e.message || "VPS error" }, { status: 500 });

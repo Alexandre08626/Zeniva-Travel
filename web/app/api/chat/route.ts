@@ -1,3 +1,6 @@
+import { logUsage } from "@/lib/usage-tracker";
+import { getAgencyContext } from "@/lib/agency-context";
+
 const SYSTEM_PROMPT_TRAVEL = `
 You are LINA – Executive AI Travel Assistant at Zeniva LLC (zenivatravel.com).
 
@@ -178,6 +181,10 @@ export async function GET(request: Request) {
 
     const data = await resp.json();
     const reply = data?.choices?.[0]?.message?.content?.trim?.() || "";
+
+    // B2B usage tracking
+    const { agencyId, agentId } = await getAgencyContext(request);
+    logUsage({ agencyId, agentId, service: "lina_ai", action: "chat_message", metadata: { mode, model: data?.model } });
 
     return new Response(
       JSON.stringify({ prompt, reply, meta: { source: "openai", model: data?.model, created: data?.created } }),
