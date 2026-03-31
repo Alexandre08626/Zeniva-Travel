@@ -193,16 +193,16 @@ export default function AgentRequestsPage() {
     try {
       const r = await fetch("/api/leads-business?source=agency_onboarding");
       if (!r.ok) {
-        // Fallback: fetch all and filter client-side
         const r2 = await fetch("/api/leads-business?type=travel_agency");
         if (r2.ok) {
           const d = await r2.json();
-          setAgencies((d?.leads || []).filter((l: AgencyOnboarding) => l.source === "agency_onboarding"));
+          setAgencies((d?.leads || []).filter((l: AgencyOnboarding) => l.source === "agency_onboarding" && l.status !== "signed"));
         }
         return;
       }
       const d = await r.json();
-      setAgencies(d?.leads || []);
+      // Hide signed (approved) agencies - they are now on /agent/agencies
+      setAgencies((d?.leads || []).filter((l: AgencyOnboarding) => l.status !== "signed"));
     } catch {}
   };
 
@@ -250,11 +250,38 @@ export default function AgentRequestsPage() {
         body: JSON.stringify({ status: newStatus }),
       });
       if (r.ok) {
-        setSuccess(newStatus === "contacted" ? "\u2705 Marked as In Progress!" : newStatus === "converted" ? "\uD83C\uDF89 Marked as Converted!" : "\u274C Rejected.");
+        setSuccess(newStatus === "lost" ? "\u274C Rejected." : "\u2705 Status updated.");
         setTimeout(() => setSuccess(""), 4000);
         await fetchAgencyOnboarding();
       }
     } catch {}
+    setActionLoading(null);
+  };
+
+  const handleApproveAgency = async (id: string) => {
+    setActionLoading(id);
+    try {
+      const r = await fetch("/api/agencies/from-onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lead_id: id }),
+      });
+      if (r.ok) {
+        const data = await r.json();
+        setSuccess(data.already_exists
+          ? "\u2705 Agency already exists. Lead marked as signed."
+          : "\uD83C\uDF89 Agency created! Go to Agencies page to start setup.");
+        setTimeout(() => setSuccess(""), 6000);
+        await fetchAgencyOnboarding();
+      } else {
+        const err = await r.json();
+        setSuccess("\u274C Error: " + (err.error || "Failed to create agency"));
+        setTimeout(() => setSuccess(""), 5000);
+      }
+    } catch {
+      setSuccess("\u274C Connection error.");
+      setTimeout(() => setSuccess(""), 4000);
+    }
     setActionLoading(null);
   };
 
@@ -378,19 +405,19 @@ export default function AgentRequestsPage() {
                           <button onClick={() => setExpandedId(isExpanded ? null : agency.id)} className={`${isExpanded ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700"} px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors`}>
                             {isExpanded ? "\u25B2 Hide Details" : "\u25BC All Answers"}
                           </button>
-                          {agency.status === "new" && (
-                            <>
-                              <button onClick={() => void handleAgencyStatus(agency.id, "contacted")} disabled={actionLoading === agency.id} className="bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 disabled:opacity-50 transition-colors">
-                                {actionLoading === agency.id ? "\u2026" : "\uD83D\uDD27 In Progress"}
-                              </button>
-                              <button onClick={() => void handleAgencyStatus(agency.id, "rejected")} disabled={actionLoading === agency.id} className="bg-white text-red-600 border border-red-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-red-50 disabled:opacity-50 transition-colors">
-                                {actionLoading === agency.id ? "\u2026" : "\u2715"}
-                              </button>
-                            </>
+                          {(agency.status === "new" || agency.status === "contacted" || agency.status === "demo_done" || agency.status === "negotiating") && (
+                            <button onClick={() => void handleApproveAgency(agency.id)} disabled={actionLoading === agency.id} className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-700 disabled:opacity-50 transition-colors">
+                              {actionLoading === agency.id ? "\u2026" : "\u2705 Approve & Setup"}
+                            </button>
                           )}
-                          {agency.status === "contacted" && (
-                            <button onClick={() => void handleAgencyStatus(agency.id, "converted")} disabled={actionLoading === agency.id} className="bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-700 disabled:opacity-50 transition-colors">
-                              {actionLoading === agency.id ? "\u2026" : "\u2705 Mark Converted"}
+                          {agency.status === "new" && (
+                            <button onClick={() => void handleAgencyStatus(agency.id, "contacted")} disabled={actionLoading === agency.id} className="bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                              {actionLoading === agency.id ? "\u2026" : "\uD83D\uDD27 In Progress"}
+                            </button>
+                          )}
+                          {(agency.status === "new" || agency.status === "contacted") && (
+                            <button onClick={() => void handleAgencyStatus(agency.id, "lost")} disabled={actionLoading === agency.id} className="bg-white text-red-600 border border-red-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-red-50 disabled:opacity-50 transition-colors">
+                              {actionLoading === agency.id ? "\u2026" : "\u2715 Reject"}
                             </button>
                           )}
                           <a href={`mailto:${agency.contact_email}`} className="bg-white text-slate-700 border border-slate-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors">
