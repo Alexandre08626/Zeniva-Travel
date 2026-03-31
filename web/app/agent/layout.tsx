@@ -119,7 +119,14 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
     return lines[0];
   }, []);
 
+  const isTraveler = effectiveRole === "traveler" || (!effectiveRole && roles.length === 0) || (roles.length === 1 && roles[0] === "traveler");
+
   useEffect(() => {
+    // Block travelers from accessing agent portal
+    if (user && isTraveler) {
+      router.replace("/");
+      return;
+    }
     if (!user || isHQorAdmin) return;
     if (isInfluencer) {
       const allowed = ["/agent/influencer", "/agent/settings", "/agent/chat", "/agent/ai-dashboard", "/agent/messages"].some((path) => pathname === path || pathname.startsWith(`${path}/`));
@@ -134,7 +141,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
       const allowed = allowedExact.has(pathname) || allowedPrefixes.some((prefix) => pathname.startsWith(prefix));
       if (!allowed) router.replace("/agent/yachts");
     }
-  }, [user, roles, isHQorAdmin, isInfluencer, isYachtBroker, pathname, router]);
+  }, [user, roles, isHQorAdmin, isInfluencer, isYachtBroker, isTraveler, pathname, router]);
 
   const loadNotifications = useCallback(async () => {
     try {
