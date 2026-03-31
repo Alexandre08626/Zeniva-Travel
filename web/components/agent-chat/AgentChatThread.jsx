@@ -48,13 +48,17 @@ function extractTripInfo(messages) {
   const patch = {};
   const text = messages.slice(-8).map(m => m.content || "").join("\n");
 
-  // Destination
+  // Destination — only from USER messages to avoid capturing Lina's text
+  const userText = messages.slice(-8).filter(m => m.role === "user").map(m => m.content || "").join("\n");
   const destMatch = text.match(/["']destination["']\s*:\s*["']([^"']+)["']/i)
-    || text.match(/(?:destination|dest)\s*[:=]\s*([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{2,30})/i)
-    || text.match(/\b(?:to|à|au|en|aux|for|going to|trip to|travel to|voyage)\s+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{2,25})/i);
+    || userText.match(/(?:destination|dest)\s*[:=]\s*([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{2,30})/i)
+    || userText.match(/\b(?:to|à|au|en|aux|going to|trip to|travel to|voyage)\s+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{2,25})/i)
+    || userText.match(/\b(Cancun|Cancún|Paris|Miami|Punta Cana|Maldives|Rome|Barcelona|London|Dubai|Tokyo|Bali|Bangkok|Cabo|Jamaica|Montego Bay|Nassau|Cuba|Aruba|Costa Rica|Mexico|Havana|Honolulu|Maui|Orlando|Las Vegas|New York|Greece|Santorini|Portugal|Lisbon|Iceland|Mykonos|Tulum|Riviera Maya|Playa del Carmen|Dominican Republic|Puerto Rico|Bermuda|Bahamas|Turks|St Lucia|Barbados|Croatia|Dubrovnik|Amalfi|Sicily|Sardinia|Corsica|Montenegro|Morocco|Marrakech|Egypt|Kenya|South Africa|Cape Town|Thailand|Vietnam|Cambodia|Japan|Australia|New Zealand|Fiji|Tahiti)\b/i);
   if (destMatch) {
     const d = destMatch[1].trim().split(/[,\n•]/)[0].trim();
-    if (d.length >= 3 && d.length <= 30) patch.destination = d;
+    // Blacklist common English words that are NOT destinations
+    const blacklist = /^(provide|help|plan|find|search|make|give|get|know|need|want|have|will|your|their|some|more|best|good|also|just|that|this|with|from|about|like|would|could|should|here|there|been|being|very|much|such|each|other|into|over|after|before|under|between|through|during|against|without|within|along|across|above|below|around|beyond)/i;
+    if (d.length >= 3 && d.length <= 30 && !blacklist.test(d)) patch.destination = d;
   }
 
   // Departure
