@@ -46,6 +46,7 @@ const NAV_LINKS = [
   { label: "Dashboard", href: "/agent", icon: "🏠" },
   { label: "Clients", href: "/agent/clients", icon: "👥" },
   { label: "Leads", href: "/agent/leads", icon: "🎯" },
+  { label: "Trip Search", href: "/agent/trip-search", icon: "🔍" },
   { label: "Proposals", href: "/agent/proposals", icon: "📋" },
   { label: "Bookings", href: "/agent/bookings", icon: "✈️" },
   { label: "Commissions", href: "/agent/commissions", icon: "💰" },
