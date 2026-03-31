@@ -245,46 +245,41 @@ export default function AgentProposalSelectPage() {
   }, [tripId]);
 
   const snapshot = tripData.snapshot || {};
-  const destination = searchForm.destination || snapshot.destination || "";
-  const dates = snapshot.dates || "";
-  const startDate = searchForm.checkIn || "";
-  const endDate = searchForm.checkOut || "";
 
-  // Run search
+  // Run search - reads directly from searchForm state
   const runSearch = () => {
-    if (!destination) return;
+    const dest = searchForm.destination;
+    if (!dest) return;
     setHasSearched(true);
 
-    // Flights — pass city name directly, Duffel route resolves IATA server-side
     const origin = searchForm.origin || "Montreal";
+    const checkIn = searchForm.checkIn || "";
+    const checkOut = searchForm.checkOut || "";
     setLoadingFlights(true);
-    searchFlights(origin, destination, startDate || undefined)
-      .then(setFlights)
+    searchFlights(origin, dest, checkIn || undefined)
+      .then(r => { console.log("Flights:", r.length); setFlights(r); })
       .finally(() => setLoadingFlights(false));
 
-    // Hotels
     setLoadingHotels(true);
-    searchHotels(destination, startDate || undefined, endDate || undefined)
-      .then(setHotels)
+    searchHotels(dest, checkIn || undefined, checkOut || undefined)
+      .then(r => { console.log("Hotels:", r.length); setHotels(r); })
       .finally(() => setLoadingHotels(false));
 
-    // Activities
     setLoadingActivities(true);
-    searchActivities(destination)
-      .then(setActivities)
+    searchActivities(dest)
+      .then(r => { console.log("Activities:", r.length); setActivities(r); })
       .finally(() => setLoadingActivities(false));
 
-    // Transfers
     setLoadingTransfers(true);
-    searchTransfers(destination)
-      .then(setTransfers)
+    searchTransfers(dest)
+      .then(r => { console.log("Transfers:", r.length); setTransfers(r); })
       .finally(() => setLoadingTransfers(false));
   };
 
   // Auto-search if snapshot has destination
   useEffect(() => {
-    if (destination && !hasSearched) runSearch();
-  }, [destination]);
+    if (searchForm.destination && !hasSearched) runSearch();
+  }, [searchForm.destination]);
 
   const toggleSelection = (type, item) => {
     setSelected(prev => {
@@ -313,9 +308,9 @@ export default function AgentProposalSelectPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tripId,
-          destination,
-          dates,
-          travelers: snapshot.travelers,
+          destination: searchForm.destination,
+          dates: `${searchForm.checkIn} → ${searchForm.checkOut}`,
+          travelers: searchForm.travelers,
           budget: snapshot.budget,
           selections: selected,
           source: "agent_trip_search",
@@ -348,7 +343,7 @@ export default function AgentProposalSelectPage() {
             <Link href={`/agent/trip-search/chat/${tripId}`} className="text-slate-400 hover:text-slate-600 text-sm font-bold">← Back to Chat</Link>
             <div className="h-4 w-px bg-slate-200" />
             <h1 className="text-lg font-black text-slate-900">Build Proposal</h1>
-            {destination && <span className="text-sm text-teal-700 font-semibold bg-teal-50 px-3 py-0.5 rounded-full border border-teal-200">📍 {destination}</span>}
+            {searchForm.destination && <span className="text-sm text-teal-700 font-semibold bg-teal-50 px-3 py-0.5 rounded-full border border-teal-200">📍 {searchForm.destination}</span>}
           </div>
           <div className="flex items-center gap-3">
             {totalSelected > 0 && (
@@ -467,7 +462,7 @@ export default function AgentProposalSelectPage() {
                       <p className="text-4xl mb-3">{TABS.find(t => t.key === type)?.icon || "🔍"}</p>
                       <p className="font-bold text-slate-600">No {type} found</p>
                       <p className="text-sm text-slate-400 mt-1">
-                        {!destination ? "Go back to chat and describe the trip first." : `Try adjusting your search criteria for ${destination}.`}
+                        {!searchForm.destination ? "Enter a destination above and click Search." : `Try adjusting your search criteria for ${searchForm.destination}.`}
                       </p>
                     </div>
                   );
