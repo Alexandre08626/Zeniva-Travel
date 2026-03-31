@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore, isHQ } from "@/src/lib/authStore";
 
@@ -40,19 +40,19 @@ function fmtMoney(n: number, currency = "USD") {
   return new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
 }
 
+function TripIdRedirect() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const tripIdParam = searchParams.get("tripId");
+  useEffect(() => {
+    if (tripIdParam) router.replace(`/agent/proposals/select/${tripIdParam}`);
+  }, [tripIdParam, router]);
+  return null;
+}
+
 export default function ProposalsPage() {
   const user = useAuthStore((s) => s.user);
   const hq = isHQ(user);
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  // If tripId in URL, redirect to select page (coming from trip search)
-  const tripIdParam = searchParams.get("tripId");
-  useEffect(() => {
-    if (tripIdParam) {
-      router.replace(`/agent/proposals/select/${tripIdParam}`);
-    }
-  }, [tripIdParam, router]);
 
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -106,6 +106,7 @@ export default function ProposalsPage() {
 
   return (
     <div className="min-h-screen p-6" style={{ background: PREMIUM_BLUE }}>
+      <Suspense fallback={null}><TripIdRedirect /></Suspense>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
