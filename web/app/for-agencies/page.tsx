@@ -13,7 +13,7 @@ const aiAgents = [
   { name: "Ben", image: "/agents/kai.png", role: "Finance Agent", desc: "Invoicing, commission tracking, payment reconciliation", tier: "Agency Only", gradient: "from-emerald-500 to-green-500" },
   { name: "Atlas", image: "/agents/leo.png", role: "Analytics Agent", desc: "Performance dashboards, conversion tracking, revenue forecasting", tier: "Agency Only", gradient: "from-blue-500 to-indigo-500" },
   { name: "Mia", image: "/agents/mia.png", role: "Marketing Agent", desc: "Email campaigns, social content, promotional materials", tier: "Agency Only", gradient: "from-fuchsia-500 to-pink-500" },
-  { name: "Nova", image: "/agents/nova.png", role: "Document Agent", desc: "Contract generation, insurance tracking, travel document prep", tier: "Agency Only", gradient: "from-sky-500 to-blue-500" },
+  { name: "Nova", image: "/agents/jade.png", role: "Document Agent", desc: "Contract generation, insurance tracking, travel document prep", tier: "Agency Only", gradient: "from-sky-500 to-blue-500" },
 ];
 
 const toolkitItems = [
