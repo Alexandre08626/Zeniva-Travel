@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore, isHQ } from "@/src/lib/authStore";
 
 const PREMIUM_BLUE = "#0B1B4D";
@@ -42,6 +43,16 @@ function fmtMoney(n: number, currency = "USD") {
 export default function ProposalsPage() {
   const user = useAuthStore((s) => s.user);
   const hq = isHQ(user);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // If tripId in URL, redirect to select page (coming from trip search)
+  const tripIdParam = searchParams.get("tripId");
+  useEffect(() => {
+    if (tripIdParam) {
+      router.replace(`/agent/proposals/select/${tripIdParam}`);
+    }
+  }, [tripIdParam, router]);
 
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
