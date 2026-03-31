@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { deleteTrip as deleteTripFromStore, useTripsStore } from "../../lib/store/tripsStore";
+// Agent mode: no dependency on traveler tripsStore
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -24,7 +24,7 @@ function getCurrentUserEmail() {
 }
 
 function getActiveStoreKey(email) {
-  const base = "zeniva_trips_store_v1";
+  const base = "zeniva_agent_trips_v1";
   if (!email) return base;
   return `${base}__${email}`;
 }
@@ -38,7 +38,7 @@ function readAllTrips(email) {
       if (Array.isArray(parsed?.trips)) return { key, trips: parsed.trips, store: parsed };
     }
     // fallback: scan all keys
-    const keys = Object.keys(localStorage).filter((k) => k.startsWith("zeniva_trips_store_v1"));
+    const keys = Object.keys(localStorage).filter((k) => k.startsWith("zeniva_agent_trips_v1"));
     let all = [];
     let foundKey = key;
     for (const k of keys) {
@@ -52,13 +52,13 @@ function readAllTrips(email) {
     }
     return { key: foundKey, trips: all, store: null };
   } catch (_) {
-    return { key: "zeniva_trips_store_v1", trips: [], store: null };
+    return { key: "zeniva_agent_trips_v1", trips: [], store: null };
   }
 }
 
 function deleteTripFromStorage(tripId, email) {
   try {
-    const keys = Object.keys(localStorage).filter((k) => k.startsWith("zeniva_trips_store_v1"));
+    const keys = Object.keys(localStorage).filter((k) => k.startsWith("zeniva_agent_trips_v1"));
     for (const key of keys) {
       const raw = localStorage.getItem(key);
       if (!raw) continue;
@@ -76,10 +76,6 @@ function deleteTripFromStorage(tripId, email) {
       localStorage.setItem(key, JSON.stringify(store));
     }
     window.dispatchEvent(new Event("storage"));
-    // push delete to server too
-    if (email) {
-      pushTripsToServer(email).catch(() => {});
-    }
   } catch (_) {}
 }
 
@@ -143,7 +139,6 @@ async function pullTripsFromServer(email) {
 }
 
 function useTrips() {
-  const tripsFromStore = useTripsStore((s) => s.trips);
   const [trips, setTrips] = useState([]);
   const [userEmail, setUserEmail] = useState("");
 
@@ -187,10 +182,7 @@ function useTrips() {
 
     load();
 
-    // Pull from Supabase once if user is logged in
-    if (email) {
-      pullTripsFromServer(email).then(load).catch(() => {});
-    }
+    // Agent mode: no sync with traveler Supabase data
 
     window.addEventListener("storage", load);
     const interval = setInterval(load, 3000);
@@ -206,16 +198,16 @@ function useTrips() {
 function createNewTrip() {
   try {
     const keys = Object.keys(localStorage).filter(
-      (k) => k.startsWith("zeniva_trips_store_v1")
+      (k) => k.startsWith("zeniva_agent_trips_v1")
     );
-    const key = keys[0] || "zeniva_trips_store_v1";
+    const key = keys[0] || "zeniva_agent_trips_v1";
     const raw = localStorage.getItem(key);
     const store = raw ? JSON.parse(raw) : { trips: [], messages: {}, snapshots: {}, proposals: {}, selections: {} };
 
-    const id = `trip-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const id = `agent-trip-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const newTrip = {
       id,
-      title: "New Trip",
+      title: "New Search",
       status: "planning",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -262,7 +254,6 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
     e.stopPropagation();
     if (!confirm("Delete this trip conversation? This cannot be undone.")) return;
     // Update in-memory Zustand store + local state (instant UI) + localStorage
-    deleteTripFromStore(deletedTripId);
     deleteTripFromStorage(deletedTripId, userEmail);
     setTrips((prev) => {
       const updated = prev.filter((t) => t.id !== deletedTripId);
@@ -283,7 +274,7 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
     if (trip.title && trip.title !== "New Trip") return trip.title;
     const snap = (() => {
       try {
-        const keys = Object.keys(localStorage).filter((k) => k.startsWith("zeniva_trips_store_v1"));
+        const keys = Object.keys(localStorage).filter((k) => k.startsWith("zeniva_agent_trips_v1"));
         for (const key of keys) {
           const store = JSON.parse(localStorage.getItem(key) || "{}");
           const snap = store.snapshots?.[trip.id];
@@ -319,7 +310,7 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
         </div>
 
         <div className="flex items-center gap-2">
-          {/* My Trips dropdown */}
+          {/* My Searches dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setTripsOpen(!tripsOpen)}
@@ -330,7 +321,7 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
               }
             >
               <span>💬</span>
-              <span className="hidden sm:inline">My Trips</span>
+              <span className="hidden sm:inline">My Searches</span>
               {trips.length > 0 && (
                 <span className="bg-blue-500 text-white text-[10px] font-black rounded-full w-4 h-4 flex items-center justify-center">
                   {trips.length}
@@ -344,7 +335,7 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
               <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden z-50">
                 {/* Header */}
                 <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">My Conversations</span>
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Agent Searches</span>
                   <span className="text-xs text-slate-400">{Math.min(trips.length, 5)}/5 conversations</span>
                 </div>
 
@@ -401,7 +392,7 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
                     className="w-full py-2.5 rounded-xl text-sm font-bold text-white transition disabled:opacity-40"
                     style={{ background: "linear-gradient(90deg, #0F3A8A, #1a4fad)" }}
                   >
-                    {trips.length >= 5 ? "Max 5 reached — delete one first" : "+ New Trip Conversation"}
+                    {trips.length >= 5 ? "Max 5 — delete one first" : "+ New Search"}
                   </button>
                   {trips.length >= 5 && (
                     <p className="text-center text-xs text-slate-400 mt-1">Delete a trip to start a new one</p>

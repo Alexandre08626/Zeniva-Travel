@@ -1,28 +1,16 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import AgentChatThread from "@/components/agent-chat/AgentChatThread";
-import { ensureSeedTrip, useTripsStore } from "@/lib/store/tripsStore";
 
 const LinaVideoCall = dynamic(() => import("@/src/components/LinaVideoCall"), { ssr: false });
 
 export default function AgentTripCallPage() {
   const params = useParams();
-  const router = useRouter();
   const tripId = params.id as string;
-  const { trip } = useTripsStore((s) => ({ trip: s.trips.find((t: { id: string }) => t.id === tripId) }));
   const [showChat, setShowChat] = useState(false);
-
-  useEffect(() => {
-    if (!tripId) {
-      const fallback = ensureSeedTrip();
-      router.replace(`/agent/trip-search/call/${fallback}`);
-      return;
-    }
-    if (!trip) ensureSeedTrip();
-  }, [tripId, trip, router]);
 
   return (
     <main className="min-h-screen bg-slate-950">
