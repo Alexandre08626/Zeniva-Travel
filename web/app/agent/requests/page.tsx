@@ -196,13 +196,15 @@ export default function AgentRequestsPage() {
         const r2 = await fetch("/api/leads-business?type=travel_agency");
         if (r2.ok) {
           const d = await r2.json();
-          setAgencies((d?.leads || []).filter((l: AgencyOnboarding) => l.source === "agency_onboarding" && l.status !== "signed"));
+          const hidden = ["signed", "converted", "lost"];
+          setAgencies((d?.leads || []).filter((l: AgencyOnboarding) => l.source === "agency_onboarding" && !hidden.includes(l.status)));
         }
         return;
       }
       const d = await r.json();
-      // Hide signed (approved) agencies - they are now on /agent/agencies
-      setAgencies((d?.leads || []).filter((l: AgencyOnboarding) => l.status !== "signed"));
+      // Hide approved/rejected agencies - approved ones are on /agent/agencies
+      const hidden = ["signed", "converted", "lost"];
+      setAgencies((d?.leads || []).filter((l: AgencyOnboarding) => !hidden.includes(l.status)));
     } catch {}
   };
 
