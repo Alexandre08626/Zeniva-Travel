@@ -232,7 +232,9 @@ function createNewTrip() {
   }
 }
 
-export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref = "/", backLabel = "Back" }) {
+export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref = "/", backLabel = "Back", agentMode = false }) {
+  const chatBase = agentMode ? "/agent/trip-search/chat" : "/chat";
+  const callBase = agentMode ? "/agent/trip-search/call" : "/call";
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [tripsOpen, setTripsOpen] = useState(false);
   const { trips, userEmail } = useTrips();
@@ -254,7 +256,7 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
     if (trips.length >= 5) return;
     const id = createNewTrip();
     setTripsOpen(false);
-    router.push(`/chat/${id}`);
+    router.push(`${chatBase}/${id}`);
   };
 
   const handleDeleteTrip = (e, deletedTripId) => {
@@ -269,9 +271,9 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
       // If deleting the active trip, redirect to first remaining trip (no new creation)
       if (deletedTripId === tripId) {
         if (updated.length > 0) {
-          router.push(`/chat/${updated[0].id}`);
+          router.push(`${chatBase}/${updated[0].id}`);
         } else {
-          router.push("/chat");
+          router.push(agentMode ? "/agent/trip-search" : "/chat");
         }
       }
       return updated;
@@ -363,7 +365,7 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
                     return (
                       <div key={trip.id} className={`flex items-center gap-0 border-b border-slate-50 group ${isActive ? "bg-blue-50" : "hover:bg-slate-50"} transition`}>
                         <Link
-                          href={`/chat/${trip.id}`}
+                          href={`${chatBase}/${trip.id}`}
                           onClick={() => setTripsOpen(false)}
                           className="flex items-center gap-3 flex-1 min-w-0 px-4 py-3"
                         >
@@ -426,7 +428,7 @@ export default function ChatLayout({ sidebar, chat, snapshot, tripId, backHref =
           </button>
 
           <Link
-            href={`/call/${tripId || ""}`}
+            href={`${callBase}/${tripId || ""}`}
             className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-black text-white"
             style={{ background: "linear-gradient(90deg, #0F3A8A, #1a4fad)" }}
           >

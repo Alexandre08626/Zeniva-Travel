@@ -1,19 +1,29 @@
 "use client";
-import { useParams, useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import ChatThread from "@/components/chat/ChatThread";
+import TripSnapshotPanel from "@/components/chat/TripSnapshotPanel";
+import { ensureSeedTrip, useTripsStore } from "@/lib/store/tripsStore";
 
 const LinaVideoCall = dynamic(() => import("@/src/components/LinaVideoCall"), { ssr: false });
 
 export default function AgentTripCallPage() {
   const params = useParams();
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const sessionId = params.id as string;
-  const clientName = searchParams.get("client") || "";
+  const tripId = params.id as string;
+  const { trip } = useTripsStore((s) => ({ trip: s.trips.find((t: { id: string }) => t.id === tripId) }));
   const [showChat, setShowChat] = useState(false);
+
+  useEffect(() => {
+    if (!tripId) {
+      const fallback = ensureSeedTrip();
+      router.replace(`/agent/trip-search/call/${fallback}`);
+      return;
+    }
+    if (!trip) ensureSeedTrip();
+  }, [tripId, trip, router]);
 
   return (
     <main className="min-h-screen bg-slate-950">
@@ -22,49 +32,40 @@ export default function AgentTripCallPage() {
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/agent/trip-search" className="text-white/60 hover:text-white text-sm font-semibold transition-colors">
-              {"\u2190"} Back
+              {"\u2190"} Trip Search
             </Link>
             <div className="h-4 w-px bg-white/10" />
-            <Image src="/agents/lina.png" alt="Lina" width={32} height={32} className="rounded-full" />
-            <span className="text-white font-bold text-sm">Lina AI</span>
-            <span className="text-white/40 text-xs">{"\u00B7"} Agent Voice Search</span>
-            {clientName && (
-              <div className="flex items-center gap-1 bg-violet-500/20 border border-violet-500/30 rounded-full px-2.5 py-0.5">
-                <span className="text-violet-300 text-xs font-semibold">{"\uD83D\uDC64"} {clientName}</span>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              <img src="/agents/lina.png" alt="Lina" className="h-8 w-8 rounded-full object-cover" />
+              <span className="text-white font-bold text-sm">Lina AI</span>
+              <span className="text-white/40 text-xs">{"\u00B7"} Agent Voice Call</span>
+            </div>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={() => setShowChat(!showChat)} className={`text-xs font-semibold px-4 py-2 rounded-full border transition-all ${showChat ? "bg-teal-500/20 text-teal-300 border-teal-500/30" : "bg-white/5 text-white/60 border-white/10 hover:text-white"}`}>
+            <button
+              onClick={() => setShowChat(!showChat)}
+              className={`text-xs font-semibold px-4 py-2 rounded-full border transition-all ${showChat ? "bg-teal-500/20 text-teal-300 border-teal-500/30" : "bg-white/5 text-white/60 border-white/10 hover:text-white hover:border-white/20"}`}
+            >
               {"\uD83D\uDCAC"} {showChat ? "Hide" : "Show"} Chat
             </button>
-            <button onClick={() => router.push(`/agent/trip-search/chat/${sessionId}?client=${encodeURIComponent(clientName)}&hybrid=1`)} className="text-xs font-semibold px-4 py-2 rounded-full bg-white/5 text-white/60 border border-white/10 hover:text-white transition-all">
-              Switch to Hybrid
-            </button>
+            <Link href={`/agent/trip-search/chat/${tripId}?hybrid=1`} className="text-xs font-semibold px-4 py-2 rounded-full bg-white/5 text-white/60 border border-white/10 hover:text-white hover:border-white/20 transition-all">
+              Switch to Chat
+            </Link>
           </div>
         </div>
       </header>
 
       {/* Main */}
-      <div className="max-w-7xl mx-auto px-4 py-6 flex gap-6">
+      <div className={`max-w-7xl mx-auto px-4 py-6 ${showChat ? "grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6" : ""}`}>
         {/* Video call */}
-        <div className="flex-1 flex items-center justify-center min-h-[70vh]">
-          <LinaVideoCall tripId={sessionId} />
+        <div className={`flex items-center justify-center ${showChat ? "" : "min-h-[70vh]"}`}>
+          <LinaVideoCall tripId={tripId} />
         </div>
 
-        {/* Chat panel (toggle) */}
+        {/* Chat panel */}
         {showChat && (
-          <div className="w-[380px] shrink-0 bg-slate-900 rounded-2xl border border-white/10 flex flex-col max-h-[80vh]">
-            <div className="px-4 py-3 border-b border-white/10 flex items-center gap-2">
-              <Image src="/agents/lina.png" alt="Lina" width={24} height={24} className="rounded-full" />
-              <span className="text-white text-sm font-bold">Chat with Lina</span>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4">
-              <p className="text-white/40 text-sm text-center py-8">Chat messages from your voice call will appear here.</p>
-            </div>
-            <div className="p-3 border-t border-white/10">
-              <input placeholder="Type a message..." className="w-full bg-white/5 border border-white/10 text-white text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-teal-500" />
-            </div>
+          <div className="bg-slate-900 rounded-2xl border border-white/10 flex flex-col max-h-[80vh] overflow-hidden">
+            <ChatThread tripId={tripId} agentMode />
           </div>
         )}
       </div>
