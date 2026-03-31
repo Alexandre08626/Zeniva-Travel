@@ -15,12 +15,14 @@ import {
   Settings,
   Menu,
   X,
+  Target,
 } from "lucide-react";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/agency/dashboard" },
   { label: "AI Agents", icon: Bot, href: "/agency/ai-agents" },
   { label: "My Agents", icon: Users, href: "/agency/agents" },
+  { label: "Agent Command", icon: Target, href: "/agency/agents" },
   { label: "Business Leads", icon: Building2, href: "/agent/leads-business" },
   { label: "Clients", icon: UserCircle, href: "/agency/clients" },
   { label: "Usage & API", icon: BarChart3, href: "/agency/usage" },

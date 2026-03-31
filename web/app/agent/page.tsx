@@ -65,7 +65,6 @@ const HQ_LINKS = [
   { label: "Agent Requests", href: "/agent/requests", icon: "📨" },
   { label: "Influencer", href: "/agent/influencer", icon: "⭐" },
   { label: "AI Agents Hub", href: "/ai-agents", icon: "🤖" },
-
 ];
 
 export function AgentDashboardPage({ agentId }: { agentId?: string }) {
