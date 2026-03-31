@@ -144,10 +144,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   const [selectedAgent, setSelectedAgent] = useState<AIAgent | null>(null);
   const [navOpen, setNavOpen] = useState(true); // open by default — labels visible
 
-  // Trip search
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const [activeSearchTab, setActiveSearchTab] = useState<"flights"|"hotels"|"transfers">("flights");
+  // Trip search — now uses /agent/trip-search page
 
   const fetchAll = async () => {
       fetchNavBadges();
@@ -209,12 +206,6 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
       try { window.localStorage.setItem("zeniva_agent_workspace", resolvedAgentId); } catch {}
     }
   }, [resolvedAgentId]);
-
-  const handleSearch = (e: FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
-    router.push(`/agent/proposals?q=${encodeURIComponent(query.trim())}`);
-  };
 
   const kpis = [
     { label: "Active Clients", value: dashStats?.active_clients ?? vpsStats?.total_clients ?? "—", icon: "👥", color: "bg-blue-50 border-blue-200", sub: `${dashStats?.open_dossiers ?? 0} dossiers` },
@@ -358,11 +349,11 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
             </div>
             <div className="flex gap-3">
               {canTripSearch && (
-                <button onClick={() => setSearchOpen(true)}
+                <Link href="/agent/trip-search"
                   className="rounded-full px-5 py-2.5 text-sm font-bold text-white shadow-lg flex items-center gap-2"
                   style={{ background: `linear-gradient(135deg, ${BRAND_BLUE}, ${PREMIUM_BLUE})` }}>
                   ✈️ Trip Search
-                </button>
+                </Link>
               )}
               <Link href="/agent/clients"
                 className="rounded-full px-5 py-2.5 text-sm font-bold border-2 flex items-center gap-2"
@@ -715,47 +706,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
         </div>
       )}
 
-      {/* TRIP SEARCH MODAL */}
-      {searchOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl overflow-hidden">
-            <div className="p-6 text-white" style={{ background: `linear-gradient(135deg, ${BRAND_BLUE}, ${PREMIUM_BLUE})` }}>
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-black">✈️ Trip Search</h2>
-                <button onClick={() => setSearchOpen(false)} className="rounded-full p-1.5 bg-white/20 hover:bg-white/30 text-white">✕</button>
-              </div>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="flex gap-2 border-b border-slate-200 pb-4">
-                {(["flights", "hotels", "transfers"] as const).map((t) => (
-                  <button key={t} onClick={() => setActiveSearchTab(t)}
-                    className={`px-4 py-2 rounded-full text-sm font-bold capitalize transition ${activeSearchTab === t ? "text-white" : "bg-slate-100 text-slate-600"}`}
-                    style={activeSearchTab === t ? { background: BRAND_BLUE } : {}}>
-                    {t === "flights" ? "✈️ Vols" : t === "hotels" ? "🏨 Hôtels" : "🚗 Transfers"}
-                  </button>
-                ))}
-              </div>
-              <form onSubmit={handleSearch} className="space-y-4">
-                <textarea
-                  value={query} onChange={(e) => setQuery(e.target.value)}
-                  rows={3}
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm resize-none focus:outline-none focus:border-blue-400"
-                  placeholder={activeSearchTab === "flights" ? "Ex: Vol Montréal → Cancún, 15 juillet, 2 personnes, économique..." : activeSearchTab === "hotels" ? "Ex: Hôtel 5 étoiles Cancún, 15-22 juillet, 2 adultes..." : "Ex: Transfer aéroport → hôtel Cancún, 15 juillet 14h..."}
-                />
-                <div className="flex gap-3">
-                  <button type="submit" className="flex-1 rounded-full py-3 text-sm font-bold text-white"
-                    style={{ background: `linear-gradient(135deg, ${BRAND_BLUE}, ${PREMIUM_BLUE})` }}>
-                    🔍 Rechercher avec Lina
-                  </button>
-                  <button type="button" onClick={() => setSearchOpen(false)} className="rounded-full px-5 py-3 text-sm font-semibold border border-slate-200 text-slate-700">
-                    Annuler
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Trip Search modal removed — now uses /agent/trip-search page */}
     </div>
   );
 }
