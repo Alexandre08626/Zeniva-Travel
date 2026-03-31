@@ -176,13 +176,9 @@ function AgencyCard({ agency, onRefresh }: { agency: Agency; onRefresh: () => vo
         <button onClick={() => setExpanded(!expanded)} className="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-semibold rounded-xl hover:bg-slate-200">
           {expanded ? "\u25B2 Hide Details" : "\u25BC Agency Details"}
         </button>
-        {agency.is_active && (
-          <>
-            <button className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700">View Dashboard</button>
-            <button className="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-semibold rounded-xl hover:bg-slate-200">Configure</button>
-            <button className="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-semibold rounded-xl hover:bg-slate-200">Billing History</button>
-          </>
-        )}
+        <a href={`/agent/agencies/${agency.id}`} className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors">View Dashboard</a>
+        <a href={`/agent/agencies/${agency.id}?tab=configure`} className="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-semibold rounded-xl hover:bg-slate-200 transition-colors">Configure</a>
+        <a href={`/agent/agencies/${agency.id}?tab=billing`} className="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-semibold rounded-xl hover:bg-slate-200 transition-colors">Billing History</a>
       </div>
 
       {/* Setup Log */}
