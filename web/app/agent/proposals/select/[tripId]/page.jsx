@@ -31,54 +31,102 @@ function getIATA(city) {
   return null;
 }
 
-/* ─── Search APIs ─── */
+/* ─── Search APIs (Duffel + LiteAPI + RapidAPI) ─── */
 async function searchFlights(origin, destination, date) {
+  // Duffel flights API
   try {
-    const res = await fetch("/api/amadeus/flights/search", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ origin, destination, departureDate: date, adults: 1, max: 8 }),
-    });
+    const params = new URLSearchParams({ origin, destination, date: date || "" });
+    const res = await fetch(`/api/partners/duffel?${params}`);
     if (res.ok) {
       const data = await res.json();
-      return (data.flights || data.data || []).slice(0, 8);
+      const offers = data?.result?.offers || data?.offers || data?.data || [];
+      return offers.slice(0, 10).map((o, i) => {
+        const slice = o.slices?.[0] || {};
+        const seg = slice.segments?.[0] || {};
+        const carrier = seg.operating_carrier?.name || seg.marketing_carrier?.name || o.owner?.name || "Airline";
+        return {
+          id: o.id || `flight-${i}`,
+          name: `${carrier} ${seg.operating_carrier_flight_number || seg.marketing_carrier_flight_number || ""}`.trim(),
+          airline: carrier,
+          route: `${slice.origin?.iata_code || origin} → ${slice.destination?.iata_code || destination}`,
+          price: parseFloat(o.total_amount || "0"),
+          currency: o.total_currency || "CAD",
+          class: o.cabin_class || seg.passengers?.[0]?.cabin_class_marketing_name || "Economy",
+          duration: slice.duration ? `${Math.floor(parseInt(slice.duration?.replace("PT","")?.replace("H",":").split(":")[0]||0))}h${slice.duration?.match(/(\d+)M/)?.[1] || "00"}` : "",
+          stops: (slice.segments?.length || 1) - 1,
+          departure: seg.departing_at ? new Date(seg.departing_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "",
+          arrival: seg.arriving_at ? new Date(seg.arriving_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "",
+        };
+      });
     }
   } catch {}
   return [];
 }
 
 async function searchHotels(destination, checkIn, checkOut) {
+  // LiteAPI hotels
+  try {
+    const params = new URLSearchParams({ destination, checkIn: checkIn || "", checkOut: checkOut || "", guests: "2", rooms: "1" });
+    const res = await fetch(`/api/partners/liteapi/hotels/search?${params}`);
+    if (res.ok) {
+      const data = await res.json();
+      const hotels = data?.hotels || data?.data || [];
+      return hotels.slice(0, 10).map((h, i) => ({
+        id: h.id || h.hotelId || `hotel-${i}`,
+        name: h.name || h.hotelName || "Hotel",
+        location: h.address || h.location || "",
+        price: h.price || h.minRate || h.rate || 0,
+        currency: h.currency || "USD",
+        stars: h.stars || h.starRating || h.category || 0,
+        rating: h.rating || h.reviewScore || null,
+        room: h.roomName || h.roomType || "",
+        board: h.boardType || h.boardBasis || "",
+        image: h.image || h.thumbnail || h.main_photo || null,
+      }));
+    }
+  } catch {}
+  // Fallback: Amadeus hotels
   try {
     const res = await fetch("/api/amadeus/hotels/search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ destination, checkIn, checkOut, adults: 2, max: 8 }),
+      body: JSON.stringify({ destination, checkIn, checkOut, adults: 2, max: 10 }),
     });
     if (res.ok) {
       const data = await res.json();
-      return (data.hotels || data.data || []).slice(0, 8);
+      return (data.hotels || data.data || []).slice(0, 10);
     }
   } catch {}
   return [];
 }
 
 async function searchActivities(destination) {
+  // RapidAPI / Booking.com activities
   try {
-    const res = await fetch(`/api/amadeus/activities/search?destination=${encodeURIComponent(destination)}&max=6`);
+    const res = await fetch(`/api/booking/activities/search?destination=${encodeURIComponent(destination)}&limit=8`);
     if (res.ok) {
       const data = await res.json();
-      return (data.activities || data.data || []).slice(0, 6);
+      return (data.activities || data.data || []).slice(0, 8);
+    }
+  } catch {}
+  // Fallback: Amadeus
+  try {
+    const res = await fetch(`/api/experiences/search?destination=${encodeURIComponent(destination)}&limit=8`);
+    if (res.ok) {
+      const data = await res.json();
+      return (data.activities || data.experiences || data.data || []).slice(0, 8);
     }
   } catch {}
   return [];
 }
 
 async function searchTransfers(destination) {
+  // Booking transfers
   try {
-    const res = await fetch(`/api/amadeus/transfers/search?destination=${encodeURIComponent(destination)}&max=4`);
+    const res = await fetch(`/api/transfers/search?destination=${encodeURIComponent(destination)}&limit=6`);
     if (res.ok) {
       const data = await res.json();
-      return (data.transfers || data.data || []).slice(0, 4);
+      return (data.transfers || data.data || []).slice(0, 6);
     }
   } catch {}
   return [];

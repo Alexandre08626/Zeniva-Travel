@@ -46,20 +46,66 @@ function saveAgentSnapshot(tripId, snapshot) {
 /* ─── Extract trip info from conversation ─── */
 function extractTripInfo(messages) {
   const patch = {};
-  const text = messages.slice(-6).map(m => m.content || "").join("\n");
+  const text = messages.slice(-8).map(m => m.content || "").join("\n");
 
-  const destMatch = text.match(/(?:to|à|au|en|aux|for)\s+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{2,25})/i);
-  if (destMatch) patch.destination = destMatch[1].trim().split(/[,\n]/)[0].trim();
+  // Destination
+  const destMatch = text.match(/["']destination["']\s*:\s*["']([^"']+)["']/i)
+    || text.match(/(?:destination|dest)\s*[:=]\s*([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{2,30})/i)
+    || text.match(/\b(?:to|à|au|en|aux|for|going to|trip to|travel to|voyage)\s+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{2,25})/i);
+  if (destMatch) {
+    const d = destMatch[1].trim().split(/[,\n•]/)[0].trim();
+    if (d.length >= 3 && d.length <= 30) patch.destination = d;
+  }
 
+  // Departure
+  const depMatch = text.match(/\b(YUL|YYZ|YVR|JFK|LAX|MIA|ORD|CDG|LHR|YOW)\b/)
+    || text.match(/["']departure["']\s*:\s*["']([^"']+)["']/i)
+    || text.match(/(?:from|depart|departure)\s+([A-Za-zÀ-ÿ]{3,20})/i);
+  if (depMatch) patch.departure = depMatch[1].trim();
+
+  // Dates (ISO format)
   const dateMatch = text.match(/\b(\d{4}-\d{2}-\d{2})\b/g);
   if (dateMatch?.length >= 2) patch.dates = `${dateMatch[0]} → ${dateMatch[1]}`;
   else if (dateMatch?.length === 1) patch.dates = dateMatch[0];
 
-  const travMatch = text.match(/(\d+)\s*(?:person|adult|voyageur|pax|people)/i);
-  if (travMatch) patch.travelers = `${travMatch[1]} adults`;
+  // French dates
+  if (!patch.dates) {
+    const months = { janvier:"01", février:"02", fevrier:"02", mars:"03", avril:"04", mai:"05", juin:"06", juillet:"07", août:"08", aout:"08", septembre:"09", octobre:"10", novembre:"11", décembre:"12" };
+    const frDates = text.match(/\b(\d{1,2})\s+(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre)\b/gi) || [];
+    const parsed = frDates.map(s => {
+      const m = s.match(/(\d{1,2})\s+(\w+)/i);
+      if (!m) return null;
+      const mon = months[m[2].toLowerCase()];
+      if (!mon) return null;
+      return `${new Date().getFullYear()}-${mon}-${m[1].padStart(2, "0")}`;
+    }).filter(Boolean);
+    if (parsed.length >= 2) patch.dates = `${parsed[0]} → ${parsed[1]}`;
+    else if (parsed.length === 1) patch.dates = parsed[0];
+  }
 
-  const budgetMatch = text.match(/\$\s*([\d,]+)/);
-  if (budgetMatch) patch.budget = `$${budgetMatch[1]} CAD`;
+  // English dates: "June 14-21" or "July 5 to July 12"
+  if (!patch.dates) {
+    const enMonths = { jan:"01", january:"01", feb:"02", february:"02", mar:"03", march:"03", apr:"04", april:"04", may:"05", jun:"06", june:"06", jul:"07", july:"07", aug:"08", august:"08", sep:"09", september:"09", oct:"10", october:"10", nov:"11", november:"11", dec:"12", december:"12" };
+    const rangeMatch = text.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+(\d{1,2})\s*[-–to]+\s*(\d{1,2})\b/i);
+    if (rangeMatch) {
+      const mon = enMonths[rangeMatch[1].toLowerCase().slice(0,3)];
+      if (mon) {
+        const yr = new Date().getFullYear();
+        patch.dates = `${yr}-${mon}-${rangeMatch[2].padStart(2,"0")} → ${yr}-${mon}-${rangeMatch[3].padStart(2,"0")}`;
+      }
+    }
+  }
+
+  // Travelers
+  const travMatch = text.match(/(\d+)\s*(?:person|adult|voyageur|pax|people|adulte)/i);
+  if (travMatch) {
+    const n = parseInt(travMatch[1]);
+    if (n > 0 && n <= 20) patch.travelers = `${n} adults`;
+  }
+
+  // Budget
+  const budgetMatch = text.match(/\$\s*([\d,]+)/) || text.match(/([\d,]+)\s*\$/);
+  if (budgetMatch) patch.budget = `$${budgetMatch[1].replace(/,/g, "")} CAD`;
 
   return Object.keys(patch).length > 0 ? patch : null;
 }
