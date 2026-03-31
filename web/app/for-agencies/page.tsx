@@ -10,8 +10,8 @@ const aiAgents = [
   { name: "Sofia", image: "/agents/sofia.png", role: "Operations Agent", desc: "Booking follow-ups, confirmations, documents, reminders", tier: "Agency + Agents", gradient: "from-violet-500 to-purple-500" },
   { name: "Luna", image: "/agents/luna.png", role: "Client Relationship", desc: "Post-trip follow-ups, personalized suggestions, re-engagement", tier: "Agency + Agents", gradient: "from-pink-500 to-rose-500" },
   { name: "Rex", image: "/agents/rex.png", role: "Research & Intelligence", desc: "Destination trends, price comparisons, data feeds", tier: "Agency + Agents", gradient: "from-amber-500 to-orange-500" },
-  { name: "Ben", image: "/agents/ben.png", role: "Finance Agent", desc: "Invoicing, commission tracking, payment reconciliation", tier: "Agency Only", gradient: "from-emerald-500 to-green-500" },
-  { name: "Atlas", image: "/agents/atlas.png", role: "Analytics Agent", desc: "Performance dashboards, conversion tracking, revenue forecasting", tier: "Agency Only", gradient: "from-blue-500 to-indigo-500" },
+  { name: "Ben", image: "/agents/kai.png", role: "Finance Agent", desc: "Invoicing, commission tracking, payment reconciliation", tier: "Agency Only", gradient: "from-emerald-500 to-green-500" },
+  { name: "Atlas", image: "/agents/leo.png", role: "Analytics Agent", desc: "Performance dashboards, conversion tracking, revenue forecasting", tier: "Agency Only", gradient: "from-blue-500 to-indigo-500" },
   { name: "Mia", image: "/agents/mia.png", role: "Marketing Agent", desc: "Email campaigns, social content, promotional materials", tier: "Agency Only", gradient: "from-fuchsia-500 to-pink-500" },
   { name: "Nova", image: "/agents/nova.png", role: "Document Agent", desc: "Contract generation, insurance tracking, travel document prep", tier: "Agency Only", gradient: "from-sky-500 to-blue-500" },
 ];
@@ -157,14 +157,19 @@ function OnboardingModal({ open, onClose, defaultPlan }: { open: boolean; onClos
     setSending(true);
     setError("");
     try {
-      const res = await fetch("/api/agent-requests", {
+      const res = await fetch("/api/leads-business/public", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: form.primaryName,
-          email: form.primaryEmail,
-          role: "agency_onboarding",
-          note: JSON.stringify(form),
+          source: "agency_onboarding",
+          plan: form.selectedPlan,
+          contact_name: form.primaryName,
+          contact_email: form.primaryEmail,
+          contact_phone: form.primaryPhone,
+          company_name: form.legalName || form.tradeName,
+          website: form.website,
+          number_of_agents: parseInt(form.totalAdvisors) || 1,
+          form_data: form,
         }),
       });
       if (res.ok) setSent(true);

@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useAuthStore, isHQ } from "@/src/lib/authStore";
 
-type TabKey = "pending" | "approved" | "agencies";
+type TabKey = "pending" | "agencies" | "approved";
 
 interface AgentRequest {
   id: string;
@@ -26,11 +26,26 @@ interface ApprovedAgent {
   ref_code?: string;
 }
 
+interface AgencyOnboarding {
+  id: string;
+  contact_name: string;
+  contact_email: string;
+  contact_phone: string;
+  company_name: string;
+  website: string;
+  number_of_agents: number;
+  status: string;
+  source: string;
+  priority: string;
+  estimated_setup_value: number;
+  notes: string;
+  created_at: string;
+}
+
 const ROLE_CFG: Record<string, { label: string; bg: string; text: string; icon: string }> = {
-  travel_agent:       { label: "Travel Agent",       bg: "bg-blue-100",    text: "text-blue-700",    icon: "\u2708\uFE0F" },
-  yacht_broker:       { label: "Yacht Broker",       bg: "bg-indigo-100",  text: "text-indigo-700",  icon: "\u26F5" },
-  influencer:         { label: "Influencer",         bg: "bg-purple-100",  text: "text-purple-700",  icon: "\u2B50" },
-  agency_onboarding:  { label: "Agency Onboarding",  bg: "bg-teal-100",    text: "text-teal-700",    icon: "\uD83C\uDFE2" },
+  travel_agent:  { label: "Travel Agent",  bg: "bg-blue-100",   text: "text-blue-700",   icon: "\u2708\uFE0F" },
+  yacht_broker:  { label: "Yacht Broker",  bg: "bg-indigo-100", text: "text-indigo-700", icon: "\u26F5" },
+  influencer:    { label: "Influencer",    bg: "bg-purple-100", text: "text-purple-700", icon: "\u2B50" },
 };
 
 function fmtDate(d?: string | null) {
@@ -38,17 +53,19 @@ function fmtDate(d?: string | null) {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-function parseOnboardingData(note?: string) {
-  if (!note) return null;
-  try { return JSON.parse(note); } catch { return null; }
+function parseNotes(notes?: string) {
+  if (!notes) return null;
+  try { return JSON.parse(notes); } catch { return null; }
 }
+
+/* ─── Onboarding Detail View ────────────────────────────────────────── */
 
 function OnboardingDetail({ data }: { data: Record<string, unknown> }) {
   const str = (key: string) => (data[key] as string) || "";
   const arr = (key: string) => (data[key] as string[]) || [];
 
   const sections = [
-    { title: "Agency Identity", items: [
+    { title: "Agency Identity", color: "text-teal-700", items: [
       { label: "Legal Name", value: str("legalName") },
       { label: "Trade Name", value: str("tradeName") },
       { label: "OPC Permit", value: str("opcPermit") },
@@ -57,19 +74,28 @@ function OnboardingDetail({ data }: { data: Record<string, unknown> }) {
       { label: "Website", value: str("website") },
       { label: "Locations", value: str("locations") },
     ]},
-    { title: "Contacts", items: [
-      { label: "Primary", value: `${str("primaryName")} (${str("primaryTitle")}) - ${str("primaryEmail")} - ${str("primaryPhone")}` },
+    { title: "Primary Contact", color: "text-violet-700", items: [
+      { label: "Name", value: str("primaryName") },
+      { label: "Title", value: str("primaryTitle") },
+      { label: "Email", value: str("primaryEmail") },
+      { label: "Phone", value: str("primaryPhone") },
       { label: "Preferred Comm", value: arr("preferredComm").join(", ") },
-      { label: "Tech Contact", value: str("techName") ? `${str("techName")} - ${str("techEmail")}` : "" },
-      { label: "Website Platform", value: arr("websitePlatform").join(", ") },
-      { label: "Billing Contact", value: str("billingName") ? `${str("billingName")} - ${str("billingEmail")}` : "" },
     ]},
-    { title: "Team", items: [
+    { title: "Technical Contact", color: "text-violet-700", items: [
+      { label: "Name", value: str("techName") },
+      { label: "Email", value: str("techEmail") },
+      { label: "Website Platform", value: arr("websitePlatform").join(", ") },
+    ]},
+    { title: "Billing Contact", color: "text-violet-700", items: [
+      { label: "Name", value: str("billingName") },
+      { label: "Email", value: str("billingEmail") },
+    ]},
+    { title: "Team & Advisors", color: "text-blue-700", items: [
       { label: "Total Advisors", value: str("totalAdvisors") },
       { label: "Advisor List", value: str("advisorList") },
       { label: "Work Style", value: arr("workStyle").join(", ") },
     ]},
-    { title: "Suppliers & Products", items: [
+    { title: "Suppliers & Products", color: "text-amber-700", items: [
       { label: "Suppliers", value: str("suppliers") },
       { label: "GDS", value: arr("gds").join(", ") },
       { label: "Booking Platform", value: arr("bookingPlatform").join(", ") },
@@ -77,7 +103,7 @@ function OnboardingDetail({ data }: { data: Record<string, unknown> }) {
       { label: "Exclusive Rates", value: str("exclusiveRates") },
       { label: "Monthly Bookings", value: str("monthlyBookings") },
     ]},
-    { title: "Branding", items: [
+    { title: "Branding & Design", color: "text-pink-700", items: [
       { label: "Logo", value: arr("logoOption").join(", ") },
       { label: "Primary Color", value: str("primaryColor") },
       { label: "Secondary Color", value: str("secondaryColor") },
@@ -85,7 +111,7 @@ function OnboardingDetail({ data }: { data: Record<string, unknown> }) {
       { label: "Slogan", value: str("slogan") },
       { label: "Social Links", value: str("socialLinks") },
     ]},
-    { title: "Lina AI Config", items: [
+    { title: "Lina AI Configuration", color: "text-cyan-700", items: [
       { label: "Languages", value: arr("languages").join(", ") },
       { label: "Default Language", value: str("defaultLanguage") },
       { label: "Welcome Message", value: str("welcomeMessage") },
@@ -95,39 +121,39 @@ function OnboardingDetail({ data }: { data: Record<string, unknown> }) {
       { label: "Promotions", value: str("promotions") },
       { label: "Widget Placement", value: arr("widgetPlacement").join(", ") },
     ]},
-    { title: "Current Tools", items: [
+    { title: "Current Tools & Data", color: "text-slate-700", items: [
       { label: "CRM", value: arr("currentCRM").join(", ") },
       { label: "Import Clients", value: arr("importClients").join(", ") },
       { label: "Active Clients", value: str("activeClients") },
-      { label: "Accounting", value: str("accountingSystem") },
-      { label: "Payments", value: arr("paymentMethods").join(", ") },
+      { label: "Accounting System", value: str("accountingSystem") },
+      { label: "Payment Methods", value: arr("paymentMethods").join(", ") },
     ]},
-    ...(str("selectedPlan") === "premium" ? [{ title: "Mobile App (Premium)", items: [
+    ...(str("selectedPlan") === "premium" ? [{ title: "Mobile App (Premium)", color: "text-purple-700", items: [
       { label: "App Name", value: str("appName") },
       { label: "Dev Accounts", value: arr("devAccounts").join(", ") },
       { label: "App Icon", value: arr("appIcon").join(", ") },
     ]}] : []),
-    { title: "Goals", items: [
+    { title: "Goals & Expectations", color: "text-emerald-700", items: [
       { label: "Main Reason", value: str("mainReason") },
       { label: "Challenges", value: arr("challenges").join(", ") },
       { label: "Timeline", value: arr("timeline").join(", ") },
-      { label: "Other", value: str("anythingElse") },
+      { label: "Other Notes", value: str("anythingElse") },
     ]},
   ];
 
   return (
-    <div className="mt-4 space-y-4">
+    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
       {sections.map((section) => {
-        const filledItems = section.items.filter((i) => i.value && i.value !== " -  - ");
+        const filledItems = section.items.filter((i) => i.value);
         if (filledItems.length === 0) return null;
         return (
           <div key={section.title} className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-            <p className="text-xs font-bold text-teal-700 uppercase tracking-wide mb-2">{section.title}</p>
+            <p className={`text-xs font-bold uppercase tracking-wide mb-2.5 ${section.color}`}>{section.title}</p>
             <div className="space-y-1.5">
               {filledItems.map((item) => (
-                <div key={item.label} className="flex gap-2">
-                  <span className="text-xs font-semibold text-slate-500 min-w-[120px] shrink-0">{item.label}:</span>
-                  <span className="text-xs text-slate-700 whitespace-pre-wrap">{item.value}</span>
+                <div key={item.label}>
+                  <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">{item.label}</span>
+                  <p className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">{item.value}</p>
                 </div>
               ))}
             </div>
@@ -138,39 +164,55 @@ function OnboardingDetail({ data }: { data: Record<string, unknown> }) {
   );
 }
 
+/* ─── Main Page ─────────────────────────────────────────────────────── */
+
 export default function AgentRequestsPage() {
   const user = useAuthStore((s) => s.user);
   const hq = isHQ(user);
   const [pending, setPending] = useState<AgentRequest[]>([]);
   const [approved, setApproved] = useState<ApprovedAgent[]>([]);
-  const [agencyRequests, setAgencyRequests] = useState<AgentRequest[]>([]);
+  const [agencies, setAgencies] = useState<AgencyOnboarding[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<TabKey>("pending");
+  const [activeTab, setActiveTab] = useState<TabKey>("agencies");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [success, setSuccess] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const fetchRequests = async () => {
-    setLoading(true);
+  const fetchAgentRequests = async () => {
     try {
       const r = await fetch("/api/agents-proxy?path=admin/agent-requests");
       if (r.ok) {
         const d = await r.json();
-        const allPending = d?.pending || [];
-        const allApproved = d?.approved || [];
-        // Separate agency onboarding from agent requests
-        setPending(allPending.filter((r: AgentRequest) => r.role !== "agency_onboarding"));
-        setAgencyRequests([
-          ...allPending.filter((r: AgentRequest) => r.role === "agency_onboarding"),
-          ...allApproved.filter((r: ApprovedAgent) => (r as unknown as AgentRequest).role === "agency_onboarding"),
-        ]);
-        setApproved(allApproved.filter((r: ApprovedAgent) => (r as unknown as AgentRequest).role !== "agency_onboarding"));
+        setPending((d?.pending || []).filter((r: AgentRequest) => r.role !== "agency_onboarding"));
+        setApproved((d?.approved || []).filter((r: ApprovedAgent) => (r as unknown as AgentRequest).role !== "agency_onboarding"));
       }
     } catch {}
+  };
+
+  const fetchAgencyOnboarding = async () => {
+    try {
+      const r = await fetch("/api/leads-business?source=agency_onboarding");
+      if (!r.ok) {
+        // Fallback: fetch all and filter client-side
+        const r2 = await fetch("/api/leads-business?type=travel_agency");
+        if (r2.ok) {
+          const d = await r2.json();
+          setAgencies((d?.leads || []).filter((l: AgencyOnboarding) => l.source === "agency_onboarding"));
+        }
+        return;
+      }
+      const d = await r.json();
+      setAgencies(d?.leads || []);
+    } catch {}
+  };
+
+  const fetchAll = async () => {
+    setLoading(true);
+    await Promise.all([fetchAgentRequests(), fetchAgencyOnboarding()]);
     setLoading(false);
   };
 
-  useEffect(() => { void fetchRequests(); }, []);
+  useEffect(() => { void fetchAll(); }, []);
 
   if (!hq) {
     return (
@@ -184,7 +226,7 @@ export default function AgentRequestsPage() {
     );
   }
 
-  const handleAction = async (id: string, action: "approve" | "reject") => {
+  const handleAgentAction = async (id: string, action: "approve" | "reject") => {
     setActionLoading(id);
     try {
       await fetch(`/api/agents-proxy?path=admin/agent-requests/${id}/${action}`, {
@@ -194,20 +236,37 @@ export default function AgentRequestsPage() {
       });
       setSuccess(action === "approve" ? "\u2705 Approved!" : "\u274C Rejected.");
       setTimeout(() => setSuccess(""), 4000);
-      await fetchRequests();
+      await fetchAgentRequests();
+    } catch {}
+    setActionLoading(null);
+  };
+
+  const handleAgencyStatus = async (id: string, newStatus: string) => {
+    setActionLoading(id);
+    try {
+      const r = await fetch(`/api/leads-business/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (r.ok) {
+        setSuccess(newStatus === "contacted" ? "\u2705 Marked as In Progress!" : newStatus === "converted" ? "\uD83C\uDF89 Marked as Converted!" : "\u274C Rejected.");
+        setTimeout(() => setSuccess(""), 4000);
+        await fetchAgencyOnboarding();
+      }
     } catch {}
     setActionLoading(null);
   };
 
   const tabs: { key: TabKey; label: string; count: number }[] = [
+    { key: "agencies", label: "\uD83C\uDFE2 Agencies", count: agencies.length },
     { key: "pending", label: "\u23F3 Agents", count: pending.length },
-    { key: "agencies", label: "\uD83C\uDFE2 Agencies", count: agencyRequests.length },
     { key: "approved", label: "\u2705 Approved", count: approved.length },
   ];
 
   return (
     <main className="min-h-screen bg-[#F3F6FB]">
-      <div className="mx-auto max-w-5xl px-5 py-8 space-y-6">
+      <div className="mx-auto max-w-6xl px-5 py-8 space-y-6">
 
         {/* Header */}
         <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -216,7 +275,7 @@ export default function AgentRequestsPage() {
             <h1 className="text-3xl font-black text-slate-900">Requests</h1>
             <p className="text-sm text-slate-500 mt-0.5">Review agent applications and agency onboarding requests</p>
           </div>
-          <button onClick={() => void fetchRequests()} className="rounded-full px-5 py-2 text-sm font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm">
+          <button onClick={() => void fetchAll()} className="rounded-full px-5 py-2 text-sm font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm">
             {"\uD83D\uDD04"} Refresh
           </button>
         </header>
@@ -228,12 +287,13 @@ export default function AgentRequestsPage() {
         {/* KPIs */}
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-            <p className="text-xs text-slate-500">{"\u23F3"} Pending Agents</p>
-            <p className="text-4xl font-black text-amber-600 mt-1">{pending.length}</p>
+            <p className="text-xs text-slate-500">{"\uD83C\uDFE2"} Agency Onboarding</p>
+            <p className="text-4xl font-black text-teal-600 mt-1">{agencies.filter(a => a.status === "new").length}</p>
+            <p className="text-xs text-slate-400 mt-0.5">{agencies.length} total</p>
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-            <p className="text-xs text-slate-500">{"\uD83C\uDFE2"} Agency Onboarding</p>
-            <p className="text-4xl font-black text-teal-600 mt-1">{agencyRequests.length}</p>
+            <p className="text-xs text-slate-500">{"\u23F3"} Pending Agents</p>
+            <p className="text-4xl font-black text-amber-600 mt-1">{pending.length}</p>
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
             <p className="text-xs text-slate-500">{"\u2705"} Approved</p>
@@ -255,8 +315,116 @@ export default function AgentRequestsPage() {
           <div className="space-y-3">
             {[...Array(3)].map((_, i) => <div key={i} className="bg-white rounded-2xl h-24 animate-pulse border border-slate-200" />)}
           </div>
+        ) : activeTab === "agencies" ? (
+          /* ═══ Agency Onboarding ═══ */
+          agencies.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+              <p className="text-4xl mb-3">{"\uD83C\uDFE2"}</p>
+              <p className="font-semibold text-slate-600">No agency onboarding requests yet</p>
+              <p className="text-slate-400 text-sm mt-1">Applications from zenivatravel.com/for-agencies will appear here with all questionnaire answers.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {agencies.map((agency) => {
+                const formData = parseNotes(agency.notes);
+                const isExpanded = expandedId === agency.id;
+                const plan = formData?.selectedPlan || "standard";
+
+                const statusColors: Record<string, string> = {
+                  new: "bg-amber-100 text-amber-700",
+                  contacted: "bg-blue-100 text-blue-700",
+                  converted: "bg-emerald-100 text-emerald-700",
+                  rejected: "bg-red-100 text-red-700",
+                };
+
+                const statusLabels: Record<string, string> = {
+                  new: "\u23F3 New",
+                  contacted: "\uD83D\uDD27 In Progress",
+                  converted: "\u2705 Converted",
+                  rejected: "\u274C Rejected",
+                };
+
+                return (
+                  <div key={agency.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm">
+                    <div className="p-5">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                        {/* Avatar */}
+                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-teal-500 to-violet-600 flex items-center justify-center text-white font-black text-xl shrink-0">
+                          {(agency.company_name || "?").split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2)}
+                        </div>
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-black text-slate-900 text-lg">{agency.company_name || "Unknown Agency"}</p>
+                            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${plan === "premium" ? "bg-violet-100 text-violet-700" : "bg-teal-100 text-teal-700"}`}>
+                              {plan === "premium" ? "\uD83D\uDC8E Premium $9,999" : "\u2B50 Standard $1,999"}
+                            </span>
+                            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusColors[agency.status] || "bg-slate-100 text-slate-700"}`}>
+                              {statusLabels[agency.status] || agency.status}
+                            </span>
+                          </div>
+                          <p className="text-sm text-slate-600 mt-0.5">
+                            {agency.contact_name} \u00B7 {agency.contact_email}
+                            {agency.contact_phone ? ` \u00B7 ${agency.contact_phone}` : ""}
+                          </p>
+                          <p className="text-xs text-slate-400 mt-0.5">
+                            {fmtDate(agency.created_at)} \u00B7 {agency.number_of_agents || "?"} advisors \u00B7
+                            Website: {agency.website || "N/A"} \u00B7
+                            Est. ${agency.estimated_setup_value?.toLocaleString() || "?"}
+                          </p>
+                        </div>
+                        {/* Actions */}
+                        <div className="flex gap-2 shrink-0 flex-wrap">
+                          <button onClick={() => setExpandedId(isExpanded ? null : agency.id)} className={`${isExpanded ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700"} px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors`}>
+                            {isExpanded ? "\u25B2 Hide Details" : "\u25BC All Answers"}
+                          </button>
+                          {agency.status === "new" && (
+                            <>
+                              <button onClick={() => void handleAgencyStatus(agency.id, "contacted")} disabled={actionLoading === agency.id} className="bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                                {actionLoading === agency.id ? "\u2026" : "\uD83D\uDD27 In Progress"}
+                              </button>
+                              <button onClick={() => void handleAgencyStatus(agency.id, "rejected")} disabled={actionLoading === agency.id} className="bg-white text-red-600 border border-red-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-red-50 disabled:opacity-50 transition-colors">
+                                {actionLoading === agency.id ? "\u2026" : "\u2715"}
+                              </button>
+                            </>
+                          )}
+                          {agency.status === "contacted" && (
+                            <button onClick={() => void handleAgencyStatus(agency.id, "converted")} disabled={actionLoading === agency.id} className="bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-700 disabled:opacity-50 transition-colors">
+                              {actionLoading === agency.id ? "\u2026" : "\u2705 Mark Converted"}
+                            </button>
+                          )}
+                          <a href={`mailto:${agency.contact_email}`} className="bg-white text-slate-700 border border-slate-200 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors">
+                            {"\uD83D\uDCE7"}
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Expanded: Full questionnaire answers */}
+                    {isExpanded && (
+                      <div className="border-t border-slate-100 px-5 pb-5">
+                        {formData ? (
+                          <OnboardingDetail data={formData} />
+                        ) : (
+                          <div className="mt-4 bg-slate-50 rounded-xl p-4 border border-slate-100">
+                            <p className="text-sm text-slate-500">
+                              {agency.notes ? (
+                                <span className="whitespace-pre-wrap">{agency.notes}</span>
+                              ) : (
+                                "No detailed questionnaire data available."
+                              )}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )
         ) : activeTab === "pending" ? (
-          /* ─── Pending Agents ──────────────────────────────── */
+          /* ═══ Pending Agents ═══ */
           pending.length === 0 ? (
             <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
               <p className="text-4xl mb-3">{"\u2705"}</p>
@@ -283,10 +451,10 @@ export default function AgentRequestsPage() {
                         {req.motivation && <p className="text-sm text-slate-600 mt-2 italic bg-slate-50 rounded-xl px-3 py-2">{`"${req.motivation}"`}</p>}
                       </div>
                       <div className="flex gap-2 shrink-0">
-                        <button onClick={() => void handleAction(req.id, "approve")} disabled={actionLoading === req.id} className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-700 disabled:opacity-50 transition-colors">
+                        <button onClick={() => void handleAgentAction(req.id, "approve")} disabled={actionLoading === req.id} className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-700 disabled:opacity-50 transition-colors">
                           {actionLoading === req.id ? "\u2026" : "\u2705 Approve"}
                         </button>
-                        <button onClick={() => void handleAction(req.id, "reject")} disabled={actionLoading === req.id} className="bg-white text-red-600 border border-red-200 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-red-50 disabled:opacity-50 transition-colors">
+                        <button onClick={() => void handleAgentAction(req.id, "reject")} disabled={actionLoading === req.id} className="bg-white text-red-600 border border-red-200 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-red-50 disabled:opacity-50 transition-colors">
                           {actionLoading === req.id ? "\u2026" : "\u2715 Reject"}
                         </button>
                       </div>
@@ -296,74 +464,8 @@ export default function AgentRequestsPage() {
               })}
             </div>
           )
-        ) : activeTab === "agencies" ? (
-          /* ─── Agency Onboarding Requests ──────────────────── */
-          agencyRequests.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
-              <p className="text-4xl mb-3">{"\uD83C\uDFE2"}</p>
-              <p className="font-semibold text-slate-600">No agency onboarding requests</p>
-              <p className="text-slate-400 text-sm mt-1">Agency applications from zenivatravel.com/for-agencies will appear here.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {agencyRequests.map((req) => {
-                const onboardingData = parseOnboardingData(req.note);
-                const isExpanded = expandedId === req.id;
-                const plan = onboardingData?.selectedPlan || "standard";
-                const companyName = onboardingData?.legalName || onboardingData?.tradeName || "Unknown Agency";
-                const advisors = onboardingData?.totalAdvisors || "?";
-
-                return (
-                  <div key={req.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-                    <div className="p-5">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-violet-600 flex items-center justify-center text-white font-black text-lg shrink-0">
-                          {companyName.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-black text-slate-900 text-lg">{companyName}</p>
-                            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${plan === "premium" ? "bg-violet-100 text-violet-700" : "bg-teal-100 text-teal-700"}`}>
-                              {plan === "premium" ? "\uD83D\uDC8E Premium $9,999" : "\u2B50 Standard $1,999"}
-                            </span>
-                            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${req.status === "pending" ? "bg-amber-100 text-amber-700" : req.status === "approved" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
-                              {req.status === "pending" ? "\u23F3 Pending" : req.status === "approved" ? "\u2705 Approved" : "\u274C Rejected"}
-                            </span>
-                          </div>
-                          <p className="text-sm text-slate-600">{req.name} \u00B7 {req.email}</p>
-                          <p className="text-xs text-slate-400 mt-0.5">
-                            {fmtDate(req.requested_at)} \u00B7 {advisors} advisors \u00B7 Est. ${plan === "premium" ? "9,999" : "1,999"} + ${advisors !== "?" ? parseInt(advisors) * 399 : "?"} agents
-                          </p>
-                        </div>
-                        <div className="flex gap-2 shrink-0">
-                          <button onClick={() => setExpandedId(isExpanded ? null : req.id)} className="bg-slate-100 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors">
-                            {isExpanded ? "\u25B2 Hide" : "\u25BC Details"}
-                          </button>
-                          {req.status === "pending" && (
-                            <>
-                              <button onClick={() => void handleAction(req.id, "approve")} disabled={actionLoading === req.id} className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-700 disabled:opacity-50 transition-colors">
-                                {actionLoading === req.id ? "\u2026" : "\u2705 Approve"}
-                              </button>
-                              <button onClick={() => void handleAction(req.id, "reject")} disabled={actionLoading === req.id} className="bg-white text-red-600 border border-red-200 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-red-50 disabled:opacity-50 transition-colors">
-                                {actionLoading === req.id ? "\u2026" : "\u2715 Reject"}
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    {isExpanded && onboardingData && (
-                      <div className="border-t border-slate-100 px-5 pb-5">
-                        <OnboardingDetail data={onboardingData} />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )
         ) : (
-          /* ─── Approved ───────────────────────────────────── */
+          /* ═══ Approved ═══ */
           approved.length === 0 ? (
             <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
               <p className="text-4xl mb-3">{"\uD83D\uDC65"}</p>

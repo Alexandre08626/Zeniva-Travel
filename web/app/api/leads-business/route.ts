@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
   const type = url.searchParams.get("type");
   const status = url.searchParams.get("status");
   const priority = url.searchParams.get("priority");
+  const source = url.searchParams.get("source");
 
   const { client } = getSupabaseAdminClient();
   let query = client.from("leads_business").select("*").order("created_at", { ascending: false });
@@ -17,6 +18,7 @@ export async function GET(req: NextRequest) {
   if (type) query = query.eq("type", type);
   if (status) query = query.eq("status", status);
   if (priority) query = query.eq("priority", priority);
+  if (source) query = query.eq("source", source);
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
