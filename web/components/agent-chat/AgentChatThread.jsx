@@ -1,843 +1,250 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BRAND_BLUE, PREMIUM_BLUE, ACCENT_GOLD, LIGHT_BG, MUTED_TEXT, TITLE_TEXT } from "../../src/design/tokens";
-import { useTripsStore, addMessage, updateSnapshot, updateTrip, applyTripPatch, generateProposal, mergeTripMessages, setTripTitle, createTrip } from "../../lib/store/tripsStore";
-import { sendMessageToLina } from "../../src/lib/linaClient";
-import Label from "../../src/components/Label";
+import Image from "next/image";
 import { useAuthStore } from "../../src/lib/authStore";
-import { buildChatChannelId, fetchChatMessages, saveChatMessage } from "../../src/lib/chatPersistence";
-import { useIsApp } from "../../src/hooks/useIsApp";
-const quickPrompts = ["Flights", "Hotels", "All-Inclusive", "Cruise", "Excursions"];
 
-/**
- * Extract trip details from conversation and build a patch for Trip Snapshot.
- * Parses both user messages and Lina's summaries to auto-fill departure, destination, dates, etc.
- */
-function extractTripInfoFromConversation(allMessages) {
+const AGENT_STORE_KEY = "zeniva_agent_chat_v1";
+
+/* ─── Agent-specific localStorage persistence ─── */
+function loadAgentMessages(tripId) {
+  try {
+    const raw = localStorage.getItem(AGENT_STORE_KEY);
+    const store = raw ? JSON.parse(raw) : {};
+    return store[tripId]?.messages || [];
+  } catch { return []; }
+}
+
+function saveAgentMessages(tripId, messages) {
+  try {
+    const raw = localStorage.getItem(AGENT_STORE_KEY);
+    const store = raw ? JSON.parse(raw) : {};
+    if (!store[tripId]) store[tripId] = {};
+    store[tripId].messages = messages;
+    store[tripId].updatedAt = new Date().toISOString();
+    localStorage.setItem(AGENT_STORE_KEY, JSON.stringify(store));
+  } catch {}
+}
+
+function loadAgentSnapshot(tripId) {
+  try {
+    const raw = localStorage.getItem(AGENT_STORE_KEY);
+    const store = raw ? JSON.parse(raw) : {};
+    return store[tripId]?.snapshot || {};
+  } catch { return {}; }
+}
+
+function saveAgentSnapshot(tripId, snapshot) {
+  try {
+    const raw = localStorage.getItem(AGENT_STORE_KEY);
+    const store = raw ? JSON.parse(raw) : {};
+    if (!store[tripId]) store[tripId] = {};
+    store[tripId].snapshot = { ...(store[tripId].snapshot || {}), ...snapshot };
+    localStorage.setItem(AGENT_STORE_KEY, JSON.stringify(store));
+  } catch {}
+}
+
+/* ─── Extract trip info from conversation ─── */
+function extractTripInfo(messages) {
   const patch = {};
-  // Only use the LAST 6 messages to avoid polluting with old session data
-  const recentMessages = allMessages.slice(-6);
-  const fullText = recentMessages.map((m) => m.content || "").join("\n");
-  const currentYear = new Date().getFullYear();
+  const text = messages.slice(-6).map(m => m.content || "").join("\n");
 
-  // Destination — use strict patterns only, avoid matching common words like "aujourd'hui"
-  // Priority: TRIP_PATCH "destination" field > explicit keyword patterns > bullet points
-  const tripPatchDestMatch = fullText.match(/["']destination["']\s*:\s*["']([A-Za-zÀ-ÿ\s,'-]+?)["']/i);
-  const destKeywordMatch = fullText.match(/(?:^|\n)\s*(?:•\s*)?(?:Destination|destination)\s*[:=]\s*([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{1,30})/im)
-    || fullText.match(/\bvoyage (?:à|au|en|aux)\s+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{1,25})\b/i)
-    || fullText.match(/\b(?:aller|allez|partir|veux aller|vais|allons) (?:à|au|en|aux)\s+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{1,25})\b/i)
-    || fullText.match(/\b(?:destination|dest)\s*:\s*([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{1,25})\b/i)
-    || fullText.match(/\b(?:going to|trip to|travel to)\s+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{1,25})\b/i);
-  const destMatch = tripPatchDestMatch || destKeywordMatch;
-  if (destMatch) {
-    const dest = destMatch[1].trim().replace(/\s+/g, " ").split(/[,\n•]/)[0].trim();
-    // Reject common French words that might be falsely matched
-    const blacklist = /^(aujourd|jourd|hui|maintenant|bientot|bientôt|demain|hier|toujours|jamais)/i;
-    if (dest.length >= 3 && dest.length <= 40 && !blacklist.test(dest)) {
-      patch.destination = dest;
-    }
-  }
+  const destMatch = text.match(/(?:to|à|au|en|aux|for)\s+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s-]{2,25})/i);
+  if (destMatch) patch.destination = destMatch[1].trim().split(/[,\n]/)[0].trim();
 
-  // Departure / origin
-  const depMatch = fullText.match(/\b(YUL|YYZ|YVR|JFK|LAX|SFO|MIA|ORD|CDG|LHR|YOW|YHZ)\b/)
-    || fullText.match(/(?:départ de|departure from|departing from|depart de|depart montreal|from montreal|from toronto)\s*[:=]?\s*([A-Za-zÀ-ÿ\s-]{2,20})/i)
-    || fullText.match(/["']departureCity["']\s*:\s*["']([A-Za-zÀ-ÿ\s-]+?)["']/i);
-  if (depMatch) {
-    const dep = depMatch[1].trim();
-    if (dep.length >= 2) patch.departure = dep.toUpperCase().length === 3 ? dep.toUpperCase() : dep;
-  }
+  const dateMatch = text.match(/\b(\d{4}-\d{2}-\d{2})\b/g);
+  if (dateMatch?.length >= 2) patch.dates = `${dateMatch[0]} → ${dateMatch[1]}`;
+  else if (dateMatch?.length === 1) patch.dates = dateMatch[0];
 
-  // Dates — only accept YYYY-MM-DD format AND only future years (currentYear or later)
-  const isoDateMatches = fullText.match(/\b(\d{4}-\d{2}-\d{2})\b/g) || [];
-  const futureDates = isoDateMatches.filter(d => {
-    const year = parseInt(d.slice(0, 4));
-    return year >= currentYear; // reject 2024 and older
-  });
-  if (futureDates.length >= 2) {
-    patch.dates = `${futureDates[0]} → ${futureDates[1]}`;
-  } else if (futureDates.length === 1) {
-    patch.dates = futureDates[0];
-  }
+  const travMatch = text.match(/(\d+)\s*(?:person|adult|voyageur|pax|people)/i);
+  if (travMatch) patch.travelers = `${travMatch[1]} adults`;
 
-  // French date format: "22 mars" → convert to ISO
-  if (!patch.dates) {
-    const months = { janvier: "01", février: "02", fevrier: "02", mars: "03", avril: "04", mai: "05", juin: "06", juillet: "07", août: "08", aout: "08", septembre: "09", octobre: "10", novembre: "11", décembre: "12" };
-    const frDateMatch = fullText.match(/\b(\d{1,2})\s+(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre)\b/gi) || [];
-    if (frDateMatch.length > 0) {
-      const convertFrDate = (s) => {
-        const m = s.match(/(\d{1,2})\s+(\w+)/i);
-        if (!m) return null;
-        const mon = months[m[2].toLowerCase()];
-        if (!mon) return null;
-        const day = m[1].padStart(2, "0");
-        // Use next occurrence of this date (if already passed this year, use next year)
-        const yr = currentYear;
-        const candidate = `${yr}-${mon}-${day}`;
-        return candidate;
-      };
-      const dates = frDateMatch.map(convertFrDate).filter(Boolean);
-      if (dates.length >= 2) patch.dates = `${dates[0]} → ${dates[1]}`;
-      else if (dates.length === 1) patch.dates = dates[0];
-    }
-  }
+  const budgetMatch = text.match(/\$\s*([\d,]+)/);
+  if (budgetMatch) patch.budget = `$${budgetMatch[1]} CAD`;
 
-  // Duration: "X semaine(s)" from a start date
-  const durationMatch = fullText.match(/(\d+)\s*semaine/i) || fullText.match(/(\d+)\s*week/i);
-  const startDateMatch = fullText.match(/\b(\d{1,2})\s*(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre)/i);
-  if (durationMatch && startDateMatch && !patch.dates) {
-    const months2 = { janvier: "01", février: "02", fevrier: "02", mars: "03", avril: "04", mai: "05", juin: "06", juillet: "07", août: "08", aout: "08", septembre: "09", octobre: "10", novembre: "11", décembre: "12" };
-    const day = startDateMatch[1].padStart(2, "0");
-    const month = months2[startDateMatch[2].toLowerCase()] || "01";
-    const start = `${currentYear}-${month}-${day}`;
-    const weeks = parseInt(durationMatch[1]);
-    const endDate = new Date(start);
-    endDate.setDate(endDate.getDate() + weeks * 7);
-    const end = endDate.toISOString().slice(0, 10);
-    patch.dates = `${start} → ${end}`;
-  }
-
-  // Travelers
-  const travMatch = fullText.match(/(\d+)\s*(?:personne|person|adult|voyageur|traveler|pax)/i)
-    || fullText.match(/(?:à|a)\s+(\d+)\b/i);
-  if (travMatch) {
-    const n = parseInt(travMatch[1]);
-    if (n > 0 && n <= 20) patch.travelers = `${n} adults`;
-  }
-
-  // Budget
-  const budgetMatch = fullText.match(/(?:budget|budg)\s*[:=]?\s*\$?\s*([\d,.\s]+)/i)
-    || fullText.match(/([\d,]+)\s*(?:\$|CAD|USD|dollars?)/i)
-    || fullText.match(/\$\s*([\d,]+)/i);
-  if (budgetMatch) {
-    const raw = budgetMatch[1].replace(/[,\s]/g, "");
-    const n = parseFloat(raw);
-    if (n > 0) patch.budget = `$${n.toLocaleString()} CAD`;
-  }
-  // Accommodation / hotel detection
-  if (/hôtel|hotel|resort|résidence|yacht/i.test(fullText)) {
-    if (/hôtel|hotel/i.test(fullText)) {
-      patch.accommodationType = "Hotel";
-    } else if (/resort/i.test(fullText)) {
-      patch.accommodationType = "Resort";
-    } else if (/résidence|residence|airbnb/i.test(fullText)) {
-      patch.accommodationType = "Residence";
-    } else if (/yacht/i.test(fullText)) {
-      patch.accommodationType = "Yacht";
-    }
-  }
-
-  // Transportation detection (flights vs other)
-  if (/vol|flight|fly|flying|plane/i.test(fullText)) {
-    patch.transportationType = "Flights";
-  } else if (/no flights|pas de vol/i.test(fullText)) {
-    patch.transportationType = "No Flights";
-  }
   return Object.keys(patch).length > 0 ? patch : null;
 }
 
+/* ─── Quick prompts ─── */
+const quickPrompts = [
+  "All-inclusive Cancun, 2 adults, June 14-21",
+  "Paris + Rome, 10 days, family of 4, July",
+  "Luxury Maldives honeymoon, 7 nights",
+  "Caribbean cruise, 7 nights, from Miami",
+  "Ski Whistler, 5 nights, group of 8",
+];
 
-function snapshotPatchFromTrip(trip) {
-  if (!trip || typeof trip !== "object") return {};
-  const patch = {};
-
-  const origin = (trip.origin || "").toString().trim();
-  const originName = (trip.originName || "").toString().trim();
-  if (origin) {
-    const label = originName && !originName.toUpperCase().startsWith(origin.toUpperCase())
-      ? `${origin.toUpperCase()} - ${originName}`
-      : origin.toUpperCase();
-    patch.departure = label;
-  }
-
-  const destCode = (trip.destinationCode || "").toString().trim();
-  const destName = (trip.destination || "").toString().trim();
-  const destLabel = destCode
-    ? `${destCode.toUpperCase()}${destName && !destName.toUpperCase().startsWith(destCode.toUpperCase()) ? ` - ${destName}` : ""}`
-    : destName;
-  if (destLabel) patch.destination = destLabel;
-
-  const checkIn = (trip.checkIn || trip.departureDate || "").toString().trim();
-  const checkOut = (trip.checkOut || trip.returnDate || "").toString().trim();
-  if (checkIn && checkOut) patch.dates = `${checkIn} → ${checkOut}`;
-
-  const adults = Number(trip.adults || trip.adultsCount || 0);
-  const kidsAges = Array.isArray(trip.childrenAges) ? trip.childrenAges : [];
-  const travelers = [];
-  if (adults > 0) travelers.push(`${adults} adults`);
-  if (kidsAges.length > 0) travelers.push(`${kidsAges.length} children (${kidsAges.join(", ")})`);
-  if (travelers.length > 0) patch.travelers = travelers.join(" + ");
-
-  if (trip.budget) patch.budget = String(trip.budget);
-  if (trip.style || trip.accommodation) patch.style = String(trip.style || trip.accommodation);
-  if (trip.accommodationType) patch.accommodationType = String(trip.accommodationType);
-  if (trip.transportationType) patch.transportationType = String(trip.transportationType);
-
-  return patch;
-}
-
-function createTripFromMergedTrip(mergedTrip, proposalSuffix = "") {
-  if (typeof window === 'undefined') return;
-
-  const destination = mergedTrip.destination || mergedTrip.destinationCode || 'New Trip';
-  const departure = mergedTrip.origin || mergedTrip.departure || '';
-  const dates = mergedTrip.checkIn && mergedTrip.checkOut ? `${mergedTrip.checkIn} → ${mergedTrip.checkOut}` : (mergedTrip.dates || '');
-  const travelers = mergedTrip.adults ? `${mergedTrip.adults} adults` : (mergedTrip.travelers || '');
-
-  // Use Zustand store actions (persists properly to localStorage)
-  const newTripId = createTrip({
-    title: destination,
-    destination,
-    departure,
-    dates,
-    travelers,
-    budget: mergedTrip.budget || '',
-    style: mergedTrip.style || mergedTrip.accommodation || '',
-    status: 'Ready',
-  });
-
-  updateSnapshot(newTripId, {
-    departure,
-    destination,
-    dates,
-    checkIn: mergedTrip.checkIn || '',
-    checkOut: mergedTrip.checkOut || '',
-    adults: mergedTrip.adults || mergedTrip.adultsCount || 0,
-    travelers,
-    budget: mergedTrip.budget || '',
-    style: mergedTrip.style || mergedTrip.accommodation || '',
-    accommodationType: mergedTrip.accommodationType || '',
-    transportationType: mergedTrip.transportationType || '',
-  });
-
-  applyTripPatch(newTripId, {
-    departureCity: departure,
-    destination,
-    checkIn: mergedTrip.checkIn || '',
-    checkOut: mergedTrip.checkOut || '',
-    adults: mergedTrip.adults || mergedTrip.adultsCount || 2,
-    budget: mergedTrip.budget || '',
-    style: mergedTrip.style || mergedTrip.accommodation || '',
-    accommodationType: mergedTrip.accommodationType || '',
-    transportationType: mergedTrip.transportationType || '',
-  });
-
-  generateProposal(newTripId);
-
-  // Redirect depending on style
-  const styleLower = (mergedTrip.style || (mergedTrip.accommodation || '')).toString().toLowerCase();
-  if (styleLower.includes('yacht') || styleLower.includes('boat') || styleLower.includes('charter')) {
-    const params = new URLSearchParams({ destination: mergedTrip.destination || '', checkIn: mergedTrip.checkIn || '', checkOut: mergedTrip.checkOut || '', adults: String(mergedTrip.adults || '') });
-    window.location.href = `/yachts?${params.toString()}`;
-  } else {
-    window.location.href = `/agent/proposals?tripId=${newTripId}`;
-  }
-}
-
-function ChatThread({ tripId, proposalMode = "" }) {
-  const isApp = useIsApp();
-  // Ajout : messages automatiques si infos manquantes
-  const [promptedForHotelInfo, setPromptedForHotelInfo] = useState(false);
-  const [promptedForStayType, setPromptedForStayType] = useState(false);
-  const containerRef = useRef(null);
-  const inputRef = useRef(null);
-  const { messages, snapshots, trips } = useTripsStore((s) => ({ messages: s.messages, snapshots: s.snapshots, trips: s.trips }));
+/* ─── Component ─── */
+export default function AgentChatThread({ tripId }) {
   const user = useAuthStore((s) => s.user);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [userHasInteracted, setUserHasInteracted] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [showEmailCapture, setShowEmailCapture] = useState(false);
-  const [captureEmail, setCaptureEmail] = useState("");
-  const [captureName, setCaptureName] = useState("");
-  const [captureEmailSaving, setCaptureEmailSaving] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const containerRef = useRef(null);
+  const inputRef = useRef(null);
 
-  const handleEmailCapture = async () => {
-    if (!captureEmail.includes("@")) return;
-    setCaptureEmailSaving(true);
-    try {
-      // Save as lead on VPS
-      const trip = trips.find(t => t.id === tripId);
-      const snap = snapshots[tripId] || {};
-      await fetch("http://217.216.88.202:8000/admin/leads", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer zeniva-secret-2025" },
-        body: JSON.stringify({
-          email: captureEmail,
-          first_name: captureName.split(" ")[0] || "",
-          last_name: captureName.split(" ").slice(1).join(" ") || "",
-          destination: snap.destination || trip?.title || "",
-          source: "chat-generate-proposal",
-          status: "new",
-          source_ref: tripId,
-        }),
-      }).catch(() => {});
-      // Also save via VPS API
-      await fetch("/api/lina-lead", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: captureEmail, destination: snap.destination || "", tripId }),
-      }).catch(() => {});
-    } catch {}
-    setCaptureEmailSaving(false);
-    setShowEmailCapture(false);
-    window.location.href = `/agent/proposals?tripId=${tripId}`;
-  };
-  const recognitionRef = useRef(null);
-
-  const history = useMemo(() => messages[tripId] || [], [messages, tripId]);
-  const snapshot = snapshots[tripId] || {};
-  const proposalSuffix = proposalMode ? `?mode=${encodeURIComponent(proposalMode)}` : "";
-  const accountChannelId = useMemo(() => buildChatChannelId(user?.email, `trip-${tripId}`), [user?.email, tripId]);
-
-
+  // Load messages from agent-specific storage
   useEffect(() => {
-    if (!containerRef.current) return;
-    containerRef.current.scrollTop = containerRef.current.scrollHeight;
-  }, [history]);
-
-  // Poll for new messages (including agent replies) every 8 seconds
-  useEffect(() => {
-    if (!accountChannelId) return;
-    let active = true;
-    const seenIds = new Set();
-
-    const load = async () => {
-      try {
-        const rows = await fetchChatMessages(accountChannelId);
-        if (!active || !rows.length) return;
-        const newRows = rows.filter((row) => {
-          const id = String(row?.id || "");
-          if (!id || seenIds.has(id)) return false;
-          seenIds.add(id);
-          return true;
-        });
-        if (!newRows.length) return;
-        const mapped = newRows.map((row) => {
-          const createdAt = row?.createdAt || row?.created_at || new Date().toISOString();
-          const sender = row?.senderRole || row?.sender_role;
-          const role = sender === "lina" || sender === "agent" || sender === "hq" ? "assistant" : "user";
-          const content = String(row?.message || "").trim() || "Message";
-          return { id: String(row?.id || createdAt), role, content, createdAt };
-        });
-        mergeTripMessages(tripId, mapped);
-      } catch { /* ignore */ }
-    };
-
-    void load();
-    // Poll every 8s for agent replies
-    const iv = setInterval(() => { if (active) void load(); }, 8000);
-    return () => {
-      active = false;
-      clearInterval(iv);
-    };
-  }, [accountChannelId, tripId]);
-
-  // Removed hardcoded auto-prompts — Lina handles all conversation naturally
-
-  useEffect(() => {
-    if (!inputRef.current) return;
-    const el = inputRef.current;
-    el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
-  }, [input]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const media = window.matchMedia("(max-width: 639px)");
-    const sync = () => setIsMobile(media.matches);
-    sync();
-    media.addEventListener?.("change", sync);
-    return () => media.removeEventListener?.("change", sync);
-  }, []);
-
-  // Ref for auto-send ?q= param (populated after handleSend is defined)
-  const pendingQRef = useRef(null);
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    const q = params.get("q");
-    if (!q) return;
-    const url = new URL(window.location.href);
-    url.searchParams.delete("q");
-    window.history.replaceState({}, "", url.toString());
-    pendingQRef.current = q;
+    if (!tripId) return;
+    const saved = loadAgentMessages(tripId);
+    if (saved.length > 0) setMessages(saved);
   }, [tripId]);
 
-  // NOTE: Auto-trip creation removed — trips are created only when user clicks "Generate Proposal"
-  // The old useEffect that created trips automatically was polluting the sidebar with garbage trips
-
-  const handleSend = async (text) => {
-    setUserHasInteracted(true);
-    const trimmed = text.trim();
-    if (!trimmed || !tripId) return;
-    const conversation = [...history.map((m) => ({ role: m.role, text: m.content })), { role: "user", text: trimmed }];
-    addMessage(tripId, "user", trimmed);
-    if (accountChannelId) {
-      await saveChatMessage({
-        channelIds: [accountChannelId],
-        message: trimmed,
-        author: user?.name || user?.email || "Traveler",
-        senderRole: "client",
-        source: "traveler-chat",
-        sourcePath: `/chat/${tripId}`,
-        propertyName: snapshot.destination || "Trip",
-      });
+  // Auto-scroll
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
+  }, [messages, loading]);
+
+  // Check if proposal-ready (3+ assistant messages)
+  useEffect(() => {
+    const assistantCount = messages.filter(m => m.role === "assistant").length;
+    setIsReady(assistantCount >= 2);
+  }, [messages]);
+
+  const sendMessage = async (text) => {
+    if (!text?.trim() || loading) return;
+    const userMsg = { role: "user", content: text.trim(), ts: Date.now() };
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
+    saveAgentMessages(tripId, newMessages);
     setInput("");
     setLoading(true);
+
     try {
-      const { reply, tripPatch } = await sendMessageToLina(conversation);
-      addMessage(tripId, "assistant", reply || "");
-      if (accountChannelId && reply) {
-        await saveChatMessage({
-          channelIds: [accountChannelId],
-          message: reply,
-          author: "Lina",
-          senderRole: "lina",
-          source: "traveler-chat",
-          sourcePath: `/chat/${tripId}`,
-          propertyName: snapshot.destination || "Trip",
-        });
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: newMessages.map(m => ({ role: m.role, content: m.content })),
+          tripId,
+          agentMode: true,
+          userEmail: user?.email || "",
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const reply = data.reply || data.content || data.message || "Sorry, I couldn't process that.";
+        const assistantMsg = { role: "assistant", content: reply, ts: Date.now() };
+        const updated = [...newMessages, assistantMsg];
+        setMessages(updated);
+        saveAgentMessages(tripId, updated);
+
+        // Extract and save trip snapshot
+        const patch = extractTripInfo(updated);
+        if (patch) saveAgentSnapshot(tripId, patch);
       }
-      if (tripPatch?.patch) {
-        applyTripPatch(tripId, tripPatch.patch);
-      }
-      // Auto-extract trip info from full conversation and fill Trip Snapshot
-      const allMsgs = [...history, { role: "user", content: trimmed }, { role: "assistant", content: reply || "" }];
-      const extracted = extractTripInfoFromConversation(allMsgs);
-      if (extracted) {
-        applyTripPatch(tripId, extracted);
-        // Auto-set trip title from destination — only if it looks like a real place name
-        if (extracted.destination) {
-          const dest = String(extracted.destination).trim();
-          const isValidTitle = dest.length >= 3 && dest.length <= 30
-            && !/\?/.test(dest)  // not a question
-            && !/\b(quelles|quels|quelle|quel|what|when|where|comment|pourquoi|combien|sont|avez|avons|votre|votre|avez-vous)\b/i.test(dest)
-            && !/^(jourd|aujourd|hui|maintenant|demain)/i.test(dest);
-          if (isValidTitle) {
-            const currentTrip = (trips || []).find((t) => t.id === tripId);
-            const currentTitle = String(currentTrip?.title || "").trim();
-            if (!currentTitle || currentTitle === "New Trip" || currentTitle === "Trip" || currentTitle.startsWith("Trip ")) {
-              setTripTitle(tripId, dest);
-            }
-          }
-        }
-      }
-    } catch (e) {
-      try {
-        const fallbackHistory = history.slice(-20).map((m) => ({
-          role: m.role === "assistant" ? "assistant" : "user",
-          content: m.content || "",
-        }));
-        const resp = await fetch("/api/lina", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: trimmed, history: fallbackHistory }),
-        });
-        const data = await resp.json();
-        const reply = String(data?.reply || "").trim();
-        addMessage(tripId, "assistant", reply || "Sorry, Lina is unavailable right now.");
-      } catch {
-        addMessage(tripId, "assistant", "Sorry, Lina is unavailable right now.");
-      }
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      const errMsg = { role: "assistant", content: "Connection error. Please try again.", ts: Date.now() };
+      const updated = [...newMessages, errMsg];
+      setMessages(updated);
+      saveAgentMessages(tripId, updated);
     }
+
+    setLoading(false);
+    inputRef.current?.focus();
   };
 
-  // Fire pending ?q= message now that handleSend is defined
-  useEffect(() => {
-    if (!pendingQRef.current) return;
-    const q = pendingQRef.current;
-    pendingQRef.current = null;
-    const timer = setTimeout(() => handleSend(q), 600);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tripId]);
-
-
-
-  const onSubmit = (e) => {
-    e.preventDefault();
-    handleSend(input);
+  const handleSubmit = (e) => {
+    e?.preventDefault();
+    sendMessage(input);
   };
 
-  const onKeyDown = (e) => {
+  const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend(input);
+      sendMessage(input);
     }
-  };
-
-  // Speech Recognition (microphone)
-  const toggleMic = () => {
-    if (isListening) {
-      recognitionRef.current?.stop();
-      setIsListening(false);
-      return;
-    }
-    const SpeechRecognition = typeof window !== "undefined" && (window.SpeechRecognition || window.webkitSpeechRecognition);
-    if (!SpeechRecognition) {
-      alert("Speech recognition is not supported in this browser. Try Chrome or Edge.");
-      return;
-    }
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.lang = "fr-CA"; // Default French-Canadian, adapts to user
-    recognition.maxAlternatives = 1;
-    recognitionRef.current = recognition;
-
-    let finalTranscript = "";
-    recognition.onresult = (event) => {
-      let interim = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript;
-        } else {
-          interim += transcript;
-        }
-      }
-      setInput((prev) => {
-        // Replace interim text: keep what was there before mic started + new text
-        const base = prev.replace(/\u200B.*$/, "").trimEnd();
-        const display = finalTranscript + interim;
-        return display || base;
-      });
-    };
-    recognition.onerror = (event) => {
-      console.error("Speech recognition error:", event.error);
-      if (event.error === "not-allowed") {
-        alert("Microphone access denied. Please allow microphone permission in your browser settings.");
-      }
-      setIsListening(false);
-    };
-    recognition.onend = () => {
-      setIsListening(false);
-      if (finalTranscript.trim()) {
-        setInput(finalTranscript.trim());
-      }
-    };
-
-    recognition.start();
-    setIsListening(true);
-    finalTranscript = "";
-  };
-
-  const onQuick = (label) => {
-    const currentTrip = (trips || []).find((t) => t.id === tripId);
-    const currentTitle = String(currentTrip?.title || "").trim();
-    if (tripId && (!currentTitle || currentTitle === "New Trip" || currentTitle === "Trip")) {
-      const destinationLabel = String(snapshot.destination || "").split(" - ").pop()?.trim() || "";
-      const nextTitle = destinationLabel ? `${label} · ${destinationLabel}` : `${label} Trip`;
-      setTripTitle(tripId, nextTitle);
-    }
-
-    // Special handling for Flights - check if we have required data
-    if (label === "Flights") {
-      const hasOrigin = snapshot.departure || snapshot.origin;
-      const hasDestination = snapshot.destination;
-      const hasDates = snapshot.dates;
-
-      if (!hasOrigin || !hasDestination || !hasDates) {
-        const missing = [];
-        if (!hasOrigin) missing.push("origin");
-        if (!hasDestination) missing.push("destination");
-        if (!hasDates) missing.push("dates");
-
-        const message = `Missing ${missing.join("/")}. Please provide your departure city, destination, and travel dates first.`;
-        addMessage(tripId, "assistant", message);
-        return;
-      }
-
-      // If we have all required data, redirect to flights search
-      const [departDate] = (snapshot.dates || "").split(" → ");
-      const originCode = (snapshot.departure || "").split(" - ")[0] || snapshot.origin || "";
-      const destCode = (snapshot.destination || "").split(" - ")[0] || "";
-
-      if (typeof window !== 'undefined') {
-        const params = new URLSearchParams({
-          from: originCode.toUpperCase(),
-          to: destCode.toUpperCase(),
-          depart: departDate,
-          passengers: (snapshot.travelers || "2").split(" ")[0],
-          cabin: "Economy"
-        });
-        window.location.href = `/search/flights?${params.toString()}`;
-      }
-      return;
-    }
-
-    // Special handling for Hotels - check if we have required data
-    if (label === "Hotels") {
-      const hasDestination = snapshot.destination;
-      const hasDates = snapshot.dates;
-
-      if (!hasDestination || !hasDates) {
-        const missing = [];
-        if (!hasDestination) missing.push("destination");
-        if (!hasDates) missing.push("dates");
-
-        const message = `Missing ${missing.join("/")}. Please provide your destination and stay dates first.`;
-        addMessage(tripId, "assistant", message);
-        return;
-      }
-
-      // If we have required data, redirect to hotels search
-      const [checkIn, checkOut] = (snapshot.dates || "").split(" → ");
-      const destName = (snapshot.destination || "").split(" - ")[1] || snapshot.destination || "";
-
-      if (typeof window !== 'undefined') {
-        const params = new URLSearchParams({
-          destination: destName,
-          checkIn: checkIn || "",
-          checkOut: checkOut || "",
-          guests: (snapshot.travelers || "2").split(" ")[0],
-          rooms: "1"
-        });
-        window.location.href = `/search/hotels?${params.toString()}`;
-      }
-      return;
-    }
-
-    // Default behavior for other quick prompts
-    const base = input ? `${input} ${label}` : `Plan ${label.toLowerCase()} options`;
-    setInput(base);
-    handleSend(base);
   };
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-2xl min-h-[70vh] md:min-h-[80vh]"
-      style={{ background: isApp ? "#030812" : "#fff", boxShadow: isApp ? "none" : undefined, border: isApp ? "none" : undefined }}>
-      {/* Header */}
-      <div className="flex items-center gap-3 px-5 py-4 border-b"
-        style={{ background: "linear-gradient(135deg, #0B1B4D 0%, #0F3A8A 100%)", borderBottomColor: "rgba(255,255,255,0.08)" }}>
-        <div className="relative">
-          <img src="/branding/lina-avatar.png" alt="Lina" className="w-11 h-11 rounded-full ring-2 ring-yellow-400/60 object-cover" />
-          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-400 ring-2 ring-white/20" />
-        </div>
-        <div className="flex-1">
-          <div className="text-white font-black text-base">Lina <span style={{ color: "#E6B85A" }}>AI</span></div>
-          <div className="text-white/85 text-xs">Your personal travel concierge</div>
-        </div>
-        <div className="flex items-center gap-1.5 bg-white/10 rounded-full px-3 py-1">
-          <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-white text-xs font-bold">LIVE</span>
-        </div>
-      </div>
-
-      {/* Messages */}
-      <div ref={containerRef} className="flex-1 overflow-y-auto px-5 py-5 space-y-4" style={{ scrollbarGutter: "stable", background: isApp ? "#030812" : "#f8fafc" }}>
-        {history.length === 0 && (
-          <div className="text-center py-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ring-4 ring-blue-100 overflow-hidden">
-              <img src="/branding/lina-avatar.png" alt="Lina" className="w-full h-full object-cover" />
-            </div>
-            <p className="font-black text-xl mb-1" style={{ color: isApp ? "#fff" : "#0f172a" }}>Hi, I&apos;m Lina ✈️</p>
-            <p className="text-sm mb-6" style={{ color: isApp ? "rgba(255,255,255,0.45)" : "#64748b" }}>Tell me about your dream trip and I&apos;ll plan everything — flights, hotels, experiences.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {[
-                { icon: "🏖️", text: "Plan a 7-day family trip from Montreal to Paris in June under $8k" },
-                { icon: "✈️", text: "Find business class flights from NYC to Tokyo next month" },
-                { icon: "🌊", text: "Design a Maldives honeymoon with overwater villas" },
-              ].map((p) => (
-                <button
-                  key={p.text}
-                  onClick={() => handleSend(p.text)}
-                  className="rounded-xl p-4 text-left hover:-translate-y-0.5 transition-all duration-200"
-                  style={{ background: isApp ? "rgba(255,255,255,0.05)" : "#fff", border: isApp ? "1px solid rgba(255,255,255,0.1)" : "1px solid #e2e8f0" }}
-                >
-                  <div className="text-2xl mb-2">{p.icon}</div>
-                  <div className="text-xs leading-relaxed" style={{ color: isApp ? "rgba(255,255,255,0.55)" : "#475569" }}>{p.text}</div>
+    <div className="flex flex-col h-full">
+      {/* Messages area */}
+      <div ref={containerRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+        {messages.length === 0 && (
+          <div className="text-center py-12">
+            <Image src="/agents/lina.png" alt="Lina" width={80} height={80} className="mx-auto rounded-full mb-4 shadow-lg" />
+            <h3 className="text-lg font-black text-slate-900">Agent Trip Search</h3>
+            <p className="text-sm text-slate-500 mt-2 max-w-md mx-auto">
+              Describe your client&apos;s trip and I&apos;ll search flights, hotels, and activities.
+            </p>
+            <div className="flex flex-wrap justify-center gap-2 mt-5">
+              {quickPrompts.map((p) => (
+                <button key={p} onClick={() => sendMessage(p)} className="text-xs bg-white border border-slate-200 text-slate-600 px-3 py-2 rounded-xl hover:bg-teal-50 hover:border-teal-300 transition-colors text-left shadow-sm">
+                  {p}
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {history.map((m) => (
-          <div key={m.id} className={`flex gap-3 ${m.role === "assistant" ? "justify-start" : "justify-end"}`}>
-            {m.role === "assistant" && (
-              <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full ring-2 ring-blue-100 object-cover shrink-0 mt-1" />
-            )}
-            <div
-              className="w-full max-w-[85%] rounded-2xl px-4 py-3"
-              style={m.role === "assistant"
-                ? { background: isApp ? "rgba(255,255,255,0.06)" : "white", border: isApp ? "1px solid rgba(255,255,255,0.09)" : "1px solid #e2e8f0", boxShadow: isApp ? "none" : "0 1px 4px rgba(0,0,0,0.06)" }
-                : { background: "linear-gradient(135deg, #0F3A8A, #1a4fad)", border: "none" }
-              }
-            >
-              <div className="text-[10px] font-bold mb-1" style={{ color: m.role === "assistant" ? "#E6B85A" : "rgba(255,255,255,0.6)" }}>
-                {m.role === "assistant" ? "LINA AI" : "YOU"}
+        {messages.map((msg, i) => (
+          msg.role === "user" ? (
+            <div key={i} className="flex justify-end">
+              <div className="bg-slate-900 text-white rounded-2xl rounded-br-md px-4 py-3 max-w-[75%] text-sm whitespace-pre-wrap shadow-md">
+                {msg.content}
               </div>
-              <div className="text-sm whitespace-pre-line leading-relaxed" style={{ color: m.role === "assistant" ? (isApp ? "rgba(255,255,255,0.85)" : "#1e293b") : "#fff" }}>{m.content}</div>
             </div>
-          </div>
+          ) : (
+            <div key={i} className="flex gap-3">
+              <Image src="/agents/lina.png" alt="Lina" width={36} height={36} className="w-9 h-9 rounded-full shrink-0 mt-1 shadow" />
+              <div className="bg-white rounded-2xl rounded-bl-md px-4 py-3 shadow-sm border border-slate-100 text-sm text-slate-700 whitespace-pre-wrap max-w-[85%]">
+                {msg.content}
+              </div>
+            </div>
+          )
         ))}
 
         {loading && (
-          <div className="flex gap-3 justify-start">
-            <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full ring-2 ring-blue-100 object-cover shrink-0 mt-1" />
-            <div className="rounded-2xl px-4 py-3 shadow-sm" style={{ background: isApp ? "rgba(255,255,255,0.06)" : "#fff", border: isApp ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e2e8f0" }}>
-              <div className="text-[10px] font-bold mb-2" style={{ color: "#E6B85A" }}>LINA AI</div>
+          <div className="flex gap-3">
+            <Image src="/agents/lina.png" alt="Lina" width={36} height={36} className="w-9 h-9 rounded-full shrink-0 shadow" />
+            <div className="bg-white rounded-2xl rounded-bl-md px-4 py-3 shadow-sm border border-slate-100">
               <div className="flex gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "0ms" }} />
-                <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "150ms" }} />
-                <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+                <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Input area */}
-      <div className="px-4 pt-3"
-        style={{ borderTop: isApp ? "1px solid rgba(255,255,255,0.06)" : "1px solid #f1f5f9", background: isApp ? "#040D1A" : "#fff", paddingBottom: isApp ? "calc(90px + env(safe-area-inset-bottom))" : "calc(env(safe-area-inset-bottom) + 12px)" }}>
-        {/* Quick prompts — scroll horizontal on mobile */}
-        <div className="flex gap-2 mb-3 overflow-x-auto pb-1 scrollbar-hide">
-          {quickPrompts.map((qp) => (
-            <button
-              key={qp}
-              onClick={() => onQuick(qp)}
-              className="flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-all"
-              style={{
-                color: isApp ? "rgba(255,255,255,0.6)" : "#475569",
-                border: isApp ? "1px solid rgba(255,255,255,0.1)" : "1px solid #e2e8f0",
-                background: isApp ? "rgba(255,255,255,0.05)" : "#fff",
-              }}
-            >
-              {qp === "Flights" ? "✈️ " : qp === "Hotels" ? "🏨 " : qp === "Cruise" ? "🛳️ " : qp === "All-Inclusive" ? "🌴 " : "🎯 "}{qp}
-            </button>
-          ))}
+      {/* Proposal button */}
+      {isReady && (
+        <div className="px-4 pb-2">
+          <button
+            onClick={() => { window.location.href = `/agent/proposals/select/${tripId}`; }}
+            className="w-full rounded-2xl px-5 py-3.5 text-sm font-black text-slate-900 hover:scale-[1.01] active:scale-[0.99] transition-all shadow-lg"
+            style={{ background: "linear-gradient(90deg, #E6B85A, #f0c96b)" }}
+          >
+            ✈️ See Proposals for This Trip →
+          </button>
         </div>
+      )}
 
-        <form onSubmit={onSubmit}>
-          {/* Textarea — full width, taller on mobile */}
+      {/* Input area */}
+      <form onSubmit={handleSubmit} className="px-4 pb-4 pt-2">
+        <div className="flex gap-3">
           <textarea
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={onKeyDown}
-            placeholder="Tell Lina about your dream trip..."
-            rows={3}
-            className="w-full resize-none rounded-2xl px-4 py-3 text-base outline-none transition-all"
-            style={{
-              maxHeight: "160px", minHeight: "80px",
-              background: isApp ? "rgba(255,255,255,0.07)" : "#f8fafc",
-              color: isApp ? "#fff" : "#1e293b",
-              border: isApp ? "1px solid rgba(255,255,255,0.12)" : "1px solid #e2e8f0",
-            }}
+            onKeyDown={handleKeyDown}
+            placeholder="Describe the trip for your client..."
+            rows={1}
+            className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm resize-none focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
           />
-
-          {/* Buttons row: Mic + Send — full width on mobile */}
-          <div className="flex gap-2 mt-2">
-            {/* Mic button */}
-            <button
-              type="button"
-              onClick={toggleMic}
-              title={isListening ? "Stop" : "Voice"}
-              className={`rounded-2xl p-3 transition-all flex-shrink-0 ${isListening ? "bg-red-500 text-white animate-pulse" : ""}`}
-              style={!isListening ? { background: isApp ? "rgba(255,255,255,0.07)" : "#fff", border: isApp ? "1px solid rgba(255,255,255,0.12)" : "1px solid #e2e8f0", color: isApp ? "rgba(255,255,255,0.6)" : "#64748b" } : {}}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                <path d="M12 1a4 4 0 0 0-4 4v7a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4ZM6 11a1 1 0 1 0-2 0 8 8 0 0 0 7 7.93V21H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-2.07A8 8 0 0 0 20 11a1 1 0 1 0-2 0 6 6 0 0 1-12 0Z"/>
-              </svg>
-            </button>
-
-            {/* Send button — takes remaining space */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 rounded-2xl py-3 text-sm font-black text-white transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
-              style={{ background: "linear-gradient(135deg, #0F3A8A, #1a4fad)" }}
-            >
-              {loading ? "⏳ Thinking..." : "Send ✈️"}
-            </button>
-          </div>
-        </form>
-
-        {/* Generate Proposal — always full width, pulses when Lina is ready */}
-        {(() => {
-          const lastLinaMsg = [...history].reverse().find(m => m.role === "assistant")?.content || "";
-          const isReady = /generate proposal|proposal.*ready|voir vos options|vos options de voyage|appuyez sur le bouton|click the gold|botón dorado|votre proposition est pr/i.test(lastLinaMsg);
-          return (
-            <div className="mt-2.5">
-              {isReady && (
-                <div className="mb-2 flex items-center justify-center gap-2 animate-bounce">
-                  <span className="text-[#E6B85A] text-sm font-black">👇 Click below to see your trip options!</span>
-                </div>
-              )}
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => {
-                    const { generateProposal } = require("../../lib/store/tripsStore");
-                    if (typeof window !== "undefined") {
-                      generateProposal(tripId);
-                      // Agent mode — go directly to proposals
-                      window.location.href = `/agent/proposals?tripId=${tripId}`;
-                    }
-                  }}
-                  className={`flex-1 rounded-2xl px-5 py-3.5 text-sm font-black text-[#0B1B4D] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md ${isReady ? "animate-pulse shadow-yellow-400/60 shadow-lg" : ""}`}
-                  style={{ background: "linear-gradient(90deg, #E6B85A, #f0c96b)" }}
-                >
-                  🚀 Generate Proposal
-                </button>
-                <span className="text-slate-400 text-xs hidden sm:block">Powered by Zeniva AI</span>
-              </div>
-            </div>
-          );
-        })()}
-      {/* Email Capture Modal */}
-      {showEmailCapture && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
-          <div className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-sm mx-auto">
-            <div className="text-center mb-4">
-              <div className="text-4xl mb-2">✈️</div>
-              <h2 className="text-xl font-black text-slate-900">Save your trip</h2>
-              <p className="text-sm text-slate-500 mt-1">Enter your email to see your personalized proposal and receive it by email.</p>
-            </div>
-            <input
-              type="text"
-              autoComplete="name"
-              placeholder="Your name"
-              value={captureName}
-              onChange={e => setCaptureName(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              autoFocus
-            />
-            <input
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              placeholder="your@email.com"
-              value={captureEmail}
-              onChange={e => setCaptureEmail(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter") handleEmailCapture(); }}
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-            <button
-              disabled={!captureEmail.includes("@") || captureEmailSaving}
-              onClick={handleEmailCapture}
-              className="w-full rounded-xl py-3 text-sm font-black text-white mb-2 disabled:opacity-50"
-              style={{ background: "linear-gradient(135deg, #0F6CF5, #0B1B4D)" }}
-            >
-              {captureEmailSaving ? "Saving…" : "See my proposal →"}
-            </button>
-            <button
-              onClick={() => { setShowEmailCapture(false); window.location.href = `/agent/proposals?tripId=${tripId}`; }}
-              className="w-full text-xs text-slate-400 hover:text-slate-600 py-1"
-            >
-              Skip for now
-            </button>
-            <p className="text-xs text-center text-slate-400 mt-2">🔒 No spam. We only send your proposal.</p>
-          </div>
+          <button
+            type="submit"
+            disabled={!input.trim() || loading}
+            className="px-5 py-3 bg-gradient-to-r from-teal-600 to-violet-600 text-white font-bold rounded-xl hover:opacity-90 disabled:opacity-40 transition-opacity shrink-0"
+          >
+            {loading ? "⏳" : "Send"}
+          </button>
         </div>
-      )}
-      </div>
+      </form>
     </div>
   );
 }
-
-export default ChatThread;

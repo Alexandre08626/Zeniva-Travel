@@ -17,7 +17,7 @@ export default function AgentTripCallPage() {
       <header className="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/agent/trip-search" className="text-white/60 hover:text-white text-sm font-semibold transition-colors">{"\u2190"} Trip Search</Link>
+            <Link href="/agent/trip-search" className="text-white/60 hover:text-white text-sm font-semibold">{"\u2190"} Trip Search</Link>
             <div className="h-4 w-px bg-white/10" />
             <img src="/agents/lina.png" alt="Lina" className="h-8 w-8 rounded-full object-cover" />
             <span className="text-white font-bold text-sm">Lina AI</span>
