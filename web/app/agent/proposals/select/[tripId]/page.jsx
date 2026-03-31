@@ -33,9 +33,10 @@ function getIATA(city) {
 
 /* ─── Search APIs (Duffel + LiteAPI + RapidAPI) ─── */
 async function searchFlights(origin, destination, date) {
-  // Duffel flights API
+  // Duffel flights API — pass city names, server resolves IATA
   try {
-    const params = new URLSearchParams({ origin, destination, date: date || "" });
+    const futureDate = date || new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
+    const params = new URLSearchParams({ origin, destination, date: futureDate });
     const res = await fetch(`/api/partners/duffel?${params}`);
     if (res.ok) {
       const data = await res.json();
@@ -221,34 +222,45 @@ export default function AgentProposalSelectPage() {
   const [selected, setSelected] = useState({ flights: [], hotels: [], activities: [], transfers: [] });
   const [sending, setSending] = useState(false);
 
-  // Load trip data
+  // Manual search form state
+  const [searchForm, setSearchForm] = useState({ origin: "", destination: "", checkIn: "", checkOut: "", travelers: "2" });
+  const [hasSearched, setHasSearched] = useState(false);
+
+  // Load trip data from agent chat
   useEffect(() => {
     if (!tripId) return;
     const data = loadTripData(tripId);
     setTripData(data);
+    // Pre-fill search form from snapshot
+    const snap = data.snapshot || {};
+    const dates = (snap.dates || "").split("→").map(s => s.trim());
+    setSearchForm(f => ({
+      ...f,
+      origin: snap.departure || "Montreal",
+      destination: snap.destination || "",
+      checkIn: dates[0] || "",
+      checkOut: dates[1] || "",
+      travelers: snap.travelers?.match(/\d+/)?.[0] || "2",
+    }));
   }, [tripId]);
 
   const snapshot = tripData.snapshot || {};
-  const destination = snapshot.destination || "";
+  const destination = searchForm.destination || snapshot.destination || "";
   const dates = snapshot.dates || "";
-  const [startDate, endDate] = useMemo(() => {
-    const parts = (dates || "").split("→").map(s => s.trim());
-    return [parts[0] || "", parts[1] || ""];
-  }, [dates]);
+  const startDate = searchForm.checkIn || "";
+  const endDate = searchForm.checkOut || "";
 
-  // Search on load
-  useEffect(() => {
+  // Run search
+  const runSearch = () => {
     if (!destination) return;
-    const destCode = getIATA(destination);
-    const originCode = getIATA(snapshot.departure || "Montreal") || "YUL";
+    setHasSearched(true);
 
-    // Flights
-    if (destCode && originCode) {
-      setLoadingFlights(true);
-      searchFlights(originCode, destCode, startDate || undefined)
-        .then(setFlights)
-        .finally(() => setLoadingFlights(false));
-    }
+    // Flights — pass city name directly, Duffel route resolves IATA server-side
+    const origin = searchForm.origin || "Montreal";
+    setLoadingFlights(true);
+    searchFlights(origin, destination, startDate || undefined)
+      .then(setFlights)
+      .finally(() => setLoadingFlights(false));
 
     // Hotels
     setLoadingHotels(true);
@@ -267,7 +279,12 @@ export default function AgentProposalSelectPage() {
     searchTransfers(destination)
       .then(setTransfers)
       .finally(() => setLoadingTransfers(false));
-  }, [destination, startDate, endDate, snapshot.departure]);
+  };
+
+  // Auto-search if snapshot has destination
+  useEffect(() => {
+    if (destination && !hasSearched) runSearch();
+  }, [destination]);
 
   const toggleSelection = (type, item) => {
     setSelected(prev => {
@@ -353,23 +370,36 @@ export default function AgentProposalSelectPage() {
       <div className="max-w-7xl mx-auto px-5 py-6 flex gap-6">
         {/* Main content */}
         <div className="flex-1 min-w-0">
-          {/* Trip snapshot */}
-          {destination && (
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-5 grid grid-cols-2 sm:grid-cols-5 gap-4">
-              {[
-                { label: "Destination", value: destination, icon: "📍" },
-                { label: "Dates", value: dates || "Flexible", icon: "📅" },
-                { label: "Travelers", value: snapshot.travelers || "2 adults", icon: "👥" },
-                { label: "Budget", value: snapshot.budget || "Flexible", icon: "💰" },
-                { label: "Departure", value: snapshot.departure || "YUL", icon: "✈️" },
-              ].map(f => (
-                <div key={f.label}>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">{f.icon} {f.label}</p>
-                  <p className="text-sm font-bold text-slate-800">{f.value}</p>
-                </div>
-              ))}
+          {/* Search form */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 items-end">
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">✈️ From</label>
+                <input value={searchForm.origin} onChange={e => setSearchForm(f => ({...f, origin: e.target.value}))} placeholder="Montreal" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-teal-400" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">📍 To</label>
+                <input value={searchForm.destination} onChange={e => setSearchForm(f => ({...f, destination: e.target.value}))} placeholder="Cancun" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-teal-400" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">📅 Check-in</label>
+                <input type="date" value={searchForm.checkIn} onChange={e => setSearchForm(f => ({...f, checkIn: e.target.value}))} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-teal-400" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">📅 Check-out</label>
+                <input type="date" value={searchForm.checkOut} onChange={e => setSearchForm(f => ({...f, checkOut: e.target.value}))} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-teal-400" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">👥 Travelers</label>
+                <input type="number" min="1" max="9" value={searchForm.travelers} onChange={e => setSearchForm(f => ({...f, travelers: e.target.value}))} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-teal-400" />
+              </div>
+              <div>
+                <button onClick={runSearch} disabled={!searchForm.destination} className="w-full px-4 py-2 bg-gradient-to-r from-teal-600 to-violet-600 text-white text-sm font-bold rounded-lg hover:opacity-90 disabled:opacity-40 transition-opacity">
+                  🔍 Search
+                </button>
+              </div>
             </div>
-          )}
+          </div>
 
           {/* Tabs */}
           <div className="flex gap-1 bg-white rounded-xl border border-slate-200 p-1 mb-5">
