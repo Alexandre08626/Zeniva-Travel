@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import ChatThread from "@/components/chat/ChatThread";
-import TripSnapshotPanel from "@/components/chat/TripSnapshotPanel";
+import AgentChatThread from "@/components/agent-chat/AgentChatThread";
 import { ensureSeedTrip, useTripsStore } from "@/lib/store/tripsStore";
 
 const LinaVideoCall = dynamic(() => import("@/src/components/LinaVideoCall"), { ssr: false });
@@ -27,45 +26,32 @@ export default function AgentTripCallPage() {
 
   return (
     <main className="min-h-screen bg-slate-950">
-      {/* Header */}
       <header className="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/agent/trip-search" className="text-white/60 hover:text-white text-sm font-semibold transition-colors">
-              {"\u2190"} Trip Search
-            </Link>
+            <Link href="/agent/trip-search" className="text-white/60 hover:text-white text-sm font-semibold transition-colors">{"\u2190"} Trip Search</Link>
             <div className="h-4 w-px bg-white/10" />
-            <div className="flex items-center gap-2">
-              <img src="/agents/lina.png" alt="Lina" className="h-8 w-8 rounded-full object-cover" />
-              <span className="text-white font-bold text-sm">Lina AI</span>
-              <span className="text-white/40 text-xs">{"\u00B7"} Agent Voice Call</span>
-            </div>
+            <img src="/agents/lina.png" alt="Lina" className="h-8 w-8 rounded-full object-cover" />
+            <span className="text-white font-bold text-sm">Lina AI</span>
+            <span className="text-white/40 text-xs">{"\u00B7"} Agent Voice Call</span>
           </div>
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowChat(!showChat)}
-              className={`text-xs font-semibold px-4 py-2 rounded-full border transition-all ${showChat ? "bg-teal-500/20 text-teal-300 border-teal-500/30" : "bg-white/5 text-white/60 border-white/10 hover:text-white hover:border-white/20"}`}
-            >
+            <button onClick={() => setShowChat(!showChat)} className={`text-xs font-semibold px-4 py-2 rounded-full border transition-all ${showChat ? "bg-teal-500/20 text-teal-300 border-teal-500/30" : "bg-white/5 text-white/60 border-white/10 hover:text-white"}`}>
               {"\uD83D\uDCAC"} {showChat ? "Hide" : "Show"} Chat
             </button>
-            <Link href={`/agent/trip-search/chat/${tripId}?hybrid=1`} className="text-xs font-semibold px-4 py-2 rounded-full bg-white/5 text-white/60 border border-white/10 hover:text-white hover:border-white/20 transition-all">
+            <Link href={`/agent/trip-search/chat/${tripId}`} className="text-xs font-semibold px-4 py-2 rounded-full bg-white/5 text-white/60 border border-white/10 hover:text-white transition-all">
               Switch to Chat
             </Link>
           </div>
         </div>
       </header>
-
-      {/* Main */}
       <div className={`max-w-7xl mx-auto px-4 py-6 ${showChat ? "grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6" : ""}`}>
-        {/* Video call */}
         <div className={`flex items-center justify-center ${showChat ? "" : "min-h-[70vh]"}`}>
           <LinaVideoCall tripId={tripId} />
         </div>
-
-        {/* Chat panel */}
         {showChat && (
           <div className="bg-slate-900 rounded-2xl border border-white/10 flex flex-col max-h-[80vh] overflow-hidden">
-            <ChatThread tripId={tripId} agentMode />
+            <AgentChatThread tripId={tripId} />
           </div>
         )}
       </div>

@@ -1,9 +1,9 @@
 "use client";
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import ChatLayout from "@/components/chat/ChatLayout";
-import ChatThread from "@/components/chat/ChatThread";
-import TripSnapshotPanel from "@/components/chat/TripSnapshotPanel";
+import AgentChatLayout from "@/components/agent-chat/AgentChatLayout";
+import AgentChatThread from "@/components/agent-chat/AgentChatThread";
+import AgentTripSnapshotPanel from "@/components/agent-chat/AgentTripSnapshotPanel";
 import { ensureSeedTrip, useTripsStore } from "@/lib/store/tripsStore";
 
 export default function AgentTripChatPage() {
@@ -18,20 +18,17 @@ export default function AgentTripChatPage() {
       router.replace(`/agent/trip-search/chat/${fallback}`);
       return;
     }
-    if (!trip) {
-      ensureSeedTrip();
-    }
+    if (!trip) ensureSeedTrip();
   }, [tripId, trip, router]);
 
   return (
-    <ChatLayout
+    <AgentChatLayout
       sidebar={null}
-      chat={<ChatThread tripId={tripId} agentMode />}
-      snapshot={<TripSnapshotPanel tripId={tripId} />}
+      chat={<AgentChatThread tripId={tripId} />}
+      snapshot={<AgentTripSnapshotPanel tripId={tripId} />}
       tripId={tripId}
       backHref="/agent/trip-search"
       backLabel="Trip Search"
-      agentMode
     />
   );
 }

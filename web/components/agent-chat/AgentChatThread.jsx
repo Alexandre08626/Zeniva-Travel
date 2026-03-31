@@ -229,7 +229,7 @@ function createTripFromMergedTrip(mergedTrip, proposalSuffix = "") {
     const params = new URLSearchParams({ destination: mergedTrip.destination || '', checkIn: mergedTrip.checkIn || '', checkOut: mergedTrip.checkOut || '', adults: String(mergedTrip.adults || '') });
     window.location.href = `/yachts?${params.toString()}`;
   } else {
-    window.location.href = `/proposals/${newTripId}/select${proposalSuffix}`;
+    window.location.href = `/agent/proposals?tripId=${newTripId}`;
   }
 }
 
@@ -281,7 +281,7 @@ function ChatThread({ tripId, proposalMode = "" }) {
     } catch {}
     setCaptureEmailSaving(false);
     setShowEmailCapture(false);
-    window.location.href = `/proposals/${tripId}/select`;
+    window.location.href = `/agent/proposals?tripId=${tripId}`;
   };
   const recognitionRef = useRef(null);
 
@@ -775,12 +775,8 @@ function ChatThread({ tripId, proposalMode = "" }) {
                     const { generateProposal } = require("../../lib/store/tripsStore");
                     if (typeof window !== "undefined") {
                       generateProposal(tripId);
-                      // If anonymous user, show email capture popup first
-                      if (!user?.email) {
-                        setShowEmailCapture(true);
-                      } else {
-                        window.location.href = `/proposals/${tripId}/select`;
-                      }
+                      // Agent mode — go directly to proposals
+                      window.location.href = `/agent/proposals?tripId=${tripId}`;
                     }
                   }}
                   className={`flex-1 rounded-2xl px-5 py-3.5 text-sm font-black text-[#0B1B4D] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md ${isReady ? "animate-pulse shadow-yellow-400/60 shadow-lg" : ""}`}
@@ -830,7 +826,7 @@ function ChatThread({ tripId, proposalMode = "" }) {
               {captureEmailSaving ? "Saving…" : "See my proposal →"}
             </button>
             <button
-              onClick={() => { setShowEmailCapture(false); window.location.href = `/proposals/${tripId}/select`; }}
+              onClick={() => { setShowEmailCapture(false); window.location.href = `/agent/proposals?tripId=${tripId}`; }}
               className="w-full text-xs text-slate-400 hover:text-slate-600 py-1"
             >
               Skip for now
