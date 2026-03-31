@@ -103,6 +103,21 @@ export default function AgentChatThread({ tripId }) {
     setIsReady(assistantCount >= 2);
   }, [messages]);
 
+  // Persistent session ID per trip (agent-specific)
+  const sessionIdRef = useRef("");
+  useEffect(() => {
+    if (!tripId) return;
+    const key = `lina-agent-session-${tripId}`;
+    const stored = typeof window !== "undefined" ? localStorage.getItem(key) : null;
+    if (stored) {
+      sessionIdRef.current = stored;
+    } else {
+      const id = `agent-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      sessionIdRef.current = id;
+      if (typeof window !== "undefined") localStorage.setItem(key, id);
+    }
+  }, [tripId]);
+
   const sendMessage = async (text) => {
     if (!text?.trim() || loading) return;
     const userMsg = { role: "user", content: text.trim(), ts: Date.now() };
@@ -112,30 +127,54 @@ export default function AgentChatThread({ tripId }) {
     setInput("");
     setLoading(true);
 
+    // Build history for Lina API (same format as traveler)
+    const history = newMessages
+      .filter(m => m.role && m.content)
+      .slice(-20)
+      .map(m => ({ role: m.role === "lina" ? "assistant" : m.role, content: m.content }));
+
+    const lastUserMsg = text.trim();
+
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch("/api/lina", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: newMessages.map(m => ({ role: m.role, content: m.content })),
-          tripId,
-          agentMode: true,
-          userEmail: user?.email || "",
+          prompt: lastUserMsg,
+          sessionId: sessionIdRef.current,
+          mode: "agent",
+          history,
         }),
       });
 
+      let reply = "Lina is temporarily unavailable. Please try again.";
       if (res.ok) {
         const data = await res.json();
-        const reply = data.reply || data.content || data.message || "Sorry, I couldn't process that.";
-        const assistantMsg = { role: "assistant", content: reply, ts: Date.now() };
-        const updated = [...newMessages, assistantMsg];
-        setMessages(updated);
-        saveAgentMessages(tripId, updated);
-
-        // Extract and save trip snapshot
-        const patch = extractTripInfo(updated);
-        if (patch) saveAgentSnapshot(tripId, patch);
+        reply = String(data?.reply || data?.response || reply);
+        // Strip TRIP_PATCH blocks from reply (keep it clean)
+        const patchStart = reply.indexOf("TRIP_PATCH_START");
+        if (patchStart !== -1) {
+          const patchEnd = reply.indexOf("TRIP_PATCH_END");
+          if (patchEnd !== -1) {
+            // Extract trip patch for snapshot
+            try {
+              const patchJson = reply.slice(patchStart + "TRIP_PATCH_START".length, patchEnd).trim();
+              const parsed = JSON.parse(patchJson);
+              if (parsed?.patch) saveAgentSnapshot(tripId, parsed.patch);
+            } catch {}
+            reply = (reply.slice(0, patchStart) + reply.slice(patchEnd + "TRIP_PATCH_END".length)).trim();
+          }
+        }
       }
+
+      const assistantMsg = { role: "assistant", content: reply, ts: Date.now() };
+      const updated = [...newMessages, assistantMsg];
+      setMessages(updated);
+      saveAgentMessages(tripId, updated);
+
+      // Also extract from conversation text
+      const patch = extractTripInfo(updated);
+      if (patch) saveAgentSnapshot(tripId, patch);
     } catch (err) {
       const errMsg = { role: "assistant", content: "Connection error. Please try again.", ts: Date.now() };
       const updated = [...newMessages, errMsg];
