@@ -22,10 +22,10 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/branding/lina-avatar.png",
+        url: "/api/og?title=Chat+with+Lina+AI&description=Design+your+dream+trip+with+our+AI+travel+concierge&type=chat",
         width: 1200,
         height: 630,
-        alt: "Lina AI",
+        alt: "Zeniva AI Chat",
       },
     ],
   },
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     title: "Zeniva | AI Travel Agent Chat",
     description:
       "Chat with Lina AI to design a trip, then finalize with Zeniva’s concierge team.",
-    images: ["/branding/lina-avatar.png"],
+    images: ["/api/og?title=Chat+with+Lina+AI&description=Design+your+dream+trip+with+our+AI+travel+concierge&type=chat"],
   },
 };
 

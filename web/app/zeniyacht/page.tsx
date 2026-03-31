@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/branding/lina-avatar.png",
+        url: "/api/og?title=ZeniYacht&description=Private+Yacht+Charters+%26+Sailing+Trips+Worldwide&type=zeniyacht",
         width: 1200,
         height: 630,
         alt: "ZeniYacht — Private Yacht Charters & Sailing Trips",
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     title: "ZeniYacht — Private Yacht Charters & Sailing Trips",
     description:
       "Private yacht charters & sailing trips worldwide. Curated by Lina AI, validated by expert brokers.",
-    images: ["/branding/lina-avatar.png"],
+    images: ["/api/og?title=ZeniYacht&description=Private+Yacht+Charters+%26+Sailing+Trips+Worldwide&type=zeniyacht"],
   },
 };
 

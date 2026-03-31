@@ -1,18 +1,19 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 
 /* ─── Data ──────────────────────────────────────────────────────────── */
 
 const aiAgents = [
-  { name: "Lina", emoji: "\u2708\uFE0F", role: "AI Travel Concierge", desc: "Responds to visitors 24/7, creates itineraries, captures leads", tier: "Agency + Agents", gradient: "from-teal-500 to-cyan-500" },
-  { name: "Sofia", emoji: "\u2699\uFE0F", role: "Operations Agent", desc: "Booking follow-ups, confirmations, documents, reminders", tier: "Agency + Agents", gradient: "from-violet-500 to-purple-500" },
-  { name: "Luna", emoji: "\uD83C\uDF19", role: "Client Relationship", desc: "Post-trip follow-ups, personalized suggestions, re-engagement", tier: "Agency + Agents", gradient: "from-pink-500 to-rose-500" },
-  { name: "Rex", emoji: "\uD83D\uDD0D", role: "Research & Intelligence", desc: "Destination trends, price comparisons, data feeds", tier: "Agency + Agents", gradient: "from-amber-500 to-orange-500" },
-  { name: "Ben", emoji: "\uD83D\uDCB0", role: "Finance Agent", desc: "Invoicing, commission tracking, payment reconciliation", tier: "Agency Only", gradient: "from-emerald-500 to-green-500" },
-  { name: "Atlas", emoji: "\uD83D\uDCCA", role: "Analytics Agent", desc: "Performance dashboards, conversion tracking, revenue forecasting", tier: "Agency Only", gradient: "from-blue-500 to-indigo-500" },
-  { name: "Mia", emoji: "\uD83D\uDCE3", role: "Marketing Agent", desc: "Email campaigns, social content, promotional materials", tier: "Agency Only", gradient: "from-fuchsia-500 to-pink-500" },
-  { name: "Nova", emoji: "\uD83D\uDCC4", role: "Document Agent", desc: "Contract generation, insurance tracking, travel document prep", tier: "Agency Only", gradient: "from-sky-500 to-blue-500" },
+  { name: "Lina", image: "/agents/lina.png", role: "AI Travel Concierge", desc: "Responds to visitors 24/7, creates itineraries, captures leads", tier: "Agency + Agents", gradient: "from-teal-500 to-cyan-500" },
+  { name: "Sofia", image: "/agents/sofia.png", role: "Operations Agent", desc: "Booking follow-ups, confirmations, documents, reminders", tier: "Agency + Agents", gradient: "from-violet-500 to-purple-500" },
+  { name: "Luna", image: "/agents/luna.png", role: "Client Relationship", desc: "Post-trip follow-ups, personalized suggestions, re-engagement", tier: "Agency + Agents", gradient: "from-pink-500 to-rose-500" },
+  { name: "Rex", image: "/agents/rex.png", role: "Research & Intelligence", desc: "Destination trends, price comparisons, data feeds", tier: "Agency + Agents", gradient: "from-amber-500 to-orange-500" },
+  { name: "Ben", image: "/agents/ben.png", role: "Finance Agent", desc: "Invoicing, commission tracking, payment reconciliation", tier: "Agency Only", gradient: "from-emerald-500 to-green-500" },
+  { name: "Atlas", image: "/agents/atlas.png", role: "Analytics Agent", desc: "Performance dashboards, conversion tracking, revenue forecasting", tier: "Agency Only", gradient: "from-blue-500 to-indigo-500" },
+  { name: "Mia", image: "/agents/mia.png", role: "Marketing Agent", desc: "Email campaigns, social content, promotional materials", tier: "Agency Only", gradient: "from-fuchsia-500 to-pink-500" },
+  { name: "Nova", image: "/agents/nova.png", role: "Document Agent", desc: "Contract generation, insurance tracking, travel document prep", tier: "Agency Only", gradient: "from-sky-500 to-blue-500" },
 ];
 
 const toolkitItems = [
@@ -456,7 +457,9 @@ export default function ForAgenciesPage() {
           <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {aiAgents.map((agent) => (
               <div key={agent.name} className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-lg transition-all">
-                <div className={`bg-gradient-to-br ${agent.gradient} p-6 text-center`}><span className="text-5xl">{agent.emoji}</span></div>
+                <div className={`bg-gradient-to-br ${agent.gradient} pt-4 flex items-end justify-center overflow-hidden h-48`}>
+                  <Image src={agent.image} alt={agent.name} width={180} height={180} className="object-contain object-bottom" />
+                </div>
                 <div className="p-5">
                   <h3 className="text-lg font-bold text-gray-900">{agent.name}</h3>
                   <p className="mt-1 text-sm font-medium text-teal-600">{agent.role}</p>

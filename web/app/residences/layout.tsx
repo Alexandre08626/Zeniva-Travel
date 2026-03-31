@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     url: "https://www.zenivatravel.com/residences",
     siteName: "Zeniva",
     type: "website",
-    images: [{ url: "/branding/lina-avatar.png", width: 1200, height: 630 }],
+    images: [{ url: "/api/og?title=Luxury+Villas+%26+Rentals&description=Premium+vacation+homes+%26+private+villas+worldwide&type=zenistay", width: 1200, height: 630, alt: "Zeniva Luxury Rentals" }],
   },
 };
 

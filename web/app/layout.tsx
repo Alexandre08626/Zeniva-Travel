@@ -78,7 +78,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     images: [
       {
-        url: "/branding/lina-avatar.png",
+        url: "/api/og?title=Zeniva+%E2%80%94+AI+Travel+Concierge&description=Plan+luxury+trips+with+Lina+AI.+Serving+USA+%26+Canada+24/7.",
         width: 1200,
         height: 630,
         alt: "Zeniva — AI Travel Concierge USA",
@@ -90,7 +90,7 @@ export const metadata: Metadata = {
     title: "Zeniva | AI Travel Concierge USA",
     description:
       "Plan luxury trips with Lina AI. US-based travel agency (Delaware, NY, Virginia) serving all 50 states & Canada.",
-    images: ["/branding/lina-avatar.png"],
+    images: ["/api/og?title=Zeniva+%E2%80%94+AI+Travel+Concierge&description=Plan+luxury+trips+with+Lina+AI.+Serving+USA+%26+Canada+24/7."],
   },
   manifest: "/manifest.json",
   icons: {

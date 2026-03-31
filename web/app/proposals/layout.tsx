@@ -22,10 +22,10 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/branding/lina-avatar.png",
+        url: "/api/og?title=Your+Trip+Proposal&description=AI+travel+proposals+by+Lina+AI%2C+validated+by+experts&type=proposal",
         width: 1200,
         height: 630,
-        alt: "Lina AI",
+        alt: "Zeniva Trip Proposal",
       },
     ],
   },
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     title: "Zeniva | Trip Proposals",
     description:
       "AI travel proposals created by Lina AI and validated by human concierge experts.",
-    images: ["/branding/lina-avatar.png"],
+    images: ["/api/og?title=Your+Trip+Proposal&description=AI+travel+proposals+by+Lina+AI%2C+validated+by+experts&type=proposal"],
   },
 };
 
