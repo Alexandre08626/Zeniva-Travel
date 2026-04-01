@@ -40,6 +40,28 @@ function saveAgentSnapshot(tripId, snapshot) {
     if (!store[tripId]) store[tripId] = {};
     store[tripId].snapshot = { ...(store[tripId].snapshot || {}), ...snapshot };
     localStorage.setItem(AGENT_STORE_KEY, JSON.stringify(store));
+    // Also persist snapshot to Supabase so proposals page can load it
+    const merged = store[tripId].snapshot;
+    fetch("/api/proposals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: tripId,
+        ownerEmail: "agent@zeniva.ca",
+        status: "Snapshot",
+        payload: {
+          tripDraft: {
+            destination: merged.destination || "",
+            departureCity: merged.departure || "",
+            checkIn: (merged.dates || "").split("→")[0]?.trim() || "",
+            checkOut: (merged.dates || "").split("→")[1]?.trim() || "",
+            adults: parseInt(merged.travelers?.match(/\d+/)?.[0] || "2"),
+            budget: parseInt(merged.budget?.replace(/[^0-9]/g, "") || "0"),
+          },
+          snapshot: merged,
+        },
+      }),
+    }).catch(() => {});
   } catch {}
 }
 

@@ -226,22 +226,44 @@ export default function AgentProposalSelectPage() {
   const [searchForm, setSearchForm] = useState({ origin: "", destination: "", checkIn: "", checkOut: "", travelers: "2" });
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Load trip data from agent chat
+  // Load trip data from agent chat (localStorage first, then Supabase fallback)
   useEffect(() => {
     if (!tripId) return;
     const data = loadTripData(tripId);
-    setTripData(data);
-    // Pre-fill search form from snapshot
     const snap = data.snapshot || {};
-    const dates = (snap.dates || "").split("→").map(s => s.trim());
-    setSearchForm(f => ({
-      ...f,
-      origin: snap.departure || "Montreal",
-      destination: snap.destination || "",
-      checkIn: dates[0] || "",
-      checkOut: dates[1] || "",
-      travelers: snap.travelers?.match(/\d+/)?.[0] || "2",
-    }));
+
+    const applySnapshot = (s) => {
+      const dates = (s.dates || "").split("→").map(d => d.trim());
+      setSearchForm(f => ({
+        ...f,
+        origin: s.departure || s.departureCity || "Montreal",
+        destination: s.destination || "",
+        checkIn: dates[0] || s.checkIn || "",
+        checkOut: dates[1] || s.checkOut || "",
+        travelers: (s.travelers?.toString().match(/\d+/)?.[0]) || String(s.adults || 2),
+      }));
+    };
+
+    if (snap.destination) {
+      setTripData(data);
+      applySnapshot(snap);
+    } else {
+      // Fallback: load from Supabase
+      fetch(`/api/proposals?id=${encodeURIComponent(tripId)}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(json => {
+          const proposal = json?.data?.[0];
+          if (!proposal) return;
+          const draft = proposal.payload?.tripDraft || proposal.payload?.snapshot || {};
+          const remoteSnap = proposal.payload?.snapshot || draft;
+          if (remoteSnap.destination || draft.destination) {
+            const merged = { ...draft, ...remoteSnap };
+            setTripData({ snapshot: merged });
+            applySnapshot(merged);
+          }
+        })
+        .catch(() => {});
+    }
   }, [tripId]);
 
   const snapshot = tripData.snapshot || {};
@@ -307,13 +329,22 @@ export default function AgentProposalSelectPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tripId,
-          destination: searchForm.destination,
-          dates: `${searchForm.checkIn} → ${searchForm.checkOut}`,
-          travelers: searchForm.travelers,
-          budget: snapshot.budget,
-          selections: selected,
-          source: "agent_trip_search",
+          id: tripId,
+          ownerEmail: "agent@zeniva.ca",
+          status: "Ready",
+          payload: {
+            trip: { title: searchForm.destination || "Trip" },
+            tripDraft: {
+              destination: searchForm.destination,
+              departureCity: searchForm.origin,
+              checkIn: searchForm.checkIn,
+              checkOut: searchForm.checkOut,
+              adults: parseInt(searchForm.travelers) || 2,
+              budget: parseInt((tripData.snapshot?.budget || "0").replace(/[^0-9]/g, "")) || 0,
+            },
+            selections: selected,
+            source: "agent_trip_search",
+          },
         }),
       });
       if (res.ok) {
