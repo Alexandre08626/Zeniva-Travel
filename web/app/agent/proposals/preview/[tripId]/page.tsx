@@ -198,7 +198,21 @@ function FlightCard({
     );
   }
 
-  const logoUrl = `https://images.kiwi.com/airlines/64/${leg.airlineCode}.png`;
+  // Support both builder format (airline, route, departure) and typed format (airlineCode, departureAirport)
+  const f = leg as any;
+  const airlineCode = f.airlineCode || f.carrierCode || "";
+  const airlineName = f.airline || f.name || "Flight";
+  const flightNum = f.flightNumber || f.flight_number || "";
+  const routeParts = (f.route || "").split("→").map((s: string) => s.trim());
+  const depAirport = f.departureAirport || routeParts[0] || "";
+  const arrAirport = f.arrivalAirport || routeParts[1] || "";
+  const depTime = f.departureTime || f.departure || "";
+  const arrTime = f.arrivalTime || f.arrival || "";
+  const duration = f.duration || "";
+  const stops = f.stops;
+  const cabinClass = f.cabinClass || f.class || "";
+  const price = parseFloat(f.price) || 0;
+  const logoUrl = airlineCode ? `https://images.kiwi.com/airlines/64/${airlineCode}.png` : "";
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
@@ -210,20 +224,22 @@ function FlightCard({
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
         {/* airline */}
         <div className="flex items-center gap-3 min-w-[160px]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={logoUrl}
-            alt={leg.airline}
-            width={32}
-            height={32}
-            className="rounded"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none";
-            }}
-          />
+          {logoUrl && (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={logoUrl}
+              alt={airlineName}
+              width={32}
+              height={32}
+              className="rounded"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
+          )}
           <div>
-            <p className="font-semibold text-slate-900">{leg.airline}</p>
-            <p className="text-xs text-slate-400">{leg.flightNumber}</p>
+            <p className="font-semibold text-slate-900">{airlineName}</p>
+            <p className="text-xs text-slate-400">{flightNum}</p>
           </div>
         </div>
 
@@ -231,15 +247,15 @@ function FlightCard({
         <div className="flex-1 flex items-center gap-3">
           <div className="text-right">
             <p className="text-lg font-bold text-slate-900">
-              {leg.departureTime}
+              {depTime}
             </p>
             <p className="text-xs font-medium text-slate-500">
-              {leg.departureAirport}
+              {depAirport}
             </p>
           </div>
 
           <div className="flex-1 flex flex-col items-center gap-1">
-            <span className="text-[11px] text-slate-400">{leg.duration}</span>
+            <span className="text-[11px] text-slate-400">{duration}</span>
             <div className="w-full flex items-center gap-1">
               <div className="h-[2px] flex-1 bg-gradient-to-r from-blue-400 to-blue-600 rounded" />
               <svg
@@ -252,9 +268,9 @@ function FlightCard({
                 <path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5Z" />
               </svg>
             </div>
-            {leg.stops !== undefined && leg.stops > 0 ? (
+            {stops !== undefined && stops > 0 ? (
               <span className="text-[10px] text-orange-500 font-medium">
-                {leg.stops} stop{leg.stops > 1 ? "s" : ""}
+                {stops} stop{stops > 1 ? "s" : ""}
               </span>
             ) : (
               <span className="text-[10px] text-emerald-500 font-medium">
@@ -265,10 +281,10 @@ function FlightCard({
 
           <div className="text-left">
             <p className="text-lg font-bold text-slate-900">
-              {leg.arrivalTime}
+              {arrTime}
             </p>
             <p className="text-xs font-medium text-slate-500">
-              {leg.arrivalAirport}
+              {arrAirport}
             </p>
           </div>
         </div>
@@ -276,11 +292,11 @@ function FlightCard({
         {/* badges + price */}
         <div className="flex flex-col items-end gap-2 min-w-[100px]">
           <span className="text-lg font-extrabold text-slate-900">
-            {fmtMoney(leg.price)}
+            {fmtMoney(price)}
           </span>
-          {leg.cabinClass && (
+          {cabinClass && (
             <span className="text-[10px] font-semibold uppercase tracking-wider bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
-              {leg.cabinClass}
+              {cabinClass}
             </span>
           )}
         </div>
@@ -415,20 +431,25 @@ export default function ProposalPreviewPage() {
     );
   }
 
-  /* ── destructure ── */
-  const { tripDraft, selections, client } = proposal.payload;
-  const { flights, hotels, activities, transfers } = selections;
+  /* ── destructure (defensive) ── */
+  const tripDraft = proposal.payload?.tripDraft || {} as any;
+  const selections = proposal.payload?.selections || {} as any;
+  const client = proposal.payload?.client || null;
+  const flights = selections.flights || {} as any;
+  const hotels: any[] = Array.isArray(selections.hotels) ? selections.hotels : [];
+  const activities: any[] = Array.isArray(selections.activities) ? selections.activities : [];
+  const transfers: any[] = Array.isArray(selections.transfers) ? selections.transfers : [];
   const nights = nightsBetween(tripDraft.checkIn, tripDraft.checkOut);
 
   /* ── price calc ── */
   const flightTotal =
-    (flights.outbound?.price ?? 0) + (flights.inbound?.price ?? 0);
+    (parseFloat(flights.outbound?.price) || 0) + (parseFloat(flights.inbound?.price) || 0);
   const hotelTotal = hotels.reduce(
-    (s, h) => s + h.pricePerNight * nights,
+    (s: number, h: any) => s + (parseFloat(String(h.price || h.pricePerNight || "0").replace(/[^0-9.]/g, "")) || 0),
     0
   );
-  const activityTotal = activities.reduce((s, a) => s + a.price, 0);
-  const transferTotal = transfers.reduce((s, t) => s + t.price, 0);
+  const activityTotal = activities.reduce((s: number, a: any) => s + (parseFloat(a.price) || 0), 0);
+  const transferTotal = transfers.reduce((s: number, t: any) => s + (parseFloat(t.price) || 0), 0);
   const subtotal = flightTotal + hotelTotal + activityTotal + transferTotal;
   const serviceFee = Math.round(subtotal * 0.06);
   const grandTotal = subtotal + serviceFee;
@@ -593,7 +614,7 @@ export default function ProposalPreviewPage() {
                     <div className="mt-4 flex items-end justify-between">
                       <div>
                         <span className="text-2xl font-extrabold text-slate-900">
-                          {fmtMoney(hotel.pricePerNight)}
+                          {fmtMoney((parseFloat(String(hotel.price || hotel.pricePerNight || "0").replace(/[^0-9.]/g, "")) || 0))}
                         </span>
                         <span className="text-sm text-slate-400 ml-1">
                           / night
@@ -602,7 +623,7 @@ export default function ProposalPreviewPage() {
                       <span className="text-sm font-semibold text-slate-500">
                         {nights} night{nights !== 1 ? "s" : ""} ={" "}
                         <span className="text-slate-900">
-                          {fmtMoney(hotel.pricePerNight * nights)}
+                          {fmtMoney((parseFloat(String(hotel.price || hotel.pricePerNight || "0").replace(/[^0-9.]/g, "")) || 0) * nights)}
                         </span>
                       </span>
                     </div>
