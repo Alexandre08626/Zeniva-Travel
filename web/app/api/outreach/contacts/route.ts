@@ -19,24 +19,68 @@ export async function GET(req: NextRequest) {
   let total = 0;
 
   if (audience === "travelers") {
-    let query = client
+    // Travelers = leads + clients merged
+    // First get leads
+    let leadsQuery = client
       .from("leads")
       .select("id, email, first_name, last_name, status, source, language, created_at, phone", { count: "exact" })
       .order("created_at", { ascending: false });
 
-    if (status && status !== "all") query = query.eq("status", status);
+    if (status && status !== "all") leadsQuery = leadsQuery.eq("status", status);
     if (search) {
-      query = query.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%`);
+      leadsQuery = leadsQuery.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%`);
     }
 
-    const { data: rows, error, count } = await query.range(offset, offset + limit - 1);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    data = rows || [];
-    total = count || 0;
+    // Also get clients
+    let clientsQuery = client
+      .from("clients")
+      .select("id, email, name, phone, origin, lead_source, created_at", { count: "exact" })
+      .order("created_at", { ascending: false });
+
+    if (search) {
+      clientsQuery = clientsQuery.or(`name.ilike.%${search}%,email.ilike.%${search}%`);
+    }
+
+    const [leadsResult, clientsResult] = await Promise.all([
+      leadsQuery,
+      status && status !== "all" && status !== "client" ? Promise.resolve({ data: [], count: 0, error: null }) : clientsQuery,
+    ]);
+
+    if (leadsResult.error) return NextResponse.json({ error: leadsResult.error.message }, { status: 500 });
+
+    // Map clients to same shape as leads
+    const mappedClients = (clientsResult.data || []).map((c: any) => {
+      const nameParts = (c.name || "").split(" ");
+      return {
+        id: c.id,
+        email: c.email || "",
+        first_name: nameParts[0] || "",
+        last_name: nameParts.slice(1).join(" ") || "",
+        status: "client",
+        source: c.lead_source || c.origin || "client",
+        language: "",
+        created_at: c.created_at,
+        phone: c.phone || "",
+      };
+    });
+
+    // Filter clients by status if needed
+    const filteredClients = (status === "client") ? mappedClients : (status && status !== "all") ? [] : mappedClients;
+
+    // Merge and sort by date
+    const allContacts = [...(leadsResult.data || []), ...filteredClients]
+      .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    total = allContacts.length;
+    data = allContacts.slice(offset, offset + limit);
   } else if (audience === "agents") {
+    // Agent leads — future agents (from leads table with source containing 'agent')
+    // or from a dedicated agent_leads concept
+    // For now, use leads that have agent-related sources
     let query = client
-      .from("agents")
-      .select("id, email, first_name, last_name, phone, agent_type, status", { count: "exact" })
+      .from("leads")
+      .select("id, email, first_name, last_name, status, source, language, created_at, phone", { count: "exact" })
+      .ilike("source", "%agent%")
       .order("created_at", { ascending: false });
 
     if (status && status !== "all") query = query.eq("status", status);

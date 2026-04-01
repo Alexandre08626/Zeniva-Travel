@@ -7,7 +7,8 @@ interface Contact { id: string; email?: string; contact_email?: string; first_na
 interface Template { id: string; name: string; subject: string; html_body: string; preview_text: string | null; }
 
 const STEPS = ["Audience", "Compose", "Preview", "Send"];
-const AUDIENCE_STATUS: Record<string, string[]> = { agencies: ["new", "contacted", "demo_scheduled", "negotiating", "signed", "lost"], travelers: ["new", "contacted", "qualified", "converted", "lost"], agents: ["active", "inactive"] };
+const AUDIENCE_LABELS: Record<string, string> = { agencies: "Agencies", travelers: "Leads & Clients", agents: "Agent Leads" };
+const AUDIENCE_STATUS: Record<string, string[]> = { agencies: ["new", "contacted", "demo_scheduled", "negotiating", "signed", "lost"], travelers: ["new", "contacted", "followed_up", "qualified", "converted", "lost"], agents: ["new", "contacted", "qualified", "lost"] };
 const AUDIENCE_VARS: Record<string, string[]> = { agencies: ["FIRST_NAME", "LAST_NAME", "FULL_NAME", "EMAIL", "COMPANY_NAME", "CITY", "PROVINCE", "PHONE"], travelers: ["FIRST_NAME", "LAST_NAME", "FULL_NAME", "EMAIL", "PHONE"], agents: ["FIRST_NAME", "LAST_NAME", "FULL_NAME", "EMAIL", "PHONE"] };
 
 function buildVariables(c: Contact, audience: string): Record<string, string> {
@@ -118,7 +119,7 @@ export default function NewCampaignPage() {
         {step === 0 && (
           <div>
             <div className="flex gap-2 mb-4">
-              {(["agencies", "travelers", "agents"] as const).map((a) => (<button key={a} onClick={() => { setAudience(a); setSelected(new Set()); setSelectAll(false); }} className={"px-4 py-2 rounded-xl text-sm font-semibold " + (audience === a ? "bg-violet-600 text-white" : "bg-white border border-slate-200 text-slate-600")}>{a.charAt(0).toUpperCase() + a.slice(1)}</button>))}
+              {(["agencies", "travelers", "agents"] as const).map((a) => (<button key={a} onClick={() => { setAudience(a); setSelected(new Set()); setSelectAll(false); }} className={"px-4 py-2 rounded-xl text-sm font-semibold " + (audience === a ? "bg-violet-600 text-white" : "bg-white border border-slate-200 text-slate-600")}>{AUDIENCE_LABELS[a]}</button>))}
             </div>
             <div className="flex flex-wrap gap-3 mb-4">
               <input type="text" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-64" />

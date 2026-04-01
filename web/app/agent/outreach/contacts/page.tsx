@@ -58,8 +58,8 @@ export default function ContactsPage() {
         </div>
 
         <div className="flex gap-2 mb-4">
-          {(["agencies", "travelers", "agents"] as const).map((a) => (
-            <button key={a} onClick={() => { setAudience(a); setSearch(""); setStatusFilter("all"); }} className={"px-4 py-2 rounded-xl text-sm font-semibold " + (audience === a ? "bg-violet-600 text-white" : "bg-white border border-slate-200 text-slate-600")}>{a.charAt(0).toUpperCase() + a.slice(1)}</button>
+          {([["agencies", "Agencies"], ["travelers", "Leads & Clients"], ["agents", "Agent Leads"]] as const).map(([a, label]) => (
+            <button key={a} onClick={() => { setAudience(a); setSearch(""); setStatusFilter("all"); }} className={"px-4 py-2 rounded-xl text-sm font-semibold " + (audience === a ? "bg-violet-600 text-white" : "bg-white border border-slate-200 text-slate-600")}>{label}</button>
           ))}
         </div>
 
