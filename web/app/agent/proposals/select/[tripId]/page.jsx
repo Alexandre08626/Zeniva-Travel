@@ -737,6 +737,8 @@ export default function AgentProposalSelectPage() {
   const createProposal = async () => {
     setSending(true);
     try {
+      // Find selected client object
+      const selectedClient = clients.find(c => c.id === selectedClientId);
       const res = await fetch("/api/proposals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -744,7 +746,6 @@ export default function AgentProposalSelectPage() {
           id: tripId,
           ownerEmail: "agent@zeniva.ca",
           status: "Ready",
-          clientId: selectedClientId || undefined,
           payload: {
             trip: { title: searchForm.destination || "Trip" },
             tripDraft: {
@@ -757,6 +758,12 @@ export default function AgentProposalSelectPage() {
               cabinClass: searchForm.cabinClass,
               roundTrip: searchForm.roundTrip,
             },
+            client: selectedClient ? {
+              id: selectedClient.id,
+              name: selectedClient.name || selectedClient.first_name || "",
+              email: selectedClient.email || "",
+              phone: selectedClient.phone || "",
+            } : null,
             selections: {
               flights: selected.flights,
               hotels: selected.hotels,
