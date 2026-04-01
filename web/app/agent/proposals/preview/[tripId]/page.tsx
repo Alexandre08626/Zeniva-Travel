@@ -134,20 +134,25 @@ function fmtDate(d?: string): string {
   });
 }
 
-function fmtMoney(n: number): string {
+function fmtMoney(n: any): string {
+  const num = typeof n === "number" ? n : parseFloat(String(n || "0").replace(/[^0-9.-]/g, "")) || 0;
+  if (isNaN(num)) return "$0";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 0,
-  }).format(n);
+  }).format(num);
 }
 
-function nightsBetween(a: string, b: string): number {
+function nightsBetween(a?: string, b?: string): number {
+  if (!a || !b) return 1;
   const ms = new Date(b).getTime() - new Date(a).getTime();
-  return Math.max(Math.round(ms / 86_400_000), 1);
+  const n = Math.round(ms / 86_400_000);
+  return isNaN(n) || n < 1 ? 1 : n;
 }
 
-function heroFor(destination: string): string {
+function heroFor(destination?: string): string {
+  if (!destination) return DEFAULT_HERO;
   const key = Object.keys(HERO_IMAGES).find(
     (k) => k.toLowerCase() === destination.toLowerCase()
   );
