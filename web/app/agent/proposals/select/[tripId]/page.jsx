@@ -6,6 +6,15 @@ import Link from "next/link";
 
 const AGENT_STORE_KEY = "zeniva_agent_chat_v1";
 
+/* ─── Validate destination ─── */
+const DEST_BLACKLIST = /^(city|provide|help|plan|find|search|make|give|get|know|need|want|have|will|your|their|some|more|best|good|also|just|that|this|with|from|about|like|would|could|should|here|there|been|being|very|much|such|each|other|tailored|recommend|personalized|perfect|great|sure|hello|thank|welcome|assist|happy|today|trip|travel|luxury|let|please|certainly|absolutely|wonderful|exciting|amazing|fantastic|beautiful|stunning|explore|discover|enjoy|offer|include|option|package|suggest|information|detail)/i;
+function isValidDest(d) {
+  if (!d || d.length < 3 || d.length > 40) return false;
+  if (DEST_BLACKLIST.test(d.trim())) return false;
+  if (d.trim().split(/\s+/).length > 4) return false;
+  return true;
+}
+
 /* ─── Load trip snapshot from agent chat ─── */
 function loadTripData(tripId) {
   try {
@@ -234,17 +243,19 @@ export default function AgentProposalSelectPage() {
 
     const applySnapshot = (s) => {
       const dates = (s.dates || "").split("→").map(d => d.trim());
+      const dest = s.destination || "";
+      const dep = s.departure || s.departureCity || "";
       setSearchForm(f => ({
         ...f,
-        origin: s.departure || s.departureCity || "Montreal",
-        destination: s.destination || "",
+        origin: (dep && isValidDest(dep)) ? dep : "Montreal",
+        destination: isValidDest(dest) ? dest : "",
         checkIn: dates[0] || s.checkIn || "",
         checkOut: dates[1] || s.checkOut || "",
         travelers: (s.travelers?.toString().match(/\d+/)?.[0]) || String(s.adults || 2),
       }));
     };
 
-    if (snap.destination) {
+    if (snap.destination && isValidDest(snap.destination)) {
       setTripData(data);
       applySnapshot(snap);
     } else {

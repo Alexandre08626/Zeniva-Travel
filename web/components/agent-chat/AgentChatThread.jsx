@@ -41,7 +41,15 @@ function saveAgentSnapshot(tripId, snapshot) {
     store[tripId].snapshot = { ...(store[tripId].snapshot || {}), ...snapshot };
     localStorage.setItem(AGENT_STORE_KEY, JSON.stringify(store));
     // Also persist snapshot to Supabase so proposals page can load it
-    const merged = store[tripId].snapshot;
+    const m = store[tripId].snapshot;
+    // Normalize: TRIP_PATCH uses checkIn/checkOut/departureCity/adults/budget(number)
+    // extractTripInfo uses dates(string)/departure/travelers(string)/budget(string)
+    const checkIn = m.checkIn || (m.dates || "").split("→")[0]?.trim() || "";
+    const checkOut = m.checkOut || (m.dates || "").split("→")[1]?.trim() || "";
+    const departure = m.departureCity || m.departure || "";
+    const adults = m.adults || parseInt(m.travelers?.match?.(/\d+/)?.[0] || "2") || 2;
+    const budget = (typeof m.budget === "number" ? m.budget : parseInt(String(m.budget || "0").replace(/[^0-9]/g, ""))) || 0;
+    const dest = m.destination || "";
     fetch("/api/proposals", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -50,19 +58,26 @@ function saveAgentSnapshot(tripId, snapshot) {
         ownerEmail: "agent@zeniva.ca",
         status: "Snapshot",
         payload: {
-          tripDraft: {
-            destination: merged.destination || "",
-            departureCity: merged.departure || "",
-            checkIn: (merged.dates || "").split("→")[0]?.trim() || "",
-            checkOut: (merged.dates || "").split("→")[1]?.trim() || "",
-            adults: parseInt(merged.travelers?.match(/\d+/)?.[0] || "2"),
-            budget: parseInt(merged.budget?.replace(/[^0-9]/g, "") || "0"),
-          },
-          snapshot: merged,
+          tripDraft: { destination: dest, departureCity: departure, checkIn, checkOut, adults, budget },
+          snapshot: m,
         },
       }),
     }).catch(() => {});
   } catch {}
+}
+
+/* ─── Validate destination is a real place, not Lina's text ─── */
+const DEST_BLACKLIST = /^(city|provide|help|plan|find|search|make|give|get|know|need|want|have|will|your|their|some|more|best|good|also|just|that|this|with|from|about|like|would|could|should|here|there|been|being|very|much|such|each|other|into|over|after|before|under|between|through|during|against|without|within|along|across|above|below|around|beyond|tailored|recommend|personalized|perfect|great|sure|hello|thank|welcome|assist|happy|today|trip|travel|luxury|let|please|certainly|absolutely|wonderful|exciting|amazing|fantastic|beautiful|stunning|explore|discover|enjoy|offer|include|option|package|suggest|information|detail|question|answer|available|book|booking|reservation|itinerary)/i;
+
+function isValidDestination(dest) {
+  if (!dest || typeof dest !== "string") return false;
+  const d = dest.trim();
+  if (d.length < 3 || d.length > 40) return false;
+  if (DEST_BLACKLIST.test(d)) return false;
+  // Reject if it looks like a sentence (3+ words that aren't a place name)
+  const words = d.split(/\s+/);
+  if (words.length > 4) return false;
+  return true;
 }
 
 /* ─── Extract trip info from conversation ─── */
@@ -79,8 +94,7 @@ function extractTripInfo(messages) {
   if (destMatch) {
     const d = destMatch[1].trim().split(/[,\n•]/)[0].trim();
     // Blacklist common English words that are NOT destinations
-    const blacklist = /^(provide|help|plan|find|search|make|give|get|know|need|want|have|will|your|their|some|more|best|good|also|just|that|this|with|from|about|like|would|could|should|here|there|been|being|very|much|such|each|other|into|over|after|before|under|between|through|during|against|without|within|along|across|above|below|around|beyond)/i;
-    if (d.length >= 3 && d.length <= 30 && !blacklist.test(d)) patch.destination = d;
+    if (isValidDestination(d)) patch.destination = d;
   }
 
   // Departure
@@ -232,7 +246,13 @@ export default function AgentChatThread({ tripId }) {
             try {
               const patchJson = reply.slice(patchStart + "TRIP_PATCH_START".length, patchEnd).trim();
               const parsed = JSON.parse(patchJson);
-              if (parsed?.patch) saveAgentSnapshot(tripId, parsed.patch);
+              if (parsed?.patch) {
+                // Validate destination before saving
+                if (parsed.patch.destination && !isValidDestination(parsed.patch.destination)) {
+                  delete parsed.patch.destination;
+                }
+                if (Object.keys(parsed.patch).length > 0) saveAgentSnapshot(tripId, parsed.patch);
+              }
             } catch {}
             reply = (reply.slice(0, patchStart) + reply.slice(patchEnd + "TRIP_PATCH_END".length)).trim();
           }
