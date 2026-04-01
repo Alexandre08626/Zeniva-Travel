@@ -12,7 +12,7 @@ const smtpTransporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
   secure: true,
-  auth: { user: "info@zeniva.ca", pass: "ffngbulfzfbzcoab" },
+  auth: { user: process.env.SMTP_USER || "info@zeniva.ca", pass: process.env.SMTP_PASS || "" },
 });
 
 async function sendEmailNotification(opts: {

@@ -19,7 +19,7 @@ async function sendWelcomeSMS(phone: string, name: string, destination: string) 
     const firstName = name.split(" ")[0];
     const cleanPhone = phone.replace(/\D/g, "");
     const toPhone = cleanPhone.startsWith("1") ? `+${cleanPhone}` : `+1${cleanPhone}`;
-    const smsBody = `Hi ${firstName}! 👋 Welcome to Zeniva!\n\nLina is already working on your trip to ${destination}. Log in to chat with her:\nhttps://zenivatravel.com/login\n\nZeniva ✈️`;
+    const smsBody = `Hi ${firstName}! 👋 Welcome to Zeniva!\n\nA member of our team will be in touch shortly about your trip to ${destination}. Log in to your account:\nhttps://zenivatravel.com/login\n\nThe Zeniva Team ✈️`;
     const resp = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
       method: "POST",
       headers: {
@@ -40,10 +40,12 @@ let _mailer: any = null;
 function getMailer() {
   if (_mailer) return _mailer;
   try {
+    const smtpPass = process.env.SMTP_PASS;
+    if (!smtpPass) { console.warn("[mailer] SMTP_PASS env missing"); return null; }
     const nodemailer = require("nodemailer");
     _mailer = nodemailer.createTransport({
       host: "smtp.gmail.com", port: 465, secure: true,
-      auth: { user: "info@zeniva.ca", pass: "ffngbulfzfbzcoab" },
+      auth: { user: process.env.SMTP_USER || "info@zeniva.ca", pass: smtpPass },
     });
   } catch {}
   return _mailer;
@@ -55,25 +57,25 @@ async function sendWelcomeEmail(name: string, email: string, destination: string
     if (!mailer) return;
     const firstName = name.split(" ")[0];
     await mailer.sendMail({
-      from: '"Lina · Zeniva" <info@zeniva.ca>',
+      from: '"Zeniva Team" <info@zeniva.ca>',
       to: email,
-      subject: `✈️ Welcome ${firstName} — Your trip to ${destination} starts now!`,
+      subject: `Welcome ${firstName} — Your trip to ${destination} starts now!`,
       html: `
         <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 20px;background:#040d1f;color:white;border-radius:16px">
           <div style="text-align:center;margin-bottom:24px">
-            <img src="https://zenivatravel.com/branding/lina-avatar.png" width="72" height="72" style="border-radius:50%;border:3px solid #E6B85A" alt="Lina"/>
+            <img src="https://www.zenivatravel.com/branding/logo.png" width="140" alt="Zeniva"/>
           </div>
-          <h1 style="text-align:center;font-size:22px;font-weight:900;color:white;margin-bottom:8px">Welcome, ${firstName}! 🎉</h1>
-          <p style="color:#94a3b8;text-align:center;font-size:15px;margin-bottom:24px">Your Zeniva account is ready. Lina is already working on your trip to <strong style="color:white">${destination}</strong>!</p>
+          <h1 style="text-align:center;font-size:22px;font-weight:900;color:white;margin-bottom:8px">Welcome, ${firstName}!</h1>
+          <p style="color:#94a3b8;text-align:center;font-size:15px;margin-bottom:24px">Your Zeniva account is ready. A member of our team will be in touch shortly about your trip to <strong style="color:white">${destination}</strong>!</p>
           <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:20px;margin-bottom:24px">
             <p style="color:#64748b;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px">YOUR ACCOUNT</p>
-            <p style="color:white;margin:4px 0;font-size:14px">📍 Destination: <strong>${destination}</strong></p>
-            <p style="color:#94a3b8;margin:8px 0 0;font-size:13px">Click the button below to access your account, set your password, and start chatting with Lina!</p>
+            <p style="color:white;margin:4px 0;font-size:14px">Destination: <strong>${destination}</strong></p>
+            <p style="color:#94a3b8;margin:8px 0 0;font-size:13px">Click the button below to access your account and set your password.</p>
           </div>
           <div style="text-align:center;margin-bottom:24px">
-            <a href="https://zenivatravel.com/login?email=${encodeURIComponent(email)}" style="display:inline-block;background:linear-gradient(135deg,#0F6CF5,#0851c4);color:white;border-radius:50px;padding:14px 32px;font-weight:700;font-size:15px;text-decoration:none">💬 Access my account & chat with Lina</a>
+            <a href="https://zenivatravel.com/login?email=${encodeURIComponent(email)}" style="display:inline-block;background:linear-gradient(135deg,#0F6CF5,#0851c4);color:white;border-radius:50px;padding:14px 32px;font-weight:700;font-size:15px;text-decoration:none">Access my account</a>
           </div>
-          <p style="color:#475569;font-size:12px;text-align:center">Zeniva · AI-Powered Travel Concierge · <a href="https://zenivatravel.com" style="color:#0F6CF5">zenivatravel.com</a></p>
+          <p style="color:#475569;font-size:12px;text-align:center">Zeniva Travel · <a href="https://zenivatravel.com" style="color:#0F6CF5">zenivatravel.com</a></p>
         </div>
       `,
     });

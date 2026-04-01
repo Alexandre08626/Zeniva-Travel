@@ -11,8 +11,8 @@ const transporter = nodemailer.createTransport({
   port: 465,
   secure: true,
   auth: {
-    user: "info@zeniva.ca",
-    pass: "ffngbulfzfbzcoab",
+    user: process.env.SMTP_USER || "info@zeniva.ca",
+    pass: process.env.SMTP_PASS || "",
   },
 });
 

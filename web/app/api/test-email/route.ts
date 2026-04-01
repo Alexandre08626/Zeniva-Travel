@@ -7,8 +7,8 @@ const smtpTransporter = nodemailer.createTransport({
   port: 465,
   secure: true,
   auth: {
-    user: "info@zeniva.ca",
-    pass: "ffngbulfzfbzcoab"
+    user: process.env.SMTP_USER || "info@zeniva.ca",
+    pass: process.env.SMTP_PASS || "",
   },
 });
 
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 
     // Send real email via nodemailer
     await smtpTransporter.sendMail({
-      from: '"Lina - Zeniva Travel" <info@zeniva.ca>',
+      from: '"Zeniva Team" <info@zeniva.ca>',
       to: toEmail,
       subject: emailSubject,
       html: emailHTML,
