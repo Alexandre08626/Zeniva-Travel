@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/src/lib/supabase/server";
 import { verifySession, getSessionCookieName } from "@/src/lib/server/auth";
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: "info@zeniva.ca",
+    pass: "zsyqqdjltafwhlyc",
+  },
+});
 
 function getAuth(req: NextRequest) {
   const ck = req.headers.get("cookie") || "";
@@ -18,11 +28,9 @@ function getAuth(req: NextRequest) {
 
 function replaceVariables(template: string, variables: Record<string, string>): string {
   let result = template;
-  // Replace known variables
   for (const [key, value] of Object.entries(variables)) {
     result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value || "");
   }
-  // Remove any remaining {{...}} placeholders so emails look clean
   result = result.replace(/\{\{[A-Z_]+\}\}/g, "");
   return result;
 }
@@ -34,7 +42,6 @@ export async function POST(req: NextRequest) {
   const { campaignId } = await req.json();
   if (!campaignId) return NextResponse.json({ error: "campaignId required" }, { status: 400 });
 
-  const resend = new Resend(process.env.RESEND_API_KEY);
   const { client } = getSupabaseAdminClient();
 
   const { data: campaign, error: campError } = await client
@@ -70,8 +77,8 @@ export async function POST(req: NextRequest) {
     const personalizedSubject = replaceVariables(campaign.subject, vars);
 
     try {
-      await resend.emails.send({
-        from: `${campaign.from_name} <${campaign.from_email}>`,
+      await transporter.sendMail({
+        from: `"${campaign.from_name}" <info@zeniva.ca>`,
         to: recipient.email,
         subject: personalizedSubject,
         html: personalizedHtml,

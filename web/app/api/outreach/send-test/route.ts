@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySession, getSessionCookieName } from "@/src/lib/server/auth";
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: "info@zeniva.ca",
+    pass: "zsyqqdjltafwhlyc",
+  },
+});
 
 function getAuth(req: NextRequest) {
   const ck = req.headers.get("cookie") || "";
@@ -24,11 +34,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "html, subject, and to are required" }, { status: 400 });
   }
 
-  const resend = new Resend(process.env.RESEND_API_KEY);
-
   try {
-    await resend.emails.send({
-      from: "Alexandre Blais <info@zeniva.ca>",
+    await transporter.sendMail({
+      from: '"Alexandre Blais" <info@zeniva.ca>',
       to,
       subject: `[TEST] ${subject}`,
       html,
