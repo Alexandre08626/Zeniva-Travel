@@ -213,13 +213,28 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
     }
   }, [resolvedAgentId]);
 
+  const [kpiDrawer, setKpiDrawer] = useState<string | null>(null);
+  const [kpiData, setKpiData] = useState<any>(null);
+  const [kpiLoading, setKpiLoading] = useState(false);
+
+  const openKpiDrawer = async (kpiKey: string) => {
+    setKpiDrawer(kpiKey);
+    setKpiLoading(true);
+    setKpiData(null);
+    try {
+      const res = await fetch(`/api/rex/kpi-details?kpi=${kpiKey}`, { headers: { Authorization: AUTH } });
+      if (res.ok) setKpiData(await res.json());
+    } catch { /* silent */ }
+    setKpiLoading(false);
+  };
+
   const kpis = [
-    { label: "Active Clients", value: dashStats?.active_clients ?? vpsStats?.total_clients ?? "—", icon: "👥", color: "bg-blue-50 border-blue-200", sub: `${dashStats?.open_dossiers ?? 0} dossiers` },
-    { label: "Total Leads", value: isHQorAdmin ? (vpsStats?.total_leads ?? "—") : (dashStats?.active_clients ?? 0), icon: "🎯", color: "bg-purple-50 border-purple-200", sub: isHQorAdmin ? `+${vpsStats?.leads_today ?? 0} today` : "Your pipeline" },
-    { label: "Emails Sent", value: isHQorAdmin ? (vpsStats?.emails_sent ?? "—") : "—", icon: "📧", color: "bg-emerald-50 border-emerald-200", sub: isHQorAdmin ? `+${vpsStats?.emails_today ?? 0} today` : "Coming soon" },
-    { label: "SMS Sent", value: isHQorAdmin ? (vpsStats?.sms_sent ?? "—") : "—", icon: "📱", color: "bg-amber-50 border-amber-200", sub: isHQorAdmin ? `+${vpsStats?.sms_today ?? 0} today` : "Coming soon" },
-    { label: "Comm. Pipeline", value: dashStats ? `$${dashStats.commission_pipeline.toLocaleString()}` : "—", icon: "💰", color: "bg-rose-50 border-rose-200", sub: `${dashStats?.followups_due ?? 0} follow-ups` },
-    { label: "Lina Chats", value: isHQorAdmin ? (vpsStats?.total_messages ?? "—") : "—", icon: "💬", color: "bg-indigo-50 border-indigo-200", sub: "Total conversations" },
+    { label: "Active Clients", value: dashStats?.active_clients ?? vpsStats?.total_clients ?? "—", icon: "👥", color: "bg-blue-50 border-blue-200", sub: `${dashStats?.open_dossiers ?? 0} dossiers`, key: "clients" },
+    { label: "Total Leads", value: isHQorAdmin ? (vpsStats?.total_leads ?? "—") : (dashStats?.active_clients ?? 0), icon: "🎯", color: "bg-purple-50 border-purple-200", sub: isHQorAdmin ? `+${vpsStats?.leads_today ?? 0} today` : "Your pipeline", key: "leads" },
+    { label: "Emails Sent", value: isHQorAdmin ? (vpsStats?.emails_sent ?? "—") : "—", icon: "📧", color: "bg-emerald-50 border-emerald-200", sub: isHQorAdmin ? `+${vpsStats?.emails_today ?? 0} today` : "Coming soon", key: "emails" },
+    { label: "SMS Sent", value: isHQorAdmin ? (vpsStats?.sms_sent ?? "—") : "—", icon: "📱", color: "bg-amber-50 border-amber-200", sub: isHQorAdmin ? `+${vpsStats?.sms_today ?? 0} today` : "Coming soon", key: "sms" },
+    { label: "Comm. Pipeline", value: dashStats ? `$${dashStats.commission_pipeline.toLocaleString()}` : "—", icon: "💰", color: "bg-rose-50 border-rose-200", sub: `${dashStats?.followups_due ?? 0} follow-ups`, key: "commissions" },
+    { label: "Lina Chats", value: isHQorAdmin ? (vpsStats?.total_messages ?? "—") : "—", icon: "💬", color: "bg-indigo-50 border-indigo-200", sub: "Total conversations", key: "chats" },
   ];
 
   return (
@@ -389,7 +404,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
           {/* KPI CARDS */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {kpis.map((k) => (
-              <div key={k.label} className={`rounded-2xl border p-4 bg-white ${k.color} shadow-sm`}>
+              <div key={k.label} onClick={() => openKpiDrawer(k.key)} className={`rounded-2xl border p-4 bg-white ${k.color} shadow-sm cursor-pointer hover:shadow-md hover:scale-[1.02] transition-all`}>
                 <p className="text-2xl">{k.icon}</p>
                 <p className="text-2xl font-black mt-1" style={{ color: PREMIUM_BLUE }}>{k.value}</p>
                 <p className="text-xs font-semibold text-slate-600 mt-0.5">{k.label}</p>
@@ -727,6 +742,179 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Trip Search modal removed — now uses /agent/trip-search page */}
+
+      {/* KPI 360° Drawer */}
+      {kpiDrawer && (
+        <>
+          <div className="fixed inset-0 bg-black/40 z-[60]" onClick={() => setKpiDrawer(null)} />
+          <div className="fixed inset-y-0 right-0 w-full max-w-xl bg-white shadow-2xl z-[70] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between z-10">
+              <h2 className="text-lg font-bold text-slate-900">
+                {kpiDrawer === "clients" && "Active Clients"}
+                {kpiDrawer === "leads" && "All Leads"}
+                {kpiDrawer === "emails" && "Emails Sent"}
+                {kpiDrawer === "sms" && "SMS Sent"}
+                {kpiDrawer === "commissions" && "Commission Pipeline"}
+                {kpiDrawer === "chats" && "Lina Chats"}
+              </h2>
+              <button onClick={() => setKpiDrawer(null)} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+            </div>
+
+            <div className="p-6">
+              {kpiLoading && (
+                <div className="space-y-3">{[1,2,3,4,5].map(i => <div key={i} className="h-14 bg-slate-100 rounded-xl animate-pulse" />)}</div>
+              )}
+
+              {!kpiLoading && kpiData && kpiDrawer === "clients" && (
+                <div className="space-y-2">
+                  <p className="text-sm text-slate-500 mb-3">{kpiData.items?.length || 0} clients</p>
+                  {(kpiData.items || []).map((c: any) => (
+                    <div key={c.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                      <div className="flex items-center justify-between">
+                        <p className="font-semibold text-slate-900 text-sm">{c.name}</p>
+                        {c.primary_division && <span className="text-[10px] px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-semibold">{c.primary_division}</span>}
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">{c.email || "—"}</p>
+                      {c.phone && <p className="text-xs text-slate-400">{c.phone}</p>}
+                      <div className="flex gap-3 mt-2 text-[10px] text-slate-400">
+                        {c.origin && <span>Origin: {c.origin}</span>}
+                        {c.lead_source && <span>Source: {c.lead_source}</span>}
+                        <span>{new Date(c.created_at).toLocaleDateString("en-CA")}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {!kpiLoading && kpiData && kpiDrawer === "leads" && (
+                <div className="space-y-2">
+                  <p className="text-sm text-slate-500 mb-3">{kpiData.items?.length || 0} leads (100 derniers)</p>
+                  {(kpiData.items || []).map((l: any) => (
+                    <div key={l.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                      <div className="flex items-center justify-between">
+                        <p className="font-semibold text-slate-900 text-sm">{l.first_name} {l.last_name || ""}</p>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${l.status === "new" ? "bg-blue-100 text-blue-700" : l.status === "contacted" ? "bg-yellow-100 text-yellow-700" : "bg-emerald-100 text-emerald-700"}`}>{l.status}</span>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">{l.email}</p>
+                      <div className="flex gap-3 mt-2 text-[10px] text-slate-400">
+                        {l.destination && <span>Dest: {l.destination}</span>}
+                        {l.source && <span>Source: {l.source}</span>}
+                        {l.language && <span>Lang: {l.language.toUpperCase()}</span>}
+                        <span>{new Date(l.created_at).toLocaleDateString("en-CA")}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {!kpiLoading && kpiData && kpiDrawer === "emails" && (
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 mb-3">Campaigns ({kpiData.campaigns?.length || 0})</h3>
+                    <div className="space-y-2">
+                      {(kpiData.campaigns || []).map((c: any) => (
+                        <div key={c.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                          <div className="flex items-center justify-between">
+                            <p className="font-semibold text-slate-900 text-sm truncate flex-1">{c.name}</p>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ml-2 ${c.status === "sent" ? "bg-emerald-100 text-emerald-700" : c.status === "draft" ? "bg-gray-100 text-gray-700" : "bg-amber-100 text-amber-700"}`}>{c.status}</span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1 truncate">{c.subject}</p>
+                          <div className="flex gap-4 mt-2 text-xs">
+                            <span className="text-emerald-600 font-semibold">{c.sent_count} sent</span>
+                            <span className="text-red-500 font-semibold">{c.failed_count} failed</span>
+                            <span className="text-slate-400">{c.recipient_count} recipients</span>
+                            <span className="text-slate-400">{c.audience_type}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 mb-3">Recent Emails ({kpiData.recent?.length || 0})</h3>
+                    <div className="space-y-1">
+                      {(kpiData.recent || []).slice(0, 30).map((e: any) => (
+                        <div key={e.id} className="flex items-center justify-between py-2 px-3 bg-slate-50 rounded-lg text-xs">
+                          <div className="flex-1 min-w-0">
+                            <span className="text-slate-700 font-medium truncate block">{e.recipient}</span>
+                            <span className="text-slate-400 truncate block">{e.subject}</span>
+                          </div>
+                          <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${e.status === "sent" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{e.status}</span>
+                            <span className="text-slate-400 text-[10px]">{new Date(e.created_at).toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit" })}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {!kpiLoading && kpiData && kpiDrawer === "sms" && (
+                <div>
+                  {(kpiData.items || []).length === 0 ? (
+                    <div className="text-center py-12">
+                      <p className="text-4xl mb-3">📱</p>
+                      <p className="text-sm font-semibold text-slate-700">Aucun SMS envoy&eacute;</p>
+                      <p className="text-xs text-slate-400 mt-1">Les SMS apparaitront ici quand Luna sera active.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {(kpiData.items || []).map((s: any, i: number) => (
+                        <div key={i} className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm">
+                          <p className="font-medium text-slate-900">{s.recipient || s.to}</p>
+                          <p className="text-xs text-slate-500 mt-1">{s.message || s.content}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!kpiLoading && kpiData && kpiDrawer === "commissions" && (
+                <div>
+                  {(kpiData.bookings || []).length === 0 && (kpiData.commissions || []).length === 0 ? (
+                    <div className="text-center py-12">
+                      <p className="text-4xl mb-3">💰</p>
+                      <p className="text-sm font-semibold text-slate-700">Aucune commission en cours</p>
+                      <p className="text-xs text-slate-400 mt-1">Les commissions apparaitront apr&egrave;s les premi&egrave;res r&eacute;servations.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {(kpiData.bookings || []).map((b: any) => (
+                        <div key={b.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                          <div className="flex justify-between">
+                            <span className="text-sm font-semibold text-slate-900">Booking</span>
+                            <span className="text-sm font-bold text-emerald-600">${b.commission_amount}</span>
+                          </div>
+                          <p className="text-xs text-slate-400 mt-1">Status: {b.status} | {new Date(b.created_at).toLocaleDateString("en-CA")}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!kpiLoading && kpiData && kpiDrawer === "chats" && (
+                <div className="space-y-2">
+                  <p className="text-sm text-slate-500 mb-3">{kpiData.items?.length || 0} messages r&eacute;cents</p>
+                  {(kpiData.items || []).map((m: any) => (
+                    <div key={m.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                      <div className="flex items-center justify-between">
+                        <p className="font-semibold text-slate-900 text-sm">{m.sender || "—"}</p>
+                        <span className="text-[10px] text-slate-400">{new Date(m.created_at).toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit" })}</span>
+                      </div>
+                      <p className="text-xs text-slate-600 mt-1 line-clamp-2">{m.content}</p>
+                      {m.channel_id && <p className="text-[10px] text-slate-400 mt-1">Channel: {m.channel_id}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </>
       )}
 
       {/* Trip Search modal removed — now uses /agent/trip-search page */}
