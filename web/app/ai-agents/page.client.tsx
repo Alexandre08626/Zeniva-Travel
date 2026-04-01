@@ -546,15 +546,38 @@ function AgentDetailPanel({ agent, onClose, onToggle }: {
                         setCmdMessages(prev => [...prev, {role:"assistant", content:`🔎 Facebook scan complete!\n\n${leads.length} hot leads found:\n\n${summary}\n\nWould you like me to generate outreach messages for any of these?`}]);
                       }} />
                     )}
-                    {agent.id === "rex" && (                      <button                        onClick={async () => {                          setCmdMessages(prev => [...prev, {role:"user", content:"🧹 Run full maintenance audit"}]);                          setCmdLoading(true);                          try {                            const r = await fetch("/api/rex/maintenance");                            const d = await r.json();                            const icon = d.status === "healthy" ? "✅" : d.status === "warning" ? "⚠️" : "🚨";                            let report = icon + " **MAINTENANCE REPORT** — " + d.status.toUpperCase() + "
-
-";                            report += "📊 " + d.summary.passed + " passed | " + d.summary.warnings + " warnings | " + d.summary.critical + " critical
-";                            report += "⏱️ Scanned in " + d.summary.duration_ms + "ms
-
-";                            const cats = [...new Set(d.findings.map((f: any) => f.category))];                            for (const cat of cats) {                              report += "━━ " + cat + " ━━
-";                              d.findings.filter((f: any) => f.category === cat).forEach((f: any) => {                                const sev = f.severity === "critical" ? "🔴" : f.severity === "warning" ? "🟡" : "🟢";                                report += sev + " " + f.message + (f.detail ? " — " + f.detail : "") + "
-";                              });                              report += "
-";                            }                            setCmdMessages(prev => [...prev, {role:"assistant", content: report}]);                          } catch {                            setCmdMessages(prev => [...prev, {role:"assistant", content:"❌ Maintenance scan failed. Check server logs."}]);                          }                          setCmdLoading(false);                        }}                        className="block w-full text-left text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl px-3 py-2.5 transition font-semibold mt-3"                      >                        🧹 Run Full Maintenance Audit                      </button>                    )}
+                    {agent.id === "rex" && (
+                      <button
+                        onClick={async () => {
+                          setCmdMessages(prev => [...prev, {role:"user", content:"\ud83e\uddf9 Run full maintenance audit"}]);
+                          setCmdLoading(true);
+                          try {
+                            const r = await fetch("/api/rex/maintenance");
+                            const d = await r.json();
+                            const icon = d.status === "healthy" ? "\u2705" : d.status === "warning" ? "\u26a0\ufe0f" : "\ud83d\udea8";
+                            let report = icon + " MAINTENANCE REPORT \u2014 " + d.status.toUpperCase() + "\n\n";
+                            report += "\ud83d\udcca " + d.summary.passed + " passed | " + d.summary.warnings + " warnings | " + d.summary.critical + " critical\n";
+                            report += "\u23f1\ufe0f Scanned in " + d.summary.duration_ms + "ms\n\n";
+                            const cats = [...new Set(d.findings.map((f: any) => f.category))];
+                            for (const cat of cats) {
+                              report += "\u2501\u2501 " + cat + " \u2501\u2501\n";
+                              d.findings.filter((f: any) => f.category === cat).forEach((f: any) => {
+                                const sev = f.severity === "critical" ? "\ud83d\udd34" : f.severity === "warning" ? "\ud83d\udfe1" : "\ud83d\udfe2";
+                                report += sev + " " + f.message + (f.detail ? " \u2014 " + f.detail : "") + "\n";
+                              });
+                              report += "\n";
+                            }
+                            setCmdMessages(prev => [...prev, {role:"assistant", content: report}]);
+                          } catch {
+                            setCmdMessages(prev => [...prev, {role:"assistant", content:"\u274c Maintenance scan failed. Check server logs."}]);
+                          }
+                          setCmdLoading(false);
+                        }}
+                        className="block w-full text-left text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl px-3 py-2.5 transition font-semibold mt-3"
+                      >
+                        {"\ud83e\uddf9"} Run Full Maintenance Audit
+                      </button>
+                    )}
                     <div className="mt-4 space-y-2">
                       {agent.scenarios.slice(0,2).map((s,i) => (
                         <button key={i} onClick={() => setCmdInput(s.title)}
