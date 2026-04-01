@@ -103,19 +103,23 @@ async function searchHotels(destination, checkIn, checkOut, guests) {
     const res = await fetch(`/api/partners/liteapi/hotels/search?${params}`);
     if (res.ok) {
       const data = await res.json();
-      const hotels = data?.hotels || data?.data || [];
+      const hotels = data?.offers || data?.hotels || data?.data || [];
       return hotels.slice(0, 10).map((h, i) => ({
         id: h.id || h.hotelId || `hotel-${i}`,
         name: h.name || h.hotelName || "Hotel",
         location: h.address || h.location || "",
-        price: h.price || h.minRate || h.rate || 0,
+        price: h.price || h.minRate || h.rate || "—",
         currency: h.currency || "USD",
         stars: h.stars || h.starRating || h.category || 0,
         rating: h.rating || h.reviewScore || null,
-        room: h.roomName || h.roomType || "",
+        room: h.roomName || h.roomType || h.room || "",
         board: h.boardType || h.boardBasis || "",
-        image: h.image || h.thumbnail || h.main_photo || null,
+        image: h.image || h.thumbnail || h.main_photo || (h.images && h.images[0]) || null,
+        images: h.images || [],
+        perks: h.perks || [],
+        badge: h.badge || (h.stars ? `${h.stars}★` : ""),
         freeCancellation: h.freeCancellation || h.free_cancellation || false,
+        provider: h.provider || "liteapi",
       }));
     }
   } catch {}
