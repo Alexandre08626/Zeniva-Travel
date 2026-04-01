@@ -96,6 +96,30 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ kpi, bookings, commissions });
     }
 
+    if (kpi === "client-proposals") {
+      const email = req.nextUrl.searchParams.get("email");
+      if (!email) return NextResponse.json({ kpi, items: [] });
+      const { data } = await supabase
+        .from("proposals")
+        .select("id, trip_id, client_email, client_name, destination, departure_date, return_date, travelers, budget_usd, trip_type, status, title, total_price, notes, created_at, updated_at")
+        .eq("client_email", email.toLowerCase())
+        .order("created_at", { ascending: false })
+        .limit(50);
+      return NextResponse.json({ kpi, items: data || [] });
+    }
+
+    if (kpi === "client-bookings") {
+      const email = req.nextUrl.searchParams.get("email");
+      if (!email) return NextResponse.json({ kpi, items: [] });
+      const { data } = await supabase
+        .from("bookings")
+        .select("id, proposal_id, client_email, client_name, destination, departure_date, return_date, travelers, status, total_price, paid_amount, balance_due, payment_status, notes, created_at, updated_at")
+        .eq("client_email", email.toLowerCase())
+        .order("created_at", { ascending: false })
+        .limit(50);
+      return NextResponse.json({ kpi, items: data || [] });
+    }
+
     if (kpi === "chats") {
       const { data } = await supabase
         .from("agent_inbox_messages")

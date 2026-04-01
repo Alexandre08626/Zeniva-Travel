@@ -186,20 +186,42 @@ export default function ClientsPage() {
     setActiveTab("profile");
     setProfileLoading(true);
     try {
-      const r = await fetch(`/api/agents-proxy?path=admin/client-profile/${encodeURIComponent(c.email)}`, {
-        headers: { Authorization: AUTH },
-      });
-      if (r.ok) {
-        const d = await r.json();
-        setSelectedClient({
-          client: c,
-          dossiers: d.dossiers || [],
-          proposals: d.proposals || [],
-          bookings: d.bookings || [],
-          notes: d.notes || [],
-          conversations: d.conversations || [],
-        });
+      // Fetch from VPS proxy + Supabase proposals/bookings in parallel
+      const [proxyRes, proposalsRes, bookingsRes] = await Promise.all([
+        fetch(`/api/agents-proxy?path=admin/client-profile/${encodeURIComponent(c.email)}`, { headers: { Authorization: AUTH } }),
+        fetch(`/api/rex/kpi-details?kpi=client-proposals&email=${encodeURIComponent(c.email)}`, { headers: { Authorization: AUTH } }),
+        fetch(`/api/rex/kpi-details?kpi=client-bookings&email=${encodeURIComponent(c.email)}`, { headers: { Authorization: AUTH } }),
+      ]);
+
+      let d: any = {};
+      if (proxyRes.ok) d = await proxyRes.json();
+
+      let supaProposals: any[] = [];
+      let supaBookings: any[] = [];
+      if (proposalsRes.ok) { const pd = await proposalsRes.json(); supaProposals = pd.items || []; }
+      if (bookingsRes.ok) { const bd = await bookingsRes.json(); supaBookings = bd.items || []; }
+
+      // Merge: Supabase proposals take priority, add VPS ones that aren't duplicates
+      const vpsProposals = d.proposals || [];
+      const mergedProposals = [...supaProposals];
+      for (const vp of vpsProposals) {
+        if (!mergedProposals.find((sp: any) => sp.id === vp.id)) mergedProposals.push(vp);
       }
+
+      const vpsBookings = d.bookings || [];
+      const mergedBookings = [...supaBookings];
+      for (const vb of vpsBookings) {
+        if (!mergedBookings.find((sb: any) => sb.id === vb.id)) mergedBookings.push(vb);
+      }
+
+      setSelectedClient({
+        client: c,
+        dossiers: d.dossiers || [],
+        proposals: mergedProposals,
+        bookings: mergedBookings,
+        notes: d.notes || [],
+        conversations: d.conversations || [],
+      });
     } catch {}
     setProfileLoading(false);
   };
@@ -726,31 +748,85 @@ export default function ClientsPage() {
                 </div>
               )}
 
-              {/* PROPOSALS */}
+              {/* PROPOSALS & TRIPS */}
               {activeTab === "proposals" && !profileLoading && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-lg text-slate-900">Proposals & Quotes</h3>
-                    <Link href="/agent/proposals" className="rounded-full px-4 py-2 text-sm font-bold text-white" style={{ background: "linear-gradient(135deg,#0F6CF5,#0B1B4D)" }}>
-                      + New Proposal
-                    </Link>
+                <div className="space-y-6">
+                  {/* Bookings - Past & Active Trips */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-bold text-lg text-slate-900">{"✈️ Voyages"}</h3>
+                      <span className="text-xs text-slate-400">{selectedClient.bookings?.length || 0} booking(s)</span>
+                    </div>
+                    {(!selectedClient.bookings || selectedClient.bookings.length === 0) ? (
+                      <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center">
+                        <p className="text-3xl mb-2">{"✈️"}</p>
+                        <p className="text-slate-500 text-sm">Aucun voyage encore.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {selectedClient.bookings.map((b: any, i: number) => (
+                          <div key={b.id || i} className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                            <div className="flex items-center justify-between">
+                              <p className="font-bold text-slate-900">{b.destination || "Destination TBD"}</p>
+                              <span className={`text-xs font-bold px-2 py-1 rounded-full ${b.status === "Confirmed" || b.status === "confirmed" ? "bg-emerald-100 text-emerald-700" : b.status === "Booked" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>{b.status}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-3 mt-2 text-xs text-slate-600">
+                              {b.departure_date && <span>{"📅"} {b.departure_date} → {b.return_date || "?"}</span>}
+                              {b.travelers && <span>{"👥"} {b.travelers} voyageurs</span>}
+                              {b.total_price && <span className="font-bold text-emerald-700">{"💰"} ${Number(b.total_price).toLocaleString()}</span>}
+                            </div>
+                            {b.payment_status && (
+                              <div className="mt-2 flex gap-3 text-xs">
+                                <span className={`font-semibold ${b.payment_status === "paid" ? "text-emerald-600" : "text-amber-600"}`}>{"💳"} {b.payment_status}</span>
+                                {b.paid_amount && <span>Paid: ${Number(b.paid_amount).toLocaleString()}</span>}
+                                {b.balance_due && Number(b.balance_due) > 0 && <span className="text-red-500">Due: ${Number(b.balance_due).toLocaleString()}</span>}
+                              </div>
+                            )}
+                            {b.notes && <p className="text-xs text-slate-400 mt-2">{b.notes}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  {selectedClient.proposals.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-slate-300 p-10 text-center">
-                      <p className="text-3xl mb-2">📋</p>
-                      <p className="text-slate-500 text-sm">No proposals for this client yet.</p>
+
+                  {/* Proposals */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-bold text-lg text-slate-900">{"📋 Propositions"}</h3>
+                      <Link href="/agent/proposals" className="rounded-full px-4 py-2 text-sm font-bold text-white" style={{ background: "linear-gradient(135deg,#0F6CF5,#0B1B4D)" }}>
+                        + New Proposal
+                      </Link>
                     </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {selectedClient.proposals.map((p: any, i: number) => (
-                        <div key={p.id || i} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                          <p className="font-bold text-slate-900">{p.title || "Untitled"}</p>
-                          <p className="text-xs text-slate-500">{p.destination} · {p.departure_date} · ${p.total_price?.toLocaleString()}</p>
-                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full mt-1 inline-block ${DOSSIER_STATUS[p.status] || "bg-slate-100 text-slate-600"}`}>{p.status}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                    {selectedClient.proposals.length === 0 ? (
+                      <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center">
+                        <p className="text-3xl mb-2">{"📋"}</p>
+                        <p className="text-slate-500 text-sm">Aucune proposition pour ce client.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {selectedClient.proposals.map((p: any, i: number) => (
+                          <div key={p.id || i} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <div className="flex items-center justify-between">
+                              <p className="font-bold text-slate-900">{p.title || p.destination || "Proposition"}</p>
+                              <span className={`text-xs font-bold px-2 py-1 rounded-full ${p.status === "Sent" ? "bg-blue-100 text-blue-700" : p.status === "Accepted" ? "bg-emerald-100 text-emerald-700" : p.status === "Ready" ? "bg-violet-100 text-violet-700" : "bg-slate-100 text-slate-600"}`}>{p.status}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-3 mt-2 text-xs text-slate-600">
+                              {p.destination && <span>{"📍"} {p.destination}</span>}
+                              {p.departure_date && <span>{"📅"} {p.departure_date} → {p.return_date || "?"}</span>}
+                              {p.travelers && <span>{"👥"} {p.travelers} voyageurs</span>}
+                              {p.trip_type && <span>{"🏷️"} {p.trip_type}</span>}
+                            </div>
+                            <div className="flex flex-wrap gap-3 mt-2 text-xs">
+                              {p.budget_usd && <span className="text-slate-500">Budget: ${Number(p.budget_usd).toLocaleString()}</span>}
+                              {p.total_price && <span className="font-bold text-violet-700">Total: ${Number(p.total_price).toLocaleString()}</span>}
+                              <span className="text-slate-400">{new Date(p.created_at).toLocaleDateString("en-CA")}</span>
+                            </div>
+                            {p.notes && <p className="text-xs text-slate-400 mt-2">{p.notes}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
