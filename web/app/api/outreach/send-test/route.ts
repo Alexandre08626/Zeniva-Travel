@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
   secure: true,
   auth: {
     user: "info@zeniva.ca",
-    pass: "zsyqqdjltafwhlyc",
+    pass: "ffngbulfzfbzcoab",
   },
 });
 

@@ -43,7 +43,7 @@ function getMailer() {
     const nodemailer = require("nodemailer");
     _mailer = nodemailer.createTransport({
       host: "smtp.gmail.com", port: 465, secure: true,
-      auth: { user: "info@zeniva.ca", pass: "zsyqqdjltafwhlyc" },
+      auth: { user: "info@zeniva.ca", pass: "ffngbulfzfbzcoab" },
     });
   } catch {}
   return _mailer;
