@@ -15,7 +15,7 @@ function buildVariables(c: Contact, audience: string): Record<string, string> {
   return { FIRST_NAME: c.first_name || "", LAST_NAME: c.last_name || "", FULL_NAME: [c.first_name, c.last_name].filter(Boolean).join(" "), EMAIL: c.email || "", PHONE: c.phone || "" };
 }
 
-function replaceVars(html: string, vars: Record<string, string>) { let r = html; for (const [k, v] of Object.entries(vars)) { r = r.replace(new RegExp("\\{\\{" + k + "\\}\\}", "g"), v || ""); } return r; }
+function replaceVars(html: string, vars: Record<string, string>) { let r = html; for (const [k, v] of Object.entries(vars)) { r = r.replace(new RegExp("\\{\\{" + k + "\\}\\}", "g"), v || ""); } r = r.replace(/\{\{[A-Z_]+\}\}/g, ""); return r; }
 function getName(c: Contact, a: string) { return a === "agencies" ? c.contact_name || "\u2014" : [c.first_name, c.last_name].filter(Boolean).join(" ") || "\u2014"; }
 function getEmail(c: Contact, a: string) { return a === "agencies" ? c.contact_email : c.email; }
 

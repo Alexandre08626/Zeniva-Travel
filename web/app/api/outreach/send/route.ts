@@ -18,9 +18,12 @@ function getAuth(req: NextRequest) {
 
 function replaceVariables(template: string, variables: Record<string, string>): string {
   let result = template;
+  // Replace known variables
   for (const [key, value] of Object.entries(variables)) {
-    result = result.replace(new RegExp(`\{\{${key}\}\}`, "g"), value || "");
+    result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value || "");
   }
+  // Remove any remaining {{...}} placeholders so emails look clean
+  result = result.replace(/\{\{[A-Z_]+\}\}/g, "");
   return result;
 }
 
