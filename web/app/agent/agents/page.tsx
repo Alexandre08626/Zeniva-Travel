@@ -54,11 +54,20 @@ export default function AgentCommandPage() {
   const hq = isHQ(user);
 
   const deleteAgent = async (agentId: string, email: string) => {
-    if (!confirm(`Remove agent ${email}? They will lose agent access.`)) return;
+    if (!confirm(`Remove agent ${email}? This will permanently delete their account and all agent access.`)) return;
+    // 1. Delete from VPS
     await fetch(`/api/agents-proxy?path=admin/agents/${agentId}`, {
       method: "DELETE",
       headers: { Authorization: "Bearer zeniva-secret-2025" },
     });
+    // 2. Delete from Supabase (agents + profiles tables)
+    try {
+      await fetch("/api/agents/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agentId, email }),
+      });
+    } catch { /* silent — VPS delete already done */ }
     setAgents((prev) => prev.filter((a) => a.id !== agentId));
     setSelected(null);
     setDetail(null);
