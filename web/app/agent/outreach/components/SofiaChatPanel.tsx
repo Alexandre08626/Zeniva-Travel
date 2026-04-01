@@ -207,11 +207,8 @@ export default function SofiaChatPanel({ onClose, campaignContext }: SofiaChatPa
         )}
 
         {messages.map((msg) => (
-          <div key={msg.id} className={msg.role === "user" ? "flex justify-end" : "flex justify-start gap-2"}>
-            {msg.role === "assistant" && (
-              <Image src="/agents/sofia.png" alt="Sofia" width={28} height={28} className="rounded-full flex-shrink-0 mt-1" />
-            )}
-            <div className={msg.role === "user" ? "max-w-[80%]" : "max-w-[85%] flex-1"}>
+          <div key={msg.id} className={msg.role === "user" ? "flex justify-end" : "flex justify-start"}>
+            <div className={msg.role === "user" ? "max-w-[80%]" : "max-w-[85%]"}>
               <div
                 className={
                   msg.role === "user"
@@ -235,8 +232,7 @@ export default function SofiaChatPanel({ onClose, campaignContext }: SofiaChatPa
         ))}
 
         {isTyping && (
-          <div className="flex justify-start gap-2">
-            <Image src="/agents/sofia.png" alt="Sofia" width={28} height={28} className="rounded-full flex-shrink-0 mt-1" />
+          <div className="flex justify-start">
             <div className="bg-slate-100 rounded-2xl rounded-bl-md px-4 py-3">
               <div className="flex gap-1.5">
                 <span className="w-2 h-2 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
