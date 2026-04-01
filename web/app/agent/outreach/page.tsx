@@ -44,6 +44,7 @@ export default function OutreachPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchCampaigns = useCallback(async () => {
     setLoading(true);
@@ -67,10 +68,18 @@ export default function OutreachPage() {
     fetchCampaigns();
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteId) return;
-    setCampaigns((prev) => prev.filter((c) => c.id !== deleteId));
-    setDeleteId(null);
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/outreach/campaigns/" + deleteId, { method: "DELETE" });
+      if (res.ok) {
+        setCampaigns((prev) => prev.filter((c) => c.id !== deleteId));
+      }
+    } catch { /* silent */ } finally {
+      setDeleting(false);
+      setDeleteId(null);
+    }
   };
 
   const totalSent = campaigns.reduce((s, c) => s + (c.sent_count || 0), 0);
@@ -131,23 +140,30 @@ export default function OutreachPage() {
                     <th className="text-left px-4 py-3 font-semibold text-slate-600">Status</th>
                     <th className="text-left px-4 py-3 font-semibold text-slate-600">Audience</th>
                     <th className="text-left px-4 py-3 font-semibold text-slate-600">Recipients</th>
-                    <th className="text-left px-4 py-3 font-semibold text-slate-600">Subject</th>
-                    <th className="text-left px-4 py-3 font-semibold text-slate-600">Sent</th>
+                    <th className="text-left px-4 py-3 font-semibold text-slate-600">Sent / Failed</th>
+                    <th className="text-left px-4 py-3 font-semibold text-slate-600">Date</th>
                     <th className="text-left px-4 py-3 font-semibold text-slate-600">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {campaigns.map((c) => (
                     <tr key={c.id} className="border-b border-slate-100 hover:bg-slate-50">
-                      <td className="px-4 py-3 font-medium text-slate-900">{c.name}</td>
+                      <td className="px-4 py-3">
+                        <Link href={"/agent/outreach/" + c.id} className="font-medium text-violet-600 hover:text-violet-800">{c.name}</Link>
+                      </td>
                       <td className="px-4 py-3"><span className={"px-2 py-0.5 rounded-full text-xs font-semibold " + (statusColors[c.status] || "bg-gray-100 text-gray-600")}>{c.status}</span></td>
                       <td className="px-4 py-3 text-slate-600">{audienceLabels[c.audience_type] || c.audience_type}</td>
                       <td className="px-4 py-3 text-slate-600">{c.recipient_count}</td>
-                      <td className="px-4 py-3 text-slate-600 max-w-[200px] truncate">{c.subject}</td>
-                      <td className="px-4 py-3 text-slate-500">{c.sent_at ? new Date(c.sent_at).toLocaleDateString("en-CA") : "\u2014"}</td>
+                      <td className="px-4 py-3">
+                        <span className="text-emerald-600 font-semibold">{c.sent_count}</span>
+                        <span className="text-slate-400"> / </span>
+                        <span className="text-red-500 font-semibold">{c.failed_count}</span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-500">{c.sent_at ? new Date(c.sent_at).toLocaleDateString("en-CA") : new Date(c.created_at).toLocaleDateString("en-CA")}</td>
                       <td className="px-4 py-3">
                         <div className="flex gap-2">
-                          <button onClick={() => handleDuplicate(c)} className="text-xs text-violet-600 hover:text-violet-800 font-semibold">Duplicate</button>
+                          <Link href={"/agent/outreach/" + c.id} className="text-xs text-violet-600 hover:text-violet-800 font-semibold">View</Link>
+                          <button onClick={() => handleDuplicate(c)} className="text-xs text-slate-500 hover:text-slate-700 font-semibold">Duplicate</button>
                           <button onClick={() => setDeleteId(c.id)} className="text-xs text-red-500 hover:text-red-700 font-semibold">Delete</button>
                         </div>
                       </td>
@@ -164,10 +180,10 @@ export default function OutreachPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
             <h3 className="text-lg font-bold text-slate-900 mb-2">Delete Campaign?</h3>
-            <p className="text-sm text-slate-600 mb-4">This action cannot be undone.</p>
+            <p className="text-sm text-slate-600 mb-4">This will permanently delete the campaign and all its recipients. This cannot be undone.</p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setDeleteId(null)} className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
-              <button onClick={handleDelete} className="px-4 py-2 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg">Delete</button>
+              <button onClick={() => setDeleteId(null)} disabled={deleting} className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+              <button onClick={handleDelete} disabled={deleting} className="px-4 py-2 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg disabled:opacity-50">{deleting ? "Deleting..." : "Delete"}</button>
             </div>
           </div>
         </div>
