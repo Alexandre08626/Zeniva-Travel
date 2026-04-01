@@ -8,6 +8,7 @@ interface Lead {
   first_name?: string;
   last_name?: string;
   destination?: string;
+  language?: string;
   status: string;
   deal_value?: number;
   source?: string;
@@ -26,6 +27,7 @@ interface BusinessLead {
   number_of_agents: number;
   current_suppliers: string;
   city: string;
+  province: string;
   status: string;
   source: string;
   priority: string;
@@ -115,6 +117,9 @@ export default function LeadsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [destinationFilter, setDestinationFilter] = useState("all");
+  const [languageFilter, setLanguageFilter] = useState("all");
+  const [provinceFilter, setProvinceFilter] = useState("all");
 
   const [activeTab, setActiveTab] = useState<"travelers" | "agents" | "agencies">("travelers");
   const [businessLeads, setBusinessLeads] = useState<BusinessLead[]>([]);
@@ -209,13 +214,19 @@ export default function LeadsPage() {
   };
 
   const filtered = leads.filter(l => {
-    // Hide placeholder FB leads — only show when they have a real email
     if (l.email?.endsWith("@zeniva-lead.com")) return false;
-    const name = `${l.first_name || ""} ${l.last_name || ""}`.trim();
+    const name = (l.first_name || "") + " " + (l.last_name || "");
     const matchSearch = !search || name.toLowerCase().includes(search.toLowerCase()) || l.email.toLowerCase().includes(search.toLowerCase()) || (l.destination || "").toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "all" || l.status === statusFilter;
-    return matchSearch && matchStatus;
+    const matchDest = destinationFilter === "all" || (l.destination || "").toLowerCase().includes(destinationFilter.toLowerCase());
+    const matchLang = languageFilter === "all" || l.language === languageFilter;
+    return matchSearch && matchStatus && matchDest && matchLang;
   });
+
+  // Build unique values for dropdowns
+  const destinations = [...new Set(leads.filter(l => l.destination && !l.email?.endsWith("@zeniva-lead.com")).map(l => l.destination!))].sort();
+  const languages = [...new Set(leads.filter(l => l.language).map(l => l.language!))].sort();
+  const provinces = [...new Set(businessLeads.filter(l => l.province).map(l => l.province))].sort();
 
   const realLeads = leads.filter(l => !l.email?.endsWith("@zeniva-lead.com"));
   const statuses = ["all", "new", "contacted", "followed_up", "quoted", "client", "junk"];
@@ -282,26 +293,48 @@ export default function LeadsPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6 flex flex-col sm:flex-row gap-3">
-        <input
-          type="text"
-          placeholder="Search leads..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="flex-1 rounded-xl border border-slate-200 px-4 py-2 text-sm focus:outline-none focus:border-blue-400"
-        />
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6 space-y-3">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <input
+            type="text"
+            placeholder="Search leads..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="flex-1 rounded-xl border border-slate-200 px-4 py-2 text-sm focus:outline-none focus:border-blue-400"
+          />
+          {activeTab === "travelers" && (
+            <>
+              <select value={destinationFilter} onChange={e => setDestinationFilter(e.target.value)}
+                className="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400 min-w-[160px]">
+                <option value="all">All Destinations</option>
+                {destinations.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+              <select value={languageFilter} onChange={e => setLanguageFilter(e.target.value)}
+                className="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400 min-w-[120px]">
+                <option value="all">All Languages</option>
+                {languages.map(l => <option key={l} value={l}>{l === "fr" ? "Fran\u00e7ais" : l === "en" ? "English" : l === "es" ? "Espa\u00f1ol" : l === "ar" ? "Arabic" : l}</option>)}
+              </select>
+            </>
+          )}
+          {(activeTab === "agencies" || activeTab === "agents") && (
+            <select value={provinceFilter} onChange={e => setProvinceFilter(e.target.value)}
+              className="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400 min-w-[160px]">
+              <option value="all">All Provinces</option>
+              {provinces.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          )}
+        </div>
         <div className="flex flex-wrap gap-2">
           {statuses.map(s => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize transition-all ${
-                statusFilter === s
+              className={"px-3 py-1.5 rounded-full text-xs font-semibold capitalize transition-all " +
+                (statusFilter === s
                   ? "bg-blue-600 text-white"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-              }`}
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200")}
             >
-              {s === "all" ? `All (${counts.all})` : `${s} (${counts[s] || 0})`}
+              {s === "all" ? "All (" + counts.all + ")" : s + " (" + (counts[s] || 0) + ")"}
             </button>
           ))}
         </div>
@@ -422,7 +455,11 @@ export default function LeadsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {businessLeads.map(lead => {
+            {businessLeads.filter(lead => {
+              const matchProv = provinceFilter === "all" || lead.province === provinceFilter;
+              const matchSearch2 = !search || (lead.contact_name || "").toLowerCase().includes(search.toLowerCase()) || (lead.contact_email || "").toLowerCase().includes(search.toLowerCase()) || (lead.company_name || "").toLowerCase().includes(search.toLowerCase());
+              return matchProv && matchSearch2;
+            }).map(lead => {
               const isOverdue = lead.next_followup_at && new Date(lead.next_followup_at) < new Date();
               return (
                 <div
