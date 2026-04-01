@@ -339,25 +339,46 @@ export default function ProposalPreviewPage() {
   /* ── send to client ── */
   const handleSend = useCallback(async () => {
     if (!proposal || sending) return;
-    const client = proposal.payload.client;
+    const client = proposal.payload?.client;
     if (!client?.email) {
-      alert("No client email assigned to this proposal.");
+      alert("No client email assigned to this proposal. Go back to the builder and assign a client.");
       return;
     }
     setSending(true);
     try {
+      // Update proposal status
       await fetch("/api/proposals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: proposal.id, status: "Sent" }),
+        body: JSON.stringify({
+          id: proposal.trip_id || tripId,
+          ownerEmail: proposal.owner_email || "agent@zeniva.ca",
+          status: "Sent",
+          payload: proposal.payload,
+        }),
       });
+      // Send email with full trip details
+      const draft = proposal.payload?.tripDraft || {};
+      const sel = proposal.payload?.selections || {};
       await fetch("/api/proposals/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          proposalId: proposal.id,
+          proposalId: proposal.trip_id || tripId,
           clientName: client.name,
           clientEmail: client.email,
+          destination: draft.destination || proposal.destination || "",
+          dates: draft.checkIn && draft.checkOut ? `${fmtDate(draft.checkIn)} — ${fmtDate(draft.checkOut)}` : "",
+          totalPrice: grandTotal > 0 ? `$${grandTotal.toLocaleString()}` : "",
+          proposalUrl: `https://www.zenivatravel.com/agent/proposals/preview/${proposal.trip_id || tripId}`,
+          // Full selections for rich email
+          outboundFlight: sel.flights?.outbound || null,
+          returnFlight: sel.flights?.inbound || null,
+          hotels: sel.hotels || [],
+          activities: sel.activities || [],
+          transfers: sel.transfers || [],
+          travelers: draft.adults || 2,
+          departureCity: draft.departureCity || "",
         }),
       });
       setSent(true);
@@ -367,7 +388,7 @@ export default function ProposalPreviewPage() {
     } finally {
       setSending(false);
     }
-  }, [proposal, sending]);
+  }, [proposal, sending, tripId, grandTotal]);
 
   /* ── loading / error ── */
   if (loading) return <Skeleton />;
