@@ -108,7 +108,7 @@ async function searchHotels(destination, checkIn, checkOut, guests) {
         id: h.id || h.hotelId || `hotel-${i}`,
         name: h.name || h.hotelName || "Hotel",
         location: h.address || h.location || "",
-        price: h.price || h.minRate || h.rate || "—",
+        price: parseFloat(String(h.price || h.minRate || h.rate || "0").replace(/[^0-9.]/g, "")) || 0,
         currency: h.currency || "USD",
         stars: h.stars || h.starRating || h.category || 0,
         rating: h.rating || h.reviewScore || null,
@@ -334,7 +334,12 @@ function HotelCard({ hotel, isSelected, onToggle }) {
               {hotel.board}
             </span>
           )}
-          {!hotel.image && hotel.freeCancellation && (
+          {hotel.perks && hotel.perks.map((perk, i) => (
+            <span key={i} className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200">
+              {perk}
+            </span>
+          ))}
+          {(hotel.freeCancellation || hotel.perks?.some(p => /cancel/i.test(p))) && (
             <span className="text-[10px] bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-200">
               Free cancellation
             </span>
