@@ -150,16 +150,6 @@ const nextConfig: NextConfig = {
         destination: "/zeniyacht/:path*",
         permanent: true,
       },
-      {
-        source: "/residences",
-        destination: "/zenistay",
-        permanent: true,
-      },
-      {
-        source: "/residences/:path*",
-        destination: "/zenistay/:path*",
-        permanent: true,
-      },
     ];
   },
 };
