@@ -154,10 +154,12 @@ export async function GET(req: Request) {
 
   // Support optional passengers count (defaults to 1)
   const passengersCount = Math.max(1, Math.min(9, parseInt(url.searchParams.get('passengers') || '1', 10)));
-  const body = {
+  const cabinClass = url.searchParams.get('cabin_class') || null;
+  const body: any = {
     passengers: Array.from({ length: passengersCount }, () => ({ type: 'adult' })),
     slices: [{ origin, destination, departure_date }],
   };
+  if (cabinClass) body.cabin_class = cabinClass;
 
   try {
     const result = await searchDuffelOffers(body);
