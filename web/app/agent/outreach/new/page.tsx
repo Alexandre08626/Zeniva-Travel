@@ -74,7 +74,7 @@ export default function NewCampaignPage() {
   function toggleContact(id: string) { setSelected((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; }); }
   function togglePageAll() { const all = contacts.every((c) => selected.has(c.id)); setSelected((prev) => { const n = new Set(prev); contacts.forEach((c) => { if (all) n.delete(c.id); else n.add(c.id); }); return n; }); }
   function insertVariable(v: string) { const ta = bodyRef.current; if (!ta) return; const s = ta.selectionStart; const text = "{{" + v + "}}"; setHtmlBody(htmlBody.slice(0, s) + text + htmlBody.slice(ta.selectionEnd)); setTimeout(() => { ta.focus(); ta.setSelectionRange(s + text.length, s + text.length); }, 0); }
-  function getPreviewHtml() { if (previewContact) return replaceVars(htmlBody, buildVariables(previewContact, audience)); return htmlBody; }
+  function getPreviewHtml() { if (previewContact) return replaceVars(htmlBody, buildVariables(previewContact, audience)); return htmlBody.replace(/\{\{[A-Z_]+\}\}/g, ""); }
 
   async function handleSendTest() {
     try { const res = await fetch("/api/outreach/send-test", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ html: getPreviewHtml(), subject, to: "info@zeniva.ca" }) }); showToast(res.ok ? "Test sent to info@zeniva.ca" : "Failed"); } catch { showToast("Failed"); }
