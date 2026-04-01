@@ -46,11 +46,10 @@ export async function GET(req: NextRequest) {
   const todayISO = today.toISOString();
 
   try {
-    // 1. Active Clients - count accounts with client role
+    // 1. Active Clients - count from clients table
     const { count: clientsCount } = await supabase
-      .from("accounts")
-      .select("*", { count: "exact", head: true })
-      .or("role.eq.client,roles.cs.{client}");
+      .from("clients")
+      .select("*", { count: "exact", head: true });
 
     stats.active_clients = clientsCount || 0;
 
@@ -69,18 +68,20 @@ export async function GET(req: NextRequest) {
 
     stats.leads_today = leadsToday || 0;
 
-    // 4. Emails sent (from email_logs if exists, else 0)
+    // 4. Emails sent (from comms_log + email_campaign_recipients)
     try {
-      const { count: emailsCount } = await supabase
-        .from("email_logs")
-        .select("*", { count: "exact", head: true });
-      stats.emails_sent = emailsCount || 0;
-
-      const { count: emailsToday } = await supabase
-        .from("email_logs")
+      const { count: commsCount } = await supabase
+        .from("comms_log")
         .select("*", { count: "exact", head: true })
+        .eq("status", "sent");
+      stats.emails_sent = commsCount || 0;
+
+      const { count: commsToday } = await supabase
+        .from("comms_log")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "sent")
         .gte("created_at", todayISO);
-      stats.emails_today = emailsToday || 0;
+      stats.emails_today = commsToday || 0;
     } catch {
       stats.emails_sent = 0;
       stats.emails_today = 0;
