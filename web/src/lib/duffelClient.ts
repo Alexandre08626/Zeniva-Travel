@@ -60,6 +60,50 @@ export function duffelIsConfigured() {
   return Boolean(process.env.DUFFEL_API_KEY && process.env.DUFFEL_VERSION);
 }
 
+/**
+ * Create a Duffel flight order (book the flight).
+ * Call this after payment is confirmed.
+ */
+export async function createFlightOrder(params: {
+  selected_offers: string[];
+  passengers: Array<{
+    type: string;
+    given_name: string;
+    family_name: string;
+    born_on: string;
+    gender: string;
+    title: string;
+    email: string;
+    phone_number: string;
+  }>;
+  payments: Array<{ type: string; amount: string; currency: string }>;
+}) {
+  const key = process.env.DUFFEL_API_KEY;
+  const baseUrl = process.env.DUFFEL_API_URL || 'https://api.duffel.com';
+  const version = process.env.DUFFEL_VERSION || 'v2';
+
+  if (!key) {
+    throw new Error('DUFFEL_API_KEY not configured — cannot create order');
+  }
+
+  const res = await fetch(`${baseUrl}/air/orders`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      'Duffel-Version': version,
+    },
+    body: JSON.stringify({ data: params }),
+  });
+
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`Duffel create order failed: ${res.status} ${txt.slice(0, 300)}`);
+  }
+
+  return await res.json();
+}
+
 // Duffel Stays API functions
 function getDuffelStaysBaseUrl(key?: string) {
   const base = key?.startsWith('duffel_test_')

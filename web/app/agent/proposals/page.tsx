@@ -1,6 +1,7 @@
 "use client";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useAuthStore, isHQ } from "@/src/lib/authStore";
 
 const PREMIUM_BLUE = "#0B1B4D";
@@ -113,12 +114,13 @@ export default function ProposalsPage() {
           <h1 className="text-3xl font-black text-white">📋 Proposals</h1>
           <p className="text-slate-400 text-sm mt-1">Manage and track your client proposals</p>
         </div>
-        <button
+        <Link
+          href="/agent/trip-search"
           className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-white text-sm shadow-lg transition hover:opacity-90"
           style={{ background: BRAND_BLUE }}
         >
           + New Proposal
-        </button>
+        </Link>
       </div>
 
       {/* Stats */}
@@ -148,12 +150,13 @@ export default function ProposalsPage() {
             <p className="text-5xl mb-4">📋</p>
             <p className="text-xl font-bold text-slate-700">No proposals yet</p>
             <p className="text-slate-400 mt-2">Create your first one to get started</p>
-            <button
-              className="mt-6 px-6 py-2.5 rounded-xl font-semibold text-white text-sm"
+            <Link
+              href="/agent/trip-search"
+              className="mt-6 inline-block px-6 py-2.5 rounded-xl font-semibold text-white text-sm"
               style={{ background: BRAND_BLUE }}
             >
               + New Proposal
-            </button>
+            </Link>
           </div>
         ) : (
           <div className="space-y-2">
@@ -228,6 +231,12 @@ export default function ProposalsPage() {
                             </button>
                           </>
                         )}
+                        <Link href={`/agent/proposals/${p.id}`} className="px-4 py-2 rounded-lg text-sm font-semibold bg-blue-500 text-white hover:bg-blue-600 transition">
+                          🔍 View / Finalize
+                        </Link>
+                        <Link href={`/agent/proposals/preview/${p.id}`} className="px-4 py-2 rounded-lg text-sm font-semibold bg-purple-100 text-purple-700 hover:bg-purple-200 transition">
+                          👁️ Preview
+                        </Link>
                         <button className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
                           📄 Duplicate
                         </button>

@@ -104,6 +104,59 @@ export async function POST(req: NextRequest) {
       console.log(`[Zeniva Webhook] Invoice auto-created: ${generatedInvoiceId}`);
     }
 
+    // ── AUTO-BOOK WITH PARTNERS (if proposal_id in metadata) ─────────────
+    const proposalId = metadata.proposal_id;
+    if (proposalId) {
+      try {
+        // Load proposal from Supabase
+        const { data: proposals } = await supabase
+          .from("proposals")
+          .select("payload")
+          .eq("trip_id", proposalId)
+          .limit(1);
+
+        const proposal = proposals?.[0];
+        if (proposal?.payload) {
+          const { selections, passengers, hotelGuests, tripDraft } = proposal.payload;
+
+          // Execute bookings with partners (Duffel flights + LiteAPI hotel)
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.zenivatravel.com";
+          const execRes = await fetch(`${baseUrl}/api/bookings/execute`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ proposalId, selections, passengers, hotelGuests, tripDraft }),
+          });
+          const execData = await execRes.json();
+
+          // Update proposal status to "Booked"
+          await supabase.from("proposals").update({
+            status: "Booked",
+            payload: { ...proposal.payload, bookingConfirmations: execData.confirmations },
+            updated_at: new Date().toISOString(),
+          }).eq("trip_id", proposalId);
+
+          // Send confirmation email to client
+          await fetch(`${baseUrl}/api/bookings/confirmation-email`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              clientEmail: customer_email,
+              clientName: customer_name,
+              destination: metadata.destination || tripDraft?.destination,
+              dates: `${tripDraft?.checkIn || ""} → ${tripDraft?.checkOut || ""}`,
+              totalPrice: amount,
+              confirmations: execData.confirmations,
+              bookingId,
+            }),
+          }).catch(() => {});
+
+          console.log(`[Zeniva Webhook] Auto-booked proposal ${proposalId}:`, execData.confirmations);
+        }
+      } catch (execErr) {
+        console.error("[Zeniva Webhook] Auto-booking error:", execErr);
+      }
+    }
+
     return NextResponse.json({
       received: true,
       booking_id: bookingId,

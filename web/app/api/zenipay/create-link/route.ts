@@ -38,7 +38,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { amount, currency = "USD", description, expiry } = await req.json();
+    const { amount, currency = "USD", description, expiry, metadata } = await req.json();
 
     if (!amount || parseFloat(String(amount)) <= 0) {
       return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://zenivatravel.com";
     const url = `${baseUrl}/pay/${id}?amount=${amount}&currency=${currency}&desc=${encodeURIComponent(description || "")}`;
 
-    const linkData = {
+    const linkData: Record<string, any> = {
       id,
       url,
       amount: parseFloat(String(amount)),
@@ -60,6 +60,7 @@ export async function POST(req: NextRequest) {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
+    if (metadata) linkData.metadata = metadata;
 
     const supabase = getSupabase();
     if (supabase) {
