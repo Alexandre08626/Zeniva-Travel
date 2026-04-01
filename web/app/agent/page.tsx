@@ -166,6 +166,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
         const stats = await dashRes.json();
         setDashStats(stats);
         setVpsStats(stats); // Use same stats for both to ensure consistency
+        try { localStorage.setItem("rex_last_known_stats", JSON.stringify(stats)); } catch {}
       }
       if (actRes.ok) { const d = await actRes.json(); setActivity(d?.activities || d?.activity || []); }
       if (accountsRes?.ok) {
@@ -190,12 +191,6 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
       try {
         const reqRes = await fetch("/api/agent-requests");
         if (reqRes.ok) { const d = await reqRes.json(); setAgentRequests((d?.data || []).filter((r: any) => r.status === "pending").slice(0, 5)); }
-      } catch {}
-    }
-    // Store last successful stats in localStorage
-    if (dashStats) {
-      try {
-        localStorage.setItem("rex_last_known_stats", JSON.stringify(dashStats));
       } catch {}
     }
   };

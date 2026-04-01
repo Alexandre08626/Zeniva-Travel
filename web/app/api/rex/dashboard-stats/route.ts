@@ -68,35 +68,37 @@ export async function GET(req: NextRequest) {
 
     stats.leads_today = leadsToday || 0;
 
-    // 4. Emails sent (from comms_log + email_campaign_recipients)
+    // 4. Emails sent (from comms_log where type = 'email')
     try {
-      const { count: commsCount } = await supabase
+      const { count: emailsCount } = await supabase
         .from("comms_log")
         .select("*", { count: "exact", head: true })
-        .eq("status", "sent");
-      stats.emails_sent = commsCount || 0;
+        .eq("type", "email");
+      stats.emails_sent = emailsCount || 0;
 
-      const { count: commsToday } = await supabase
+      const { count: emailsToday } = await supabase
         .from("comms_log")
         .select("*", { count: "exact", head: true })
-        .eq("status", "sent")
+        .eq("type", "email")
         .gte("created_at", todayISO);
-      stats.emails_today = commsToday || 0;
+      stats.emails_today = emailsToday || 0;
     } catch {
       stats.emails_sent = 0;
       stats.emails_today = 0;
     }
 
-    // 5. SMS sent (from sms_logs if exists, else 0)
+    // 5. SMS sent (from comms_log where type = 'sms')
     try {
       const { count: smsCount } = await supabase
-        .from("sms_logs")
-        .select("*", { count: "exact", head: true });
+        .from("comms_log")
+        .select("*", { count: "exact", head: true })
+        .eq("type", "sms");
       stats.sms_sent = smsCount || 0;
 
       const { count: smsToday } = await supabase
-        .from("sms_logs")
+        .from("comms_log")
         .select("*", { count: "exact", head: true })
+        .eq("type", "sms")
         .gte("created_at", todayISO);
       stats.sms_today = smsToday || 0;
     } catch {
@@ -104,39 +106,21 @@ export async function GET(req: NextRequest) {
       stats.sms_today = 0;
     }
 
-    // 6. Commission Pipeline - SUM of all open proposals/bookings not yet confirmed
+    // 6. Commission Pipeline - SUM of total_price from open bookings
     try {
       const { data: openBookings } = await supabase
         .from("bookings")
-        .select("commission_amount")
+        .select("total_price")
         .in("status", ["pending", "confirmed", "processing"]);
 
       if (openBookings && openBookings.length > 0) {
         stats.commission_pipeline = openBookings.reduce(
-          (sum: number, b: any) => sum + (Number(b.commission_amount) || 0),
+          (sum: number, b: any) => sum + (Number(b.total_price) || 0),
           0
         );
       }
     } catch {
       // Table might not exist or query failed
-    }
-
-    // Also check commissions table for pending commissions
-    try {
-      const { data: pendingCommissions } = await supabase
-        .from("commissions")
-        .select("amount")
-        .eq("status", "pending");
-
-      if (pendingCommissions && pendingCommissions.length > 0) {
-        const commSum = pendingCommissions.reduce(
-          (sum: number, c: any) => sum + (Number(c.amount) || 0),
-          0
-        );
-        stats.commission_pipeline += commSum;
-      }
-    } catch {
-      // Commissions table might not exist
     }
 
     // 7. Lina Chats - total messages
