@@ -546,6 +546,15 @@ function AgentDetailPanel({ agent, onClose, onToggle }: {
                         setCmdMessages(prev => [...prev, {role:"assistant", content:`🔎 Facebook scan complete!\n\n${leads.length} hot leads found:\n\n${summary}\n\nWould you like me to generate outreach messages for any of these?`}]);
                       }} />
                     )}
+                    {agent.id === "rex" && (                      <button                        onClick={async () => {                          setCmdMessages(prev => [...prev, {role:"user", content:"🧹 Run full maintenance audit"}]);                          setCmdLoading(true);                          try {                            const r = await fetch("/api/rex/maintenance");                            const d = await r.json();                            const icon = d.status === "healthy" ? "✅" : d.status === "warning" ? "⚠️" : "🚨";                            let report = icon + " **MAINTENANCE REPORT** — " + d.status.toUpperCase() + "
+
+";                            report += "📊 " + d.summary.passed + " passed | " + d.summary.warnings + " warnings | " + d.summary.critical + " critical
+";                            report += "⏱️ Scanned in " + d.summary.duration_ms + "ms
+
+";                            const cats = [...new Set(d.findings.map((f: any) => f.category))];                            for (const cat of cats) {                              report += "━━ " + cat + " ━━
+";                              d.findings.filter((f: any) => f.category === cat).forEach((f: any) => {                                const sev = f.severity === "critical" ? "🔴" : f.severity === "warning" ? "🟡" : "🟢";                                report += sev + " " + f.message + (f.detail ? " — " + f.detail : "") + "
+";                              });                              report += "
+";                            }                            setCmdMessages(prev => [...prev, {role:"assistant", content: report}]);                          } catch {                            setCmdMessages(prev => [...prev, {role:"assistant", content:"❌ Maintenance scan failed. Check server logs."}]);                          }                          setCmdLoading(false);                        }}                        className="block w-full text-left text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl px-3 py-2.5 transition font-semibold mt-3"                      >                        🧹 Run Full Maintenance Audit                      </button>                    )}
                     <div className="mt-4 space-y-2">
                       {agent.scenarios.slice(0,2).map((s,i) => (
                         <button key={i} onClick={() => setCmdInput(s.title)}
@@ -1173,12 +1182,13 @@ export default function AIAgentsPageClient() {
       schedule: "Daily 8am + Real-time", color: "#059669",
       description: "Backend monitoring and auto-fix agent. Monitors all APIs, detects errors and bugs, sends daily health reports at 8am, alerts the team on critical issues, and suggests performance optimizations.",
       intro: "I'm Rex, your AI Platform Engineer. I monitor the entire backend 24/7 — APIs, databases, services, performance. Every morning at 8am I send a health report. When something breaks, I detect it instantly, attempt auto-fix, and alert the team. I keep your platform running smoothly.",
-      features: ["Bug Detection", "API Monitoring", "Performance", "Auto-Fix", "Daily Reports", "Team Alerts"],
+      features: ["Bug Detection", "API Monitoring", "Performance", "Auto-Fix", "Daily Reports", "Team Alerts", "Code Maintenance"],
       scenarios: [
         { icon: "🔍", title: "API endpoint failure detected", desc: "The /api/lina endpoint returns 500 errors. Rex detects it within seconds, attempts auto-restart, and sends a Slack alert with error logs." },
         { icon: "📊", title: "Daily health report at 8am", desc: "Every morning Rex sends a complete report: API response times, error rates, database performance, disk usage, and optimization suggestions." },
         { icon: "⚡", title: "Performance degradation alert", desc: "API response time increased from 200ms to 1.2s. Rex alerts the team and suggests database index optimization." },
         { icon: "🛠️", title: "Auto-fix successful", desc: "Database connection pool exhausted. Rex automatically restarts the service and scales up connection limits to prevent recurrence." },
+        { icon: "🧹", title: "Codebase maintenance audit", desc: "Rex scans the entire platform: database health, API routes, data quality, stuck campaigns, missing env vars, failed emails. Returns a full report with severity levels." },
       ],
       activityLog: [
         { time: "2 min ago", action: "Health check completed — all systems OK", status: "success" },
