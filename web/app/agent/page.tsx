@@ -42,31 +42,36 @@ const STATUS_CFG: Record<AgentStatus, { label: string; dot: string; badge: strin
   error: { label: "Erreur", dot: "bg-red-500", badge: "bg-red-100 text-red-700" },
 };
 
+// Agent nav — visible to all agents
 const NAV_LINKS = [
   { label: "Dashboard", href: "/agent", icon: "🏠" },
   { label: "Clients", href: "/agent/clients", icon: "👥" },
-  { label: "Leads", href: "/agent/leads", icon: "🎯" },
   { label: "Trip Search", href: "/agent/trip-search", icon: "🔍" },
   { label: "Proposals", href: "/agent/proposals", icon: "📋" },
   { label: "Bookings", href: "/agent/bookings", icon: "✈️" },
   { label: "Commissions", href: "/agent/commissions", icon: "💰" },
   { label: "Calendar", href: "/agent/calendar", icon: "📅" },
-  { label: "Chat Hub", href: "/agent/chat", icon: "💬" },
   { label: "Chat with Lina", href: "/agent/lina", icon: "lina" },
-  { label: "Listings", href: "/agent/listings", icon: "🏨" },
-  { label: "Partners", href: "/agent/partners", icon: "🤝" },
-  { label: "Control Tower", href: "/agent/control-tower", icon: "🗼" },
   { label: "Settings", href: "/agent/settings", icon: "⚙️" },
 ];
 
+// HQ nav — visible to all HQ/admin users
 const HQ_LINKS = [
+  { label: "Leads", href: "/agent/leads", icon: "🎯" },
   { label: "Agencies", href: "/agent/agencies", icon: "🏢" },
-  { label: "Network Map", href: "/agent/network-map", icon: "🗺️" },
-  { label: "Agent Command", href: "/agent/agents", icon: "🎯" },
+  { label: "Chat Hub", href: "/agent/chat", icon: "💬" },
+  { label: "Control Tower", href: "/agent/control-tower", icon: "🗼" },
+  { label: "Partners", href: "/agent/partners", icon: "🤝" },
+  { label: "Agent Command", href: "/agent/agents", icon: "👤" },
   { label: "Agent Requests", href: "/agent/requests", icon: "📨" },
   { label: "Influencer", href: "/agent/influencer", icon: "⭐" },
   { label: "AI Agents Hub", href: "/ai-agents", icon: "🤖" },
-  { label: "Sofia — Outreach", href: "/agent/outreach", icon: "📬" },
+  { label: "Sofia \u2014 Marketing", href: "/agent/outreach", icon: "📬" },
+];
+
+// Zeniva HQ only (info@zeniva.ca) — extra admin items
+const ZENIVA_HQ_LINKS = [
+  { label: "Listings", href: "/agent/listings", icon: "🏨" },
 ];
 
 export function AgentDashboardPage({ agentId }: { agentId?: string }) {
@@ -302,6 +307,23 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
                 }
               </div>
               {HQ_LINKS.map((link) => (
+                <div key={link.href} className="relative group">
+                  <Link href={link.href}
+                    className="flex items-center gap-3 rounded-xl px-2 py-2 text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
+                    <span className="text-base shrink-0 w-6 text-center">{link.icon}</span>
+                    {navOpen && <span>{link.label}</span>}
+                  </Link>
+                  {!navOpen && (
+                    <div className="absolute left-14 top-1/2 -translate-y-1/2 z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                      <div className="bg-amber-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-xl border border-amber-600">
+                        HQ · {link.label}
+                        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-amber-800" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+              {user?.email === "info@zeniva.ca" && ZENIVA_HQ_LINKS.map((link) => (
                 <div key={link.href} className="relative group">
                   <Link href={link.href}
                     className="flex items-center gap-3 rounded-xl px-2 py-2 text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
