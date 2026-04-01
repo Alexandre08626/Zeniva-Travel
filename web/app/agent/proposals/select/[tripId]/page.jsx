@@ -49,7 +49,7 @@ async function searchFlights(origin, destination, date) {
     const res = await fetch(`/api/partners/duffel?${params}`);
     if (res.ok) {
       const data = await res.json();
-      const offers = data?.result?.offers || data?.offers || data?.data || [];
+      const offers = data?.result?.data?.offers || data?.result?.offers || data?.offers || data?.data || [];
       return offers.slice(0, 10).map((o, i) => {
         const slice = o.slices?.[0] || {};
         const seg = slice.segments?.[0] || {};
