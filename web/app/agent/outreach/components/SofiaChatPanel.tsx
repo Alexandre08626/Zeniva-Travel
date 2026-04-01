@@ -168,7 +168,7 @@ export default function SofiaChatPanel({ onClose, campaignContext }: SofiaChatPa
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-bold text-slate-900">Sofia</h3>
-          <p className="text-[11px] text-slate-500 truncate">Email Marketing AI Specialist</p>
+          <p className="text-[11px] text-slate-500 truncate">Specialiste Email Marketing</p>
         </div>
         <div className="flex items-center gap-1">
           <button onClick={clearChat} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg" title="Clear chat">
@@ -187,9 +187,9 @@ export default function SofiaChatPanel({ onClose, campaignContext }: SofiaChatPa
         {messages.length === 0 && (
           <div className="text-center py-6">
             <Image src="/agents/sofia.png" alt="Sofia" width={64} height={64} className="rounded-full mx-auto mb-3 ring-4 ring-violet-100" />
-            <h4 className="text-sm font-bold text-slate-900 mb-1">Salut! Je suis Sofia</h4>
+            <h4 className="text-sm font-bold text-slate-900 mb-1">Salut! Moi c&apos;est Sofia</h4>
             <p className="text-xs text-slate-500 mb-5 max-w-[280px] mx-auto">
-              Ton assistante email marketing. Je peux creer des templates HTML, analyser tes campagnes, et t&apos;aider a convertir plus de leads.
+              Ta specialiste email marketing chez Zeniva. Je cree des templates HTML, j&apos;analyse tes campagnes et je t&apos;aide a convertir plus de leads. Demande-moi ce que tu veux!
             </p>
             <div className="grid grid-cols-2 gap-2">
               {QUICK_ACTIONS.map((action) => (

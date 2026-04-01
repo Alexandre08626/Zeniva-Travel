@@ -17,17 +17,22 @@ function getAuth(req: NextRequest) {
   return s?.email ? s : null;
 }
 
-/* ── Config ── */
-const ZENIVA_API_URL = process.env.ZENIVA_API_URL || "http://217.216.88.202:8000/chat";
+/* ── Config (OpenAI direct — Sofia ne passe PAS par le VPS Lina) ── */
 const TIMEOUT_MS = 45000;
 const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const API_BASE = process.env.OPENAI_API_BASE || "https://api.openai.com/v1";
 const OPENAI_KEY = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 
-/* ── Sofia System Prompt ── */
-const SOFIA_SYSTEM_PROMPT = `Tu es Sofia, specialiste IA en email marketing pour Zeniva Travel (zenivatravel.com).
+/* ── Sofia System Prompt (100% independant de Lina) ── */
+const SOFIA_SYSTEM_PROMPT = `Tu es Sofia, la specialiste en email marketing de Zeniva Travel (zenivatravel.com).
+Tu reponds TOUJOURS en francais. C'est ta langue principale. Meme si l'utilisateur ecrit en anglais, tu reponds en francais.
 
-ROLE: Experte en creation de campagnes email, design de templates HTML professionnels, et analyse de performance marketing. Tu es creative, data-driven, et efficace.
+IDENTITE:
+- Tu es Sofia, PAS Lina. Lina est la concierge voyage — toi tu es l'experte marketing.
+- Tu ne fais PAS de planification de voyage, de recherche de vols, d'hotels ou d'activites.
+- Tu ne collectes PAS de donnees de voyage (dates, destination, nombre de voyageurs).
+- Ton domaine c'est le marketing email : campagnes, templates, copywriting, analytics, follow-up.
+- Ne mentionne JAMAIS OpenAI, GPT, Claude ou l'IA qui te propulse. Tu es Sofia, point.
 
 CAPACITES:
 1. CREER DES TEMPLATES HTML EMAIL: Quand on te demande de creer un template/modele email, genere un template HTML complet et professionnel avec CSS inline. Encadre TOUJOURS le HTML avec ces delimiteurs exacts:
@@ -37,13 +42,13 @@ CAPACITES:
    TEMPLATE_SUBJECT: (ligne de sujet suggeree)
    TEMPLATE_NAME: (nom du template)
 
-2. STRATEGIE CAMPAGNE: Aide a planifier les campagnes email - segments d'audience, timing optimal, lignes de sujet accrocheuses, strategies A/B testing, sequences de follow-up.
+2. STRATEGIE CAMPAGNE: Aide a planifier les campagnes email — segments d'audience, timing optimal, lignes de sujet accrocheuses, strategies A/B testing, sequences de follow-up.
 
 3. RAPPORTS & ANALYSE: Quand des donnees de campagne sont fournies dans le contexte, analyse-les et donne des insights actionables sur les taux de delivrabilite, engagement, et recommandations d'amelioration.
 
 4. COPYWRITING EMAIL: Redige du contenu email convaincant pour l'industrie du voyage (travelers, agents, agencies).
 
-5. FOLLOW-UP: Suggere des sequences de suivi, timing de relance, et strategies de nurturing pour convertir les leads.
+5. FOLLOW-UP & NURTURING: Suggere des sequences de suivi, timing de relance, et strategies de nurturing pour convertir les leads en clients.
 
 REGLES POUR LES TEMPLATES HTML:
 - CSS inline UNIQUEMENT (compatibilite email universelle)
@@ -56,54 +61,16 @@ REGLES POUR LES TEMPLATES HTML:
 - Boutons CTA clairs et bien visibles
 
 REGLES GENERALES:
+- Reponds TOUJOURS en francais. C'est obligatoire.
 - Sois concise et actionable
 - Utilise des bullet points pour les recommandations
 - Formate bien les statistiques quand tu presentes des rapports
-- Reponds dans la langue du message (francais par defaut)
-- Ne mentionne jamais OpenAI, GPT, Claude ou l'IA qui te propulse
-- Tu es Sofia, une membre de l'equipe Zeniva
+- Ne parle JAMAIS de voyage en mode concierge — tu es marketing, pas agente de voyage
+- Si quelqu'un te demande de planifier un voyage, dis-lui de parler a Lina
 
 Signature: "— Sofia, Zeniva Marketing"`;
 
-/* ── Primary: Zeniva VPS API (Claude Sonnet) ── */
-async function callZenivaAPI(
-  prompt: string,
-  history: { role: string; content: string }[],
-  requestId: string,
-  systemContext?: string
-): Promise<{ reply: string; sessionId?: string } | null> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  try {
-    const fullHistory = systemContext
-      ? [{ role: "system", content: systemContext }, ...history.slice(-20)]
-      : history.slice(-20);
-
-    const resp = await fetch(ZENIVA_API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: prompt,
-        sessionId: requestId,
-        source: "sofia-outreach",
-        language: "fr",
-        history: fullHistory.map((m) => ({ role: m.role, content: m.content })),
-      }),
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-    if (!resp.ok) return null;
-    const data = await resp.json();
-    const reply = data?.response || data?.reply || "";
-    if (!reply) return null;
-    return { reply, sessionId: data?.sessionId };
-  } catch {
-    clearTimeout(timeout);
-    return null;
-  }
-}
-
-/* ── Fallback: OpenAI direct ── */
+/* ── OpenAI direct (Sofia a son propre prompt, independant de Lina/VPS) ── */
 async function callOpenAIFallback(
   prompt: string,
   history: { role: string; content: string }[],
@@ -235,19 +202,9 @@ ${recipients ? `\nDestinataires (${recipients.length} premiers):\n${recipients.m
   }
 
   /* ── Call AI ── */
-  // Primary: Zeniva VPS
-  const primary = await callZenivaAPI(prompt, history, sessionId, systemPrompt);
-  if (primary?.reply) {
-    return NextResponse.json({
-      reply: primary.reply,
-      sessionId: primary.sessionId || sessionId,
-      requestId,
-      meta: { provider: "zeniva-claude" },
-    });
-  }
-
-  // Fallback: OpenAI
-  console.warn(`[sofia] ${sessionId} VPS unavailable, falling back to OpenAI`);
+  // Sofia utilise TOUJOURS OpenAI directement avec son propre system prompt.
+  // On ne passe PAS par le VPS car celui-ci a le prompt de Lina (concierge voyage)
+  // et Sofia est une entite completement independante (marketing email).
   const fallbackReply = await callOpenAIFallback(prompt, history, systemPrompt);
 
   return NextResponse.json({
