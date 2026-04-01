@@ -288,8 +288,20 @@ export async function POST(req: NextRequest) {
   // B2B: extract agency context for multi-tenant tracking
   const { agencyId, agentId } = await getAgencyContext(req);
 
-  // Agent mode: use OpenAI directly with SYSTEM_PROMPT_AGENT (skip VPS which has its own prompt)
+  // Agent mode: try VPS first (Claude), fallback to OpenAI
   if (mode === "agent") {
+    // Try VPS first
+    const vpsPrimary = await callZenivaAPI(prompt, history, sessionId);
+    if (vpsPrimary?.reply) {
+      logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "zeniva-claude-agent" } });
+      return NextResponse.json({
+        reply: vpsPrimary.reply,
+        prompt,
+        requestId,
+        meta: { provider: "zeniva-claude-agent", sessionId: vpsPrimary.sessionId, mode },
+      });
+    }
+    // Fallback to OpenAI
     const agentReply = await callOpenAIFallback(prompt, history, sessionId, mode, null);
     logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "openai-agent" } });
     return NextResponse.json({
