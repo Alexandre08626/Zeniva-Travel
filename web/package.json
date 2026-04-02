@@ -11,7 +11,7 @@
     "test:lina": "node scripts/test-lina.mjs",
     "test:duffel:e2e": "node scripts/duffel-stays-e2e.mjs",
     "pack:duffel:artifacts": "node scripts/pack-duffel-artifacts.mjs",
-    "vercel-build": "next build"
+    "vercel-build": "next build --no-turbopack"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.93.1",
