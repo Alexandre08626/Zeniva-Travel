@@ -76,7 +76,10 @@ async function callOpenAIFallback(
   history: { role: string; content: string }[],
   systemPrompt: string
 ): Promise<string> {
-  if (!OPENAI_KEY) return "Sofia est temporairement indisponible. Contactez info@zeniva.ca";
+  if (!OPENAI_KEY) {
+    console.error("[Sofia] OPENAI_API_KEY is missing");
+    return "Sofia est temporairement indisponible (cle API manquante). Contactez info@zeniva.ca";
+  }
 
   const messages = [
     { role: "system", content: systemPrompt },
@@ -97,18 +100,29 @@ async function callOpenAIFallback(
       signal: controller.signal,
     });
     clearTimeout(timeout);
-    if (!resp.ok) return "Sofia est temporairement indisponible. Contactez info@zeniva.ca";
+    if (!resp.ok) {
+      const errText = await resp.text().catch(() => "");
+      console.error(`[Sofia] OpenAI error ${resp.status}: ${errText.slice(0, 200)}`);
+      return `Sofia est temporairement indisponible (OpenAI ${resp.status}). Contactez info@zeniva.ca`;
+    }
     const data = await resp.json();
     return data?.choices?.[0]?.message?.content?.trim() || "";
-  } catch {
+  } catch (err: any) {
     clearTimeout(timeout);
-    return "Sofia est temporairement indisponible. Contactez info@zeniva.ca";
+    console.error("[Sofia] OpenAI call failed:", err?.message);
+    return `Sofia est temporairement indisponible (${err?.message || "erreur reseau"}). Contactez info@zeniva.ca`;
   }
 }
 
 /* ── POST Handler ── */
 export async function POST(req: NextRequest) {
-  const session = getAuth(req);
+  let session;
+  try {
+    session = getAuth(req);
+  } catch (authErr: any) {
+    console.error("[Sofia] Auth error:", authErr?.message);
+    return NextResponse.json({ error: "Auth error: " + (authErr?.message || "unknown") }, { status: 500 });
+  }
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const requestId = crypto.randomUUID();

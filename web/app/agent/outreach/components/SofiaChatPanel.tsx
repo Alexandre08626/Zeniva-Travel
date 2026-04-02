@@ -116,7 +116,10 @@ export default function SofiaChatPanel({ onClose, campaignContext }: SofiaChatPa
         }),
       });
 
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP ${res.status}`);
+      }
 
       const data = await res.json();
       const reply = data.reply || "Desolee, je n'ai pas pu traiter ta demande.";
@@ -131,13 +134,13 @@ export default function SofiaChatPanel({ onClose, campaignContext }: SofiaChatPa
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
-    } catch {
+    } catch (err: any) {
       setMessages((prev) => [
         ...prev,
         {
           id: crypto.randomUUID(),
           role: "assistant",
-          content: "Desolee, une erreur est survenue. Reessaie dans un moment.",
+          content: `Erreur: ${err?.message || "inconnue"}. Verifie ta connexion et reessaie.`,
           timestamp: Date.now(),
         },
       ]);
