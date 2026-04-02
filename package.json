@@ -2,8 +2,11 @@
   "name": "zeniva-root",
   "private": true,
   "scripts": {
-    "vercel-build": "cd web && npm install && npm run build",
+    "vercel-build": "cd web && npm install --legacy-peer-deps && npm run build",
     "build": "npm --prefix web run build",
     "dev": "npm --prefix web run dev"
+  },
+  "dependencies": {
+    "next": "16.1.6"
   }
 }
