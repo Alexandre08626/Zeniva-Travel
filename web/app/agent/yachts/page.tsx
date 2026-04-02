@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import { searchYachts } from "../../../src/lib/agent/inventory/yachts";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../src/design/tokens";
 import Link from "next/link";
@@ -6,7 +7,8 @@ import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
 
 export default function AgentYachtsPage() {
   useRequireAnyPermission(["read_yachts_inventory", "inventory:all"], "/agent");
-  const yachts = searchYachts();
+  const [yachts, setYachts] = useState<ReturnType<typeof searchYachts>>([]);
+  useEffect(() => { setYachts(searchYachts()); }, []);
   return (
     <main className="min-h-screen" style={{ backgroundColor: "#F3F6FB" }}>
       <div className="mx-auto max-w-5xl px-5 py-8 space-y-6">
