@@ -47,6 +47,11 @@ export default function NewCampaignPage() {
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
   const [previewContact, setPreviewContact] = useState<Contact | null>(null);
 
+  const [showAiCompose, setShowAiCompose] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiTone, setAiTone] = useState("professionnel et engageant");
+  const [aiLoading, setAiLoading] = useState(false);
+
   const [campaignName, setCampaignName] = useState("");
   const [sendOption, setSendOption] = useState<"now" | "schedule" | "draft">("now");
   const [scheduleDate, setScheduleDate] = useState("");
@@ -76,6 +81,24 @@ export default function NewCampaignPage() {
   function togglePageAll() { const all = contacts.every((c) => selected.has(c.id)); setSelected((prev) => { const n = new Set(prev); contacts.forEach((c) => { if (all) n.delete(c.id); else n.add(c.id); }); return n; }); }
   function insertVariable(v: string) { const ta = bodyRef.current; if (!ta) return; const s = ta.selectionStart; const text = "{{" + v + "}}"; setHtmlBody(htmlBody.slice(0, s) + text + htmlBody.slice(ta.selectionEnd)); setTimeout(() => { ta.focus(); ta.setSelectionRange(s + text.length, s + text.length); }, 0); }
   function getPreviewHtml() { if (previewContact) return replaceVars(htmlBody, buildVariables(previewContact, audience)); return htmlBody.replace(/\{\{[A-Z_]+\}\}/g, ""); }
+
+  async function handleAiCompose() {
+    if (!aiPrompt.trim()) return;
+    setAiLoading(true);
+    try {
+      const res = await fetch("/api/outreach/ai-compose", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: aiPrompt, audience, tone: aiTone }) });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.html) setHtmlBody(data.html);
+        if (data.subject) setSubject(data.subject);
+        setShowAiCompose(false);
+        showToast("Email genere par Sofia AI");
+      } else {
+        const err = await res.json();
+        showToast(err.error || "Erreur AI");
+      }
+    } catch { showToast("Erreur de connexion"); } finally { setAiLoading(false); }
+  }
 
   async function handleSendTest() {
     try { const res = await fetch("/api/outreach/send-test", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ html: getPreviewHtml(), subject, to: "info@zeniva.ca" }) }); showToast(res.ok ? "Test sent to info@zeniva.ca" : "Failed"); } catch { showToast("Failed"); }
@@ -145,6 +168,13 @@ export default function NewCampaignPage() {
         {step === 1 && (
           <div className="space-y-4">
             <div className="bg-white rounded-xl border border-slate-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-bold text-slate-700">Compose Email</h2>
+                <button onClick={() => setShowAiCompose(true)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-blue-500 text-white rounded-lg text-sm font-semibold hover:from-violet-700 hover:to-blue-600 shadow-sm">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+                  Sofia AI Compose
+                </button>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div><label className="text-xs font-semibold text-slate-600 uppercase">Template</label><select value={templateId} onChange={(e) => setTemplateId(e.target.value)} className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none"><option value="">Custom (blank)</option>{templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select></div>
                 <div><label className="text-xs font-semibold text-slate-600 uppercase">Subject *</label><input value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none" placeholder="Email subject" /></div>
@@ -221,6 +251,26 @@ export default function NewCampaignPage() {
             <h2 className="text-xl font-bold text-slate-900 mb-2">{sendOption === "now" ? "Campaign Sent!" : sendOption === "schedule" ? "Scheduled!" : "Draft Saved!"}</h2>
             <p className="text-sm text-slate-500 mb-6">{sendOption === "now" ? sendProgress.sent + " emails delivered." : "Your campaign has been saved."}</p>
             <Link href="/agent/outreach" className="inline-block px-6 py-2.5 bg-violet-600 text-white rounded-xl font-semibold text-sm hover:bg-violet-700">View Campaigns</Link>
+          </div>
+        )}
+
+        {showAiCompose && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-6 max-w-lg w-full mx-4 shadow-xl">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-violet-600 to-blue-500 flex items-center justify-center text-white font-bold text-sm">S</div>
+                <div><h3 className="text-lg font-bold text-slate-900">Sofia AI Compose</h3><p className="text-xs text-slate-500">Decris ton email et Sofia le genere</p></div>
+              </div>
+              <div className="space-y-3">
+                <div><label className="text-xs font-semibold text-slate-600 uppercase">Decris ton email</label><textarea value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} rows={4} className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none" placeholder="Ex: Promotion ete 2026, forfaits tout-inclus au Mexique a partir de 899$, offre limitee..." /></div>
+                <div><label className="text-xs font-semibold text-slate-600 uppercase">Ton</label><select value={aiTone} onChange={(e) => setAiTone(e.target.value)} className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none"><option value="professionnel et engageant">Professionnel</option><option value="chaleureux et amical">Chaleureux</option><option value="urgent et persuasif">Urgent / Promo</option><option value="luxueux et exclusif">Luxe / Premium</option><option value="decontracte et fun">Decontracte</option></select></div>
+                <div className="flex flex-wrap gap-1"><span className="text-[10px] text-slate-400 uppercase font-semibold mr-1">Audience:</span><span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-100 text-violet-700">{audience}</span><span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">{selectedCount + " contacts"}</span></div>
+              </div>
+              <div className="flex gap-3 justify-end mt-5">
+                <button onClick={() => setShowAiCompose(false)} className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Annuler</button>
+                <button onClick={handleAiCompose} disabled={aiLoading || !aiPrompt.trim()} className="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-blue-500 hover:from-violet-700 hover:to-blue-600 rounded-lg disabled:opacity-50 flex items-center gap-2">{aiLoading ? (<><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Sofia redige...</>) : "Generer l'email"}</button>
+              </div>
+            </div>
           </div>
         )}
 
