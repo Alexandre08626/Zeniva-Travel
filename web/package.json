@@ -11,7 +11,7 @@
     "test:lina": "node scripts/test-lina.mjs",
     "test:duffel:e2e": "node scripts/duffel-stays-e2e.mjs",
     "pack:duffel:artifacts": "node scripts/pack-duffel-artifacts.mjs",
-    "vercel-build": "next build --no-turbopack"
+    "vercel-build": "next build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.93.1",
@@ -26,7 +26,7 @@
     "lucide-react": "^0.562.0",
     "marked": "^12.0.2",
     "nanoid": "^5.1.7",
-    "next": "16.1.6",
+    "next": "15.3.3",
     "nodemailer": "^8.0.1",
     "pg": "^8.16.3",
     "postgres": "^3.4.8",

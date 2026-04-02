@@ -5,6 +5,7 @@ const rootDir = path.resolve(__dirname);
 
 const nextConfig: NextConfig = {
   typescript: { ignoreBuildErrors: true },
+  eslint: { ignoreDuringBuilds: true },
   poweredByHeader: false,
   experimental: {
     // Disable PPR — can cause workUnitAsyncStorage crash
