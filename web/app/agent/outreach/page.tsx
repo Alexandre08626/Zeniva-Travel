@@ -23,6 +23,7 @@ const tabs = [
   { label: "Campaigns", href: "/agent/outreach" },
   { label: "Templates", href: "/agent/outreach/templates" },
   { label: "Contacts", href: "/agent/outreach/contacts" },
+  { label: "Leads & Clients", href: "/agent/outreach/newLeads" },
   { label: "Analytics", href: "/agent/outreach/analytics" },
 ];
 
