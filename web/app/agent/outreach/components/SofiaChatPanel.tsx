@@ -21,12 +21,12 @@ const STORAGE_KEY = "sofia_chat_messages";
 const SESSION_KEY = "sofia_chat_session";
 
 const QUICK_ACTIONS = [
-  { label: "Creer un template", icon: "🎨", prompt: "Cree-moi un template email HTML professionnel pour une campagne de voyage. Design moderne avec les couleurs Zeniva." },
-  { label: "Rapport campagnes", icon: "📊", prompt: "Donne-moi un rapport complet sur les performances de mes campagnes email recentes avec des recommandations." },
-  { label: "Idees de sujet", icon: "💡", prompt: "Suggere-moi 10 lignes de sujet accrocheuses pour une campagne email de voyage qui maximisent le taux d'ouverture." },
-  { label: "Sequence follow-up", icon: "🔄", prompt: "Propose-moi une sequence de follow-up email en 4 etapes pour convertir des leads voyage en clients." },
-  { label: "Template welcome", icon: "👋", prompt: "Cree un template HTML d'email de bienvenue pour les nouveaux leads qui s'inscrivent sur Zeniva Travel. Chaleureux et professionnel." },
-  { label: "Analyse A/B", icon: "🧪", prompt: "Aide-moi a planifier un test A/B pour ma prochaine campagne email. Quels elements tester et comment mesurer les resultats?" },
+  { label: "Create Template", icon: "🎨", prompt: "Create a professional HTML email template for a travel campaign. Modern design with Zeniva brand colors." },
+  { label: "Campaign Report", icon: "📊", prompt: "Give me a full report on my recent email campaign performance with actionable recommendations." },
+  { label: "Subject Lines", icon: "💡", prompt: "Suggest 10 catchy subject lines for a travel email campaign that maximize open rates." },
+  { label: "Follow-up Sequence", icon: "🔄", prompt: "Propose a 4-step follow-up email sequence to convert travel leads into clients." },
+  { label: "Welcome Template", icon: "👋", prompt: "Create a welcome HTML email template for new leads who sign up on Zeniva Travel. Warm and professional." },
+  { label: "A/B Analysis", icon: "🧪", prompt: "Help me plan an A/B test for my next email campaign. What elements to test and how to measure results?" },
 ];
 
 function parseTemplate(reply: string): { html: string; subject: string; name: string; text: string } | null {
@@ -187,9 +187,9 @@ export default function SofiaChatPanel({ onClose, campaignContext }: SofiaChatPa
         {messages.length === 0 && (
           <div className="text-center py-6">
             <Image src="/agents/sofia.png" alt="Sofia" width={64} height={64} className="rounded-full mx-auto mb-3 ring-4 ring-violet-100" />
-            <h4 className="text-sm font-bold text-slate-900 mb-1">Salut! Moi c&apos;est Sofia</h4>
+            <h4 className="text-sm font-bold text-slate-900 mb-1">Hi! I&apos;m Sofia</h4>
             <p className="text-xs text-slate-500 mb-5 max-w-[280px] mx-auto">
-              Ta specialiste email marketing chez Zeniva. Je cree des templates HTML, j&apos;analyse tes campagnes et je t&apos;aide a convertir plus de leads. Demande-moi ce que tu veux!
+              Your email marketing specialist at Zeniva. I create HTML templates, analyze your campaigns and help you convert more leads. Ask me anything!
             </p>
             <div className="grid grid-cols-2 gap-2">
               {QUICK_ACTIONS.map((action) => (
