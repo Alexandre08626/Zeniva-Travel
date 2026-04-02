@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { getSupabaseAdminClient } from "@/src/lib/supabase/server";
 import { verifySession, getSessionCookieName } from "@/src/lib/server/auth";
 import crypto from "node:crypto";
@@ -6,10 +7,22 @@ import crypto from "node:crypto";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/* ── Auth (same pattern as all outreach routes) ── */
-function getAuth(req: NextRequest) {
-  const ck = req.headers.get("cookie") || "";
+/* ── Auth — try both next/headers cookies() and raw header ── */
+async function getAuth(req: NextRequest) {
   const cn = getSessionCookieName();
+
+  // Method 1: next/headers cookies()
+  try {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get(cn);
+    if (sessionCookie?.value) {
+      const s = verifySession(sessionCookie.value);
+      if (s?.email) return s;
+    }
+  } catch { /* fallback to manual */ }
+
+  // Method 2: raw cookie header
+  const ck = req.headers.get("cookie") || "";
   const m = ck.match(new RegExp(cn + "=([^;]+)"));
   const t = m?.[1];
   if (!t) return null;
@@ -118,7 +131,7 @@ async function callOpenAIFallback(
 export async function POST(req: NextRequest) {
   let session;
   try {
-    session = getAuth(req);
+    session = await getAuth(req);
   } catch (authErr: any) {
     console.error("[Sofia] Auth error:", authErr?.message);
     return NextResponse.json({ error: "Auth error: " + (authErr?.message || "unknown") }, { status: 500 });
