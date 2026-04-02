@@ -357,6 +357,27 @@ export default function ProposalPreviewPage() {
       .finally(() => setLoading(false));
   }, [tripId]);
 
+  /* ── price calc (must be before useCallback so grandTotal is in scope) ── */
+  const _sel = proposal?.payload?.selections || {} as any;
+  const _flights = _sel.flights || {} as any;
+  const _hotels: any[] = Array.isArray(_sel.hotels) ? _sel.hotels : [];
+  const _activities: any[] = Array.isArray(_sel.activities) ? _sel.activities : [];
+  const _transfers: any[] = Array.isArray(_sel.transfers) ? _sel.transfers : [];
+  const _tripDraft = proposal?.payload?.tripDraft || {} as any;
+  const _nights = nightsBetween(_tripDraft.checkIn, _tripDraft.checkOut);
+
+  const flightTotal =
+    (parseFloat(_flights.outbound?.price) || 0) + (parseFloat(_flights.inbound?.price) || 0);
+  const hotelTotal = _hotels.reduce(
+    (s: number, h: any) => s + (parseFloat(String(h.price || h.pricePerNight || "0").replace(/[^0-9.]/g, "")) || 0),
+    0
+  );
+  const activityTotal = _activities.reduce((s: number, a: any) => s + (parseFloat(a.price) || 0), 0);
+  const transferTotal = _transfers.reduce((s: number, t: any) => s + (parseFloat(t.price) || 0), 0);
+  const subtotal = flightTotal + hotelTotal + activityTotal + transferTotal;
+  const serviceFee = Math.round(subtotal * 0.06);
+  const grandTotal = subtotal + serviceFee;
+
   /* ── send to client ── */
   const handleSend = useCallback(async () => {
     if (!proposal || sending) return;
@@ -445,19 +466,6 @@ export default function ProposalPreviewPage() {
   const activities: any[] = Array.isArray(selections.activities) ? selections.activities : [];
   const transfers: any[] = Array.isArray(selections.transfers) ? selections.transfers : [];
   const nights = nightsBetween(tripDraft.checkIn, tripDraft.checkOut);
-
-  /* ── price calc ── */
-  const flightTotal =
-    (parseFloat(flights.outbound?.price) || 0) + (parseFloat(flights.inbound?.price) || 0);
-  const hotelTotal = hotels.reduce(
-    (s: number, h: any) => s + (parseFloat(String(h.price || h.pricePerNight || "0").replace(/[^0-9.]/g, "")) || 0),
-    0
-  );
-  const activityTotal = activities.reduce((s: number, a: any) => s + (parseFloat(a.price) || 0), 0);
-  const transferTotal = transfers.reduce((s: number, t: any) => s + (parseFloat(t.price) || 0), 0);
-  const subtotal = flightTotal + hotelTotal + activityTotal + transferTotal;
-  const serviceFee = Math.round(subtotal * 0.06);
-  const grandTotal = subtotal + serviceFee;
 
   /* ════════════════════════ RENDER ═══════════════════════════ */
   return (
