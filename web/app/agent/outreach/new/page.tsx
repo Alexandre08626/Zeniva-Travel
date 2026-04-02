@@ -111,8 +111,11 @@ export default function NewCampaignPage() {
     const status = sendOption === "now" ? "sending" : sendOption === "schedule" ? "scheduled" : "draft";
     try {
       const campRes = await fetch("/api/outreach/campaigns", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: campaignName, template_id: templateId || null, subject, html_body: htmlBody, preview_text: previewText, from_name: fromName, from_email: fromEmail, audience_type: audience, audience_filters: {}, status, scheduled_at: sendOption === "schedule" ? scheduleDate : null, recipients: recs }) });
-      if (!campRes.ok) { showToast("Failed to create campaign"); setSending(false); return; }
       const campData = await campRes.json();
+      if (!campRes.ok) {
+        if (campRes.status === 401) { showToast("Session expired — please log in again"); window.location.href = "/login"; return; }
+        showToast("Failed to create campaign: " + (campData.error || "Unknown error")); setSending(false); return;
+      }
       if (sendOption === "now") { const sendRes = await fetch("/api/outreach/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ campaignId: campData.campaign.id }) }); const sendData = await sendRes.json(); setSendProgress({ sent: sendData.sent || 0, total: recs.length }); showToast((sendData.sent || 0) + " emails sent"); }
       else showToast(sendOption === "schedule" ? "Scheduled" : "Draft saved");
       setSendComplete(true);

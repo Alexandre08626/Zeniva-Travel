@@ -54,7 +54,10 @@ export async function POST(req: NextRequest) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("Failed to create campaign:", error.message, error.details, error.hint);
+    return NextResponse.json({ error: error.message, details: error.details, hint: error.hint }, { status: 500 });
+  }
 
   if (body.recipients && body.recipients.length > 0) {
     const recipients = body.recipients.map((r: any) => ({
