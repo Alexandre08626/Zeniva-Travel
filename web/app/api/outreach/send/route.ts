@@ -6,7 +6,7 @@ import { sendEmail } from "@/src/lib/server/email";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const DELAY_BETWEEN_SENDS_MS = 300;
+const DELAY_BETWEEN_SENDS_MS = 2000;
 
 function getAuth(req: NextRequest) {
   const ck = req.headers.get("cookie") || "";
