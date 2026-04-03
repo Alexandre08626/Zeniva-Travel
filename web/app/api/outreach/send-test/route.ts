@@ -1,19 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySession, getSessionCookieName } from "@/src/lib/server/auth";
-import nodemailer from "nodemailer";
+import { sendEmail } from "@/src/lib/server/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.SMTP_USER || "info@zeniva.ca",
-    pass: process.env.SMTP_PASS || "",
-  },
-});
 
 function getAuth(req: NextRequest) {
   const ck = req.headers.get("cookie") || "";
@@ -35,8 +25,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await transporter.sendMail({
-      from: '"Alexandre Blais" <info@zeniva.ca>',
+    await sendEmail({
+      fromName: "Alexandre Blais",
       to,
       subject: `[TEST] ${subject}`,
       html,

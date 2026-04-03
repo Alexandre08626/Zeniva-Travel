@@ -36,28 +36,13 @@ async function sendWelcomeSMS(phone: string, name: string, destination: string) 
 }
 
 // ── Email helpers ──────────────────────────────────────────────────────────
-let _mailer: any = null;
-function getMailer() {
-  if (_mailer) return _mailer;
-  try {
-    const smtpPass = process.env.SMTP_PASS;
-    if (!smtpPass) { console.warn("[mailer] SMTP_PASS env missing"); return null; }
-    const nodemailer = require("nodemailer");
-    _mailer = nodemailer.createTransport({
-      host: "smtp.gmail.com", port: 465, secure: true,
-      auth: { user: process.env.SMTP_USER || "info@zeniva.ca", pass: smtpPass },
-    });
-  } catch {}
-  return _mailer;
-}
+import { sendEmail as resendEmail } from "@/src/lib/server/email";
 
 async function sendWelcomeEmail(name: string, email: string, destination: string) {
   try {
-    const mailer = getMailer();
-    if (!mailer) return;
     const firstName = name.split(" ")[0];
-    await mailer.sendMail({
-      from: '"Zeniva Team" <info@zeniva.ca>',
+    await resendEmail({
+      fromName: "Zeniva Team",
       to: email,
       subject: `Welcome ${firstName} — Your trip to ${destination} starts now!`,
       html: `

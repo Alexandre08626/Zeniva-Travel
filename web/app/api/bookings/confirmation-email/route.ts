@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+import { sendEmail } from "@/src/lib/server/email";
 
 /**
  * POST /api/bookings/confirmation-email
@@ -13,19 +13,6 @@ export async function POST(request: Request) {
     if (!clientEmail) {
       return NextResponse.json({ error: "Missing clientEmail" }, { status: 400 });
     }
-
-    const smtpUser = process.env.SMTP_USER || process.env.EMAIL_USER || "info@zeniva.ca";
-    const smtpPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
-    if (!smtpPass) {
-      return NextResponse.json({ error: "SMTP not configured" }, { status: 500 });
-    }
-
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: { user: smtpUser, pass: smtpPass },
-    });
 
     const flightRef = confirmations?.flight?.bookingReference || "Pending";
     const hotelRef = confirmations?.hotel?.confirmationNumber || "Pending";
@@ -97,8 +84,8 @@ export async function POST(request: Request) {
 </body>
 </html>`;
 
-    await transporter.sendMail({
-      from: '"Zeniva Travel" <info@zeniva.ca>',
+    await sendEmail({
+      fromName: "Zeniva Travel",
       to: clientEmail,
       subject: `Booking Confirmed — ${destination || "Your Trip"} | Zeniva`,
       html,

@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/src/lib/supabase/server";
 import { verifySession, getSessionCookieName } from "@/src/lib/server/auth";
-import nodemailer from "nodemailer";
+import { sendEmail } from "@/src/lib/server/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.SMTP_USER || "info@zeniva.ca",
-    pass: process.env.SMTP_PASS || "",
-  },
-});
+const DELAY_BETWEEN_SENDS_MS = 300;
 
 function getAuth(req: NextRequest) {
   const ck = req.headers.get("cookie") || "";
@@ -77,8 +69,9 @@ export async function POST(req: NextRequest) {
     const personalizedSubject = replaceVariables(campaign.subject, vars);
 
     try {
-      await transporter.sendMail({
-        from: `"${campaign.from_name}" <info@zeniva.ca>`,
+      await sendEmail({
+        from: campaign.from_email || undefined,
+        fromName: campaign.from_name || "Zeniva Travel",
         to: recipient.email,
         subject: personalizedSubject,
         html: personalizedHtml,
@@ -129,6 +122,11 @@ export async function POST(req: NextRequest) {
         lead_id: recipient.source_id || null,
         status: "failed",
       });
+    }
+
+    // Throttle to avoid rate limits
+    if (DELAY_BETWEEN_SENDS_MS > 0) {
+      await new Promise((r) => setTimeout(r, DELAY_BETWEEN_SENDS_MS));
     }
   }
 

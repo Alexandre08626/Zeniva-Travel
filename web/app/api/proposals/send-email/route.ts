@@ -1,18 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+import { sendEmail } from "@/src/lib/server/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.SMTP_USER || process.env.EMAIL_USER || "info@zeniva.ca",
-    pass: process.env.SMTP_PASS || process.env.EMAIL_PASS || "",
-  },
-});
 
 function esc(s: string) { return (s || "").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 
@@ -281,10 +271,10 @@ export async function POST(req: NextRequest) {
 </body>
 </html>`;
 
-    await transporter.sendMail({
-      from: '"Zeniva Travel" <info@zeniva.ca>',
+    await sendEmail({
+      fromName: "Zeniva Travel",
       to: clientEmail,
-      subject: `Your Trip to ${destination || "Paradise"} — Proposal from Zeniva ✈️`,
+      subject: `Your Trip to ${destination || "Paradise"} — Proposal from Zeniva`,
       html,
     });
 

@@ -1,34 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
-
-// Real SMTP Configuration - Same as agent/requests
-const smtpTransporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.SMTP_USER || "info@zeniva.ca",
-    pass: process.env.SMTP_PASS || "",
-  },
-});
+import { sendEmail } from "@/src/lib/server/email";
 
 export async function POST(req: NextRequest) {
   try {
     const { email, type } = await req.json();
     const toEmail = email || "info@zeniva.ca";
 
-    // Email content from Lina
     const emailSubject = type === "sms"
-      ? "📱 Luna SMS Test - Your 15% Welcome Discount Awaits!"
-      : "✈️ Welcome to Zeniva Travel - Get 15% OFF Your First Trip!";
+      ? "Luna SMS Test - Your 15% Welcome Discount Awaits!"
+      : "Welcome to Zeniva Travel - Get 15% OFF Your First Trip!";
 
     const emailHTML = type === "sms"
       ? generateSMSTestEmail()
       : generateWelcomeEmail();
 
-    // Send real email via nodemailer
-    await smtpTransporter.sendMail({
-      from: '"Zeniva Team" <info@zeniva.ca>',
+    await sendEmail({
+      fromName: "Zeniva Team",
       to: toEmail,
       subject: emailSubject,
       html: emailHTML,
@@ -36,7 +23,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `✅ Email sent successfully to ${toEmail}!`
+      message: `Email sent successfully to ${toEmail}!`
     });
   } catch (error: any) {
     console.error("Email send error:", error);
@@ -65,7 +52,7 @@ function generateWelcomeEmail() {
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #0B1B4D 0%, #0F6CF5 100%); padding: 40px 30px; text-align: center;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">Welcome to Zeniva Travel! ✈️</h1>
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">Welcome to Zeniva Travel!</h1>
               <p style="margin: 10px 0 0 0; color: #E6F0FF; font-size: 16px;">Your dream trip starts here</p>
             </td>
           </tr>
@@ -73,9 +60,6 @@ function generateWelcomeEmail() {
           <!-- Lina Avatar -->
           <tr>
             <td style="padding: 30px 30px 20px 30px; text-align: center;">
-              <div style="width: 80px; height: 80px; margin: 0 auto 15px; background: linear-gradient(135deg, #6366f1, #8B5CF6); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 40px;">
-                🤖
-              </div>
               <p style="margin: 0; color: #64748b; font-size: 14px; font-weight: 500;">
                 Your AI Travel Concierge
               </p>
@@ -86,7 +70,7 @@ function generateWelcomeEmail() {
           <tr>
             <td style="padding: 0 30px 30px 30px;">
               <p style="margin: 0 0 20px 0; color: #1e293b; font-size: 16px; line-height: 1.6;">
-                Hi there! 👋
+                Hi there!
               </p>
               <p style="margin: 0 0 20px 0; color: #1e293b; font-size: 16px; line-height: 1.6;">
                 I'm <strong>Lina</strong>, your personal AI travel assistant at Zeniva Travel. I noticed you're interested in planning your next adventure, and I'm here to help make it unforgettable!
@@ -96,7 +80,6 @@ function generateWelcomeEmail() {
               <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0; background: linear-gradient(135deg, #10b981, #059669); border-radius: 12px; overflow: hidden;">
                 <tr>
                   <td style="padding: 30px; text-align: center;">
-                    <div style="font-size: 48px; margin-bottom: 10px;">🎁</div>
                     <h2 style="margin: 0 0 10px 0; color: #ffffff; font-size: 32px; font-weight: 700;">15% OFF</h2>
                     <p style="margin: 0; color: #d1fae5; font-size: 18px; font-weight: 500;">Your First Trip with Zeniva</p>
                     <p style="margin: 15px 0 0 0; color: #ffffff; font-size: 14px;">
@@ -112,30 +95,10 @@ function generateWelcomeEmail() {
 
               <!-- Benefits List -->
               <table width="100%" cellpadding="0" cellspacing="0" style="margin: 20px 0;">
-                <tr>
-                  <td style="padding: 12px 0;">
-                    <span style="color: #10b981; font-size: 20px; margin-right: 10px;">✓</span>
-                    <span style="color: #1e293b; font-size: 15px;">24/7 AI-powered travel assistance</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding: 12px 0;">
-                    <span style="color: #10b981; font-size: 20px; margin-right: 10px;">✓</span>
-                    <span style="color: #1e293b; font-size: 15px;">Personalized trip recommendations</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding: 12px 0;">
-                    <span style="color: #10b981; font-size: 20px; margin-right: 10px;">✓</span>
-                    <span style="color: #1e293b; font-size: 15px;">Exclusive deals on hotels, flights & experiences</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding: 12px 0;">
-                    <span style="color: #10b981; font-size: 20px; margin-right: 10px;">✓</span>
-                    <span style="color: #1e293b; font-size: 15px;">Real-time booking management</span>
-                  </td>
-                </tr>
+                <tr><td style="padding: 12px 0;"><span style="color: #10b981; font-size: 20px; margin-right: 10px;">&#10003;</span><span style="color: #1e293b; font-size: 15px;">24/7 AI-powered travel assistance</span></td></tr>
+                <tr><td style="padding: 12px 0;"><span style="color: #10b981; font-size: 20px; margin-right: 10px;">&#10003;</span><span style="color: #1e293b; font-size: 15px;">Personalized trip recommendations</span></td></tr>
+                <tr><td style="padding: 12px 0;"><span style="color: #10b981; font-size: 20px; margin-right: 10px;">&#10003;</span><span style="color: #1e293b; font-size: 15px;">Exclusive deals on hotels, flights &amp; experiences</span></td></tr>
+                <tr><td style="padding: 12px 0;"><span style="color: #10b981; font-size: 20px; margin-right: 10px;">&#10003;</span><span style="color: #1e293b; font-size: 15px;">Real-time booking management</span></td></tr>
               </table>
 
               <!-- CTA Button -->
@@ -143,7 +106,7 @@ function generateWelcomeEmail() {
                 <tr>
                   <td align="center">
                     <a href="https://www.zenivatravel.com/signup" style="display: inline-block; background: linear-gradient(135deg, #0F6CF5, #0B1B4D); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 12px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 14px rgba(15, 108, 245, 0.4);">
-                      Create My Account & Save 15%
+                      Create My Account &amp; Save 15%
                     </a>
                   </td>
                 </tr>
@@ -151,10 +114,6 @@ function generateWelcomeEmail() {
 
               <p style="margin: 30px 0 0 0; color: #64748b; font-size: 14px; line-height: 1.6;">
                 Ready to start planning? I'm here to help you every step of the way. Create your account now at <a href="https://www.zenivatravel.com/signup" style="color: #0F6CF5; text-decoration: none; font-weight: 600;">zenivatravel.com/signup</a>
-              </p>
-
-              <p style="margin: 20px 0 0 0; color: #1e293b; font-size: 16px;">
-                Let's make your next trip unforgettable! ✨
               </p>
 
               <p style="margin: 20px 0 0 0; color: #1e293b; font-size: 16px;">
@@ -209,7 +168,7 @@ function generateSMSTestEmail() {
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #06b6d4, #0284c7); padding: 40px 30px; text-align: center;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">Luna SMS Test 📱</h1>
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">Luna SMS Test</h1>
               <p style="margin: 10px 0 0 0; color: #E0F2FE; font-size: 16px;">SMS Marketing Campaign</p>
             </td>
           </tr>
@@ -227,7 +186,7 @@ function generateSMSTestEmail() {
                   <td style="padding: 20px;">
                     <p style="margin: 0 0 10px 0; color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase;">SMS Message Preview</p>
                     <p style="margin: 0; color: #1e293b; font-size: 14px; line-height: 1.6; font-family: 'Courier New', monospace;">
-                      Hi there! 👋 Thanks for your interest in your dream destination. Create your Zeniva account now and get <strong>15% OFF</strong> your first booking! 🎁 Sign up: zenivatravel.com
+                      Hi there! Thanks for your interest in your dream destination. Create your Zeniva account now and get <strong>15% OFF</strong> your first booking! Sign up: zenivatravel.com
                     </p>
                     <p style="margin: 15px 0 0 0; color: #94a3b8; font-size: 11px;">
                       160 characters | Sent via Twilio

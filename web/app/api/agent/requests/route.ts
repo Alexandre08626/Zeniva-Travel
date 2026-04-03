@@ -1,28 +1,21 @@
 import { NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
-import nodemailer from "nodemailer";
+import { sendEmail } from "@/src/lib/server/email";
 import { getSupabaseAdminClient, getSupabaseAnonClient } from "../../../../src/lib/supabase/server";
 import { getSessionCookieName, verifySession } from "../../../../src/lib/server/auth";
 import { normalizeRbacRoles } from "../../../../src/lib/rbac";
 import { sendPushToHQ } from "../../../../src/lib/server/pushNotify";
 
 // ── Email helpers ────────────────────────────────────────────────────────────
-const smtpTransporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: { user: process.env.SMTP_USER || "info@zeniva.ca", pass: process.env.SMTP_PASS || "" },
-});
-
 async function sendEmailNotification(opts: {
   to: string;
   subject: string;
   html: string;
 }) {
   try {
-    await smtpTransporter.sendMail({
-      from: '"Zeniva" <info@zeniva.ca>',
+    await sendEmail({
+      fromName: "Zeniva",
       ...opts,
     });
   } catch (e) {
