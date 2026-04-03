@@ -18,9 +18,8 @@ export async function GET(req: NextRequest) {
   let data: any[] = [];
   let total = 0;
 
-  if (audience === "travelers") {
-    // Travelers = leads + clients merged
-    // First get leads
+  if (audience === "leads" || audience === "travelers") {
+    // Leads only (from leads table, excluding converted clients)
     let leadsQuery = client
       .from("leads")
       .select("id, email, first_name, last_name, status, source, language, created_at, phone", { count: "exact" })
@@ -31,7 +30,12 @@ export async function GET(req: NextRequest) {
       leadsQuery = leadsQuery.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%`);
     }
 
-    // Also get clients
+    const { data: rows, error, count } = await leadsQuery.range(offset, offset + limit - 1);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    data = rows || [];
+    total = count || 0;
+  } else if (audience === "clients") {
+    // Clients only (from clients table — people with a Zeniva account)
     let clientsQuery = client
       .from("clients")
       .select("id, email, name, phone, origin, lead_source, created_at", { count: "exact" })
@@ -41,15 +45,10 @@ export async function GET(req: NextRequest) {
       clientsQuery = clientsQuery.or(`name.ilike.%${search}%,email.ilike.%${search}%`);
     }
 
-    const [leadsResult, clientsResult] = await Promise.all([
-      leadsQuery,
-      status && status !== "all" && status !== "client" ? Promise.resolve({ data: [], count: 0, error: null }) : clientsQuery,
-    ]);
-
-    if (leadsResult.error) return NextResponse.json({ error: leadsResult.error.message }, { status: 500 });
-
+    const { data: rows, error, count } = await clientsQuery.range(offset, offset + limit - 1);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     // Map clients to same shape as leads
-    const mappedClients = (clientsResult.data || []).map((c: any) => {
+    data = (rows || []).map((c: any) => {
       const nameParts = (c.name || "").split(" ");
       return {
         id: c.id,
@@ -63,16 +62,7 @@ export async function GET(req: NextRequest) {
         phone: c.phone || "",
       };
     });
-
-    // Filter clients by status if needed
-    const filteredClients = (status === "client") ? mappedClients : (status && status !== "all") ? [] : mappedClients;
-
-    // Merge and sort by date
-    const allContacts = [...(leadsResult.data || []), ...filteredClients]
-      .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-    total = allContacts.length;
-    data = allContacts.slice(offset, offset + limit);
+    total = count || 0;
   } else if (audience === "agents") {
     // Agent leads — future agents (from leads table with source containing 'agent')
     // or from a dedicated agent_leads concept
