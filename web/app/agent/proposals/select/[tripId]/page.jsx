@@ -566,14 +566,20 @@ export default function AgentProposalSelectPage() {
   const [clients, setClients] = useState([]);
   const [selectedClientId, setSelectedClientId] = useState("");
 
-  /* ─── Load clients ─── */
+  /* ─── Load clients (refresh session first to avoid 401) ─── */
   useEffect(() => {
-    fetch("/api/clients")
-      .then(r => r.ok ? r.json() : null)
-      .then(json => {
-        if (json?.data) setClients(json.data);
-      })
-      .catch(() => {});
+    async function loadClients() {
+      try {
+        // Refresh session cookie via /api/auth/me before fetching clients
+        await fetch("/api/auth/me");
+        const res = await fetch("/api/clients");
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.data) setClients(json.data);
+        }
+      } catch {}
+    }
+    loadClients();
   }, []);
 
   /* ─── Load trip data ─── */
