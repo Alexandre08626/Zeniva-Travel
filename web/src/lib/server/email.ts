@@ -1,9 +1,17 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (!_resend) {
+    const key = process.env.RESEND_API_KEY;
+    if (!key) throw new Error("RESEND_API_KEY env var is not set");
+    _resend = new Resend(key);
+  }
+  return _resend;
+}
 
 const FROM_EMAIL = process.env.FROM_EMAIL || "info@zenivatravel.com";
-const FROM_DOMAIN = FROM_EMAIL.split("@")[1] || "zeniva.ca";
+const FROM_DOMAIN = FROM_EMAIL.split("@")[1] || "zenivatravel.com";
 
 export type SendEmailOptions = {
   to: string | string[];
@@ -19,7 +27,7 @@ export async function sendEmail(opts: SendEmailOptions) {
   const fromName = opts.fromName || "Zeniva Travel";
   const from = `${fromName} <${opts.from || FROM_EMAIL}>`;
 
-  const { data, error } = await resend.emails.send({
+  const { data, error } = await getResend().emails.send({
     from,
     to: Array.isArray(opts.to) ? opts.to : [opts.to],
     subject: opts.subject,
