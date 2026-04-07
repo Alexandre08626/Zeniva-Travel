@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendPushToHQ } from "../../../../src/lib/server/pushNotify";
+import { sendEmail } from "../../../../src/lib/server/email";
 
 import { assertBackendEnv, normalizeEmail, dbQuery } from "../../../../src/lib/server/db";
 import { normalizeRbacRole } from "../../../../src/lib/rbac";
@@ -369,12 +370,13 @@ export async function POST(request: Request) {
       tag: "new-account",
     }).catch(() => {});
 
-    // Send welcome email via VPS
-    fetch("http://217.216.88.202:8000/admin/send-welcome", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer zeniva-secret-2025" },
-      body: JSON.stringify({ email: account.email, name: account.name || "", language: "en" }),
-    }).catch(() => {});
+    // Send welcome email via Resend (no more n8n/VPS dependency)
+    sendEmail({
+      fromName: "Lina — Zeniva Travel",
+      to: account.email,
+      subject: "Welcome to Zeniva Travel — Your Dream Trip Starts Here!",
+      html: generateWelcomeEmailHTML(account.name || ""),
+    }).catch((err) => console.error("Welcome email failed:", err));
 
     // ---- Create session cookie (your custom token)
     const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30;
@@ -417,4 +419,76 @@ export async function POST(request: Request) {
       stack: err?.stack || null,
     });
   }
+}
+
+function generateWelcomeEmailHTML(name: string) {
+  const greeting = name ? `Hi ${name}!` : "Hi there!";
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background-color:#f8fafc;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8fafc;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+          <tr>
+            <td style="background:linear-gradient(135deg,#0B1B4D 0%,#0F6CF5 100%);padding:40px 30px;text-align:center;">
+              <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;">Welcome to Zeniva Travel!</h1>
+              <p style="margin:10px 0 0 0;color:#E6F0FF;font-size:16px;">Your dream trip starts here</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:30px;">
+              <p style="margin:0 0 20px 0;color:#1e293b;font-size:16px;line-height:1.6;">${greeting}</p>
+              <p style="margin:0 0 20px 0;color:#1e293b;font-size:16px;line-height:1.6;">
+                I'm <strong>Lina</strong>, your personal AI travel assistant at Zeniva Travel. I'm here to help you plan unforgettable trips!
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin:30px 0;background:linear-gradient(135deg,#10b981,#059669);border-radius:12px;">
+                <tr>
+                  <td style="padding:30px;text-align:center;">
+                    <h2 style="margin:0 0 10px 0;color:#ffffff;font-size:32px;font-weight:700;">15% OFF</h2>
+                    <p style="margin:0;color:#d1fae5;font-size:18px;font-weight:500;">Your First Trip with Zeniva</p>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:20px 0;color:#1e293b;font-size:16px;line-height:1.6;">Here's what you get with Zeniva:</p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;">
+                <tr><td style="padding:12px 0;"><span style="color:#10b981;font-size:20px;margin-right:10px;">&#10003;</span><span style="color:#1e293b;font-size:15px;">24/7 AI-powered travel assistance</span></td></tr>
+                <tr><td style="padding:12px 0;"><span style="color:#10b981;font-size:20px;margin-right:10px;">&#10003;</span><span style="color:#1e293b;font-size:15px;">Personalized trip recommendations</span></td></tr>
+                <tr><td style="padding:12px 0;"><span style="color:#10b981;font-size:20px;margin-right:10px;">&#10003;</span><span style="color:#1e293b;font-size:15px;">Exclusive deals on hotels, flights &amp; experiences</span></td></tr>
+                <tr><td style="padding:12px 0;"><span style="color:#10b981;font-size:20px;margin-right:10px;">&#10003;</span><span style="color:#1e293b;font-size:15px;">Real-time booking management</span></td></tr>
+              </table>
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin:30px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="https://www.zenivatravel.com" style="display:inline-block;background:linear-gradient(135deg,#0F6CF5,#0B1B4D);color:#ffffff;text-decoration:none;padding:16px 40px;border-radius:12px;font-size:16px;font-weight:600;box-shadow:0 4px 14px rgba(15,108,245,0.4);">
+                      Start Planning My Trip
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:20px 0 0 0;color:#1e293b;font-size:16px;">
+                <strong>Lina</strong><br>
+                <span style="color:#64748b;font-size:14px;">Your AI Travel Concierge — Zeniva Travel</span>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#f8fafc;padding:30px;text-align:center;border-top:1px solid #e2e8f0;">
+              <p style="margin:0 0 10px 0;color:#64748b;font-size:12px;">Zeniva Travel | Premium Travel Experiences</p>
+              <div style="margin-top:15px;">
+                <a href="https://www.zenivatravel.com" style="color:#0F6CF5;text-decoration:none;margin:0 10px;font-size:12px;">Website</a>
+                <a href="https://www.zenivatravel.com/privacy" style="color:#0F6CF5;text-decoration:none;margin:0 10px;font-size:12px;">Privacy</a>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 }
