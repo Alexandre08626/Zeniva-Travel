@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
 
-const VPS = "http://217.216.88.202:8000";
+const VPS = "https://vmi3097009.contaboserver.net";
 const AUTH = "Bearer zeniva-secret-2025";
 
 function ConfirmationContent() {

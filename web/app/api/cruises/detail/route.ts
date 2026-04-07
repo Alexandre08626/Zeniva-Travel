@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const VPS = "http://217.216.88.202:8000";
+const VPS = "https://vmi3097009.contaboserver.net";
 
 export async function GET(req: NextRequest) {
   const ref = req.nextUrl.searchParams.get("ref");

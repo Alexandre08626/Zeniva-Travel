@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const VPS_BASE = "http://217.216.88.202:8000";
+const VPS_BASE = "https://vmi3097009.contaboserver.net";
 const VPS_WEBHOOK = "https://vmi3097009.contaboserver.net/webhook/zeniva-lina-chat";
 const AUTH = "Bearer zeniva-secret-2025";
 

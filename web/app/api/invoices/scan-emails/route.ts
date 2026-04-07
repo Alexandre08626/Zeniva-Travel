@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
   try {
     // Call VPS scanner endpoint
-    const vpsRes = await fetch("http://217.216.88.202:8000/admin/scan-invoices", {
+    const vpsRes = await fetch("https://vmi3097009.contaboserver.net/admin/scan-invoices", {
       method: "POST",
       headers: {
         "Authorization": "Bearer zeniva-secret-2025",

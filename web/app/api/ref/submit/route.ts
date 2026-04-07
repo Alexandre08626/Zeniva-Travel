@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const VPS_BASE = "http://217.216.88.202:8000";
+const VPS_BASE = "https://vmi3097009.contaboserver.net";
 const VPS_SECRET = "zeniva-secret-2025";
 
 export async function POST(request: Request) {

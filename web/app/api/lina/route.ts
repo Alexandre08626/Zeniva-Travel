@@ -68,7 +68,7 @@ Signature: "- Lina, ${agencyName || "l'agence"}"
 
 const ZENIVA_API_URL =
   process.env.ZENIVA_API_URL ||
-  "http://217.216.88.202:8000/chat";
+  "https://vmi3097009.contaboserver.net/chat";
 
 const SYSTEM_PROMPT_CLIENT = `
 Tu es Lina, concierge IA de Zeniva (zenivatravel.com).

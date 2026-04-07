@@ -259,7 +259,7 @@ function ChatThread({ tripId, proposalMode = "" }) {
       // Save as lead on VPS
       const trip = trips.find(t => t.id === tripId);
       const snap = snapshots[tripId] || {};
-      await fetch("http://217.216.88.202:8000/admin/leads", {
+      await fetch("https://vmi3097009.contaboserver.net/admin/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": "Bearer zeniva-secret-2025" },
         body: JSON.stringify({

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const VPS = "http://217.216.88.202:8000";
+const VPS = "https://vmi3097009.contaboserver.net";
 const VPS_AUTH = "Bearer zeniva-secret-2025";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://rvlcgtlcjylozbihtpkr.supabase.co";
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";

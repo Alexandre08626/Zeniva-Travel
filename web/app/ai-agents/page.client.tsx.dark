@@ -1072,7 +1072,7 @@ export default function AIAgentsPageClient() {
               </div>
               <div className="divide-y divide-slate-800/50">
                 {[
-                  { label: "Main API (port 8000)", status: apiHealth, detail: "VPS 217.216.88.202:8000" },
+                  { label: "Main API (port 8000)", status: apiHealth, detail: "VPS vmi3097009.contaboserver.net" },
                   { label: "Supabase Database", status: dbHealth, detail: "PostgreSQL via Supabase cloud" },
                   { label: "Lina Webhook (n8n)", status: linaHealth, detail: "OpenAI GPT-4o integration" },
                 ].map(s => (
@@ -1094,8 +1094,8 @@ export default function AIAgentsPageClient() {
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {[
                   { label: "Supabase Dashboard", icon: "🗄️", url: "https://supabase.com/dashboard", color: "border-emerald-500/30 hover:border-emerald-500/60 hover:bg-emerald-500/5" },
-                  { label: "n8n Workflows", icon: "🔄", url: `http://217.216.88.202:5678`, color: "border-blue-500/30 hover:border-blue-500/60 hover:bg-blue-500/5" },
-                  { label: "VPS Dashboard", icon: "🖥️", url: `http://217.216.88.202`, color: "border-slate-600/50 hover:border-slate-500/70 hover:bg-slate-800/50" },
+                  { label: "n8n Workflows", icon: "🔄", url: `https://vmi3097009.contaboserver.net:5678`, color: "border-blue-500/30 hover:border-blue-500/60 hover:bg-blue-500/5" },
+                  { label: "VPS Dashboard", icon: "🖥️", url: `https://vmi3097009.contaboserver.net`, color: "border-slate-600/50 hover:border-slate-500/70 hover:bg-slate-800/50" },
                   { label: "Twilio Console", icon: "📞", url: "https://console.twilio.com", color: "border-red-500/30 hover:border-red-500/60 hover:bg-red-500/5" },
                 ].map(l => (
                   <a key={l.label} href={l.url} target="_blank" rel="noreferrer"

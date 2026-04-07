@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Save lead on VPS
-    await fetch("http://217.216.88.202:8000/admin/leads", {
+    await fetch("https://vmi3097009.contaboserver.net/admin/leads", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
