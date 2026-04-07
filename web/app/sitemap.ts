@@ -44,6 +44,28 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/florida-villas`, lastModified: NOW, changeFrequency: "weekly", priority: 0.92 },
     { url: `${BASE_URL}/ai-travel-agent`, lastModified: NOW, changeFrequency: "weekly", priority: 0.92 },
 
+    // ─── SEO DESTINATION PAGES ───────────────────────
+    { url: `${BASE_URL}/destinations/mexico`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/destinations/bora-bora`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/destinations/caribbean`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/destinations/europe`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/destinations/cancun`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/destinations/punta-cana`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+
+    // ─── SEO SERVICE PAGES ───────────────────────────
+    { url: `${BASE_URL}/services/ai-travel-agent`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/services/luxury-travel`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/services/group-travel`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/services/honeymoon`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+
+    // ─── BLOG ────────────────────────────────────────
+    { url: `${BASE_URL}/blog`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${BASE_URL}/blog/best-all-inclusive-mexico-2026`, lastModified: NOW, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE_URL}/blog/ai-changing-travel-industry`, lastModified: NOW, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE_URL}/blog/top-honeymoon-destinations-2026`, lastModified: NOW, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE_URL}/blog/caribbean-vs-mexico-all-inclusive`, lastModified: NOW, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE_URL}/blog/why-book-ai-travel-agent`, lastModified: NOW, changeFrequency: "monthly", priority: 0.8 },
+
     // ─── DEALS ────────────────────────────────────────
     { url: `${BASE_URL}/deals`, lastModified: NOW, changeFrequency: "daily", priority: 0.85 },
 
