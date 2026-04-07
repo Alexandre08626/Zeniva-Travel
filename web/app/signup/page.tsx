@@ -255,7 +255,7 @@ function SignupContent() {
                   <span style={{ fontSize: 22 }}>📱</span>
                   <div>
                     <div style={{ color: "#ec4899", fontWeight: 700, fontSize: 13 }}>Become a Zeniva Influencer</div>
-                    <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>Earn 5% commission on every booking from your followers</div>
+                    <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>Earn 3% commission on every booking from your followers</div>
                   </div>
                 </div>
                 <div>
