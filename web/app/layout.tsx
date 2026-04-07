@@ -324,7 +324,7 @@ export default function RootLayout({
           
           <ClientLayoutShell />
           <HelpCenterButton />
-          <PWAPromptAfterLogin />
+          {/* <PWAPromptAfterLogin /> */}
           <WelcomeBanner />
           {children}
           <CookieConsent />
