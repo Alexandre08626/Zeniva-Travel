@@ -15,8 +15,8 @@ function LoginContent() {
   const redirect = search?.get("redirect") || "";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const initialMode = space === "agent" || space === "partner" ? space : "traveler";
-  const [mode, setMode] = useState<"traveler" | "agent" | "partner">(initialMode);
+  const initialMode = space === "agent" || space === "partner" || space === "influencer" ? space : "traveler";
+  const [mode, setMode] = useState<"traveler" | "agent" | "partner" | "influencer">(initialMode);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -25,6 +25,7 @@ function LoginContent() {
   useEffect(() => {
     if (user) {
       if (redirect) { router.push(redirect); return; }
+      if (mode === "influencer") { router.push("/agent/influencer"); return; }
       if (mode === "agent") { router.push("/agent"); return; }
       router.push("/proposals");
     }
@@ -35,12 +36,13 @@ function LoginContent() {
     setError(null);
     setLoading(true);
     try {
-      const result = mode === "agent"
+      const result = mode === "agent" || mode === "influencer"
         ? await login(email.trim(), password, { role: "agent" })
         : mode === "partner"
           ? await login(email.trim(), password, { allowedRoles: ["partner_owner", "partner_staff", "hq"] })
           : await login(email.trim(), password);
       if (redirect) { router.push(redirect); return; }
+      if (mode === "influencer") { router.push("/agent/influencer"); return; }
       if (mode === "agent") { router.push("/agent"); return; }
       if (mode === "partner") { router.push("/partner/dashboard"); return; }
       if (result.activeSpace === "partner") { router.push("/partner/dashboard"); return; }
@@ -56,6 +58,7 @@ function LoginContent() {
   const modeConfig = {
     traveler: { label: "Traveler", icon: "✈️", desc: "Plan your dream trip with Lina" },
     agent: { label: "Agent", icon: "🏢", desc: "Access your agent dashboard" },
+    influencer: { label: "Influencer", icon: "📱", desc: "Your influencer dashboard" },
     partner: { label: "Partner", icon: "🤝", desc: "Partner portal" },
   };
 
@@ -97,7 +100,7 @@ function LoginContent() {
 
           {/* Mode tabs */}
           <div style={{ display: "flex", gap: 8, marginBottom: 24, background: "rgba(0,0,0,0.3)", borderRadius: 12, padding: 4 }}>
-            {(["traveler", "agent", "partner"] as const).map((m) => (
+            {(["traveler", "agent", "influencer", "partner"] as const).map((m) => (
               <button
                 key={m}
                 type="button"
@@ -107,14 +110,14 @@ function LoginContent() {
                   padding: "8px 4px",
                   borderRadius: 9,
                   border: "none",
-                  background: mode === m ? "rgba(15,108,245,0.8)" : "transparent",
+                  background: mode === m ? (m === "influencer" ? "rgba(236,72,153,0.8)" : "rgba(15,108,245,0.8)") : "transparent",
                   color: mode === m ? "#fff" : "rgba(255,255,255,0.5)",
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: 700,
                   cursor: "pointer",
                   transition: "all 0.2s",
                   textTransform: "uppercase",
-                  letterSpacing: "0.05em",
+                  letterSpacing: "0.03em",
                 }}
               >
                 {modeConfig[m].icon} {modeConfig[m].label}
@@ -200,7 +203,7 @@ function LoginContent() {
         </div>
 
         <div style={{ textAlign: "center", marginTop: 24, fontSize: 12, color: "rgba(255,255,255,0.3)" }}>
-          🔒 Secure · Zeniva © 2025 · Delaware, USA
+          🔒 Secure · Zeniva © 2026 · Delaware, USA
         </div>
       </div>
     </div>
