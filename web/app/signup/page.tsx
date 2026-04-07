@@ -27,10 +27,12 @@ function SignupContent() {
   const user = useAuthStore((s) => s.user);
   const initialMode = (() => {
     const space = search.get("space");
-    return space === "agent" || space === "partner" ? space : "traveler";
+    if (space === "agent" || space === "partner" || space === "influencer") return space;
+    return "traveler";
   })();
-  const [mode, setMode] = useState<"traveler" | "agent" | "partner">(initialMode);
+  const [mode, setMode] = useState<"traveler" | "agent" | "partner" | "influencer">(initialMode);
   const [agentRole, setAgentRole] = useState<Role>("travel_agent");
+  const [influencerSector, setInfluencerSector] = useState("");
   const [name, setName] = useState("");
   const [companyLegalName, setCompanyLegalName] = useState("");
   const [companyDisplayName, setCompanyDisplayName] = useState("");
@@ -56,7 +58,8 @@ function SignupContent() {
     try {
       const isAgent = mode === "agent";
       const isPartner = mode === "partner";
-      const role = isPartner ? ("partner_owner" as Role) : isAgent ? agentRole : ("traveler" as Role);
+      const isInfluencer = mode === "influencer";
+      const role = isInfluencer ? ("influencer" as Role) : isPartner ? ("partner_owner" as Role) : isAgent ? agentRole : ("traveler" as Role);
 
       if (isAgent && agentStep === "request") {
         const res = await fetch("/api/agent-requests", {
@@ -81,14 +84,15 @@ function SignupContent() {
       const referral = getStoredReferral();
       const agentDivisions: Division[] = isAgent ? (agentRole === "yacht_broker" ? ["YACHT"] : ["TRAVEL"]) : [];
       await signup({
-        name: name.trim() || (isAgent ? "Agent" : isPartner ? "Partner" : "Traveler"),
+        name: name.trim() || (isInfluencer ? "Influencer" : isAgent ? "Agent" : isPartner ? "Partner" : "Traveler"),
         email: email.trim(), password, role,
-        roles: isPartner ? ["partner_owner"] : undefined,
+        roles: isInfluencer ? ["influencer"] : isPartner ? ["partner_owner"] : undefined,
         agentLevel: isAgent ? "Agent" : undefined,
-        inviteCode: isAgent ? inviteCode.trim() : undefined,
+        inviteCode: isAgent ? inviteCode.trim() : isInfluencer ? "__influencer_direct__" : undefined,
         divisions: agentDivisions,
         referralCode: referral?.referralCode,
         influencerId: referral?.influencerId,
+        influencerSector: isInfluencer ? influencerSector.trim() : undefined,
       });
       if (isPartner) {
         updatePartnerProfile({ legalName: companyLegalName.trim() || undefined, displayName: companyDisplayName.trim() || undefined, phone: companyPhone.trim() || undefined, country: companyCountry.trim() || undefined, currency: companyCurrency.trim() || undefined, language: companyLanguage || undefined, kycStatus: "pending" });
@@ -100,6 +104,7 @@ function SignupContent() {
         } catch (err) { console.error("Failed to sync client", err); }
         if (referral?.referralCode && referral?.influencerId) clearStoredReferral();
       }
+      if (isInfluencer) { router.push("/agent/influencer"); return; }
       if (isAgent) { router.push("/agent"); return; }
       if (isPartner) { router.push("/partner/dashboard"); return; }
       router.push("/");
@@ -113,6 +118,7 @@ function SignupContent() {
   const modeConfig = {
     traveler: { label: "Traveler", icon: "✈️" },
     agent: { label: "Agent", icon: "🏢" },
+    influencer: { label: "Influencer", icon: "📱" },
     partner: { label: "Partner", icon: "🤝" },
   };
 
@@ -186,8 +192,8 @@ function SignupContent() {
 
           {/* Tabs */}
           <div style={{ display: "flex", gap: 8, marginBottom: 24, background: "rgba(0,0,0,0.3)", borderRadius: 12, padding: 4 }}>
-            {(["traveler", "agent", "partner"] as const).map((m) => (
-              <button key={m} type="button" onClick={() => setMode(m)} style={{ flex: 1, padding: "8px 4px", borderRadius: 9, border: "none", background: mode === m ? "rgba(15,108,245,0.8)" : "transparent", color: mode === m ? "#fff" : "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 700, cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            {(["traveler", "agent", "influencer", "partner"] as const).map((m) => (
+              <button key={m} type="button" onClick={() => setMode(m)} style={{ flex: 1, padding: "8px 4px", borderRadius: 9, border: "none", background: mode === m ? (m === "influencer" ? "rgba(236,72,153,0.8)" : "rgba(15,108,245,0.8)") : "transparent", color: mode === m ? "#fff" : "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.03em" }}>
                 {modeConfig[m].icon} {modeConfig[m].label}
               </button>
             ))}
@@ -215,7 +221,6 @@ function SignupContent() {
                   <select value={agentRole} onChange={e => setAgentRole(e.target.value as Role)} style={{ ...inp(), color: "#cbd5e1" }}>
                     <option value="travel_agent">Travel agent</option>
                     <option value="yacht_broker">Yacht broker</option>
-                    <option value="influencer">Influencer</option>
                     <option value="hq">HQ</option>
                   </select>
                 </div>
@@ -240,6 +245,23 @@ function SignupContent() {
                     {requestSent && <div style={{ color: "#34d399", fontSize: 13, marginTop: 8 }}>✅ Request sent — wait for HQ approval</div>}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Influencer extras */}
+            {mode === "influencer" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div style={{ background: "linear-gradient(135deg, rgba(236,72,153,0.15), rgba(168,85,247,0.1))", border: "1px solid rgba(236,72,153,0.3)", borderRadius: 12, padding: "12px 16px", display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 22 }}>📱</span>
+                  <div>
+                    <div style={{ color: "#ec4899", fontWeight: 700, fontSize: 13 }}>Become a Zeniva Influencer</div>
+                    <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>Earn 5% commission on every booking from your followers</div>
+                  </div>
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 8 }}>Sector / Niche</label>
+                  <input value={influencerSector} onChange={e => setInfluencerSector(e.target.value)} placeholder="Travel, Lifestyle, Luxury, Family..." style={inp()} required />
+                </div>
               </div>
             )}
 
@@ -280,7 +302,7 @@ function SignupContent() {
             )}
 
             <button type="submit" disabled={loading} style={{ width: "100%", padding: "16px", background: loading ? "rgba(15,108,245,0.5)" : `linear-gradient(135deg, ${NAVY}, ${BLUE})`, border: "none", borderRadius: 14, color: "#fff", fontSize: 16, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", marginTop: 4 }}>
-              {loading ? "Creating account..." : mode === "traveler" ? "🎁 Create account — Get 15% OFF →" : `Create ${modeConfig[mode].label} account →`}
+              {loading ? "Creating account..." : mode === "traveler" ? "🎁 Create account — Get 15% OFF →" : mode === "influencer" ? "📱 Create Influencer account →" : `Create ${modeConfig[mode].label} account →`}
             </button>
           </form>
 

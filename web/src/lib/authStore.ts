@@ -270,6 +270,7 @@ export async function signup(params: {
   divisions?: Division[];
   referralCode?: string;
   influencerId?: string;
+  influencerSector?: string;
 }) {
   const {
     name,
@@ -282,6 +283,7 @@ export async function signup(params: {
     divisions,
     referralCode,
     influencerId,
+    influencerSector,
   } = params;
   if (!email || !password) throw new Error("Email and password are required");
 
@@ -372,6 +374,7 @@ export async function signup(params: {
         inviteCode: baseAccount.inviteCode,
         agentLevel: baseAccount.agentLevel,
           travelerProfile: baseAccount.travelerProfile || undefined,
+          influencerSector: influencerSector || undefined,
       }),
     });
     const payload = await res.json();
@@ -698,6 +701,13 @@ export function hasDivision(user: PublicUser | null | undefined, division: Divis
   if (effective === "hq") return true;
   if (roles.includes("hq")) return true;
   return (user.divisions || []).includes(division);
+}
+
+export function isInfluencer(user = state.user) {
+  const roles = user ? (user.roles || (user.role ? [user.role] : [])) : [];
+  const effective = user?.effectiveRole ? normalizeRbacRole(user.effectiveRole) : null;
+  if (effective === "influencer") return true;
+  return roles.includes("influencer");
 }
 
 export function isHQ(user = state.user) {

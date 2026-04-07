@@ -111,9 +111,11 @@ export async function POST(request: Request) {
         ? String(body.agentLevel)
         : null;
 
+    const isInfluencerDirect = normalizedRoles.includes("influencer") && inviteCode === "__influencer_direct__";
     const isAgentRole = normalizedRoles.some((r: string) =>
       ["hq", "admin", "travel_agent", "yacht_broker", "influencer"].includes(r)
     );
+    const influencerSector = body?.influencerSector || body?.influencer_sector || "";
 
     // ---- Validate
     const missing: string[] = [];
@@ -121,13 +123,13 @@ export async function POST(request: Request) {
     if (!password) missing.push("password");
     if (!space) missing.push("space");
     if (!name) missing.push("fullName/name");
-    if (isAgentRole && !inviteCode) missing.push("inviteCode");
-    if (isAgentRole && !agentLevel) missing.push("agentRole");
+    if (isAgentRole && !isInfluencerDirect && !inviteCode) missing.push("inviteCode");
+    if (isAgentRole && !isInfluencerDirect && !agentLevel) missing.push("agentRole");
     if (missing.length) {
       return errorResponse("validate", "Missing required fields", 400, { missing, requestId });
     }
 
-    if (isAgentRole) {
+    if (isAgentRole && !isInfluencerDirect) {
       const check = await dbQuery(
         "SELECT id, status, role FROM agent_requests WHERE lower(email) = $1 AND code = $2 AND status = 'approved' ORDER BY requested_at DESC LIMIT 1",
         [email, inviteCode]
@@ -325,7 +327,7 @@ export async function POST(request: Request) {
       });
     }
 
-    if (isAgentRole) {
+    if (isAgentRole && !isInfluencerDirect) {
       try {
         await dbQuery(
           "UPDATE agent_requests SET status='completed', completed_at=now() WHERE lower(email) = $1 AND code = $2 AND status = 'approved'",
@@ -333,6 +335,28 @@ export async function POST(request: Request) {
         );
       } catch {
         // ignore
+      }
+    }
+
+    // Auto-setup influencer: generate ref code, store sector, create agent_requests record
+    if (isInfluencerDirect) {
+      try {
+        const refCode = `INF-${authUser.id.slice(0, 8).toUpperCase()}`;
+        await dbQuery(
+          `INSERT INTO agent_requests (id, name, email, role, status, code, note, requested_at, reviewed_at, reviewed_by, completed_at)
+           VALUES ($1, $2, $3, 'influencer', 'completed', $4, $5, now(), now(), 'auto-signup', now())
+           ON CONFLICT DO NOTHING`,
+          [globalThis.crypto?.randomUUID?.() || `ar-${Date.now()}`, name, email, refCode, `Sector: ${influencerSector || "N/A"}`]
+        );
+        // Create influencer referral form (default)
+        await dbQuery(
+          `INSERT INTO influencer_referral_forms (id, influencer_id, referral_code, slug, title, created_at)
+           VALUES ($1, $2, $3, 'default', 'Default Form', now())
+           ON CONFLICT DO NOTHING`,
+          [globalThis.crypto?.randomUUID?.() || `irf-${Date.now()}`, authUser.id, refCode]
+        );
+      } catch (err) {
+        console.error("Influencer auto-setup error:", err);
       }
     }
 

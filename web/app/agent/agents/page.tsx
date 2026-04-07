@@ -30,6 +30,7 @@ interface AgentDetail {
 const ROLE_CFG: Record<string, { label: string; bg: string; text: string; icon: string }> = {
   travel_agent: { label: "Travel Agent", bg: "bg-blue-100", text: "text-blue-700", icon: "✈️" },
   yacht_broker: { label: "Yacht Broker", bg: "bg-indigo-100", text: "text-indigo-700", icon: "⛵" },
+  influencer:   { label: "Influencer", bg: "bg-pink-100", text: "text-pink-700", icon: "📱" },
   hq:           { label: "HQ", bg: "bg-amber-100", text: "text-amber-700", icon: "🏢" },
   admin:        { label: "Admin", bg: "bg-red-100", text: "text-red-700", icon: "🔑" },
 };
@@ -241,8 +242,8 @@ export default function AgentCommandPage() {
           {[
             { label: "Total Agents", value: agents.length, icon: "👥", color: "text-blue-600" },
             { label: "Active", value: totalActive, icon: "✅", color: "text-emerald-600" },
+            { label: "Influencers", value: agents.filter(a => a.agent_type === "influencer").length, icon: "📱", color: "text-pink-600" },
             { label: "Total Leads", value: totalLeads, icon: "🎯", color: "text-purple-600" },
-            { label: "Travel Agents", value: agents.filter(a => a.agent_type === "travel_agent").length, icon: "✈️", color: "text-amber-600" },
           ].map(k => (
             <div key={k.label} className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
               <p className="text-xs text-slate-500">{k.icon} {k.label}</p>
