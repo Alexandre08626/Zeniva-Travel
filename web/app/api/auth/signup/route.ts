@@ -5,6 +5,7 @@ import { sendEmail } from "../../../../src/lib/server/email";
 import { assertBackendEnv, normalizeEmail, dbQuery } from "../../../../src/lib/server/db";
 import { normalizeRbacRole } from "../../../../src/lib/rbac";
 import { getCookieDomain, getSessionCookieName, signSession, hashPassword } from "../../../../src/lib/server/auth";
+import { buildInfluencerCode } from "../../../../src/lib/influencerShared";
 import { getSupabaseAdminClient, getSupabaseAnonClient } from "../../../../src/lib/supabase/server";
 
 function normalizeStringArray(value: unknown, fallback: string[] = []) {
@@ -341,7 +342,7 @@ export async function POST(request: Request) {
     // Auto-setup influencer: generate ref code, store sector, create agent_requests record
     if (isInfluencerDirect) {
       try {
-        const refCode = `INF-${authUser.id.slice(0, 8).toUpperCase()}`;
+        const refCode = buildInfluencerCode(email);
         await dbQuery(
           `INSERT INTO agent_requests (id, name, email, role, status, code, note, requested_at, reviewed_at, reviewed_by, completed_at)
            VALUES ($1, $2, $3, 'influencer', 'completed', $4, $5, now(), now(), 'auto-signup', now())
@@ -355,6 +356,14 @@ export async function POST(request: Request) {
            ON CONFLICT DO NOTHING`,
           [globalThis.crypto?.randomUUID?.() || `irf-${Date.now()}`, authUser.id, refCode]
         );
+        // Register influencer on VPS agents list
+        try {
+          await fetch("https://vmi3097009.contaboserver.net/admin/agents", {
+            method: "POST",
+            headers: { Authorization: "Bearer zeniva-secret-2025", "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, agent_type: "influencer", status: "active", ref_code: refCode, commission_rate: 5 }),
+          });
+        } catch { /* VPS registration is best-effort */ }
       } catch (err) {
         console.error("Influencer auto-setup error:", err);
       }

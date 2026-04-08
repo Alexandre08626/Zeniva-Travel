@@ -33,10 +33,13 @@ export function captureReferralFromUrl() {
   if (typeof window === "undefined") return null;
   const params = new URLSearchParams(window.location.search);
   const code = params.get("ref") || params.get("referral") || "";
-  if (!code) return null;
-  const influencerId = params.get("influencer") || code;
+  const agentEmail = params.get("agent") || "";
+  // Support both ?ref=code and ?agent=email (influencer share links)
+  const referralCode = code || (agentEmail ? buildInfluencerCode(agentEmail) : "");
+  if (!referralCode) return null;
+  const influencerId = params.get("influencer") || referralCode;
   const attribution: ReferralAttribution = {
-    referralCode: code,
+    referralCode,
     influencerId,
     capturedAt: new Date().toISOString(),
     source: window.location.pathname,

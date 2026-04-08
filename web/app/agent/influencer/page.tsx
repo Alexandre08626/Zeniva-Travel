@@ -62,11 +62,12 @@ export default function InfluencerPage() {
   const [approvedVideos, setApprovedVideos] = useState<ApprovedVideo[]>([]);
 
   const siteBase = "https://www.zenivatravel.com";
-  const refCode = stats.referralCode || (user?.email?.split("@")[0] ?? "ref");
-  const myLink = `${siteBase}/forms/travel?agent=${encodeURIComponent(user?.email ?? refCode)}`;
+  const agentEmail = user?.email || "";
+  const refCode = stats.referralCode || "";
+  const myLink = `${siteBase}/forms/travel?agent=${encodeURIComponent(agentEmail)}`;
 
   const videoShareLink = (videoId: string) =>
-    `${siteBase}/forms/travel?agent=${encodeURIComponent(user?.email ?? refCode)}&video=${videoId}`;
+    `${siteBase}/forms/travel?agent=${encodeURIComponent(agentEmail)}&video=${videoId}`;
 
   const copy = async (text: string, key: string) => {
     try { await navigator.clipboard.writeText(text); } catch {}

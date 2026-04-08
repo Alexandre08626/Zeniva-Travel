@@ -4,6 +4,7 @@ import { FORM_DEFINITIONS } from "../../../../src/lib/forms/catalog";
 import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../../src/lib/server/db";
 import { signSession } from "../../../../src/lib/server/auth";
 import { sendPushToHQ } from "../../../../src/lib/server/pushNotify";
+import { buildInfluencerCode } from "../../../../src/lib/influencerShared";
 
 const DEFAULT_OWNER_EMAIL = "info@zenivatravel.com";
 const VPS_API_URL = process.env.LINA_API_URL || "https://vmi3097009.contaboserver.net";
@@ -378,6 +379,27 @@ export async function POST(request: Request) {
 
       // Notify VPS for lead capture + email notification
       notifyVpsNewLead(saved, body).catch(() => {});
+
+      // Track lead for influencer dashboard if referred by an agent
+      if (referringAgent) {
+        const infCode = buildInfluencerCode(referringAgent);
+        dbQuery(
+          `INSERT INTO influencer_referral_leads (id, referral_code, form_id, traveler_name, traveler_email, phone, destination, budget, notes, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now())
+           ON CONFLICT DO NOTHING`,
+          [
+            crypto.randomUUID(),
+            infCode,
+            formId,
+            name || "Client",
+            email || null,
+            phone || null,
+            body?.destination || null,
+            body?.budget || null,
+            body?.notes || null,
+          ]
+        ).catch(() => {});
+      }
 
       return NextResponse.json({ data: saved, created: true, setupUrl }, { status: 201 });
     }

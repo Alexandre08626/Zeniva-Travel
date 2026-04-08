@@ -88,9 +88,23 @@ export default function AgentCommandPage() {
   const fetchAgents = async () => {
     setLoading(true);
     try {
-      const r = await fetch("/api/agents-proxy?path=admin/agents-list");
+      const [r, infR] = await Promise.all([
+        fetch("/api/agents-proxy?path=admin/agents-list"),
+        fetch("/api/agents/influencers"),
+      ]);
       const d = await r.json();
-      const agentList = d?.agents || [];
+      const agentList: AgentEntry[] = d?.agents || [];
+
+      // Merge influencers from Supabase (skip duplicates)
+      const infD = await infR.json().catch(() => ({ agents: [] }));
+      const infList: AgentEntry[] = infD?.agents || [];
+      const existingEmails = new Set(agentList.map((a: any) => (a.email || "").toLowerCase()));
+      for (const inf of infList) {
+        if (!existingEmails.has((inf.email || "").toLowerCase())) {
+          agentList.push(inf);
+          existingEmails.add((inf.email || "").toLowerCase());
+        }
+      }
 
       // Ajouter HQ en tête de liste s'il n'est pas déjà là
       const alreadyHQ = agentList.some((a: any) => a.email === "info@zeniva.ca");
