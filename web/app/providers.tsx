@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { useAuthStore } from "../src/lib/authStore";
 import { setTripUserScope, syncTripsFromServer } from "../lib/store/tripsStore";
 import ReferralTracker from "../src/components/ReferralTracker.client";
+import GlobalTranslator from "../src/components/GlobalTranslator.client";
 
 function TripsScopeBridge() {
   const user = useAuthStore((s) => s.user);
@@ -49,6 +50,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <TripsScopeBridge />
       <ActiveSpaceBridge />
       <ReferralTracker />
+      <GlobalTranslator />
       {children}
     </I18nProvider>
   );
