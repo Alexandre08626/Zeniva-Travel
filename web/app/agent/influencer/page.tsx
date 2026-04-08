@@ -623,15 +623,16 @@ export default function InfluencerPage() {
 
         {/* ══ HOW IT WORKS TAB ══ */}
         {activeTab === "howto" && (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <h2 className="text-2xl font-black text-white">📖 How It Works</h2>
 
+            {/* Steps */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               {[
-                { step: "01", icon: "🎬", title: "Pick a video", desc: "Go to the 'Videos to Share' tab and choose an approved video to share." },
-                { step: "02", icon: "📲", title: "Share your link", desc: "Copy your unique link and share it on Instagram, TikTok, Facebook, WhatsApp..." },
-                { step: "03", icon: "✍️", title: "Client fills the form", desc: "Your followers fill out the form and automatically become YOUR leads." },
-                { step: "04", icon: "💰", title: "Lina closes the sale", desc: "Lina AI contacts the lead, finalizes the trip. You get your commission automatically!" },
+                { step: "01", icon: "🎬", title: "Create or pick a video", desc: "Film your own video about Zeniva OR pick one from the 'Videos to Share' tab. Your content, your style!" },
+                { step: "02", icon: "📲", title: "Share your link", desc: "Copy your unique referral link and add it to your bio, story, caption, or DM on any platform." },
+                { step: "03", icon: "✍️", title: "Client fills the form", desc: "Your followers click your link, fill out the travel form, and automatically become YOUR leads." },
+                { step: "04", icon: "💰", title: "Lina closes the sale", desc: "Lina AI contacts the lead, builds a proposal, and finalizes the trip. You get your commission automatically!" },
               ].map(s => (
                 <div key={s.step} className="relative rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
                   <div className="text-4xl font-black text-white/5 absolute top-3 right-4">{s.step}</div>
@@ -642,26 +643,144 @@ export default function InfluencerPage() {
               ))}
             </div>
 
+            {/* ── About Zeniva Travel ── */}
+            <div className="rounded-3xl border border-blue-400/20 bg-gradient-to-br from-blue-500/10 to-indigo-500/5 p-6 backdrop-blur-sm">
+              <h3 className="text-xl font-black text-white mb-4">🏢 About Zeniva Travel</h3>
+              <p className="text-slate-300 leading-relaxed mb-4">
+                <strong className="text-white">Zeniva Travel</strong> is a premium AI-powered travel agency based in <strong className="text-white">Delaware, USA</strong>.
+                Our AI assistant <strong className="text-yellow-300">Lina</strong> creates 100% personalized trip proposals in minutes, covering every
+                aspect of luxury travel. We handle everything from search to booking to payment.
+              </p>
+              <div className="grid gap-3 md:grid-cols-3">
+                <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                  <div className="text-2xl mb-2">🤖</div>
+                  <div className="font-bold text-white text-sm">AI-Powered</div>
+                  <div className="text-xs text-slate-400 mt-1">Lina AI analyzes preferences and builds custom proposals in minutes, not days</div>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                  <div className="text-2xl mb-2">💎</div>
+                  <div className="font-bold text-white text-sm">Luxury Focus</div>
+                  <div className="text-xs text-slate-400 mt-1">Premium experiences, hand-picked hotels, VIP transfers, private tours</div>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                  <div className="text-2xl mb-2">🔒</div>
+                  <div className="font-bold text-white text-sm">Secure Payments</div>
+                  <div className="text-xs text-slate-400 mt-1">ZeniPay secure payment system — clients pay safely, you get your commission</div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Services Offered ── */}
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+              <h3 className="text-xl font-black text-white mb-4">✈️ Services You Can Promote</h3>
+              <p className="text-sm text-slate-400 mb-4">Talk about any of these services in your content. Each one is a potential sale and commission for you.</p>
+              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                {[
+                  { icon: "🏨", title: "Hotels & Resorts", desc: "5-star hotels, boutique resorts, all-inclusive packages worldwide. From Bali to Maldives to Paris." },
+                  { icon: "✈️", title: "Flights", desc: "Business & first class flights, multi-city routes, best-price guarantees on premium airlines." },
+                  { icon: "🛥️", title: "Yacht Charters", desc: "Private yacht charters in the Caribbean, Mediterranean, Greece, Thailand. Day trips or week-long cruises." },
+                  { icon: "🏡", title: "Luxury Villas", desc: "Private villas with pools, ocean views, personal chefs. Perfect for families and groups." },
+                  { icon: "👥", title: "Group Travel", desc: "Corporate retreats, destination weddings, bachelor/bachelorette trips. Full event coordination." },
+                  { icon: "🎯", title: "Custom Experiences", desc: "Private tours, spa packages, adventure activities, romantic dinners, cultural excursions." },
+                ].map(svc => (
+                  <div key={svc.title} className="rounded-xl border border-white/10 bg-white/5 p-4">
+                    <div className="text-2xl mb-2">{svc.icon}</div>
+                    <div className="font-bold text-white text-sm">{svc.title}</div>
+                    <div className="text-xs text-slate-400 mt-1">{svc.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Platform Modes ── */}
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+              <h3 className="text-xl font-black text-white mb-4">🔀 How Zeniva Works (Modes)</h3>
+              <p className="text-sm text-slate-400 mb-4">Zeniva has different portals for different users. Here is how the platform works end-to-end:</p>
+              <div className="grid gap-3 md:grid-cols-2">
+                {[
+                  { icon: "👤", title: "Traveler Mode", desc: "Clients sign up, chat with Lina AI, receive custom trip proposals, and pay securely via ZeniPay. They get 15% OFF their first booking.", color: "border-emerald-500/20 bg-emerald-500/5" },
+                  { icon: "📱", title: "Influencer / Creator Mode", desc: "That's YOU! Share your unique link, generate leads through content, earn 5% commission on every closed booking. Track everything in this dashboard.", color: "border-pink-500/20 bg-pink-500/5" },
+                  { icon: "🏢", title: "Agent Mode", desc: "Professional travel agents manage clients, create proposals, handle bookings and earn commissions. Full CRM with AI assistance from Lina, Sofia, and Luna.", color: "border-blue-500/20 bg-blue-500/5" },
+                  { icon: "🤝", title: "Partner Mode", desc: "Hotels, resorts, villas, and yacht companies list their properties and receive bookings from Zeniva agents. Direct calendar sync and payout management.", color: "border-yellow-500/20 bg-yellow-500/5" },
+                ].map(mode => (
+                  <div key={mode.title} className={`rounded-xl border p-4 ${mode.color}`}>
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-2xl">{mode.icon}</span>
+                      <span className="font-bold text-white">{mode.title}</span>
+                    </div>
+                    <div className="text-xs text-slate-300">{mode.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Content Ideas ── */}
+            <div className="rounded-3xl border border-indigo-400/20 bg-indigo-500/5 p-6 backdrop-blur-sm">
+              <h3 className="text-xl font-black text-white mb-4">💡 Content Ideas for Your Videos</h3>
+              <p className="text-sm text-slate-400 mb-4">You can create your own content! Here are ideas that work well:</p>
+              <div className="grid gap-3 md:grid-cols-2">
+                {[
+                  { title: "\"I found an AI that plans your entire trip\"", desc: "Show how Lina builds a full proposal in minutes. Great for TikTok/Reels." },
+                  { title: "\"Luxury travel on any budget\"", desc: "Explain how Zeniva finds the best deals on premium hotels, flights, and experiences." },
+                  { title: "\"How to book a yacht without being rich\"", desc: "Highlight yacht charter options for groups — splitting costs makes it affordable." },
+                  { title: "\"Planning a group trip? Let AI do it\"", desc: "Show how Zeniva handles group coordination, matching dates, and splitting payments." },
+                  { title: "\"My honest review of Zeniva Travel\"", desc: "Share your personal experience or walkthrough of the platform." },
+                  { title: "\"Free trip proposal in 24h\"", desc: "Emphasize that clients get a free personalized proposal just by filling the form." },
+                ].map((idea, i) => (
+                  <div key={i} className="rounded-xl border border-white/10 bg-white/5 p-4">
+                    <div className="font-bold text-white text-sm">{idea.title}</div>
+                    <div className="text-xs text-slate-400 mt-1">{idea.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Key Talking Points ── */}
+            <div className="rounded-3xl border border-yellow-400/20 bg-yellow-500/5 p-6 backdrop-blur-sm">
+              <h3 className="text-xl font-black text-white mb-2">🎙️ Key Talking Points</h3>
+              <p className="text-sm text-slate-400 mb-4">Use these facts when creating content about Zeniva:</p>
+              <div className="grid gap-2 md:grid-cols-2">
+                {[
+                  "Lina is an AI travel assistant — she responds 24/7 and builds proposals in minutes",
+                  "Clients get a FREE personalized trip proposal just by filling out the form",
+                  "15% discount on the first booking for every new client",
+                  "Zeniva covers hotels, flights, yachts, villas, group travel, and custom experiences",
+                  "Secure payment via ZeniPay — no upfront deposits to shady sites",
+                  "Zeniva is a US-based company (Delaware) — fully legitimate and licensed",
+                  "AI-powered but with real human agents behind the scenes for complex requests",
+                  "No hidden fees — transparent pricing with full breakdown in every proposal",
+                ].map((point, i) => (
+                  <div key={i} className="flex items-start gap-2 rounded-lg border border-white/5 bg-white/5 p-3">
+                    <span className="text-yellow-400 mt-0.5 shrink-0">&#9733;</span>
+                    <span className="text-sm text-slate-300">{point}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Rules */}
             <div className="grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5">
-                <h3 className="font-black text-emerald-300 mb-3">✅ What you can do</h3>
+                <h3 className="font-black text-emerald-300 mb-3">✅ What you CAN do</h3>
                 <ul className="space-y-2 text-sm text-slate-300">
+                  <li>✅ Create your OWN videos about Zeniva in your style</li>
                   <li>✅ Share approved videos with your unique link</li>
-                  <li>✅ Copy and adapt the approved captions</li>
-                  <li>✅ Use the official logo and brand colors</li>
-                  <li>✅ Talk about your experience with Zeniva</li>
-                  <li>✅ Post stories and reels with the link in bio</li>
+                  <li>✅ Talk about the company, services, and your experience</li>
+                  <li>✅ Use the official logo and brand colors from the Brand Kit</li>
+                  <li>✅ Post stories, reels, TikToks with your referral link in bio</li>
+                  <li>✅ Adapt captions and messaging to your audience</li>
+                  <li>✅ Promote any of the services listed above</li>
                 </ul>
               </div>
               <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-5">
                 <h3 className="font-black text-red-300 mb-3">🚫 What you must NOT do</h3>
                 <ul className="space-y-2 text-sm text-slate-300">
-                  <li>🚫 Promise specific prices or availability</li>
-                  <li>🚫 Use non-approved visuals or content</li>
-                  <li>🚫 Share client information with anyone</li>
-                  <li>🚫 Modify the logo or brand colors</li>
-                  <li>🚫 Promise unapproved discounts or deals</li>
+                  <li>🚫 Promise specific prices or guaranteed availability</li>
+                  <li>🚫 Share client personal information with anyone</li>
+                  <li>🚫 Modify the official logo or brand colors</li>
+                  <li>🚫 Promise unapproved discounts or special deals</li>
+                  <li>🚫 Claim to be a Zeniva employee or official agent</li>
+                  <li>🚫 Make false claims about the service or results</li>
                 </ul>
               </div>
             </div>
@@ -671,10 +790,13 @@ export default function InfluencerPage() {
               <h3 className="text-lg font-bold text-white mb-4">❓ FAQ</h3>
               <div className="space-y-3">
                 {[
-                  { q: "How much do I earn per sale?", a: "You earn 5% of Zeniva's net profit on the full trip — not the sale price. Example: a $5,000 trip where Zeniva makes $1,000 profit = $50 commission for you." },
+                  { q: "How much do I earn per sale?", a: "You earn 5% of Zeniva's net profit on the full trip. Example: a $5,000 trip where Zeniva makes $1,000 profit = $50 commission for you." },
                   { q: "When do I get paid?", a: "As soon as the trip is confirmed and payment received, your commission is recorded. Payouts are processed monthly." },
-                  { q: "How do I know the lead is mine?", a: "Your referral code is encoded in every link you share. Every lead is automatically attributed to you." },
+                  { q: "How do I know the lead is mine?", a: "Your referral code is encoded in every link you share. Every click and form submission is automatically attributed to your account." },
                   { q: "What if my lead books later?", a: "Your attribution is valid for 30 days after the first click. If the client comes back and books, the commission is still yours." },
+                  { q: "Can I make my own videos?", a: "Absolutely! You can create your own content about Zeniva in your own style. Use the talking points and service info on this page. Just keep your referral link in the bio or description." },
+                  { q: "What destinations can I promote?", a: "All of them! Zeniva covers worldwide destinations — Caribbean, Europe, Asia, Africa, Middle East, South Pacific. Lina AI handles any destination." },
+                  { q: "Do I need to handle any customer service?", a: "No! Once a lead fills out the form, Lina AI and the Zeniva team take over. You just generate the lead and earn the commission." },
                 ].map((item, i) => (
                   <details key={i} className="rounded-xl border border-white/10 bg-white/5 p-4">
                     <summary className="cursor-pointer font-bold text-white">{item.q}</summary>
@@ -686,14 +808,22 @@ export default function InfluencerPage() {
 
             {/* CTA */}
             <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-center">
-              <h3 className="text-xl font-black text-white">Prêt à commencer?</h3>
-              <p className="mt-2 text-blue-200">Partage ta première vidéo maintenant et commence à générer des leads!</p>
-              <button
-                onClick={() => setActiveTab("videos")}
-                className="mt-4 rounded-full bg-white px-8 py-3 font-black text-blue-700 transition-all hover:scale-105 hover:shadow-2xl"
-              >
-                🎬 Voir les vidéos →
-              </button>
+              <h3 className="text-xl font-black text-white">Ready to start?</h3>
+              <p className="mt-2 text-blue-200">Copy your referral link, create your first video, and start generating leads today!</p>
+              <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+                <button
+                  onClick={() => { copy(myLink, "cta"); }}
+                  className="rounded-full bg-white px-8 py-3 font-black text-blue-700 transition-all hover:scale-105 hover:shadow-2xl"
+                >
+                  {copied === "cta" ? "✅ Link Copied!" : "📋 Copy My Referral Link"}
+                </button>
+                <button
+                  onClick={() => setActiveTab("videos")}
+                  className="rounded-full border-2 border-white/30 px-8 py-3 font-black text-white transition-all hover:bg-white/10"
+                >
+                  🎬 See Videos
+                </button>
+              </div>
             </div>
           </div>
         )}
