@@ -25,7 +25,9 @@ function LoginContent() {
   useEffect(() => {
     if (user) {
       if (redirect) { router.push(redirect); return; }
-      if (mode === "influencer") { router.push("/agent/influencer"); return; }
+      const userRoles = user.roles || (user.role ? [user.role] : []);
+      const isInfluencer = userRoles.includes("influencer");
+      if (mode === "influencer" || isInfluencer) { router.push("/agent/influencer"); return; }
       if (mode === "agent") { router.push("/agent"); return; }
       router.push("/proposals");
     }
@@ -42,7 +44,9 @@ function LoginContent() {
           ? await login(email.trim(), password, { allowedRoles: ["partner_owner", "partner_staff", "hq"] })
           : await login(email.trim(), password);
       if (redirect) { router.push(redirect); return; }
-      if (mode === "influencer") { router.push("/agent/influencer"); return; }
+      const resultRoles = result.roles || (result.role ? [result.role] : []);
+      const isInfluencerAccount = resultRoles.includes("influencer");
+      if (mode === "influencer" || isInfluencerAccount) { router.push("/agent/influencer"); return; }
       if (mode === "agent") { router.push("/agent"); return; }
       if (mode === "partner") { router.push("/partner/dashboard"); return; }
       if (result.activeSpace === "partner") { router.push("/partner/dashboard"); return; }
