@@ -1,12 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { assertBackendEnv, dbQuery } from "../../../../src/lib/server/db";
-import { requireRbacPermission } from "../../../../src/lib/server/rbac";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     assertBackendEnv();
-    const gate = await requireRbacPermission(request, "referrals:read");
-    if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
+    // Auth: require agent session (same pattern as agents-proxy)
+    const sessionCookie = request.cookies.get("zeniva_session")?.value || "";
+    const rolesCookie = request.cookies.get("zeniva_roles")?.value || "";
+    const hasSession = sessionCookie.length > 10 && (rolesCookie.includes("hq") || rolesCookie.includes("admin"));
+    if (!hasSession) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { rows } = await dbQuery(
       `SELECT id, name, email, role, roles, status, created_at
