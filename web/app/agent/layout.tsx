@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "../../src/lib/authStore";
 import { normalizeRbacRole } from "../../src/lib/rbac";
 import { getSupabaseClient } from "../../src/lib/supabase/client";
+import AccountMenu from "../../src/components/AccountMenu.client";
 
 const normalizeText = (value: unknown) => String(value || "").toLowerCase();
 
@@ -324,10 +325,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <span>Agent mode</span>
-              <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-            </div>
+            <AccountMenu />
           </div>
         </div>
       </div>
