@@ -24,7 +24,7 @@ function getTransporter(): nodemailer.Transporter {
 }
 
 const FROM_EMAIL = process.env.SMTP_USER || "info@zenivatravel.com";
-const PHYSICAL_ADDRESS = "Zeniva LLC · 1201 N Orange St, Suite 7160 · Wilmington, DE 19801 · USA";
+const PHYSICAL_ADDRESS = "Zeniva LLC · 8 The Green, Ste A · Dover, DE 19901 · USA";
 const UNSUBSCRIBE_EMAIL = "unsubscribe@zenivatravel.com";
 
 function addUnsubscribeFooter(html: string, recipientEmail: string): string {
