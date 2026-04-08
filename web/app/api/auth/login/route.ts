@@ -174,6 +174,9 @@ export async function POST(request: Request) {
         console.error("Supabase fallback account fetch error", { message: fallbackError.message });
       }
 
+      if (fallbackAccount && fallbackAccount.status === "blocked") {
+        return NextResponse.json({ error: "This account has been permanently deactivated." }, { status: 403 });
+      }
       const storedHash = (fallbackAccount as any)?.password_hash as string | null | undefined;
       if (fallbackAccount && storedHash && verifyPassword(password, storedHash)) {
         return buildSessionResponse(request, {
@@ -213,6 +216,9 @@ export async function POST(request: Request) {
     }
 
     let account = existingAccount;
+    if (account && account.status === "blocked") {
+      return NextResponse.json({ error: "This account has been permanently deactivated." }, { status: 403 });
+    }
     if (!account) {
       const fallbackRoles = metaRoles.length ? metaRoles : [metaRole];
       const rolesForAccount = fallbackRoles.map((role) => normalizeRbacRole(role) || role);

@@ -34,19 +34,41 @@ export async function POST(req: NextRequest) {
   // Delete from agents table
   if (agentId && agentId !== "hq-zeniva") {
     const { error } = await client.from("agents").delete().eq("id", agentId);
-    if (error) errors.push("agents: " + error.message);
+    if (error && !error.message.includes("does not exist")) errors.push("agents: " + error.message);
   }
 
   // Delete from profiles table by email
   if (email) {
     const { error } = await client.from("profiles").delete().eq("account_email", email);
-    if (error) errors.push("profiles: " + error.message);
+    if (error && !error.message.includes("does not exist")) errors.push("profiles: " + error.message);
   }
 
-  // Also remove any agent-specific data
+  // Block the account in accounts table (set status to 'blocked' so they can't log back in)
+  if (email) {
+    await client.from("accounts").update({ status: "blocked", updated_at: new Date().toISOString() }).eq("email", email);
+  }
+
+  // Delete from Supabase auth (prevents re-signup with same email)
+  if (email) {
+    try {
+      const { data: authUsers } = await (client.auth.admin as any).listUsers({ perPage: 1000 });
+      const match = (authUsers?.users || []).find((u: any) => String(u?.email || "").toLowerCase() === email.toLowerCase());
+      if (match?.id) {
+        await (client.auth.admin as any).deleteUser(match.id);
+      }
+    } catch (err: any) {
+      errors.push("auth_delete: " + (err?.message || "failed"));
+    }
+  }
+
   // Unassign leads that were assigned to this agent
   if (agentId && agentId !== "hq-zeniva") {
-    await client.from("leads").update({ agent_id: null }).eq("agent_id", agentId);
+    await client.from("leads").update({ agent_id: null }).eq("agent_id", agentId).catch(() => {});
+  }
+
+  // Clean up influencer data if applicable
+  if (email) {
+    await client.from("agent_requests").delete().eq("email", email).catch(() => {});
   }
 
   if (errors.length > 0) {

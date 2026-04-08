@@ -130,6 +130,12 @@ export async function POST(request: Request) {
       return errorResponse("validate", "Missing required fields", 400, { missing, requestId });
     }
 
+    // Block sign-up for previously deactivated accounts
+    const blocked = await dbQuery("SELECT id FROM accounts WHERE lower(email) = lower($1) AND status = 'blocked' LIMIT 1", [email]);
+    if (blocked.rows.length) {
+      return errorResponse("blocked", "This email has been permanently deactivated and cannot be used to create a new account.", 403, { requestId });
+    }
+
     if (isAgentRole && !isInfluencerDirect) {
       const check = await dbQuery(
         "SELECT id, status, role FROM agent_requests WHERE lower(email) = $1 AND code = $2 AND status = 'approved' ORDER BY requested_at DESC LIMIT 1",
