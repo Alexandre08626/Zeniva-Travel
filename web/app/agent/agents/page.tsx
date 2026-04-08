@@ -90,7 +90,7 @@ export default function AgentCommandPage() {
     try {
       const [r, infR] = await Promise.all([
         fetch("/api/agents-proxy?path=admin/agents-list"),
-        fetch("/api/agents/influencers"),
+        fetch("/api/agents-proxy?endpoint=influencers"),
       ]);
       const d = await r.json();
       const agentList: AgentEntry[] = d?.agents || [];

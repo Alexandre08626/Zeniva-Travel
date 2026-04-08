@@ -80,6 +80,28 @@ export async function GET(req: NextRequest) {
       const r = await fetch(`${VPS_BASE}/video-queue`, { headers: { Authorization: AUTH }, next: { revalidate: 0 } });
       return NextResponse.json(await r.json());
     }
+    // Get influencer accounts from Supabase
+    if (endpoint === "influencers") {
+      const { getSupabaseAdminClient } = await import("../../../src/lib/supabase/server");
+      const { client } = getSupabaseAdminClient();
+      const { data } = await client
+        .from("accounts")
+        .select("id, name, email, role, roles, status, created_at")
+        .contains("roles", ["influencer"])
+        .order("created_at", { ascending: false });
+      const agents = (data || []).map((row: any) => ({
+        id: row.id,
+        name: row.name || "Influencer",
+        email: row.email,
+        agent_type: "influencer",
+        status: row.status || "active",
+        leads_count: 0,
+        commission_rate: 5,
+        ref_code: "",
+        created_at: row.created_at,
+      }));
+      return NextResponse.json({ agents });
+    }
     return NextResponse.json({ error: "Unknown endpoint" }, { status: 400 });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "VPS unreachable" }, { status: 502 });
