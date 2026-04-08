@@ -88,6 +88,7 @@ export async function GET(req: NextRequest) {
         .from("accounts")
         .select("id, name, email, role, roles, status, created_at")
         .eq("role", "influencer")
+        .neq("status", "blocked")
         .order("created_at", { ascending: false });
       const agents = (data || []).map((row: any) => ({
         id: row.id,

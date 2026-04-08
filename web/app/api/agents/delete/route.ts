@@ -1,27 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/src/lib/supabase/server";
-import { verifySession, getSessionCookieName } from "@/src/lib/server/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function getAuth(req: NextRequest) {
-  const ck = req.headers.get("cookie") || "";
-  const cn = getSessionCookieName();
-  const m = ck.match(new RegExp(cn + "=([^;]+)"));
-  const t = m?.[1];
-  if (!t) return null;
-  const s = verifySession(t);
-  if (!s?.email) return null;
-  // Only HQ/admin can delete agents
-  const roles = s.roles || [];
-  if (!roles.includes("hq") && !roles.includes("admin")) return null;
-  return s;
-}
-
 export async function POST(req: NextRequest) {
-  const session = getAuth(req);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // Auth: HQ or admin only (cookie-based, same as agents-proxy)
+  const sessionCookie = req.cookies.get("zeniva_session")?.value || "";
+  const rolesCookie = decodeURIComponent(req.cookies.get("zeniva_roles")?.value || "");
+  if (sessionCookie.length < 10 || (!rolesCookie.includes("hq") && !rolesCookie.includes("admin"))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const { agentId, email } = await req.json();
   if (!agentId && !email) {
@@ -29,51 +18,58 @@ export async function POST(req: NextRequest) {
   }
 
   const { client } = getSupabaseAdminClient();
-  const errors: string[] = [];
+  const results: string[] = [];
 
-  // Delete from agents table
+  // 1. Block the account (set status to 'blocked')
+  if (email) {
+    const { error } = await client
+      .from("accounts")
+      .update({ status: "blocked", updated_at: new Date().toISOString() })
+      .eq("email", email);
+    results.push(error ? `accounts_block: ${error.message}` : "accounts_blocked");
+  }
+
+  // 2. Delete from agents table (if exists)
   if (agentId && agentId !== "hq-zeniva") {
     const { error } = await client.from("agents").delete().eq("id", agentId);
-    if (error && !error.message.includes("does not exist")) errors.push("agents: " + error.message);
+    if (error && !error.message.includes("does not exist")) {
+      results.push(`agents_delete: ${error.message}`);
+    } else {
+      results.push("agents_deleted");
+    }
   }
 
-  // Delete from profiles table by email
+  // 3. Delete from profiles table
   if (email) {
-    const { error } = await client.from("profiles").delete().eq("account_email", email);
-    if (error && !error.message.includes("does not exist")) errors.push("profiles: " + error.message);
+    await client.from("profiles").delete().eq("account_email", email).catch(() => {});
+    results.push("profiles_cleaned");
   }
 
-  // Block the account in accounts table (set status to 'blocked' so they can't log back in)
-  if (email) {
-    await client.from("accounts").update({ status: "blocked", updated_at: new Date().toISOString() }).eq("email", email);
-  }
-
-  // Delete from Supabase auth (prevents re-signup with same email)
+  // 4. Delete from Supabase auth (prevents re-signup)
   if (email) {
     try {
       const { data: authUsers } = await (client.auth.admin as any).listUsers({ perPage: 1000 });
       const match = (authUsers?.users || []).find((u: any) => String(u?.email || "").toLowerCase() === email.toLowerCase());
       if (match?.id) {
         await (client.auth.admin as any).deleteUser(match.id);
+        results.push("auth_deleted");
+      } else {
+        results.push("auth_not_found");
       }
     } catch (err: any) {
-      errors.push("auth_delete: " + (err?.message || "failed"));
+      results.push(`auth_error: ${err?.message}`);
     }
   }
 
-  // Unassign leads that were assigned to this agent
-  if (agentId && agentId !== "hq-zeniva") {
-    await client.from("leads").update({ agent_id: null }).eq("agent_id", agentId).catch(() => {});
-  }
-
-  // Clean up influencer data if applicable
+  // 5. Clean up agent_requests
   if (email) {
     await client.from("agent_requests").delete().eq("email", email).catch(() => {});
   }
 
-  if (errors.length > 0) {
-    return NextResponse.json({ ok: false, errors }, { status: 500 });
+  // 6. Unassign leads
+  if (agentId && agentId !== "hq-zeniva") {
+    await client.from("leads").update({ agent_id: null }).eq("agent_id", agentId).catch(() => {});
   }
 
-  return NextResponse.json({ ok: true, deleted: { agentId, email } });
+  return NextResponse.json({ ok: true, deleted: { agentId, email }, results });
 }
