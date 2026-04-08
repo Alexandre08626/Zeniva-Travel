@@ -30,8 +30,11 @@ async function getAuth(req: NextRequest) {
   return s?.email ? s : null;
 }
 
-/* ── Config (OpenAI direct — Sofia ne passe PAS par le VPS Lina) ── */
+/* ── Config ── */
 const TIMEOUT_MS = 45000;
+const VPS_BASE = process.env.ZENIVA_API_URL || "https://vmi3097009.contaboserver.net";
+const VPS_AUTH = "Bearer zeniva-secret-2025";
+// Fallback to OpenAI direct if VPS fails
 const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const API_BASE = process.env.OPENAI_API_BASE || "https://api.openai.com/v1";
 const OPENAI_KEY = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
@@ -228,16 +231,44 @@ ${recipients ? `\nDestinataires (${recipients.length} premiers):\n${recipients.m
     }
   }
 
-  /* ── Call AI ── */
-  // Sofia utilise TOUJOURS OpenAI directement avec son propre system prompt.
-  // On ne passe PAS par le VPS car celui-ci a le prompt de Lina (concierge voyage)
-  // et Sofia est une entite completement independante (marketing email).
-  const fallbackReply = await callOpenAIFallback(prompt, history, systemPrompt);
+  /* ── Call AI: VPS first (works like Lina), OpenAI fallback ── */
+  let reply = "";
+  let provider = "vps";
+
+  // Try VPS first (same endpoint as Lina but with Sofia's system prompt)
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    const vpsRes = await fetch(`${VPS_BASE}/chat`, {
+      method: "POST",
+      headers: { Authorization: VPS_AUTH, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: systemPrompt + "\n\nUser says: " + prompt,
+        sessionId: `sofia-${sessionId}`,
+        source: "sofia-chat",
+        history: history.slice(-10),
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    if (vpsRes.ok) {
+      const data = await vpsRes.json();
+      reply = data?.response || "";
+    }
+  } catch (err: any) {
+    console.error("[Sofia] VPS error:", err?.message);
+  }
+
+  // Fallback to OpenAI direct if VPS failed
+  if (!reply) {
+    provider = "openai-fallback";
+    reply = await callOpenAIFallback(prompt, history, systemPrompt);
+  }
 
   return NextResponse.json({
-    reply: fallbackReply,
+    reply,
     sessionId,
     requestId,
-    meta: { provider: "openai-fallback", model: MODEL },
+    meta: { provider, model: provider === "openai-fallback" ? MODEL : "vps-claude" },
   });
 }
