@@ -5,6 +5,7 @@ import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../../src/lib/s
 import { signSession } from "../../../../src/lib/server/auth";
 import { sendPushToHQ } from "../../../../src/lib/server/pushNotify";
 import { buildInfluencerCode } from "../../../../src/lib/influencerShared";
+import { sofiaWelcomeLead } from "../../../../src/lib/server/sofia-emails";
 
 const DEFAULT_OWNER_EMAIL = "info@zenivatravel.com";
 const VPS_API_URL = process.env.LINA_API_URL || "https://vmi3097009.contaboserver.net";
@@ -360,7 +361,7 @@ export async function POST(request: Request) {
       const HQ_ALL_EMAILS = ["info@zeniva.ca", "info@zenivatravel.com", "info@zeniva.com"];
       if (!HQ_ALL_EMAILS.includes(email.toLowerCase())) {
         const dest = body?.destination || "your dream destination";
-        sendWelcomeEmail(saved.name, email, dest).catch(() => {});
+        sofiaWelcomeLead(email, saved.name, dest).catch(() => {});
         if (body?.phone) sendWelcomeSMS(String(body.phone), saved.name, dest).catch(() => {});
       }
 

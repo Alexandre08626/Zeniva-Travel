@@ -409,13 +409,10 @@ export async function POST(request: Request) {
       tag: "new-account",
     }).catch(() => {});
 
-    // Send welcome email via Resend (no more n8n/VPS dependency)
-    sendEmail({
-      fromName: "Lina — Zeniva Travel",
-      to: account.email,
-      subject: "Welcome to Zeniva Travel — Your Dream Trip Starts Here!",
-      html: generateWelcomeEmailHTML(account.name || ""),
-    }).catch((err) => console.error("Welcome email failed:", err));
+    // Sofia: send congratulations email to new account
+    import("../../../../src/lib/server/sofia-emails").then(({ sofiaCongratulations }) => {
+      sofiaCongratulations(account.email, account.name || "").catch((err: any) => console.error("Sofia congrats email failed:", err));
+    }).catch(() => {});
 
     // ---- Create session cookie (your custom token)
     const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30;

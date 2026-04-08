@@ -1,9 +1,25 @@
 {
   "installCommand": "npm ci",
+  "crons": [
+    {
+      "path": "/api/cron/marco-prospecting",
+      "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/cron/sofia-auto-reply",
+      "schedule": "*/5 * * * *"
+    }
+  ],
   "functions": {
     "app/api/proposals/generate-pdf/route.ts": {
       "memory": 1024,
       "maxDuration": 60
+    },
+    "app/api/cron/marco-prospecting/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/cron/sofia-auto-reply/route.ts": {
+      "maxDuration": 30
     }
   },
   "rewrites": [
