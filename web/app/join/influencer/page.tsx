@@ -43,18 +43,18 @@ export default function JoinInfluencerPage() {
           Share. Earn. <span style={{ color: GOLD }}>Win.</span>
         </h1>
         <p style={{ fontSize: 18, color: "rgba(255,255,255,0.6)", margin: "16px auto 32px", maxWidth: 420, lineHeight: 1.5 }}>
-          Contenu prêt à partager, liens personnalisés, CRM intégré et commissions sur chaque réservation. Tu partages, on fait le reste.
+          Ready-to-share content, personalized links, built-in CRM and commissions on every booking. You share, we do the rest.
         </p>
 
         {/* Features */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 32, textAlign: "left" }}>
           {[
-            { icon: "🎬", text: "Vidéos prêtes à partager" },
-            { icon: "🔗", text: "Ton lien unique personnalisé" },
-            { icon: "💰", text: "5% commission automatique" },
-            { icon: "📊", text: "Dashboard temps réel" },
-            { icon: "🎯", text: "CRM pour tes leads" },
-            { icon: "🤖", text: "Lina AI ferme les ventes" },
+            { icon: "🎬", text: "Ready-to-share videos" },
+            { icon: "🔗", text: "Your own unique link" },
+            { icon: "💰", text: "5% auto commission" },
+            { icon: "📊", text: "Real-time dashboard" },
+            { icon: "🎯", text: "Built-in lead CRM" },
+            { icon: "🤖", text: "Lina AI closes the sale" },
           ].map((f) => (
             <div key={f.text} style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "12px 14px" }}>
               <span style={{ fontSize: 20 }}>{f.icon}</span>
@@ -69,13 +69,13 @@ export default function JoinInfluencerPage() {
             href="/signup?space=influencer"
             style={{ display: "block", padding: "18px", background: "linear-gradient(135deg, #ec4899, #a855f7)", borderRadius: 16, color: "#fff", fontSize: 18, fontWeight: 800, textDecoration: "none", textAlign: "center", boxShadow: "0 8px 32px rgba(236,72,153,0.3)" }}
           >
-            Créer mon compte influenceur →
+            Create my influencer account →
           </a>
           <a
             href="/login?space=influencer"
             style={{ display: "block", padding: "14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 14, color: "rgba(255,255,255,0.6)", fontSize: 14, fontWeight: 600, textDecoration: "none", textAlign: "center" }}
           >
-            J'ai déjà un compte → Se connecter
+            Already have an account → Sign in
           </a>
         </div>
 

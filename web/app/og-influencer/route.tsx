@@ -43,17 +43,17 @@ export async function GET() {
               Win.
             </div>
             <div style={{ fontSize: 22, color: "rgba(255,255,255,0.65)", marginTop: 20, lineHeight: 1.5, maxWidth: 620 }}>
-              Contenu prêt à partager, liens personnalisés, CRM intégré et commissions sur chaque réservation. Tu partages, on fait le reste.
+              Ready-to-share content, personalized links, built-in CRM and commissions on every booking. You share, we do the rest.
             </div>
           </div>
 
           {/* Bottom: Feature pills */}
           <div style={{ display: "flex", gap: 16, marginTop: 16 }}>
             {[
-              { icon: "🎬", label: "Vidéos prêtes", color: "#60a5fa" },
-              { icon: "🔗", label: "Ton lien unique", color: "#34d399" },
-              { icon: "💰", label: "5% commission", color: "#E6B85A" },
-              { icon: "📊", label: "Dashboard temps réel", color: "#ec4899" },
+              { icon: "🎬", label: "Share Videos", color: "#60a5fa" },
+              { icon: "🔗", label: "Your Unique Link", color: "#34d399" },
+              { icon: "💰", label: "5% Commission", color: "#E6B85A" },
+              { icon: "📊", label: "Real-time Dashboard", color: "#ec4899" },
             ].map((item) => (
               <div
                 key={item.label}

@@ -3,13 +3,13 @@ import type { Metadata } from "next";
 const SITE = "https://www.zenivatravel.com";
 
 export const metadata: Metadata = {
-  title: "Rejoins Zeniva Travel — Agent, Influenceur ou Partenaire",
+  title: "Join Zeniva Travel — Agent, Influencer or Partner",
   description:
-    "Crée ton compte Zeniva Travel. Deviens agent, influenceur ou partenaire et accède à un écosystème de voyage de luxe propulsé par l'IA.",
+    "Create your Zeniva Travel account. Become an agent, influencer, or partner and access an AI-powered luxury travel ecosystem.",
   openGraph: {
     title: "Become a Zeniva Agent. — Zeniva Travel",
     description:
-      "Accède à un CRM propulsé par IA, des propositions automatiques, et gagne des commissions sur chaque réservation. Lina fait le travail, tu récoltes.",
+      "AI-powered CRM, automatic proposals, and commissions on every booking. Lina does the work, you collect.",
     url: `${SITE}/signup`,
     siteName: "Zeniva Travel",
     images: [
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Become a Zeniva Agent. — Zeniva Travel",
     description:
-      "CRM propulsé par IA, propositions automatiques et commissions sur chaque réservation.",
+      "AI-powered CRM, automatic proposals, and commissions on every booking.",
     images: [`${SITE}/og-agent`],
   },
 };

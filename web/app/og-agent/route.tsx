@@ -42,7 +42,7 @@ export async function GET() {
               Zeniva Agent.
             </div>
             <div style={{ fontSize: 22, color: "rgba(255,255,255,0.65)", marginTop: 20, lineHeight: 1.5, maxWidth: 620 }}>
-              Accède à un CRM propulsé par IA, des propositions automatiques, et gagne des commissions sur chaque réservation. Lina fait le travail, tu récoltes.
+              AI-powered CRM, automatic proposals, and commissions on every booking. Lina does the work, you collect.
             </div>
           </div>
 
@@ -50,9 +50,9 @@ export async function GET() {
           <div style={{ display: "flex", gap: 16, marginTop: 16 }}>
             {[
               { icon: "🤖", label: "AI Assistant Lina", color: "#60a5fa" },
-              { icon: "📋", label: "CRM complet", color: "#34d399" },
+              { icon: "📋", label: "Full CRM", color: "#34d399" },
               { icon: "💰", label: "Commissions", color: "#E6B85A" },
-              { icon: "✈️", label: "Voyages de luxe", color: "#c084fc" },
+              { icon: "✈️", label: "Luxury Travel", color: "#c084fc" },
             ].map((item) => (
               <div
                 key={item.label}

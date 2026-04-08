@@ -5,12 +5,12 @@ const SITE = "https://www.zenivatravel.com";
 export const metadata: Metadata = {
   title: "Share. Earn. Win. — Zeniva Travel",
   description:
-    "Crée ton compte influenceur. Contenu prêt à partager, liens personnalisés, CRM intégré et commissions sur chaque réservation. Tu partages, on fait le reste.",
+    "Create your influencer account. Ready-to-share content, personalized links, built-in CRM and commissions on every booking. You share, we do the rest.",
   openGraph: {
     title: "Share. Earn. Win. — Zeniva Travel",
     description:
-      "Crée ton compte influenceur. Contenu prêt à partager, liens personnalisés, CRM intégré et commissions sur chaque réservation. Tu partages, on fait le reste.",
-    url: `${SITE}/agent/influencer`,
+      "Create your influencer account. Ready-to-share content, personalized links, built-in CRM and commissions on every booking. You share, we do the rest.",
+    url: `${SITE}/join/influencer`,
     siteName: "Zeniva Travel",
     images: [
       {
@@ -20,14 +20,14 @@ export const metadata: Metadata = {
         type: "image/png",
       },
     ],
-    locale: "fr_CA",
+    locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Share. Earn. Win. — Zeniva Travel",
     description:
-      "Crée ton compte influenceur. Contenu prêt à partager, liens personnalisés, CRM intégré et commissions sur chaque réservation.",
+      "Create your influencer account. Ready-to-share content, personalized links, built-in CRM and commissions on every booking.",
     images: [`${SITE}/og-influencer`],
   },
 };
