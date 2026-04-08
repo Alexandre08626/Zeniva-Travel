@@ -35,8 +35,19 @@ export async function GET(req: NextRequest) {
 
   try {
     if (endpoint === "health") {
-      const r = await fetch(`${VPS_BASE}/health`, { next: { revalidate: 0 } });
-      return NextResponse.json(await r.json());
+      // VPS /health returns n8n HTML, not JSON. Check multiple endpoints instead.
+      let apiOk = false;
+      let dbOk = false;
+      let linaOk = false;
+      try {
+        const r = await fetch(`${VPS_BASE}/admin/stats`, { headers: { Authorization: AUTH }, next: { revalidate: 0 } });
+        if (r.ok) { apiOk = true; const d = await r.json(); if (d?.total_leads !== undefined) dbOk = true; }
+      } catch {}
+      try {
+        const r = await fetch(`${VPS_BASE}/chat`, { method: "POST", headers: { Authorization: AUTH, "Content-Type": "application/json" }, body: JSON.stringify({ message: "ping", sessionId: "health-check", source: "health" }) });
+        if (r.ok) linaOk = true;
+      } catch {}
+      return NextResponse.json({ status: apiOk ? "healthy" : "offline", supabase: dbOk ? "ok" : "error", lina: linaOk ? "online" : "offline" });
     }
     if (endpoint === "stats") {
       const r = await fetch(`${VPS_BASE}/admin/stats`, { headers: { Authorization: AUTH }, next: { revalidate: 0 } });
