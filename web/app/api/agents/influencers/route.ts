@@ -1,24 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { assertBackendEnv, dbQuery } from "../../../../src/lib/server/db";
+import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
   try {
-    assertBackendEnv();
-    // Auth: require agent session (same pattern as agents-proxy)
     const sessionCookie = request.cookies.get("zeniva_session")?.value || "";
     const rolesCookie = request.cookies.get("zeniva_roles")?.value || "";
-    const hasSession = sessionCookie.length > 10 && (rolesCookie.includes("hq") || rolesCookie.includes("admin"));
+    const hasSession = sessionCookie.length > 10 && (rolesCookie.includes("hq") || rolesCookie.includes("admin") || rolesCookie.includes("agent"));
     if (!hasSession) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { rows } = await dbQuery(
-      `SELECT id, name, email, role, roles, status, created_at
-       FROM accounts
-       WHERE roles::text LIKE '%influencer%'
-       ORDER BY created_at DESC`,
-      []
-    );
+    const { client } = getSupabaseAdminClient();
+    const { data, error } = await client
+      .from("accounts")
+      .select("id, name, email, role, roles, status, created_at")
+      .contains("roles", ["influencer"])
+      .order("created_at", { ascending: false });
 
-    const agents = rows.map((row: any) => ({
+    if (error) {
+      console.error("influencers query error:", error.message);
+      return NextResponse.json({ agents: [] });
+    }
+
+    const agents = (data || []).map((row: any) => ({
       id: row.id,
       name: row.name || "Influencer",
       email: row.email,
@@ -32,7 +34,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ agents });
   } catch (err: any) {
-    return NextResponse.json({ error: err?.message || "Failed" }, { status: 500 });
+    console.error("influencers endpoint error:", err?.message);
+    return NextResponse.json({ agents: [] });
   }
 }
 
