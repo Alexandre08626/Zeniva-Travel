@@ -294,13 +294,14 @@ function AgentCard({ agent, onSelect }: { agent: AgentDef; onSelect: (id: string
     setCmdMessages(newHistory);
     setCmdLoading(true);
     try {
-      const res = await fetch("/api/agents-proxy?endpoint=agent-command", {
+      const systemPrompt = `You are ${agent.name}, an AI agent at Zeniva Travel. Role: ${agent.type}. ${agent.description}. Be concise and actionable.`;
+      const res = await fetch("/api/lina", {
         method: "POST",
-        headers: {"Content-Type":"application/json","Authorization":"Bearer zeniva-secret-2025"},
-        body: JSON.stringify({agent_id: agent.id, agent_name: agent.name, message: userMsg, history: cmdMessages.slice(-10)}),
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({prompt: systemPrompt + "\n\nUser says: " + userMsg, sessionId: `${agent.id}-${Date.now()}`, history: cmdMessages.slice(-10), mode: "agent"}),
       });
       const d = await res.json();
-      setCmdMessages([...newHistory, {role:"assistant", content: d.reply || "..."}]);
+      setCmdMessages([...newHistory, {role:"assistant", content: d.reply || d.response || "..."}]);
     } catch {
       setCmdMessages([...newHistory, {role:"assistant", content:"Connection error. Check VPS."}]);
     }
@@ -373,15 +374,25 @@ function AgentCard({ agent, onSelect }: { agent: AgentDef; onSelect: (id: string
           )}
         </div>
 
-        {/* Discover button */}
-        <div
-          className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 group-hover:gap-3"
-          style={{ background: `${accentColor}10`, color: accentColor, border: `1px solid ${accentColor}25` }}
-        >
-          Discover {agent.name}
-          <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-          </svg>
+        {/* Action buttons */}
+        <div className="flex gap-2">
+          <div
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 group-hover:gap-3"
+            style={{ background: `${accentColor}10`, color: accentColor, border: `1px solid ${accentColor}25` }}
+          >
+            Discover {agent.name}
+            <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </div>
+          <a
+            href={`/agent/ai-chat/${agent.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
+            style={{ background: accentColor }}
+          >
+            💬 Chat
+          </a>
         </div>
       </div>
     </div>
@@ -411,13 +422,14 @@ function AgentDetailPanel({ agent, onClose, onToggle }: {
     setCmdMessages(newHistory);
     setCmdLoading(true);
     try {
-      const res = await fetch("/api/agents-proxy?endpoint=agent-command", {
+      const systemPrompt = `You are ${agent.name}, an AI agent at Zeniva Travel. Role: ${agent.type}. ${agent.description}. Be concise and actionable.`;
+      const res = await fetch("/api/lina", {
         method: "POST",
-        headers: {"Content-Type":"application/json","Authorization":"Bearer zeniva-secret-2025"},
-        body: JSON.stringify({agent_id: agent.id, agent_name: agent.name, message: userMsg, history: cmdMessages.slice(-10)}),
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({prompt: systemPrompt + "\n\nUser says: " + userMsg, sessionId: `${agent.id}-${Date.now()}`, history: cmdMessages.slice(-10), mode: "agent"}),
       });
       const d = await res.json();
-      setCmdMessages([...newHistory, {role:"assistant", content: d.reply || "..."}]);
+      setCmdMessages([...newHistory, {role:"assistant", content: d.reply || d.response || "..."}]);
     } catch {
       setCmdMessages([...newHistory, {role:"assistant", content:"Connection error. Check VPS."}]);
     }
