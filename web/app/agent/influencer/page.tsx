@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuthStore, hasPermission } from "../../../src/lib/authStore";
+import { useAuthStore, hasPermission, logout } from "../../../src/lib/authStore";
 import { normalizeRbacRole } from "../../../src/lib/rbac";
 
 const BRAND_BLUE = "#0F6CF5";
@@ -17,6 +17,7 @@ type ApprovedVideo = {
   thumbnail: string;
   youtubeId: string;
   youtubeUrl: string;
+  proxyUrl: string;
   tags: string[];
   approved: boolean;
   approvedDate: string;
@@ -85,25 +86,30 @@ export default function InfluencerPage() {
       })
       .catch(() => {});
 
-    // Load published YouTube videos from queue
+    // Load approved / published videos from queue
     fetch("/api/agents-proxy?endpoint=video-queue", { cache: "no-store" })
       .then(r => r.json())
       .then(d => {
-        const published = (d?.videos || [])
-          .filter((v: any) => v.youtube_video_id && (v.status === "published" || v.status === "approved"))
+        const videos = (d?.videos || [])
+          .filter((v: any) => v.status === "published" || v.status === "approved")
           .map((v: any) => ({
             id: v.id,
             title: v.title || "Zeniva Video",
             description: v.description || "Share this video with your audience to generate travel leads for your referral link.",
-            thumbnail: `https://img.youtube.com/vi/${v.youtube_video_id}/maxresdefault.jpg`,
-            youtubeId: v.youtube_video_id,
-            youtubeUrl: v.youtube_url || `https://www.youtube.com/watch?v=${v.youtube_video_id}`,
+            thumbnail: v.youtube_video_id
+              ? `https://img.youtube.com/vi/${v.youtube_video_id}/maxresdefault.jpg`
+              : "",
+            youtubeId: v.youtube_video_id || "",
+            youtubeUrl: v.youtube_video_id
+              ? (v.youtube_url || `https://www.youtube.com/watch?v=${v.youtube_video_id}`)
+              : "",
+            proxyUrl: v.proxy_url || "",
             tags: ["Zeniva", "Luxury Travel", "AI Travel"],
             approved: true,
             approvedDate: (v.actioned_at || v.generated_at || "").split("T")[0],
             category: "Travel",
           }));
-        setApprovedVideos(published);
+        setApprovedVideos(videos);
       })
       .catch(() => {});
   }, [user]);
@@ -129,6 +135,26 @@ export default function InfluencerPage() {
         </div>
 
         <div className="relative mx-auto max-w-7xl px-6 py-10">
+          {/* Top bar with user info + logout */}
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-sm font-bold text-white">
+                {user?.name?.[0]?.toUpperCase() || "I"}
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-white">{user?.name || "Influencer"}</div>
+                <div className="text-xs text-white/50">{user?.email}</div>
+              </div>
+            </div>
+            <button
+              onClick={() => logout("/login?space=influencer")}
+              className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white/70 transition-all hover:border-red-400/40 hover:bg-red-500/10 hover:text-red-300"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Sign out
+            </button>
+          </div>
+
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-4 py-1.5">
@@ -231,20 +257,34 @@ export default function InfluencerPage() {
                   {/* Thumbnail / Player */}
                   <div className="relative aspect-video overflow-hidden rounded-t-3xl bg-slate-900">
                     {playingVideo === video.id ? (
-                      <iframe
-                        src={`https://www.youtube.com/embed/${video.youtubeId}?autoplay=1`}
-                        className="h-full w-full"
-                        allow="autoplay; fullscreen"
-                        allowFullScreen
-                      />
+                      video.youtubeId ? (
+                        <iframe
+                          src={`https://www.youtube.com/embed/${video.youtubeId}?autoplay=1`}
+                          className="h-full w-full"
+                          allow="autoplay; fullscreen"
+                          allowFullScreen
+                        />
+                      ) : (
+                        <video
+                          src={`/api/agents-proxy?endpoint=video-serve&file=${video.proxyUrl.replace("/video-serve/", "")}`}
+                          className="h-full w-full object-cover"
+                          controls autoPlay
+                        />
+                      )
                     ) : (
                       <>
-                        <img
-                          src={video.thumbnail}
-                          alt={video.title}
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          onError={e => { (e.target as HTMLImageElement).src = "https://placehold.co/640x360/0B1B4D/0F6CF5?text=Zeniva+Travel"; }}
-                        />
+                        {video.thumbnail ? (
+                          <img
+                            src={video.thumbnail}
+                            alt={video.title}
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            onError={e => { (e.target as HTMLImageElement).src = "https://placehold.co/640x360/0B1B4D/0F6CF5?text=Zeniva+Travel"; }}
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-900 to-slate-900">
+                            <span className="text-5xl">🎬</span>
+                          </div>
+                        )}
                         {/* Play button */}
                         <button
                           onClick={() => setPlayingVideo(video.id)}
@@ -256,9 +296,9 @@ export default function InfluencerPage() {
                             </svg>
                           </div>
                         </button>
-                        {/* Approved badge */}
-                        <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-emerald-500/90 px-3 py-1 text-xs font-bold text-white shadow-lg backdrop-blur-sm">
-                          <span>✅</span> Approved
+                        {/* Badge */}
+                        <div className={`absolute left-3 top-3 flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold text-white shadow-lg backdrop-blur-sm ${video.youtubeId ? "bg-emerald-500/90" : "bg-amber-500/90"}`}>
+                          <span>{video.youtubeId ? "✅" : "⏳"}</span> {video.youtubeId ? "Published" : "Processing"}
                         </div>
                         {/* Category */}
                         <div className="absolute right-3 top-3 rounded-full bg-blue-600/90 px-3 py-1 text-xs font-bold text-white backdrop-blur-sm">
@@ -291,14 +331,23 @@ export default function InfluencerPage() {
                     </div>
 
                     {/* Actions */}
-                    <a
-                      href={video.youtubeUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 py-2.5 text-sm font-bold text-red-300 transition-all hover:bg-red-500/20 mb-2"
-                    >
-                      ▶ Watch on YouTube
-                    </a>
+                    {video.youtubeUrl ? (
+                      <a
+                        href={video.youtubeUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 py-2.5 text-sm font-bold text-red-300 transition-all hover:bg-red-500/20 mb-2"
+                      >
+                        ▶ Watch on YouTube
+                      </a>
+                    ) : (
+                      <button
+                        onClick={() => setPlayingVideo(video.id)}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 py-2.5 text-sm font-bold text-blue-300 transition-all hover:bg-blue-500/20 mb-2"
+                      >
+                        ▶ Preview video
+                      </button>
+                    )}
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         onClick={() => copy(videoShareLink(video.id), video.id)}

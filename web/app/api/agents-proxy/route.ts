@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   const sessionCookie = req.cookies.get("zeniva_session")?.value || "";
   const rolesCookie = req.cookies.get("zeniva_roles")?.value || "";
   const isInternalAuth = authHeader === AUTH;
-  const hasAgentSession = sessionCookie.length > 10 && (rolesCookie.includes("hq") || rolesCookie.includes("agent") || rolesCookie.includes("admin") || rolesCookie.includes("broker"));
+  const hasAgentSession = sessionCookie.length > 10 && (rolesCookie.includes("hq") || rolesCookie.includes("agent") || rolesCookie.includes("admin") || rolesCookie.includes("broker") || rolesCookie.includes("influencer"));
   if (!isInternalAuth && !hasAgentSession) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
