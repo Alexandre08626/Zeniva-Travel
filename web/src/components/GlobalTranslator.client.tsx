@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useI18n } from "../lib/i18n/I18nProvider";
 
-const CACHE_KEY = "zeniva_translations_v2";
+const CACHE_KEY = "zeniva_translations_v3";
 const BATCH_SIZE = 40;
 const MIN_TEXT_LENGTH = 2;
 const MAX_TEXT_LENGTH = 500;
@@ -11,6 +11,14 @@ const MAX_TEXT_LENGTH = 500;
 // Texts that should never be translated (code, emails, URLs, etc.)
 const SKIP_PATTERNS = /^[\d\s$€£%+\-.,/:@#!?()[\]{}<>|&=*^~`"'\\]+$|^https?:|^mailto:|@[a-z]|^\d+(\.\d+)?$/i;
 const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "CODE", "PRE", "TEXTAREA", "INPUT", "SVG", "NOSCRIPT", "IFRAME"]);
+
+// Proper names and brand terms that must NEVER be translated
+const PROTECTED_WORDS = new Set([
+  "Lina", "Sofia", "Luna", "Atlas", "Mia", "Leo", "Rex", "Max", "Jade", "Kai", "Ben", "Marco",
+  "Zeniva", "ZeniPay", "ZeniGroup", "ZeniStay", "ZeniYacht",
+  "GPT-4o", "Supabase", "Docker", "Reddit", "Instagram", "TikTok", "Facebook", "WhatsApp",
+  "AML", "SSL", "SSH", "API", "CRM", "ROI", "LTV", "SEO", "SMS",
+]);
 
 function getCacheMap(): Record<string, Record<string, string>> {
   if (typeof window === "undefined") return {};
@@ -41,6 +49,7 @@ function getTextNodes(root: Node): Text[] {
       const text = (node.textContent || "").trim();
       if (text.length < MIN_TEXT_LENGTH || text.length > MAX_TEXT_LENGTH) return NodeFilter.FILTER_REJECT;
       if (SKIP_PATTERNS.test(text)) return NodeFilter.FILTER_REJECT;
+      if (PROTECTED_WORDS.has(text)) return NodeFilter.FILTER_REJECT;
       return NodeFilter.FILTER_ACCEPT;
     },
   });
@@ -48,8 +57,35 @@ function getTextNodes(root: Node): Text[] {
   return nodes;
 }
 
+// Replace protected words with numbered placeholders before translation
+function protectWords(text: string): { masked: string; restores: [string, string][] } {
+  const restores: [string, string][] = [];
+  let masked = text;
+  let idx = 0;
+  PROTECTED_WORDS.forEach((word) => {
+    const regex = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "g");
+    if (regex.test(masked)) {
+      const placeholder = `§§${idx}§§`;
+      masked = masked.replace(regex, placeholder);
+      restores.push([placeholder, word]);
+      idx++;
+    }
+  });
+  return { masked, restores };
+}
+
+function unprotectWords(text: string, restores: [string, string][]): string {
+  let result = text;
+  for (const [placeholder, word] of restores) {
+    result = result.split(placeholder).join(word);
+  }
+  return result;
+}
+
 async function translateBatch(texts: string[], target: string): Promise<string[]> {
-  const joined = texts.join("\n---SPLIT---\n");
+  // Protect proper names
+  const protected_ = texts.map((t) => protectWords(t));
+  const joined = protected_.map((p) => p.masked).join("\n---SPLIT---\n");
   try {
     const res = await fetch("/api/translate", {
       method: "POST",
@@ -60,7 +96,10 @@ async function translateBatch(texts: string[], target: string): Promise<string[]
     const { translated } = await res.json();
     if (!translated) return texts;
     const parts = translated.split(/\n?---SPLIT---\n?/);
-    return texts.map((t, i) => (parts[i] || "").trim() || t);
+    return texts.map((t, i) => {
+      const raw = (parts[i] || "").trim() || t;
+      return unprotectWords(raw, protected_[i].restores);
+    });
   } catch { return texts; }
 }
 

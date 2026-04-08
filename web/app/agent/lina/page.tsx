@@ -85,14 +85,14 @@ export default function LinaAgentPage() {
         "Agent: " + agentName + " (" + agentEmail + ")",
       ].filter(Boolean).join("\n");
 
-      const res = await fetch("/api/agents-proxy?endpoint=agent-command", {
+      const res = await fetch("/api/lina", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: AUTH },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          agent_id: "lina",
-          agent_name: "Lina",
-          message: context + "\n\nAgent says: " + trimmed,
+          prompt: context + "\n\nAgent says: " + trimmed,
+          sessionId: "agent-" + agentEmail + "-" + Date.now(),
           history: messages.slice(-10).map(m => ({ role: m.role === "lina" ? "assistant" : "user", content: m.text })),
+          mode: "agent",
         }),
       });
       const json = await res.json();
