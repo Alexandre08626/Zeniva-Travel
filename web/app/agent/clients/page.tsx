@@ -89,10 +89,17 @@ export default function ClientsPage() {
 
   const deleteClient = async (email: string) => {
     if (!confirm(`Delete client ${email}? This cannot be undone.`)) return;
+    // Delete from VPS
     await fetch(`/api/agents-proxy?path=admin/clients/${encodeURIComponent(email)}`, {
       method: "DELETE",
       headers: { Authorization: "Bearer zeniva-secret-2025" },
     });
+    // Delete from Supabase (clients + accounts)
+    await fetch("/api/clients/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    }).catch(() => {});
     setClients((prev) => prev.filter((c) => c.email !== email));
     setFiltered((prev) => prev.filter((c) => c.email !== email));
     setSelectedClient(null);
