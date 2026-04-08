@@ -384,11 +384,12 @@ export async function POST(request: Request) {
       if (referringAgent) {
         const infCode = buildInfluencerCode(referringAgent);
         dbQuery(
-          `INSERT INTO influencer_referral_leads (id, referral_code, form_id, traveler_name, traveler_email, phone, destination, budget, notes, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now())
+          `INSERT INTO influencer_referral_leads (id, influencer_id, referral_code, form_id, traveler_name, traveler_email, phone, destination, budget, notes, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, now())
            ON CONFLICT DO NOTHING`,
           [
             crypto.randomUUID(),
+            infCode,
             infCode,
             formId,
             name || "Client",

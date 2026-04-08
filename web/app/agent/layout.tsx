@@ -141,8 +141,8 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
       return;
     }
     if (isYachtBroker) {
-      const allowedExact = new Set(["/agent", "/agent/yachts", "/agent/listings", "/agent/settings", "/agent/ai-dashboard", "/agent/messages"]);
-      const allowedPrefixes = ["/agent/yachts/", "/agent/listings/", "/agent/settings/", "/agent/agent-", "/agent/ai-dashboard/", "/agent/messages/"];
+      const allowedExact = new Set(["/agent", "/agent/yachts", "/agent/listings", "/agent/influencer", "/agent/settings", "/agent/ai-dashboard", "/agent/messages"]);
+      const allowedPrefixes = ["/agent/yachts/", "/agent/listings/", "/agent/influencer/", "/agent/settings/", "/agent/agent-", "/agent/ai-dashboard/", "/agent/messages/"];
       const allowed = allowedExact.has(pathname) || allowedPrefixes.some((prefix) => pathname.startsWith(prefix));
       if (!allowed) router.replace("/agent/yachts");
     }
