@@ -80,9 +80,10 @@ export async function GET(req: NextRequest) {
       const r = await fetch(`${VPS_BASE}/video-queue`, { headers: { Authorization: AUTH }, next: { revalidate: 0 } });
       return NextResponse.json(await r.json());
     }
-    // Get influencer accounts from Supabase
+    // Get influencer accounts from Supabase with lead counts
     if (endpoint === "influencers") {
       const { getSupabaseAdminClient } = await import("../../../src/lib/supabase/server");
+      const { buildInfluencerCode } = await import("../../../src/lib/influencerShared");
       const { client } = getSupabaseAdminClient();
       const { data } = await client
         .from("accounts")
@@ -90,16 +91,36 @@ export async function GET(req: NextRequest) {
         .eq("role", "influencer")
         .neq("status", "blocked")
         .order("created_at", { ascending: false });
-      const agents = (data || []).map((row: any) => ({
-        id: row.id,
-        name: row.name || "Influencer",
-        email: row.email,
-        agent_type: "influencer",
-        status: row.status || "active",
-        leads_count: 0,
-        commission_rate: 5,
-        ref_code: "",
-        created_at: row.created_at,
+
+      // Count leads per influencer (from influencer_referral_leads + clients)
+      const agents = await Promise.all((data || []).map(async (row: any) => {
+        const infCode = buildInfluencerCode(row.email);
+        let leadsCount = 0;
+        try {
+          // Count from influencer_referral_leads
+          const { count: infLeads } = await client
+            .from("influencer_referral_leads")
+            .select("id", { count: "exact", head: true })
+            .eq("referral_code", infCode);
+          // Count from clients table (direct referrals)
+          const { count: clientLeads } = await client
+            .from("clients")
+            .select("id", { count: "exact", head: true })
+            .eq("owner_email", row.email);
+          leadsCount = Math.max(infLeads || 0, clientLeads || 0);
+        } catch { /* ignore count errors */ }
+
+        return {
+          id: row.id,
+          name: row.name || "Influencer",
+          email: row.email,
+          agent_type: "influencer",
+          status: row.status || "active",
+          leads_count: leadsCount,
+          commission_rate: 5,
+          ref_code: infCode,
+          created_at: row.created_at,
+        };
       }));
       return NextResponse.json({ agents });
     }
