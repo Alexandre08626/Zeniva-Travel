@@ -133,13 +133,18 @@ export default function SofiaPage() {
   }, []);
 
   const sendCampaign = async () => {
+    if (!confirm("Send personalized AI packages to all clients? This will email every active client with a custom offer.")) return;
     setSending(true);
     try {
-      // TODO: Replace with actual API call to trigger Sofia email campaign
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Mock delay
-      alert(`Campaign launched! ${leads.length} emails queued for delivery.`);
+      const res = await fetch("/api/sofia/send-packages", { method: "POST" });
+      const data = await res.json();
+      if (data.ok) {
+        alert(`Campaign sent! ${data.sent} emails delivered out of ${data.total} clients.${data.errors ? ` (${data.errors} errors)` : ""}`);
+      } else {
+        alert("Campaign failed: " + (data.error || "Unknown error"));
+      }
     } catch (err) {
-      alert("Failed to launch campaign");
+      alert("Failed to launch campaign — network error");
     }
     setSending(false);
   };
