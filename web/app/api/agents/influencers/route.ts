@@ -1,13 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const sessionCookie = request.cookies.get("zeniva_session")?.value || "";
-    const rolesCookie = request.cookies.get("zeniva_roles")?.value || "";
-    const hasSession = sessionCookie.length > 10 && (rolesCookie.includes("hq") || rolesCookie.includes("admin") || rolesCookie.includes("agent"));
-    if (!hasSession) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
     const { client } = getSupabaseAdminClient();
     const { data, error } = await client
       .from("accounts")
@@ -16,8 +11,7 @@ export async function GET(request: NextRequest) {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("influencers query error:", error.message);
-      return NextResponse.json({ agents: [] });
+      return NextResponse.json({ agents: [], error: error.message });
     }
 
     const agents = (data || []).map((row: any) => ({
@@ -34,8 +28,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ agents });
   } catch (err: any) {
-    console.error("influencers endpoint error:", err?.message);
-    return NextResponse.json({ agents: [] });
+    return NextResponse.json({ agents: [], error: err?.message });
   }
 }
 
