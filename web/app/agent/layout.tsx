@@ -122,6 +122,11 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
   const isTraveler = effectiveRole === "traveler" || (!effectiveRole && roles.length === 0) || (roles.length === 1 && roles[0] === "traveler");
 
   useEffect(() => {
+    // Unauthenticated on influencer page → send to influencer signup
+    if (!user && pathname.startsWith("/agent/influencer")) {
+      router.replace("/signup?space=influencer");
+      return;
+    }
     // Block travelers from accessing agent portal
     if (user && isTraveler) {
       router.replace("/");

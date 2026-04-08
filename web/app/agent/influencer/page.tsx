@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRequirePermission } from "../../../src/lib/roleGuards";
+import { useRouter } from "next/navigation";
+import { useAuthStore, hasPermission } from "../../../src/lib/authStore";
 import { normalizeRbacRole } from "../../../src/lib/rbac";
 
 const BRAND_BLUE = "#0F6CF5";
@@ -35,7 +36,19 @@ type Lead = {
 };
 
 export default function InfluencerPage() {
-  const user = useRequirePermission("referrals:read", "/agent");
+  const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+
+  useEffect(() => {
+    if (!user) {
+      router.push("/signup?space=influencer");
+      return;
+    }
+    if (!hasPermission(user, "referrals:read")) {
+      router.push("/agent");
+    }
+  }, [user, router]);
+
   const roles = user?.roles?.length ? user.roles : user?.role ? [user.role] : [];
   const effectiveRole = normalizeRbacRole(user?.effectiveRole) || normalizeRbacRole(roles[0]);
   const isHQ = effectiveRole === "hq" || effectiveRole === "admin";
