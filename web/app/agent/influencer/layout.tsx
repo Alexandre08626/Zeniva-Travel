@@ -1,22 +1,34 @@
 import type { Metadata } from "next";
 
+const SITE = "https://www.zenivatravel.com";
+
 export const metadata: Metadata = {
-  title: "Zeniva Creator Program — Earn Money Sharing Luxury Travel",
+  title: "Share. Earn. Win. — Zeniva Travel",
   description:
-    "Join Zeniva Travel's Creator Program. Share your unique link, generate travel leads, and earn 5% commission on every booking. Lina AI handles the rest.",
+    "Crée ton compte influenceur. Contenu prêt à partager, liens personnalisés, CRM intégré et commissions sur chaque réservation. Tu partages, on fait le reste.",
   openGraph: {
-    title: "Zeniva Creator Program — Share. Earn. Get Paid.",
+    title: "Share. Earn. Win. — Zeniva Travel",
     description:
-      "Earn 5% commission on every luxury travel booking. Share videos, generate leads with your unique link, and let Lina AI close the sale automatically.",
+      "Crée ton compte influenceur. Contenu prêt à partager, liens personnalisés, CRM intégré et commissions sur chaque réservation. Tu partages, on fait le reste.",
+    url: `${SITE}/agent/influencer`,
     siteName: "Zeniva Travel",
-    locale: "en_US",
+    images: [
+      {
+        url: `${SITE}/og-influencer`,
+        width: 1200,
+        height: 630,
+        type: "image/png",
+      },
+    ],
+    locale: "fr_CA",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zeniva Creator Program — Share. Earn. Get Paid.",
+    title: "Share. Earn. Win. — Zeniva Travel",
     description:
-      "Earn 5% commission on every luxury travel booking. Share videos, generate leads with your unique link.",
+      "Crée ton compte influenceur. Contenu prêt à partager, liens personnalisés, CRM intégré et commissions sur chaque réservation.",
+    images: [`${SITE}/og-influencer`],
   },
 };
 
