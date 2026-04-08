@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore, hasPermission } from "../../../src/lib/authStore";
 import { normalizeRbacRole } from "../../../src/lib/rbac";
-import AccountMenu from "../../../src/components/AccountMenu.client";
 
 const BRAND_BLUE = "#0F6CF5";
 const PREMIUM_BLUE = "#0B1B4D";
@@ -137,10 +136,6 @@ export default function InfluencerPage() {
         </div>
 
         <div className="relative mx-auto max-w-7xl px-6 py-10">
-          {/* Top bar with account menu */}
-          <div className="mb-4 flex items-center justify-end">
-            <AccountMenu />
-          </div>
 
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
