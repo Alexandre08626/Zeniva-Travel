@@ -87,7 +87,7 @@ export async function GET(req: NextRequest) {
       const { data } = await client
         .from("accounts")
         .select("id, name, email, role, roles, status, created_at")
-        .contains("roles", ["influencer"])
+        .eq("role", "influencer")
         .order("created_at", { ascending: false });
       const agents = (data || []).map((row: any) => ({
         id: row.id,
