@@ -18,6 +18,7 @@ type ApprovedVideo = {
   youtubeId: string;
   youtubeUrl: string;
   proxyUrl: string;
+  shareCaption: string;
   tags: string[];
   approved: boolean;
   approvedDate: string;
@@ -105,6 +106,7 @@ export default function InfluencerPage() {
               ? (v.youtube_url || `https://www.youtube.com/watch?v=${v.youtube_video_id}`)
               : "",
             proxyUrl: v.proxy_url || "",
+            shareCaption: v.share_caption || "",
             tags: ["Zeniva", "Luxury Travel", "AI Travel"],
             approved: true,
             approvedDate: (v.actioned_at || v.generated_at || "").split("T")[0],
@@ -313,6 +315,16 @@ export default function InfluencerPage() {
                     </div>
 
                     {/* Actions */}
+                    {/* Download video button */}
+                    {video.proxyUrl && (
+                      <a
+                        href={`/api/agents-proxy?endpoint=video-serve&file=${video.proxyUrl.replace("/video-serve/", "")}`}
+                        download={`${video.title || "zeniva-video"}.mp4`}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 py-2.5 text-sm font-bold text-emerald-300 transition-all hover:bg-emerald-500/20 mb-2"
+                      >
+                        ⬇️ Download Video (MP4)
+                      </a>
+                    )}
                     {video.youtubeUrl ? (
                       <a
                         href={video.youtubeUrl}
@@ -340,7 +352,7 @@ export default function InfluencerPage() {
                       <div className="grid grid-cols-3 gap-1">
                         {/* Instagram */}
                         <button
-                          onClick={() => copy(`🌴 Planning your dream trip? Let Lina AI handle everything! ✈️\n\n${videoShareLink(video.id)}`, `ig-${video.id}`)}
+                          onClick={() => copy(`${video.shareCaption || "🌴 Planning your dream trip? Let Lina AI handle everything! ✈️"}\n\n${videoShareLink(video.id)}`, `ig-${video.id}`)}
                           title="Copy Instagram caption"
                           className="flex items-center justify-center rounded-xl border border-white/10 bg-white/5 text-lg transition-all hover:bg-white/10"
                         >
@@ -348,7 +360,7 @@ export default function InfluencerPage() {
                         </button>
                         {/* TikTok */}
                         <button
-                          onClick={() => copy(`✈️ Lina AI will plan your perfect trip! Fill out the form 👇\n\n${videoShareLink(video.id)}`, `tt-${video.id}`)}
+                          onClick={() => copy(`${video.shareCaption || "✈️ Lina AI will plan your perfect trip! Fill out the form 👇"}\n\n${videoShareLink(video.id)}`, `tt-${video.id}`)}
                           title="Copy TikTok caption"
                           className="flex items-center justify-center rounded-xl border border-white/10 bg-white/5 text-lg transition-all hover:bg-white/10"
                         >

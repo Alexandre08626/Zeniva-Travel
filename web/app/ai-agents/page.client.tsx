@@ -2190,28 +2190,38 @@ export default function AIAgentsPageClient() {
                           }}
                           className="bg-red-500/10 text-red-500 border border-red-200 px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-500/20 transition-colors"
                         >🗑️ Delete</button>
-                        <button
-                          onClick={async () => {
-                            try {
-                              await fetch("/api/agents-proxy?endpoint=video-queue-action", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ id: video.id, action: "approve" }),
-                              });
-                              setUploadStatus("✅ Video approved & queued for publishing!");
-                              await fetchData();
-                            } catch {}
-                          }}
-                          className={`px-5 py-2 rounded-xl text-sm font-bold transition-all shadow-sm ${
-                            hasVoice
-                              ? "bg-emerald-500 text-white hover:bg-emerald-600 shadow-emerald-200"
-                              : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                          }`}
-                          disabled={!hasVoice}
-                          title={!hasVoice ? "Generate Lina\'s voice first" : "Approve & Publish"}
-                        >
-                          {hasVoice ? "✅ Approve & Publish" : "🔒 Add Voice First"}
-                        </button>
+                        <div className="flex items-center gap-3 flex-1">
+                          <input
+                            type="text"
+                            placeholder="Share caption for influencers (e.g. 🌴 Let Lina AI plan your dream trip!)"
+                            value={videoScripts[`caption_${video.id}`] || video.share_caption || ""}
+                            onChange={e => setVideoScripts(p => ({ ...p, [`caption_${video.id}`]: e.target.value }))}
+                            className="flex-1 bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                          />
+                          <button
+                            onClick={async () => {
+                              const caption = videoScripts[`caption_${video.id}`] || "";
+                              try {
+                                await fetch("/api/agents-proxy?endpoint=video-queue-action", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ id: video.id, action: "approve", share_caption: caption }),
+                                });
+                                setUploadStatus("✅ Video approved & queued for publishing!");
+                                await fetchData();
+                              } catch {}
+                            }}
+                            className={`shrink-0 px-5 py-2 rounded-xl text-sm font-bold transition-all shadow-sm ${
+                              hasVoice
+                                ? "bg-emerald-500 text-white hover:bg-emerald-600 shadow-emerald-200"
+                                : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                            }`}
+                            disabled={!hasVoice}
+                            title={!hasVoice ? "Generate Lina\'s voice first" : "Approve & Publish"}
+                          >
+                            {hasVoice ? "✅ Approve & Publish" : "🔒 Add Voice First"}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );
