@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { sendPushToHQ } from "../../../../src/lib/server/pushNotify";
 import { sendEmail } from "../../../../src/lib/server/email";
 
-import { assertBackendEnv, normalizeEmail, dbQuery } from "../../../../src/lib/server/db";
+import { normalizeEmail } from "../../../../src/lib/server/db";
 import { normalizeRbacRole } from "../../../../src/lib/rbac";
 import { getCookieDomain, getSessionCookieName, signSession, hashPassword } from "../../../../src/lib/server/auth";
 import { buildInfluencerCode } from "../../../../src/lib/influencerShared";
@@ -46,8 +46,6 @@ export async function POST(request: Request) {
       `req_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`) as string;
 
   try {
-    assertBackendEnv();
-
     const contentType = request.headers.get("content-type") || "";
     if (!contentType.toLowerCase().includes("application/json")) {
       return errorResponse("validate", "Content-Type must be application/json", 415, { requestId });
@@ -131,20 +129,17 @@ export async function POST(request: Request) {
     }
 
     // Block sign-up for previously deactivated accounts
-    const blocked = await dbQuery("SELECT id FROM accounts WHERE lower(email) = lower($1) AND status = 'blocked' LIMIT 1", [email]);
-    if (blocked.rows.length) {
+    const { data: blockedRows } = await supabaseAdminClient.from("accounts").select("id").ilike("email", email).eq("status", "blocked").limit(1);
+    if (blockedRows && blockedRows.length > 0) {
       return errorResponse("blocked", "This email has been permanently deactivated and cannot be used to create a new account.", 403, { requestId });
     }
 
     if (isAgentRole && !isInfluencerDirect) {
-      const check = await dbQuery(
-        "SELECT id, status, role FROM agent_requests WHERE lower(email) = $1 AND code = $2 AND status = 'approved' ORDER BY requested_at DESC LIMIT 1",
-        [email, inviteCode]
-      );
-      if (!check.rows.length) {
+      const { data: checkRows } = await supabaseAdminClient.from("agent_requests").select("id, status, role").ilike("email", email).eq("code", inviteCode).eq("status", "approved").order("requested_at", { ascending: false }).limit(1);
+      if (!checkRows || !checkRows.length) {
         return NextResponse.json({ ok: false, message: "Agent approval required" }, { status: 400 });
       }
-      const requestedRole = normalizeRbacRole(check.rows[0].role) || check.rows[0].role;
+      const requestedRole = normalizeRbacRole(checkRows[0].role) || checkRows[0].role;
       if (requestedRole && requestedRole !== normalizedRole) {
         return NextResponse.json({ ok: false, message: "Agent role mismatch" }, { status: 400 });
       }
@@ -336,10 +331,7 @@ export async function POST(request: Request) {
 
     if (isAgentRole && !isInfluencerDirect) {
       try {
-        await dbQuery(
-          "UPDATE agent_requests SET status='completed', completed_at=now() WHERE lower(email) = $1 AND code = $2 AND status = 'approved'",
-          [email, inviteCode]
-        );
+        await supabaseAdminClient.from("agent_requests").update({ status: "completed", completed_at: new Date().toISOString() }).ilike("email", email).eq("code", inviteCode).eq("status", "approved");
       } catch {
         // ignore
       }
@@ -349,19 +341,13 @@ export async function POST(request: Request) {
     if (isInfluencerDirect) {
       try {
         const refCode = buildInfluencerCode(email);
-        await dbQuery(
-          `INSERT INTO agent_requests (id, name, email, role, status, code, note, requested_at, reviewed_at, reviewed_by, completed_at)
-           VALUES ($1, $2, $3, 'influencer', 'completed', $4, $5, now(), now(), 'auto-signup', now())
-           ON CONFLICT DO NOTHING`,
-          [globalThis.crypto?.randomUUID?.() || `ar-${Date.now()}`, name, email, refCode, `Sector: ${influencerSector || "N/A"}`]
-        );
-        // Create influencer referral form (default)
-        await dbQuery(
-          `INSERT INTO influencer_referral_forms (id, influencer_id, referral_code, slug, title, created_at)
-           VALUES ($1, $2, $3, 'default', 'Default Form', now())
-           ON CONFLICT DO NOTHING`,
-          [globalThis.crypto?.randomUUID?.() || `irf-${Date.now()}`, authUser.id, refCode]
-        );
+        const now = new Date().toISOString();
+        await supabaseAdminClient.from("agent_requests").upsert({
+          id: globalThis.crypto?.randomUUID?.() || `ar-${Date.now()}`, name, email, role: "influencer", status: "completed", code: refCode, note: `Sector: ${influencerSector || "N/A"}`, requested_at: now, reviewed_at: now, reviewed_by: "auto-signup", completed_at: now,
+        }, { onConflict: "id" });
+        await supabaseAdminClient.from("influencer_referral_forms").upsert({
+          id: globalThis.crypto?.randomUUID?.() || `irf-${Date.now()}`, influencer_id: authUser.id, referral_code: refCode, slug: "default", title: "Default Form", created_at: now,
+        }, { onConflict: "id" });
         // Register influencer on VPS agents list
         try {
           await fetch("https://vmi3097009.contaboserver.net/admin/agents", {
@@ -377,12 +363,11 @@ export async function POST(request: Request) {
 
     if (normalizedRole === "traveler" || normalizedRoles.includes("traveler")) {
       try {
-        const existing = await dbQuery("SELECT id FROM clients WHERE lower(email) = lower($1) LIMIT 1", [email]);
-        if (!existing.rows.length) {
-          await dbQuery(
-            "INSERT INTO clients (id, name, email, owner_email, phone, origin, assigned_agents, primary_division, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8, now())",
-            [`C-${authUser.id}`, name || "Traveler", email, "info@zenivatravel.com", null, "web_signup", [], "TRAVEL"]
-          );
+        const { data: existingClient } = await supabaseAdminClient.from("clients").select("id").ilike("email", email).limit(1);
+        if (!existingClient || !existingClient.length) {
+          await supabaseAdminClient.from("clients").insert({
+            id: `C-${authUser.id}`, name: name || "Traveler", email, owner_email: "info@zenivatravel.com", phone: null, origin: "web_signup", assigned_agents: [], primary_division: "TRAVEL", created_at: new Date().toISOString(),
+          });
         }
       } catch {
         // ignore client sync failures
@@ -391,10 +376,10 @@ export async function POST(request: Request) {
       if (travelerProfile?.referralCode && travelerProfile?.influencerId) {
         try {
           const referralId = globalThis.crypto?.randomUUID?.() || `ref-${Date.now()}`;
-          await dbQuery(
-            "INSERT INTO influencer_referrals (id, traveler_email, referral_code, influencer_id, captured_at, created_at) VALUES ($1,$2,$3,$4, now(), now())",
-            [referralId, email, travelerProfile.referralCode, travelerProfile.influencerId]
-          );
+          const now = new Date().toISOString();
+          await supabaseAdminClient.from("influencer_referrals").insert({
+            id: referralId, traveler_email: email, referral_code: travelerProfile.referralCode, influencer_id: travelerProfile.influencerId, captured_at: now, created_at: now,
+          });
         } catch {
           // ignore referral persistence failures
         }
