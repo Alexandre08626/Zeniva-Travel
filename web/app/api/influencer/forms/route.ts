@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { assertBackendEnv, dbQuery } from "../../../../src/lib/server/db";
 import { getSessionCookieName, verifySession } from "../../../../src/lib/server/auth";
 import { buildInfluencerCode } from "../../../../src/lib/influencerShared";
 import { requireRbacPermission } from "../../../../src/lib/server/rbac";
 import { normalizeRbacRole } from "../../../../src/lib/rbac";
+import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
 
 function getSession(request: Request) {
   const cookies = request.headers.get("cookie") || "";
@@ -46,17 +46,24 @@ async function resolveReferralCode(request: Request, bodyEmail?: string) {
 
 export async function GET(request: Request) {
   try {
-    assertBackendEnv();
     const gate = await requireRbacPermission(request, "referrals:read");
     if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
     const referralCode = await resolveReferralCode(request);
     if (!referralCode) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { rows } = await dbQuery(
-      "SELECT id, slug, title, created_at FROM influencer_referral_forms WHERE referral_code = $1 ORDER BY created_at DESC",
-      [referralCode]
-    );
-    return NextResponse.json({ data: rows, referralCode });
+    const { client: admin } = getSupabaseAdminClient();
+    const { data, error } = await admin
+      .from("influencer_referral_forms")
+      .select("id, slug, title, created_at")
+      .eq("referral_code", referralCode)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Supabase forms fetch error", { message: error.message });
+      return NextResponse.json({ error: "Failed to load forms" }, { status: 500 });
+    }
+
+    return NextResponse.json({ data: data || [], referralCode });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to load forms" }, { status: 500 });
   }
@@ -64,7 +71,6 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    assertBackendEnv();
     const gate = await requireRbacPermission(request, "referrals:read");
     if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
     const body = await request.json();
@@ -77,21 +83,39 @@ export async function POST(request: Request) {
     const baseSlug = toSlug(body?.slug ? String(body.slug) : title) || "referral";
     let slug = baseSlug;
 
-    const existing = await dbQuery(
-      "SELECT id FROM influencer_referral_forms WHERE referral_code = $1 AND slug = $2 LIMIT 1",
-      [referralCode, slug]
-    );
-    if (existing.rows.length) {
+    const { client: admin } = getSupabaseAdminClient();
+
+    const { data: existingData } = await admin
+      .from("influencer_referral_forms")
+      .select("id")
+      .eq("referral_code", referralCode)
+      .eq("slug", slug)
+      .limit(1);
+
+    if ((existingData || []).length) {
       slug = `${baseSlug}-${Date.now().toString().slice(-4)}`;
     }
 
     const id = `inf-form-${crypto.randomUUID()}`;
-    const { rows } = await dbQuery(
-      "INSERT INTO influencer_referral_forms (id, influencer_id, referral_code, slug, title, created_at) VALUES ($1,$2,$3,$4,$5, now()) RETURNING id, slug, title, created_at",
-      [id, referralCode, referralCode, slug, title]
-    );
+    const { data, error } = await admin
+      .from("influencer_referral_forms")
+      .insert({
+        id,
+        influencer_id: referralCode,
+        referral_code: referralCode,
+        slug,
+        title,
+        created_at: new Date().toISOString(),
+      })
+      .select("id, slug, title, created_at")
+      .single();
 
-    return NextResponse.json({ data: rows[0] }, { status: 201 });
+    if (error) {
+      console.error("Supabase form insert error", { message: error.message });
+      return NextResponse.json({ error: "Failed to create form" }, { status: 500 });
+    }
+
+    return NextResponse.json({ data }, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to create form" }, { status: 500 });
   }

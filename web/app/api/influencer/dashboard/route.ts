@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { assertBackendEnv, dbQuery } from "../../../../src/lib/server/db";
 import { getSessionCookieName, verifySession } from "../../../../src/lib/server/auth";
 import { buildInfluencerCode } from "../../../../src/lib/influencerShared";
 import { normalizeRbacRole } from "../../../../src/lib/rbac";
 import { requireRbacPermission } from "../../../../src/lib/server/rbac";
+import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
 
 function getSession(request: Request) {
   const cookies = request.headers.get("cookie") || "";
@@ -15,21 +15,6 @@ function getSession(request: Request) {
   return verifySession(token);
 }
 
-function buildDateFilter(column: string, start?: string, end?: string, offset = 1) {
-  const clauses: string[] = [];
-  const params: any[] = [];
-  if (start) {
-    params.push(start);
-    clauses.push(`${column} >= $${params.length + offset}`);
-  }
-  if (end) {
-    params.push(end);
-    clauses.push(`${column} <= $${params.length + offset}`);
-  }
-  const sql = clauses.length ? ` AND ${clauses.join(" AND ")}` : "";
-  return { sql, params };
-}
-
 async function getCurrentCommissionRate(dateIso: string) {
   void dateIso;
   return 5;
@@ -37,7 +22,6 @@ async function getCurrentCommissionRate(dateIso: string) {
 
 export async function GET(request: Request) {
   try {
-    assertBackendEnv();
     const gate = await requireRbacPermission(request, "referrals:read");
     if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
 
@@ -58,75 +42,98 @@ export async function GET(request: Request) {
       ? queryCode || (queryEmail ? buildInfluencerCode(queryEmail) : "") || buildInfluencerCode(session.email)
       : buildInfluencerCode(session.email);
 
-    const referralFilter = "referral_code = $1";
+    const { client: admin } = getSupabaseAdminClient();
 
-    const referralsFilter = buildDateFilter("captured_at", start, end);
-    const referrals = await dbQuery(
-      `SELECT referral_code, captured_at FROM influencer_referrals WHERE ${referralFilter}${referralsFilter.sql}`,
-      [referralCode, ...referralsFilter.params]
-    );
+    // Referrals
+    let referralsQuery = admin
+      .from("influencer_referrals")
+      .select("referral_code, captured_at")
+      .eq("referral_code", referralCode);
+    if (start) referralsQuery = referralsQuery.gte("captured_at", start);
+    if (end) referralsQuery = referralsQuery.lte("captured_at", end);
+    const { data: referralsData } = await referralsQuery;
 
-    const clicksFilter = buildDateFilter("created_at", start, end);
-    const clicks = await dbQuery(
-      `SELECT id FROM influencer_clicks WHERE ${referralFilter}${clicksFilter.sql}`,
-      [referralCode, ...clicksFilter.params]
-    );
+    // Clicks
+    let clicksQuery = admin
+      .from("influencer_clicks")
+      .select("id")
+      .eq("referral_code", referralCode);
+    if (start) clicksQuery = clicksQuery.gte("created_at", start);
+    if (end) clicksQuery = clicksQuery.lte("created_at", end);
+    const { data: clicksData } = await clicksQuery;
 
-    const commissionsFilter = buildDateFilter("booking_date", start, end);
-    const commissions = await dbQuery(
-      `SELECT amount, currency, booking_date, booking_id, traveler_email, status FROM influencer_commissions WHERE ${referralFilter}${commissionsFilter.sql} ORDER BY booking_date DESC`,
-      [referralCode, ...commissionsFilter.params]
-    );
+    // Commissions
+    let commissionsQuery = admin
+      .from("influencer_commissions")
+      .select("amount, currency, booking_date, booking_id, traveler_email, status")
+      .eq("referral_code", referralCode)
+      .order("booking_date", { ascending: false });
+    if (start) commissionsQuery = commissionsQuery.gte("booking_date", start);
+    if (end) commissionsQuery = commissionsQuery.lte("booking_date", end);
+    const { data: commissionsData } = await commissionsQuery;
 
-    const leadsFilter = buildDateFilter("created_at", start, end);
-    const leads = await dbQuery(
-      `SELECT id, form_id, traveler_name, traveler_email, phone, destination, start_date, end_date, budget, notes, created_at FROM influencer_referral_leads WHERE ${referralFilter}${leadsFilter.sql} ORDER BY created_at DESC`,
-      [referralCode, ...leadsFilter.params]
-    );
+    // Leads
+    let leadsQuery = admin
+      .from("influencer_referral_leads")
+      .select("id, form_id, traveler_name, traveler_email, phone, destination, start_date, end_date, budget, notes, created_at")
+      .eq("referral_code", referralCode)
+      .order("created_at", { ascending: false });
+    if (start) leadsQuery = leadsQuery.gte("created_at", start);
+    if (end) leadsQuery = leadsQuery.lte("created_at", end);
+    const { data: leadsData } = await leadsQuery;
 
-    const forms = await dbQuery(
-      "SELECT id, slug, title, created_at FROM influencer_referral_forms WHERE referral_code = $1 ORDER BY created_at DESC",
-      [referralCode]
-    );
+    // Forms
+    const { data: formsData } = await admin
+      .from("influencer_referral_forms")
+      .select("id, slug, title, created_at")
+      .eq("referral_code", referralCode)
+      .order("created_at", { ascending: false });
 
-    const payoutsFilter = buildDateFilter("created_at", start, end);
-    const payouts = await dbQuery(
-      `SELECT id, amount, currency, status, paid_at, created_at FROM influencer_payouts WHERE ${referralFilter}${payoutsFilter.sql} ORDER BY created_at DESC`,
-      [referralCode, ...payoutsFilter.params]
-    );
+    // Payouts
+    let payoutsQuery = admin
+      .from("influencer_payouts")
+      .select("id, amount, currency, status, paid_at, created_at")
+      .eq("referral_code", referralCode)
+      .order("created_at", { ascending: false });
+    if (start) payoutsQuery = payoutsQuery.gte("created_at", start);
+    if (end) payoutsQuery = payoutsQuery.lte("created_at", end);
+    const { data: payoutsData } = await payoutsQuery;
 
-    const commissionTotal = commissions.rows.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-    const pendingTotal = commissions.rows.reduce(
+    const commissions = commissionsData || [];
+    const payouts = payoutsData || [];
+
+    const commissionTotal = commissions.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+    const pendingTotal = commissions.reduce(
       (sum, row) => sum + ((row.status || "pending") === "pending" ? Number(row.amount || 0) : 0),
       0
     );
-    const approvedTotal = commissions.rows.reduce(
+    const approvedTotal = commissions.reduce(
       (sum, row) => sum + ((row.status || "pending") === "approved" ? Number(row.amount || 0) : 0),
       0
     );
-    const paidTotal = payouts.rows.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+    const paidTotal = payouts.reduce((sum, row) => sum + Number(row.amount || 0), 0);
     const commissionRate = await getCurrentCommissionRate(new Date().toISOString().slice(0, 10));
 
     return NextResponse.json({
       data: {
         referralCode,
         influencerId: referralCode,
-        clicks: clicks.rows.length,
-        signups: referrals.rows.length,
-        leads: leads.rows.length,
-        bookings: commissions.rows.length,
+        clicks: (clicksData || []).length,
+        signups: (referralsData || []).length,
+        leads: (leadsData || []).length,
+        bookings: commissions.length,
         commissionTotal,
         commissionRate,
         commissionPending: pendingTotal,
         commissionApproved: approvedTotal,
         commissionPaid: paidTotal,
-        commissions: commissions.rows.map((row) => ({
+        commissions: commissions.map((row) => ({
           ...row,
           status: row.status || "pending",
         })),
-        forms: forms.rows,
-        leadsList: leads.rows,
-        payouts: payouts.rows,
+        forms: formsData || [],
+        leadsList: leadsData || [],
+        payouts: payouts,
       },
     });
   } catch (err: any) {

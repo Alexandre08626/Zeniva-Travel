@@ -1,17 +1,23 @@
 import { NextResponse } from "next/server";
-import { assertBackendEnv, dbQuery } from "../../../src/lib/server/db";
+import { getSupabaseAdminClient } from "../../../src/lib/supabase/server";
 import { requireRbacPermission } from "../../../src/lib/server/rbac";
 
 export async function GET(request: Request) {
   try {
-    assertBackendEnv();
     const gate = await requireRbacPermission(request, "accounts:manage");
     if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
 
-    const { rows } = await dbQuery(
-      "SELECT id, start_date, end_date, influencer_pct, created_at FROM commission_plans ORDER BY start_date DESC"
-    );
-    return NextResponse.json({ data: rows });
+    const { client: admin } = getSupabaseAdminClient();
+    const { data, error } = await admin
+      .from("commission_plans")
+      .select("id, start_date, end_date, influencer_pct, created_at")
+      .order("start_date", { ascending: false });
+
+    if (error) {
+      console.error("Supabase commission_plans fetch error", { message: error.message });
+      return NextResponse.json({ error: "Failed to load commission plans" }, { status: 500 });
+    }
+    return NextResponse.json({ data: data || [] });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to load commission plans" }, { status: 500 });
   }
@@ -19,7 +25,6 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    assertBackendEnv();
     const gate = await requireRbacPermission(request, "accounts:manage");
     if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
 
@@ -33,12 +38,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const { rows } = await dbQuery(
-      "INSERT INTO commission_plans (id, start_date, end_date, influencer_pct, created_at) VALUES ($1,$2,$3,$4, now()) ON CONFLICT (id) DO UPDATE SET start_date=EXCLUDED.start_date, end_date=EXCLUDED.end_date, influencer_pct=EXCLUDED.influencer_pct RETURNING id, start_date, end_date, influencer_pct, created_at",
-      [id, startDate, endDate, influencerPct]
-    );
+    const { client: admin } = getSupabaseAdminClient();
+    const { data, error } = await admin
+      .from("commission_plans")
+      .upsert(
+        {
+          id,
+          start_date: startDate,
+          end_date: endDate,
+          influencer_pct: influencerPct,
+          created_at: new Date().toISOString(),
+        },
+        { onConflict: "id" }
+      )
+      .select("id, start_date, end_date, influencer_pct, created_at")
+      .single();
 
-    return NextResponse.json({ data: rows[0] }, { status: 201 });
+    if (error) {
+      console.error("Supabase commission_plans upsert error", { message: error.message });
+      return NextResponse.json({ error: "Failed to save commission plan" }, { status: 500 });
+    }
+
+    return NextResponse.json({ data }, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to save commission plan" }, { status: 500 });
   }

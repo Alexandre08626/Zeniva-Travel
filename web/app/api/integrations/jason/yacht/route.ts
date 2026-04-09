@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../../../src/lib/server/db";
+import { normalizeEmail } from "../../../../../src/lib/server/db";
+import { getSupabaseAdminClient } from "../../../../../src/lib/supabase/server";
 
 const JASON_EMAIL = "lantierj6@gmail.com";
 const ALLOWED_DIVISION = "YACHT";
@@ -56,7 +57,6 @@ function logUnauthorized(reason: string, received: string, expectedPresent: bool
 
 export async function POST(request: Request) {
   try {
-    assertBackendEnv();
     const apiKey = getBearerToken(request);
     const expected = process.env.JASON_YACHT_API_KEY || "";
 
@@ -82,25 +82,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Either email or phone is required." }, { status: 400 });
     }
 
-    const filters: string[] = [];
-    const params: any[] = [];
+    const { client: admin } = getSupabaseAdminClient();
+
+    // Look up existing client by email or phone
+    let existingRow: any = null;
     if (email) {
-      params.push(email);
-      filters.push(`lower(email) = lower($${params.length})`);
+      const { data } = await admin
+        .from("clients")
+        .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, created_at, updated_at")
+        .ilike("email", email)
+        .limit(1);
+      if (data?.[0]) existingRow = data[0];
     }
-    if (phone) {
-      params.push(phone);
-      filters.push(`phone = $${params.length}`);
+    if (!existingRow && phone) {
+      const { data } = await admin
+        .from("clients")
+        .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, created_at, updated_at")
+        .eq("phone", phone)
+        .limit(1);
+      if (data?.[0]) existingRow = data[0];
     }
-    const existingResult = filters.length
-      ? await dbQuery(
-          `SELECT id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, created_at, updated_at FROM clients WHERE ${filters.join(
-            " OR "
-          )} LIMIT 1`,
-          params
-        )
-      : { rows: [] };
-    const existing = existingResult.rows[0] ? mapClientRow(existingResult.rows[0]) : null;
+
+    const existing = existingRow ? mapClientRow(existingRow) : null;
 
     if (existing) {
       const owner = (existing.ownerEmail || "").toLowerCase();
@@ -130,26 +133,30 @@ export async function POST(request: Request) {
         updatedAt: new Date().toISOString(),
       };
 
-      if (notes) {
-        (updated as any).notes = notes;
+      const { data: updatedRows, error: updateErr } = await admin
+        .from("clients")
+        .update({
+          name: updated.name,
+          email: updated.email || null,
+          phone: updated.phone || null,
+          owner_email: updated.ownerEmail,
+          assigned_agents: updated.assignedAgents || [],
+          primary_division: updated.primaryDivision || null,
+          origin: updated.origin,
+          lead_source: updated.leadSource || null,
+          notes: notes || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existing.id)
+        .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, created_at, updated_at")
+        .single();
+
+      if (updateErr) {
+        console.error("Supabase client update error", { message: updateErr.message });
+        return NextResponse.json({ error: "Failed to update client" }, { status: 500 });
       }
 
-      const { rows } = await dbQuery(
-        "UPDATE clients SET name = $2, email = $3, phone = $4, owner_email = $5, assigned_agents = $6, primary_division = $7, origin = $8, lead_source = $9, notes = $10, updated_at = now() WHERE id = $1 RETURNING id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, created_at, updated_at",
-        [
-          existing.id,
-          updated.name,
-          updated.email || null,
-          updated.phone || null,
-          updated.ownerEmail,
-          updated.assignedAgents || [],
-          updated.primaryDivision || null,
-          updated.origin,
-          updated.leadSource || null,
-          notes || null,
-        ]
-      );
-      const saved = mapClientRow(rows[0]);
+      const saved = mapClientRow(updatedRows);
       return NextResponse.json({ data: saved, updated: true });
     }
 
@@ -166,26 +173,30 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString(),
     };
 
-    if (notes) {
-      (record as any).notes = notes;
+    const { data: insertedRows, error: insertErr } = await admin
+      .from("clients")
+      .insert({
+        id: record.id,
+        name: record.name,
+        email: record.email || null,
+        owner_email: record.ownerEmail,
+        phone: record.phone || null,
+        origin: record.origin,
+        assigned_agents: record.assignedAgents || [],
+        primary_division: record.primaryDivision || null,
+        lead_source: record.leadSource || null,
+        notes: notes || null,
+        created_at: new Date().toISOString(),
+      })
+      .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, created_at")
+      .single();
+
+    if (insertErr) {
+      console.error("Supabase client insert error", { message: insertErr.message });
+      return NextResponse.json({ error: "Failed to create client" }, { status: 500 });
     }
 
-    const { rows } = await dbQuery(
-      "INSERT INTO clients (id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, notes, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, now()) RETURNING id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, created_at",
-      [
-        record.id,
-        record.name,
-        record.email || null,
-        record.ownerEmail,
-        record.phone || null,
-        record.origin,
-        record.assignedAgents || [],
-        record.primaryDivision || null,
-        record.leadSource || null,
-        notes || null,
-      ]
-    );
-    const saved = mapClientRow(rows[0]);
+    const saved = mapClientRow(insertedRows);
     console.log(`CLIENT CREATED: id=${saved.id} email=${saved.email || ""}`);
     return NextResponse.json({ data: saved, created: true }, { status: 201 });
   } catch (err: any) {

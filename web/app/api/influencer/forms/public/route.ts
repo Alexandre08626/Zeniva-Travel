@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { assertBackendEnv, dbQuery } from "../../../../../src/lib/server/db";
+import { getSupabaseAdminClient } from "../../../../../src/lib/supabase/server";
 
 export async function GET(request: Request) {
   try {
-    assertBackendEnv();
     const url = new URL(request.url);
     const code = url.searchParams.get("code") || "";
     const slug = url.searchParams.get("slug") || "";
@@ -12,14 +11,22 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Missing code or slug" }, { status: 400 });
     }
 
-    const { rows } = await dbQuery(
-      "SELECT id, slug, title, created_at FROM influencer_referral_forms WHERE referral_code = $1 AND slug = $2 LIMIT 1",
-      [code, slug]
-    );
+    const { client: admin } = getSupabaseAdminClient();
+    const { data, error } = await admin
+      .from("influencer_referral_forms")
+      .select("id, slug, title, created_at")
+      .eq("referral_code", code)
+      .eq("slug", slug)
+      .limit(1);
 
-    if (!rows[0]) return NextResponse.json({ error: "Form not found" }, { status: 404 });
+    if (error) {
+      console.error("Supabase form fetch error", { message: error.message });
+      return NextResponse.json({ error: "Failed to load form" }, { status: 500 });
+    }
 
-    return NextResponse.json({ data: rows[0] });
+    if (!data?.[0]) return NextResponse.json({ error: "Form not found" }, { status: 404 });
+
+    return NextResponse.json({ data: data[0] });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to load form" }, { status: 500 });
   }

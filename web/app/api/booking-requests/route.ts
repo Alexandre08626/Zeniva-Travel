@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { bookingRequests, type BookingRequest, type BookingRequestStatus, type BookingPaymentStatus } from "../../../src/lib/devBookingRequests";
-import { assertBackendEnv } from "../../../src/lib/server/db";
 import { requireRbacPermission } from "../../../src/lib/server/rbac";
 import { normalizeRbacRole } from "../../../src/lib/rbac";
 
@@ -20,7 +19,6 @@ function canUpdateStatus(status: BookingRequestStatus, current: BookingRequestSt
 
 export async function GET(request: Request) {
   try {
-    assertBackendEnv();
     const gate = await requireRbacPermission(request, "bookings:all");
     if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
 
@@ -46,7 +44,6 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    assertBackendEnv();
     const gate = await requireRbacPermission(request, "bookings:all");
     if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
 
@@ -107,7 +104,6 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    assertBackendEnv();
     const gate = await requireRbacPermission(request, "bookings:all");
     if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
 

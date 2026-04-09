@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { FORM_DEFINITIONS } from "../../../../src/lib/forms/catalog";
-import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../../src/lib/server/db";
+import { normalizeEmail } from "../../../../src/lib/server/db";
 import { signSession } from "../../../../src/lib/server/auth";
 import { sendPushToHQ } from "../../../../src/lib/server/pushNotify";
 import { buildInfluencerCode } from "../../../../src/lib/influencerShared";
 import { sofiaWelcomeLead } from "../../../../src/lib/server/sofia-emails";
+import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
 
 const DEFAULT_OWNER_EMAIL = "info@zenivatravel.com";
 const VPS_API_URL = process.env.LINA_API_URL || "https://vmi3097009.contaboserver.net";
@@ -160,13 +161,26 @@ function getFormConfig(formId: string) {
 async function ensureTravelerAccount(email: string, name: string, division: string) {
   if (!email) return;
   const normalized = normalizeEmail(email);
-  const existing = await dbQuery("SELECT id FROM accounts WHERE email = $1", [normalized]);
-  if (existing.rows.length) return;
+  const { client: admin } = getSupabaseAdminClient();
+  const { data: existing } = await admin
+    .from("accounts")
+    .select("id")
+    .eq("email", normalized)
+    .limit(1);
+  if ((existing || []).length) return;
   const id = `acct-${normalized.replace(/[^a-z0-9]/gi, "-")}`;
-  await dbQuery(
-    "INSERT INTO accounts (id, name, email, role, roles, divisions, status, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7, now())",
-    [id, name || "Traveler", normalized, "traveler", JSON.stringify(["traveler"]), JSON.stringify([division]), "active"]
-  );
+  await admin
+    .from("accounts")
+    .insert({
+      id,
+      name: name || "Traveler",
+      email: normalized,
+      role: "traveler",
+      roles: ["traveler"],
+      divisions: [division],
+      status: "active",
+      created_at: new Date().toISOString(),
+    });
   console.log(`ACCOUNT CREATED: id=${id} email=${normalized}`);
 }
 
@@ -181,7 +195,6 @@ function buildNotesFromPayload(formId: string, payload: Record<string, any>) {
 
 export async function POST(request: Request) {
   try {
-    assertBackendEnv();
     const body = await request.json();
     const formId = String(body?.formId || "").trim();
     const form = getFormConfig(formId);
@@ -216,27 +229,28 @@ export async function POST(request: Request) {
       }
     }
 
-    const filters: string[] = [];
-    const params: any[] = [];
+    const { client: admin } = getSupabaseAdminClient();
+
+    // Look up existing client by email or phone
+    let existingRow: any = null;
     if (email) {
-      params.push(email);
-      filters.push(`lower(email) = lower($${params.length})`);
+      const { data } = await admin
+        .from("clients")
+        .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, notes, created_at, updated_at")
+        .ilike("email", email)
+        .limit(1);
+      if (data?.[0]) existingRow = data[0];
     }
-    if (phone) {
-      params.push(phone);
-      filters.push(`phone = $${params.length}`);
+    if (!existingRow && phone) {
+      const { data } = await admin
+        .from("clients")
+        .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, notes, created_at, updated_at")
+        .eq("phone", phone)
+        .limit(1);
+      if (data?.[0]) existingRow = data[0];
     }
 
-    const existingResult = filters.length
-      ? await dbQuery(
-          `SELECT id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, notes, created_at, updated_at FROM clients WHERE ${filters.join(
-            " OR "
-          )} LIMIT 1`,
-          params
-        )
-      : { rows: [] };
-
-    const existing = existingResult.rows[0] ? mapClientRow(existingResult.rows[0]) : null;
+    const existing = existingRow ? mapClientRow(existingRow) : null;
 
     if (existing) {
       const existingOwner = normalizeEmail(existing.ownerEmail || "");
@@ -276,22 +290,30 @@ export async function POST(request: Request) {
         updatedAt: new Date().toISOString(),
       };
 
-      const { rows } = await dbQuery(
-        "UPDATE clients SET name = $2, email = $3, phone = $4, owner_email = $5, assigned_agents = $6, primary_division = $7, origin = $8, lead_source = $9, notes = $10, updated_at = now() WHERE id = $1 RETURNING id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, notes, created_at, updated_at",
-        [
-          existing.id,
-          updated.name,
-          updated.email || null,
-          updated.phone || null,
-          updated.ownerEmail,
-          JSON.stringify(updated.assignedAgents || []),
-          updated.primaryDivision || null,
-          updated.origin,
-          updated.leadSource || null,
-          updated.notes || null,
-        ]
-      );
-      const saved = mapClientRow(rows[0]);
+      const { data: updatedRows, error: updateErr } = await admin
+        .from("clients")
+        .update({
+          name: updated.name,
+          email: updated.email || null,
+          phone: updated.phone || null,
+          owner_email: updated.ownerEmail,
+          assigned_agents: JSON.stringify(updated.assignedAgents || []),
+          primary_division: updated.primaryDivision || null,
+          origin: updated.origin,
+          lead_source: updated.leadSource || null,
+          notes: updated.notes || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existing.id)
+        .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, notes, created_at, updated_at")
+        .single();
+
+      if (updateErr) {
+        console.error("Supabase client update error", { message: updateErr.message });
+        return NextResponse.json({ error: "Failed to update client" }, { status: 500 });
+      }
+
+      const saved = mapClientRow(updatedRows);
       if (email) {
         await ensureTravelerAccount(email, name || saved.name || "Traveler", form.division);
         // Generate setup token for existing client too — lets them set/update password
@@ -338,22 +360,30 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString(),
     };
 
-    const { rows } = await dbQuery(
-      "INSERT INTO clients (id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, notes, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, now()) RETURNING id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, notes, created_at",
-      [
-        record.id,
-        record.name,
-        record.email || null,
-        record.ownerEmail,
-        record.phone || null,
-        record.origin,
-        JSON.stringify(record.assignedAgents || []),
-        record.primaryDivision || null,
-        record.leadSource || null,
-        record.notes || null,
-      ]
-    );
-    const saved = mapClientRow(rows[0]);
+    const { data: insertedRows, error: insertErr } = await admin
+      .from("clients")
+      .insert({
+        id: record.id,
+        name: record.name,
+        email: record.email || null,
+        owner_email: record.ownerEmail,
+        phone: record.phone || null,
+        origin: record.origin,
+        assigned_agents: JSON.stringify(record.assignedAgents || []),
+        primary_division: record.primaryDivision || null,
+        lead_source: record.leadSource || null,
+        notes: record.notes || null,
+        created_at: new Date().toISOString(),
+      })
+      .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, notes, created_at")
+      .single();
+
+    if (insertErr) {
+      console.error("Supabase client insert error", { message: insertErr.message });
+      return NextResponse.json({ error: "Failed to create client" }, { status: 500 });
+    }
+
+    const saved = mapClientRow(insertedRows);
     console.log(`CLIENT CREATED: id=${saved.id} email=${saved.email || ""}`);
     if (email) {
       await ensureTravelerAccount(email, saved.name, form.division);
@@ -384,23 +414,23 @@ export async function POST(request: Request) {
       // Track lead for influencer dashboard if referred by an agent
       if (referringAgent) {
         const infCode = buildInfluencerCode(referringAgent);
-        dbQuery(
-          `INSERT INTO influencer_referral_leads (id, influencer_id, referral_code, form_id, traveler_name, traveler_email, phone, destination, budget, notes, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, now())
-           ON CONFLICT DO NOTHING`,
-          [
-            crypto.randomUUID(),
-            infCode,
-            infCode,
-            formId,
-            name || "Client",
-            email || null,
-            phone || null,
-            body?.destination || null,
-            body?.budget || null,
-            body?.notes || null,
-          ]
-        ).catch(() => {});
+        admin
+          .from("influencer_referral_leads")
+          .insert({
+            id: crypto.randomUUID(),
+            influencer_id: infCode,
+            referral_code: infCode,
+            form_id: formId,
+            traveler_name: name || "Client",
+            traveler_email: email || null,
+            phone: phone || null,
+            destination: body?.destination || null,
+            budget: body?.budget || null,
+            notes: body?.notes || null,
+            created_at: new Date().toISOString(),
+          })
+          .then(() => {})
+          .catch(() => {});
       }
 
       return NextResponse.json({ data: saved, created: true, setupUrl }, { status: 201 });

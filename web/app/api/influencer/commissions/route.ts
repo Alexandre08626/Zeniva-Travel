@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../../src/lib/server/db";
+import { normalizeEmail } from "../../../../src/lib/server/db";
 import { getSessionCookieName, verifySession } from "../../../../src/lib/server/auth";
+import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
 
 function getSession(request: Request) {
   const cookies = request.headers.get("cookie") || "";
@@ -15,7 +16,6 @@ function getSession(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    assertBackendEnv();
     const session = getSession(request);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -34,16 +34,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing booking details" }, { status: 400 });
     }
 
-    const referral = await dbQuery(
-      "SELECT referral_code, influencer_id FROM influencer_referrals WHERE lower(traveler_email) = lower($1) ORDER BY captured_at DESC LIMIT 1",
-      [travelerEmail]
-    );
-    if (!referral.rows.length) {
+    const { client: admin } = getSupabaseAdminClient();
+
+    const { data: referralData } = await admin
+      .from("influencer_referrals")
+      .select("referral_code, influencer_id")
+      .ilike("traveler_email", travelerEmail)
+      .order("captured_at", { ascending: false })
+      .limit(1);
+
+    if (!(referralData || []).length) {
       return NextResponse.json({ ok: true, skipped: true });
     }
 
-    const referralCode = referral.rows[0].referral_code;
-    const influencerId = referral.rows[0].influencer_id;
+    const referralCode = referralData![0].referral_code;
+    const influencerId = referralData![0].influencer_id;
     if (bookingType === "agent_built") {
       return NextResponse.json({ ok: true, skipped: true, reason: "Agent-built bookings are not influencer-commissioned." });
     }
@@ -59,10 +64,20 @@ export async function POST(request: Request) {
     const commission = Math.round((baseAmount * pct) / 100);
 
     const id = `inf-comm-${crypto.randomUUID()}`;
-    await dbQuery(
-      "INSERT INTO influencer_commissions (id, referral_code, influencer_id, booking_id, traveler_email, amount, currency, booking_date, status, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, now())",
-      [id, referralCode, influencerId, bookingId, travelerEmail, commission, currency, bookingDate, "pending"]
-    );
+    await admin
+      .from("influencer_commissions")
+      .insert({
+        id,
+        referral_code: referralCode,
+        influencer_id: influencerId,
+        booking_id: bookingId,
+        traveler_email: travelerEmail,
+        amount: commission,
+        currency,
+        booking_date: bookingDate,
+        status: "pending",
+        created_at: new Date().toISOString(),
+      });
 
     return NextResponse.json({ ok: true, data: { id, referralCode, influencerId, amount: commission, currency, bookingDate } });
   } catch (err: any) {

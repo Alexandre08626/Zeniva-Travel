@@ -5,7 +5,7 @@ import {
   getSessionCookieName,
   getCookieDomain,
 } from "../../../../src/lib/server/auth";
-import { dbQuery } from "../../../../src/lib/server/db";
+import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
 
 /**
  * Auto-login endpoint for new clients created via form submission.
@@ -26,15 +26,17 @@ export async function GET(req: NextRequest) {
   }
 
   // Load account from DB
-  const { rows } = await dbQuery(
-    `SELECT email, roles, name FROM accounts WHERE lower(email) = lower($1) LIMIT 1`,
-    [payload.email]
-  );
-  if (!rows[0]) {
+  const { client: admin } = getSupabaseAdminClient();
+  const { data } = await admin
+    .from("accounts")
+    .select("email, roles, name")
+    .ilike("email", payload.email)
+    .limit(1);
+  if (!data?.[0]) {
     return NextResponse.redirect(new URL("/login?error=account_not_found", req.url));
   }
 
-  const account = rows[0];
+  const account = data[0];
   const roles: string[] = (() => {
     try {
       const r = account.roles;

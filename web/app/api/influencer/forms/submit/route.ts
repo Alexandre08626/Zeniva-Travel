@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { assertBackendEnv, dbQuery } from "../../../../../src/lib/server/db";
+import { getSupabaseAdminClient } from "../../../../../src/lib/supabase/server";
 
 function getClientIp(request: Request) {
   const header = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "";
@@ -9,7 +9,6 @@ function getClientIp(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    assertBackendEnv();
     const body = await request.json();
 
     const code = String(body?.code || "").trim();
@@ -23,11 +22,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing form information" }, { status: 400 });
     }
 
-    const { rows: formRows } = await dbQuery(
-      "SELECT id, referral_code FROM influencer_referral_forms WHERE referral_code = $1 AND slug = $2 LIMIT 1",
-      [code, slug]
-    );
-    const form = formRows[0];
+    const { client: admin } = getSupabaseAdminClient();
+
+    const { data: formRows } = await admin
+      .from("influencer_referral_forms")
+      .select("id, referral_code")
+      .eq("referral_code", code)
+      .eq("slug", slug)
+      .limit(1);
+
+    const form = formRows?.[0];
     if (!form) return NextResponse.json({ error: "Form not found" }, { status: 404 });
 
     const name = String(body?.name || "").trim();
@@ -47,37 +51,47 @@ export async function POST(request: Request) {
     const userAgent = request.headers.get("user-agent") || "";
 
     if (ipAddress) {
-      const { rows: recent } = await dbQuery(
-        "SELECT id FROM influencer_referral_leads WHERE form_id = $1 AND ip_address = $2 AND created_at > now() - interval '10 minutes'",
-        [form.id, ipAddress]
-      );
-      if (recent.length >= 5) {
+      const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+      const { data: recent } = await admin
+        .from("influencer_referral_leads")
+        .select("id")
+        .eq("form_id", form.id)
+        .eq("ip_address", ipAddress)
+        .gte("created_at", tenMinAgo);
+      if ((recent || []).length >= 5) {
         return NextResponse.json({ error: "Too many submissions" }, { status: 429 });
       }
     }
 
     const id = `inf-lead-${crypto.randomUUID()}`;
-    const { rows } = await dbQuery(
-      "INSERT INTO influencer_referral_leads (id, form_id, influencer_id, referral_code, traveler_name, traveler_email, phone, destination, start_date, end_date, budget, notes, ip_address, user_agent, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14, now()) RETURNING id, created_at",
-      [
+    const { data, error } = await admin
+      .from("influencer_referral_leads")
+      .insert({
         id,
-        form.id,
-        form.referral_code,
-        form.referral_code,
-        name,
-        email,
-        phone || null,
+        form_id: form.id,
+        influencer_id: form.referral_code,
+        referral_code: form.referral_code,
+        traveler_name: name,
+        traveler_email: email,
+        phone: phone || null,
         destination,
-        startDate || null,
-        endDate || null,
-        budget || null,
-        notes || null,
-        ipAddress || null,
-        userAgent || null,
-      ]
-    );
+        start_date: startDate || null,
+        end_date: endDate || null,
+        budget: budget || null,
+        notes: notes || null,
+        ip_address: ipAddress || null,
+        user_agent: userAgent || null,
+        created_at: new Date().toISOString(),
+      })
+      .select("id, created_at")
+      .single();
 
-    return NextResponse.json({ ok: true, data: rows[0] }, { status: 201 });
+    if (error) {
+      console.error("Supabase lead insert error", { message: error.message });
+      return NextResponse.json({ error: "Failed to submit referral" }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true, data }, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to submit referral" }, { status: 500 });
   }

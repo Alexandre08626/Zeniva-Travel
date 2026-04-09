@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSessionCookieName, verifySession } from "../../../../src/lib/server/auth";
-import { assertBackendEnv, dbQuery } from "../../../../src/lib/server/db";
 import { canPreviewRole, normalizeRbacRole } from "../../../../src/lib/rbac";
+import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
 
 function getSessionFromRequest(request: Request) {
   const cookies = request.headers.get("cookie") || "";
@@ -18,15 +18,19 @@ export async function POST(request: Request) {
   if (!session) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
-  assertBackendEnv();
   const body = await request.json().catch(() => ({}));
   const requested = normalizeRbacRole(body?.role);
   if (!requested) {
     return NextResponse.json({ ok: false, error: "Invalid role" }, { status: 400 });
   }
 
-  const { rows } = await dbQuery("SELECT id, email FROM accounts WHERE lower(email) = lower($1) LIMIT 1", [session.email]);
-  const userId = rows[0]?.id || null;
+  const { client: admin } = getSupabaseAdminClient();
+  const { data } = await admin
+    .from("accounts")
+    .select("id, email")
+    .ilike("email", session.email)
+    .limit(1);
+  const userId = data?.[0]?.id || null;
   if (!canPreviewRole({ email: session.email, id: userId })) {
     return NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 });
   }
@@ -46,9 +50,13 @@ export async function DELETE(request: Request) {
   if (!session) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
-  assertBackendEnv();
-  const { rows } = await dbQuery("SELECT id, email FROM accounts WHERE lower(email) = lower($1) LIMIT 1", [session.email]);
-  const userId = rows[0]?.id || null;
+  const { client: admin } = getSupabaseAdminClient();
+  const { data } = await admin
+    .from("accounts")
+    .select("id, email")
+    .ilike("email", session.email)
+    .limit(1);
+  const userId = data?.[0]?.id || null;
   if (!canPreviewRole({ email: session.email, id: userId })) {
     return NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 });
   }

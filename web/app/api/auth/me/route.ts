@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { assertBackendEnv } from "../../../../src/lib/server/db";
 import { getCookieDomain, getSessionCookieName, signSession, verifySession } from "../../../../src/lib/server/auth";
 import { canPreviewRole, normalizeRbacRole } from "../../../../src/lib/rbac";
 import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
@@ -41,7 +40,6 @@ function getSessionEmailFromRequest(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    assertBackendEnv();
     // First try strict verification; fall back to email extraction for refresh
     const token = getSessionTokenFromRequest(request);
     const verified = verifySession(token);
@@ -137,7 +135,6 @@ export async function GET(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    assertBackendEnv();
     const sessionEmail = getSessionEmailFromRequest(request);
     if (!sessionEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
