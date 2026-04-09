@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../src/lib/server/db";
+import { normalizeEmail } from "../../../src/lib/server/db";
+import { getSupabaseAdminClient } from "../../../src/lib/supabase/server";
 import { requireRbacPermission } from "../../../src/lib/server/rbac";
 
 type ClientRecord = {
@@ -31,7 +32,7 @@ function mapClientRow(row: any): ClientRecord {
 
 export async function GET(request: Request) {
   try {
-    assertBackendEnv();
+    const { client } = getSupabaseAdminClient();
     const accessAll = await requireRbacPermission(request, "clients:all");
     const accessOwn = await requireRbacPermission(request, "clients:own");
     const accessLegacyOwn = await requireRbacPermission(request, "read_own_clients");
@@ -40,18 +41,22 @@ export async function GET(request: Request) {
     }
 
     if (accessAll.ok) {
-      const { rows } = await dbQuery(
-        "SELECT id, name, email, owner_email, phone, origin, assigned_agents, primary_division, created_at FROM clients ORDER BY created_at DESC"
-      );
-      return NextResponse.json({ data: rows.map(mapClientRow) });
+      const { data, error } = await client
+        .from("clients")
+        .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, created_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return NextResponse.json({ data: (data || []).map(mapClientRow) });
     }
 
     const ownerEmail = accessOwn.session?.email || accessLegacyOwn.session?.email || "";
-    const { rows } = await dbQuery(
-      "SELECT id, name, email, owner_email, phone, origin, assigned_agents, primary_division, created_at FROM clients WHERE lower(owner_email) = lower($1) OR EXISTS (SELECT 1 FROM jsonb_array_elements_text(assigned_agents) elem WHERE elem = $1) ORDER BY created_at DESC",
-      [ownerEmail]
-    );
-    return NextResponse.json({ data: rows.map(mapClientRow) });
+    const { data, error } = await client
+      .from("clients")
+      .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, created_at")
+      .or(`owner_email.ilike.${ownerEmail},assigned_agents.cs.["${ownerEmail}"]`)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return NextResponse.json({ data: (data || []).map(mapClientRow) });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to read clients" }, { status: 500 });
   }
@@ -59,7 +64,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    assertBackendEnv();
+    const { client } = getSupabaseAdminClient();
     const accessAll = await requireRbacPermission(request, "clients:all");
     const accessOwn = await requireRbacPermission(request, "clients:own");
     const accessLegacyOwn = await requireRbacPermission(request, "read_own_clients");
@@ -92,21 +97,36 @@ export async function POST(request: Request) {
     const primaryDivision = body.primaryDivision ? String(body.primaryDivision) : undefined;
 
     if (email) {
-      const { rows } = await dbQuery(
-        "SELECT id, name, email, owner_email, phone, origin, assigned_agents, primary_division, created_at FROM clients WHERE lower(email) = lower($1) LIMIT 1",
-        [email]
-      );
-      if (rows[0]) {
-        return NextResponse.json({ data: mapClientRow(rows[0]) });
+      const { data: existingData, error: existingError } = await client
+        .from("clients")
+        .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, created_at")
+        .ilike("email", email)
+        .limit(1)
+        .maybeSingle();
+      if (existingError) throw existingError;
+      if (existingData) {
+        return NextResponse.json({ data: mapClientRow(existingData) });
       }
     }
 
     const id = body.id || `C-${crypto.randomUUID()}`;
-    const { rows } = await dbQuery(
-      "INSERT INTO clients (id, name, email, owner_email, phone, origin, assigned_agents, primary_division, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8, now()) RETURNING id, name, email, owner_email, phone, origin, assigned_agents, primary_division, created_at",
-      [id, name, email || null, ownerEmail, phone || null, origin, assignedAgents || [], primaryDivision || null]
-    );
-    const record = mapClientRow(rows[0]);
+    const { data: insertedData, error: insertError } = await client
+      .from("clients")
+      .insert({
+        id,
+        name,
+        email: email || null,
+        owner_email: ownerEmail,
+        phone: phone || null,
+        origin,
+        assigned_agents: assignedAgents || [],
+        primary_division: primaryDivision || null,
+        created_at: new Date().toISOString(),
+      })
+      .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, created_at")
+      .single();
+    if (insertError) throw insertError;
+    const record = mapClientRow(insertedData);
     console.log(`CLIENT CREATED: id=${record.id} email=${record.email || ""}`);
     return NextResponse.json({ data: record }, { status: 201 });
   } catch (err: any) {
