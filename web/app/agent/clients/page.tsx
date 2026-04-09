@@ -142,12 +142,9 @@ export default function ClientsPage() {
   const fetchClients = async () => {
     setLoading(true);
     try {
-      const agentParam = user?.email ? `&agent_email=${encodeURIComponent(user.email)}` : "";
-      const r = await fetch(`/api/agents-proxy?path=admin/all-clients${agentParam}`, {
-        headers: { Authorization: AUTH },
-      });
+      const r = await fetch("/api/clients");
       const data = await r.json();
-      const list: Client[] = (data?.clients || []).map((a: any) => {
+      const list: Client[] = (data?.data || []).map((a: any) => {
         const nameParts = (a.name || "").split(" ");
         return {
           id: a.id,
@@ -155,13 +152,13 @@ export default function ClientsPage() {
           first_name: nameParts[0] || "",
           last_name: nameParts.slice(1).join(" ") || "",
           phone: a.phone || "",
-          destination: a.destination || "",
-          status: a.lead_status || a.role || "new",
-          language: a.language || "",
-          deal_value: a.deal_value || 0,
-          source: a.source || "signup",
-          created_at: a.created_at,
-          role: a.role || "",
+          destination: "",
+          status: a.origin || "new",
+          language: "",
+          deal_value: 0,
+          source: a.origin || "signup",
+          created_at: a.createdAt || a.created_at,
+          role: "",
         };
       });
       setClients(list);
