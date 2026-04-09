@@ -18,16 +18,90 @@ export async function GET(req: NextRequest) {
   // Support both ?endpoint=xxx and ?path=admin/xxx
   const pathParam = req.nextUrl.searchParams.get("path");
   if (pathParam) {
+    // Try VPS first
     try {
       const auth = req.headers.get("Authorization") || AUTH;
-      // Forward all query params (including agent_email) to VPS
       const forwardParams = new URLSearchParams();
       req.nextUrl.searchParams.forEach((v, k) => { if (k !== "path") forwardParams.set(k, v); });
       const qs = forwardParams.toString() ? `?${forwardParams.toString()}` : "";
-      const r = await fetch(`${VPS_BASE}/${pathParam}${qs}`, { headers: { Authorization: auth }, next: { revalidate: 0 } });
-      return NextResponse.json(await r.json());
-    } catch (err: any) {
-      return NextResponse.json({ error: err?.message }, { status: 502 });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      const r = await fetch(`${VPS_BASE}/${pathParam}${qs}`, { headers: { Authorization: auth }, signal: controller.signal, next: { revalidate: 0 } });
+      clearTimeout(timeout);
+      if (r.ok) return NextResponse.json(await r.json());
+    } catch { /* VPS down — fallback to Supabase */ }
+
+    // Supabase fallback for all admin paths
+    try {
+      const { getSupabaseAdminClient } = await import("@/src/lib/supabase/server");
+      const { client: sb } = getSupabaseAdminClient();
+      const agentEmail = req.nextUrl.searchParams.get("agent_email") || "";
+
+      if (pathParam === "admin/all-clients" || pathParam === "admin/clients") {
+        const { data } = await sb.from("accounts").select("*").eq("status", "active").order("created_at", { ascending: false });
+        return NextResponse.json({ clients: (data || []).map((a: any) => ({ id: a.id, name: a.name, email: a.email, phone: "", role: a.role, roles: a.roles, status: a.status, source: "signup", created_at: a.created_at })) });
+      }
+      if (pathParam === "admin/leads") {
+        let q = sb.from("leads").select("*").order("created_at", { ascending: false }).limit(200);
+        if (agentEmail) q = q.ilike("source", `%${agentEmail}%`);
+        const { data } = await q;
+        return NextResponse.json({ leads: data || [] });
+      }
+      if (pathParam === "admin/agents-list") {
+        const { data } = await sb.from("accounts").select("*").or("role.eq.travel_agent,role.eq.yacht_broker,role.eq.hq,role.eq.admin").order("created_at", { ascending: false });
+        return NextResponse.json({ agents: data || [] });
+      }
+      if (pathParam === "admin/dashboard-stats") {
+        const [accounts, leads, comms] = await Promise.all([
+          sb.from("accounts").select("*", { count: "exact", head: true }).eq("status", "active"),
+          sb.from("leads").select("*", { count: "exact", head: true }),
+          sb.from("comms_log").select("*", { count: "exact", head: true }),
+        ]);
+        return NextResponse.json({ total_clients: accounts.count || 0, total_leads: leads.count || 0, leads_today: 0, total_messages: comms.count || 0 });
+      }
+      if (pathParam === "admin/bookings") {
+        const { data } = await sb.from("bookings").select("*").order("created_at", { ascending: false }).limit(50);
+        return NextResponse.json({ bookings: data || [] });
+      }
+      if (pathParam === "admin/commissions") {
+        let q = sb.from("commissions").select("*").order("created_at", { ascending: false }).limit(100);
+        if (agentEmail) q = q.ilike("agent_email", agentEmail);
+        const { data } = await q;
+        return NextResponse.json({ commissions: data || [] });
+      }
+      if (pathParam === "admin/dossiers") {
+        const { data } = await sb.from("dossiers").select("*").order("created_at", { ascending: false }).limit(50);
+        return NextResponse.json({ dossiers: data || [] });
+      }
+      if (pathParam === "admin/listings") {
+        const { data } = await sb.from("listings").select("*").order("created_at", { ascending: false });
+        return NextResponse.json({ listings: data || [] });
+      }
+      if (pathParam === "admin/health") {
+        return NextResponse.json({ status: "ok", vps: "offline", supabase: "ok", mode: "supabase-fallback" });
+      }
+      if (pathParam.startsWith("admin/client-profile/")) {
+        const email = decodeURIComponent(pathParam.replace("admin/client-profile/", ""));
+        const { data } = await sb.from("accounts").select("*").ilike("email", email).maybeSingle();
+        return NextResponse.json({ profile: data || null, dossiers: [], notes: [], conversations: [] });
+      }
+      if (pathParam.startsWith("admin/agent-profile/")) {
+        const email = decodeURIComponent(pathParam.replace("admin/agent-profile/", ""));
+        const { data } = await sb.from("accounts").select("*").ilike("email", email).maybeSingle();
+        return NextResponse.json({ agent: data || null, stats: { total_clients: 0, total_leads: 0, total_bookings: 0 } });
+      }
+      if (pathParam.startsWith("admin/clients/")) {
+        const email = decodeURIComponent(pathParam.replace("admin/clients/", ""));
+        const { data } = await sb.from("accounts").select("*").ilike("email", email).maybeSingle();
+        return NextResponse.json({ client: data || null });
+      }
+      if (pathParam === "admin/client-notes") {
+        return NextResponse.json({ notes: [] });
+      }
+      // Default: return empty for unknown paths
+      return NextResponse.json({ data: [], message: "VPS offline, no Supabase fallback for: " + pathParam });
+    } catch (sbErr: any) {
+      return NextResponse.json({ error: "VPS offline & Supabase fallback failed: " + (sbErr?.message || "") }, { status: 502 });
     }
   }
 
