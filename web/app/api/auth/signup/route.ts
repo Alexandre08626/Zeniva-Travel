@@ -128,6 +128,10 @@ export async function POST(request: Request) {
       return errorResponse("validate", "Missing required fields", 400, { missing, requestId });
     }
 
+    // Init Supabase clients early (needed for blocked check + all DB ops)
+    const { client: supabaseAnonClient } = getSupabaseAnonClient();
+    const { client: supabaseAdminClient } = getSupabaseAdminClient();
+
     // Block sign-up for previously deactivated accounts
     const { data: blockedRows } = await supabaseAdminClient.from("accounts").select("id").ilike("email", email).eq("status", "blocked").limit(1);
     if (blockedRows && blockedRows.length > 0) {
@@ -145,12 +149,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // ---- Clients (IMPORTANT)
-    // ANON client for auth.signUp
-    const { client: supabaseAnonClient } = getSupabaseAnonClient();
-
-    // ADMIN client for user creation + DB insert
-    const { client: supabaseAdminClient } = getSupabaseAdminClient();
+    // ---- Auth + DB clients (initialized above)
 
     // ---- Auth signup
     const metadata = cleanJsonObject({
