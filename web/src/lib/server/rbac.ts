@@ -1,6 +1,5 @@
 import { getSessionCookieName, verifySession } from "./auth";
 import { canPreviewRole, hasRbacPermission, normalizeRbacRole } from "../rbac";
-import { dbQuery } from "./db";
 
 function getCookieValue(cookieHeader: string, name: string) {
   return cookieHeader
@@ -20,9 +19,15 @@ export async function requireRbacPermission(request: Request, permission: string
   const previewRole = previewCookie ? normalizeRbacRole(decodeURIComponent(previewCookie)) : null;
   let effectiveRole = previewRole;
   if (previewRole) {
-    const { rows } = await dbQuery("SELECT id, email FROM accounts WHERE lower(email) = lower($1) LIMIT 1", [session.email]);
-    const userId = rows[0]?.id || null;
-    if (!canPreviewRole({ email: session.email, id: userId })) {
+    try {
+      const { getSupabaseAdminClient } = await import("../../lib/supabase/server");
+      const { client } = getSupabaseAdminClient();
+      const { data } = await client.from("accounts").select("id, email").ilike("email", session.email).limit(1).maybeSingle();
+      const userId = data?.id || null;
+      if (!canPreviewRole({ email: session.email, id: userId })) {
+        effectiveRole = null;
+      }
+    } catch {
       effectiveRole = null;
     }
   }
