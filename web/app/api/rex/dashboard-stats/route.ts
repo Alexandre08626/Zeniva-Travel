@@ -46,12 +46,13 @@ export async function GET(req: NextRequest) {
   const todayISO = today.toISOString();
 
   try {
-    // 1. Active Clients - count from clients table
-    const { count: clientsCount } = await supabase
-      .from("clients")
-      .select("*", { count: "exact", head: true });
+    // 1. Active Accounts - count ALL registered accounts (travelers, agents, influencers, agencies)
+    const { count: accountsCount } = await supabase
+      .from("accounts")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "active");
 
-    stats.active_clients = clientsCount || 0;
+    stats.active_clients = accountsCount || 0;
 
     // 2. Total Leads - count all leads
     const { count: totalLeadsCount } = await supabase

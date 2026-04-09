@@ -142,7 +142,7 @@ export default function ClientsPage() {
   const fetchClients = async () => {
     setLoading(true);
     try {
-      const r = await fetch("/api/clients");
+      const r = await fetch("/api/accounts");
       const data = await r.json();
       const list: Client[] = (data?.data || []).map((a: any) => {
         const nameParts = (a.name || "").split(" ");
@@ -151,14 +151,14 @@ export default function ClientsPage() {
           email: a.email,
           first_name: nameParts[0] || "",
           last_name: nameParts.slice(1).join(" ") || "",
-          phone: a.phone || "",
+          phone: "",
           destination: "",
-          status: a.origin || "new",
+          status: a.status || "active",
           language: "",
           deal_value: 0,
-          source: a.origin || "signup",
-          created_at: a.createdAt || a.created_at,
-          role: "",
+          source: a.role || "traveler",
+          created_at: a.created_at,
+          role: a.role || "",
         };
       });
       setClients(list);
