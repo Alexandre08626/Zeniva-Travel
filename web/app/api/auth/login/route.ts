@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { assertBackendEnv, normalizeEmail } from "../../../../src/lib/server/db";
+import { normalizeEmail } from "../../../../src/lib/server/db";
 import { getCookieDomain, getSessionCookieName, signSession, verifyPassword, hashPassword } from "../../../../src/lib/server/auth";
 import { normalizeRbacRole } from "../../../../src/lib/rbac";
 import { getSupabaseAdminClient, getSupabaseAnonClient } from "../../../../src/lib/supabase/server";
@@ -123,7 +123,6 @@ function buildSessionResponse(request: Request, account: {
 
 export async function POST(request: Request) {
   try {
-    assertBackendEnv();
     const body = await request.json();
     const email = normalizeEmail(String(body?.email || ""));
     const password = String(body?.password || "");
