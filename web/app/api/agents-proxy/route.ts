@@ -47,13 +47,32 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ leads: data || [], total });
       }
       if (pathParam === "admin/agents-list") {
-        const { data } = await sb.from("accounts").select("*").or("role.eq.travel_agent,role.eq.yacht_broker,role.eq.hq,role.eq.admin,role.eq.influencer").order("created_at", { ascending: false });
-        // Map to expected format
-        const agents = (data || []).map((a: any) => ({
-          id: a.id, name: a.name, email: a.email, first_name: (a.name || "").split(" ")[0] || "", last_name: (a.name || "").split(" ").slice(1).join(" ") || "",
-          agent_type: a.role || "agent", status: a.status || "active", commission_rate: 0, ref_code: "", leads_count: 0, role: a.role, roles: a.roles,
+        // Load from both agents table AND accounts table (merge, deduplicate)
+        const [agentsResult, accountsResult] = await Promise.all([
+          sb.from("agents").select("*").order("created_at", { ascending: false }),
+          sb.from("accounts").select("*").or("role.eq.travel_agent,role.eq.yacht_broker,role.eq.hq,role.eq.admin,role.eq.influencer").order("created_at", { ascending: false }),
+        ]);
+        const agentsList = (agentsResult.data || []).map((a: any) => ({
+          id: a.id, name: `${a.first_name || ""} ${a.last_name || ""}`.trim() || a.email, email: a.email,
+          first_name: a.first_name || "", last_name: a.last_name || "",
+          agent_type: a.agent_type || "agent", status: a.status || "active",
+          commission_rate: Number(a.commission_rate) || 0, ref_code: a.ref_code || "",
+          leads_count: 0, role: a.agent_type, roles: a.roles || [],
         }));
-        return NextResponse.json({ agents });
+        // Add accounts that aren't already in agents table
+        const existingEmails = new Set(agentsList.map((a: any) => (a.email || "").toLowerCase()));
+        for (const a of (accountsResult.data || [])) {
+          if (!existingEmails.has((a.email || "").toLowerCase())) {
+            agentsList.push({
+              id: a.id, name: a.name || a.email, email: a.email,
+              first_name: (a.name || "").split(" ")[0] || "", last_name: (a.name || "").split(" ").slice(1).join(" ") || "",
+              agent_type: a.role || "agent", status: a.status || "active",
+              commission_rate: 0, ref_code: "", leads_count: 0, role: a.role, roles: a.roles || [],
+            });
+            existingEmails.add((a.email || "").toLowerCase());
+          }
+        }
+        return NextResponse.json({ agents: agentsList });
       }
       if (pathParam === "admin/dashboard-stats") {
         const [accounts, leads, leadsB, comms] = await Promise.all([
