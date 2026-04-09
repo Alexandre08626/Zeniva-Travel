@@ -42,22 +42,27 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ clients: (data || []).map((a: any) => ({ id: a.id, name: a.name, email: a.email, phone: "", role: a.role, roles: a.roles, status: a.status, source: "signup", created_at: a.created_at })) });
       }
       if (pathParam === "admin/leads") {
-        let q = sb.from("leads").select("*").order("created_at", { ascending: false }).limit(200);
-        if (agentEmail) q = q.ilike("source", `%${agentEmail}%`);
-        const { data } = await q;
-        return NextResponse.json({ leads: data || [] });
+        const { data } = await sb.from("leads").select("*").order("created_at", { ascending: false }).limit(500);
+        const total = data?.length || 0;
+        return NextResponse.json({ leads: data || [], total });
       }
       if (pathParam === "admin/agents-list") {
-        const { data } = await sb.from("accounts").select("*").or("role.eq.travel_agent,role.eq.yacht_broker,role.eq.hq,role.eq.admin").order("created_at", { ascending: false });
-        return NextResponse.json({ agents: data || [] });
+        const { data } = await sb.from("accounts").select("*").or("role.eq.travel_agent,role.eq.yacht_broker,role.eq.hq,role.eq.admin,role.eq.influencer").order("created_at", { ascending: false });
+        // Map to expected format
+        const agents = (data || []).map((a: any) => ({
+          id: a.id, name: a.name, email: a.email, first_name: (a.name || "").split(" ")[0] || "", last_name: (a.name || "").split(" ").slice(1).join(" ") || "",
+          agent_type: a.role || "agent", status: a.status || "active", commission_rate: 0, ref_code: "", leads_count: 0, role: a.role, roles: a.roles,
+        }));
+        return NextResponse.json({ agents });
       }
       if (pathParam === "admin/dashboard-stats") {
-        const [accounts, leads, comms] = await Promise.all([
+        const [accounts, leads, leadsB, comms] = await Promise.all([
           sb.from("accounts").select("*", { count: "exact", head: true }).eq("status", "active"),
           sb.from("leads").select("*", { count: "exact", head: true }),
+          sb.from("leads_business").select("*", { count: "exact", head: true }),
           sb.from("comms_log").select("*", { count: "exact", head: true }),
         ]);
-        return NextResponse.json({ total_clients: accounts.count || 0, total_leads: leads.count || 0, leads_today: 0, total_messages: comms.count || 0 });
+        return NextResponse.json({ total_clients: accounts.count || 0, total_leads: (leads.count || 0) + (leadsB.count || 0), leads_today: 0, total_messages: comms.count || 0 });
       }
       if (pathParam === "admin/bookings") {
         const { data } = await sb.from("bookings").select("*").order("created_at", { ascending: false }).limit(50);
