@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+import { getSupabaseAdminClient } from "@/src/lib/supabase/server";
 
 const AUTH = "Bearer zeniva-secret-2025";
 
@@ -25,7 +22,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const { client: supabase } = getSupabaseAdminClient();
   const stats: any = {
     timestamp: new Date().toISOString(),
     active_clients: 0,
