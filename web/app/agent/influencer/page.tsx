@@ -25,7 +25,29 @@ type ApprovedVideo = {
   category: string;
 };
 
-type Tab = "videos" | "mylinks" | "leads" | "commissions" | "brandkit" | "howto";
+type Tab = "videos" | "myvideos" | "mylinks" | "leads" | "commissions" | "brandkit" | "howto";
+
+type ContentItem = {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string;
+  content_type: string;
+  platform: string;
+  external_url: string;
+  file_url: string;
+  thumbnail_url: string;
+  file_name: string;
+  file_size: number;
+  status: string;
+  reposted: boolean;
+  reposted_at: string | null;
+  featured: boolean;
+  views: number;
+  likes: number;
+  created_at: string;
+  accounts?: { name: string; email: string };
+};
 
 type Lead = {
   id: string;
@@ -61,6 +83,21 @@ export default function InfluencerPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [stats, setStats] = useState({ clicks: 0, leads: 0, bookings: 0, commissionTotal: 0, commissionPending: 0, referralCode: "", commissionRate: 3, isPremium: false, totalLeads: 0, premiumProgress: 0 });
   const [approvedVideos, setApprovedVideos] = useState<ApprovedVideo[]>([]);
+
+  // Community content state
+  const [communityContent, setCommunityContent] = useState<ContentItem[]>([]);
+  const [contentFilter, setContentFilter] = useState<"all" | "mine" | "trending" | "reposted">("all");
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [dragOver, setDragOver] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadTitle, setUploadTitle] = useState("");
+  const [uploadDesc, setUploadDesc] = useState("");
+  const [uploadPlatform, setUploadPlatform] = useState("");
+  const [uploadExternalUrl, setUploadExternalUrl] = useState("");
+  const [uploadType, setUploadType] = useState<"video" | "image" | "reel">("video");
+  const [contentPlaying, setContentPlaying] = useState<string | null>(null);
 
   const siteBase = "https://www.zenivatravel.com";
   const agentEmail = user?.email || "";
@@ -117,8 +154,76 @@ export default function InfluencerPage() {
       .catch(() => {});
   }, [user]);
 
+  // Load community content
+  const loadContent = (filter: string = contentFilter) => {
+    fetch(`/api/influencer/content?filter=${filter}`)
+      .then(r => r.json())
+      .then(d => { if (d?.data) setCommunityContent(d.data); })
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    if (user) loadContent();
+  }, [user, contentFilter]);
+
+  const handleUpload = async () => {
+    if (!uploadTitle.trim()) return;
+    setUploading(true);
+    setUploadProgress(0);
+
+    const form = new FormData();
+    if (uploadFile) form.append("file", uploadFile);
+    form.append("title", uploadTitle);
+    form.append("description", uploadDesc);
+    form.append("content_type", uploadType);
+    form.append("platform", uploadPlatform);
+    form.append("external_url", uploadExternalUrl);
+
+    // Use XMLHttpRequest for progress tracking
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/influencer/content");
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100));
+    };
+    xhr.onload = () => {
+      setUploading(false);
+      setUploadProgress(0);
+      if (xhr.status === 200) {
+        setShowUploadModal(false);
+        setUploadFile(null);
+        setUploadTitle("");
+        setUploadDesc("");
+        setUploadPlatform("");
+        setUploadExternalUrl("");
+        setUploadType("video");
+        loadContent();
+      }
+    };
+    xhr.onerror = () => setUploading(false);
+    xhr.send(form);
+  };
+
+  const handleRepost = async (id: string, reposted: boolean) => {
+    await fetch("/api/influencer/content", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contentId: id, action: reposted ? "unrepost" : "repost" }),
+    });
+    loadContent();
+  };
+
+  const handleDeleteContent = async (id: string) => {
+    await fetch("/api/influencer/content", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contentId: id, action: "delete" }),
+    });
+    loadContent();
+  };
+
   const TABS: { key: Tab; icon: string; label: string }[] = [
     { key: "videos", icon: "🎬", label: "Videos to Share" },
+    { key: "myvideos", icon: "🎥", label: "My Videos" },
     { key: "mylinks", icon: "🔗", label: "My Links" },
     { key: "leads", icon: "🎯", label: "My Leads" },
     { key: "commissions", icon: "💰", label: "Commissions" },
@@ -454,6 +559,388 @@ export default function InfluencerPage() {
                 )}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ══ MY VIDEOS TAB ══ */}
+        {activeTab === "myvideos" && (
+          <div className="space-y-6">
+
+            {/* Header with upload button */}
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-2xl font-black text-white">🎥 My Videos</h2>
+                <p className="mt-1 text-sm text-slate-400">Upload your content, discover what other creators are posting, and get featured by Zeniva.</p>
+              </div>
+              <button
+                onClick={() => setShowUploadModal(true)}
+                className="group relative flex items-center gap-2 overflow-hidden rounded-2xl px-6 py-3 font-bold text-white transition-all hover:scale-105"
+                style={{ background: "linear-gradient(135deg, #ec4899, #8b5cf6, #0F6CF5)" }}
+              >
+                <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                <span className="text-xl">+</span> Upload Content
+              </button>
+            </div>
+
+            {/* Filter pills */}
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {([
+                { key: "all" as const, label: "All Content", icon: "🌐" },
+                { key: "mine" as const, label: "My Uploads", icon: "👤" },
+                { key: "trending" as const, label: "Most Viewed", icon: "🔥" },
+                { key: "reposted" as const, label: "Reposted by Zeniva", icon: "⭐" },
+              ]).map(f => (
+                <button
+                  key={f.key}
+                  onClick={() => setContentFilter(f.key)}
+                  className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-all ${
+                    contentFilter === f.key
+                      ? "bg-white/15 text-white border border-white/20 shadow-lg shadow-white/5"
+                      : "bg-white/5 text-slate-400 border border-transparent hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <span>{f.icon}</span> {f.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Stats bar */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {[
+                { label: "Total Videos", value: communityContent.length, color: "from-blue-500/20 to-blue-600/10", text: "text-blue-300", border: "border-blue-500/20" },
+                { label: "My Uploads", value: communityContent.filter(c => c.user_id === user?.id).length, color: "from-pink-500/20 to-pink-600/10", text: "text-pink-300", border: "border-pink-500/20" },
+                { label: "Reposted", value: communityContent.filter(c => c.reposted).length, color: "from-yellow-500/20 to-yellow-600/10", text: "text-yellow-300", border: "border-yellow-500/20" },
+                { label: "Total Views", value: communityContent.reduce((s, c) => s + (c.views || 0), 0), color: "from-emerald-500/20 to-emerald-600/10", text: "text-emerald-300", border: "border-emerald-500/20" },
+              ].map(s => (
+                <div key={s.label} className={`rounded-2xl border ${s.border} bg-gradient-to-br ${s.color} p-4 backdrop-blur-sm`}>
+                  <div className="text-xs font-bold uppercase tracking-widest text-slate-500">{s.label}</div>
+                  <div className={`mt-1 text-2xl font-black ${s.text}`}>{s.value.toLocaleString()}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Content Grid */}
+            {communityContent.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-white/10 py-20 text-center">
+                <div className="relative mb-6">
+                  <div className="text-8xl">🎬</div>
+                  <div className="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-pink-500 text-sm font-black text-white shadow-lg shadow-pink-500/30">+</div>
+                </div>
+                <h3 className="text-2xl font-black text-white">Be the first to post!</h3>
+                <p className="mt-2 max-w-md text-slate-400">
+                  Upload your Zeniva-related content here. Share your videos, reels, and stories with the creator community. HQ reviews and reposts the best content on official channels!
+                </p>
+                <button
+                  onClick={() => setShowUploadModal(true)}
+                  className="mt-6 rounded-2xl px-8 py-3 font-bold text-white transition-all hover:scale-105"
+                  style={{ background: "linear-gradient(135deg, #ec4899, #8b5cf6)" }}
+                >
+                  Upload my first video
+                </button>
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {communityContent.map((item) => {
+                  const isOwn = item.user_id === user?.id;
+                  const creatorName = item.accounts?.name || "Creator";
+                  const isVideo = item.content_type === "video" || item.content_type === "reel";
+                  const proxyUrl = item.file_url ? `/api/agents-proxy?endpoint=video-serve&file=${encodeURIComponent(item.file_url)}` : "";
+                  const timeAgo = (() => {
+                    const diff = Date.now() - new Date(item.created_at).getTime();
+                    const mins = Math.floor(diff / 60000);
+                    if (mins < 60) return `${mins}m ago`;
+                    const hrs = Math.floor(mins / 60);
+                    if (hrs < 24) return `${hrs}h ago`;
+                    const days = Math.floor(hrs / 24);
+                    return `${days}d ago`;
+                  })();
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/[0.06] hover:shadow-2xl hover:shadow-blue-500/5"
+                    >
+                      {/* Reposted badge */}
+                      {item.reposted && (
+                        <div className="absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold shadow-lg" style={{ background: "linear-gradient(135deg, #E6B85A, #d4a843)", color: "#000" }}>
+                          ⭐ Reposted by Zeniva
+                        </div>
+                      )}
+                      {item.featured && !item.reposted && (
+                        <div className="absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full bg-pink-500 px-3 py-1 text-xs font-bold text-white shadow-lg shadow-pink-500/30">
+                          🔥 Featured
+                        </div>
+                      )}
+
+                      {/* Thumbnail / Video preview */}
+                      <div className="relative aspect-[9/16] max-h-[320px] w-full overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900">
+                        {isVideo && proxyUrl && contentPlaying === item.id ? (
+                          <video
+                            src={proxyUrl}
+                            className="h-full w-full object-cover"
+                            controls
+                            autoPlay
+                            onEnded={() => setContentPlaying(null)}
+                          />
+                        ) : item.thumbnail_url ? (
+                          <img src={item.thumbnail_url} alt={item.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center">
+                            <span className="text-6xl opacity-30">{isVideo ? "🎬" : "📸"}</span>
+                          </div>
+                        )}
+
+                        {/* Play overlay */}
+                        {isVideo && proxyUrl && contentPlaying !== item.id && (
+                          <button
+                            onClick={() => setContentPlaying(item.id)}
+                            className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity group-hover:opacity-100"
+                          >
+                            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur-md transition-transform hover:scale-110">
+                              <span className="ml-1 text-3xl text-white">▶</span>
+                            </div>
+                          </button>
+                        )}
+
+                        {/* Platform tag */}
+                        {item.platform && (
+                          <div className="absolute bottom-2 right-2 rounded-lg bg-black/50 px-2 py-1 text-xs font-bold text-white backdrop-blur-sm">
+                            {item.platform === "tiktok" ? "TikTok" : item.platform === "instagram" ? "Instagram" : item.platform === "youtube" ? "YouTube" : item.platform}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Content info */}
+                      <div className="p-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <h4 className="truncate font-bold text-white">{item.title}</h4>
+                            <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
+                              <span className="flex items-center gap-1">
+                                <span className="inline-block h-5 w-5 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 text-center text-[10px] leading-5 text-white">
+                                  {creatorName.charAt(0).toUpperCase()}
+                                </span>
+                                <span className={isOwn ? "font-bold text-pink-400" : ""}>{isOwn ? "You" : creatorName}</span>
+                              </span>
+                              <span>·</span>
+                              <span>{timeAgo}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs text-slate-500">
+                            <span>👁</span> {item.views || 0}
+                          </div>
+                        </div>
+
+                        {item.description && (
+                          <p className="mt-2 line-clamp-2 text-xs text-slate-400">{item.description}</p>
+                        )}
+
+                        {/* External link */}
+                        {item.external_url && (
+                          <a
+                            href={item.external_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-2 inline-flex items-center gap-1 rounded-lg bg-white/5 px-3 py-1.5 text-xs font-bold text-blue-400 transition-colors hover:bg-white/10 hover:text-blue-300"
+                          >
+                            🔗 View original post
+                          </a>
+                        )}
+
+                        {/* Actions */}
+                        <div className="mt-3 flex items-center gap-2">
+                          {/* HQ only: repost button */}
+                          {isHQ && (
+                            <button
+                              onClick={() => handleRepost(item.id, item.reposted)}
+                              className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+                                item.reposted
+                                  ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30"
+                                  : "bg-white/5 text-slate-400 hover:bg-yellow-500/10 hover:text-yellow-300"
+                              }`}
+                            >
+                              {item.reposted ? "⭐ Reposted" : "⭐ Repost"}
+                            </button>
+                          )}
+
+                          {/* Download if file exists */}
+                          {proxyUrl && (
+                            <a
+                              href={proxyUrl}
+                              download={item.file_name || "video.mp4"}
+                              className="flex items-center gap-1 rounded-lg bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+                            >
+                              ⬇ Download
+                            </a>
+                          )}
+
+                          {/* Delete own content */}
+                          {(isOwn || isHQ) && (
+                            <button
+                              onClick={() => handleDeleteContent(item.id)}
+                              className="ml-auto flex items-center gap-1 rounded-lg bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
+                            >
+                              🗑
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Upload Modal */}
+            {showUploadModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => !uploading && setShowUploadModal(false)}>
+                <div
+                  className="relative mx-4 w-full max-w-lg overflow-hidden rounded-3xl border border-white/10"
+                  style={{ background: "linear-gradient(135deg, #0d1b3e 0%, #111827 50%, #0d1b3e 100%)" }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Modal glow */}
+                  <div className="pointer-events-none absolute -top-20 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-pink-500/20 blur-3xl" />
+                  <div className="pointer-events-none absolute -bottom-20 right-0 h-40 w-40 rounded-full bg-blue-500/20 blur-3xl" />
+
+                  <div className="relative p-6">
+                    <div className="mb-6 flex items-center justify-between">
+                      <h3 className="text-xl font-black text-white">Upload Content</h3>
+                      <button onClick={() => !uploading && setShowUploadModal(false)} className="rounded-lg bg-white/5 p-2 text-slate-400 hover:bg-white/10 hover:text-white">✕</button>
+                    </div>
+
+                    {/* Drop zone */}
+                    <div
+                      className={`relative mb-4 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 transition-all ${
+                        dragOver ? "border-pink-500 bg-pink-500/10" : uploadFile ? "border-emerald-500/50 bg-emerald-500/5" : "border-white/15 hover:border-white/30"
+                      }`}
+                      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                      onDragLeave={() => setDragOver(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setDragOver(false);
+                        const f = e.dataTransfer.files[0];
+                        if (f) setUploadFile(f);
+                      }}
+                    >
+                      {uploadFile ? (
+                        <div className="text-center">
+                          <div className="text-4xl mb-2">{uploadFile.type.startsWith("video") ? "🎬" : "📸"}</div>
+                          <div className="font-bold text-white">{uploadFile.name}</div>
+                          <div className="text-xs text-slate-400">{(uploadFile.size / (1024 * 1024)).toFixed(1)} MB</div>
+                          <button onClick={() => setUploadFile(null)} className="mt-2 text-xs text-red-400 hover:text-red-300">Remove</button>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="text-5xl mb-3 opacity-50">📁</div>
+                          <div className="text-sm font-bold text-white">Drag & drop your file here</div>
+                          <div className="mt-1 text-xs text-slate-500">or</div>
+                          <label className="mt-2 cursor-pointer rounded-xl bg-white/10 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-white/20">
+                            Browse files
+                            <input
+                              type="file"
+                              accept="video/*,image/*"
+                              className="hidden"
+                              onChange={(e) => { if (e.target.files?.[0]) setUploadFile(e.target.files[0]); }}
+                            />
+                          </label>
+                          <div className="mt-2 text-xs text-slate-600">MP4, MOV, WEBM, JPG, PNG — max 500 MB</div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Form fields */}
+                    <div className="space-y-3">
+                      <input
+                        type="text"
+                        placeholder="Title *"
+                        value={uploadTitle}
+                        onChange={(e) => setUploadTitle(e.target.value)}
+                        className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none focus:border-pink-500/50 focus:ring-1 focus:ring-pink-500/30"
+                      />
+                      <textarea
+                        placeholder="Description (optional)"
+                        value={uploadDesc}
+                        onChange={(e) => setUploadDesc(e.target.value)}
+                        rows={2}
+                        className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none focus:border-pink-500/50 focus:ring-1 focus:ring-pink-500/30 resize-none"
+                      />
+
+                      <div className="grid grid-cols-2 gap-3">
+                        {/* Content type */}
+                        <div>
+                          <div className="mb-1 text-xs font-bold text-slate-500">Type</div>
+                          <div className="flex gap-1">
+                            {(["video", "reel", "image"] as const).map(t => (
+                              <button
+                                key={t}
+                                onClick={() => setUploadType(t)}
+                                className={`flex-1 rounded-lg py-2 text-xs font-bold transition-all ${
+                                  uploadType === t ? "bg-white/15 text-white" : "bg-white/5 text-slate-500 hover:text-white"
+                                }`}
+                              >
+                                {t === "video" ? "🎬" : t === "reel" ? "📱" : "📸"} {t.charAt(0).toUpperCase() + t.slice(1)}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        {/* Platform */}
+                        <div>
+                          <div className="mb-1 text-xs font-bold text-slate-500">Platform</div>
+                          <select
+                            value={uploadPlatform}
+                            onChange={(e) => setUploadPlatform(e.target.value)}
+                            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white outline-none"
+                          >
+                            <option value="">Select...</option>
+                            <option value="tiktok">TikTok</option>
+                            <option value="instagram">Instagram</option>
+                            <option value="youtube">YouTube</option>
+                            <option value="twitter">X / Twitter</option>
+                            <option value="facebook">Facebook</option>
+                            <option value="other">Other</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <input
+                        type="url"
+                        placeholder="Link to original post (optional)"
+                        value={uploadExternalUrl}
+                        onChange={(e) => setUploadExternalUrl(e.target.value)}
+                        className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none focus:border-pink-500/50 focus:ring-1 focus:ring-pink-500/30"
+                      />
+                    </div>
+
+                    {/* Upload progress */}
+                    {uploading && (
+                      <div className="mt-4">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-bold text-white">Uploading...</span>
+                          <span className="font-bold text-pink-400">{uploadProgress}%</span>
+                        </div>
+                        <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
+                          <div
+                            className="h-full rounded-full transition-all duration-300"
+                            style={{ width: `${uploadProgress}%`, background: "linear-gradient(90deg, #ec4899, #8b5cf6)" }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Submit */}
+                    <button
+                      onClick={handleUpload}
+                      disabled={uploading || !uploadTitle.trim()}
+                      className="mt-5 w-full rounded-2xl py-4 text-center font-bold text-white transition-all hover:scale-[1.02] disabled:opacity-40 disabled:hover:scale-100"
+                      style={{ background: "linear-gradient(135deg, #ec4899, #8b5cf6, #0F6CF5)" }}
+                    >
+                      {uploading ? `Uploading ${uploadProgress}%...` : "🚀 Publish to Community"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
