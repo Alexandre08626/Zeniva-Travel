@@ -7,7 +7,7 @@ function useTabWithHash(defaultTab: TabId): [TabId, (t: TabId) => void] {
   const [tab, setTabState] = useState<TabId>(defaultTab);
   useEffect(() => {
     const hash = window.location.hash.replace("#", "") as TabId;
-    const valid: TabId[] = ["overview","activity","leads","approvals","agents","analytics","settings","chat"];
+    const valid: TabId[] = ["overview","activity","leads","approvals","agents","analytics","settings","chat","influencer-videos"];
     if (valid.includes(hash)) setTabState(hash);
   }, []);
   const setTab = (t: TabId) => {
@@ -21,7 +21,7 @@ function useTabWithHash(defaultTab: TabId): [TabId, (t: TabId) => void] {
 // ─── Types ────────────────────────────────────────────────────────────────────
 type AgentStatus = "live" | "active" | "pending" | "error" | "disabled";
 type SvcStatus   = "online" | "offline" | "checking";
-type TabId       = "overview" | "activity" | "leads" | "approvals" | "agents" | "analytics" | "settings" | "chat";
+type TabId       = "overview" | "activity" | "leads" | "approvals" | "agents" | "analytics" | "settings" | "chat" | "influencer-videos";
 
 interface ActivityItem {
   id: string; agent: string; agentId: string; emoji: string;
@@ -824,6 +824,11 @@ export default function AIAgentsPageClient() {
   const [clock, setClock]             = useState("");
   const [tab, setTab]                 = useTabWithHash("overview");
 
+  // Influencer content state
+  const [infContent, setInfContent] = useState<any[]>([]);
+  const [infFilter, setInfFilter] = useState<"all" | "reposted" | "pending">("all");
+  const [infPlaying, setInfPlaying] = useState<string | null>(null);
+
   // Chat tab state
   const [chatMsgs, setChatMsgs]       = useState<{role:string;content:string}[]>([]);
   const [chatInput, setChatInput]     = useState("");
@@ -1460,6 +1465,13 @@ export default function AIAgentsPageClient() {
       }));
       setActivity(items);
     } catch { setActivity([]); }
+
+    // Influencer community content
+    try {
+      const r = await fetch("/api/influencer/content?filter=all");
+      const d = await r.json();
+      setInfContent(d?.data || []);
+    } catch { setInfContent([]); }
   }, []);
 
   useEffect(() => {
@@ -1609,6 +1621,7 @@ export default function AIAgentsPageClient() {
     { id: "analytics",  label: "📊 Analytics"  },
     { id: "settings",   label: "⚙️ Settings"    },
     { id: "chat",       label: "💬 Chat"         },
+    { id: "influencer-videos", label: `📱 Influencer Videos ${infContent.length > 0 ? `(${infContent.length})` : ""}` },
   ];
 
   const activeAgents = agents.filter(a => a.status === "live" || a.status === "active").length;
@@ -2647,6 +2660,192 @@ export default function AIAgentsPageClient() {
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ─── INFLUENCER VIDEOS TAB ────────────────────────────────────────── */}
+        {tab === "influencer-videos" && (
+          <div className="space-y-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-2xl font-black text-gray-900">📱 Influencer Videos</h2>
+                <p className="mt-1 text-sm text-gray-500">Content uploaded by your influencer network. Repost the best ones on Zeniva channels.</p>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <span className="rounded-full bg-indigo-100 px-3 py-1 font-bold text-indigo-700">{infContent.length} total</span>
+                <span className="rounded-full bg-amber-100 px-3 py-1 font-bold text-amber-700">{infContent.filter((c: any) => c.reposted).length} reposted</span>
+              </div>
+            </div>
+
+            {/* Filter */}
+            <div className="flex gap-2">
+              {([
+                { key: "all" as const, label: "All", icon: "🌐" },
+                { key: "pending" as const, label: "Not Reposted", icon: "🆕" },
+                { key: "reposted" as const, label: "Reposted", icon: "⭐" },
+              ]).map(f => (
+                <button
+                  key={f.key}
+                  onClick={() => setInfFilter(f.key)}
+                  className={`rounded-xl px-4 py-2 text-sm font-bold transition-all ${
+                    infFilter === f.key
+                      ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  {f.icon} {f.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Content Grid */}
+            {infContent.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 py-20 text-center">
+                <div className="text-6xl mb-4">📱</div>
+                <h3 className="text-xl font-bold text-gray-900">No influencer content yet</h3>
+                <p className="mt-2 max-w-md text-gray-500">When influencers upload videos from their dashboard, they will appear here for you to review and repost.</p>
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {infContent
+                  .filter((item: any) => {
+                    if (infFilter === "reposted") return item.reposted;
+                    if (infFilter === "pending") return !item.reposted;
+                    return true;
+                  })
+                  .map((item: any) => {
+                    const creatorName = item.accounts?.name || "Creator";
+                    const creatorEmail = item.accounts?.email || "";
+                    const isVideo = item.content_type === "video" || item.content_type === "reel";
+                    const proxyUrl = item.file_url ? `/api/agents-proxy?endpoint=video-serve&file=${encodeURIComponent(item.file_url)}` : "";
+                    const date = new Date(item.created_at);
+                    const timeAgo = (() => {
+                      const diff = Date.now() - date.getTime();
+                      const mins = Math.floor(diff / 60000);
+                      if (mins < 60) return `${mins}m ago`;
+                      const hrs = Math.floor(mins / 60);
+                      if (hrs < 24) return `${hrs}h ago`;
+                      const days = Math.floor(hrs / 24);
+                      return `${days}d ago`;
+                    })();
+
+                    return (
+                      <div key={item.id} className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all hover:shadow-xl hover:border-indigo-200">
+                        {/* Repost badge */}
+                        {item.reposted && (
+                          <div className="absolute left-2 top-2 z-10 rounded-full bg-amber-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg">
+                            ⭐ Reposted
+                          </div>
+                        )}
+
+                        {/* Video preview */}
+                        <div className="relative aspect-[9/16] max-h-[280px] w-full overflow-hidden bg-gray-100">
+                          {isVideo && proxyUrl && infPlaying === item.id ? (
+                            <video src={proxyUrl} className="h-full w-full object-cover" controls autoPlay onEnded={() => setInfPlaying(null)} />
+                          ) : item.thumbnail_url ? (
+                            <img src={item.thumbnail_url} alt={item.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+                              <span className="text-5xl opacity-30">{isVideo ? "🎬" : "📸"}</span>
+                            </div>
+                          )}
+                          {isVideo && proxyUrl && infPlaying !== item.id && (
+                            <button
+                              onClick={() => setInfPlaying(item.id)}
+                              className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover:opacity-100"
+                            >
+                              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 shadow-xl transition-transform hover:scale-110">
+                                <span className="ml-1 text-2xl text-indigo-600">▶</span>
+                              </div>
+                            </button>
+                          )}
+                          {item.platform && (
+                            <div className="absolute bottom-2 right-2 rounded-lg bg-black/60 px-2 py-1 text-[10px] font-bold text-white backdrop-blur-sm">
+                              {item.platform === "tiktok" ? "TikTok" : item.platform === "instagram" ? "Instagram" : item.platform === "youtube" ? "YouTube" : item.platform}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Info */}
+                        <div className="p-4">
+                          <h4 className="truncate font-bold text-gray-900">{item.title}</h4>
+                          <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
+                            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-[10px] font-bold text-white">
+                              {creatorName.charAt(0).toUpperCase()}
+                            </span>
+                            <span className="font-medium text-gray-700">{creatorName}</span>
+                            <span>·</span>
+                            <span>{timeAgo}</span>
+                            <span>·</span>
+                            <span>👁 {item.views || 0}</span>
+                          </div>
+                          {creatorEmail && (
+                            <div className="mt-1 text-[11px] text-gray-400 truncate">{creatorEmail}</div>
+                          )}
+                          {item.description && (
+                            <p className="mt-2 line-clamp-2 text-xs text-gray-500">{item.description}</p>
+                          )}
+
+                          {/* External link */}
+                          {item.external_url && (
+                            <a href={item.external_url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-bold text-indigo-600 hover:bg-indigo-50 transition-colors">
+                              🔗 Original post
+                            </a>
+                          )}
+
+                          {/* Actions */}
+                          <div className="mt-3 flex items-center gap-2">
+                            <button
+                              onClick={async () => {
+                                await fetch("/api/influencer/content", {
+                                  method: "PATCH",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ contentId: item.id, action: item.reposted ? "unrepost" : "repost" }),
+                                });
+                                // Refresh
+                                const r = await fetch("/api/influencer/content?filter=all");
+                                const d = await r.json();
+                                setInfContent(d?.data || []);
+                              }}
+                              className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all ${
+                                item.reposted
+                                  ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                                  : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm shadow-indigo-200"
+                              }`}
+                            >
+                              {item.reposted ? "⭐ Unrepost" : "⭐ Repost on Zeniva"}
+                            </button>
+
+                            {proxyUrl && (
+                              <a
+                                href={proxyUrl}
+                                download={item.file_name || "video.mp4"}
+                                className="rounded-xl bg-gray-100 px-3 py-2 text-xs font-bold text-gray-600 hover:bg-gray-200 transition-colors"
+                              >
+                                ⬇
+                              </a>
+                            )}
+
+                            <button
+                              onClick={async () => {
+                                await fetch("/api/influencer/content", {
+                                  method: "PATCH",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ contentId: item.id, action: "delete" }),
+                                });
+                                setInfContent(prev => prev.filter((c: any) => c.id !== item.id));
+                              }}
+                              className="rounded-xl bg-gray-100 px-3 py-2 text-xs font-bold text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                            >
+                              🗑
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
           </div>
         )}
 
