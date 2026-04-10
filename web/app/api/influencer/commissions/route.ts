@@ -53,7 +53,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, skipped: true, reason: "Agent-built bookings are not influencer-commissioned." });
     }
 
-    const pct = 5;
+    // Dynamic commission rate based on leads count
+    const { count: leadsCount } = await admin
+      .from("influencer_referral_leads")
+      .select("id", { count: "exact", head: true })
+      .eq("referral_code", referralCode);
+    const lc = leadsCount ?? 0;
+    const pct = lc >= 150 ? 5 : lc >= 100 ? 4 : lc >= 50 ? 3.5 : 3;
     let baseAmount = amount;
     if (bookingType === "yacht") {
       baseAmount = Math.round(baseAmount * 0.05);

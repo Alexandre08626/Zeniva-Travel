@@ -15,9 +15,31 @@ function getSession(request: Request) {
   return verifySession(token);
 }
 
-async function getCurrentCommissionRate(dateIso: string) {
-  void dateIso;
-  return 5;
+/**
+ * Dynamic commission rate based on confirmed leads count:
+ *   0–49  leads → 3%
+ *  50–99  leads → 3.5%
+ * 100–149 leads → 4%
+ * 150+    leads → 5%  (Premium)
+ */
+async function getCommissionRateForInfluencer(
+  admin: ReturnType<typeof getSupabaseAdminClient>["client"],
+  referralCode: string
+): Promise<{ rate: number; leadsCount: number; isPremium: boolean }> {
+  const { count } = await admin
+    .from("influencer_referral_leads")
+    .select("id", { count: "exact", head: true })
+    .eq("referral_code", referralCode);
+
+  const leadsCount = count ?? 0;
+  const isPremium = leadsCount >= 150;
+
+  let rate = 3;
+  if (leadsCount >= 150) rate = 5;
+  else if (leadsCount >= 100) rate = 4;
+  else if (leadsCount >= 50) rate = 3.5;
+
+  return { rate, leadsCount, isPremium };
 }
 
 export async function GET(request: Request) {
@@ -112,7 +134,8 @@ export async function GET(request: Request) {
       0
     );
     const paidTotal = payouts.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-    const commissionRate = await getCurrentCommissionRate(new Date().toISOString().slice(0, 10));
+    const { rate: commissionRate, leadsCount: totalLeads, isPremium } =
+      await getCommissionRateForInfluencer(admin, referralCode);
 
     return NextResponse.json({
       data: {
@@ -127,6 +150,9 @@ export async function GET(request: Request) {
         commissionPending: pendingTotal,
         commissionApproved: approvedTotal,
         commissionPaid: paidTotal,
+        isPremium,
+        totalLeads,
+        premiumProgress: Math.min(totalLeads, 150),
         commissions: commissions.map((row) => ({
           ...row,
           status: row.status || "pending",

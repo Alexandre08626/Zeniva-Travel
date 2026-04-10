@@ -59,7 +59,7 @@ export default function InfluencerPage() {
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [stats, setStats] = useState({ clicks: 0, leads: 0, bookings: 0, commissionTotal: 0, commissionPending: 0, referralCode: "" });
+  const [stats, setStats] = useState({ clicks: 0, leads: 0, bookings: 0, commissionTotal: 0, commissionPending: 0, referralCode: "", commissionRate: 3, isPremium: false, totalLeads: 0, premiumProgress: 0 });
   const [approvedVideos, setApprovedVideos] = useState<ApprovedVideo[]>([]);
 
   const siteBase = "https://www.zenivatravel.com";
@@ -181,6 +181,41 @@ export default function InfluencerPage() {
             >
               {copied === "main" ? "✅ Copied!" : "📋 Copy my link"}
             </button>
+          {/* Premium status / progress */}
+          <div className="mt-4 rounded-2xl border p-4" style={{ borderColor: stats.isPremium ? "rgba(230,184,90,0.4)" : "rgba(255,255,255,0.1)", background: stats.isPremium ? "rgba(230,184,90,0.1)" : "rgba(255,255,255,0.04)" }}>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                {stats.isPremium ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">👑</span>
+                    <span className="text-lg font-black" style={{ color: GOLD }}>PREMIUM INFLUENCER</span>
+                    <span className="ml-2 text-sm text-slate-400">— Flights, hotels & transfers at agency cost</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-sm font-bold text-white">
+                      🎯 Premium Progress: <span style={{ color: GOLD }}>{stats.premiumProgress}/150 clients</span>
+                    </div>
+                    <div className="mt-1 text-xs text-slate-400">
+                      Reach 150 clients to unlock flights, hotels & transfers at agency cost
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="text-sm font-bold text-white">
+                  Rate: <span style={{ color: GOLD }}>{stats.commissionRate}%</span>
+                </div>
+                <div className="text-xs text-slate-500">3% → 3.5% → 4% → 5%</div>
+              </div>
+            </div>
+            {!stats.isPremium && (
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
+                <div className="h-full rounded-full transition-all duration-500" style={{ width: `${(stats.premiumProgress / 150) * 100}%`, background: `linear-gradient(90deg, #ec4899, ${GOLD})` }} />
+              </div>
+            )}
+          </div>
+
           </div>
         </div>
       </div>
@@ -692,7 +727,7 @@ export default function InfluencerPage() {
               <div className="grid gap-3 md:grid-cols-2">
                 {[
                   { icon: "👤", title: "Traveler Mode", desc: "Clients sign up, chat with Lina AI, receive custom trip proposals, and pay securely via ZeniPay. They get 15% OFF their first booking.", color: "border-emerald-500/20 bg-emerald-500/5" },
-                  { icon: "📱", title: "Influencer / Creator Mode", desc: "That's YOU! Share your unique link, generate leads through content, earn 5% commission on every closed booking. Track everything in this dashboard.", color: "border-pink-500/20 bg-pink-500/5" },
+                  { icon: "📱", title: "Influencer / Creator Mode", desc: "That's YOU! Share your unique link, generate leads through content, earn 3%–5% commission on every closed booking. Track everything in this dashboard.", color: "border-pink-500/20 bg-pink-500/5" },
                   { icon: "🏢", title: "Agent Mode", desc: "Professional travel agents manage clients, create proposals, handle bookings and earn commissions. Full CRM with AI assistance from Lina, Sofia, and Luna.", color: "border-blue-500/20 bg-blue-500/5" },
                   { icon: "🤝", title: "Partner Mode", desc: "Hotels, resorts, villas, and yacht companies list their properties and receive bookings from Zeniva agents. Direct calendar sync and payout management.", color: "border-yellow-500/20 bg-yellow-500/5" },
                 ].map(mode => (
@@ -783,7 +818,7 @@ export default function InfluencerPage() {
               <h3 className="text-lg font-bold text-white mb-4">❓ FAQ</h3>
               <div className="space-y-3">
                 {[
-                  { q: "How much do I earn per sale?", a: "You earn 5% of Zeniva's net profit on the full trip. Example: a $5,000 trip where Zeniva makes $1,000 profit = $50 commission for you." },
+                  { q: "How much do I earn per sale?", a: "You start at 3% commission and can grow up to 5% based on your performance, bookings generated, and time invested. At 150 clients you become Premium and also get flights, hotels & transfers at agency cost." },
                   { q: "When do I get paid?", a: "As soon as the trip is confirmed and payment received, your commission is recorded. Payouts are processed monthly." },
                   { q: "How do I know the lead is mine?", a: "Your referral code is encoded in every link you share. Every click and form submission is automatically attributed to your account." },
                   { q: "What if my lead books later?", a: "Your attribution is valid for 30 days after the first click. If the client comes back and books, the commission is still yours." },

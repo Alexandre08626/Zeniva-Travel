@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
+import { requireRbacPermission } from "../../../../src/lib/server/rbac";
 import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const gate = await requireRbacPermission(request, "agents:read");
+    if (!gate.ok) return NextResponse.json({ agents: [], error: gate.error }, { status: gate.status });
+
     const { client } = getSupabaseAdminClient();
     const { data, error } = await client
       .from("accounts")
@@ -21,7 +25,7 @@ export async function GET() {
       agent_type: "influencer",
       status: row.status || "active",
       leads_count: 0,
-      commission_rate: 5,
+      commission_rate: 3,
       ref_code: "",
       created_at: row.created_at,
     }));
