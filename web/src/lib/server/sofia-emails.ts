@@ -172,8 +172,10 @@ export async function sofiaAutoReplyAlexandre(to: string, originalSubject: strin
   </table>
 
   <p style="color:#64748b;font-size:14px;line-height:1.5;margin:20px 0 0;">
-    Best regards,<br>
-    <strong>The Zeniva Team</strong>
+    Warm regards,<br>
+    <strong>The Zeniva Team</strong><br>
+    <span style="color:#94a3b8;font-size:13px;">info@zeniva.ca | Cell: +1 581-748-7017 | Office: +1 332-290-0021</span><br>
+    <a href="${SITE}" style="color:#0F6CF5;text-decoration:none;font-size:13px;">www.zenivatravel.com</a>
   </p>
 </td></tr>
 
