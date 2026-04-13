@@ -25,12 +25,12 @@ const MODES = [
     cta: "Start Voice Search",
   },
   {
-    key: "hybrid",
-    title: "Hybrid Mode",
-    description: "Chat + Voice combined. Type details, switch to voice anytime. Best of both worlds for detailed trip planning.",
+    key: "catalog",
+    title: "Zeniva Catalog",
+    description: "Browse all Zeniva partners — ZeniStay residences, ZeniYacht charters, ZeniHotel resorts. Send directly to your clients & leads.",
     icon: "/agents/lina.png",
-    gradient: "from-pink-500 to-rose-600",
-    cta: "Start Hybrid Search",
+    gradient: "from-amber-500 to-orange-600",
+    cta: "Browse Catalog",
   },
 ];
 
@@ -50,7 +50,7 @@ export default function TripSearchPage() {
 
     if (mode === "chat") router.push(`/agent/trip-search/chat/${id}${qs}`);
     else if (mode === "call") router.push(`/agent/trip-search/call/${id}${qs}`);
-    else router.push(`/agent/trip-search/chat/${id}${qs}&hybrid=1`);
+    else if (mode === "catalog") router.push("/agent/catalog");
   };
 
   return (
