@@ -146,13 +146,15 @@ export default function CatalogPage() {
     try {
       const items = getSelectedItems();
       const allPeople = [
-        ...clients.map((c: any) => ({ name: c.name, email: c.email })),
-        ...leads.map((l: any) => ({ name: `${l.first_name || ""} ${l.last_name || ""}`.trim(), email: l.email })),
+        ...clients.map((c: any) => ({ id: c.id, name: c.name, email: c.email, isLead: false })),
+        ...leads.map((l: any) => ({ id: l.id, name: `${l.first_name || ""} ${l.last_name || ""}`.trim(), email: l.email, isLead: true })),
       ];
       const recipients = allPeople.filter(p => sendToIds.includes(p.email));
+      const agentEmail = user?.email || "agent@zeniva.ca";
 
-      // Send catalog email to each recipient
+      // For each recipient: send email + save proposal in Supabase
       for (const r of recipients) {
+        // 1. Send the catalog email
         await fetch("/api/proposals/send-catalog", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -161,6 +163,29 @@ export default function CatalogPage() {
             clientName: r.name,
             agentName: user?.name || user?.email || "Your Zeniva Agent",
             items,
+          }),
+        });
+
+        // 2. Save as proposal in Supabase so it appears in /agent/proposals
+        const tripId = `catalog-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+        const itemNames = items.map(i => i.name).join(", ");
+        const itemTypes = [...new Set(items.map(i => i.type))].join(" + ");
+        await fetch("/api/proposals", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: tripId,
+            ownerEmail: agentEmail,
+            status: "Sent",
+            payload: {
+              trip: { title: itemTypes + " — " + itemNames.slice(0, 60) },
+              tripDraft: { destination: items[0]?.location || "" },
+              client: { name: r.name, email: r.email },
+              clients: [{ id: r.id, name: r.name, email: r.email, isLead: r.isLead }],
+              catalogItems: items,
+              pricing: { total: 0 },
+              source: "catalog",
+            },
           }),
         });
       }

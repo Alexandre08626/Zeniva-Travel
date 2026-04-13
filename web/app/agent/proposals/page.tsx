@@ -233,6 +233,9 @@ export default function ProposalsPage() {
                         <span className="font-bold text-slate-900">{clientName}</span>
                         <span className="text-slate-400">·</span>
                         <span className="text-slate-600 text-sm">{destination}</span>
+                        {(p.payload as any)?.source === "catalog" && (
+                          <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Catalog</span>
+                        )}
                         {clients.length > 1 && (
                           <span className="text-[10px] font-bold bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full">
                             +{clients.length - 1} more
@@ -281,6 +284,32 @@ export default function ProposalsPage() {
                               <div key={i} className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full ${c.isLead ? "bg-violet-100 text-violet-700" : "bg-teal-100 text-teal-700"}`}>
                                 <span>{c.isLead ? "Lead" : "Client"}</span>
                                 <span className="font-bold">{c.name || c.email}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Catalog items (if from catalog) */}
+                      {(p.payload as any)?.catalogItems && (
+                        <div className="mb-4">
+                          <p className="text-xs text-slate-400 uppercase font-semibold mb-2">Catalog Items</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {((p.payload as any).catalogItems as any[]).map((item: any, i: number) => (
+                              <div key={i} className="flex items-center gap-3 bg-white rounded-xl px-3 py-2 border border-slate-200">
+                                {item.thumbnail && <img src={item.thumbnail} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />}
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-xs font-bold text-slate-800 truncate">{item.name}</p>
+                                  <p className="text-[10px] text-slate-400">{item.location}</p>
+                                  <div className="flex items-center gap-2 mt-0.5">
+                                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                                      item.type === "ZeniStay" ? "bg-amber-100 text-amber-700" :
+                                      item.type === "ZeniYacht" ? "bg-blue-100 text-blue-700" :
+                                      "bg-emerald-100 text-emerald-700"
+                                    }`}>{item.type}</span>
+                                    {item.price && <span className="text-[10px] font-bold text-slate-600">{item.price}</span>}
+                                  </div>
+                                </div>
                               </div>
                             ))}
                           </div>
