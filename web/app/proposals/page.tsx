@@ -108,7 +108,8 @@ export default function ProposalsPage() {
     const loadRemote = async () => {
       setLoadingRemote(true);
       try {
-        const resp = await fetch(`/api/proposals?ownerEmail=${encodeURIComponent(userEmail)}`, { cache: "no-store" });
+        // Fetch proposals where user is owner OR assigned client
+        const resp = await fetch(`/api/proposals?ownerEmail=${encodeURIComponent(userEmail)}&clientEmail=${encodeURIComponent(userEmail)}`, { cache: "no-store" });
         const payload = await resp.json();
         if (!resp.ok) throw new Error(payload?.error || "Failed to load proposals");
         if (!active) return;
@@ -139,7 +140,7 @@ export default function ProposalsPage() {
               })
             )
           );
-          const refreshed = await fetch(`/api/proposals?ownerEmail=${encodeURIComponent(userEmail)}`, { cache: "no-store" });
+          const refreshed = await fetch(`/api/proposals?ownerEmail=${encodeURIComponent(userEmail)}&clientEmail=${encodeURIComponent(userEmail)}`, { cache: "no-store" });
           const refreshedPayload = await refreshed.json();
           const refreshedRows = Array.isArray(refreshedPayload?.data) ? refreshedPayload.data : [];
           const refreshedMapped = refreshedRows

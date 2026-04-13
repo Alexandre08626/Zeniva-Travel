@@ -24,19 +24,25 @@ export async function GET(request: Request) {
     }
     const { searchParams } = new URL(request.url);
     const ownerEmail = searchParams.get("ownerEmail");
+    const clientEmail = searchParams.get("clientEmail");
 
     const { client } = getSupabaseAdminClient();
     let query = client
       .from(TABLE)
-      .select("id, trip_id, owner_email, status, created_at, updated_at, payload, destination, title, content")
+      .select("id, trip_id, owner_email, client_email, status, created_at, updated_at, payload, destination, title, content")
       .order("updated_at", { ascending: false });
 
     const id = searchParams.get("id");
     if (id) {
       query = query.eq("trip_id", id);
     }
-    if (ownerEmail) {
+    // If both ownerEmail and clientEmail are provided (same user), use OR logic
+    if (ownerEmail && clientEmail) {
+      query = query.or(`owner_email.eq.${ownerEmail.toLowerCase()},client_email.eq.${clientEmail.toLowerCase()}`);
+    } else if (ownerEmail) {
       query = query.eq("owner_email", ownerEmail.toLowerCase());
+    } else if (clientEmail) {
+      query = query.eq("client_email", clientEmail.toLowerCase());
     }
 
     const { data, error } = await query;
@@ -57,10 +63,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing id or ownerEmail" }, { status: 400 });
     }
     const now = new Date().toISOString();
+    // Extract client email from payload (client or clients array)
+    const payloadClient = (body.payload as any)?.client;
+    const payloadClients = (body.payload as any)?.clients;
+    const clientEmail = payloadClient?.email
+      || (payloadClients?.[0]?.email)
+      || "";
+
     const record = {
       trip_id: body.id,
       owner_email: body.ownerEmail.toLowerCase(),
-      client_email: body.ownerEmail.toLowerCase(),
+      client_email: clientEmail ? clientEmail.toLowerCase() : body.ownerEmail.toLowerCase(),
       status: body.status || "Draft",
       destination: (body.payload as any)?.tripDraft?.destination || "",
       title: (body.payload as any)?.trip?.title || (body.payload as any)?.proposal?.title || "Trip",
