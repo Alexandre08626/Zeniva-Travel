@@ -142,23 +142,23 @@ export default function ClientsPage() {
   const fetchClients = async () => {
     setLoading(true);
     try {
-      const r = await fetch("/api/accounts");
+      const r = await fetch("/api/clients");
       const data = await r.json();
       const list: Client[] = (data?.data || []).map((a: any) => {
         const nameParts = (a.name || "").split(" ");
         return {
           id: a.id,
-          email: a.email,
+          email: a.email || "",
           first_name: nameParts[0] || "",
           last_name: nameParts.slice(1).join(" ") || "",
-          phone: "",
-          destination: "",
-          status: a.status || "active",
-          language: "",
-          deal_value: 0,
-          source: a.role || "traveler",
-          created_at: a.created_at,
-          role: a.role || "",
+          phone: a.phone || "",
+          destination: a.destination || "",
+          status: a.leadStatus || a.origin || "new",
+          language: a.language || "",
+          deal_value: a.dealValue || 0,
+          source: a.source || a.origin || "signup",
+          created_at: a.createdAt,
+          role: "",
         };
       });
       setClients(list);

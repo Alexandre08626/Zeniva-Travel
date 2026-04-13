@@ -14,19 +14,29 @@ type ClientRecord = {
   assignedAgents?: string[];
   primaryDivision?: string;
   createdAt: string;
+  destination?: string;
+  dealValue?: number;
+  language?: string;
+  source?: string;
+  leadStatus?: string;
 };
 
-function mapClientRow(row: any): ClientRecord {
+function mapClientRow(row: any, lead?: any): ClientRecord {
   return {
     id: row.id,
     name: row.name,
     email: row.email || undefined,
     ownerEmail: row.owner_email,
-    phone: row.phone || undefined,
+    phone: row.phone || lead?.phone || undefined,
     origin: row.origin || "house",
     assignedAgents: row.assigned_agents || [],
     primaryDivision: row.primary_division || undefined,
     createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
+    destination: lead?.destination || undefined,
+    dealValue: lead?.deal_value || 0,
+    language: lead?.language || undefined,
+    source: lead?.source || row.lead_source || undefined,
+    leadStatus: lead?.status || undefined,
   };
 }
 
@@ -40,23 +50,35 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: accessAll.error }, { status: accessAll.status });
     }
 
+    // Helper: enrich clients with lead data (destination, deal_value, etc.)
+    async function enrichWithLeads(clients: any[]) {
+      const emails = clients.map((c) => c.email).filter(Boolean);
+      if (!emails.length) return clients.map((c) => mapClientRow(c));
+      const { data: leads } = await client
+        .from("leads")
+        .select("email, destination, deal_value, language, source, status, phone")
+        .in("email", emails);
+      const leadMap = new Map((leads || []).map((l: any) => [l.email?.toLowerCase(), l]));
+      return clients.map((c) => mapClientRow(c, c.email ? leadMap.get(c.email.toLowerCase()) : undefined));
+    }
+
     if (accessAll.ok) {
       const { data, error } = await client
         .from("clients")
-        .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, created_at")
+        .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return NextResponse.json({ data: (data || []).map(mapClientRow) });
+      return NextResponse.json({ data: await enrichWithLeads(data || []) });
     }
 
     const ownerEmail = accessOwn.session?.email || accessLegacyOwn.session?.email || "";
     const { data, error } = await client
       .from("clients")
-      .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, created_at")
+      .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, created_at")
       .or(`owner_email.ilike.${ownerEmail},assigned_agents.cs.["${ownerEmail}"]`)
       .order("created_at", { ascending: false });
     if (error) throw error;
-    return NextResponse.json({ data: (data || []).map(mapClientRow) });
+    return NextResponse.json({ data: await enrichWithLeads(data || []) });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to read clients" }, { status: 500 });
   }
