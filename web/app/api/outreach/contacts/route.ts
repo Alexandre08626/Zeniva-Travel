@@ -86,6 +86,8 @@ export async function GET(req: NextRequest) {
     let query = client
       .from("leads_business")
       .select("id, contact_email, contact_name, contact_phone, company_name, city, province, status, source, priority, last_contacted_at, created_at", { count: "exact" })
+      .not("contact_email", "is", null)
+      .neq("contact_email", "")
       .order("created_at", { ascending: false });
 
     if (status && status !== "all") query = query.eq("status", status);
