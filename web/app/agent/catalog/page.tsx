@@ -389,13 +389,16 @@ export default function CatalogPage() {
 
       {/* Send Modal */}
       {sendModal && (
-        <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4" onClick={() => setSendModal(false)}>
-          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-            {/* Header */}
-            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="fixed inset-0 z-[9999] bg-black/50 flex items-end sm:items-center justify-center" onClick={() => setSendModal(false)}>
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-lg max-h-[90vh] sm:max-h-[80vh] shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
+            {/* Header — sticky top */}
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
               <h2 className="text-lg font-black text-slate-900">Send Catalog Items</h2>
               <button onClick={() => setSendModal(false)} className="text-slate-400 hover:text-slate-600 text-lg">✕</button>
             </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto min-h-0">
 
             {/* Selected items preview + dates */}
             <div className="px-5 py-3 border-b border-slate-100 bg-slate-50">
@@ -436,7 +439,7 @@ export default function CatalogPage() {
             </div>
 
             {/* Recipients */}
-            <div className="px-5 py-3 overflow-y-auto" style={{ maxHeight: "40vh" }}>
+            <div className="px-5 py-3">
               <div className="flex rounded-lg bg-slate-100 p-0.5 mb-3">
                 <button
                   onClick={() => setSendTab("clients")}
@@ -545,8 +548,10 @@ export default function CatalogPage() {
               )}
             </div>
 
-            {/* Footer */}
-            <div className="px-5 py-4 border-t border-slate-100 flex items-center justify-between">
+            </div>{/* end scrollable content */}
+
+            {/* Footer — sticky bottom */}
+            <div className="px-5 py-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0 bg-white">
               <span className="text-xs text-slate-400">{sendToIds.length} recipient{sendToIds.length !== 1 ? "s" : ""}</span>
               <button
                 onClick={handleSend}
