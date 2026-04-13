@@ -397,7 +397,7 @@ export default function CatalogPage() {
               <button onClick={() => setSendModal(false)} className="text-slate-400 hover:text-slate-600 text-lg">✕</button>
             </div>
 
-            {/* Selected items preview */}
+            {/* Selected items preview + dates */}
             <div className="px-5 py-3 border-b border-slate-100 bg-slate-50">
               <p className="text-xs font-bold text-slate-400 uppercase mb-2">Sending {selectedIds.length} item{selectedIds.length > 1 ? "s" : ""}</p>
               <div className="flex gap-2 overflow-x-auto pb-1">
@@ -410,6 +410,28 @@ export default function CatalogPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* Stay dates */}
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Check-in</label>
+                  <input
+                    type="date"
+                    value={flightDate}
+                    onChange={e => setFlightDate(e.target.value)}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Check-out</label>
+                  <input
+                    type="date"
+                    value={flightReturn}
+                    onChange={e => setFlightReturn(e.target.value)}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white"
+                  />
+                </div>
               </div>
             </div>
 
@@ -507,24 +529,6 @@ export default function CatalogPage() {
                       className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
                     />
                   </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Depart</label>
-                    <input
-                      type="date"
-                      value={flightDate}
-                      onChange={e => setFlightDate(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Return</label>
-                    <input
-                      type="date"
-                      value={flightReturn}
-                      onChange={e => setFlightReturn(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
-                    />
-                  </div>
                   <div className="col-span-2">
                     <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Travelers</label>
                     <input
@@ -536,6 +540,7 @@ export default function CatalogPage() {
                       className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
                     />
                   </div>
+                  <p className="col-span-2 text-[10px] text-blue-500 font-semibold">Dates from check-in / check-out above</p>
                 </div>
               )}
             </div>
