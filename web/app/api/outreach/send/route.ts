@@ -1,22 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/src/lib/supabase/server";
-import { verifySession, getSessionCookieName } from "@/src/lib/server/auth";
+import { getOutreachAuth } from "../auth";
 import { sendEmail } from "@/src/lib/server/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const DELAY_BETWEEN_SENDS_MS = 5000; // 5 seconds between emails to avoid spam triggers
-
-function getAuth(req: NextRequest) {
-  const ck = req.headers.get("cookie") || "";
-  const cn = getSessionCookieName();
-  const m = ck.match(new RegExp(cn + "=([^;]+)"));
-  const t = m?.[1];
-  if (!t) return null;
-  const s = verifySession(t);
-  return s?.email ? s : null;
-}
 
 function replaceVariables(template: string, variables: Record<string, string>): string {
   let result = template;
@@ -28,7 +18,7 @@ function replaceVariables(template: string, variables: Record<string, string>): 
 }
 
 export async function POST(req: NextRequest) {
-  const session = getAuth(req);
+  const session = getOutreachAuth(req);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { campaignId } = await req.json();
