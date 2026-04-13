@@ -6,12 +6,14 @@ import { useEffect, useState } from "react";
 let BackButton: React.ComponentType | null = null;
 let AppShell: React.ComponentType | null = null;
 let LinaFloatingChat: React.ComponentType | null = null;
+let BottomNav: React.ComponentType | null = null;
 
 export default function ClientLayoutShell() {
   const [mounted, setMounted] = useState(false);
   const [BC, setBC] = useState<React.ComponentType | null>(null);
   const [AS, setAS] = useState<React.ComponentType | null>(null);
   const [LFC, setLFC] = useState<React.ComponentType | null>(null);
+  const [BN, setBN] = useState<React.ComponentType | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -20,10 +22,12 @@ export default function ClientLayoutShell() {
       import("./BackButton.client"),
       import("./AppShell.client"),
       import("../../components/LinaFloatingChat"),
-    ]).then(([bc, as_, lfc]) => {
+      import("../../components/BottomNav"),
+    ]).then(([bc, as_, lfc, bn]) => {
       setBC(() => bc.default);
       setAS(() => as_.default);
       setLFC(() => lfc.default);
+      setBN(() => bn.default);
     }).catch(() => {/* silent */});
   }, []);
 
@@ -34,6 +38,7 @@ export default function ClientLayoutShell() {
       {BC && <BC />}
       {AS && <AS />}
       {LFC && <LFC />}
+      {BN && <BN />}
     </>
   );
 }

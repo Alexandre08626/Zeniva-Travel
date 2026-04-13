@@ -36,7 +36,7 @@ export default function LinaFloatingChat() {
   if (!visible || dismissed) return null;
 
   return (
-    <div className="fixed bottom-24 right-4 z-[9980] flex flex-col items-end gap-2">
+    <div className="lina-floating-wrap fixed bottom-24 right-4 z-[9980] flex flex-col items-end gap-2">
       {/* Speech bubble */}
       {bubbleOpen && (
         <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 max-w-[220px] relative animate-fade-in-up">
