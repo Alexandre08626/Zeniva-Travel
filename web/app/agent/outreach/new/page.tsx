@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import EmailEditor from "../components/EmailEditor";
 
 interface Contact { id: string; email?: string; contact_email?: string; first_name?: string; last_name?: string; contact_name?: string; company_name?: string; city?: string; province?: string; phone?: string; contact_phone?: string; agent_type?: string; status: string; }
 interface Template { id: string; name: string; subject: string; html_body: string; preview_text: string | null; }
@@ -21,7 +22,6 @@ function getName(c: Contact, a: string) { return a === "agencies" ? c.contact_na
 function getEmail(c: Contact, a: string) { return a === "agencies" ? c.contact_email : c.email; }
 
 export default function NewCampaignPage() {
-  const bodyRef = useRef<HTMLTextAreaElement>(null);
   const [step, setStep] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -79,7 +79,6 @@ export default function NewCampaignPage() {
 
   function toggleContact(id: string) { setSelected((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; }); }
   function togglePageAll() { const all = contacts.every((c) => selected.has(c.id)); setSelected((prev) => { const n = new Set(prev); contacts.forEach((c) => { if (all) n.delete(c.id); else n.add(c.id); }); return n; }); }
-  function insertVariable(v: string) { const ta = bodyRef.current; if (!ta) return; const s = ta.selectionStart; const text = "{{" + v + "}}"; setHtmlBody(htmlBody.slice(0, s) + text + htmlBody.slice(ta.selectionEnd)); setTimeout(() => { ta.focus(); ta.setSelectionRange(s + text.length, s + text.length); }, 0); }
   function getPreviewHtml() { if (previewContact) return replaceVars(htmlBody, buildVariables(previewContact, audience)); return htmlBody.replace(/\{\{[A-Z_]+\}\}/g, ""); }
 
   async function handleAiCompose() {
@@ -170,26 +169,17 @@ export default function NewCampaignPage() {
 
         {step === 1 && (
           <div className="space-y-4">
-            <div className="bg-white rounded-xl border border-slate-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-bold text-slate-700">Compose Email</h2>
-                <button onClick={() => setShowAiCompose(true)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-blue-500 text-white rounded-lg text-sm font-semibold hover:from-violet-700 hover:to-blue-600 shadow-sm">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
-                  Sofia AI Compose
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div><label className="text-xs font-semibold text-slate-600 uppercase">Template</label><select value={templateId} onChange={(e) => setTemplateId(e.target.value)} className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none"><option value="">Custom (blank)</option>{templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select></div>
-                <div><label className="text-xs font-semibold text-slate-600 uppercase">Subject *</label><input value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none" placeholder="Email subject" /></div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div><label className="text-xs font-semibold text-slate-600 uppercase">Preview Text</label><input value={previewText} onChange={(e) => setPreviewText(e.target.value)} className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none" /></div>
-                <div><label className="text-xs font-semibold text-slate-600 uppercase">From Name</label><input value={fromName} onChange={(e) => setFromName(e.target.value)} className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none" /></div>
-                <div><label className="text-xs font-semibold text-slate-600 uppercase">From Email</label><input value={fromEmail} onChange={(e) => setFromEmail(e.target.value)} className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none" /></div>
-              </div>
-              <div className="mb-2"><label className="text-xs font-semibold text-slate-600 uppercase">Insert Variable</label><div className="flex flex-wrap gap-1 mt-1">{(AUDIENCE_VARS[audience] || []).map((v) => (<button key={v} onClick={() => insertVariable(v)} className="px-2 py-1 text-xs font-mono bg-violet-50 text-violet-700 rounded hover:bg-violet-100 border border-violet-200">{"{{" + v + "}}"}</button>))}</div></div>
-              <div><label className="text-xs font-semibold text-slate-600 uppercase">HTML Body *</label><textarea ref={bodyRef} value={htmlBody} onChange={(e) => setHtmlBody(e.target.value)} rows={16} className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-violet-500 focus:outline-none" placeholder="HTML email body..." /></div>
-            </div>
+            <EmailEditor
+              htmlBody={htmlBody} setHtmlBody={setHtmlBody}
+              subject={subject} setSubject={setSubject}
+              previewText={previewText} setPreviewText={setPreviewText}
+              fromName={fromName} setFromName={setFromName}
+              fromEmail={fromEmail} setFromEmail={setFromEmail}
+              audience={audience} audienceVars={AUDIENCE_VARS[audience] || []}
+              templateId={templateId} setTemplateId={setTemplateId}
+              templates={templates}
+              onAiCompose={() => setShowAiCompose(true)}
+            />
             <div className="flex justify-between">
               <button onClick={() => setStep(0)} className="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-semibold text-sm">Back</button>
               <button onClick={() => setStep(2)} disabled={!subject || !htmlBody} className="px-6 py-2.5 bg-violet-600 text-white rounded-xl font-semibold text-sm hover:bg-violet-700 disabled:opacity-40">Next: Preview</button>
