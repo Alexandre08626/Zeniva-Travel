@@ -2,17 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 
 interface Template { id: string; name: string; subject: string; html_body: string; preview_text: string | null; audience_type: string; is_default: boolean; created_at: string; }
-
-const tabs = [
-  { label: "Campaigns", href: "/agent/outreach" },
-  { label: "Templates", href: "/agent/outreach/templates" },
-  { label: "Contacts", href: "/agent/outreach/contacts" },
-  { label: "Leads & Clients", href: "/agent/outreach/newLeads" },
-  { label: "Analytics", href: "/agent/outreach/analytics" },
-];
 
 const audienceColors: Record<string, string> = { travelers: "bg-emerald-100 text-emerald-700", agents: "bg-blue-100 text-blue-700", agencies: "bg-violet-100 text-violet-700", all: "bg-slate-100 text-slate-700" };
 
@@ -22,7 +13,6 @@ function stripHtml(html: string) {
 }
 
 export default function TemplatesPage() {
-  const pathname = usePathname();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -53,52 +43,43 @@ export default function TemplatesPage() {
   const handleDelete = (id: string) => { if (!confirm("Delete this template?")) return; setTemplates((prev) => prev.filter((t) => t.id !== id)); showToastMsg("Template deleted"); };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {toast && <div className="fixed top-4 right-4 z-50 bg-violet-600 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-lg">{toast}</div>}
+    <div className="p-4 sm:p-6 lg:p-8">
+      {toast && <div className="fixed top-4 right-4 z-50 bg-violet-600 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-lg">{toast}</div>}
 
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-violet-600 flex items-center justify-center text-white font-bold text-lg">S</div>
-            <div><h1 className="text-2xl font-bold text-slate-900">Email Templates</h1><p className="text-sm text-slate-500">Manage your email templates</p></div>
-          </div>
-          <button onClick={() => setShowCreate(true)} className="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-semibold hover:bg-violet-700">+ Create Template</button>
-        </div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-lg font-bold text-slate-900">Email Templates</h2>
+        <button onClick={() => setShowCreate(true)} className="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-semibold hover:bg-violet-700">+ Create Template</button>
+      </div>
 
-        <div className="flex gap-1 mb-6 bg-white rounded-xl border border-slate-200 p-1 w-fit">
-          {tabs.map((tab) => (<Link key={tab.href} href={tab.href} className={"px-4 py-2 rounded-lg text-sm font-semibold transition-colors " + (pathname === tab.href ? "bg-violet-600 text-white" : "text-slate-600 hover:bg-slate-100")}>{tab.label}</Link>))}
-        </div>
-
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{[1, 2, 3].map((i) => <div key={i} className="h-48 bg-white rounded-xl border border-slate-200 animate-pulse" />)}</div>
-        ) : templates.length === 0 ? (
-          <div className="bg-white rounded-xl border border-slate-200 p-12 text-center"><div className="text-4xl mb-3">{"\ud83d\udcdd"}</div><p className="text-lg font-semibold text-slate-700">No templates yet</p></div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {templates.map((t) => (
-              <div key={t.id} className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-bold text-slate-900 text-sm truncate flex-1">{t.name}</h3>
-                  <div className="flex gap-1 ml-2 flex-shrink-0">
-                    {t.is_default && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">Default</span>}
-                    <span className={"px-2 py-0.5 rounded-full text-[10px] font-bold " + (audienceColors[t.audience_type] || audienceColors.all)}>{t.audience_type}</span>
-                  </div>
-                </div>
-                <p className="text-xs text-slate-600 mb-1 font-medium truncate">{t.subject}</p>
-                <p className="text-xs text-slate-400 mb-3 flex-1">{stripHtml(t.html_body)}...</p>
-                <div className="flex items-center justify-between border-t border-slate-100 pt-3">
-                  <span className="text-[11px] text-slate-400">{new Date(t.created_at).toLocaleDateString("en-CA")}</span>
-                  <div className="flex gap-2">
-                    <Link href={"/agent/outreach/new?templateId=" + t.id} className="text-xs text-violet-600 hover:text-violet-800 font-semibold">Use</Link>
-                    <button onClick={() => handleDuplicate(t)} className="text-xs text-slate-500 hover:text-slate-700 font-semibold">Duplicate</button>
-                    {!t.is_default && <button onClick={() => handleDelete(t.id)} className="text-xs text-red-500 hover:text-red-700 font-semibold">Delete</button>}
-                  </div>
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{[1, 2, 3].map((i) => <div key={i} className="h-48 bg-white rounded-xl border border-slate-200 animate-pulse" />)}</div>
+      ) : templates.length === 0 ? (
+        <div className="bg-white rounded-xl border border-slate-200 p-12 text-center"><div className="text-4xl mb-3">{"\ud83d\udcdd"}</div><p className="text-lg font-semibold text-slate-700">No templates yet</p></div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {templates.map((t) => (
+            <div key={t.id} className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col">
+              <div className="flex items-start justify-between mb-2">
+                <h3 className="font-bold text-slate-900 text-sm truncate flex-1">{t.name}</h3>
+                <div className="flex gap-1 ml-2 flex-shrink-0">
+                  {t.is_default && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">Default</span>}
+                  <span className={"px-2 py-0.5 rounded-full text-[10px] font-bold " + (audienceColors[t.audience_type] || audienceColors.all)}>{t.audience_type}</span>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+              <p className="text-xs text-slate-600 mb-1 font-medium truncate">{t.subject}</p>
+              <p className="text-xs text-slate-400 mb-3 flex-1">{stripHtml(t.html_body)}...</p>
+              <div className="flex items-center justify-between border-t border-slate-100 pt-3">
+                <span className="text-[11px] text-slate-400">{new Date(t.created_at).toLocaleDateString("en-CA")}</span>
+                <div className="flex gap-2">
+                  <Link href={"/agent/outreach/new?templateId=" + t.id} className="text-xs text-violet-600 hover:text-violet-800 font-semibold">Use</Link>
+                  <button onClick={() => handleDuplicate(t)} className="text-xs text-slate-500 hover:text-slate-700 font-semibold">Duplicate</button>
+                  {!t.is_default && <button onClick={() => handleDelete(t.id)} className="text-xs text-red-500 hover:text-red-700 font-semibold">Delete</button>}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {showCreate && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">

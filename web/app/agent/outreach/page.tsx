@@ -2,9 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { usePathname } from "next/navigation";
-import SofiaChatPanel from "./components/SofiaChatPanel";
+import { useOutreach } from "./components/OutreachContext";
 
 interface Campaign {
   id: string;
@@ -18,14 +16,6 @@ interface Campaign {
   sent_at: string | null;
   created_at: string;
 }
-
-const tabs = [
-  { label: "Campaigns", href: "/agent/outreach" },
-  { label: "Templates", href: "/agent/outreach/templates" },
-  { label: "Contacts", href: "/agent/outreach/contacts" },
-  { label: "Leads & Clients", href: "/agent/outreach/newLeads" },
-  { label: "Analytics", href: "/agent/outreach/analytics" },
-];
 
 const statusColors: Record<string, string> = {
   draft: "bg-gray-100 text-gray-700",
@@ -43,13 +33,11 @@ const audienceLabels: Record<string, string> = {
 };
 
 export default function OutreachPage() {
-  const pathname = usePathname();
+  const { setChatContext, setChatOpen } = useOutreach();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false);
-  const [chatContext, setChatContext] = useState<{ campaignId?: string; campaignName?: string } | null>(null);
 
   const fetchCampaigns = useCallback(async () => {
     setLoading(true);
@@ -98,153 +86,88 @@ export default function OutreachPage() {
   const activeCampaigns = campaigns.filter((c) => c.status === "sending" || c.status === "scheduled").length;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* ── Header ── */}
-      <div className="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-4 flex-shrink-0">
-        <div className="max-w-full mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <Image src="/agents/sofia.png" alt="Sofia" width={48} height={48} className="rounded-full ring-2 ring-violet-200 shadow-md" />
-              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-400 border-2 border-white rounded-full" />
+    <div className="p-4 sm:p-6 lg:p-8">
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: "Total Campaigns", value: loading ? "\u2014" : campaigns.length, icon: "\ud83d\udcec" },
+          { label: "Emails Sent", value: loading ? "\u2014" : totalSent.toLocaleString(), icon: "\ud83d\udce7" },
+          { label: "Delivery Rate", value: loading ? "\u2014" : deliveryRate, icon: "\ud83d\udcc8" },
+          { label: "Active", value: loading ? "\u2014" : activeCampaigns, icon: "\ud83d\udfe2" },
+        ].map((s) => (
+          <div key={s.label} className="bg-white rounded-xl border border-slate-200 p-4 hover:shadow-sm transition-shadow">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">{s.label}</p>
+              <span className="text-lg">{s.icon}</span>
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-slate-900">Sofia &mdash; Outreach</h1>
-              <p className="text-xs text-slate-500">Email Marketing &amp; Campaign Management</p>
-            </div>
+            <p className="text-2xl font-bold text-slate-900">{s.value}</p>
           </div>
-          <div className="flex items-center gap-3">
-            <Link href="/agent/outreach/new" className="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-semibold hover:bg-violet-700 transition-colors">
-              + New Campaign
+        ))}
+      </div>
+
+      {/* Campaign Table */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+          <h2 className="text-sm font-bold text-slate-900">All Campaigns</h2>
+          <span className="text-xs text-slate-400">{campaigns.length} campaigns</span>
+        </div>
+        {loading ? (
+          <div className="p-6 space-y-4">{[1, 2, 3].map((i) => (<div key={i} className="h-12 bg-slate-100 rounded-lg animate-pulse" />))}</div>
+        ) : campaigns.length === 0 ? (
+          <div className="p-12 text-center">
+            <div className="text-4xl mb-3">{"\ud83d\udcec"}</div>
+            <p className="text-lg font-semibold text-slate-700">No campaigns yet</p>
+            <p className="text-sm text-slate-500 mb-4">Create your first campaign to get started.</p>
+            <Link href="/agent/outreach/new" className="inline-block px-5 py-2.5 bg-violet-600 text-white rounded-xl hover:bg-violet-700 font-semibold text-sm">
+              Create Campaign
             </Link>
           </div>
-        </div>
-      </div>
-
-      {/* ── Tabs ── */}
-      <div className="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 flex-shrink-0">
-        <div className="flex gap-1 py-2">
-          {tabs.map((tab) => (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className={"px-4 py-2 rounded-lg text-sm font-semibold transition-colors " + (pathname === tab.href ? "bg-violet-600 text-white" : "text-slate-600 hover:bg-slate-100")}
-            >
-              {tab.label}
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Main Split Layout ── */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left: Dashboard */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          {/* Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {[
-              { label: "Total Campaigns", value: loading ? "\u2014" : campaigns.length, icon: "📬" },
-              { label: "Emails Sent", value: loading ? "\u2014" : totalSent.toLocaleString(), icon: "📧" },
-              { label: "Delivery Rate", value: loading ? "\u2014" : deliveryRate, icon: "📈" },
-              { label: "Active", value: loading ? "\u2014" : activeCampaigns, icon: "🟢" },
-            ].map((s) => (
-              <div key={s.label} className="bg-white rounded-xl border border-slate-200 p-4 hover:shadow-sm transition-shadow">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">{s.label}</p>
-                  <span className="text-lg">{s.icon}</span>
-                </div>
-                <p className="text-2xl font-bold text-slate-900">{s.value}</p>
-              </div>
-            ))}
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-600">Name</th>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-600">Status</th>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-600 hidden sm:table-cell">Audience</th>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-600 hidden md:table-cell">Recipients</th>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-600">Sent / Failed</th>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-600 hidden lg:table-cell">Date</th>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-600">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {campaigns.map((c) => (
+                  <tr key={c.id} className="border-b border-slate-100 hover:bg-slate-50">
+                    <td className="px-4 py-3">
+                      <Link href={"/agent/outreach/" + c.id} className="font-medium text-violet-600 hover:text-violet-800">{c.name}</Link>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={"px-2 py-0.5 rounded-full text-xs font-semibold " + (statusColors[c.status] || "bg-gray-100 text-gray-600")}>{c.status}</span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600 hidden sm:table-cell">{audienceLabels[c.audience_type] || c.audience_type}</td>
+                    <td className="px-4 py-3 text-slate-600 hidden md:table-cell">{c.recipient_count}</td>
+                    <td className="px-4 py-3">
+                      <span className="text-emerald-600 font-semibold">{c.sent_count}</span>
+                      <span className="text-slate-400"> / </span>
+                      <span className="text-red-500 font-semibold">{c.failed_count}</span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-500 hidden lg:table-cell">{c.sent_at ? new Date(c.sent_at).toLocaleDateString("en-CA") : new Date(c.created_at).toLocaleDateString("en-CA")}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2">
+                        <Link href={"/agent/outreach/" + c.id} className="text-xs text-violet-600 hover:text-violet-800 font-semibold">View</Link>
+                        <button onClick={() => askSofiaAbout(c)} className="text-xs text-pink-500 hover:text-pink-700 font-semibold" title="Ask Sofia about this campaign">Sofia</button>
+                        <button onClick={() => handleDuplicate(c)} className="text-xs text-slate-500 hover:text-slate-700 font-semibold">Dup</button>
+                        <button onClick={() => setDeleteId(c.id)} className="text-xs text-red-500 hover:text-red-700 font-semibold">Del</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-
-          {/* Campaign Table */}
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-slate-900">All Campaigns</h2>
-              <span className="text-xs text-slate-400">{campaigns.length} campaigns</span>
-            </div>
-            {loading ? (
-              <div className="p-6 space-y-4">{[1, 2, 3].map((i) => (<div key={i} className="h-12 bg-slate-100 rounded-lg animate-pulse" />))}</div>
-            ) : campaigns.length === 0 ? (
-              <div className="p-12 text-center">
-                <div className="text-4xl mb-3">{"\ud83d\udcec"}</div>
-                <p className="text-lg font-semibold text-slate-700">No campaigns yet</p>
-                <p className="text-sm text-slate-500 mb-4">Create your first campaign to get started.</p>
-                <Link href="/agent/outreach/new" className="inline-block px-5 py-2.5 bg-violet-600 text-white rounded-xl hover:bg-violet-700 font-semibold text-sm">
-                  Create Campaign
-                </Link>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-50 border-b border-slate-200">
-                    <tr>
-                      <th className="text-left px-4 py-3 font-semibold text-slate-600">Name</th>
-                      <th className="text-left px-4 py-3 font-semibold text-slate-600">Status</th>
-                      <th className="text-left px-4 py-3 font-semibold text-slate-600 hidden sm:table-cell">Audience</th>
-                      <th className="text-left px-4 py-3 font-semibold text-slate-600 hidden md:table-cell">Recipients</th>
-                      <th className="text-left px-4 py-3 font-semibold text-slate-600">Sent / Failed</th>
-                      <th className="text-left px-4 py-3 font-semibold text-slate-600 hidden lg:table-cell">Date</th>
-                      <th className="text-left px-4 py-3 font-semibold text-slate-600">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {campaigns.map((c) => (
-                      <tr key={c.id} className="border-b border-slate-100 hover:bg-slate-50">
-                        <td className="px-4 py-3">
-                          <Link href={"/agent/outreach/" + c.id} className="font-medium text-violet-600 hover:text-violet-800">{c.name}</Link>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={"px-2 py-0.5 rounded-full text-xs font-semibold " + (statusColors[c.status] || "bg-gray-100 text-gray-600")}>{c.status}</span>
-                        </td>
-                        <td className="px-4 py-3 text-slate-600 hidden sm:table-cell">{audienceLabels[c.audience_type] || c.audience_type}</td>
-                        <td className="px-4 py-3 text-slate-600 hidden md:table-cell">{c.recipient_count}</td>
-                        <td className="px-4 py-3">
-                          <span className="text-emerald-600 font-semibold">{c.sent_count}</span>
-                          <span className="text-slate-400"> / </span>
-                          <span className="text-red-500 font-semibold">{c.failed_count}</span>
-                        </td>
-                        <td className="px-4 py-3 text-slate-500 hidden lg:table-cell">{c.sent_at ? new Date(c.sent_at).toLocaleDateString("en-CA") : new Date(c.created_at).toLocaleDateString("en-CA")}</td>
-                        <td className="px-4 py-3">
-                          <div className="flex gap-2">
-                            <Link href={"/agent/outreach/" + c.id} className="text-xs text-violet-600 hover:text-violet-800 font-semibold">View</Link>
-                            <button onClick={() => askSofiaAbout(c)} className="text-xs text-pink-500 hover:text-pink-700 font-semibold" title="Ask Sofia about this campaign">Sofia</button>
-                            <button onClick={() => handleDuplicate(c)} className="text-xs text-slate-500 hover:text-slate-700 font-semibold">Dup</button>
-                            <button onClick={() => setDeleteId(c.id)} className="text-xs text-red-500 hover:text-red-700 font-semibold">Del</button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right: Sofia Chat (Desktop - always visible) */}
-        <div className="hidden lg:flex w-[420px] border-l border-slate-200 flex-shrink-0 flex-col bg-white">
-          <SofiaChatPanel campaignContext={chatContext} />
-        </div>
+        )}
       </div>
-
-      {/* Mobile: Floating Sofia Button */}
-      <button
-        onClick={() => setChatOpen(true)}
-        className="lg:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full bg-violet-600 shadow-lg z-40 flex items-center justify-center hover:bg-violet-700 transition-colors hover:scale-105 active:scale-95 ring-4 ring-violet-200"
-      >
-        <Image src="/agents/sofia.png" alt="Chat with Sofia" width={40} height={40} className="rounded-full" />
-      </button>
-
-      {/* Mobile: Chat Slide-over */}
-      {chatOpen && (
-        <>
-          <div className="lg:hidden fixed inset-0 bg-black/40 z-40" onClick={() => setChatOpen(false)} />
-          <div className="lg:hidden fixed inset-y-0 right-0 w-full sm:w-[420px] bg-white shadow-2xl z-50 flex flex-col">
-            <SofiaChatPanel onClose={() => setChatOpen(false)} campaignContext={chatContext} />
-          </div>
-        </>
-      )}
 
       {/* Delete Modal */}
       {deleteId && (

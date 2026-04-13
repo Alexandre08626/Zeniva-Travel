@@ -1,16 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-const tabs = [
-  { label: "Campaigns", href: "/agent/outreach" },
-  { label: "Templates", href: "/agent/outreach/templates" },
-  { label: "Contacts", href: "/agent/outreach/contacts" },
-  { label: "Leads & Clients", href: "/agent/outreach/newLeads" },
-  { label: "Analytics", href: "/agent/outreach/analytics" },
-];
 
 const CLIENT_STATUSES: Record<string, string[]> = {
   agencies: ["signed"],
@@ -51,7 +41,6 @@ function getEmail(c: any, audience: string) {
 }
 
 export default function NewLeadsPage() {
-  const pathname = usePathname();
   const [audience, setAudience] = useState("agencies");
   const [activeTab, setActiveTab] = useState<"leads" | "clients">("leads");
 
@@ -328,35 +317,7 @@ export default function NewLeadsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 rounded-full bg-violet-600 flex items-center justify-center text-white font-bold text-lg">
-            S
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Leads & Clients</h1>
-            <p className="text-sm text-slate-500">Manage your pipeline separately</p>
-          </div>
-        </div>
-
-        <div className="flex gap-1 mb-6 bg-white rounded-xl border border-slate-200 p-1 w-fit">
-          {tabs.map((tab) => (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className={
-                "px-4 py-2 rounded-lg text-sm font-semibold transition-colors " +
-                (pathname === tab.href
-                  ? "bg-violet-600 text-white"
-                  : "text-slate-600 hover:bg-slate-100")
-              }
-            >
-              {tab.label}
-            </Link>
-          ))}
-        </div>
-
+    <div className="p-4 sm:p-6 lg:p-8">
         {/* Audience selector */}
         <div className="flex gap-2 mb-6">
           {(["agencies", "travelers", "agents"] as const).map((a) => (
@@ -496,7 +457,6 @@ export default function NewLeadsPage() {
               clientsTotalPages
             )
           ))}
-      </div>
 
       {/* Detail drawer */}
       {drawer && (
