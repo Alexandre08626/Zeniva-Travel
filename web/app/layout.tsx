@@ -7,7 +7,7 @@ import { Providers } from "./providers";
 import CookieConsent from "../src/components/legal/CookieConsent.client";
 import PlatformOsTag from "../src/components/PlatformOsTag.client";
 import PWAPromptAfterLogin from "../src/components/PWAPromptAfterLogin.client";
-import WelcomeBanner from "../src/components/WelcomeBanner.client";
+// WelcomeBanner removed — no more 15% popup for anonymous users
 import PushNotifManager from "../src/components/PushNotifManager.client";
 import HelpCenterButton from "../src/components/HelpCenterButton.client";
 import ClientLayoutShell from "../src/components/ClientLayoutShell.client";
@@ -325,7 +325,7 @@ export default function RootLayout({
           <ClientLayoutShell />
           <HelpCenterButton />
           {/* <PWAPromptAfterLogin /> */}
-          <WelcomeBanner />
+          {/* WelcomeBanner removed */}
           {children}
           <CookieConsent />
         </Providers>
