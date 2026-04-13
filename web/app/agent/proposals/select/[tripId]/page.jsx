@@ -562,15 +562,18 @@ export default function AgentProposalSelectPage() {
 
   const [sending, setSending] = useState(false);
 
-  // Client assignment
+  // Client & Lead assignment (multi-select)
   const [clients, setClients] = useState([]);
-  const [selectedClientId, setSelectedClientId] = useState("");
+  const [leads, setLeads] = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]); // array of selected ids
+  const [assignTab, setAssignTab] = useState("clients"); // "clients" | "leads"
+  const [assignSearch, setAssignSearch] = useState("");
+  const [leadsLoading, setLeadsLoading] = useState(false);
 
   /* ─── Load clients (refresh session first to avoid 401) ─── */
   useEffect(() => {
     async function loadClients() {
       try {
-        // Refresh session cookie via /api/auth/me before fetching clients
         await fetch("/api/auth/me");
         const res = await fetch("/api/clients");
         if (res.ok) {
@@ -580,6 +583,27 @@ export default function AgentProposalSelectPage() {
       } catch {}
     }
     loadClients();
+  }, []);
+
+  /* ─── Load leads ─── */
+  useEffect(() => {
+    async function loadLeads() {
+      setLeadsLoading(true);
+      try {
+        const meRes = await fetch("/api/auth/me");
+        const me = meRes.ok ? await meRes.json() : null;
+        const email = me?.user?.email || me?.email || "";
+        if (!email) { setLeadsLoading(false); return; }
+        const p = new URLSearchParams({ path: "admin/agent-leads/" + encodeURIComponent(email) });
+        const r = await fetch(`/api/agents-proxy?${p}`);
+        if (r.ok) {
+          const d = await r.json();
+          setLeads((d?.leads || []).filter(l => l.email && !l.email.endsWith("@zeniva-lead.com")));
+        }
+      } catch {}
+      setLeadsLoading(false);
+    }
+    loadLeads();
   }, []);
 
   /* ─── Load trip data ─── */
@@ -719,17 +743,26 @@ export default function AgentProposalSelectPage() {
   };
 
   /* ─── Pricing calculation ─── */
-  const runningTotal = (() => {
+  // Hotels are OPTIONS (client picks one), so use cheapest hotel for estimate
+  const hotelPrices = selected.hotels.map(h => h.price || 0).sort((a, b) => a - b);
+  const cheapestHotel = hotelPrices[0] || 0;
+  const mostExpensiveHotel = hotelPrices[hotelPrices.length - 1] || 0;
+
+  const baseTotalNoHotel = (() => {
     let total = 0;
     if (selected.flights.outbound) total += selected.flights.outbound.price || 0;
     if (selected.flights.inbound) total += selected.flights.inbound.price || 0;
-    selected.hotels.forEach(h => total += (h.price || 0));
     selected.activities.forEach(a => total += (a.price || 0));
     selected.transfers.forEach(t => total += (t.price || 0));
     return total;
   })();
+
+  const runningTotal = baseTotalNoHotel + cheapestHotel;
+  const runningTotalMax = baseTotalNoHotel + mostExpensiveHotel;
   const serviceFee = Math.round(runningTotal * SERVICE_FEE_RATE);
+  const serviceFeeMax = Math.round(runningTotalMax * SERVICE_FEE_RATE);
   const grandTotal = runningTotal + serviceFee;
+  const grandTotalMax = runningTotalMax + serviceFeeMax;
 
   const totalSelectedCount = (
     (selected.flights.outbound ? 1 : 0) +
@@ -743,8 +776,10 @@ export default function AgentProposalSelectPage() {
   const createProposal = async () => {
     setSending(true);
     try {
-      // Find selected client object
-      const selectedClient = clients.find(c => c.id === selectedClientId);
+      // Find selected client/lead objects
+      const allPeople = [...clients, ...leads.map(l => ({ id: l.id, name: (l.first_name || "") + " " + (l.last_name || ""), email: l.email, phone: l.phone || "", _isLead: true }))];
+      const selectedPeople = allPeople.filter(p => selectedIds.includes(p.id));
+      const selectedClient = selectedPeople[0] || null;
       const res = await fetch("/api/proposals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -770,6 +805,13 @@ export default function AgentProposalSelectPage() {
               email: selectedClient.email || "",
               phone: selectedClient.phone || "",
             } : null,
+            clients: selectedPeople.map(p => ({
+              id: p.id,
+              name: p.name || p.first_name || "",
+              email: p.email || "",
+              phone: p.phone || "",
+              isLead: !!p._isLead,
+            })),
             selections: {
               flights: selected.flights,
               hotels: selected.hotels,
@@ -1137,19 +1179,113 @@ export default function AgentProposalSelectPage() {
               </p>
             </div>
 
-            {/* Client assignment */}
+            {/* Client / Lead assignment (multi-select) */}
             <div className="px-5 py-3 border-b border-slate-100">
-              <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1.5">Assign Client</label>
-              <select
-                value={selectedClientId}
-                onChange={e => setSelectedClientId(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-teal-400 bg-white"
-              >
-                <option value="">— Select client —</option>
-                {clients.map(c => (
-                  <option key={c.id} value={c.id}>{c.name} ({c.email})</option>
-                ))}
-              </select>
+              <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1.5">
+                Assign To ({selectedIds.length} selected)
+              </label>
+
+              {/* Tabs: Clients / Leads */}
+              <div className="flex rounded-lg bg-slate-100 p-0.5 mb-2">
+                <button
+                  onClick={() => setAssignTab("clients")}
+                  className={`flex-1 text-[10px] font-bold py-1.5 rounded-md transition-all ${assignTab === "clients" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+                >
+                  Clients ({clients.length})
+                </button>
+                <button
+                  onClick={() => setAssignTab("leads")}
+                  className={`flex-1 text-[10px] font-bold py-1.5 rounded-md transition-all ${assignTab === "leads" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+                >
+                  Leads ({leads.length})
+                </button>
+              </div>
+
+              {/* Search */}
+              <input
+                type="text"
+                placeholder="Search by name or email..."
+                value={assignSearch}
+                onChange={e => setAssignSearch(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs mb-2 focus:outline-none focus:border-teal-400 bg-white"
+              />
+
+              {/* List */}
+              <div className="max-h-40 overflow-y-auto space-y-1">
+                {assignTab === "clients" && clients
+                  .filter(c => {
+                    if (!assignSearch) return true;
+                    const q = assignSearch.toLowerCase();
+                    return (c.name || "").toLowerCase().includes(q) || (c.email || "").toLowerCase().includes(q);
+                  })
+                  .map(c => (
+                    <label key={c.id} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors ${selectedIds.includes(c.id) ? "bg-teal-50 border border-teal-200" : "border border-transparent"}`}>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(c.id)}
+                        onChange={() => setSelectedIds(prev => prev.includes(c.id) ? prev.filter(x => x !== c.id) : [...prev, c.id])}
+                        className="accent-teal-500 w-3.5 h-3.5"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-slate-800 truncate">{c.name}</p>
+                        <p className="text-[10px] text-slate-400 truncate">{c.email}</p>
+                      </div>
+                    </label>
+                  ))
+                }
+                {assignTab === "leads" && (leadsLoading ? (
+                  <p className="text-[10px] text-slate-400 text-center py-3">Loading leads...</p>
+                ) : leads
+                  .filter(l => {
+                    if (!assignSearch) return true;
+                    const q = assignSearch.toLowerCase();
+                    const name = ((l.first_name || "") + " " + (l.last_name || "")).toLowerCase();
+                    return name.includes(q) || (l.email || "").toLowerCase().includes(q);
+                  })
+                  .map(l => (
+                    <label key={l.id} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors ${selectedIds.includes(l.id) ? "bg-violet-50 border border-violet-200" : "border border-transparent"}`}>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(l.id)}
+                        onChange={() => setSelectedIds(prev => prev.includes(l.id) ? prev.filter(x => x !== l.id) : [...prev, l.id])}
+                        className="accent-violet-500 w-3.5 h-3.5"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-slate-800 truncate">{l.first_name} {l.last_name}</p>
+                        <p className="text-[10px] text-slate-400 truncate">{l.email}</p>
+                        {l.destination && <p className="text-[9px] text-teal-600 font-semibold">{l.destination}</p>}
+                      </div>
+                      <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${l.status === "new" ? "bg-blue-100 text-blue-700" : l.status === "contacted" ? "bg-purple-100 text-purple-700" : "bg-slate-100 text-slate-500"}`}>
+                        {l.status}
+                      </span>
+                    </label>
+                  ))
+                )}
+                {assignTab === "clients" && clients.length === 0 && (
+                  <p className="text-[10px] text-slate-400 text-center py-3">No clients yet</p>
+                )}
+                {assignTab === "leads" && !leadsLoading && leads.length === 0 && (
+                  <p className="text-[10px] text-slate-400 text-center py-3">No leads yet</p>
+                )}
+              </div>
+
+              {/* Selected chips */}
+              {selectedIds.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {selectedIds.map(id => {
+                    const c = clients.find(x => x.id === id);
+                    const l = leads.find(x => x.id === id);
+                    const name = c ? c.name : l ? `${l.first_name || ""} ${l.last_name || ""}` : id;
+                    const isLead = !!l;
+                    return (
+                      <span key={id} className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full ${isLead ? "bg-violet-100 text-violet-700" : "bg-teal-100 text-teal-700"}`}>
+                        {name.trim()}
+                        <button onClick={() => setSelectedIds(prev => prev.filter(x => x !== id))} className="hover:opacity-70">✕</button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Budget tracker */}
@@ -1225,26 +1361,39 @@ export default function AgentProposalSelectPage() {
                 </div>
               )}
 
-              {/* Hotels */}
+              {/* Hotels — OPTIONS (client picks one) */}
               {selected.hotels.length > 0 && (
                 <div className="mb-3">
-                  <p className="text-[10px] font-bold text-purple-500 uppercase tracking-wide mb-1.5">
-                    🏨 Hotels ({selected.hotels.length})
-                  </p>
-                  {selected.hotels.map((item, i) => (
-                    <div key={i} className="flex items-center justify-between bg-purple-50 rounded-lg px-3 py-2 mb-1">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-slate-800 truncate">{item.name}</p>
-                        <p className="text-[10px] text-slate-500">{fmtPrice(item.price)} /night</p>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <p className="text-[10px] font-bold text-purple-500 uppercase tracking-wide">
+                      🏨 Hotel Options ({selected.hotels.length})
+                    </p>
+                    <span className="text-[8px] font-bold bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded-full">PICK 1</span>
+                  </div>
+                  {selected.hotels.map((item, i) => {
+                    const hotelTotal = baseTotalNoHotel + (item.price || 0);
+                    const hotelFee = Math.round(hotelTotal * SERVICE_FEE_RATE);
+                    return (
+                      <div key={i} className="bg-purple-50 rounded-lg px-3 py-2 mb-1">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold text-slate-800 truncate">{item.name}</p>
+                            <p className="text-[10px] text-slate-500">{fmtPrice(item.price)} /night</p>
+                          </div>
+                          <button
+                            onClick={() => removeItem("hotels", item)}
+                            className="text-red-400 hover:text-red-600 text-xs ml-2"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <div className="mt-1 pt-1 border-t border-purple-200/50 flex items-center justify-between">
+                          <span className="text-[9px] text-purple-500 font-semibold">Total with this hotel</span>
+                          <span className="text-[10px] font-black text-purple-700">${(hotelTotal + hotelFee).toLocaleString()}</span>
+                        </div>
                       </div>
-                      <button
-                        onClick={() => removeItem("hotels", item)}
-                        className="text-red-400 hover:text-red-600 text-xs ml-2"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
@@ -1305,19 +1454,45 @@ export default function AgentProposalSelectPage() {
             {totalSelectedCount > 0 && (
               <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50">
                 <div className="space-y-1.5 mb-3">
+                  {/* Base costs (flights + activities + transfers) */}
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-500">Subtotal</span>
-                    <span className="text-xs font-semibold text-slate-700">${runningTotal.toLocaleString()}</span>
+                    <span className="text-xs text-slate-500">Flights + extras</span>
+                    <span className="text-xs font-semibold text-slate-700">${baseTotalNoHotel.toLocaleString()}</span>
                   </div>
+                  {/* Hotel range */}
+                  {selected.hotels.length > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-slate-500">Hotel (1 option)</span>
+                      <span className="text-xs font-semibold text-slate-700">
+                        {selected.hotels.length === 1
+                          ? `$${cheapestHotel.toLocaleString()}`
+                          : `$${cheapestHotel.toLocaleString()} – $${mostExpensiveHotel.toLocaleString()}`
+                        }
+                      </span>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-slate-500">Service fee (6%)</span>
-                    <span className="text-xs font-semibold text-slate-700">${serviceFee.toLocaleString()}</span>
+                    <span className="text-xs font-semibold text-slate-700">
+                      {grandTotal === grandTotalMax
+                        ? `$${serviceFee.toLocaleString()}`
+                        : `$${serviceFee.toLocaleString()} – $${serviceFeeMax.toLocaleString()}`
+                      }
+                    </span>
                   </div>
                   <div className="h-px bg-slate-200 my-1" />
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-black text-slate-900">Total</span>
-                    <span className="text-sm font-black text-slate-900">${grandTotal.toLocaleString()}</span>
+                    <span className="text-sm font-black text-slate-900">
+                      {grandTotal === grandTotalMax
+                        ? `$${grandTotal.toLocaleString()}`
+                        : `$${grandTotal.toLocaleString()} – $${grandTotalMax.toLocaleString()}`
+                      }
+                    </span>
                   </div>
+                  {selected.hotels.length > 1 && (
+                    <p className="text-[9px] text-slate-400 text-center">Price depends on hotel choice</p>
+                  )}
                 </div>
                 <button
                   onClick={createProposal}
