@@ -71,8 +71,8 @@ export default function HomePage() {
     <main className="min-h-screen m-0 p-0" style={{ backgroundColor: "#F8FAFF" }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
-      {/* ── HEADER ── */}
-      <div className="w-full px-4 sm:px-6 bg-white border-b border-slate-100 shadow-sm sticky top-0 z-50" data-fullbleed="true">
+      {/* ── HEADER — desktop only (bottom nav replaces it on mobile) ── */}
+      <div className="hidden sm:block w-full px-4 sm:px-6 bg-white border-b border-slate-100 shadow-sm sticky top-0 z-50" data-fullbleed="true">
         <Header isLoggedIn={isLoggedIn} userEmail={userEmail} />
       </div>
 
@@ -87,17 +87,7 @@ export default function HomePage() {
           <div className="absolute top-[-60px] right-[-40px] w-64 h-64 rounded-full opacity-10 pointer-events-none" style={{ background: "radial-gradient(circle, #0F6CF5, transparent)", filter: "blur(50px)" }} />
           <div className="absolute top-[35%] left-[-50px] w-52 h-52 rounded-full opacity-8 pointer-events-none" style={{ background: "radial-gradient(circle, #E6B85A, transparent)", filter: "blur(60px)" }} />
 
-          {/* Top nav */}
-          <div className="flex items-center justify-between px-5 pt-5">
-            <div className="flex items-center gap-2">
-              <img src="/branding/lina-avatar.png" alt="Lina" className="w-8 h-8 rounded-full border-2 border-blue-100" />
-              <span className="font-black text-sm text-[#0B1B4D] tracking-tight">Zeniva</span>
-            </div>
-            <div className="flex gap-2">
-              <Link href="/login" className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600">Log in</Link>
-              <Link href="/signup" className="rounded-full px-3 py-1.5 text-xs font-black text-white" style={{ background: "linear-gradient(90deg, #0F6CF5, #0B1B4D)" }}>Sign up</Link>
-            </div>
-          </div>
+          {/* Top nav removed — bottom nav handles navigation on mobile */}
 
           {/* Main content */}
           <div className="flex flex-col items-center px-5 pt-8 flex-1">
