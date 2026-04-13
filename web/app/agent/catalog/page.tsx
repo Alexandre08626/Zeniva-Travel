@@ -75,6 +75,12 @@ export default function CatalogPage() {
   const [sendToIds, setSendToIds] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  // Optional flight
+  const [addFlight, setAddFlight] = useState(false);
+  const [flightFrom, setFlightFrom] = useState("");
+  const [flightDate, setFlightDate] = useState("");
+  const [flightReturn, setFlightReturn] = useState("");
+  const [flightTravelers, setFlightTravelers] = useState("2");
 
   // Load catalog data
   useEffect(() => {
@@ -154,6 +160,14 @@ export default function CatalogPage() {
 
       // For each recipient: send email + save proposal in Supabase
       for (const r of recipients) {
+        // Build optional flight info
+        const flightInfo = addFlight && flightFrom ? {
+          from: flightFrom,
+          departDate: flightDate,
+          returnDate: flightReturn,
+          travelers: parseInt(flightTravelers) || 2,
+        } : null;
+
         // 1. Send the catalog email
         await fetch("/api/proposals/send-catalog", {
           method: "POST",
@@ -163,6 +177,7 @@ export default function CatalogPage() {
             clientName: r.name,
             agentName: user?.name || user?.email || "Your Zeniva Agent",
             items,
+            flight: flightInfo,
           }),
         });
 
@@ -178,11 +193,18 @@ export default function CatalogPage() {
             ownerEmail: agentEmail,
             status: "Sent",
             payload: {
-              trip: { title: itemTypes + " — " + itemNames.slice(0, 60) },
-              tripDraft: { destination: items[0]?.location || "" },
+              trip: { title: (flightInfo ? `Flight + ` : "") + itemTypes + " — " + itemNames.slice(0, 60) },
+              tripDraft: {
+                destination: items[0]?.location || "",
+                departureCity: flightInfo?.from || "",
+                checkIn: flightInfo?.departDate || "",
+                checkOut: flightInfo?.returnDate || "",
+                adults: flightInfo?.travelers || 2,
+              },
               client: { name: r.name, email: r.email },
               clients: [{ id: r.id, name: r.name, email: r.email, isLead: r.isLead }],
               catalogItems: items,
+              flight: flightInfo,
               pricing: { total: 0 },
               source: "catalog",
             },
@@ -456,6 +478,66 @@ export default function CatalogPage() {
                   ))
                 }
               </div>
+            </div>
+
+            {/* Optional Flight */}
+            <div className="px-5 py-3 border-t border-slate-100">
+              <button
+                onClick={() => setAddFlight(!addFlight)}
+                className={`w-full flex items-center justify-between rounded-xl px-4 py-3 text-sm font-bold transition-all ${
+                  addFlight ? "bg-blue-50 border-2 border-blue-300 text-blue-800" : "bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">✈️</span>
+                  <span>Add a flight</span>
+                </div>
+                <span className="text-xs font-semibold">{addFlight ? "Added" : "Optional"}</span>
+              </button>
+
+              {addFlight && (
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <div className="col-span-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Departure City</label>
+                    <input
+                      type="text"
+                      value={flightFrom}
+                      onChange={e => setFlightFrom(e.target.value)}
+                      placeholder="e.g. Montreal, YUL"
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Depart</label>
+                    <input
+                      type="date"
+                      value={flightDate}
+                      onChange={e => setFlightDate(e.target.value)}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Return</label>
+                    <input
+                      type="date"
+                      value={flightReturn}
+                      onChange={e => setFlightReturn(e.target.value)}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Travelers</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="20"
+                      value={flightTravelers}
+                      onChange={e => setFlightTravelers(e.target.value)}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Footer */}

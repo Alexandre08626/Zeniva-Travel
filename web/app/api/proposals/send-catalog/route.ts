@@ -46,11 +46,12 @@ function itemCard(item: CatalogItem) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { clientEmail, clientName, agentName, items } = body as {
+    const { clientEmail, clientName, agentName, items, flight } = body as {
       clientEmail: string;
       clientName?: string;
       agentName?: string;
       items: CatalogItem[];
+      flight?: { from: string; departDate?: string; returnDate?: string; travelers?: number } | null;
     };
 
     if (!clientEmail || !items?.length) {
@@ -90,6 +91,26 @@ export async function POST(req: NextRequest) {
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
               ${items.map(itemCard).join("")}
             </table>
+
+            ${flight ? `
+            <!-- Flight -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;">
+              <tr><td style="padding:8px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#EFF6FF;border-radius:16px;border:1px solid #BFDBFE;">
+                  <tr><td style="padding:16px;">
+                    <p style="margin:0;font-size:11px;font-weight:800;color:#1E40AF;text-transform:uppercase;letter-spacing:1px;">✈️ Flight Included</p>
+                    <p style="margin:8px 0 0;font-size:15px;font-weight:800;color:#0B1B4D;">From ${esc(flight.from)}</p>
+                    <p style="margin:4px 0 0;font-size:13px;color:#6B7280;">
+                      ${flight.departDate ? `Depart: ${esc(flight.departDate)}` : ""}
+                      ${flight.returnDate ? ` · Return: ${esc(flight.returnDate)}` : ""}
+                      ${flight.travelers ? ` · ${flight.travelers} traveler${flight.travelers > 1 ? "s" : ""}` : ""}
+                    </p>
+                    <p style="margin:8px 0 0;font-size:12px;color:#3B82F6;font-weight:600;">We'll find the best fares for you!</p>
+                  </td></tr>
+                </table>
+              </td></tr>
+            </table>
+            ` : ""}
 
             <p style="margin:24px 0 0;font-size:14px;color:#64748B;line-height:1.6;">
               Interested in any of these? Just reply to this email or chat with me directly. I'll handle everything for you!
