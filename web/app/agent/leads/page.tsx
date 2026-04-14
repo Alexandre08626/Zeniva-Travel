@@ -91,8 +91,9 @@ const BIZ_STATUSES = ["new", "contacted", "demo_scheduled", "demo_done", "negoti
 
 function Avatar({ name, email }: { name: string; email: string }) {
   const colors = ["#0F6CF5","#7C3AED","#10B981","#F59E0B","#EF4444","#EC4899","#06B6D4","#8B5CF6"];
-  const i = (email.charCodeAt(0) + (email.charCodeAt(1) || 0)) % colors.length;
-  const initials = name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2) || "?";
+  const safeEmail = email || "";
+  const i = (safeEmail.charCodeAt(0) || 0 + (safeEmail.charCodeAt(1) || 0)) % colors.length;
+  const initials = (name || "").split(" ").map(w => w?.[0]).filter(Boolean).join("").toUpperCase().slice(0, 2) || "?";
   return (
     <div style={{ background: colors[i] }} className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0">
       {initials}
@@ -129,15 +130,18 @@ export default function LeadsPage() {
   const [bizForm, setBizForm] = useState<Omit<BusinessLead, "id" | "created_at">>(EMPTY_BIZ_LEAD);
 
   useEffect(() => {
-    if (!user?.email) return;
+    if (!user?.email) { setLoading(false); return; }
     const fetchLeads = async () => {
       setLoading(true);
       try {
         const p = new URLSearchParams({ path: "admin/agent-leads/" + encodeURIComponent(user.email!) });
         const r = await fetch(`/api/agents-proxy?${p}`);
+        if (!r.ok) { setLoading(false); return; }
         const d = await r.json();
-        setLeads(d?.leads || []);
-      } catch {}
+        setLeads(Array.isArray(d?.leads) ? d.leads : []);
+      } catch {
+        setLeads([]);
+      }
       setLoading(false);
     };
     fetchLeads();
@@ -148,8 +152,8 @@ export default function LeadsPage() {
   const fetchBusinessLeads = (type: string) => {
     setBusinessLoading(true);
     fetch(`/api/leads-business?type=${type}`)
-      .then(r => r.json())
-      .then(d => setBusinessLeads(d.leads || []))
+      .then(r => r.ok ? r.json() : { leads: [] })
+      .then(d => setBusinessLeads(Array.isArray(d?.leads) ? d.leads : []))
       .catch(() => setBusinessLeads([]))
       .finally(() => setBusinessLoading(false));
   };
@@ -214,9 +218,9 @@ export default function LeadsPage() {
   };
 
   const filtered = leads.filter(l => {
-    if (l.email?.endsWith("@zeniva-lead.com")) return false;
+    if (!l || l.email?.endsWith("@zeniva-lead.com")) return false;
     const name = (l.first_name || "") + " " + (l.last_name || "");
-    const matchSearch = !search || name.toLowerCase().includes(search.toLowerCase()) || l.email.toLowerCase().includes(search.toLowerCase()) || (l.destination || "").toLowerCase().includes(search.toLowerCase());
+    const matchSearch = !search || name.toLowerCase().includes(search.toLowerCase()) || (l.email || "").toLowerCase().includes(search.toLowerCase()) || (l.destination || "").toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "all" || l.status === statusFilter;
     const matchDest = destinationFilter === "all" || (l.destination || "").toLowerCase().includes(destinationFilter.toLowerCase());
     const matchLang = languageFilter === "all" || l.language === languageFilter;
@@ -228,7 +232,7 @@ export default function LeadsPage() {
   const languages = [...new Set(leads.filter(l => l.language).map(l => l.language!))].sort();
   const provinces = [...new Set(businessLeads.filter(l => l.province).map(l => l.province))].sort();
 
-  const realLeads = leads.filter(l => !l.email?.endsWith("@zeniva-lead.com"));
+  const realLeads = leads.filter(l => l && !l.email?.endsWith("@zeniva-lead.com"));
   const statuses = ["all", "new", "contacted", "followed_up", "quoted", "client", "junk"];
   const counts = statuses.reduce((acc, s) => {
     acc[s] = s === "all" ? realLeads.length : realLeads.filter(l => l.status === s).length;
