@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { addAudit, useAuthStore } from "../../../../src/lib/authStore";
+import { addAudit, useAuthStore, isHQ } from "../../../../src/lib/authStore";
 import { useRequireAnyPermission } from "../../../../src/lib/roleGuards";
 import { normalizeRbacRole } from "../../../../src/lib/rbac";
 import { searchFlights } from "../../../../src/lib/agent/inventory/flights";
@@ -45,6 +45,7 @@ export default function TripWorkspacePage() {
   const user = useAuthStore((s) => s.user);
   const effectiveRole = normalizeRbacRole(user?.effectiveRole) || normalizeRbacRole((user?.roles || [])[0]);
   const isYachtBroker = effectiveRole === "yacht_broker";
+  const hq = isHQ(user);
   const [, force] = useState(0);
   const [components, setComponents] = useState<TripComponent[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
@@ -569,7 +570,7 @@ export default function TripWorkspacePage() {
                       className="mt-1 w-full rounded border border-slate-200 px-2 py-1 text-xs"
                       value={bookingType}
                       onChange={(e) => updateBookingType(e.target.value as "zeniva_managed" | "agent_built")}
-                      disabled={isYachtTrip}
+                      disabled={isYachtTrip || !hq}
                     >
                       <option value="zeniva_managed">Zeniva-managed (5% referral)</option>
                       <option value="agent_built">Agent-built / TBO (80/20)</option>
@@ -583,6 +584,7 @@ export default function TripWorkspacePage() {
                       type="checkbox"
                       checked={partnerBooking}
                       onChange={(e) => updatePartnerBooking(e.target.checked)}
+                      disabled={!hq}
                     />
                     Partner booking (2.5% fee)
                   </label>
@@ -596,29 +598,32 @@ export default function TripWorkspacePage() {
                         placeholder="2.5"
                         value={partnerFeePct ?? ""}
                         onChange={(e) => updatePartnerFee(e.target.value)}
+                        disabled={!hq}
                       />
                     </label>
                   )}
                 </div>
               </div>
               <label className="block">
-                Margin override % (HQ)
+                Margin override % {hq ? "(HQ)" : ""}
                 <input
-                  className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm disabled:bg-slate-100 disabled:cursor-not-allowed"
                   type="number"
                   placeholder="e.g. 18"
                   value={marginOverride ?? ""}
                   onChange={(e) => setMargin(e.target.value)}
+                  disabled={!hq}
                 />
               </label>
               <label className="block">
                 Commission %
                 <input
-                  className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm disabled:bg-slate-100 disabled:cursor-not-allowed"
                   type="number"
                   placeholder="e.g. 10"
                   value={commissionOverride ?? ""}
                   onChange={(e) => setCommission(e.target.value)}
+                  disabled={!hq}
                 />
               </label>
             </div>
