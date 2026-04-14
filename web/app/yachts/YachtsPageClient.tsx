@@ -2,6 +2,13 @@
 
 import Link from "next/link";
 // Image from next/image replaced with <img> to avoid double-encoding local paths
+const YACHT_IMG_BASE = "https://vmi3097009.contaboserver.net";
+function resolveYachtImg(src: string | undefined): string | undefined {
+  if (!src) return undefined;
+  if (src.startsWith("http")) return src;
+  if (src.startsWith("/yachts/")) return `${YACHT_IMG_BASE}${src}`;
+  return src;
+}
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import AppDarkPageWrapper from "../../src/components/AppDarkPageWrapper.client";
@@ -110,8 +117,9 @@ export default function YachtsPageClient() {
       const ycnItems: YcnItem[] = (Array.isArray(ycnData) ? ycnData : []).map((p: any) => {
         const title = (p.title || "Yacht Charter").trim();
         const mappedImages = localYachtImages[title];
-        const resolvedImages = mappedImages && mappedImages.length ? mappedImages : (p.images || []);
-        const resolvedThumbnail = resolvedImages[0] || p.thumbnail || (p.images && p.images[0]) || undefined;
+        const rawImages = mappedImages && mappedImages.length ? mappedImages : (p.images || []);
+        const resolvedImages = rawImages.map((i: string) => resolveYachtImg(i) || i);
+        const resolvedThumbnail = resolveYachtImg(resolvedImages[0] || p.thumbnail || (p.images && p.images[0])) || undefined;
         return {
           title,
           destination: p.destination || "",
@@ -176,9 +184,9 @@ export default function YachtsPageClient() {
       title: p.title || "Yacht Charter",
       price: normalizePriceLabel((p.prices && p.prices[0]) || fallbackQuote, locale),
       destination,
-      image: (p.images && p.images[0]) || p.thumbnail || fallback || "/branding/icon-proposals.svg",
+      image: resolveYachtImg((p.images && p.images[0]) || p.thumbnail) || fallback || "/branding/icon-proposals.svg",
       calendar: p.calendar,
-      images: p.images || (p.thumbnail ? [p.thumbnail] : []),
+      images: (p.images || (p.thumbnail ? [p.thumbnail] : [])).map((i: string) => resolveYachtImg(i) || i),
       countryKey,
       countryLabel: formatCountry(countryKey),
     };
