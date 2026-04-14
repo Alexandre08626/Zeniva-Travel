@@ -148,6 +148,20 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   const [agentRequests, setAgentRequests] = useState<any[]>([]);
   const [activity, setActivity] = useState<any[]>([]);
   const [selectedAgent, setSelectedAgent] = useState<AIAgent | null>(null);
+  const AGENT_ROUTES: Record<string, string> = {
+    lina: "/agent/trip-search",
+    marco: "/agent/outreach",
+    sofia: "/agent/outreach",
+    noah: "https://zenipay.ca/app/overview",
+    luna: "/agent/luna",
+    atlas: "/agent/atlas",
+    mia: "/agent/mia",
+    leo: "/agent/leo",
+    rex: "/agent/rex",
+    max: "/agent/max",
+    jade: "/agent/jade",
+    kai: "/agent/kai",
+  };
   const [navOpen, setNavOpen] = useState(true); // open by default — labels visible
 
   // Trip search — now uses /agent/trip-search page
@@ -431,7 +445,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
                     const isAlive = agent.status === "live" || agent.status === "active";
                     const accentColor = agent.color;
                     return (
-                      <div key={agent.id} onClick={() => setSelectedAgent(agent)}
+                      <div key={agent.id} onClick={() => { const r = AGENT_ROUTES[agent.id]; if (r?.startsWith("http")) window.open(r, "_blank"); else if (r) router.push(r); }}
                         className="group relative bg-white rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-gray-300/50 hover:-translate-y-2 border border-gray-200">
                         {/* Character image area */}
                         <div className="relative w-full aspect-square overflow-hidden flex items-end justify-center"
@@ -674,70 +688,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
         </div>
       </main>
 
-      {/* AGENT DETAIL PANEL */}
-      {selectedAgent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl overflow-hidden shadow-2xl">
-            <div className="p-6 text-white" style={{ background: `linear-gradient(135deg, ${selectedAgent.color}, ${PREMIUM_BLUE})` }}>
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-white/30 bg-white/10">
-                    {selectedAgent.avatar
-                      ? <img src={selectedAgent.avatar} alt={selectedAgent.name} className="w-full h-full object-cover" />
-                      : <div className="w-full h-full flex items-center justify-center text-3xl">{selectedAgent.emoji}</div>
-                    }
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-black">{selectedAgent.name}</h2>
-                    <p className="text-sm opacity-80">{selectedAgent.type}</p>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full mt-1 inline-block ${STATUS_CFG[selectedAgent.status].badge}`}>
-                      {STATUS_CFG[selectedAgent.status].label}
-                    </span>
-                  </div>
-                </div>
-                <button onClick={() => setSelectedAgent(null)} className="rounded-full p-1.5 bg-white/20 hover:bg-white/30 text-white text-sm">✕</button>
-              </div>
-            </div>
-            <div className="p-6 bg-white space-y-4">
-              <p className="text-sm text-slate-700">{selectedAgent.description}</p>
-              <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Statut</span>
-                  <span className="font-bold" style={{ color: PREMIUM_BLUE }}>{STATUS_CFG[selectedAgent.status].label}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Planification</span>
-                  <span className="font-bold" style={{ color: PREMIUM_BLUE }}>{selectedAgent.schedule}</span>
-                </div>
-                {selectedAgent.lastAction && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Dernière action</span>
-                    <span className="font-semibold text-emerald-600">{selectedAgent.lastAction}</span>
-                  </div>
-                )}
-              </div>
-              <div className="flex gap-2">
-                {selectedAgent.id === "noah" ? (
-                  <Link href="https://zenipay.ca/app" target="_blank" onClick={() => setSelectedAgent(null)}
-                    className="flex-1 rounded-full py-2.5 text-sm font-bold text-white text-center"
-                    style={{ background: "#0F6CF5" }}>
-💳 View on zenipay.ca →
-                  </Link>
-                ) : (
-                  <Link href="/ai-agents" onClick={() => setSelectedAgent(null)}
-                    className="flex-1 rounded-full py-2.5 text-sm font-bold text-white text-center"
-                    style={{ background: selectedAgent.color }}>
-                    Voir détails →
-                  </Link>
-                )}
-                <button onClick={() => setSelectedAgent(null)} className="rounded-full px-4 py-2.5 text-sm font-semibold border border-slate-200 text-slate-700">
-                  Fermer
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Agent modal removed — avatars now navigate directly to agent pages */}
 
       {/* Trip Search modal removed — now uses /agent/trip-search page */}
 
