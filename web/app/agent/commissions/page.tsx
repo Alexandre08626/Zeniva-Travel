@@ -80,6 +80,20 @@ function getRateConfig(agentType?: string | null) {
   return RATE_CONFIG.default;
 }
 
+interface ManagedAgent {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  agent_level: string | null;
+  commission_rate: number | null;
+  status: string;
+}
+
+const ROLE_ICONS: Record<string, string> = { travel_agent: "✈️", yacht_broker: "⛵", influencer: "⭐", hq: "🏢", admin: "🔑" };
+const ROLE_LABELS: Record<string, string> = { travel_agent: "Travel Agent", yacht_broker: "Yacht Broker", influencer: "Influencer", hq: "HQ", admin: "Admin" };
+const DEFAULT_RATES: Record<string, number> = { travel_agent: 70, yacht_broker: 5, influencer: 5, hq: 30 };
+
 export default function CommissionsPage() {
   const user = useAuthStore((s) => s.user);
   const hq = isHQ(user);
@@ -87,6 +101,13 @@ export default function CommissionsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "pending" | "paid">("all");
   const [agentProfile, setAgentProfile] = useState<AgentProfile | null>(null);
+
+  // HQ: managed agent rates
+  const [managedAgents, setManagedAgents] = useState<ManagedAgent[]>([]);
+  const [ratesLoading, setRatesLoading] = useState(false);
+  const [editingRate, setEditingRate] = useState<Record<string, string>>({});
+  const [savingRate, setSavingRate] = useState<Record<string, boolean>>({});
+  const [rateToast, setRateToast] = useState<string | null>(null);
 
   // Determine agent type from role or profile
   const userRole = (user as any)?.role || (user as any)?.agent_type || "";
@@ -113,7 +134,38 @@ export default function CommissionsPage() {
     setLoading(false);
   };
 
+  const fetchRates = async () => {
+    setRatesLoading(true);
+    try {
+      const r = await fetch("/api/agent/commission-rates");
+      if (r.ok) {
+        const d = await r.json();
+        setManagedAgents(d.agents || []);
+      }
+    } catch {} finally { setRatesLoading(false); }
+  };
+
+  const saveRate = async (email: string) => {
+    const val = editingRate[email];
+    if (val === undefined) return;
+    setSavingRate(p => ({ ...p, [email]: true }));
+    try {
+      const r = await fetch("/api/agent/commission-rates", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, commission_rate: parseFloat(val) }),
+      });
+      if (r.ok) {
+        setRateToast(`${email} updated to ${val}%`);
+        setTimeout(() => setRateToast(null), 3000);
+        setManagedAgents(prev => prev.map(a => a.email === email ? { ...a, commission_rate: parseFloat(val) } : a));
+        setEditingRate(p => { const n = { ...p }; delete n[email]; return n; });
+      }
+    } catch {} finally { setSavingRate(p => ({ ...p, [email]: false })); }
+  };
+
   useEffect(() => { if (user?.email) void fetchData(); }, [user?.email]);
+  useEffect(() => { if (hq) void fetchRates(); }, [hq]);
 
   const shown = filter === "all" ? commissions : commissions.filter(c => c.status === filter);
   const totalEarned = commissions.filter(c => c.status === "paid").reduce((s, c) => s + (c.commission_amount || 0), 0);
@@ -317,6 +369,106 @@ export default function CommissionsPage() {
             </table>
           )}
         </div>
+
+        {/* ── HQ: Manage Agent Commission Rates ── */}
+        {hq && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-black text-slate-900">Manage Agent Rates</h2>
+                <p className="text-sm text-slate-500">Adjust commission % for each agent — changes apply instantly</p>
+              </div>
+            </div>
+
+            {rateToast && (
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-2 rounded-xl text-sm font-semibold">
+                {rateToast}
+              </div>
+            )}
+
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+              {ratesLoading ? (
+                <div className="p-8 text-center text-slate-400">Loading agents...</div>
+              ) : managedAgents.length === 0 ? (
+                <div className="p-8 text-center text-slate-400">No agents found</div>
+              ) : (
+                <table className="min-w-full text-sm">
+                  <thead className="bg-slate-50 border-b border-slate-200">
+                    <tr className="text-left text-slate-500 text-xs uppercase tracking-wide">
+                      <th className="px-5 py-3">Agent</th>
+                      <th className="px-5 py-3">Role</th>
+                      <th className="px-5 py-3">Level</th>
+                      <th className="px-5 py-3">Status</th>
+                      <th className="px-5 py-3">Commission %</th>
+                      <th className="px-5 py-3">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {managedAgents.map((a) => {
+                      const currentRate = editingRate[a.email] !== undefined
+                        ? editingRate[a.email]
+                        : String(a.commission_rate ?? DEFAULT_RATES[a.role] ?? 0);
+                      const hasChanged = editingRate[a.email] !== undefined && parseFloat(editingRate[a.email]) !== (a.commission_rate ?? DEFAULT_RATES[a.role] ?? 0);
+                      const icon = ROLE_ICONS[a.role] || "👤";
+                      const roleLabel = ROLE_LABELS[a.role] || a.role;
+
+                      return (
+                        <tr key={a.id} className="border-t border-slate-100 hover:bg-slate-50">
+                          <td className="px-5 py-3">
+                            <p className="font-semibold text-slate-900">{a.name}</p>
+                            <p className="text-xs text-slate-400">{a.email}</p>
+                          </td>
+                          <td className="px-5 py-3">
+                            <span className="text-xs font-semibold">{icon} {roleLabel}</span>
+                          </td>
+                          <td className="px-5 py-3">
+                            {a.agent_level === "Premium" ? (
+                              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Premium</span>
+                            ) : (
+                              <span className="text-xs text-slate-400">{a.agent_level || "Standard"}</span>
+                            )}
+                          </td>
+                          <td className="px-5 py-3">
+                            <span className={`text-xs font-semibold ${a.status === "active" ? "text-emerald-600" : "text-slate-400"}`}>
+                              {a.status === "active" ? "Active" : a.status}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="number"
+                                min={0}
+                                max={100}
+                                step={0.5}
+                                value={currentRate}
+                                onChange={(e) => setEditingRate(p => ({ ...p, [a.email]: e.target.value }))}
+                                className="w-20 px-2 py-1.5 border border-slate-200 rounded-lg text-sm text-center font-bold focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                              />
+                              <span className="text-sm font-bold text-slate-500">%</span>
+                            </div>
+                          </td>
+                          <td className="px-5 py-3">
+                            <button
+                              onClick={() => saveRate(a.email)}
+                              disabled={!hasChanged || savingRate[a.email]}
+                              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                hasChanged
+                                  ? "bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
+                                  : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                              }`}
+                            >
+                              {savingRate[a.email] ? "Saving..." : "Save"}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        )}
 
       </div>
     </main>

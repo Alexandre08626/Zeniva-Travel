@@ -132,6 +132,19 @@ export default function AgentCommandPage() {
       } else {
         setAgents(agentList);
       }
+
+      // Enrich with commission_rate from Supabase accounts
+      try {
+        const ratesR = await fetch("/api/agent/commission-rates");
+        if (ratesR.ok) {
+          const ratesD = await ratesR.json();
+          const rateMap = new Map((ratesD.agents || []).map((a: any) => [a.email?.toLowerCase(), a.commission_rate]));
+          setAgents(prev => prev.map(a => {
+            const dbRate = rateMap.get(a.email?.toLowerCase());
+            return dbRate !== undefined && dbRate !== null ? { ...a, commission_rate: dbRate } : a;
+          }));
+        }
+      } catch {}
     } catch {}
     setLoading(false);
   };
