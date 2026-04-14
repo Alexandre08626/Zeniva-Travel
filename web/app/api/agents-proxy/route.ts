@@ -38,6 +38,40 @@ export async function GET(req: NextRequest) {
       const agentEmail = req.nextUrl.searchParams.get("agent_email") || "";
 
       if (pathParam === "admin/all-clients" || pathParam === "admin/clients") {
+        if (agentEmail) {
+          // Check if this agent is an influencer
+          const { data: agentAccount } = await sb.from("accounts").select("role").eq("email", agentEmail.toLowerCase()).maybeSingle();
+          const isInfluencer = agentAccount?.role === "influencer";
+
+          if (isInfluencer) {
+            // For influencers: only show clients they referred
+            const { buildInfluencerCode } = await import("@/src/lib/influencerShared");
+            const infCode = buildInfluencerCode(agentEmail);
+
+            // Get referred emails from influencer_referrals
+            const { data: referrals } = await sb.from("influencer_referrals").select("traveler_email").eq("referral_code", infCode);
+            // Get referred emails from clients.lead_source
+            const { data: refClients } = await sb.from("clients").select("email").ilike("lead_source", `influencer:${agentEmail}`);
+
+            const referredEmails = new Set([
+              ...(referrals || []).map((r: any) => r.traveler_email?.toLowerCase()).filter(Boolean),
+              ...(refClients || []).map((c: any) => c.email?.toLowerCase()).filter(Boolean),
+            ]);
+
+            if (referredEmails.size === 0) {
+              return NextResponse.json({ clients: [] });
+            }
+
+            const { data } = await sb.from("accounts").select("*").in("email", [...referredEmails]).order("created_at", { ascending: false });
+            return NextResponse.json({ clients: (data || []).map((a: any) => ({ id: a.id, name: a.name, email: a.email, phone: "", role: a.role, roles: a.roles, status: a.status, source: "referral", created_at: a.created_at })) });
+          }
+
+          // For regular agents: show clients they own
+          const { data } = await sb.from("clients").select("id, name, email, phone, origin, lead_source, created_at").eq("owner_email", agentEmail.toLowerCase()).order("created_at", { ascending: false });
+          return NextResponse.json({ clients: (data || []).map((c: any) => ({ id: c.id, name: c.name, email: c.email, phone: c.phone || "", role: "client", roles: [], status: "active", source: c.lead_source || c.origin || "agent", created_at: c.created_at })) });
+        }
+
+        // No agent_email filter: return all (HQ view)
         const { data } = await sb.from("accounts").select("*").eq("status", "active").order("created_at", { ascending: false });
         return NextResponse.json({ clients: (data || []).map((a: any) => ({ id: a.id, name: a.name, email: a.email, phone: "", role: a.role, roles: a.roles, status: a.status, source: "signup", created_at: a.created_at })) });
       }
