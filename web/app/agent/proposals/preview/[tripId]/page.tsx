@@ -369,7 +369,7 @@ export default function ProposalPreviewPage() {
   const flightTotal =
     (parseFloat(_flights.outbound?.price) || 0) + (parseFloat(_flights.inbound?.price) || 0);
   const hotelTotal = _hotels.reduce(
-    (s: number, h: any) => s + (parseFloat(String(h.price || h.pricePerNight || "0").replace(/[^0-9.]/g, "")) || 0),
+    (s: number, h: any) => s + ((parseFloat(String(h.price || h.pricePerNight || "0").replace(/[^0-9.]/g, "")) || 0) * _nights),
     0
   );
   const activityTotal = _activities.reduce((s: number, a: any) => s + (parseFloat(a.price) || 0), 0);
