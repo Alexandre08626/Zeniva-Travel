@@ -29,12 +29,16 @@ async function getCommissionRateForInfluencer(
   referralCode: string,
   agentLevel?: string | null
 ): Promise<{ rate: number; leadsCount: number; isPremium: boolean }> {
-  const { count } = await admin
+  const { count: formCount } = await admin
     .from("influencer_referral_leads")
     .select("id", { count: "exact", head: true })
     .eq("referral_code", referralCode);
+  const { count: signupCount } = await admin
+    .from("influencer_referrals")
+    .select("id", { count: "exact", head: true })
+    .eq("referral_code", referralCode);
 
-  const leadsCount = count ?? 0;
+  const leadsCount = (formCount ?? 0) + (signupCount ?? 0);
 
   // Premium override from account level (set by HQ)
   if (agentLevel === "Premium") {
@@ -112,7 +116,7 @@ export async function GET(request: Request) {
     if (end) commissionsQuery = commissionsQuery.lte("booking_date", end);
     const { data: commissionsData } = await commissionsQuery;
 
-    // Leads
+    // Leads from form submissions
     let leadsQuery = admin
       .from("influencer_referral_leads")
       .select("id, form_id, traveler_name, traveler_email, phone, destination, start_date, end_date, budget, notes, created_at")
@@ -121,6 +125,35 @@ export async function GET(request: Request) {
     if (start) leadsQuery = leadsQuery.gte("created_at", start);
     if (end) leadsQuery = leadsQuery.lte("created_at", end);
     const { data: leadsData } = await leadsQuery;
+
+    // Also get leads from signup referrals (people who signed up via influencer link)
+    let signupLeadsQuery = admin
+      .from("influencer_referrals")
+      .select("id, traveler_email, captured_at, created_at")
+      .eq("referral_code", referralCode)
+      .order("created_at", { ascending: false });
+    if (start) signupLeadsQuery = signupLeadsQuery.gte("created_at", start);
+    if (end) signupLeadsQuery = signupLeadsQuery.lte("created_at", end);
+    const { data: signupLeadsData } = await signupLeadsQuery;
+
+    // Merge: convert signup referrals to lead format + deduplicate by email
+    const formLeadEmails = new Set((leadsData || []).map((l: any) => l.traveler_email?.toLowerCase()).filter(Boolean));
+    const signupAsLeads = (signupLeadsData || [])
+      .filter((s: any) => !formLeadEmails.has(s.traveler_email?.toLowerCase()))
+      .map((s: any) => ({
+        id: s.id,
+        form_id: "signup",
+        traveler_name: s.traveler_email?.split("@")[0] || "",
+        traveler_email: s.traveler_email,
+        phone: null,
+        destination: null,
+        start_date: null,
+        end_date: null,
+        budget: null,
+        notes: "Signed up via referral link",
+        created_at: s.created_at,
+      }));
+    const allLeads = [...(leadsData || []), ...signupAsLeads];
 
     // Forms
     const { data: formsData } = await admin
@@ -161,7 +194,7 @@ export async function GET(request: Request) {
         influencerId: referralCode,
         clicks: (clicksData || []).length,
         signups: (referralsData || []).length,
-        leads: (leadsData || []).length,
+        leads: allLeads.length,
         bookings: commissions.length,
         commissionTotal,
         commissionRate,
@@ -176,7 +209,7 @@ export async function GET(request: Request) {
           status: row.status || "pending",
         })),
         forms: formsData || [],
-        leadsList: leadsData || [],
+        leadsList: allLeads,
         payouts: payouts,
       },
     });
