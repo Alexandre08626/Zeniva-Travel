@@ -21,10 +21,13 @@ function getSession(request: Request) {
  *  50–99  leads → 3.5%
  * 100–149 leads → 4%
  * 150+    leads → 5%  (Premium)
+ *
+ * Override: if agent_level = 'Premium' in accounts → always 5% + isPremium
  */
 async function getCommissionRateForInfluencer(
   admin: ReturnType<typeof getSupabaseAdminClient>["client"],
-  referralCode: string
+  referralCode: string,
+  agentLevel?: string | null
 ): Promise<{ rate: number; leadsCount: number; isPremium: boolean }> {
   const { count } = await admin
     .from("influencer_referral_leads")
@@ -32,6 +35,12 @@ async function getCommissionRateForInfluencer(
     .eq("referral_code", referralCode);
 
   const leadsCount = count ?? 0;
+
+  // Premium override from account level (set by HQ)
+  if (agentLevel === "Premium") {
+    return { rate: 5, leadsCount, isPremium: true };
+  }
+
   const isPremium = leadsCount >= 150;
 
   let rate = 3;
@@ -60,11 +69,20 @@ export async function GET(request: Request) {
     const normalized = roles.map((role) => normalizeRbacRole(role)).filter(Boolean) as string[];
     const isHQorAdmin = normalized.includes("hq") || normalized.includes("admin");
 
+    const influencerEmail = isHQorAdmin && queryEmail ? queryEmail : session.email;
     const referralCode = isHQorAdmin
       ? queryCode || (queryEmail ? buildInfluencerCode(queryEmail) : "") || buildInfluencerCode(session.email)
       : buildInfluencerCode(session.email);
 
     const { client: admin } = getSupabaseAdminClient();
+
+    // Get account agent_level for premium override
+    const { data: accountData } = await admin
+      .from("accounts")
+      .select("agent_level")
+      .eq("email", influencerEmail.toLowerCase())
+      .maybeSingle();
+    const agentLevel = accountData?.agent_level || null;
 
     // Referrals
     let referralsQuery = admin
@@ -135,7 +153,7 @@ export async function GET(request: Request) {
     );
     const paidTotal = payouts.reduce((sum, row) => sum + Number(row.amount || 0), 0);
     const { rate: commissionRate, leadsCount: totalLeads, isPremium } =
-      await getCommissionRateForInfluencer(admin, referralCode);
+      await getCommissionRateForInfluencer(admin, referralCode, agentLevel);
 
     return NextResponse.json({
       data: {
