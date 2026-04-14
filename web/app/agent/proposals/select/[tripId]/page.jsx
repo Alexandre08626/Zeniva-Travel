@@ -569,6 +569,7 @@ export default function AgentProposalSelectPage() {
   const [assignTab, setAssignTab] = useState("clients"); // "clients" | "leads"
   const [assignSearch, setAssignSearch] = useState("");
   const [leadsLoading, setLeadsLoading] = useState(false);
+  const [showMarketingModal, setShowMarketingModal] = useState(false);
 
   /* ─── Load clients (refresh session first to avoid 401) ─── */
   useEffect(() => {
@@ -1501,11 +1502,178 @@ export default function AgentProposalSelectPage() {
                 >
                   {sending ? "Creating..." : "Preview Proposal →"}
                 </button>
+                <button
+                  onClick={() => setShowMarketingModal(true)}
+                  disabled={totalSelectedCount === 0}
+                  className="w-full py-3 mt-2 bg-gradient-to-r from-pink-500 to-orange-500 text-white font-bold rounded-xl text-sm hover:opacity-90 disabled:opacity-50 transition-opacity"
+                >
+                  📣 Marketing / Facebook Ad
+                </button>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* ── Marketing / Facebook Ad Modal ── */}
+      {showMarketingModal && (() => {
+        const dest = searchForm.destination || "Paradise";
+        const dates = (searchForm.checkIn && searchForm.checkOut) ? `${searchForm.checkIn} → ${searchForm.checkOut}` : "";
+        const travelers = searchForm.travelers || "2";
+        const hotelList = selected.hotels.map(h => h.name).filter(Boolean);
+        const flightOut = selected.flights.outbound;
+        const flightRet = selected.flights.inbound;
+        const activityList = selected.activities.map(a => a.name).filter(Boolean);
+
+        // Facebook post text
+        const fbText = [
+          `✈️🌴 ${dest} — Trip Package Available!`,
+          "",
+          dates ? `📅 ${dates}` : "",
+          `👥 ${travelers} travelers`,
+          "",
+          flightOut ? `✈️ Flight: ${flightOut.name || ""} ${flightOut.route || ""}` : "",
+          flightRet ? `✈️ Return: ${flightRet.name || ""} ${flightRet.route || ""}` : "",
+          "",
+          hotelList.length ? `🏨 Hotel options:` : "",
+          ...hotelList.map(h => `  • ${h}`),
+          "",
+          activityList.length ? `🎯 Experiences:` : "",
+          ...activityList.map(a => `  • ${a}`),
+          "",
+          grandTotal > 0 ? (grandTotal === grandTotalMax
+            ? `💰 From $${grandTotal.toLocaleString()} per person`
+            : `💰 From $${grandTotal.toLocaleString()} – $${grandTotalMax.toLocaleString()}`) : "",
+          "",
+          "🔥 Limited availability — DM us or comment BOOK to reserve!",
+          "",
+          "💬 Chat with Lina AI to customize your trip:",
+          "👉 zenivatravel.com/chat",
+          "",
+          "#ZenivaTravel #" + dest.replace(/[^a-zA-Z]/g, "") + " #TravelDeals #LuxuryTravel #AITravel #Vacation #AllInclusive",
+        ].filter(l => l !== undefined && l !== null).join("\n");
+
+        // HTML Ad
+        const hotelImg = selected.hotels[0]?.image || selected.hotels[0]?.thumbnail || "";
+        const adHtml = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0B1B4D;color:white;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}</style>
+</head><body>
+<div style="width:100%;max-width:540px;border-radius:24px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+  <!-- Hero -->
+  ${hotelImg ? `<div style="height:280px;background:url('${hotelImg}') center/cover;position:relative;">` : `<div style="height:280px;background:linear-gradient(135deg,#0F6CF5,#0B1B4D);position:relative;">`}
+    <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(11,27,77,0.9) 0%,transparent 50%);"></div>
+    <div style="position:absolute;bottom:24px;left:24px;right:24px;">
+      <p style="font-size:12px;font-weight:800;color:#E6B85A;text-transform:uppercase;letter-spacing:2px;">Zeniva Travel</p>
+      <h1 style="font-size:32px;font-weight:900;margin-top:4px;">${dest}</h1>
+      ${dates ? `<p style="font-size:14px;color:rgba(255,255,255,0.8);margin-top:4px;">📅 ${dates}</p>` : ""}
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div style="background:white;padding:28px;">
+    ${flightOut ? `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <div style="width:36px;height:36px;background:#EFF6FF;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;">✈️</div>
+      <div><p style="font-size:11px;color:#6B7280;font-weight:600;">FLIGHT</p><p style="font-size:14px;color:#0B1B4D;font-weight:800;">${flightOut.name || ""} ${flightOut.route || ""}</p></div>
+    </div>` : ""}
+    ${hotelList.map(h => `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <div style="width:36px;height:36px;background:#F0FDF4;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;">🏨</div>
+      <div><p style="font-size:11px;color:#6B7280;font-weight:600;">HOTEL OPTION</p><p style="font-size:14px;color:#0B1B4D;font-weight:800;">${h}</p></div>
+    </div>`).join("")}
+    ${activityList.map(a => `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <div style="width:36px;height:36px;background:#FFFBEB;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;">🎯</div>
+      <div><p style="font-size:11px;color:#6B7280;font-weight:600;">EXPERIENCE</p><p style="font-size:14px;color:#0B1B4D;font-weight:800;">${a}</p></div>
+    </div>`).join("")}
+
+    <!-- Price -->
+    ${grandTotal > 0 ? `<div style="margin-top:16px;padding:16px;background:linear-gradient(135deg,#0B1B4D,#0F3A8A);border-radius:16px;text-align:center;">
+      <p style="font-size:11px;color:#E6B85A;font-weight:800;text-transform:uppercase;letter-spacing:2px;">Starting from</p>
+      <p style="font-size:28px;font-weight:900;color:white;margin-top:4px;">${grandTotal === grandTotalMax ? "$" + grandTotal.toLocaleString() : "$" + grandTotal.toLocaleString() + " – $" + grandTotalMax.toLocaleString()}</p>
+      <p style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px;">per person · all inclusive</p>
+    </div>` : ""}
+
+    <!-- CTA -->
+    <div style="margin-top:16px;text-align:center;">
+      <a href="https://www.zenivatravel.com/chat" style="display:inline-block;background:linear-gradient(90deg,#0F6CF5,#0B1B4D);color:white;font-size:14px;font-weight:800;padding:14px 40px;border-radius:50px;text-decoration:none;">Book Now — Chat with Lina</a>
+      <p style="font-size:11px;color:#94A3B8;margin-top:12px;">DM us or comment BOOK · zenivatravel.com</p>
+    </div>
+  </div>
+</div>
+</body></html>`;
+
+        const copyText = (text) => {
+          navigator.clipboard.writeText(text).catch(() => {});
+        };
+
+        const downloadHtml = () => {
+          const blob = new Blob([adHtml], { type: "text/html" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `zeniva-ad-${dest.replace(/\s+/g, "-").toLowerCase()}.html`;
+          a.click();
+          URL.revokeObjectURL(url);
+        };
+
+        const shareOnFacebook = () => {
+          const url = encodeURIComponent("https://www.zenivatravel.com/chat");
+          window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${encodeURIComponent(fbText.slice(0, 500))}`, "_blank", "width=600,height=400");
+        };
+
+        return (
+          <div className="fixed inset-0 z-[9999] bg-black/60 flex items-end sm:items-center justify-center" onClick={() => setShowMarketingModal(false)}>
+            <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
+              {/* Header */}
+              <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+                <h2 className="text-lg font-black text-slate-900">📣 Marketing — {dest}</h2>
+                <button onClick={() => setShowMarketingModal(false)} className="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+              </div>
+
+              {/* Scrollable content */}
+              <div className="flex-1 overflow-y-auto min-h-0 p-5 space-y-5">
+
+                {/* Facebook Post Text */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Facebook / Instagram Post</h3>
+                    <button onClick={() => copyText(fbText)} className="text-xs font-bold text-blue-600 hover:text-blue-800 transition">Copy Text</button>
+                  </div>
+                  <pre className="bg-slate-50 rounded-xl p-4 text-xs text-slate-700 whitespace-pre-wrap leading-relaxed border border-slate-200 max-h-52 overflow-y-auto font-sans">{fbText}</pre>
+                </div>
+
+                {/* HTML Ad Preview */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">HTML Ad Preview</h3>
+                    <button onClick={downloadHtml} className="text-xs font-bold text-pink-600 hover:text-pink-800 transition">Download HTML</button>
+                  </div>
+                  <div className="rounded-xl overflow-hidden border border-slate-200 bg-[#0B1B4D]">
+                    <iframe
+                      srcDoc={adHtml}
+                      className="w-full border-0"
+                      style={{ height: 500, pointerEvents: "none" }}
+                      title="Ad Preview"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-5 py-4 border-t border-slate-100 flex items-center gap-3 flex-shrink-0 bg-white flex-wrap">
+                <button onClick={() => copyText(fbText)} className="flex-1 py-3 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition">
+                  📋 Copy Post Text
+                </button>
+                <button onClick={shareOnFacebook} className="flex-1 py-3 rounded-xl bg-[#1877F2] text-white text-sm font-bold hover:opacity-90 transition">
+                  📘 Share on Facebook
+                </button>
+                <button onClick={downloadHtml} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-orange-500 text-white text-sm font-bold hover:opacity-90 transition">
+                  ⬇️ Download Ad
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </main>
   );
 }
