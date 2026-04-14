@@ -112,27 +112,22 @@ export default function OutreachPage() {
         ))}
       </div>
 
-      {/* Prospecting Engine */}
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl border border-slate-700 p-6 mb-6">
-        <div className="flex items-start justify-between flex-wrap gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-lg">🎯</div>
+      {/* Marco — Lead Hunter */}
+      <div className="rounded-2xl overflow-hidden mb-6 border border-slate-200 shadow-sm" style={{ background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)" }}>
+        {/* Marco header */}
+        <div className="p-6 pb-0">
+          <div className="flex items-start justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <img src="/agents/marco.png" alt="Marco" className="w-16 h-16 rounded-2xl object-cover border-2 border-red-500/50 shadow-lg" />
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-[#1a1a2e] animate-pulse" />
+              </div>
               <div>
-                <h2 className="text-lg font-black text-white">Prospecting Engine</h2>
-                <p className="text-xs text-slate-400">AI finds quality leads daily — travelers, agencies, independent agents</p>
+                <h2 className="text-xl font-black text-white">Marco</h2>
+                <p className="text-sm font-bold text-red-400">Lead Hunter · 5-Engine Scraper</p>
+                <p className="text-xs text-slate-400 mt-1 max-w-md">Scrapes Reddit travel subs, competitor sites, social signals, SEO intent keywords, and deep web — finds quality leads that convert.</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 mt-3">
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold bg-green-500/20 text-green-400 px-2.5 py-1 rounded-full">
-                <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" /> Runs daily at 6AM
-              </span>
-              <span className="text-[10px] text-slate-500">Leads go to your pipeline automatically</span>
-            </div>
-          </div>
-
-          {/* Manual trigger */}
-          <div className="flex flex-col items-end gap-3">
             <button
               onClick={async () => {
                 setProspecting(true);
@@ -151,17 +146,41 @@ export default function OutreachPage() {
                 setProspecting(false);
               }}
               disabled={prospecting}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-violet-600 text-white text-sm font-bold shadow-lg hover:opacity-90 transition disabled:opacity-50"
+              className="px-6 py-3 rounded-xl text-sm font-black text-white shadow-lg hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100"
+              style={{ background: prospecting ? "#64748b" : "linear-gradient(135deg, #ef4444, #dc2626)" }}
             >
-              {prospecting ? "🔍 Searching..." : "🚀 Run Now"}
+              {prospecting ? "🔍 Hunting leads..." : "🔥 Hunt Now"}
             </button>
+          </div>
+
+          {/* 5 Engines */}
+          <div className="flex flex-wrap gap-2 mt-4">
+            {[
+              { label: "Reddit", icon: "🔴", active: true },
+              { label: "Competitors", icon: "🏢", active: true },
+              { label: "Social", icon: "📱", active: true },
+              { label: "SEO Intent", icon: "🔍", active: true },
+              { label: "Deep Web", icon: "🌐", active: true },
+            ].map(e => (
+              <span key={e.label} className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full bg-white/10 text-white/80 border border-white/10">
+                <span>{e.icon}</span> {e.label}
+                <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+              </span>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-3 mt-3">
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold bg-green-500/20 text-green-400 px-2.5 py-1 rounded-full">
+              <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" /> Auto-runs daily
+            </span>
+            <span className="text-[10px] text-slate-500">Leads saved to your pipeline automatically</span>
           </div>
         </div>
 
         {/* Config */}
-        <div className="grid grid-cols-3 gap-3 mt-4">
+        <div className="grid grid-cols-3 gap-3 p-6 pt-4">
           <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <label className="text-[10px] font-bold text-blue-400 uppercase block mb-1">Travelers</label>
+            <label className="text-[10px] font-bold text-blue-400 uppercase block mb-1">✈️ Travelers</label>
             <div className="flex items-center gap-2">
               <input type="number" min="0" max="20" value={prospectTravelers} onChange={e => setProspectTravelers(Number(e.target.value))}
                 className="w-full bg-white/10 text-white font-bold rounded-lg px-3 py-2 text-sm border border-white/10 focus:outline-none focus:border-blue-400" />
@@ -169,7 +188,7 @@ export default function OutreachPage() {
             </div>
           </div>
           <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <label className="text-[10px] font-bold text-emerald-400 uppercase block mb-1">Agencies</label>
+            <label className="text-[10px] font-bold text-emerald-400 uppercase block mb-1">🏢 Agencies</label>
             <div className="flex items-center gap-2">
               <input type="number" min="0" max="20" value={prospectAgencies} onChange={e => setProspectAgencies(Number(e.target.value))}
                 className="w-full bg-white/10 text-white font-bold rounded-lg px-3 py-2 text-sm border border-white/10 focus:outline-none focus:border-emerald-400" />
@@ -177,7 +196,7 @@ export default function OutreachPage() {
             </div>
           </div>
           <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <label className="text-[10px] font-bold text-amber-400 uppercase block mb-1">Agents</label>
+            <label className="text-[10px] font-bold text-amber-400 uppercase block mb-1">🧳 Agents</label>
             <div className="flex items-center gap-2">
               <input type="number" min="0" max="20" value={prospectAgents} onChange={e => setProspectAgents(Number(e.target.value))}
                 className="w-full bg-white/10 text-white font-bold rounded-lg px-3 py-2 text-sm border border-white/10 focus:outline-none focus:border-amber-400" />
@@ -188,27 +207,27 @@ export default function OutreachPage() {
 
         {/* Result */}
         {prospectResult && (
-          <div className="mt-4 grid grid-cols-4 gap-3">
-            {[
-              { label: "Travelers", value: prospectResult.travelers, color: "text-blue-400" },
-              { label: "Agencies", value: prospectResult.agencies, color: "text-emerald-400" },
-              { label: "Agents", value: prospectResult.agents, color: "text-amber-400" },
-              { label: "Total Added", value: prospectResult.total, color: "text-white" },
-            ].map(s => (
-              <div key={s.label} className="bg-white/5 rounded-xl p-3 text-center border border-white/10">
-                <p className={`text-xl font-black ${s.color}`}>{s.value}</p>
-                <p className="text-[10px] text-slate-400 mt-0.5">{s.label}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {prospectResult && (
-          <div className="mt-3 flex items-center gap-3">
-            <Link href="/agent/leads" className="text-xs font-bold text-blue-400 hover:text-blue-300 transition">
-              View Leads →
-            </Link>
-            <span className="text-[10px] text-slate-500">New leads have status "new" and source "prospecting:ai"</span>
+          <div className="px-6 pb-6">
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { label: "Travelers", value: prospectResult.travelers, color: "text-blue-400", icon: "✈️" },
+                { label: "Agencies", value: prospectResult.agencies, color: "text-emerald-400", icon: "🏢" },
+                { label: "Agents", value: prospectResult.agents, color: "text-amber-400", icon: "🧳" },
+                { label: "Total", value: prospectResult.total, color: "text-red-400", icon: "🔥" },
+              ].map(s => (
+                <div key={s.label} className="bg-white/10 rounded-xl p-3 text-center border border-white/10">
+                  <p className="text-lg">{s.icon}</p>
+                  <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">{s.label}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex items-center gap-3">
+              <Link href="/agent/leads" className="text-xs font-bold text-red-400 hover:text-red-300 transition">
+                View Leads →
+              </Link>
+              <span className="text-[10px] text-slate-500">Source: prospecting:ai · Status: new</span>
+            </div>
           </div>
         )}
       </div>
