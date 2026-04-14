@@ -570,6 +570,7 @@ export default function AgentProposalSelectPage() {
   const [assignSearch, setAssignSearch] = useState("");
   const [leadsLoading, setLeadsLoading] = useState(false);
   const [showMarketingModal, setShowMarketingModal] = useState(false);
+  const [copiedLabel, setCopiedLabel] = useState("");
 
   /* ─── Load clients (refresh session first to avoid 401) ─── */
   useEffect(() => {
@@ -1592,15 +1593,12 @@ export default function AgentProposalSelectPage() {
 </div>
 </body></html>`;
 
-        const [copied, setCopied] = useState("");
-
         const copyText = async (text, label) => {
           try {
             await navigator.clipboard.writeText(text);
-            setCopied(label);
-            setTimeout(() => setCopied(""), 2000);
+            setCopiedLabel(label);
+            setTimeout(() => setCopiedLabel(""), 2000);
           } catch {
-            // Fallback for older browsers
             const ta = document.createElement("textarea");
             ta.value = text;
             ta.style.cssText = "position:fixed;left:-9999px";
@@ -1608,8 +1606,8 @@ export default function AgentProposalSelectPage() {
             ta.select();
             document.execCommand("copy");
             document.body.removeChild(ta);
-            setCopied(label);
-            setTimeout(() => setCopied(""), 2000);
+            setCopiedLabel(label);
+            setTimeout(() => setCopiedLabel(""), 2000);
           }
         };
 
@@ -1646,8 +1644,8 @@ export default function AgentProposalSelectPage() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Facebook / Instagram Post</h3>
-                    <button onClick={() => copyText(fbText, "post")} className={`text-xs font-bold transition ${copied === "post" ? "text-green-600" : "text-blue-600 hover:text-blue-800"}`}>
-                      {copied === "post" ? "Copied!" : "Copy Text"}
+                    <button onClick={() => copyText(fbText, "post")} className={`text-xs font-bold transition ${copiedLabel === "post" ? "text-green-600" : "text-blue-600 hover:text-blue-800"}`}>
+                      {copiedLabel === "post" ? "Copied!" : "Copy Text"}
                     </button>
                   </div>
                   <pre className="bg-slate-50 rounded-xl p-4 text-xs text-slate-700 whitespace-pre-wrap leading-relaxed border border-slate-200 max-h-60 overflow-y-auto font-sans">{fbText}</pre>
@@ -1673,8 +1671,8 @@ export default function AgentProposalSelectPage() {
 
               {/* Footer */}
               <div className="px-5 py-4 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-shrink-0 bg-white">
-                <button onClick={() => copyText(fbText, "post2")} className={`flex-1 py-3 rounded-xl text-sm font-bold transition ${copied === "post2" ? "bg-green-500 text-white" : "bg-blue-600 text-white hover:bg-blue-700"}`}>
-                  {copied === "post2" ? "Copied!" : "Copy Post Text"}
+                <button onClick={() => copyText(fbText, "post2")} className={`flex-1 py-3 rounded-xl text-sm font-bold transition ${copiedLabel === "post2" ? "bg-green-500 text-white" : "bg-blue-600 text-white hover:bg-blue-700"}`}>
+                  {copiedLabel === "post2" ? "Copied!" : "Copy Post Text"}
                 </button>
                 <button onClick={shareOnFacebook} className="flex-1 py-3 rounded-xl bg-[#1877F2] text-white text-sm font-bold hover:opacity-90 transition">
                   Share on Facebook
