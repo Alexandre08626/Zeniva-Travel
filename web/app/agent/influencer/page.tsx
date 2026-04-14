@@ -372,14 +372,14 @@ export default function InfluencerPage() {
                 <p className="text-slate-400 text-sm mt-2">Videos will appear here once the boss approves them in the AI Agents panel.</p>
               </div>
             )}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {approvedVideos.map(video => (
                 <div
                   key={video.id}
                   className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-400/30 hover:shadow-2xl hover:shadow-blue-500/10"
                 >
                   {/* Thumbnail / Player */}
-                  <div className="relative aspect-video overflow-hidden rounded-t-3xl bg-slate-900">
+                  <div className="relative overflow-hidden rounded-t-3xl bg-slate-900" style={{ aspectRatio: "9/12" }}>
                     {playingVideo === video.id ? (
                       video.youtubeId ? (
                         <iframe
@@ -391,7 +391,7 @@ export default function InfluencerPage() {
                       ) : (
                         <video
                           src={`/api/agents-proxy?endpoint=video-serve&file=${video.proxyUrl.replace("/video-serve/", "")}`}
-                          className="h-full w-full object-cover"
+                          className="h-full w-full object-contain"
                           controls autoPlay
                         />
                       )
@@ -401,7 +401,7 @@ export default function InfluencerPage() {
                           <img
                             src={video.thumbnail}
                             alt={video.title}
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
                             onError={e => { (e.target as HTMLImageElement).src = "https://placehold.co/640x360/0B1B4D/0F6CF5?text=Zeniva+Travel"; }}
                           />
                         ) : (
@@ -683,7 +683,7 @@ export default function InfluencerPage() {
                             onEnded={() => setContentPlaying(null)}
                           />
                         ) : item.thumbnail_url ? (
-                          <img src={item.thumbnail_url} alt={item.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                          <img src={item.thumbnail_url} alt={item.title} className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105" />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center">
                             <span className="text-6xl opacity-30">{isVideo ? "🎬" : "📸"}</span>
