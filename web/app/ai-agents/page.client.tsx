@@ -819,6 +819,7 @@ export default function AIAgentsPageClient() {
   const [uploadStatus, setUploadStatus] = useState("");
   const [uploadLoading, setUploadLoading] = useState(false);
   const [tiktokVideos, setTiktokVideos] = useState<TikTokVideo[]>([]);
+  const [approvalFilter, setApprovalFilter] = useState<"all" | "lina" | "alexandre" | "photo" | "promotion">("all");
   const [agents, setAgents]           = useState<AgentDef[]>([]);
   const [lastRefresh, setLastRefresh] = useState("");
   const [clock, setClock]             = useState("");
@@ -2015,14 +2016,54 @@ export default function AIAgentsPageClient() {
               </div>
             </div>
 
+            {/* ── FILTER BAR ──────────────────────────────────────────────── */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-wide mr-1">Filter:</span>
+              {([
+                { id: "all", label: "All", icon: "📁" },
+                { id: "lina", label: "Lina", icon: "🤖" },
+                { id: "alexandre", label: "Alexandre", icon: "👤" },
+                { id: "photo", label: "Photo", icon: "📸" },
+                { id: "promotion", label: "Promotion", icon: "📣" },
+              ] as const).map((f) => (
+                <button
+                  key={f.id}
+                  onClick={() => setApprovalFilter(f.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    approvalFilter === f.id
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "bg-white border border-gray-200 text-gray-600 hover:border-indigo-300 hover:text-indigo-600"
+                  }`}
+                >
+                  {f.icon} {f.label}
+                  {f.id === "all" && <span className="ml-1 opacity-60">({uploadedVideos.length})</span>}
+                </button>
+              ))}
+            </div>
+
             {/* ── YOUR UPLOADED VIDEOS ──────────────────────────────────────── */}
-            {uploadedVideos.length > 0 && (
+            {uploadedVideos.length > 0 && (() => {
+              const filteredVideos = uploadedVideos
+                .filter((v: any) => v.uploaded_by === "boss" || v.status === "pending_approval" || v.status === "voiced")
+                .filter((v: any) => {
+                  if (approvalFilter === "all") return true;
+                  const title = (v.title || "").toLowerCase();
+                  const script = (v.script_text || "").toLowerCase();
+                  const caption = (v.share_caption || "").toLowerCase();
+                  const combined = title + " " + script + " " + caption;
+                  if (approvalFilter === "lina") return v.uploaded_by !== "boss" || combined.includes("lina") || !!v.voiced_url || v.status === "voiced";
+                  if (approvalFilter === "alexandre") return v.uploaded_by === "boss";
+                  if (approvalFilter === "photo") return title.includes("photo") || title.includes("image") || title.includes("pic") || (v.content_type || "").includes("image");
+                  if (approvalFilter === "promotion") return combined.includes("promo") || combined.includes("deal") || combined.includes("offer") || combined.includes("discount") || combined.includes("sale") || combined.includes("offre");
+                  return true;
+                });
+              return filteredVideos.length > 0 ? (
               <div className="space-y-4">
                 <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
                   🎬 Your Videos
-                  <span className="text-xs font-normal text-gray-400">({uploadedVideos.length} video{uploadedVideos.length > 1 ? "s" : ""})</span>
+                  <span className="text-xs font-normal text-gray-400">({filteredVideos.length} video{filteredVideos.length > 1 ? "s" : ""})</span>
                 </h2>
-                {uploadedVideos.filter((v: any) => v.uploaded_by === "boss" || v.status === "pending_approval" || v.status === "voiced").map((video: any) => {
+                {filteredVideos.map((video: any) => {
                   // Extract filename from proxy_url or video_url
                   const extractFilename = (v: any) => {
                     if (v.proxy_url) return v.proxy_url.replace("/video-serve/", "");
@@ -2240,7 +2281,14 @@ export default function AIAgentsPageClient() {
                   );
                 })}
               </div>
-            )}
+              ) : (
+                <div className="bg-gray-50 border border-dashed border-gray-300 rounded-2xl p-10 text-center">
+                  <p className="text-3xl mb-2">🔍</p>
+                  <p className="text-gray-500 text-sm">No videos match the <strong>{approvalFilter}</strong> filter</p>
+                  <button onClick={() => setApprovalFilter("all")} className="text-xs text-indigo-600 font-semibold mt-2 hover:underline">Show all</button>
+                </div>
+              );
+            })()}
 
             {uploadedVideos.length === 0 && approvals.length === 0 && tiktokVideos.length === 0 && (
               <div className="bg-gray-50 border border-dashed border-gray-300 rounded-2xl p-16 text-center">
