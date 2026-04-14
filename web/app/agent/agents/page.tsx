@@ -84,6 +84,8 @@ export default function AgentCommandPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [tab, setTab] = useState<"active"|"all">("active");
   const [impersonating, setImpersonating] = useState<string | null>(null);
+  const [editingCommission, setEditingCommission] = useState<string>("");
+  const [savingCommission, setSavingCommission] = useState(false);
 
   const fetchAgents = async () => {
     setLoading(true);
@@ -205,6 +207,7 @@ export default function AgentCommandPage() {
   const openAgent360 = (agent: AgentEntry) => {
     setSelected(agent);
     setDetailTab("overview");
+    setEditingCommission(String(agent.commission_rate || 0));
     void fetchAgentDetail(agent.email);
   };
 
@@ -421,7 +424,6 @@ export default function AgentCommandPage() {
                       <div className="grid grid-cols-2 gap-3">
                         {[
                           { label: "Role", value: (ROLE_CFG[selected.agent_type]?.icon || "👤") + " " + (ROLE_CFG[selected.agent_type]?.label || selected.agent_type) },
-                          { label: "Commission", value: `${selected.commission_rate}%` },
                           { label: "Clients", value: detail?.clients?.length ?? "—" },
                           { label: "Leads", value: detail?.leads?.length ?? "—" },
                           { label: "Bookings", value: detail?.bookings?.length ?? "—" },
@@ -432,6 +434,44 @@ export default function AgentCommandPage() {
                             <p className="font-black text-slate-900 text-lg">{value}</p>
                           </div>
                         ))}
+
+                        {/* Editable Commission Rate */}
+                        <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
+                          <p className="text-xs text-amber-600 font-bold">Commission Rate</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="0.5"
+                              value={editingCommission}
+                              onChange={e => setEditingCommission(e.target.value)}
+                              className="w-20 text-lg font-black text-slate-900 bg-white border border-amber-300 rounded-lg px-2 py-1 focus:outline-none focus:border-amber-500"
+                            />
+                            <span className="font-black text-slate-900 text-lg">%</span>
+                            <button
+                              disabled={savingCommission}
+                              onClick={async () => {
+                                setSavingCommission(true);
+                                try {
+                                  await fetch("/api/agent/commission-rates", {
+                                    method: "PUT",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ email: selected.email, commission_rate: parseFloat(editingCommission) || 0 }),
+                                  });
+                                  setSelected({ ...selected, commission_rate: parseFloat(editingCommission) || 0 });
+                                  setAgents(prev => prev.map(a => a.email === selected.email ? { ...a, commission_rate: parseFloat(editingCommission) || 0 } : a));
+                                } catch {}
+                                setSavingCommission(false);
+                              }}
+                              className={`text-xs font-bold px-2 py-1 rounded-lg transition ${
+                                savingCommission ? "bg-slate-200 text-slate-400" : "bg-amber-500 text-white hover:bg-amber-600"
+                              }`}
+                            >
+                              {savingCommission ? "..." : "Save"}
+                            </button>
+                          </div>
+                        </div>
                       </div>
 
                       {/* Contact */}
