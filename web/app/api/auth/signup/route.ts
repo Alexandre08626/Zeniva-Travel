@@ -364,10 +364,17 @@ export async function POST(request: Request) {
       try {
         const { data: existingClient } = await supabaseAdminClient.from("clients").select("id").ilike("email", email).limit(1);
         if (!existingClient || !existingClient.length) {
+          // Get lead data if exists (destination, phone, etc.) to enrich client record
+          const { data: existingLead } = await supabaseAdminClient.from("leads").select("phone, destination, deal_value, language, source").ilike("email", email).limit(1).maybeSingle();
           await supabaseAdminClient.from("clients").insert({
-            id: `C-${authUser.id}`, name: name || "Traveler", email, owner_email: "info@zenivatravel.com", phone: null, origin: "web_signup", assigned_agents: [], primary_division: "TRAVEL", created_at: new Date().toISOString(),
+            id: `C-${authUser.id}`, name: name || "Traveler", email, owner_email: "info@zenivatravel.com",
+            phone: existingLead?.phone || null, origin: "web_signup", assigned_agents: [], primary_division: "TRAVEL",
+            lead_source: existingLead?.source || null,
+            created_at: new Date().toISOString(),
           });
         }
+        // Mark lead as "client" so it disappears from lead pipeline
+        await supabaseAdminClient.from("leads").update({ status: "client" }).ilike("email", email);
       } catch {
         // ignore client sync failures
       }

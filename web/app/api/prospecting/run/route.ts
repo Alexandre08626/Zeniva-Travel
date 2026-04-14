@@ -117,8 +117,11 @@ Return ONLY a JSON array of objects. No markdown, no explanation.`,
     if (!res.ok) return [];
     const data = await res.json();
     const text = data.choices?.[0]?.message?.content || "[]";
-    // Strip any markdown fences
-    const clean = text.replace(/```json?\s*/g, "").replace(/```/g, "").trim();
+    // Strip markdown fences and extract JSON array
+    let clean = text.replace(/```json?\s*/g, "").replace(/```/g, "").trim();
+    const arrStart = clean.indexOf("[");
+    const arrEnd = clean.lastIndexOf("]");
+    if (arrStart >= 0 && arrEnd > arrStart) clean = clean.slice(arrStart, arrEnd + 1);
     const parsed = JSON.parse(clean);
     return (Array.isArray(parsed) ? parsed : []).map((l: any) => ({
       ...l,
@@ -150,12 +153,10 @@ export async function POST(req: NextRequest) {
     const agencyCount = body.agencies ?? 3;
     const agentCount = body.agents ?? 2;
 
-    // Run all prospecting in parallel
-    const [travelers, agencies, agents] = await Promise.all([
-      travelerCount > 0 ? aiProspect("travelers", travelerCount) : [],
-      agencyCount > 0 ? aiProspect("agencies", agencyCount) : [],
-      agentCount > 0 ? aiProspect("agents", agentCount) : [],
-    ]);
+    // Run sequentially to avoid OpenAI rate limits
+    const travelers = travelerCount > 0 ? await aiProspect("travelers", travelerCount) : [];
+    const agencies = agencyCount > 0 ? await aiProspect("agencies", agencyCount) : [];
+    const agents = agentCount > 0 ? await aiProspect("agents", agentCount) : [];
 
     const { client } = getSupabaseAdminClient();
     const now = new Date().toISOString();
@@ -232,6 +233,116 @@ export async function POST(req: NextRequest) {
 
     const totalSaved = savedTravelers + savedAgencies + savedAgents;
 
+    // ─── Sofia Auto-Outreach: email + SMS to new leads ───
+    const allNewLeads = [...travelers, ...agencies, ...agents];
+    let emailsSent = 0;
+    let smsSent = 0;
+
+    for (const lead of allNewLeads) {
+      const name = lead.first_name || lead.contact_name?.split(" ")[0] || "there";
+      const dest = lead.destination_interest || lead.destination || "";
+      const lang = (lead.language || "en").toLowerCase();
+      const isAgency = lead.category === "agencies";
+      const isAgent = lead.category === "agents";
+      const email = lead.email || lead.contact_email;
+      if (!email) continue;
+
+      // Build personalized email based on lead type and language
+      let subject = "";
+      let greeting = "";
+      let body = "";
+      let cta = "";
+
+      if (lang === "fr") {
+        if (isAgency) {
+          subject = `${lead.company_name || "Votre agence"} + Zeniva AI = plus de revenus`;
+          greeting = `Bonjour ${name},`;
+          body = `Je suis Lina, l'IA concierge de Zeniva. Nous aidons les agences de voyage comme la vôtre à automatiser leur service client avec 12 agents IA spécialisés. Plus de revenus, moins de travail manuel.`;
+          cta = "Découvrir Zeniva";
+        } else if (isAgent) {
+          subject = `${name}, rejoignez le réseau Zeniva — IA + commissions supérieures`;
+          greeting = `Bonjour ${name},`;
+          body = `Vous êtes conseiller en voyage indépendant? Zeniva vous offre Lina AI (concierge 24/7) + 11 agents IA, un CRM complet, et des commissions plus élevées. Travaillez plus intelligemment.`;
+          cta = "Rejoindre Zeniva";
+        } else {
+          subject = dest ? `${name}, votre voyage à ${dest} — 15% de rabais` : `${name}, 15% sur votre premier voyage de luxe`;
+          greeting = `Bonjour ${name}!`;
+          body = dest
+            ? `J'ai remarqué que ${dest} vous intéresse! Je suis Lina, votre concierge voyage IA chez Zeniva. Je peux planifier votre voyage complet en 60 secondes — vols, hôtels, expériences. Et vous avez 15% de rabais sur votre première réservation avec le code WELCOME15.`
+            : `Je suis Lina, votre concierge voyage IA chez Zeniva. Je planifie des voyages de luxe en 60 secondes — vols, hôtels, expériences. Profitez de 15% de rabais sur votre première réservation avec le code WELCOME15.`;
+          cta = "Planifier mon voyage";
+        }
+      } else {
+        if (isAgency) {
+          subject = `${lead.company_name || "Your agency"} + Zeniva AI = more revenue`;
+          greeting = `Hi ${name},`;
+          body = `I'm Lina, Zeniva's AI concierge. We help travel agencies like yours automate client service with 12 specialized AI agents. More revenue, less manual work. Let me show you how.`;
+          cta = "Discover Zeniva";
+        } else if (isAgent) {
+          subject = `${name}, join Zeniva's network — AI tools + better commissions`;
+          greeting = `Hi ${name},`;
+          body = `As an independent travel advisor, you deserve better tools. Zeniva gives you Lina AI (24/7 concierge) + 11 specialized AI agents, a full CRM, marketing automation, and higher commissions. Work smarter, not harder.`;
+          cta = "Join Zeniva";
+        } else {
+          subject = dest ? `${name}, your trip to ${dest} — 15% OFF` : `${name}, 15% OFF your first luxury trip`;
+          greeting = `Hi ${name}!`;
+          body = dest
+            ? `I noticed you're interested in ${dest}! I'm Lina, your AI travel concierge at Zeniva. I can plan your complete trip in 60 seconds — flights, hotels, experiences. And you get 15% OFF your first booking with code WELCOME15.`
+            : `I'm Lina, your AI travel concierge at Zeniva. I plan luxury trips in 60 seconds — flights, hotels, experiences. Get 15% OFF your first booking with code WELCOME15.`;
+          cta = "Plan my trip";
+        }
+      }
+
+      const ctaUrl = isAgency ? "https://www.zenivatravel.com/partners" : isAgent ? "https://www.zenivatravel.com/signup?space=agent" : "https://www.zenivatravel.com/chat";
+
+      // Send email
+      try {
+        await sendEmail({
+          to: email,
+          fromName: "Lina — Zeniva AI",
+          subject,
+          html: `<div style="font-family:-apple-system,sans-serif;max-width:540px;margin:0 auto;">
+            <div style="background:linear-gradient(135deg,#0B1B4D,#0F3A8A);border-radius:20px 20px 0 0;padding:28px;text-align:center;">
+              <img src="https://www.zenivatravel.com/branding/lina-avatar.png" width="56" height="56" style="border-radius:50%;border:3px solid rgba(255,255,255,0.3);" alt="Lina">
+              <p style="margin:10px 0 0;font-size:18px;font-weight:900;color:white;">${subject}</p>
+            </div>
+            <div style="background:white;padding:28px;">
+              <p style="font-size:15px;color:#334155;line-height:1.7;margin:0 0 16px;">${greeting}</p>
+              <p style="font-size:14px;color:#475569;line-height:1.7;margin:0 0 24px;">${body}</p>
+              <div style="text-align:center;">
+                <a href="${ctaUrl}" style="display:inline-block;background:linear-gradient(90deg,#0F6CF5,#0B1B4D);color:white;font-size:14px;font-weight:800;padding:14px 36px;border-radius:50px;text-decoration:none;">${cta}</a>
+              </div>
+            </div>
+            <div style="background:#F8FAFC;border-radius:0 0 20px 20px;padding:20px;text-align:center;border-top:1px solid #E2E8F0;">
+              <p style="margin:0;font-size:11px;color:#94A3B8;">Zeniva Inc. · Delaware, USA · zenivatravel.com</p>
+            </div>
+          </div>`,
+        });
+        emailsSent++;
+      } catch { /* skip failed emails */ }
+
+      // Send SMS if phone available
+      const phone = lead.phone || lead.contact_phone;
+      if (phone && phone.length >= 10) {
+        try {
+          const smsBody = isAgency
+            ? `Hi ${name}! Zeniva's AI platform can help ${lead.company_name || "your agency"} automate & grow. 12 AI agents working for you 24/7. Learn more: zenivatravel.com/partners — Lina, Zeniva AI`
+            : isAgent
+            ? `Hi ${name}! Independent advisor? Zeniva gives you Lina AI + 11 agents, better commissions & full CRM. Join: zenivatravel.com/signup — Lina`
+            : dest
+            ? `Hi ${name}! Dreaming of ${dest}? Get 15% OFF with code WELCOME15. I'll plan your trip in 60s: zenivatravel.com/chat — Lina, Zeniva AI`
+            : `Hi ${name}! Get 15% OFF your first luxury trip with code WELCOME15: zenivatravel.com/chat — Lina, Zeniva AI`;
+
+          await fetch("https://vmi3097009.contaboserver.net/sms/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer zeniva-secret-2025" },
+            body: JSON.stringify({ to: phone, body: smsBody }),
+          });
+          smsSent++;
+        } catch { /* skip failed SMS */ }
+      }
+    }
+
     // Email report to HQ
     const reportHtml = `
       <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px;">
@@ -252,7 +363,7 @@ export async function POST(req: NextRequest) {
           </div>
         </div>
         <p style="color:#1e293b;font-size:14px;line-height:1.6;">
-          ${totalSaved} new leads added to your pipeline. Check them at
+          ${totalSaved} new leads added to your pipeline. Sofia sent ${emailsSent} emails${smsSent > 0 ? ` and ${smsSent} SMS` : ""}. Check them at
           <a href="https://www.zenivatravel.com/agent/leads" style="color:#0F6CF5;font-weight:bold;">Leads Page</a>.
         </p>
         <p style="color:#94a3b8;font-size:12px;margin-top:20px;">Zeniva Prospecting Engine · Automated daily</p>
@@ -269,6 +380,7 @@ export async function POST(req: NextRequest) {
       ok: true,
       saved: { travelers: savedTravelers, agencies: savedAgencies, agents: savedAgents, total: totalSaved },
       generated: { travelers: travelers.length, agencies: agencies.length, agents: agents.length },
+      sofia: { emailsSent, smsSent },
     });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Prospecting failed" }, { status: 500 });
