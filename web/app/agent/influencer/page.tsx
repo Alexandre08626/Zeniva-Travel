@@ -405,9 +405,13 @@ export default function InfluencerPage() {
                             onError={e => { (e.target as HTMLImageElement).src = "https://placehold.co/640x360/0B1B4D/0F6CF5?text=Zeniva+Travel"; }}
                           />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-900 to-slate-900">
-                            <span className="text-5xl">🎬</span>
-                          </div>
+                          <video
+                            src={`/api/agents-proxy?endpoint=video-serve&file=${video.proxyUrl.replace("/video-serve/", "")}`}
+                            className="h-full w-full object-contain"
+                            preload="metadata"
+                            muted
+                            playsInline
+                          />
                         )}
                         {/* Play button */}
                         <button
