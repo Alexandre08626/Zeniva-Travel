@@ -78,6 +78,9 @@ export default function ProposalsPage() {
   const [error, setError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleting, setDeleting] = useState(false);
 
   const fetchProposals = async () => {
     setLoading(true);
@@ -120,6 +123,29 @@ export default function ProposalsPage() {
     } finally {
       setActionLoading(null);
     }
+  };
+
+  const toggleSelect = (tripId: string) => {
+    setSelected(prev => { const n = new Set(prev); n.has(tripId) ? n.delete(tripId) : n.add(tripId); return n; });
+  };
+
+  const toggleSelectAll = () => {
+    if (selected.size === proposals.length) setSelected(new Set());
+    else setSelected(new Set(proposals.map(p => p.trip_id || p.id)));
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selected.size === 0) return;
+    if (!confirm(`Delete ${selected.size} proposal${selected.size > 1 ? "s" : ""}? This cannot be undone.`)) return;
+    setDeleting(true);
+    const ids = Array.from(selected);
+    await Promise.all(ids.map(id =>
+      fetch(`/api/proposals?id=${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {})
+    ));
+    setProposals(prev => prev.filter(p => !selected.has(p.trip_id) && !selected.has(p.id)));
+    setSelected(new Set());
+    setSelectMode(false);
+    setDeleting(false);
   };
 
   // Extract useful fields from payload
@@ -165,13 +191,40 @@ export default function ProposalsPage() {
           <h1 className="text-3xl font-black text-white">Proposals</h1>
           <p className="text-slate-400 text-sm mt-1">Manage and track your client proposals</p>
         </div>
-        <Link
-          href="/agent/trip-search"
-          className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-white text-sm shadow-lg transition hover:opacity-90"
-          style={{ background: BRAND_BLUE }}
-        >
-          + New Proposal
-        </Link>
+        <div className="flex items-center gap-2">
+          {!selectMode ? (
+            <button
+              onClick={() => { setSelectMode(true); setSelected(new Set()); }}
+              className="px-4 py-2 rounded-xl text-sm font-semibold bg-white/10 text-white/70 border border-white/20 hover:bg-white/20 transition"
+            >
+              ☑️ Select
+            </button>
+          ) : (
+            <>
+              <span className="text-xs text-white/60 font-semibold">{selected.size} selected</span>
+              <button onClick={toggleSelectAll} className="px-3 py-2 rounded-xl text-xs font-semibold bg-white/10 text-white/70 border border-white/20 hover:bg-white/20 transition">
+                {selected.size === proposals.length ? "Deselect All" : "Select All"}
+              </button>
+              <button
+                onClick={handleDeleteSelected}
+                disabled={selected.size === 0 || deleting}
+                className="px-4 py-2 rounded-xl text-sm font-bold bg-red-500 text-white hover:bg-red-600 transition disabled:opacity-40"
+              >
+                {deleting ? "Deleting..." : `🗑️ Delete (${selected.size})`}
+              </button>
+              <button onClick={() => { setSelectMode(false); setSelected(new Set()); }} className="px-3 py-2 rounded-xl text-xs font-semibold text-white/60 hover:text-white transition">
+                Cancel
+              </button>
+            </>
+          )}
+          <Link
+            href="/agent/trip-search"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-white text-sm shadow-lg transition hover:opacity-90"
+            style={{ background: BRAND_BLUE }}
+          >
+            + New Proposal
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}
@@ -224,10 +277,19 @@ export default function ProposalsPage() {
 
               return (
                 <div key={p.trip_id || p.id} className="border border-slate-100 rounded-xl overflow-hidden">
-                  <button
-                    className="w-full text-left px-5 py-4 flex items-center gap-4 hover:bg-slate-50 transition"
-                    onClick={() => setExpandedId(isOpen ? null : p.trip_id)}
+                  <div
+                    className="w-full text-left px-5 py-4 flex items-center gap-4 hover:bg-slate-50 transition cursor-pointer"
+                    onClick={() => selectMode ? toggleSelect(p.trip_id || p.id) : setExpandedId(isOpen ? null : p.trip_id)}
                   >
+                    {selectMode && (
+                      <input
+                        type="checkbox"
+                        checked={selected.has(p.trip_id) || selected.has(p.id)}
+                        onChange={() => toggleSelect(p.trip_id || p.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 shrink-0"
+                      />
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-bold text-slate-900">{clientName}</span>
@@ -251,7 +313,7 @@ export default function ProposalsPage() {
                       <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${cfg.bg} ${cfg.text}`}>{cfg.label}</span>
                       <span className="text-slate-400">{isOpen ? "▲" : "▼"}</span>
                     </div>
-                  </button>
+                  </div>
 
                   {isOpen && (
                     <div className="px-5 pb-5 border-t border-slate-100 bg-slate-50">
