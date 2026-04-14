@@ -1524,100 +1524,110 @@ export default function AgentProposalSelectPage() {
         const flightOut = selected.flights.outbound;
         const flightRet = selected.flights.inbound;
         const activityList = selected.activities.map(a => a.name).filter(Boolean);
+        const fmtRound = (n) => "$" + Math.round(n).toLocaleString();
 
-        // Facebook post text
-        const fbText = [
+        // Build clean FB post (no empty double lines)
+        const fbLines = [
           `✈️🌴 ${dest} — Trip Package Available!`,
           "",
-          dates ? `📅 ${dates}` : "",
-          `👥 ${travelers} travelers`,
-          "",
-          flightOut ? `✈️ Flight: ${flightOut.name || ""} ${flightOut.route || ""}` : "",
-          flightRet ? `✈️ Return: ${flightRet.name || ""} ${flightRet.route || ""}` : "",
-          "",
-          hotelList.length ? `🏨 Hotel options:` : "",
-          ...hotelList.map(h => `  • ${h}`),
-          "",
-          activityList.length ? `🎯 Experiences:` : "",
-          ...activityList.map(a => `  • ${a}`),
-          "",
-          grandTotal > 0 ? (grandTotal === grandTotalMax
-            ? `💰 From $${grandTotal.toLocaleString()} per person`
-            : `💰 From $${grandTotal.toLocaleString()} – $${grandTotalMax.toLocaleString()}`) : "",
-          "",
-          "🔥 Limited availability — DM us or comment BOOK to reserve!",
-          "",
-          "💬 Chat with Lina AI to customize your trip:",
-          "👉 zenivatravel.com/chat",
-          "",
-          "#ZenivaTravel #" + dest.replace(/[^a-zA-Z]/g, "") + " #TravelDeals #LuxuryTravel #AITravel #Vacation #AllInclusive",
-        ].filter(l => l !== undefined && l !== null).join("\n");
+        ];
+        if (dates) fbLines.push(`📅 ${dates}`);
+        fbLines.push(`👥 ${travelers} travelers`);
+        if (flightOut) { fbLines.push(""); fbLines.push(`✈️ Flight: ${flightOut.name || ""} ${flightOut.route || ""}`); }
+        if (flightRet) fbLines.push(`✈️ Return: ${flightRet.name || ""} ${flightRet.route || ""}`);
+        if (hotelList.length) { fbLines.push(""); fbLines.push("🏨 Hotel options:"); hotelList.forEach(h => fbLines.push(`  • ${h}`)); }
+        if (activityList.length) { fbLines.push(""); fbLines.push("🎯 Experiences:"); activityList.forEach(a => fbLines.push(`  • ${a}`)); }
+        if (grandTotal > 0) {
+          fbLines.push("");
+          fbLines.push(grandTotal === grandTotalMax ? `💰 From ${fmtRound(grandTotal)}` : `💰 From ${fmtRound(grandTotal)} – ${fmtRound(grandTotalMax)}`);
+        }
+        fbLines.push("");
+        fbLines.push("🔥 Limited availability — DM us or comment BOOK to reserve!");
+        fbLines.push("");
+        fbLines.push("💬 Chat with Lina AI to customize your trip:");
+        fbLines.push("👉 zenivatravel.com/chat");
+        fbLines.push("");
+        fbLines.push("#ZenivaTravel #" + dest.replace(/[^a-zA-Z]/g, "") + " #TravelDeals #LuxuryTravel #AITravel #Vacation");
+        const fbText = fbLines.join("\n");
 
-        // HTML Ad
-        const hotelImg = selected.hotels[0]?.image || selected.hotels[0]?.thumbnail || "";
+        // HTML Ad for Facebook / download
+        const hotelImg = selected.hotels[0]?.image || selected.hotels[0]?.thumbnail || selected.hotels[0]?.photos?.[0] || "";
+        const priceStr = grandTotal > 0 ? (grandTotal === grandTotalMax ? fmtRound(grandTotal) : fmtRound(grandTotal) + " – " + fmtRound(grandTotalMax)) : "";
+
         const adHtml = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0B1B4D;color:white;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}</style>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F1F5F9;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}</style>
 </head><body>
-<div style="width:100%;max-width:540px;border-radius:24px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
-  <!-- Hero -->
-  ${hotelImg ? `<div style="height:280px;background:url('${hotelImg}') center/cover;position:relative;">` : `<div style="height:280px;background:linear-gradient(135deg,#0F6CF5,#0B1B4D);position:relative;">`}
-    <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(11,27,77,0.9) 0%,transparent 50%);"></div>
-    <div style="position:absolute;bottom:24px;left:24px;right:24px;">
-      <p style="font-size:12px;font-weight:800;color:#E6B85A;text-transform:uppercase;letter-spacing:2px;">Zeniva Travel</p>
-      <h1 style="font-size:32px;font-weight:900;margin-top:4px;">${dest}</h1>
-      ${dates ? `<p style="font-size:14px;color:rgba(255,255,255,0.8);margin-top:4px;">📅 ${dates}</p>` : ""}
+<div style="width:100%;max-width:540px;border-radius:24px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.15);background:white;">
+  <div style="height:260px;background:${hotelImg ? "url('" + hotelImg + "') center/cover" : "linear-gradient(135deg,#0F6CF5,#0B1B4D)"};position:relative;">
+    <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(11,27,77,0.85) 0%,rgba(0,0,0,0.1) 50%);"></div>
+    <div style="position:absolute;top:16px;left:16px;background:rgba(230,184,90,0.9);color:#0B1B4D;font-size:11px;font-weight:900;padding:5px 12px;border-radius:999px;letter-spacing:1px;">ZENIVA TRAVEL</div>
+    <div style="position:absolute;bottom:20px;left:20px;right:20px;">
+      <h1 style="font-size:28px;font-weight:900;color:white;text-shadow:0 2px 8px rgba(0,0,0,0.3);">${dest}</h1>
+      ${dates ? `<p style="font-size:13px;color:rgba(255,255,255,0.85);margin-top:4px;">📅 ${dates} · 👥 ${travelers} travelers</p>` : ""}
     </div>
   </div>
-
-  <!-- Content -->
-  <div style="background:white;padding:28px;">
-    ${flightOut ? `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <div style="width:36px;height:36px;background:#EFF6FF;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;">✈️</div>
-      <div><p style="font-size:11px;color:#6B7280;font-weight:600;">FLIGHT</p><p style="font-size:14px;color:#0B1B4D;font-weight:800;">${flightOut.name || ""} ${flightOut.route || ""}</p></div>
+  <div style="padding:24px;">
+    ${flightOut ? `<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:12px;background:#F8FAFC;border-radius:12px;">
+      <div style="width:36px;height:36px;background:#EFF6FF;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;">✈️</div>
+      <div><p style="font-size:10px;color:#6B7280;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">FLIGHT</p><p style="font-size:13px;color:#0B1B4D;font-weight:800;margin-top:2px;">${flightOut.name || ""} · ${flightOut.route || ""}</p></div>
     </div>` : ""}
-    ${hotelList.map(h => `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <div style="width:36px;height:36px;background:#F0FDF4;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;">🏨</div>
-      <div><p style="font-size:11px;color:#6B7280;font-weight:600;">HOTEL OPTION</p><p style="font-size:14px;color:#0B1B4D;font-weight:800;">${h}</p></div>
+    ${hotelList.map(h => `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:12px;background:#F8FAFC;border-radius:12px;">
+      <div style="width:36px;height:36px;background:#F0FDF4;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;">🏨</div>
+      <div><p style="font-size:10px;color:#6B7280;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">HOTEL OPTION</p><p style="font-size:13px;color:#0B1B4D;font-weight:800;margin-top:2px;">${h}</p></div>
     </div>`).join("")}
-    ${activityList.map(a => `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <div style="width:36px;height:36px;background:#FFFBEB;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;">🎯</div>
-      <div><p style="font-size:11px;color:#6B7280;font-weight:600;">EXPERIENCE</p><p style="font-size:14px;color:#0B1B4D;font-weight:800;">${a}</p></div>
+    ${activityList.map(a => `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:12px;background:#F8FAFC;border-radius:12px;">
+      <div style="width:36px;height:36px;background:#FFFBEB;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;">🎯</div>
+      <div><p style="font-size:10px;color:#6B7280;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">EXPERIENCE</p><p style="font-size:13px;color:#0B1B4D;font-weight:800;margin-top:2px;">${a}</p></div>
     </div>`).join("")}
-
-    <!-- Price -->
-    ${grandTotal > 0 ? `<div style="margin-top:16px;padding:16px;background:linear-gradient(135deg,#0B1B4D,#0F3A8A);border-radius:16px;text-align:center;">
-      <p style="font-size:11px;color:#E6B85A;font-weight:800;text-transform:uppercase;letter-spacing:2px;">Starting from</p>
-      <p style="font-size:28px;font-weight:900;color:white;margin-top:4px;">${grandTotal === grandTotalMax ? "$" + grandTotal.toLocaleString() : "$" + grandTotal.toLocaleString() + " – $" + grandTotalMax.toLocaleString()}</p>
-      <p style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px;">per person · all inclusive</p>
+    ${priceStr ? `<div style="margin-top:16px;padding:20px;background:linear-gradient(135deg,#0B1B4D,#0F3A8A);border-radius:16px;text-align:center;">
+      <p style="font-size:10px;color:#E6B85A;font-weight:800;text-transform:uppercase;letter-spacing:2px;">STARTING FROM</p>
+      <p style="font-size:26px;font-weight:900;color:white;margin-top:6px;">${priceStr}</p>
     </div>` : ""}
-
-    <!-- CTA -->
     <div style="margin-top:16px;text-align:center;">
-      <a href="https://www.zenivatravel.com/chat" style="display:inline-block;background:linear-gradient(90deg,#0F6CF5,#0B1B4D);color:white;font-size:14px;font-weight:800;padding:14px 40px;border-radius:50px;text-decoration:none;">Book Now — Chat with Lina</a>
-      <p style="font-size:11px;color:#94A3B8;margin-top:12px;">DM us or comment BOOK · zenivatravel.com</p>
+      <a href="https://www.zenivatravel.com/chat" style="display:inline-block;background:linear-gradient(90deg,#0F6CF5,#0B1B4D);color:white;font-size:13px;font-weight:800;padding:14px 36px;border-radius:50px;text-decoration:none;">Book Now — Chat with Lina ✨</a>
+      <p style="font-size:11px;color:#94A3B8;margin-top:10px;">DM or comment BOOK · zenivatravel.com</p>
     </div>
   </div>
 </div>
 </body></html>`;
 
-        const copyText = (text) => {
-          navigator.clipboard.writeText(text).catch(() => {});
+        const [copied, setCopied] = useState("");
+
+        const copyText = async (text, label) => {
+          try {
+            await navigator.clipboard.writeText(text);
+            setCopied(label);
+            setTimeout(() => setCopied(""), 2000);
+          } catch {
+            // Fallback for older browsers
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            ta.style.cssText = "position:fixed;left:-9999px";
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand("copy");
+            document.body.removeChild(ta);
+            setCopied(label);
+            setTimeout(() => setCopied(""), 2000);
+          }
         };
 
         const downloadHtml = () => {
           const blob = new Blob([adHtml], { type: "text/html" });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = `zeniva-ad-${dest.replace(/\s+/g, "-").toLowerCase()}.html`;
-          a.click();
-          URL.revokeObjectURL(url);
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = `zeniva-ad-${dest.replace(/\s+/g, "-").toLowerCase()}.html`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
         };
 
         const shareOnFacebook = () => {
-          const url = encodeURIComponent("https://www.zenivatravel.com/chat");
-          window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${encodeURIComponent(fbText.slice(0, 500))}`, "_blank", "width=600,height=400");
+          // Copy text first, then open share dialog
+          copyText(fbText, "fb");
+          const shareUrl = encodeURIComponent("https://www.zenivatravel.com/chat");
+          window.open(`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`, "_blank", "width=600,height=500");
         };
 
         return (
@@ -1625,7 +1635,7 @@ export default function AgentProposalSelectPage() {
             <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
               {/* Header */}
               <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
-                <h2 className="text-lg font-black text-slate-900">📣 Marketing — {dest}</h2>
+                <h2 className="text-lg font-black text-slate-900">Marketing — {dest}</h2>
                 <button onClick={() => setShowMarketingModal(false)} className="text-slate-400 hover:text-slate-600 text-lg">✕</button>
               </div>
 
@@ -1636,38 +1646,41 @@ export default function AgentProposalSelectPage() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Facebook / Instagram Post</h3>
-                    <button onClick={() => copyText(fbText)} className="text-xs font-bold text-blue-600 hover:text-blue-800 transition">Copy Text</button>
+                    <button onClick={() => copyText(fbText, "post")} className={`text-xs font-bold transition ${copied === "post" ? "text-green-600" : "text-blue-600 hover:text-blue-800"}`}>
+                      {copied === "post" ? "Copied!" : "Copy Text"}
+                    </button>
                   </div>
-                  <pre className="bg-slate-50 rounded-xl p-4 text-xs text-slate-700 whitespace-pre-wrap leading-relaxed border border-slate-200 max-h-52 overflow-y-auto font-sans">{fbText}</pre>
+                  <pre className="bg-slate-50 rounded-xl p-4 text-xs text-slate-700 whitespace-pre-wrap leading-relaxed border border-slate-200 max-h-60 overflow-y-auto font-sans">{fbText}</pre>
                 </div>
 
                 {/* HTML Ad Preview */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">HTML Ad Preview</h3>
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Ad Preview</h3>
                     <button onClick={downloadHtml} className="text-xs font-bold text-pink-600 hover:text-pink-800 transition">Download HTML</button>
                   </div>
-                  <div className="rounded-xl overflow-hidden border border-slate-200 bg-[#0B1B4D]">
+                  <div className="rounded-xl overflow-hidden border border-slate-200" style={{ background: "#F1F5F9" }}>
                     <iframe
                       srcDoc={adHtml}
                       className="w-full border-0"
-                      style={{ height: 500, pointerEvents: "none" }}
+                      style={{ height: 560 }}
                       title="Ad Preview"
+                      sandbox="allow-same-origin"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="px-5 py-4 border-t border-slate-100 flex items-center gap-3 flex-shrink-0 bg-white flex-wrap">
-                <button onClick={() => copyText(fbText)} className="flex-1 py-3 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition">
-                  📋 Copy Post Text
+              <div className="px-5 py-4 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-shrink-0 bg-white">
+                <button onClick={() => copyText(fbText, "post2")} className={`flex-1 py-3 rounded-xl text-sm font-bold transition ${copied === "post2" ? "bg-green-500 text-white" : "bg-blue-600 text-white hover:bg-blue-700"}`}>
+                  {copied === "post2" ? "Copied!" : "Copy Post Text"}
                 </button>
                 <button onClick={shareOnFacebook} className="flex-1 py-3 rounded-xl bg-[#1877F2] text-white text-sm font-bold hover:opacity-90 transition">
-                  📘 Share on Facebook
+                  Share on Facebook
                 </button>
                 <button onClick={downloadHtml} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-orange-500 text-white text-sm font-bold hover:opacity-90 transition">
-                  ⬇️ Download Ad
+                  Download Ad
                 </button>
               </div>
             </div>
