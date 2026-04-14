@@ -81,6 +81,9 @@ export default function CatalogPage() {
   const [flightDate, setFlightDate] = useState("");
   const [flightReturn, setFlightReturn] = useState("");
   const [flightTravelers, setFlightTravelers] = useState("2");
+  // Marketing modal
+  const [showMarketing, setShowMarketing] = useState(false);
+  const [copiedLabel, setCopiedLabel] = useState("");
 
   // Load catalog data
   useEffect(() => {
@@ -376,12 +379,20 @@ export default function CatalogPage() {
                 <span className="text-sm font-bold text-slate-900">{selectedIds.length} selected</span>
                 <button onClick={() => setSelectedIds([])} className="text-xs text-slate-400 hover:text-red-500 transition">Clear all</button>
               </div>
-              <button
-                onClick={() => setSendModal(true)}
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 text-white text-sm font-bold shadow-lg hover:opacity-90 transition-opacity"
-              >
-                Send to Client / Lead
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowMarketing(true)}
+                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-orange-500 text-white text-sm font-bold shadow-lg hover:opacity-90 transition-opacity"
+                >
+                  Marketing
+                </button>
+                <button
+                  onClick={() => setSendModal(true)}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 text-white text-sm font-bold shadow-lg hover:opacity-90 transition-opacity"
+                >
+                  Send to Client / Lead
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -564,6 +575,155 @@ export default function CatalogPage() {
           </div>
         </div>
       )}
+
+      {/* Marketing Modal */}
+      {showMarketing && (() => {
+        const items = getSelectedItems();
+        const itemNames = items.map(i => i.name);
+        const itemTypes = [...new Set(items.map(i => i.type))];
+        const title = itemTypes.join(" + ");
+        const fmtRound = (n: number) => "$" + Math.round(n).toLocaleString();
+
+        // Facebook post
+        const fbLines = [
+          `🌴✨ ${title} — Exclusive Properties Available!`,
+          "",
+        ];
+        if (flightDate && flightReturn) fbLines.push(`📅 ${flightDate} → ${flightReturn}`);
+        fbLines.push("");
+        items.forEach(item => {
+          const icon = item.type === "ZeniStay" ? "🏠" : item.type === "ZeniYacht" ? "🛥️" : "🏨";
+          fbLines.push(`${icon} ${item.name}`);
+          if (item.location) fbLines.push(`   📍 ${item.location}`);
+          if (item.price) fbLines.push(`   ${item.price}`);
+          fbLines.push("");
+        });
+        fbLines.push("🔥 Limited availability — DM us or comment BOOK!");
+        fbLines.push("");
+        fbLines.push("💬 Chat with Lina AI to book:");
+        fbLines.push("👉 zenivatravel.com/chat");
+        fbLines.push("");
+        fbLines.push("#ZenivaTravel #LuxuryTravel #" + itemTypes.map(t => t.replace("Zeni", "")).join(" #Zeni") + " #TravelDeals #Vacation");
+        const fbText = fbLines.join("\n");
+
+        // HTML Ad
+        const heroImg = items[0]?.thumbnail || "";
+        const absImg = heroImg ? (heroImg.startsWith("http") ? heroImg : "https://www.zenivatravel.com" + heroImg) : "";
+
+        const adHtml = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F1F5F9;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}</style>
+</head><body>
+<div style="width:100%;max-width:540px;border-radius:24px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.15);background:white;">
+  <div style="height:260px;background:${absImg ? "url('" + absImg + "') center/cover" : "linear-gradient(135deg,#E6B85A,#0B1B4D)"};position:relative;">
+    <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(11,27,77,0.85) 0%,rgba(0,0,0,0.1) 50%);"></div>
+    <div style="position:absolute;top:16px;left:16px;background:rgba(230,184,90,0.9);color:#0B1B4D;font-size:11px;font-weight:900;padding:5px 12px;border-radius:999px;letter-spacing:1px;">ZENIVA TRAVEL</div>
+    <div style="position:absolute;bottom:20px;left:20px;right:20px;">
+      <h1 style="font-size:26px;font-weight:900;color:white;text-shadow:0 2px 8px rgba(0,0,0,0.3);">${title}</h1>
+      ${flightDate && flightReturn ? `<p style="font-size:13px;color:rgba(255,255,255,0.85);margin-top:4px;">📅 ${flightDate} → ${flightReturn}</p>` : ""}
+      <p style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:2px;">${items.length} exclusive propert${items.length > 1 ? "ies" : "y"}</p>
+    </div>
+  </div>
+  <div style="padding:24px;">
+    ${items.map(item => {
+      const absThumb = item.thumbnail ? (item.thumbnail.startsWith("http") ? item.thumbnail : "https://www.zenivatravel.com" + item.thumbnail) : "";
+      const badgeColor = item.type === "ZeniStay" ? "#F59E0B" : item.type === "ZeniYacht" ? "#0F6CF5" : "#10B981";
+      return `<div style="display:flex;gap:12px;margin-bottom:14px;padding:12px;background:#F8FAFC;border-radius:14px;">
+      ${absThumb ? `<img src="${absThumb}" style="width:70px;height:70px;border-radius:10px;object-fit:cover;" alt="">` : ""}
+      <div style="flex:1;min-width:0;">
+        <span style="display:inline-block;background:${badgeColor};color:white;font-size:9px;font-weight:900;padding:2px 8px;border-radius:999px;margin-bottom:4px;">${item.type}</span>
+        <p style="font-size:14px;font-weight:800;color:#0B1B4D;margin-top:2px;">${item.name}</p>
+        ${item.location ? `<p style="font-size:11px;color:#6B7280;margin-top:2px;">📍 ${item.location}</p>` : ""}
+        ${item.price ? `<p style="font-size:13px;font-weight:800;color:${badgeColor};margin-top:4px;">${item.price}</p>` : ""}
+      </div>
+    </div>`;
+    }).join("")}
+    <div style="margin-top:16px;text-align:center;">
+      <a href="https://www.zenivatravel.com/chat" style="display:inline-block;background:linear-gradient(90deg,#0F6CF5,#0B1B4D);color:white;font-size:13px;font-weight:800;padding:14px 36px;border-radius:50px;text-decoration:none;">Book Now — Chat with Lina ✨</a>
+      <p style="font-size:11px;color:#94A3B8;margin-top:10px;">DM or comment BOOK · zenivatravel.com</p>
+    </div>
+  </div>
+</div>
+</body></html>`;
+
+        const copyText = async (text: string, label: string) => {
+          try {
+            await navigator.clipboard.writeText(text);
+          } catch {
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            ta.style.cssText = "position:fixed;left:-9999px";
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand("copy");
+            document.body.removeChild(ta);
+          }
+          setCopiedLabel(label);
+          setTimeout(() => setCopiedLabel(""), 2000);
+        };
+
+        const downloadHtml = () => {
+          const blob = new Blob([adHtml], { type: "text/html" });
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = `zeniva-catalog-${itemTypes.join("-").toLowerCase()}.html`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        };
+
+        const shareOnFacebook = () => {
+          copyText(fbText, "fb");
+          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent("https://www.zenivatravel.com/chat")}`, "_blank", "width=600,height=500");
+        };
+
+        return (
+          <div className="fixed inset-0 z-[9999] bg-black/60 flex items-end sm:items-center justify-center" onClick={() => setShowMarketing(false)}>
+            <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] shadow-2xl flex flex-col" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+              <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+                <h2 className="text-lg font-black text-slate-900">Marketing — {title}</h2>
+                <button onClick={() => setShowMarketing(false)} className="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto min-h-0 p-5 space-y-5">
+                {/* FB Post */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Facebook / Instagram Post</h3>
+                    <button onClick={() => copyText(fbText, "post")} className={`text-xs font-bold transition ${copiedLabel === "post" ? "text-green-600" : "text-blue-600 hover:text-blue-800"}`}>
+                      {copiedLabel === "post" ? "Copied!" : "Copy Text"}
+                    </button>
+                  </div>
+                  <pre className="bg-slate-50 rounded-xl p-4 text-xs text-slate-700 whitespace-pre-wrap leading-relaxed border border-slate-200 max-h-60 overflow-y-auto font-sans">{fbText}</pre>
+                </div>
+
+                {/* Ad Preview */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Ad Preview</h3>
+                    <button onClick={downloadHtml} className="text-xs font-bold text-pink-600 hover:text-pink-800 transition">Download HTML</button>
+                  </div>
+                  <div className="rounded-xl overflow-hidden border border-slate-200" style={{ background: "#F1F5F9" }}>
+                    <iframe srcDoc={adHtml} className="w-full border-0" style={{ height: 560 }} title="Ad Preview" sandbox="allow-same-origin" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="px-5 py-4 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-shrink-0 bg-white">
+                <button onClick={() => copyText(fbText, "post2")} className={`flex-1 py-3 rounded-xl text-sm font-bold transition ${copiedLabel === "post2" ? "bg-green-500 text-white" : "bg-blue-600 text-white hover:bg-blue-700"}`}>
+                  {copiedLabel === "post2" ? "Copied!" : "Copy Post Text"}
+                </button>
+                <button onClick={shareOnFacebook} className="flex-1 py-3 rounded-xl bg-[#1877F2] text-white text-sm font-bold hover:opacity-90 transition">
+                  Share on Facebook
+                </button>
+                <button onClick={downloadHtml} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-orange-500 text-white text-sm font-bold hover:opacity-90 transition">
+                  Download Ad
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </main>
   );
 }
