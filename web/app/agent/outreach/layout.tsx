@@ -16,6 +16,7 @@ const tabs = [
   { label: "Leads", href: "/agent/outreach/newLeads" },
   { label: "Analytics", href: "/agent/outreach/analytics" },
   { label: "Social", href: "/agent/outreach/social" },
+  { label: "🔥 Marco", href: "/agent/outreach/marco" },
 ];
 
 function OutreachShell({ children }: { children: ReactNode }) {
