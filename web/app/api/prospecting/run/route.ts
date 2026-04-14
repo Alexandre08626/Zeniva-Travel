@@ -52,43 +52,49 @@ For each lead provide REALISTIC data (use common names, real cities, plausible e
 
 Return ONLY a JSON array of objects. No markdown, no explanation.`,
 
-    agencies: `You are a B2B lead researcher for Zeniva Travel, a travel tech company.
+    agencies: `You are a B2B sales researcher for Zeniva, an AI-powered travel platform with Lina AI concierge + 11 specialized AI agents.
 
-Find ${count} REAL travel agencies in USA and Canada that could partner with Zeniva. Look for:
-- Small to mid-size agencies (5-50 agents)
-- Agencies without strong tech/AI tools
-- Agencies in growing markets
+Find ${count} REAL travel agencies in USA and Canada that NEED Zeniva's platform. Look for:
+- Small to mid-size agencies (5-50 agents) that lack AI/tech tools
+- Agencies still using manual booking processes or outdated systems
+- Agencies in growing markets that could scale with AI
 - Mix of: luxury agencies, corporate travel, leisure/vacation agencies
+- Agencies NOT already using AI concierge tools
+
+The pitch: Zeniva provides Lina AI (24/7 AI travel concierge) + 11 AI agents (marketing, lead gen, finance, compliance, etc.) as a white-label platform for their agency.
 
 For each provide REALISTIC data:
 - company_name (realistic agency name)
 - first_name, last_name (owner or manager contact)
 - email (agency-style email like info@agencyname.com)
 - phone, website (plausible)
-- city, province/state, country (real cities)
-- estimated_value (monthly partnership value, $200-$2000)
-- notes (why good partner, size, specialty)
-- source (google maps, yelp, linkedin, industry directory)
+- city, province/state, country (real cities in USA/Canada)
+- estimated_value (monthly SaaS subscription value, $200-$2000)
+- notes (why they need Zeniva: current pain points, size, lack of tech, growth potential)
+- source (google maps, yelp, linkedin, industry directory, ASTA, Virtuoso)
 
 Return ONLY a JSON array of objects. No markdown, no explanation.`,
 
-    agents: `You are a recruitment researcher for Zeniva Travel.
+    agents: `You are a recruitment researcher for Zeniva, an AI-powered travel platform.
 
-Find ${count} independent travel agents or advisors in USA and Canada who could join Zeniva's network. Look for:
-- Independent contractors or home-based agents
-- Agents with 2-10 years experience
-- Agents looking for better tools, commissions, or support
-- Certified travel advisors (CTA, CTC, ACC)
+Find ${count} independent travel agents or advisors in USA and Canada who should work with Zeniva's AI platform. Look for:
+- Independent contractors or home-based agents frustrated with their current tools
+- Agents with 2-10 years experience looking for an edge
+- Agents who would benefit from Lina AI (24/7 AI concierge that handles clients)
+- Agents who want higher commissions and better tech support
+- Certified travel advisors (CTA, CTC, ACC) going solo
+
+The pitch: Join Zeniva's network — get Lina AI + 11 specialized agents working for you 24/7, better commissions, full CRM, marketing automation, and lead generation.
 
 For each provide REALISTIC data:
 - first_name, last_name
 - email (personal email)
 - phone
-- city, province/state, country
+- city, province/state, country (real cities in USA/Canada)
 - company_name (if they have their own brand, otherwise "Independent")
 - estimated_value (monthly commission potential, $500-$3000)
-- notes (experience, specialty, why good recruit)
-- source (linkedin, travel advisor directories, ASTA, Virtuoso, consortia)
+- notes (experience, specialty, current frustrations, why Zeniva would help them)
+- source (linkedin, travel advisor directories, ASTA, Virtuoso, consortia, facebook groups)
 
 Return ONLY a JSON array of objects. No markdown, no explanation.`,
   };

@@ -3,11 +3,11 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 
 const ENGINES = [
-  { id: "reddit", label: "Reddit", icon: "🔴", desc: "Travel subs, honeymoon requests, trip planning threads", color: "#ef4444" },
-  { id: "competitors", label: "Competitors", icon: "🏢", desc: "Agency websites, competitor pricing, unclaimed markets", color: "#6366f1" },
-  { id: "social", label: "Social", icon: "📱", desc: "Instagram travel tags, TikTok travel creators, Facebook groups", color: "#ec4899" },
-  { id: "seo", label: "SEO Intent", icon: "🔍", desc: "Google search intent: 'luxury vacation 2026', 'all inclusive cancun'", color: "#f59e0b" },
-  { id: "deepweb", label: "Deep Web", icon: "🌐", desc: "Travel forums, agency directories, ASTA listings, Virtuoso", color: "#06b6d4" },
+  { id: "reddit", label: "Reddit", icon: "🔴", desc: "Travel subs, honeymoon requests, trip planning threads, luxury travel discussions", color: "#ef4444" },
+  { id: "agencies", label: "Agency Finder", icon: "🏢", desc: "Find agencies without AI tools — sell them Zeniva's platform with Lina + 11 AI agents", color: "#6366f1" },
+  { id: "social", label: "Social", icon: "📱", desc: "Instagram travel tags, TikTok travel creators, Facebook groups, travel influencers", color: "#ec4899" },
+  { id: "agents", label: "Agent Recruit", icon: "🧳", desc: "Independent advisors looking for better tools — recruit them to work with Zeniva's AI platform", color: "#f59e0b" },
+  { id: "travelers", label: "Traveler Intent", icon: "✈️", desc: "Google search intent, travel forums, wedding planners, luxury vacation seekers", color: "#06b6d4" },
 ];
 
 type ProspectResult = { travelers: number; agencies: number; agents: number; total: number };
