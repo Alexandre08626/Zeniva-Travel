@@ -39,6 +39,13 @@ export default function OutreachPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Prospecting engine state
+  const [prospecting, setProspecting] = useState(false);
+  const [prospectResult, setProspectResult] = useState<{ travelers: number; agencies: number; agents: number; total: number } | null>(null);
+  const [prospectTravelers, setProspectTravelers] = useState(5);
+  const [prospectAgencies, setProspectAgencies] = useState(3);
+  const [prospectAgents, setProspectAgents] = useState(2);
+
   const fetchCampaigns = useCallback(async () => {
     setLoading(true);
     try {
@@ -103,6 +110,107 @@ export default function OutreachPage() {
             <p className="text-2xl font-bold text-slate-900">{s.value}</p>
           </div>
         ))}
+      </div>
+
+      {/* Prospecting Engine */}
+      <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl border border-slate-700 p-6 mb-6">
+        <div className="flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-lg">🎯</div>
+              <div>
+                <h2 className="text-lg font-black text-white">Prospecting Engine</h2>
+                <p className="text-xs text-slate-400">AI finds quality leads daily — travelers, agencies, independent agents</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 mt-3">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold bg-green-500/20 text-green-400 px-2.5 py-1 rounded-full">
+                <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" /> Runs daily at 6AM
+              </span>
+              <span className="text-[10px] text-slate-500">Leads go to your pipeline automatically</span>
+            </div>
+          </div>
+
+          {/* Manual trigger */}
+          <div className="flex flex-col items-end gap-3">
+            <button
+              onClick={async () => {
+                setProspecting(true);
+                setProspectResult(null);
+                try {
+                  const res = await fetch("/api/prospecting/run", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ travelers: prospectTravelers, agencies: prospectAgencies, agents: prospectAgents }),
+                  });
+                  if (res.ok) {
+                    const data = await res.json();
+                    setProspectResult(data.saved || null);
+                  }
+                } catch {}
+                setProspecting(false);
+              }}
+              disabled={prospecting}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-violet-600 text-white text-sm font-bold shadow-lg hover:opacity-90 transition disabled:opacity-50"
+            >
+              {prospecting ? "🔍 Searching..." : "🚀 Run Now"}
+            </button>
+          </div>
+        </div>
+
+        {/* Config */}
+        <div className="grid grid-cols-3 gap-3 mt-4">
+          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+            <label className="text-[10px] font-bold text-blue-400 uppercase block mb-1">Travelers</label>
+            <div className="flex items-center gap-2">
+              <input type="number" min="0" max="20" value={prospectTravelers} onChange={e => setProspectTravelers(Number(e.target.value))}
+                className="w-full bg-white/10 text-white font-bold rounded-lg px-3 py-2 text-sm border border-white/10 focus:outline-none focus:border-blue-400" />
+              <span className="text-xs text-slate-400 shrink-0">/day</span>
+            </div>
+          </div>
+          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+            <label className="text-[10px] font-bold text-emerald-400 uppercase block mb-1">Agencies</label>
+            <div className="flex items-center gap-2">
+              <input type="number" min="0" max="20" value={prospectAgencies} onChange={e => setProspectAgencies(Number(e.target.value))}
+                className="w-full bg-white/10 text-white font-bold rounded-lg px-3 py-2 text-sm border border-white/10 focus:outline-none focus:border-emerald-400" />
+              <span className="text-xs text-slate-400 shrink-0">/day</span>
+            </div>
+          </div>
+          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+            <label className="text-[10px] font-bold text-amber-400 uppercase block mb-1">Agents</label>
+            <div className="flex items-center gap-2">
+              <input type="number" min="0" max="20" value={prospectAgents} onChange={e => setProspectAgents(Number(e.target.value))}
+                className="w-full bg-white/10 text-white font-bold rounded-lg px-3 py-2 text-sm border border-white/10 focus:outline-none focus:border-amber-400" />
+              <span className="text-xs text-slate-400 shrink-0">/day</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Result */}
+        {prospectResult && (
+          <div className="mt-4 grid grid-cols-4 gap-3">
+            {[
+              { label: "Travelers", value: prospectResult.travelers, color: "text-blue-400" },
+              { label: "Agencies", value: prospectResult.agencies, color: "text-emerald-400" },
+              { label: "Agents", value: prospectResult.agents, color: "text-amber-400" },
+              { label: "Total Added", value: prospectResult.total, color: "text-white" },
+            ].map(s => (
+              <div key={s.label} className="bg-white/5 rounded-xl p-3 text-center border border-white/10">
+                <p className={`text-xl font-black ${s.color}`}>{s.value}</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">{s.label}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {prospectResult && (
+          <div className="mt-3 flex items-center gap-3">
+            <Link href="/agent/leads" className="text-xs font-bold text-blue-400 hover:text-blue-300 transition">
+              View Leads →
+            </Link>
+            <span className="text-[10px] text-slate-500">New leads have status "new" and source "prospecting:ai"</span>
+          </div>
+        )}
       </div>
 
       {/* Campaign Table */}
