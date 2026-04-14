@@ -1552,7 +1552,9 @@ export default function AgentProposalSelectPage() {
         const fbText = fbLines.join("\n");
 
         // HTML Ad for Facebook / download
-        const hotelImg = selected.hotels[0]?.image || selected.hotels[0]?.thumbnail || selected.hotels[0]?.photos?.[0] || "";
+        const rawImg = selected.hotels[0]?.image || selected.hotels[0]?.thumbnail || selected.hotels[0]?.photos?.[0] || "";
+        // Ensure absolute URL so image works in downloaded HTML
+        const hotelImg = rawImg ? (rawImg.startsWith("http") ? rawImg : "https://www.zenivatravel.com" + rawImg) : "";
         const priceStr = grandTotal > 0 ? (grandTotal === grandTotalMax ? fmtRound(grandTotal) : fmtRound(grandTotal) + " – " + fmtRound(grandTotalMax)) : "";
 
         const adHtml = `<!DOCTYPE html>
