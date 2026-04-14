@@ -98,9 +98,11 @@ function SignupContent() {
         updatePartnerProfile({ legalName: companyLegalName.trim() || undefined, displayName: companyDisplayName.trim() || undefined, phone: companyPhone.trim() || undefined, country: companyCountry.trim() || undefined, currency: companyCurrency.trim() || undefined, language: companyLanguage || undefined, kycStatus: "pending" });
       }
       if (mode === "traveler") {
+        // If referred by influencer, track source
+        const leadSource = referral?.referralCode ? `influencer:${referral.influencerId}` : undefined;
         const entry = addClient({ name: name.trim() || "Traveler", email: email.trim(), ownerEmail: "info@zeniva.ca", phone: "", primaryDivision: "TRAVEL", origin: "web_signup" });
         try {
-          await fetch("/api/clients", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: entry.id, name: entry.name, email: entry.email, ownerEmail: entry.ownerEmail, phone: entry.phone, origin: "web_signup", assignedAgents: [], primaryDivision: entry.primaryDivision }) });
+          await fetch("/api/clients", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: entry.id, name: entry.name, email: entry.email, ownerEmail: entry.ownerEmail, phone: entry.phone, origin: "web_signup", assignedAgents: [], primaryDivision: entry.primaryDivision, leadSource }) });
         } catch (err) { console.error("Failed to sync client", err); }
         if (referral?.referralCode && referral?.influencerId) clearStoredReferral();
       }

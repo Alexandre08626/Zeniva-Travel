@@ -19,6 +19,7 @@ type Client = {
   source: string;
   created_at: string;
   role?: string;
+  referredBy?: string;
 };
 
 type Dossier = {
@@ -159,6 +160,7 @@ export default function ClientsPage() {
           source: a.source || a.origin || "signup",
           created_at: a.createdAt,
           role: "",
+          referredBy: a.referredBy || "",
         };
       });
       setClients(list);
@@ -436,7 +438,14 @@ export default function ClientsPage() {
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-xs text-slate-400">{c.source || "signup"}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-400">{c.source || "signup"}</span>
+                      {c.referredBy && c.referredBy.startsWith("influencer:") && (
+                        <span className="text-[10px] font-bold bg-pink-100 text-pink-700 px-2 py-0.5 rounded-full">
+                          📱 {c.referredBy.replace("influencer:", "").split("@")[0]}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2">
                       {canDelete && (
                         <button

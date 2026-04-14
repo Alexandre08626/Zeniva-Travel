@@ -379,6 +379,10 @@ export async function POST(request: Request) {
           await supabaseAdminClient.from("influencer_referrals").insert({
             id: referralId, traveler_email: email, referral_code: travelerProfile.referralCode, influencer_id: travelerProfile.influencerId, captured_at: now, created_at: now,
           });
+          // Also update client record with lead_source for HQ tracking
+          await supabaseAdminClient.from("clients")
+            .update({ lead_source: `influencer:${travelerProfile.influencerId}` })
+            .ilike("email", email);
         } catch {
           // ignore referral persistence failures
         }

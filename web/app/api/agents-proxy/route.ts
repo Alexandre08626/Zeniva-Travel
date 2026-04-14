@@ -201,22 +201,27 @@ export async function GET(req: NextRequest) {
         .neq("status", "blocked")
         .order("created_at", { ascending: false });
 
-      // Count leads per influencer (from influencer_referral_leads + clients)
+      // Count leads per influencer (from referral_leads + referrals + clients with lead_source)
       const agents = await Promise.all((data || []).map(async (row: any) => {
         const infCode = buildInfluencerCode(row.email);
         let leadsCount = 0;
         try {
-          // Count from influencer_referral_leads
-          const { count: infLeads } = await client
+          // Count from influencer_referral_leads (form submissions)
+          const { count: formLeads } = await client
             .from("influencer_referral_leads")
             .select("id", { count: "exact", head: true })
             .eq("referral_code", infCode);
-          // Count from clients table (direct referrals)
+          // Count from influencer_referrals (signup referrals)
+          const { count: signupLeads } = await client
+            .from("influencer_referrals")
+            .select("id", { count: "exact", head: true })
+            .eq("referral_code", infCode);
+          // Count from clients table (lead_source tracks influencer)
           const { count: clientLeads } = await client
             .from("clients")
             .select("id", { count: "exact", head: true })
-            .eq("owner_email", row.email);
-          leadsCount = Math.max(infLeads || 0, clientLeads || 0);
+            .ilike("lead_source", `influencer:${row.email}`);
+          leadsCount = (formLeads || 0) + (signupLeads || 0) + Math.max((clientLeads || 0) - (signupLeads || 0), 0);
         } catch { /* ignore count errors */ }
 
         return {

@@ -37,6 +37,7 @@ function mapClientRow(row: any, lead?: any): ClientRecord {
     language: lead?.language || undefined,
     source: lead?.source || row.lead_source || undefined,
     leadStatus: lead?.status || undefined,
+    referredBy: row.lead_source || undefined,
   };
 }
 
@@ -89,7 +90,7 @@ export async function GET(request: Request) {
     if (accessAll.ok || fallbackAll) {
       const { data, error } = await client
         .from("clients")
-        .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, created_at")
+        .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, notes, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return NextResponse.json({ data: await enrichWithLeads(data || []) });
@@ -98,7 +99,7 @@ export async function GET(request: Request) {
     const ownerEmail = accessOwn.session?.email || accessLegacyOwn.session?.email || fallbackEmail || "";
     const { data, error } = await client
       .from("clients")
-      .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, created_at")
+      .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, lead_source, notes, created_at")
       .or(`owner_email.ilike.${ownerEmail},assigned_agents.cs.["${ownerEmail}"]`)
       .order("created_at", { ascending: false });
     if (error) throw error;
@@ -155,6 +156,8 @@ export async function POST(request: Request) {
       }
     }
 
+    const leadSource = body.leadSource ? String(body.leadSource).trim() : undefined;
+
     const id = body.id || `C-${crypto.randomUUID()}`;
     const { data: insertedData, error: insertError } = await client
       .from("clients")
@@ -167,6 +170,7 @@ export async function POST(request: Request) {
         origin,
         assigned_agents: assignedAgents || [],
         primary_division: primaryDivision || null,
+        lead_source: leadSource || null,
         created_at: new Date().toISOString(),
       })
       .select("id, name, email, owner_email, phone, origin, assigned_agents, primary_division, created_at")
