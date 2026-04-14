@@ -288,9 +288,10 @@ export default function AgentChatClient() {
     ids.forEach(id => removeMessageById(id));
     setSelectedIds(new Set());
     setSelectMode(false);
-    await Promise.all(ids.map(id =>
-      fetch(`/api/agent/requests?messageId=${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {})
-    ));
+    // Delete from DB in one call
+    const headers: Record<string, string> = {};
+    if (user?.email) headers["x-user-email"] = user.email;
+    await fetch(`/api/agent/inbox?ids=${encodeURIComponent(ids.join(","))}`, { method: "DELETE", headers }).catch(() => {});
     setBulkDeleting(false);
   };
 
@@ -426,18 +427,13 @@ export default function AgentChatClient() {
   };
 
   const removeMessageById = (id: string) => {
-    // Track this ID as deleted to prevent it from coming back on reload
+    // Track this ID as deleted locally to prevent flicker on next poll
     deletedMsgIds.current.add(id);
-
-    // Persist deleted IDs in localStorage
     if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem("agent_deleted_messages", JSON.stringify(Array.from(deletedMsgIds.current)));
-      } catch {
-        // ignore
-      }
+      try { localStorage.setItem("agent_deleted_messages", JSON.stringify(Array.from(deletedMsgIds.current))); } catch { /* ignore */ }
     }
 
+    // Remove from UI immediately
     setMessages((prev) => {
       const next: Record<string, ChatMessage[]> = {};
       Object.entries(prev).forEach(([ch, list]) => {
@@ -445,6 +441,11 @@ export default function AgentChatClient() {
       });
       return next;
     });
+
+    // Delete from database so it never comes back
+    const headers: Record<string, string> = {};
+    if (user?.email) headers["x-user-email"] = user.email;
+    fetch(`/api/agent/inbox?ids=${encodeURIComponent(id)}`, { method: "DELETE", headers }).catch(() => {});
   };
 
   const postMessage = async (payload: any) => {

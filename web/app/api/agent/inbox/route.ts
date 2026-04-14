@@ -99,13 +99,19 @@ export async function GET(request: Request) {
 
       const { data, error } = await query;
       if (error) throw error;
-      // Exclude email-session messages (session-email-* channel IDs) — show only site/web chat
+      // Filter: only client help messages (exclude Lina AI conversations, email sessions, notifications)
       const filtered = (data || []).filter((msg: any) => {
         const channelIds = String(msg.channel_ids || "");
+        const source = String(msg.source || "").toLowerCase();
+        const senderRole = String(msg.sender_role || "").toLowerCase();
+        const message = String(msg.message || "");
         // Exclude messages that only exist in email sessions
         if (channelIds.includes("session-email-")) return false;
         // Exclude forwarded email notifications
-        if (String(msg.message || "").match(/^Email from .+:/i)) return false;
+        if (message.match(/^Email from .+:/i)) return false;
+        // Exclude Lina AI messages (sender_role = lina or source = lina-chat)
+        if (senderRole === "lina" || source.includes("lina")) return false;
+        // Keep: client messages, agent messages, HQ messages, contact-form, help requests
         return true;
       });
       return NextResponse.json({ data: filtered });
@@ -157,6 +163,28 @@ export async function GET(request: Request) {
       );
       return NextResponse.json({ data: emailFiltered });
     }
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message || "Failed" }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const email = getEmailFromRequest(request);
+    const account = await getAccountInfo(email);
+    if (!account || !AGENT_ROLES.includes(account.role)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const url = new URL(request.url);
+    const ids = url.searchParams.get("ids");
+    if (!ids) return NextResponse.json({ error: "No ids provided" }, { status: 400 });
+
+    const idList = ids.split(",").filter(Boolean);
+    const { client } = getSupabaseAdminClient();
+    const { error } = await client.from("agent_inbox_messages").delete().in("id", idList);
+    if (error) throw error;
+    return NextResponse.json({ ok: true, deleted: idList.length });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed" }, { status: 500 });
   }
