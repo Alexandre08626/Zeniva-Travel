@@ -96,35 +96,46 @@ async function searchHotels(destination, checkIn, checkOut, guests) {
   try {
     const fallbackCheckIn = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
     const fallbackCheckOut = new Date(Date.now() + 21 * 86400000).toISOString().slice(0, 10);
+    const ci = checkIn || fallbackCheckIn;
+    const co = checkOut || fallbackCheckOut;
     const params = new URLSearchParams({
       destination,
-      checkIn: checkIn || fallbackCheckIn,
-      checkOut: checkOut || fallbackCheckOut,
+      checkIn: ci,
+      checkOut: co,
       guests: String(guests || 2),
+      rooms: "1",
     });
+    console.log("[hotels] Searching:", destination, ci, co, "guests:", guests);
     const res = await fetch(`/api/partners/liteapi/hotels/search?${params}`);
-    if (res.ok) {
-      const data = await res.json();
-      const hotels = data?.offers || data?.hotels || data?.data || [];
-      return hotels.slice(0, 10).map((h, i) => ({
-        id: h.id || h.hotelId || `hotel-${i}`,
-        name: h.name || h.hotelName || "Hotel",
-        location: h.address || h.location || "",
-        price: parseFloat(String(h.price || h.minRate || h.rate || "0").replace(/[^0-9.]/g, "")) || 0,
-        currency: h.currency || "USD",
-        stars: h.stars || h.starRating || h.category || 0,
-        rating: h.rating || h.reviewScore || null,
-        room: h.roomName || h.roomType || h.room || "",
-        board: h.boardType || h.boardBasis || "",
-        image: h.image || h.thumbnail || h.main_photo || (h.images && h.images[0]) || null,
-        images: h.images || [],
-        perks: h.perks || [],
-        badge: h.badge || (h.stars ? `${h.stars}★` : ""),
-        freeCancellation: h.freeCancellation || h.free_cancellation || false,
-        provider: h.provider || "liteapi",
-      }));
+    console.log("[hotels] Response status:", res.status);
+    if (!res.ok) {
+      console.error("[hotels] Non-OK response:", res.status, await res.text().catch(() => ""));
+      return [];
     }
-  } catch {}
+    const data = await res.json();
+    const hotels = data?.offers || data?.hotels || data?.data || [];
+    console.log("[hotels] Found:", hotels.length, "hotels");
+    if (hotels.length === 0) return [];
+    return hotels.slice(0, 10).map((h, i) => ({
+      id: h.id || h.hotelId || `hotel-${i}`,
+      name: h.name || h.hotelName || "Hotel",
+      location: h.address || h.location || "",
+      price: parseFloat(String(h.price || h.minRate || h.rate || "0").replace(/[^0-9.]/g, "")) || 0,
+      currency: h.currency || "USD",
+      stars: h.stars || h.starRating || h.category || 0,
+      rating: h.rating || h.reviewScore || null,
+      room: h.roomName || h.roomType || h.room || "",
+      board: h.boardType || h.boardBasis || "",
+      image: h.image || h.thumbnail || h.main_photo || (h.images && h.images[0]) || null,
+      images: h.images || [],
+      perks: h.perks || [],
+      badge: h.badge || (h.rating ? `${h.rating}★` : ""),
+      freeCancellation: h.freeCancellation || h.free_cancellation || false,
+      provider: h.provider || "liteapi",
+    }));
+  } catch (err) {
+    console.error("[hotels] Search error:", err);
+  }
   return [];
 }
 
@@ -628,14 +639,16 @@ export default function AgentProposalSelectPage() {
       const rawCheckOut = dates[1] || s.checkOut || "";
       const checkIn = (rawCheckIn && rawCheckIn >= today) ? rawCheckIn : "";
       const checkOut = (rawCheckOut && rawCheckOut >= today) ? rawCheckOut : "";
-      setSearchForm(f => ({
-        ...f,
+      const form = {
         origin: (dep && isValidDest(dep)) ? dep : "Montreal",
         destination: isValidDest(dest) ? dest : "",
         checkIn,
         checkOut,
         travelers: (s.travelers?.toString().match(/\d+/)?.[0]) || String(s.adults || 2),
-      }));
+      };
+      console.log("[applySnapshot] raw:", JSON.stringify(s));
+      console.log("[applySnapshot] parsed:", JSON.stringify(form));
+      setSearchForm(f => ({ ...f, ...form }));
     };
 
     if (snap.destination && isValidDest(snap.destination)) {
@@ -692,8 +705,9 @@ export default function AgentProposalSelectPage() {
 
     // Hotels
     setLoadingHotels(true);
+    console.log("[runSearch] Hotel params:", { dest, checkIn, checkOut, travelers: searchForm.travelers });
     searchHotels(dest, checkIn || undefined, checkOut || undefined, parseInt(searchForm.travelers) || 2)
-      .then(r => setHotels(r))
+      .then(r => { console.log("[runSearch] Hotels result:", r.length); setHotels(r); })
       .finally(() => setLoadingHotels(false));
 
     // Activities
