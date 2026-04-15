@@ -93,50 +93,39 @@ async function searchFlights(origin, destination, date, cabinClass) {
 }
 
 async function searchHotels(destination, checkIn, checkOut, guests) {
+  const fallbackCheckIn = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
+  const fallbackCheckOut = new Date(Date.now() + 21 * 86400000).toISOString().slice(0, 10);
+  const ci = checkIn || fallbackCheckIn;
+  const co = checkOut || fallbackCheckOut;
   try {
-    const fallbackCheckIn = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
-    const fallbackCheckOut = new Date(Date.now() + 21 * 86400000).toISOString().slice(0, 10);
-    const ci = checkIn || fallbackCheckIn;
-    const co = checkOut || fallbackCheckOut;
     const params = new URLSearchParams({
-      destination,
-      checkIn: ci,
-      checkOut: co,
-      guests: String(guests || 2),
-      rooms: "1",
+      destination, checkIn: ci, checkOut: co,
+      guests: String(guests || 2), rooms: "1",
     });
-    console.log("[hotels] Searching:", destination, ci, co, "guests:", guests);
     const res = await fetch(`/api/partners/liteapi/hotels/search?${params}`);
-    console.log("[hotels] Response status:", res.status);
-    if (!res.ok) {
-      console.error("[hotels] Non-OK response:", res.status, await res.text().catch(() => ""));
-      return [];
-    }
+    if (!res.ok) return [];
     const data = await res.json();
-    const hotels = data?.offers || data?.hotels || data?.data || [];
-    console.log("[hotels] Found:", hotels.length, "hotels");
-    if (hotels.length === 0) return [];
-    return hotels.slice(0, 10).map((h, i) => ({
+    // LiteAPI route already returns fully-formatted hotel objects in offers[]
+    const raw = data?.offers || data?.hotels || data?.data || [];
+    if (!Array.isArray(raw) || raw.length === 0) return [];
+    // Pass through API data directly — no re-mapping needed
+    return raw.slice(0, 10).map((h, i) => ({
+      ...h,
       id: h.id || h.hotelId || `hotel-${i}`,
-      name: h.name || h.hotelName || "Hotel",
-      location: h.address || h.location || "",
-      price: parseFloat(String(h.price || h.minRate || h.rate || "0").replace(/[^0-9.]/g, "")) || 0,
-      currency: h.currency || "USD",
-      stars: h.stars || h.starRating || h.category || 0,
-      rating: h.rating || h.reviewScore || null,
-      room: h.roomName || h.roomType || h.room || "",
-      board: h.boardType || h.boardBasis || "",
-      image: h.image || h.thumbnail || h.main_photo || (h.images && h.images[0]) || null,
-      images: h.images || [],
-      perks: h.perks || [],
-      badge: h.badge || (h.rating ? `${h.rating}★` : ""),
-      freeCancellation: h.freeCancellation || h.free_cancellation || false,
+      name: h.name || "Hotel",
+      price: typeof h.price === "number" ? h.price : (parseFloat(String(h.price || "0").replace(/[^0-9.]/g, "")) || 0),
+      location: h.location || h.address || "",
+      image: h.image || (Array.isArray(h.images) && h.images[0]) || null,
+      images: Array.isArray(h.images) ? h.images : [],
+      perks: Array.isArray(h.perks) ? h.perks : [],
+      rating: h.rating || 0,
+      badge: h.badge || "",
       provider: h.provider || "liteapi",
     }));
   } catch (err) {
-    console.error("[hotels] Search error:", err);
+    console.error("[hotels] error:", err);
+    return [];
   }
-  return [];
 }
 
 async function searchActivities(destination) {
@@ -557,6 +546,7 @@ export default function AgentProposalSelectPage() {
   const [hotels, setHotels] = useState([]);
   const [activities, setActivities] = useState([]);
   const [transfers, setTransfers] = useState([]);
+  const [debugInfo, setDebugInfo] = useState({});
 
   // Loading states
   const [loadingOutbound, setLoadingOutbound] = useState(false);
@@ -705,9 +695,13 @@ export default function AgentProposalSelectPage() {
 
     // Hotels
     setLoadingHotels(true);
-    console.log("[runSearch] Hotel params:", { dest, checkIn, checkOut, travelers: searchForm.travelers });
+    setDebugInfo(d => ({ ...d, hotelParams: `dest=${dest} ci=${checkIn||"(fallback)"} co=${checkOut||"(fallback)"} guests=${searchForm.travelers}` }));
     searchHotels(dest, checkIn || undefined, checkOut || undefined, parseInt(searchForm.travelers) || 2)
-      .then(r => { console.log("[runSearch] Hotels result:", r.length); setHotels(r); })
+      .then(r => {
+        setDebugInfo(d => ({ ...d, hotelResult: `${r.length} hotels returned`, hotelRaw: JSON.stringify(r?.[0]?.name || "empty") }));
+        setHotels(r);
+      })
+      .catch(err => setDebugInfo(d => ({ ...d, hotelError: String(err) })))
       .finally(() => setLoadingHotels(false));
 
     // Activities
@@ -1108,6 +1102,13 @@ export default function AgentProposalSelectPage() {
           {/* === HOTELS === */}
           {activeTab === "hotels" && (
             <div>
+              {/* DEBUG BANNER — remove after fix */}
+              {Object.keys(debugInfo).length > 0 && (
+                <div className="mb-2 p-3 bg-yellow-50 border border-yellow-300 rounded-xl text-xs font-mono text-yellow-900">
+                  <p><b>DEBUG</b> hotels.length={hotels.length} loading={String(loadingHotels)}</p>
+                  {Object.entries(debugInfo).map(([k,v]) => <p key={k}>{k}: {String(v)}</p>)}
+                </div>
+              )}
               <div className="rounded-t-2xl bg-gradient-to-r from-purple-600 to-purple-700 px-5 py-3">
                 <h2 className="text-white font-bold text-sm flex items-center gap-2">
                   🏨 Hotel Results
