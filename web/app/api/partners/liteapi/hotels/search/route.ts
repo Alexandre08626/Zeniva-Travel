@@ -358,9 +358,11 @@ export async function GET(req: Request) {
       return pa - pb;
     });
 
+    console.log(`[hotel-search] dest=${destination} city=${city} country=${country} ci=${checkIn} co=${checkOut} hotelIds=${hotelIds.length} offers=${offers.length}`);
     return NextResponse.json({ ok: true, offers, rawCount: offers.length, source: "rates" });
 
   } catch (err: any) {
+    console.error(`[hotel-search] ERROR dest=${destination}:`, err?.message || String(err));
     return NextResponse.json({ ok: false, error: err?.message || String(err), offers: [] }, { status: 502 });
   }
 }
