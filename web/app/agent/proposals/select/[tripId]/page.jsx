@@ -618,14 +618,22 @@ export default function AgentProposalSelectPage() {
 
     const applySnapshot = (s) => {
       const dates = (s.dates || "").split("→").map(d => d.trim());
-      const dest = s.destination || "";
+      // Multi-city: take first city only (e.g. "Paris, Rome" → "Paris")
+      const rawDest = s.destination || "";
+      const dest = rawDest.split(/[,;/&]+/)[0].trim();
       const dep = s.departure || s.departureCity || "";
+      // Fix past dates: replace with future defaults
+      const today = new Date().toISOString().slice(0, 10);
+      const rawCheckIn = dates[0] || s.checkIn || "";
+      const rawCheckOut = dates[1] || s.checkOut || "";
+      const checkIn = (rawCheckIn && rawCheckIn >= today) ? rawCheckIn : "";
+      const checkOut = (rawCheckOut && rawCheckOut >= today) ? rawCheckOut : "";
       setSearchForm(f => ({
         ...f,
         origin: (dep && isValidDest(dep)) ? dep : "Montreal",
         destination: isValidDest(dest) ? dest : "",
-        checkIn: dates[0] || s.checkIn || "",
-        checkOut: dates[1] || s.checkOut || "",
+        checkIn,
+        checkOut,
         travelers: (s.travelers?.toString().match(/\d+/)?.[0]) || String(s.adults || 2),
       }));
     };
