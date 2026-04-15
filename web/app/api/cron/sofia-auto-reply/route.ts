@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
-import { sofiaAutoReplyAlexandre, benAutoReplyZeniPay } from "../../../../src/lib/server/sofia-emails";
+import { sofiaAutoReplyAlexandre } from "../../../../src/lib/server/sofia-emails";
 
 export async function GET(req: Request) {
   const authHeader = req.headers.get("authorization");
@@ -17,42 +17,28 @@ export async function GET(req: Request) {
       .in("source", ["contact-form", "email-inbound"])
       .eq("status", "pending")
       .order("created_at", { ascending: true })
-      .limit(10);
+      .limit(5);
 
-    let sofiaReplied = 0;
-    let benReplied = 0;
-
+    let replied = 0;
     for (const msg of pending || []) {
       const emailMatch = (msg.message || "").match(/[\w.-]+@[\w.-]+\.\w+/);
       if (!emailMatch) continue;
 
       const email = emailMatch[0].toLowerCase();
-      // Don't auto-reply to internal emails
-      if (email.includes("zeniva") || email.includes("zenivatravel") || email.includes("zenipay")) continue;
-
-      // Determine if this is a ZeniPay email or Zeniva Travel email
-      const isZeniPay = (msg.message || "").toLowerCase().includes("zenipay") ||
-                        (msg.source || "").toLowerCase().includes("zenipay");
+      if (email.includes("zeniva") || email.includes("zenivatravel")) continue;
 
       try {
-        if (isZeniPay) {
-          // Ben handles ZeniPay emails
-          await benAutoReplyZeniPay(email, "Your inquiry to ZeniPay");
-          benReplied++;
-        } else {
-          // Sofia handles Zeniva Travel emails
-          await sofiaAutoReplyAlexandre(email, "Your inquiry to Zeniva Travel");
-          sofiaReplied++;
-        }
+        await sofiaAutoReplyAlexandre(email, "Your inquiry to Zeniva Travel");
         await client.from("agent_inbox_messages").update({ status: "auto_replied" }).eq("id", msg.id);
+        replied++;
       } catch (err) {
-        console.error("Auto-reply failed for", email, err);
+        console.error("Sofia auto-reply failed for", email, err);
       }
     }
 
-    return NextResponse.json({ ok: true, sofiaReplied, benReplied, total: sofiaReplied + benReplied });
+    return NextResponse.json({ ok: true, replied });
   } catch (err: any) {
-    console.error("Auto-reply cron error:", err?.message);
+    console.error("Sofia auto-reply cron error:", err?.message);
     return NextResponse.json({ error: err?.message }, { status: 500 });
   }
 }
