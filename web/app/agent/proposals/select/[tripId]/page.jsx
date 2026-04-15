@@ -94,9 +94,13 @@ async function searchFlights(origin, destination, date, cabinClass) {
 
 async function searchHotels(destination, checkIn, checkOut, guests) {
   const fallbackCheckIn = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
-  const fallbackCheckOut = new Date(Date.now() + 21 * 86400000).toISOString().slice(0, 10);
   const ci = checkIn || fallbackCheckIn;
-  const co = checkOut || fallbackCheckOut;
+  // Ensure checkOut is always AFTER checkIn (ci + 7 days if missing or before checkIn)
+  let co = checkOut || "";
+  if (!co || co <= ci) {
+    const ciDate = new Date(ci);
+    co = new Date(ciDate.getTime() + 7 * 86400000).toISOString().slice(0, 10);
+  }
   try {
     const params = new URLSearchParams({
       destination, checkIn: ci, checkOut: co,
@@ -1102,13 +1106,6 @@ export default function AgentProposalSelectPage() {
           {/* === HOTELS === */}
           {activeTab === "hotels" && (
             <div>
-              {/* DEBUG BANNER — remove after fix */}
-              {Object.keys(debugInfo).length > 0 && (
-                <div className="mb-2 p-3 bg-yellow-50 border border-yellow-300 rounded-xl text-xs font-mono text-yellow-900">
-                  <p><b>DEBUG</b> hotels.length={hotels.length} loading={String(loadingHotels)}</p>
-                  {Object.entries(debugInfo).map(([k,v]) => <p key={k}>{k}: {String(v)}</p>)}
-                </div>
-              )}
               <div className="rounded-t-2xl bg-gradient-to-r from-purple-600 to-purple-700 px-5 py-3">
                 <h2 className="text-white font-bold text-sm flex items-center gap-2">
                   🏨 Hotel Results
