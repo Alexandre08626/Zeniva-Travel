@@ -8,6 +8,21 @@ export const dynamic = "force-dynamic";
 
 const DELAY_BETWEEN_SENDS_MS = 5000; // 5 seconds between emails to avoid spam triggers
 
+const BLOCKED_DOMAINS = new Set([
+  "example.com", "example.org", "example.net",
+  "email.com", "test.com", "test.org",
+  "zeniva-lead.com",
+]);
+
+function isValidRecipientEmail(email: string): boolean {
+  const trimmed = (email || "").trim().toLowerCase();
+  if (!trimmed || !trimmed.includes("@")) return false;
+  const domain = trimmed.split("@")[1];
+  if (!domain || !domain.includes(".")) return false;
+  if (BLOCKED_DOMAINS.has(domain)) return false;
+  return true;
+}
+
 function replaceVariables(template: string, variables: Record<string, string>): string {
   let result = template;
   for (const [key, value] of Object.entries(variables)) {
@@ -54,6 +69,16 @@ export async function POST(req: NextRequest) {
   const errors: string[] = [];
 
   for (const recipient of recipients) {
+    if (!isValidRecipientEmail(recipient.email)) {
+      failedCount++;
+      errors.push(`${recipient.email}: invalid or blocked email`);
+      await client
+        .from("email_campaign_recipients")
+        .update({ status: "failed", error_message: "Invalid or blocked email domain" })
+        .eq("id", recipient.id);
+      continue;
+    }
+
     const vars = (recipient.variables || {}) as Record<string, string>;
     const personalizedHtml = replaceVariables(campaign.html_body, vars);
     const personalizedSubject = replaceVariables(campaign.subject, vars);
