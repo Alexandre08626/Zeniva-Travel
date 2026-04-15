@@ -5,11 +5,7 @@ export async function searchDuffelOffers(params: Record<string, any> = {}) {
   const preferredVersion = process.env.DUFFEL_VERSION || 'v2';
 
   if (!key) {
-    return {
-      mock: true,
-      message: 'DUFFEL_API_KEY not set in environment; returning mock offers',
-      data: { offers: [] },
-    };
+    throw new Error('DUFFEL_API_KEY not set – use mock fallback');
   }
 
   // Try the configured version first (Duffel requires a version header).

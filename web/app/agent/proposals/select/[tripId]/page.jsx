@@ -94,10 +94,12 @@ async function searchFlights(origin, destination, date, cabinClass) {
 
 async function searchHotels(destination, checkIn, checkOut, guests) {
   try {
+    const fallbackCheckIn = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
+    const fallbackCheckOut = new Date(Date.now() + 21 * 86400000).toISOString().slice(0, 10);
     const params = new URLSearchParams({
       destination,
-      checkIn: checkIn || "",
-      checkOut: checkOut || "",
+      checkIn: checkIn || fallbackCheckIn,
+      checkOut: checkOut || fallbackCheckOut,
       guests: String(guests || 2),
     });
     const res = await fetch(`/api/partners/liteapi/hotels/search?${params}`);
