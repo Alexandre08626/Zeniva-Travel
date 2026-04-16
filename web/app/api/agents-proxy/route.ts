@@ -84,7 +84,7 @@ export async function GET(req: NextRequest) {
         // Load from both agents table AND accounts table (merge, deduplicate)
         const [agentsResult, accountsResult] = await Promise.all([
           sb.from("agents").select("*").order("created_at", { ascending: false }),
-          sb.from("accounts").select("*").or("role.eq.travel_agent,role.eq.yacht_broker,role.eq.hq,role.eq.admin,role.eq.influencer").order("created_at", { ascending: false }),
+          sb.from("accounts").select("*").or("role.eq.travel_agent,role.eq.yacht_broker,role.eq.hq,role.eq.admin,role.eq.influencer").neq("status", "blocked").order("created_at", { ascending: false }),
         ]);
         const agentsList = (agentsResult.data || []).map((a: any) => ({
           id: a.id, name: `${a.first_name || ""} ${a.last_name || ""}`.trim() || a.email, email: a.email,

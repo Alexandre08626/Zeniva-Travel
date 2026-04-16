@@ -60,15 +60,17 @@ export default function AgentCommandPage() {
     await fetch(`/api/agents-proxy?path=admin/agents/${agentId}`, {
       method: "DELETE",
       headers: { Authorization: "Bearer zeniva-secret-2025" },
-    });
-    // 2. Delete from Supabase (agents + profiles tables)
-    try {
-      await fetch("/api/agents/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agentId, email }),
-      });
-    } catch { /* silent — VPS delete already done */ }
+    }).catch(() => {});
+    // 2. Delete from Supabase (agents + accounts + profiles)
+    const res = await fetch("/api/agents/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ agentId, email }),
+    }).catch(() => null);
+    if (res && !res.ok) {
+      alert("Error deleting agent from database. Please try again.");
+      return;
+    }
     setAgents((prev) => prev.filter((a) => a.id !== agentId));
     setSelected(null);
     setDetail(null);
