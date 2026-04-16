@@ -99,10 +99,12 @@ export async function POST(req: NextRequest) {
     const scanAgencies = body.agencies !== 0;
     const scanAgents = body.agents !== 0;
 
-    // Scan REAL leads from VPS (Facebook, Reddit, etc.)
-    const rawTravelers = scanTravelers ? await scanRealLeads("travelers") : [];
-    const rawAgencies = scanAgencies ? await scanRealLeads("agencies") : [];
-    const rawAgents = scanAgents ? await scanRealLeads("agents") : [];
+    // Scan REAL leads from VPS in parallel (Facebook, Reddit, etc.)
+    const [rawTravelers, rawAgencies, rawAgents] = await Promise.all([
+      scanTravelers ? scanRealLeads("travelers") : Promise.resolve([]),
+      scanAgencies ? scanRealLeads("agencies") : Promise.resolve([]),
+      scanAgents ? scanRealLeads("agents") : Promise.resolve([]),
+    ]);
 
     const travelers = dedupeByUrl(rawTravelers);
     const agencies = dedupeByUrl(rawAgencies);
