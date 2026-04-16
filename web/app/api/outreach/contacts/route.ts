@@ -9,6 +9,8 @@ export async function GET(req: NextRequest) {
   const audience = url.searchParams.get("audience") || "agencies";
   const status = url.searchParams.get("status");
   const search = url.searchParams.get("search");
+  const city = url.searchParams.get("city");
+  const province = url.searchParams.get("province");
   const page = parseInt(url.searchParams.get("page") || "1", 10);
   const limit = parseInt(url.searchParams.get("limit") || "25", 10);
   const offset = (page - 1) * limit;
@@ -94,6 +96,8 @@ export async function GET(req: NextRequest) {
     if (search) {
       query = query.or(`contact_name.ilike.%${search}%,contact_email.ilike.%${search}%,company_name.ilike.%${search}%`);
     }
+    if (city) query = query.ilike("city", `%${city}%`);
+    if (province) query = query.ilike("province", `%${province}%`);
 
     const { data: rows, error, count } = await query.range(offset, offset + limit - 1);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

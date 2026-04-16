@@ -50,6 +50,8 @@ export default function NewLeadsPage() {
   const [leadsLoading, setLeadsLoading] = useState(true);
   const [leadsSearch, setLeadsSearch] = useState("");
   const [leadsStatus, setLeadsStatus] = useState("all");
+  const [leadsCity, setLeadsCity] = useState("");
+  const [leadsProvince, setLeadsProvince] = useState("");
   const [leadsPage, setLeadsPage] = useState(1);
   const [leadsLimit, setLeadsLimit] = useState(25);
 
@@ -79,6 +81,8 @@ export default function NewLeadsPage() {
       if (leadsStatus !== "all") {
         params.set("status", leadsStatus);
       }
+      if (leadsCity) params.set("city", leadsCity);
+      if (leadsProvince) params.set("province", leadsProvince);
       params.set("exclude_statuses", clientStatuses.join(","));
 
       const res = await fetch("/api/outreach/contacts?" + params.toString());
@@ -96,7 +100,7 @@ export default function NewLeadsPage() {
     } finally {
       setLeadsLoading(false);
     }
-  }, [audience, leadsPage, leadsLimit, leadsSearch, leadsStatus, leadStatuses, clientStatuses]);
+  }, [audience, leadsPage, leadsLimit, leadsSearch, leadsStatus, leadsCity, leadsProvince, leadStatuses, clientStatuses]);
 
   const fetchClients = useCallback(async () => {
     if (clientStatuses.length === 0) {
@@ -143,7 +147,7 @@ export default function NewLeadsPage() {
 
   useEffect(() => {
     setLeadsPage(1);
-  }, [audience, leadsSearch, leadsStatus, leadsLimit]);
+  }, [audience, leadsSearch, leadsStatus, leadsCity, leadsProvince, leadsLimit]);
   useEffect(() => {
     setClientsPage(1);
   }, [audience, clientsSearch, clientsLimit]);
@@ -152,12 +156,20 @@ export default function NewLeadsPage() {
   useEffect(() => {
     setLeadsSearch("");
     setLeadsStatus("all");
+    setLeadsCity("");
+    setLeadsProvince("");
     setClientsSearch("");
     setActiveTab("leads");
   }, [audience]);
 
   const leadsTotalPages = Math.max(1, Math.ceil(leadsTotal / leadsLimit));
   const clientsTotalPages = Math.max(1, Math.ceil(clientsTotal / clientsLimit));
+
+  const PROVINCES = [
+    "Quebec", "Ontario", "British Columbia", "Alberta", "Manitoba", "Saskatchewan",
+    "Nova Scotia", "New Brunswick", "Newfoundland", "PEI",
+    "New York", "Florida", "California", "Texas", "Illinois", "Massachusetts",
+  ];
 
   function renderTable(
     items: any[],
@@ -198,6 +210,27 @@ export default function NewLeadsPage() {
               ))}
             </select>
           )}
+          {audience === "agencies" && (
+            <>
+              <input
+                type="text"
+                placeholder="Filter by city..."
+                value={leadsCity}
+                onChange={(e) => setLeadsCity(e.target.value)}
+                className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-40"
+              />
+              <select
+                value={leadsProvince}
+                onChange={(e) => setLeadsProvince(e.target.value)}
+                className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              >
+                <option value="">All provinces/states</option>
+                {PROVINCES.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+            </>
+          )}
           <span className="text-sm text-slate-500 self-center">
             {total} {total === 1 ? "contact" : "contacts"}
           </span>
@@ -222,7 +255,13 @@ export default function NewLeadsPage() {
                     {audience === "agencies" && (
                       <th className="text-left px-4 py-3 font-semibold text-slate-600">Company</th>
                     )}
+                    {audience === "agencies" && (
+                      <th className="text-left px-4 py-3 font-semibold text-slate-600">Phone</th>
+                    )}
                     <th className="text-left px-4 py-3 font-semibold text-slate-600">Status</th>
+                    {audience === "agencies" && (
+                      <th className="text-left px-4 py-3 font-semibold text-slate-600">City</th>
+                    )}
                     {audience === "agencies" && (
                       <th className="text-left px-4 py-3 font-semibold text-slate-600">Province</th>
                     )}
@@ -247,6 +286,11 @@ export default function NewLeadsPage() {
                           {c.company_name || "\u2014"}
                         </td>
                       )}
+                      {audience === "agencies" && (
+                        <td className="px-4 py-3 text-slate-600">
+                          {c.contact_phone || "\u2014"}
+                        </td>
+                      )}
                       <td className="px-4 py-3">
                         <span
                           className={
@@ -257,6 +301,9 @@ export default function NewLeadsPage() {
                           {c.status?.replace(/_/g, " ")}
                         </span>
                       </td>
+                      {audience === "agencies" && (
+                        <td className="px-4 py-3 text-slate-500">{c.city || "\u2014"}</td>
+                      )}
                       {audience === "agencies" && (
                         <td className="px-4 py-3 text-slate-500">{c.province || "\u2014"}</td>
                       )}
