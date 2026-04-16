@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { persistWorkflowStatePatch } from "../../../../src/lib/workflowPersistence";
 import { applyHotelMarkupLabel } from "../../../../src/lib/partnerMarkup";
+import { useAuthStore } from "../../../../src/lib/authStore";
 
 type DraftData = {
   selectedSearchResult?: {
@@ -62,6 +63,8 @@ const BOOKING_DRAFT_KEY = "hotel_booking_draft_v1";
 export default function HotelReviewClient() {
   const router = useRouter();
   const params = useSearchParams();
+  const authUser = useAuthStore((s) => s.user);
+  const zeroMargin = !!authUser?.travelerProfile?.zeroMargin;
   const [draft, setDraft] = useState<DraftData | null>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [detailsPhotos, setDetailsPhotos] = useState<string[] | null>(null);
@@ -161,20 +164,21 @@ export default function HotelReviewClient() {
 
   const formatAmount = (value: any, currency?: string) => {
     if (value === null || value === undefined || value === "") return "N/A";
+    const markup = zeroMargin ? (v: string) => v : applyHotelMarkupLabel;
     if (typeof value === "string") {
       const label = currency ? `${currency} ${value}` : value;
-      return currency ? applyHotelMarkupLabel(label) : applyHotelMarkupLabel(value);
+      return currency ? markup(label) : markup(value);
     }
     if (typeof value === "number") {
       const label = currency ? `${currency} ${value}` : String(value);
-      return currency ? applyHotelMarkupLabel(label) : String(value);
+      return currency ? markup(label) : String(value);
     }
     if (typeof value === "object") {
       const amount = value.amount ?? value.value ?? value.total ?? value.total_amount;
       const cur = value.currency ?? value.currency_code ?? currency;
       if (amount !== undefined && amount !== null) {
         const label = cur ? `${cur} ${amount}` : String(amount);
-        return cur ? applyHotelMarkupLabel(label) : String(amount);
+        return cur ? markup(label) : String(amount);
       }
     }
     return String(value);

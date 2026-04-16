@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { liteApiFetchJson, liteApiIsConfigured } from "../../../../../../src/lib/liteapiClient";
 import { applyHotelMarkupLabel } from "../../../../../../src/lib/partnerMarkup";
@@ -193,7 +193,8 @@ function formatPrice(amount: number, nights: number): string {
   return `USD ${total}`;
 }
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
+  const skipMarkup = req.cookies.get("zeniva_zero_margin")?.value === "1";
   if (!liteApiIsConfigured()) {
     return NextResponse.json({ ok: false, error: "LiteAPI not configured" }, { status: 500 });
   }
@@ -294,7 +295,7 @@ export async function GET(req: Request) {
         if (priceAmount === null) return null; // Skip hotels with no price
 
         const rawPrice = formatPrice(priceAmount, nights);
-        const price = applyHotelMarkupLabel(rawPrice);
+        const price = skipMarkup ? rawPrice : applyHotelMarkupLabel(rawPrice);
 
         const name = getStr(meta?.name) || `Hotel ${idx + 1}`;
         const cityStr = getStr(meta?.city);

@@ -38,6 +38,7 @@ export type Account = {
     phone?: string;
     referralCode?: string;
     influencerId?: string;
+    zeroMargin?: boolean;
   } | null;
 };
 
@@ -420,6 +421,7 @@ export async function signup(params: {
       deleteCookie("zeniva_agent_enabled");
       deleteCookie("zeniva_agent_divisions");
       if (baseAccount.travelerProfile) setCookie("zeniva_has_traveler_profile", "1", 7);
+      if (baseAccount.travelerProfile?.zeroMargin) setCookie("zeniva_zero_margin", "1", 7); else deleteCookie("zeniva_zero_margin");
     }
     setTimeout(syncAccountToServer, 0);
     return { name: baseAccount.name, email: baseAccount.email, role: baseAccount.role, agentLevel: baseAccount.agentLevel };
@@ -451,6 +453,7 @@ export async function signup(params: {
     deleteCookie("zeniva_agent_enabled");
     deleteCookie("zeniva_agent_divisions");
     if (baseAccount.travelerProfile) setCookie("zeniva_has_traveler_profile", "1", 7);
+    if (baseAccount.travelerProfile?.zeroMargin) setCookie("zeniva_zero_margin", "1", 7); else deleteCookie("zeniva_zero_margin");
   }
   setTimeout(syncAccountToServer, 0);
   return { name: baseAccount.name, email: baseAccount.email, role: baseAccount.role, agentLevel: baseAccount.agentLevel };
@@ -539,6 +542,7 @@ export async function login(email: string, password: string, opts?: { role?: Rol
     deleteCookie("zeniva_agent_enabled");
     deleteCookie("zeniva_agent_divisions");
     if (account.travelerProfile) setCookie("zeniva_has_traveler_profile", "1", 7);
+    if (account.travelerProfile?.zeroMargin) setCookie("zeniva_zero_margin", "1", 7); else deleteCookie("zeniva_zero_margin");
   }
 
   setState((s) => ({
@@ -608,6 +612,7 @@ export async function logout(redirectTo = "/") {
     deleteCookie("zeniva_agent_enabled");
     deleteCookie("zeniva_agent_divisions");
     deleteCookie("zeniva_has_traveler_profile");
+    deleteCookie("zeniva_zero_margin");
     window.location.href = redirectTo;
   }
 }

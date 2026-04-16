@@ -102,6 +102,7 @@ function HotelsSearchContent() {
   const [pendingBooking, setPendingBooking] = useState<any>(null);
 
   const user = useAuthStore((s) => s.user);
+  const zeroMargin = !!user?.travelerProfile?.zeroMargin;
   const userId = user?.email || "";
   const { trips } = useTripsStore((s) => ({ trips: s.trips }));
 
@@ -132,20 +133,21 @@ function HotelsSearchContent() {
 
   const formatAmount = (value: any, currency?: string) => {
     if (value === null || value === undefined || value === "") return "N/A";
+    const markup = zeroMargin ? (v: string) => v : applyHotelMarkupLabel;
     if (typeof value === "string") {
       const label = currency ? `${currency} ${value}` : value;
-      return currency ? applyHotelMarkupLabel(label) : applyHotelMarkupLabel(value);
+      return currency ? markup(label) : markup(value);
     }
     if (typeof value === "number") {
       const label = currency ? `${currency} ${value}` : String(value);
-      return currency ? applyHotelMarkupLabel(label) : String(value);
+      return currency ? markup(label) : String(value);
     }
     if (typeof value === "object") {
       const amount = value.amount ?? value.value ?? value.total ?? value.total_amount;
       const cur = value.currency ?? value.currency_code ?? currency;
       if (amount !== undefined && amount !== null) {
         const label = cur ? `${cur} ${amount}` : String(amount);
-        return cur ? applyHotelMarkupLabel(label) : String(amount);
+        return cur ? markup(label) : String(amount);
       }
     }
     return String(value);

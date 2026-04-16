@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { searchStays } from "../../../../src/lib/duffelClient";
 import { applyHotelMarkupLabel } from "../../../../src/lib/partnerMarkup";
@@ -12,7 +12,7 @@ const schema = z.object({
   budget: z.string().trim().optional(),
 });
 
-function normalizeSearchResults(result: any) {
+function normalizeSearchResults(result: any, skipMarkup = false) {
   const results = result?.data?.results || result?.data || [];
   if (!Array.isArray(results)) {
     console.error('Unexpected result structure:', result);
@@ -23,7 +23,7 @@ function normalizeSearchResults(result: any) {
     const cheapestRate = r?.cheapest_rate || {};
     const searchResultId = r?.search_result_id || r?.search_result?.id || r?.id;
     const rawPrice = cheapestRate?.total_amount ? `${cheapestRate.total_currency} ${cheapestRate.total_amount}` : "Price on request";
-    const price = rawPrice === "Price on request" ? rawPrice : applyHotelMarkupLabel(rawPrice);
+    const price = rawPrice === "Price on request" ? rawPrice : skipMarkup ? rawPrice : applyHotelMarkupLabel(rawPrice);
     return {
       id: r?.id || `result-${idx}`,
       name: accommodation?.name || "Hotel",
@@ -39,9 +39,10 @@ function normalizeSearchResults(result: any) {
   });
 }
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   console.log('🏨 Duffel Stays API called!');
-  
+  const skipMarkup = req.cookies.get("zeniva_zero_margin")?.value === "1";
+
   if (!process.env.DUFFEL_STAYS_API_KEY && !process.env.DUFFEL_API_KEY) {
     console.log('❌ Duffel stays key missing');
     return NextResponse.json({ ok: false, error: "Duffel stays key missing" }, { status: 500 });
@@ -99,7 +100,7 @@ export async function GET(req: Request) {
     console.log('Calling searchStays with params:', searchParams);
     const result = await searchStays(searchParams);
     console.log('searchStays result:', result);
-    const offers = normalizeSearchResults(result);
+    const offers = normalizeSearchResults(result, skipMarkup);
     console.log('Normalized offers:', offers.length);
     return NextResponse.json({ ok: true, offers, rawCount: offers.length });
   } catch (err: any) {
@@ -130,7 +131,7 @@ export async function GET(req: Request) {
           id: `mock-stay-1-${destination}`,
           name: `Sample Hotel near ${destination}`,
           location: destination,
-          price: applyHotelMarkupLabel("USD 120/night"),
+          price: skipMarkup ? "USD 120/night" : applyHotelMarkupLabel("USD 120/night"),
           room: "Standard Room",
           perks: ["Free cancellation", "Breakfast included"],
           rating: 4,

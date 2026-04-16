@@ -6,28 +6,30 @@ import { useTripsStore, generateProposal, setProposalSelection, applyTripPatch, 
 import SelectedSummary from "../../../../src/components/SelectedSummary";
 import { getImagesForDestination, getPartnerHotelImages } from "../../../../src/lib/images";
 import { applyFlightMarkupLabel, applyHotelMarkupLabel } from "../../../../src/lib/partnerMarkup";
+import { useAuthStore } from "../../../../src/lib/authStore";
 import yachtsData from "../../../../src/data/ycn_packages.json";
 import residencesData from "../../../../src/data/airbnbs.json";
 import { activities as activitiesData } from "../../../../src/data/activities";
 import { transfers as transfersData } from "../../../../src/data/transfers";
 
 // Mock hotels fallback when Duffel stays fails (404 in sandbox) - declare ONLY ONCE at the top of the file!
-const getMockHotels = (destination) => {
+const getMockHotels = (destination, skipMarkup = false) => {
+  const markup = skipMarkup ? (v) => v : applyHotelMarkupLabel;
   const dest = destination?.toLowerCase() || "";
   if (dest.includes("paris")) {
     return [
-      { id: "mock-paris-1", name: "Hotel Ritz Paris", location: "Place Vendôme, Paris", price: applyHotelMarkupLabel("USD 1260/night"), room: "Deluxe Suite", image: "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80" },
-      { id: "mock-paris-2", name: "Hotel Plaza Athénée", location: "Avenue Montaigne, Paris", price: applyHotelMarkupLabel("USD 998/night"), room: "Superior Room", image: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=900&q=80" },
+      { id: "mock-paris-1", name: "Hotel Ritz Paris", location: "Place Vendôme, Paris", price: markup("USD 1260/night"), room: "Deluxe Suite", image: "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80" },
+      { id: "mock-paris-2", name: "Hotel Plaza Athénée", location: "Avenue Montaigne, Paris", price: markup("USD 998/night"), room: "Superior Room", image: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=900&q=80" },
     ];
   } else if (dest.includes("miami") || dest.includes("mia")) {
     return [
-      { id: "mock-miami-1", name: "The Ritz-Carlton South Beach", location: "South Beach, Miami", price: applyHotelMarkupLabel("USD 600/night"), room: "Ocean View Suite", image: "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80" },
-      { id: "mock-miami-2", name: "Fontainebleau Miami Beach", location: "Miami Beach, FL", price: applyHotelMarkupLabel("USD 450/night"), room: "Standard Room", image: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=900&q=80" },
+      { id: "mock-miami-1", name: "The Ritz-Carlton South Beach", location: "South Beach, Miami", price: markup("USD 600/night"), room: "Ocean View Suite", image: "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80" },
+      { id: "mock-miami-2", name: "Fontainebleau Miami Beach", location: "Miami Beach, FL", price: markup("USD 450/night"), room: "Standard Room", image: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=900&q=80" },
     ];
   } else {
     return [
-      { id: "mock-stay-1", name: "Hotel Playa", location: "Resort Area", price: applyHotelMarkupLabel("USD 420/night"), room: "King Room", image: "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80" },
-      { id: "mock-stay-2", name: "Central Hotel", location: "City Center", price: applyHotelMarkupLabel("USD 380/night"), room: "Suite", image: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=900&q=80" },
+      { id: "mock-stay-1", name: "Hotel Playa", location: "Resort Area", price: markup("USD 420/night"), room: "King Room", image: "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80" },
+      { id: "mock-stay-2", name: "Central Hotel", location: "City Center", price: markup("USD 380/night"), room: "Suite", image: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=900&q=80" },
     ];
   }
 };
@@ -231,6 +233,8 @@ function ProposalSelectPageInner() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const authUser = useAuthStore((s) => s.user);
+  const zeroMargin = !!authUser?.travelerProfile?.zeroMargin;
   const tripId = Array.isArray(params.tripId) ? params.tripId[0] : params.tripId;
   const mode = searchParams?.get("mode") || "";
   const isAgentMode = mode === "agent";
@@ -532,7 +536,7 @@ function ProposalSelectPageInner() {
         route: `${originCode} → ${destinationCode}`,
         times: `${firstSeg?.departing_at?.slice(11, 16) || ""} – ${lastSeg?.arriving_at?.slice(11, 16) || ""}`,
         fare: o?.cabin_class || o?.cabin || "",
-        price: o?.total_currency && o?.total_amount ? applyFlightMarkupLabel(`${o.total_currency} ${o.total_amount}`) : "Price on request",
+        price: o?.total_currency && o?.total_amount ? (zeroMargin ? `${o.total_currency} ${o.total_amount}` : applyFlightMarkupLabel(`${o.total_currency} ${o.total_amount}`)) : "Price on request",
         bags: o?.baggage?.included || "",
         flightNumber,
         duration,

@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { searchDuffelOffers } from "../../../src/lib/duffelClient";
 import FlightOffers from '../../../src/components/FlightOffers.client';
 import { applyFlightMarkupLabel } from "../../../src/lib/partnerMarkup";
@@ -132,7 +133,7 @@ function formatDuration(minutes?: number) {
   return `${h}h ${m.toString().padStart(2, "0")}m`;
 }
 
-function mapDuffelOffers(result: any): OfferCard[] {
+function mapDuffelOffers(result: any, skipMarkup = false): OfferCard[] {
   const offers = result?.data?.offers || result?.offers || [];
   return offers.map((offer: any, idx: number) => {
     const firstSlice = offer?.slices?.[0];
@@ -149,7 +150,7 @@ function mapDuffelOffers(result: any): OfferCard[] {
     const duration = formatDuration(firstSlice?.duration_in_minutes) || formatDuration(offer?.total_duration?.minutes);
     const stops = (firstSlice?.segments?.length || 1) === 1 ? "Nonstop" : `${(firstSlice?.segments?.length || 2) - 1} stop`;
     const rawPrice = offer?.total_amount ? `USD ${offer.total_amount}` : "Price on request";
-    const price = rawPrice === "Price on request" ? rawPrice : applyFlightMarkupLabel(rawPrice);
+    const price = rawPrice === "Price on request" ? rawPrice : skipMarkup ? rawPrice : applyFlightMarkupLabel(rawPrice);
 
     const slices = Array.isArray(offer?.slices)
       ? offer.slices.map((slice: any) => {
@@ -286,7 +287,7 @@ function resolveIATA(val: string): string {
   return s.toUpperCase().slice(0, 3);
 }
 
-async function loadOffers(params: Params) {
+async function loadOffers(params: Params, skipMarkup = false) {
   const { from, to, depart, ret, passengers = "1", trip = "roundtrip", cabin = "Economy" } = params;
 
   if (!from || !to || !depart) {
@@ -329,7 +330,7 @@ async function loadOffers(params: Params) {
 
   try {
     const result = await searchDuffelOffers(body);
-    const offers = mapDuffelOffers(result);
+    const offers = mapDuffelOffers(result, skipMarkup);
     const message = offers.length === 0 ? "Aucune offre trouvée (Duffel)." : undefined;
     return { offers, message };
   } catch (err: any) {
@@ -338,6 +339,8 @@ async function loadOffers(params: Params) {
 }
 
 export default async function FlightsSearchPage({ searchParams }: { searchParams: Params | Promise<Params> }) {
+  const cookieStore = await cookies();
+  const zeroMargin = cookieStore.get("zeniva_zero_margin")?.value === "1";
   const resolved = searchParams && typeof (searchParams as any)?.then === "function" ? await searchParams : (searchParams as Params) || {};
 
   const {
@@ -370,7 +373,7 @@ export default async function FlightsSearchPage({ searchParams }: { searchParams
   const datesLabel = isRoundTrip ? `${depart || "Date"} → ${ret}` : depart || "Select dates";
   const askPrompt = `Find me the best flight options ${from ? `from ${from} ` : ""}${to ? `to ${to} ` : ""}${depart ? `departing ${depart} ` : ""}${ret ? `returning ${ret} ` : ""}for ${passengers} pax${cabin ? ` in ${cabin}` : ""}. Give nonstop first, then best value.`.trim();
 
-  const { offers, message } = await loadOffers(resolved || {});
+  const { offers, message } = await loadOffers(resolved || {}, zeroMargin);
 
   const filteredOffers = offers
     .filter((offer) => {

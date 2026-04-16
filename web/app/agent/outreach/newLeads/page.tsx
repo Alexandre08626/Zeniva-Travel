@@ -1,536 +1,668 @@
 "use client";
+import { useEffect, useState } from "react";
+import { useAuthStore, isHQ } from "@/src/lib/authStore";
 
-import { useState, useEffect, useCallback } from "react";
+interface Lead {
+  id: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  destination?: string;
+  language?: string;
+  status: string;
+  deal_value?: number;
+  source?: string;
+  created_at: string;
+  phone?: string;
+}
 
-const CLIENT_STATUSES: Record<string, string[]> = {
-  agencies: ["signed"],
-  travelers: ["client", "converted"],
-  agents: [],
+interface BusinessLead {
+  id: string;
+  type: string;
+  contact_name: string;
+  contact_email: string;
+  contact_phone: string;
+  company_name: string;
+  website: string;
+  number_of_agents: number;
+  current_suppliers: string;
+  city: string;
+  province: string;
+  status: string;
+  source: string;
+  priority: string;
+  estimated_setup_value: number;
+  estimated_monthly_value: number;
+  notes: string;
+  last_contacted_at: string;
+  next_followup_at: string;
+  created_at: string;
+}
+
+const EMPTY_BIZ_LEAD: Omit<BusinessLead, "id" | "created_at"> = {
+  type: "travel_agent",
+  contact_name: "",
+  contact_email: "",
+  contact_phone: "",
+  company_name: "",
+  website: "",
+  number_of_agents: 1,
+  current_suppliers: "",
+  city: "",
+  status: "new",
+  source: "manual",
+  priority: "medium",
+  estimated_setup_value: 199,
+  estimated_monthly_value: 97,
+  notes: "",
+  last_contacted_at: "",
+  next_followup_at: "",
 };
 
-const LEAD_STATUSES: Record<string, string[]> = {
-  agencies: ["new", "contacted", "demo_scheduled", "negotiating", "lost"],
-  travelers: ["new", "contacted", "qualified", "followed_up", "quoted", "lost"],
-  agents: ["active", "inactive"],
-};
-
-const statusColors: Record<string, string> = {
+const STATUS_COLORS: Record<string, string> = {
   new: "bg-blue-100 text-blue-700",
-  contacted: "bg-yellow-100 text-yellow-700",
-  demo_scheduled: "bg-orange-100 text-orange-700",
-  negotiating: "bg-amber-100 text-amber-700",
-  signed: "bg-green-100 text-green-700",
-  lost: "bg-red-100 text-red-700",
-  active: "bg-green-100 text-green-700",
-  inactive: "bg-slate-100 text-slate-500",
-  client: "bg-green-100 text-green-700",
-  converted: "bg-green-100 text-green-700",
-  qualified: "bg-purple-100 text-purple-700",
+  contacted: "bg-purple-100 text-purple-700",
   followed_up: "bg-yellow-100 text-yellow-700",
   quoted: "bg-orange-100 text-orange-700",
+  client: "bg-green-100 text-green-700",
   junk: "bg-slate-100 text-slate-500",
 };
 
-function getName(c: any, audience: string) {
-  return audience === "agencies"
-    ? c.contact_name || "\u2014"
-    : [c.first_name, c.last_name].filter(Boolean).join(" ") || "\u2014";
+const BIZ_STATUS_COLORS: Record<string, string> = {
+  new: "bg-blue-100 text-blue-700",
+  contacted: "bg-yellow-100 text-yellow-700",
+  demo_scheduled: "bg-orange-100 text-orange-700",
+  demo_done: "bg-purple-100 text-purple-700",
+  negotiating: "bg-amber-100 text-amber-700",
+  signed: "bg-green-100 text-green-700",
+  lost: "bg-red-100 text-red-700",
+};
+
+const PRIORITY_COLORS: Record<string, string> = {
+  low: "bg-slate-100 text-slate-500",
+  medium: "bg-blue-100 text-blue-700",
+  high: "bg-orange-100 text-orange-700",
+  urgent: "bg-red-100 text-red-700",
+};
+
+const BIZ_SOURCES = ["manual", "website", "email", "linkedin", "referral", "cold_outreach", "opc_list"];
+const BIZ_PRIORITIES = ["low", "medium", "high", "urgent"];
+const BIZ_STATUSES = ["new", "contacted", "demo_scheduled", "demo_done", "negotiating", "signed", "lost"];
+
+function Avatar({ name, email }: { name: string; email: string }) {
+  const colors = ["#0F6CF5","#7C3AED","#10B981","#F59E0B","#EF4444","#EC4899","#06B6D4","#8B5CF6"];
+  const safeEmail = email || "";
+  const i = (safeEmail.charCodeAt(0) || 0 + (safeEmail.charCodeAt(1) || 0)) % colors.length;
+  const initials = (name || "").split(" ").map(w => w?.[0]).filter(Boolean).join("").toUpperCase().slice(0, 2) || "?";
+  return (
+    <div style={{ background: colors[i] }} className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0">
+      {initials}
+    </div>
+  );
 }
-function getEmail(c: any, audience: string) {
-  return audience === "agencies" ? c.contact_email : c.email;
-}
 
-export default function NewLeadsPage() {
-  const [audience, setAudience] = useState("agencies");
-  const [activeTab, setActiveTab] = useState<"leads" | "clients">("leads");
+export default function LeadsPage() {
+  const user = useAuthStore((s) => s.user);
+  const hq = isHQ(user);
 
-  // Leads state
-  const [leads, setLeads] = useState<any[]>([]);
-  const [leadsTotal, setLeadsTotal] = useState(0);
-  const [leadsLoading, setLeadsLoading] = useState(true);
-  const [leadsSearch, setLeadsSearch] = useState("");
-  const [leadsStatus, setLeadsStatus] = useState("all");
-  const [leadsCity, setLeadsCity] = useState("");
-  const [leadsProvince, setLeadsProvince] = useState("");
-  const [leadsPage, setLeadsPage] = useState(1);
-  const [leadsLimit, setLeadsLimit] = useState(25);
+  const deleteLead = async (leadId: string, email: string) => {
+    if (!confirm(`Delete lead ${email}? This cannot be undone.`)) return;
+    await fetch(`/api/agents-proxy?path=admin/leads/${leadId}`, {
+      method: "DELETE",
+      headers: { Authorization: "Bearer zeniva-secret-2025" },
+    });
+    setLeads((prev) => prev.filter((l) => l.id !== leadId));
+  };
 
-  // Clients state
-  const [clients, setClients] = useState<any[]>([]);
-  const [clientsTotal, setClientsTotal] = useState(0);
-  const [clientsLoading, setClientsLoading] = useState(true);
-  const [clientsSearch, setClientsSearch] = useState("");
-  const [clientsPage, setClientsPage] = useState(1);
-  const [clientsLimit, setClientsLimit] = useState(25);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [destinationFilter, setDestinationFilter] = useState("all");
+  const [languageFilter, setLanguageFilter] = useState("all");
+  const [provinceFilter, setProvinceFilter] = useState("all");
 
-  const [drawer, setDrawer] = useState<any | null>(null);
-
-  const clientStatuses = CLIENT_STATUSES[audience] || [];
-  const leadStatuses = LEAD_STATUSES[audience] || [];
-
-  const fetchLeads = useCallback(async () => {
-    setLeadsLoading(true);
-    try {
-      const allLeadStatuses = leadStatuses;
-      const params = new URLSearchParams({
-        audience,
-        page: String(leadsPage),
-        limit: String(leadsLimit),
-      });
-      if (leadsSearch) params.set("search", leadsSearch);
-      if (leadsStatus !== "all") {
-        params.set("status", leadsStatus);
-      }
-      if (leadsCity) params.set("city", leadsCity);
-      if (leadsProvince) params.set("province", leadsProvince);
-      params.set("exclude_statuses", clientStatuses.join(","));
-
-      const res = await fetch("/api/outreach/contacts?" + params.toString());
-      if (res.ok) {
-        const data = await res.json();
-        // Filter client-side as fallback if API doesn't support exclude_statuses
-        const filtered = (data.contacts || []).filter(
-          (c: any) => !clientStatuses.includes(c.status)
-        );
-        setLeads(leadsStatus !== "all" || !clientStatuses.length ? data.contacts || [] : filtered);
-        setLeadsTotal(leadsStatus !== "all" || !clientStatuses.length ? data.total || 0 : filtered.length);
-      }
-    } catch {
-      /* silent */
-    } finally {
-      setLeadsLoading(false);
-    }
-  }, [audience, leadsPage, leadsLimit, leadsSearch, leadsStatus, leadsCity, leadsProvince, leadStatuses, clientStatuses]);
-
-  const fetchClients = useCallback(async () => {
-    if (clientStatuses.length === 0) {
-      setClients([]);
-      setClientsTotal(0);
-      setClientsLoading(false);
-      return;
-    }
-    setClientsLoading(true);
-    try {
-      // Fetch each client status
-      const allClients: any[] = [];
-      let total = 0;
-      for (const status of clientStatuses) {
-        const params = new URLSearchParams({
-          audience,
-          page: String(clientsPage),
-          limit: String(clientsLimit),
-          status,
-        });
-        if (clientsSearch) params.set("search", clientsSearch);
-        const res = await fetch("/api/outreach/contacts?" + params.toString());
-        if (res.ok) {
-          const data = await res.json();
-          allClients.push(...(data.contacts || []));
-          total += data.total || 0;
-        }
-      }
-      setClients(allClients);
-      setClientsTotal(total);
-    } catch {
-      /* silent */
-    } finally {
-      setClientsLoading(false);
-    }
-  }, [audience, clientsPage, clientsLimit, clientsSearch, clientStatuses]);
+  const [activeTab, setActiveTab] = useState<"travelers" | "agents" | "agencies">("travelers");
+  const [businessLeads, setBusinessLeads] = useState<BusinessLead[]>([]);
+  const [businessLoading, setBusinessLoading] = useState(false);
+  const [showBizModal, setShowBizModal] = useState(false);
+  const [editingBizLead, setEditingBizLead] = useState<BusinessLead | null>(null);
+  const [bizForm, setBizForm] = useState<Omit<BusinessLead, "id" | "created_at">>(EMPTY_BIZ_LEAD);
 
   useEffect(() => {
+    if (!user?.email) { setLoading(false); return; }
+    const fetchLeads = async () => {
+      setLoading(true);
+      try {
+        const p = new URLSearchParams({ path: "admin/agent-leads/" + encodeURIComponent(user.email!) });
+        const r = await fetch(`/api/agents-proxy?${p}`);
+        if (!r.ok) { setLoading(false); return; }
+        const d = await r.json();
+        setLeads(Array.isArray(d?.leads) ? d.leads : []);
+      } catch {
+        setLeads([]);
+      }
+      setLoading(false);
+    };
     fetchLeads();
-  }, [fetchLeads]);
-  useEffect(() => {
-    fetchClients();
-  }, [fetchClients]);
+    const interval = setInterval(fetchLeads, 30000);
+    return () => clearInterval(interval);
+  }, [user?.email]);
+
+  const fetchBusinessLeads = (type: string) => {
+    setBusinessLoading(true);
+    fetch(`/api/leads-business?type=${type}`)
+      .then(r => r.ok ? r.json() : { leads: [] })
+      .then(d => setBusinessLeads(Array.isArray(d?.leads) ? d.leads : []))
+      .catch(() => setBusinessLeads([]))
+      .finally(() => setBusinessLoading(false));
+  };
 
   useEffect(() => {
-    setLeadsPage(1);
-  }, [audience, leadsSearch, leadsStatus, leadsCity, leadsProvince, leadsLimit]);
-  useEffect(() => {
-    setClientsPage(1);
-  }, [audience, clientsSearch, clientsLimit]);
+    if (activeTab === "travelers") return;
+    const type = activeTab === "agents" ? "travel_agent" : "travel_agency";
+    fetchBusinessLeads(type);
+  }, [activeTab]);
 
-  // Reset on audience change
-  useEffect(() => {
-    setLeadsSearch("");
-    setLeadsStatus("all");
-    setLeadsCity("");
-    setLeadsProvince("");
-    setClientsSearch("");
-    setActiveTab("leads");
-  }, [audience]);
+  const openAddBizModal = () => {
+    const type = activeTab === "agents" ? "travel_agent" : "travel_agency";
+    const isAgency = type === "travel_agency";
+    setBizForm({
+      ...EMPTY_BIZ_LEAD,
+      type,
+      estimated_setup_value: isAgency ? 1999 : 199,
+      estimated_monthly_value: isAgency ? 399 : 97,
+    });
+    setEditingBizLead(null);
+    setShowBizModal(true);
+  };
 
-  const leadsTotalPages = Math.max(1, Math.ceil(leadsTotal / leadsLimit));
-  const clientsTotalPages = Math.max(1, Math.ceil(clientsTotal / clientsLimit));
+  const openEditBizModal = (lead: BusinessLead) => {
+    setEditingBizLead(lead);
+    const { id, created_at, ...rest } = lead;
+    setBizForm(rest);
+    setShowBizModal(true);
+  };
 
-  const PROVINCES = [
-    "Quebec", "Ontario", "British Columbia", "Alberta", "Manitoba", "Saskatchewan",
-    "Nova Scotia", "New Brunswick", "Newfoundland", "PEI",
-    "New York", "Florida", "California", "Texas", "Illinois", "Massachusetts",
-  ];
+  const recalcBizValues = (form: typeof bizForm): typeof bizForm => {
+    if (form.type === "travel_agency") {
+      return { ...form, estimated_setup_value: 1999, estimated_monthly_value: (form.number_of_agents || 1) * 399 };
+    }
+    return { ...form, estimated_setup_value: 199, estimated_monthly_value: 97 };
+  };
 
-  function renderTable(
-    items: any[],
-    loading: boolean,
-    search: string,
-    setSearch: (v: string) => void,
-    statusFilter: string | null,
-    setStatusFilter: ((v: string) => void) | null,
-    statuses: string[],
-    total: number,
-    page: number,
-    setPage: (v: number) => void,
-    limit: number,
-    setLimit: (v: number) => void,
-    totalPages: number
-  ) {
-    return (
-      <>
-        <div className="flex flex-wrap gap-3 mb-4">
+  const saveBizLead = async () => {
+    const finalForm = recalcBizValues(bizForm);
+    if (editingBizLead) {
+      await fetch(`/api/leads-business/${editingBizLead.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(finalForm),
+      });
+    } else {
+      await fetch("/api/leads-business", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(finalForm),
+      });
+    }
+    setShowBizModal(false);
+    const type = activeTab === "agents" ? "travel_agent" : "travel_agency";
+    fetchBusinessLeads(type);
+  };
+
+  const deleteBizLead = async (lead: BusinessLead) => {
+    if (!confirm(`Delete lead ${lead.contact_name}? This cannot be undone.`)) return;
+    await fetch(`/api/leads-business/${lead.id}`, { method: "DELETE" });
+    setBusinessLeads(prev => prev.filter(l => l.id !== lead.id));
+  };
+
+  const filtered = leads.filter(l => {
+    if (!l || l.email?.endsWith("@zeniva-lead.com")) return false;
+    const name = (l.first_name || "") + " " + (l.last_name || "");
+    const matchSearch = !search || name.toLowerCase().includes(search.toLowerCase()) || (l.email || "").toLowerCase().includes(search.toLowerCase()) || (l.destination || "").toLowerCase().includes(search.toLowerCase());
+    const matchStatus = statusFilter === "all" || l.status === statusFilter;
+    const matchDest = destinationFilter === "all" || (l.destination || "").toLowerCase().includes(destinationFilter.toLowerCase());
+    const matchLang = languageFilter === "all" || l.language === languageFilter;
+    return matchSearch && matchStatus && matchDest && matchLang;
+  });
+
+  // Build unique values for dropdowns
+  const destinations = [...new Set(leads.filter(l => l.destination && !l.email?.endsWith("@zeniva-lead.com")).map(l => l.destination!))].sort();
+  const languages = [...new Set(leads.filter(l => l.language).map(l => l.language!))].sort();
+  const provinces = [...new Set(businessLeads.filter(l => l.province).map(l => l.province))].sort();
+
+  const realLeads = leads.filter(l => l && !l.email?.endsWith("@zeniva-lead.com"));
+  const statuses = ["all", "new", "contacted", "followed_up", "quoted", "client", "junk"];
+  const counts = statuses.reduce((acc, s) => {
+    acc[s] = s === "all" ? realLeads.length : realLeads.filter(l => l.status === s).length;
+    return acc;
+  }, {} as Record<string, number>);
+
+  return (
+    <div className="min-h-screen bg-[#F3F6FB] p-6">
+      {/* Header */}
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-black text-slate-900">🎯 Lead Pipeline</h1>
+          <p className="text-slate-500 text-sm mt-1">
+            {hq ? "All leads across all agents" : "Your personal lead pipeline"}
+          </p>
+        </div>
+        {activeTab !== "travelers" && (
+          <button
+            onClick={openAddBizModal}
+            className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
+          >
+            + Add Lead
+          </button>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6">
+        {([
+          { key: "travelers" as const, label: "Travelers", count: realLeads.length },
+          { key: "agents" as const, label: "Travel Agents", count: activeTab === "agents" ? businessLeads.length : null },
+          { key: "agencies" as const, label: "Travel Agencies", count: activeTab === "agencies" ? businessLeads.length : null },
+        ]).map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+              activeTab === tab.key
+                ? "bg-blue-600 text-white"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            {tab.label}{tab.count !== null ? ` (${tab.count})` : ""}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "travelers" && (<>
+      {/* Stats bar */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: "Total Leads", value: leads.length, color: "text-blue-600" },
+          { label: "New", value: counts.new || 0, color: "text-blue-600" },
+          { label: "Quoted", value: counts.quoted || 0, color: "text-orange-600" },
+          { label: "Converted", value: counts.client || 0, color: "text-green-600" },
+        ].map(stat => (
+          <div key={stat.label} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+            <div className={`text-2xl font-black ${stat.color}`}>{stat.value}</div>
+            <div className="text-xs text-slate-500 mt-1">{stat.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6 space-y-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <input
             type="text"
-            placeholder="Search name, email..."
+            placeholder="Search leads..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-64"
+            onChange={e => setSearch(e.target.value)}
+            className="flex-1 rounded-xl border border-slate-200 px-4 py-2 text-sm focus:outline-none focus:border-blue-400"
           />
-          {setStatusFilter && statuses.length > 0 && (
-            <select
-              value={statusFilter || "all"}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-            >
-              <option value="all">All statuses</option>
-              {statuses.map((s) => (
-                <option key={s} value={s}>
-                  {s.replace(/_/g, " ")}
-                </option>
-              ))}
-            </select>
-          )}
-          {audience === "agencies" && (
+          {activeTab === "travelers" && (
             <>
-              <input
-                type="text"
-                placeholder="Filter by city..."
-                value={leadsCity}
-                onChange={(e) => setLeadsCity(e.target.value)}
-                className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-40"
-              />
-              <select
-                value={leadsProvince}
-                onChange={(e) => setLeadsProvince(e.target.value)}
-                className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-              >
-                <option value="">All provinces/states</option>
-                {PROVINCES.map((p) => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
+              <select value={destinationFilter} onChange={e => setDestinationFilter(e.target.value)}
+                className="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400 min-w-[160px]">
+                <option value="all">All Destinations</option>
+                {destinations.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+              <select value={languageFilter} onChange={e => setLanguageFilter(e.target.value)}
+                className="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400 min-w-[120px]">
+                <option value="all">All Languages</option>
+                {languages.map(l => <option key={l} value={l}>{l === "fr" ? "Fran\u00e7ais" : l === "en" ? "English" : l === "es" ? "Espa\u00f1ol" : l === "ar" ? "Arabic" : l}</option>)}
               </select>
             </>
           )}
-          <span className="text-sm text-slate-500 self-center">
-            {total} {total === 1 ? "contact" : "contacts"}
-          </span>
-        </div>
-
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-4">
-          {loading ? (
-            <div className="p-6 space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />
-              ))}
-            </div>
-          ) : items.length === 0 ? (
-            <div className="p-12 text-center text-slate-500">No contacts found.</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50 border-b border-slate-200">
-                  <tr>
-                    <th className="text-left px-4 py-3 font-semibold text-slate-600">Name</th>
-                    <th className="text-left px-4 py-3 font-semibold text-slate-600">Email</th>
-                    {audience === "agencies" && (
-                      <th className="text-left px-4 py-3 font-semibold text-slate-600">Company</th>
-                    )}
-                    {audience === "agencies" && (
-                      <th className="text-left px-4 py-3 font-semibold text-slate-600">Phone</th>
-                    )}
-                    <th className="text-left px-4 py-3 font-semibold text-slate-600">Status</th>
-                    {audience === "agencies" && (
-                      <th className="text-left px-4 py-3 font-semibold text-slate-600">City</th>
-                    )}
-                    {audience === "agencies" && (
-                      <th className="text-left px-4 py-3 font-semibold text-slate-600">Province</th>
-                    )}
-                    <th className="text-left px-4 py-3 font-semibold text-slate-600">Created</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((c) => (
-                    <tr
-                      key={c.id}
-                      className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer"
-                      onClick={() => setDrawer(c)}
-                    >
-                      <td className="px-4 py-3 font-medium text-slate-900">
-                        {getName(c, audience)}
-                      </td>
-                      <td className="px-4 py-3 text-slate-600">
-                        {getEmail(c, audience) || "\u2014"}
-                      </td>
-                      {audience === "agencies" && (
-                        <td className="px-4 py-3 text-slate-600">
-                          {c.company_name || "\u2014"}
-                        </td>
-                      )}
-                      {audience === "agencies" && (
-                        <td className="px-4 py-3 text-slate-600">
-                          {c.contact_phone || "\u2014"}
-                        </td>
-                      )}
-                      <td className="px-4 py-3">
-                        <span
-                          className={
-                            "px-2 py-0.5 rounded-full text-xs font-semibold " +
-                            (statusColors[c.status] || "bg-slate-100 text-slate-600")
-                          }
-                        >
-                          {c.status?.replace(/_/g, " ")}
-                        </span>
-                      </td>
-                      {audience === "agencies" && (
-                        <td className="px-4 py-3 text-slate-500">{c.city || "\u2014"}</td>
-                      )}
-                      {audience === "agencies" && (
-                        <td className="px-4 py-3 text-slate-500">{c.province || "\u2014"}</td>
-                      )}
-                      <td className="px-4 py-3 text-slate-500">
-                        {c.created_at
-                          ? new Date(c.created_at).toLocaleDateString("en-CA")
-                          : "\u2014"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          {(activeTab === "agencies" || activeTab === "agents") && (
+            <select value={provinceFilter} onChange={e => setProvinceFilter(e.target.value)}
+              className="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400 min-w-[160px]">
+              <option value="all">All Provinces</option>
+              {provinces.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
           )}
         </div>
-
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between">
-            <div className="flex gap-2">
-              {[25, 50, 100].map((n) => (
-                <button
-                  key={n}
-                  onClick={() => setLimit(n)}
-                  className={
-                    "px-3 py-1 rounded text-xs font-semibold " +
-                    (limit === n
-                      ? "bg-violet-600 text-white"
-                      : "bg-white border border-slate-200 text-slate-600")
-                  }
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2 items-center">
-              <button
-                onClick={() => setPage(Math.max(1, page - 1))}
-                disabled={page === 1}
-                className="px-3 py-1 rounded text-sm bg-white border border-slate-200 text-slate-600 disabled:opacity-40"
-              >
-                Prev
-              </button>
-              <span className="text-sm text-slate-500">
-                Page {page} of {totalPages}
-              </span>
-              <button
-                onClick={() => setPage(Math.min(totalPages, page + 1))}
-                disabled={page === totalPages}
-                className="px-3 py-1 rounded text-sm bg-white border border-slate-200 text-slate-600 disabled:opacity-40"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
-      </>
-    );
-  }
-
-  return (
-    <div className="p-4 sm:p-6 lg:p-8">
-        {/* Audience selector */}
-        <div className="flex gap-2 mb-6">
-          {(["agencies", "travelers", "agents"] as const).map((a) => (
+        <div className="flex flex-wrap gap-2">
+          {statuses.map(s => (
             <button
-              key={a}
-              onClick={() => setAudience(a)}
-              className={
-                "px-4 py-2 rounded-xl text-sm font-semibold " +
-                (audience === a
-                  ? "bg-violet-600 text-white"
-                  : "bg-white border border-slate-200 text-slate-600")
-              }
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={"px-3 py-1.5 rounded-full text-xs font-semibold capitalize transition-all " +
+                (statusFilter === s
+                  ? "bg-blue-600 text-white"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200")}
             >
-              {a.charAt(0).toUpperCase() + a.slice(1)}
+              {s === "all" ? "All (" + counts.all + ")" : s + " (" + (counts[s] || 0) + ")"}
             </button>
           ))}
         </div>
+      </div>
 
-        {/* Stats cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">
-              Total Leads
-            </p>
-            <p className="text-2xl font-bold text-blue-600 mt-1">{leadsTotal}</p>
-          </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">
-              Total Clients
-            </p>
-            <p className="text-2xl font-bold text-green-600 mt-1">{clientsTotal}</p>
-          </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">
-              Conversion Rate
-            </p>
-            <p className="text-2xl font-bold text-violet-600 mt-1">
-              {leadsTotal + clientsTotal > 0
-                ? Math.round((clientsTotal / (leadsTotal + clientsTotal)) * 100)
-                : 0}
-              %
-            </p>
-          </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">
-              Pipeline Total
-            </p>
-            <p className="text-2xl font-bold text-slate-900 mt-1">
-              {leadsTotal + clientsTotal}
-            </p>
+      {/* Leads list */}
+      {loading ? (
+        <div className="flex justify-center py-20">
+          <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-slate-100">
+          <div className="text-4xl mb-3">🎯</div>
+          <div className="text-slate-500 text-sm">
+            {leads.length === 0
+              ? "No leads yet. Share your referral link to get started!"
+              : "No leads match your search."}
           </div>
         </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map(lead => {
+            const name = `${lead.first_name || ""} ${lead.last_name || ""}`.trim() || lead.email;
+            return (
+              <div key={lead.id} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-200">
+                <div className="flex items-start gap-3 mb-3">
+                  <Avatar name={name} email={lead.email} />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-slate-900 text-sm truncate">{name}</div>
+                    <div className="text-xs text-slate-500 truncate">{lead.email}</div>
+                    {lead.phone && <div className="text-xs text-slate-400">{lead.phone}</div>}
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold capitalize ${STATUS_COLORS[lead.status] || "bg-slate-100 text-slate-500"}`}>
+                    {lead.status}
+                  </span>
+                </div>
 
-        {/* Leads / Clients toggle */}
-        <div className="flex gap-1 mb-6 bg-white rounded-xl border border-slate-200 p-1 w-fit">
-          <button
-            onClick={() => setActiveTab("leads")}
-            className={
-              "px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 " +
-              (activeTab === "leads"
-                ? "bg-blue-600 text-white"
-                : "text-slate-600 hover:bg-slate-100")
-            }
-          >
-            <span>Leads</span>
-            <span
-              className={
-                "px-2 py-0.5 rounded-full text-xs font-bold " +
-                (activeTab === "leads"
-                  ? "bg-blue-500 text-white"
-                  : "bg-slate-100 text-slate-600")
-              }
-            >
-              {leadsTotal}
-            </span>
-          </button>
-          <button
-            onClick={() => setActiveTab("clients")}
-            className={
-              "px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 " +
-              (activeTab === "clients"
-                ? "bg-green-600 text-white"
-                : "text-slate-600 hover:bg-slate-100")
-            }
-          >
-            <span>Clients</span>
-            <span
-              className={
-                "px-2 py-0.5 rounded-full text-xs font-bold " +
-                (activeTab === "clients"
-                  ? "bg-green-500 text-white"
-                  : "bg-slate-100 text-slate-600")
-              }
-            >
-              {clientsTotal}
-            </span>
-          </button>
+                <div className="space-y-1.5">
+                  {lead.destination && (
+                    <div className="flex items-center gap-2 text-xs text-slate-600">
+                      <span>✈️</span>
+                      <span className="font-medium">{lead.destination}</span>
+                    </div>
+                  )}
+                  {lead.deal_value && lead.deal_value > 0 ? (
+                    <div className="flex items-center gap-2 text-xs text-slate-600">
+                      <span>💰</span>
+                      <span className="font-medium">${lead.deal_value.toLocaleString()}</span>
+                    </div>
+                  ) : null}
+                  {lead.source && (
+                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                      <span>📍</span>
+                      <span>{lead.source}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 text-xs text-slate-400">
+                    <span>📅</span>
+                    <span>{new Date(lead.created_at).toLocaleDateString()}</span>
+                  </div>
+                </div>
+
+                <div className="mt-3 pt-3 border-t border-slate-100 flex gap-2">
+                  <button className="flex-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-1.5 rounded-lg transition-colors">
+                    📋 Propose
+                  </button>
+                  <button className="flex-1 text-xs bg-slate-50 hover:bg-slate-100 text-slate-600 font-semibold py-1.5 rounded-lg transition-colors">
+                    💬 Chat
+                  </button>
+                  {hq && (
+                    <button
+                      onClick={() => void deleteLead(lead.id, lead.email)}
+                      className="text-xs bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-2.5 py-1.5 rounded-lg transition-colors"
+                      title="Delete lead"
+                    >🗑️</button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
+      )}
+      </>)}
 
-        {/* Active tab content */}
-        {activeTab === "leads" &&
-          renderTable(
-            leads,
-            leadsLoading,
-            leadsSearch,
-            setLeadsSearch,
-            leadsStatus,
-            setLeadsStatus,
-            leadStatuses,
-            leadsTotal,
-            leadsPage,
-            setLeadsPage,
-            leadsLimit,
-            setLeadsLimit,
-            leadsTotalPages
-          )}
-
-        {activeTab === "clients" &&
-          (clientStatuses.length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-200 p-12 text-center text-slate-500">
-              No client statuses defined for this audience type.
+      {(activeTab === "agents" || activeTab === "agencies") && (<>
+        {/* Business Stats bar */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
+          {[
+            { label: "Total Leads", value: businessLeads.length, color: "text-blue-600" },
+            { label: "New This Week", value: businessLeads.filter(l => {
+              const d = new Date(l.created_at);
+              const now = new Date();
+              const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+              return d >= weekAgo;
+            }).length, color: "text-blue-600" },
+            { label: "Demos Scheduled", value: businessLeads.filter(l => l.status === "demo_scheduled").length, color: "text-orange-600" },
+            { label: "Pipeline Value", value: "$" + businessLeads.reduce((s, l) => s + (l.estimated_setup_value || 0), 0).toLocaleString(), color: "text-green-600" },
+            { label: "Conversion Rate", value: businessLeads.length > 0 ? Math.round((businessLeads.filter(l => l.status === "signed").length / businessLeads.length) * 100) + "%" : "0%", color: "text-purple-600" },
+          ].map(stat => (
+            <div key={stat.label} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+              <div className={`text-2xl font-black ${stat.color}`}>{stat.value}</div>
+              <div className="text-xs text-slate-500 mt-1">{stat.label}</div>
             </div>
-          ) : (
-            renderTable(
-              clients,
-              clientsLoading,
-              clientsSearch,
-              setClientsSearch,
-              null,
-              null,
-              [],
-              clientsTotal,
-              clientsPage,
-              setClientsPage,
-              clientsLimit,
-              setClientsLimit,
-              clientsTotalPages
-            )
           ))}
+        </div>
 
-      {/* Detail drawer */}
-      {drawer && (
-        <>
-          <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setDrawer(null)} />
-          <div className="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-50 overflow-y-auto p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold text-slate-900">Contact Details</h2>
-              <button
-                onClick={() => setDrawer(null)}
-                className="text-slate-400 hover:text-slate-600 text-xl"
-              >
-                {"\u2715"}
+        {/* Business Leads list */}
+        {businessLoading ? (
+          <div className="flex justify-center py-20">
+            <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" />
+          </div>
+        ) : businessLeads.length === 0 ? (
+          <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-slate-100">
+            <div className="text-4xl mb-3">🏢</div>
+            <div className="text-slate-500 text-sm">
+              No {activeTab === "agents" ? "travel agent" : "travel agency"} leads yet. Click &quot;+ Add Lead&quot; to get started!
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {businessLeads.filter(lead => {
+              const matchProv = provinceFilter === "all" || lead.province === provinceFilter;
+              const matchSearch2 = !search || (lead.contact_name || "").toLowerCase().includes(search.toLowerCase()) || (lead.contact_email || "").toLowerCase().includes(search.toLowerCase()) || (lead.company_name || "").toLowerCase().includes(search.toLowerCase());
+              return matchProv && matchSearch2;
+            }).map(lead => {
+              const isOverdue = lead.next_followup_at && new Date(lead.next_followup_at) < new Date();
+              return (
+                <div
+                  key={lead.id}
+                  className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer"
+                  onClick={() => openEditBizModal(lead)}
+                >
+                  <div className="flex items-start gap-3 mb-3">
+                    <Avatar name={lead.contact_name || "?"} email={lead.contact_email || "a@b.com"} />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-slate-900 text-sm truncate">{lead.contact_name}</div>
+                      {lead.company_name && <div className="text-xs text-slate-500 truncate">{lead.company_name}</div>}
+                      <div className="text-xs text-slate-400 truncate">{lead.contact_email}</div>
+                    </div>
+                    <div className="flex flex-col gap-1 items-end">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold capitalize ${BIZ_STATUS_COLORS[lead.status] || "bg-slate-100 text-slate-500"}`}>
+                        {lead.status?.replace(/_/g, " ")}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold capitalize ${PRIORITY_COLORS[lead.priority] || "bg-slate-100 text-slate-500"}`}>
+                        {lead.priority}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    {lead.type === "travel_agency" && lead.number_of_agents > 0 && (
+                      <div className="flex items-center gap-2 text-xs text-slate-600">
+                        <span>👥</span>
+                        <span className="font-medium">{lead.number_of_agents} agents</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 text-xs text-slate-600">
+                      <span>💰</span>
+                      <span className="font-medium">
+                        Setup ${(lead.estimated_setup_value || 0).toLocaleString()} + ${(lead.estimated_monthly_value || 0).toLocaleString()}/mo
+                      </span>
+                    </div>
+                    {lead.city && (
+                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                        <span>📍</span>
+                        <span>{lead.city}</span>
+                      </div>
+                    )}
+                    {lead.source && (
+                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                        <span>🔗</span>
+                        <span className="capitalize">{lead.source.replace(/_/g, " ")}</span>
+                      </div>
+                    )}
+                    {lead.next_followup_at && (
+                      <div className={`flex items-center gap-2 text-xs ${isOverdue ? "text-red-600 font-semibold" : "text-slate-400"}`}>
+                        <span>📅</span>
+                        <span>Follow-up: {new Date(lead.next_followup_at).toLocaleDateString()}{isOverdue ? " (overdue)" : ""}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-3 pt-3 border-t border-slate-100 flex gap-2">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); openEditBizModal(lead); }}
+                      className="flex-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-1.5 rounded-lg transition-colors"
+                    >
+                      ✏️ Edit
+                    </button>
+                    {hq && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); void deleteBizLead(lead); }}
+                        className="text-xs bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-2.5 py-1.5 rounded-lg transition-colors"
+                        title="Delete lead"
+                      >🗑️</button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </>)}
+
+      {/* Business Lead Modal */}
+      {showBizModal && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setShowBizModal(false)}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6" onClick={e => e.stopPropagation()}>
+            <h2 className="text-lg font-black text-slate-900 mb-4">
+              {editingBizLead ? "Edit" : "Add"} {bizForm.type === "travel_agent" ? "Travel Agent" : "Travel Agency"} Lead
+            </h2>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-slate-600 block mb-1">Contact Name *</label>
+                <input type="text" value={bizForm.contact_name} onChange={e => setBizForm(f => ({ ...f, contact_name: e.target.value }))}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm focus:outline-none focus:border-blue-400" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 block mb-1">Email</label>
+                  <input type="email" value={bizForm.contact_email} onChange={e => setBizForm(f => ({ ...f, contact_email: e.target.value }))}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm focus:outline-none focus:border-blue-400" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 block mb-1">Phone</label>
+                  <input type="tel" value={bizForm.contact_phone} onChange={e => setBizForm(f => ({ ...f, contact_phone: e.target.value }))}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm focus:outline-none focus:border-blue-400" />
+                </div>
+              </div>
+              {bizForm.type === "travel_agency" && (
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 block mb-1">Company Name</label>
+                  <input type="text" value={bizForm.company_name} onChange={e => setBizForm(f => ({ ...f, company_name: e.target.value }))}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm focus:outline-none focus:border-blue-400" />
+                </div>
+              )}
+              <div>
+                <label className="text-xs font-semibold text-slate-600 block mb-1">Website</label>
+                <input type="url" value={bizForm.website} onChange={e => setBizForm(f => ({ ...f, website: e.target.value }))}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm focus:outline-none focus:border-blue-400" />
+              </div>
+              {bizForm.type === "travel_agency" && (
+                <>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-600 block mb-1">Number of Agents</label>
+                    <input type="number" min={1} value={bizForm.number_of_agents} onChange={e => {
+                      const n = parseInt(e.target.value) || 1;
+                      setBizForm(f => recalcBizValues({ ...f, number_of_agents: n }));
+                    }}
+                      className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm focus:outline-none focus:border-blue-400" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-600 block mb-1">Current Suppliers</label>
+                    <textarea value={bizForm.current_suppliers} onChange={e => setBizForm(f => ({ ...f, current_suppliers: e.target.value }))}
+                      className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm focus:outline-none focus:border-blue-400" rows={2} />
+                  </div>
+                </>
+              )}
+              <div>
+                <label className="text-xs font-semibold text-slate-600 block mb-1">City</label>
+                <input type="text" value={bizForm.city} onChange={e => setBizForm(f => ({ ...f, city: e.target.value }))}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm focus:outline-none focus:border-blue-400" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 block mb-1">Source</label>
+                  <select value={bizForm.source} onChange={e => setBizForm(f => ({ ...f, source: e.target.value }))}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white">
+                    {BIZ_SOURCES.map(s => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 block mb-1">Priority</label>
+                  <select value={bizForm.priority} onChange={e => setBizForm(f => ({ ...f, priority: e.target.value }))}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white">
+                    {BIZ_PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                </div>
+              </div>
+              {editingBizLead && (
+                <>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-600 block mb-1">Status</label>
+                    <select value={bizForm.status} onChange={e => setBizForm(f => ({ ...f, status: e.target.value }))}
+                      className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white">
+                      {BIZ_STATUSES.map(s => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-600 block mb-1">Last Contacted</label>
+                      <input type="date" value={bizForm.last_contacted_at?.split("T")[0] || ""} onChange={e => setBizForm(f => ({ ...f, last_contacted_at: e.target.value }))}
+                        className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm focus:outline-none focus:border-blue-400" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-600 block mb-1">Next Follow-up</label>
+                      <input type="date" value={bizForm.next_followup_at?.split("T")[0] || ""} onChange={e => setBizForm(f => ({ ...f, next_followup_at: e.target.value }))}
+                        className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm focus:outline-none focus:border-blue-400" />
+                    </div>
+                  </div>
+                </>
+              )}
+              <div>
+                <label className="text-xs font-semibold text-slate-600 block mb-1">Notes</label>
+                <textarea value={bizForm.notes} onChange={e => setBizForm(f => ({ ...f, notes: e.target.value }))}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm focus:outline-none focus:border-blue-400" rows={3} />
+              </div>
+              <div className="bg-slate-50 rounded-xl p-3 text-xs text-slate-500">
+                Estimated: Setup <span className="font-semibold text-slate-700">${bizForm.estimated_setup_value.toLocaleString()}</span> + Monthly <span className="font-semibold text-slate-700">${bizForm.estimated_monthly_value.toLocaleString()}</span>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-5">
+              <button onClick={() => setShowBizModal(false)}
+                className="flex-1 text-sm bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl transition-colors">
+                Cancel
+              </button>
+              <button onClick={() => void saveBizLead()}
+                disabled={!bizForm.contact_name.trim()}
+                className="flex-1 text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-xl transition-colors disabled:opacity-50">
+                {editingBizLead ? "Save Changes" : "Add Lead"}
               </button>
             </div>
-            <div className="space-y-3">
-              {Object.entries(drawer).map(([key, value]) => (
-                <div key={key}>
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                    {key.replace(/_/g, " ")}
-                  </p>
-                  <p className="text-sm text-slate-900">{String(value ?? "\u2014")}</p>
-                </div>
-              ))}
-            </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
