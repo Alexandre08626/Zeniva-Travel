@@ -25,11 +25,23 @@ export async function GET(req: NextRequest) {
   if (city) query = query.ilike("city", `%${city}%`);
   if (province) query = query.ilike("province", `%${province}%`);
 
-  // Supabase default limit is 1000 — fetch all with range
-  const { data: firstBatch, error, count } = await query.range(0, 1999);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  // Supabase caps at 1000 per request — paginate to get all
+  const allLeads: any[] = [];
+  let from = 0;
+  const batchSize = 1000;
+  let totalCount = 0;
 
-  return NextResponse.json({ ok: true, leads: firstBatch || [], total: count || 0 });
+  while (true) {
+    const { data: batch, error, count } = await query.range(from, from + batchSize - 1);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (count !== null) totalCount = count;
+    if (!batch || batch.length === 0) break;
+    allLeads.push(...batch);
+    if (batch.length < batchSize) break;
+    from += batchSize;
+  }
+
+  return NextResponse.json({ ok: true, leads: allLeads, total: totalCount });
 }
 
 export async function POST(req: NextRequest) {
