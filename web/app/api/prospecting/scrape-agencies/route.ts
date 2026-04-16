@@ -111,6 +111,8 @@ export async function POST(req: NextRequest) {
   const now = new Date().toISOString();
   let totalFound = 0;
   let totalSaved = 0;
+  const skipped: string[] = [];
+  const errors: string[] = [];
   const results: Record<string, { found: number; saved: number }> = {};
 
   for (const location of locations) {
@@ -118,15 +120,18 @@ export async function POST(req: NextRequest) {
     let saved = 0;
 
     for (const a of agencies) {
-      if (!a.company_name) continue;
+      if (!a.company_name) { skipped.push(`empty name`); continue; }
 
-      // Dedupe by company_name + city
+      // Dedupe by company_name (exact match only)
       const { data: existing } = await client
         .from("leads_business")
         .select("id")
         .ilike("company_name", a.company_name)
         .limit(1);
-      if (existing && existing.length > 0) continue;
+      if (existing && existing.length > 0) {
+        skipped.push(`${a.company_name}: already exists`);
+        continue;
+      }
 
       // Also dedupe by email if provided
       if (a.contact_email) {
@@ -135,7 +140,10 @@ export async function POST(req: NextRequest) {
           .select("id")
           .eq("contact_email", a.contact_email.toLowerCase())
           .limit(1);
-        if (emailMatch && emailMatch.length > 0) continue;
+        if (emailMatch && emailMatch.length > 0) {
+          skipped.push(`${a.company_name}: email ${a.contact_email} already exists`);
+          continue;
+        }
       }
 
       const { error } = await client.from("leads_business").insert({
@@ -155,7 +163,11 @@ export async function POST(req: NextRequest) {
         notes: a.notes || "",
         created_at: now,
       });
-      if (!error) saved++;
+      if (!error) {
+        saved++;
+      } else {
+        errors.push(`${a.company_name}: ${error.message}`);
+      }
     }
 
     totalFound += agencies.length;
@@ -168,5 +180,7 @@ export async function POST(req: NextRequest) {
     totalFound,
     totalSaved,
     results,
+    skipped,
+    errors,
   });
 }
