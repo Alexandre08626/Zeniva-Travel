@@ -121,6 +121,7 @@ export default function LeadsPage() {
   const [destinationFilter, setDestinationFilter] = useState("all");
   const [languageFilter, setLanguageFilter] = useState("all");
   const [provinceFilter, setProvinceFilter] = useState("all");
+  const [cityFilter, setCityFilter] = useState("all");
 
   const [activeTab, setActiveTab] = useState<"travelers" | "agents" | "agencies">("travelers");
   const [businessLeads, setBusinessLeads] = useState<BusinessLead[]>([]);
@@ -231,6 +232,7 @@ export default function LeadsPage() {
   const destinations = [...new Set(leads.filter(l => l.destination && !l.email?.endsWith("@zeniva-lead.com")).map(l => l.destination!))].sort();
   const languages = [...new Set(leads.filter(l => l.language).map(l => l.language!))].sort();
   const provinces = [...new Set(businessLeads.filter(l => l.province).map(l => l.province))].sort();
+  const cities = [...new Set(businessLeads.filter(l => l.city).map(l => l.city))].sort();
 
   const realLeads = leads.filter(l => l && !l.email?.endsWith("@zeniva-lead.com"));
   const statuses = ["all", "new", "contacted", "followed_up", "quoted", "client", "junk"];
@@ -321,11 +323,18 @@ export default function LeadsPage() {
             </>
           )}
           {(activeTab === "agencies" || activeTab === "agents") && (
-            <select value={provinceFilter} onChange={e => setProvinceFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400 min-w-[160px]">
-              <option value="all">All Provinces</option>
-              {provinces.map(p => <option key={p} value={p}>{p}</option>)}
-            </select>
+            <>
+              <select value={cityFilter} onChange={e => setCityFilter(e.target.value)}
+                className="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400 min-w-[160px]">
+                <option value="all">All Cities</option>
+                {cities.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <select value={provinceFilter} onChange={e => setProvinceFilter(e.target.value)}
+                className="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400 min-w-[160px]">
+                <option value="all">All Provinces</option>
+                {provinces.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </>
           )}
         </div>
         <div className="flex flex-wrap gap-2">
@@ -461,8 +470,9 @@ export default function LeadsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {businessLeads.filter(lead => {
               const matchProv = provinceFilter === "all" || lead.province === provinceFilter;
-              const matchSearch2 = !search || (lead.contact_name || "").toLowerCase().includes(search.toLowerCase()) || (lead.contact_email || "").toLowerCase().includes(search.toLowerCase()) || (lead.company_name || "").toLowerCase().includes(search.toLowerCase());
-              return matchProv && matchSearch2;
+              const matchCity = cityFilter === "all" || lead.city === cityFilter;
+              const matchSearch2 = !search || (lead.contact_name || "").toLowerCase().includes(search.toLowerCase()) || (lead.contact_email || "").toLowerCase().includes(search.toLowerCase()) || (lead.company_name || "").toLowerCase().includes(search.toLowerCase()) || (lead.city || "").toLowerCase().includes(search.toLowerCase());
+              return matchProv && matchCity && matchSearch2;
             }).map(lead => {
               const isOverdue = lead.next_followup_at && new Date(lead.next_followup_at) < new Date();
               return (
