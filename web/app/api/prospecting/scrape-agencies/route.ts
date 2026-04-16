@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
         city: a.city || "",
         province: a.province || "",
         status: "new",
-        source: "prospecting:google",
+        source: "google",
         priority: "medium",
         estimated_setup_value: 1999,
         estimated_monthly_value: 399,
