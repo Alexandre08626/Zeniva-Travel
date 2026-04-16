@@ -57,7 +57,7 @@ const NAV_LINKS = [
 
 // HQ nav — visible to all HQ/admin users
 const HQ_LINKS = [
-  { label: "Leads", href: "/agent/leads", icon: "🎯" },
+  { label: "Leads & Marketing", href: "/agent/outreach", icon: "🎯" },
   { label: "Agencies", href: "/agent/agencies", icon: "🏢" },
   { label: "Chat Hub", href: "/agent/chat", icon: "💬" },
   { label: "Control Tower", href: "/agent/control-tower", icon: "🗼" },

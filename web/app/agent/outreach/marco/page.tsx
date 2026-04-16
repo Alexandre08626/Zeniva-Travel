@@ -168,7 +168,7 @@ export default function MarcoPage() {
               ))}
             </div>
             <div className="mt-4 flex items-center gap-3">
-              <Link href="/agent/leads" className="px-4 py-2 rounded-lg text-xs font-bold bg-red-500 text-white hover:bg-red-600 transition">
+              <Link href="/agent/outreach/newLeads" className="px-4 py-2 rounded-lg text-xs font-bold bg-red-500 text-white hover:bg-red-600 transition">
                 View Leads →
               </Link>
               <span className="text-[10px] text-slate-500">Source: prospecting:ai · Status: new</span>
