@@ -16,6 +16,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.93.1",
     "@tanstack/react-table": "^8.21.3",
+    "@types/imap": "^0.8.43",
     "@types/leaflet": "^1.9.21",
     "@types/nodemailer": "^7.0.11",
     "clsx": "^2.1.1",
@@ -23,6 +24,7 @@
     "dotenv": "^17.3.1",
     "geist": "^1.7.0",
     "html-to-text": "^9.0.5",
+    "imap": "^0.8.19",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.562.0",
     "marked": "^12.0.2",
