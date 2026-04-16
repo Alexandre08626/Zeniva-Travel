@@ -13,17 +13,23 @@ export async function GET(req: NextRequest) {
   const source = url.searchParams.get("source");
 
   const { client } = getSupabaseAdminClient();
-  let query = client.from("leads_business").select("*").order("created_at", { ascending: false });
+  const city = url.searchParams.get("city");
+  const province = url.searchParams.get("province");
+
+  let query = client.from("leads_business").select("*", { count: "exact" }).order("created_at", { ascending: false });
 
   if (type) query = query.eq("type", type);
   if (status) query = query.eq("status", status);
   if (priority) query = query.eq("priority", priority);
   if (source) query = query.eq("source", source);
+  if (city) query = query.ilike("city", `%${city}%`);
+  if (province) query = query.ilike("province", `%${province}%`);
 
-  const { data, error } = await query;
+  // Supabase default limit is 1000 — fetch all with range
+  const { data: firstBatch, error, count } = await query.range(0, 1999);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ ok: true, leads: data || [] });
+  return NextResponse.json({ ok: true, leads: firstBatch || [], total: count || 0 });
 }
 
 export async function POST(req: NextRequest) {
