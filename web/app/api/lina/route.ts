@@ -189,8 +189,12 @@ const requestSchema = z.object({
 const TIMEOUT_MS = Number(process.env.LINA_TIMEOUT_MS || 30000);
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
-const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
-const API_BASE = process.env.OPENAI_API_BASE || "https://api.openai.com/v1";
+const GEMINI_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+const GROQ_KEY = process.env.GROQ_API_KEY;
+const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+const MODEL = (process.env.OPENAI_MODEL || "gpt-4o-mini").trim();
+const API_BASE = (process.env.OPENAI_API_BASE || "https://api.openai.com/v1").trim();
 const OPENAI_KEY =
   process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 
@@ -289,7 +293,96 @@ async function callClaudeFallback(
 }
 
 /**
- * Fallback 2: direct OpenAI call (last resort)
+ * Fallback 2: Groq (free tier — Llama 3.3 70B, 14400 req/day)
+ */
+async function callGroqFallback(
+  prompt: string,
+  history: { role: string; content: string }[],
+  requestId: string,
+  mode: "client" | "agent" = "client",
+  agencySystemPrompt?: string | null
+): Promise<string | null> {
+  if (!GROQ_KEY) return null;
+
+  const systemPrompt = agencySystemPrompt || (mode === "agent" ? SYSTEM_PROMPT_AGENT : SYSTEM_PROMPT_CLIENT);
+  const messages = [
+    { role: "system", content: systemPrompt },
+    ...history,
+    { role: "user", content: prompt },
+  ];
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${GROQ_KEY}`,
+      },
+      body: JSON.stringify({ model: GROQ_MODEL, messages, temperature: 0.7 }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    return data?.choices?.[0]?.message?.content?.trim() || null;
+  } catch {
+    clearTimeout(timeout);
+    return null;
+  }
+}
+
+/**
+ * Fallback 3: Google Gemini (free tier — 15 RPM)
+ */
+async function callGeminiFallback(
+  prompt: string,
+  history: { role: string; content: string }[],
+  requestId: string,
+  mode: "client" | "agent" = "client",
+  agencySystemPrompt?: string | null
+): Promise<string | null> {
+  if (!GEMINI_KEY) return null;
+
+  const systemPrompt = agencySystemPrompt || (mode === "agent" ? SYSTEM_PROMPT_AGENT : SYSTEM_PROMPT_CLIENT);
+  const contents = [
+    ...history.map((m) => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }],
+    })),
+    { role: "user", parts: [{ text: prompt }] },
+  ];
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const resp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents,
+          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
+        }),
+        signal: controller.signal,
+      }
+    );
+    clearTimeout(timeout);
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    return text || null;
+  } catch {
+    clearTimeout(timeout);
+    return null;
+  }
+}
+
+/**
+ * Fallback 3: direct OpenAI call (last resort)
  */
 async function callOpenAIFallback(
   prompt: string,
@@ -388,7 +481,29 @@ export async function POST(req: NextRequest) {
         meta: { provider: "claude-api-agent", sessionId, mode },
       });
     }
-    // Fallback 2: OpenAI
+    // Fallback 2: Groq (Llama 3.3 — free)
+    const groqAgentReply = await callGroqFallback(prompt, history, sessionId, mode, null);
+    if (groqAgentReply) {
+      logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "groq-agent" } });
+      return NextResponse.json({
+        reply: groqAgentReply,
+        prompt,
+        requestId,
+        meta: { provider: "groq-agent", sessionId, mode },
+      });
+    }
+    // Fallback 3: Gemini
+    const geminiAgentReply = await callGeminiFallback(prompt, history, sessionId, mode, null);
+    if (geminiAgentReply) {
+      logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "gemini-agent" } });
+      return NextResponse.json({
+        reply: geminiAgentReply,
+        prompt,
+        requestId,
+        meta: { provider: "gemini-agent", sessionId, mode },
+      });
+    }
+    // Fallback 4: OpenAI
     const agentReply = await callOpenAIFallback(prompt, history, sessionId, mode, null);
     logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "openai-agent" } });
     return NextResponse.json({
@@ -435,8 +550,34 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // Fallback 2: OpenAI direct
-  console.warn(`[lina] ${sessionId} Claude API unavailable, falling back to OpenAI`);
+  // Fallback 2: Groq (Llama 3.3 — free)
+  console.warn(`[lina] ${sessionId} Claude API unavailable, trying Groq`);
+  const groqFallback = await callGroqFallback(prompt, history, sessionId, mode, agencySystemPrompt);
+  if (groqFallback) {
+    logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "groq-fallback" } });
+    return NextResponse.json({
+      reply: groqFallback,
+      prompt,
+      requestId,
+      meta: { provider: "groq-fallback", model: GROQ_MODEL },
+    });
+  }
+
+  // Fallback 3: Gemini
+  console.warn(`[lina] ${sessionId} Groq unavailable, trying Gemini`);
+  const geminiFallback = await callGeminiFallback(prompt, history, sessionId, mode, agencySystemPrompt);
+  if (geminiFallback) {
+    logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "gemini-fallback" } });
+    return NextResponse.json({
+      reply: geminiFallback,
+      prompt,
+      requestId,
+      meta: { provider: "gemini-fallback", model: GEMINI_MODEL },
+    });
+  }
+
+  // Fallback 4: OpenAI direct
+  console.warn(`[lina] ${sessionId} Gemini unavailable, falling back to OpenAI`);
   const fallbackReply = await callOpenAIFallback(prompt, history, sessionId, mode, agencySystemPrompt);
   logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "openai-fallback" } });
 
