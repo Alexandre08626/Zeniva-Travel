@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
     .neq("contact_email", "not_found")
     .not("contact_email", "is", null)
     .order("created_at", { ascending: true })
-    .limit(remaining);
+    .limit(Math.min(remaining, 50));
 
   if (!agencies?.length) {
     return NextResponse.json({ ok: true, message: "No new agencies to contact.", sent: 0 });
