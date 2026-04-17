@@ -198,6 +198,21 @@ const API_BASE = (process.env.OPENAI_API_BASE || "https://api.openai.com/v1").tr
 const OPENAI_KEY =
   process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 
+const N8N_LINA_WEBHOOK_URL = process.env.N8N_LINA_WEBHOOK_URL;
+
+/**
+ * Fire-and-forget webhook to n8n for lead capture / automation.
+ * No-op when N8N_LINA_WEBHOOK_URL is not set.
+ */
+function fireN8nWebhook(payload: Record<string, unknown>): void {
+  if (!N8N_LINA_WEBHOOK_URL) return;
+  fetch(N8N_LINA_WEBHOOK_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).catch(() => {});
+}
+
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -457,34 +472,13 @@ export async function POST(req: NextRequest) {
   // B2B: extract agency context for multi-tenant tracking
   const { agencyId, agentId } = await getAgencyContext(req);
 
-  // Agent mode: try VPS first (Claude), then Claude API, then OpenAI
+  // Agent mode: try Groq first (free/fast), then VPS, Claude, Gemini, OpenAI
   if (mode === "agent") {
-    // Try VPS first
-    const vpsPrimary = await callZenivaAPI(prompt, history, sessionId);
-    if (vpsPrimary?.reply) {
-      logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "zeniva-claude-agent" } });
-      return NextResponse.json({
-        reply: vpsPrimary.reply,
-        prompt,
-        requestId,
-        meta: { provider: "zeniva-claude-agent", sessionId: vpsPrimary.sessionId, mode },
-      });
-    }
-    // Fallback 1: Claude API direct
-    const claudeReply = await callClaudeFallback(prompt, history, sessionId, mode, null);
-    if (claudeReply) {
-      logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "claude-api-agent" } });
-      return NextResponse.json({
-        reply: claudeReply,
-        prompt,
-        requestId,
-        meta: { provider: "claude-api-agent", sessionId, mode },
-      });
-    }
-    // Fallback 2: Groq (Llama 3.3 — free)
+    // Primary: Groq (Llama 3.3 — free tier, 14400 req/day)
     const groqAgentReply = await callGroqFallback(prompt, history, sessionId, mode, null);
     if (groqAgentReply) {
       logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "groq-agent" } });
+      fireN8nWebhook({ sessionId, requestId, mode, provider: "groq-agent", agencyId, agentId, prompt, reply: groqAgentReply, timestamp: new Date().toISOString() });
       return NextResponse.json({
         reply: groqAgentReply,
         prompt,
@@ -492,10 +486,35 @@ export async function POST(req: NextRequest) {
         meta: { provider: "groq-agent", sessionId, mode },
       });
     }
+    // Fallback 1: VPS (Claude Sonnet)
+    const vpsPrimary = await callZenivaAPI(prompt, history, sessionId);
+    if (vpsPrimary?.reply) {
+      logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "zeniva-claude-agent" } });
+      fireN8nWebhook({ sessionId, requestId, mode, provider: "zeniva-claude-agent", agencyId, agentId, prompt, reply: vpsPrimary.reply, timestamp: new Date().toISOString() });
+      return NextResponse.json({
+        reply: vpsPrimary.reply,
+        prompt,
+        requestId,
+        meta: { provider: "zeniva-claude-agent", sessionId: vpsPrimary.sessionId, mode },
+      });
+    }
+    // Fallback 2: Claude API direct
+    const claudeReply = await callClaudeFallback(prompt, history, sessionId, mode, null);
+    if (claudeReply) {
+      logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "claude-api-agent" } });
+      fireN8nWebhook({ sessionId, requestId, mode, provider: "claude-api-agent", agencyId, agentId, prompt, reply: claudeReply, timestamp: new Date().toISOString() });
+      return NextResponse.json({
+        reply: claudeReply,
+        prompt,
+        requestId,
+        meta: { provider: "claude-api-agent", sessionId, mode },
+      });
+    }
     // Fallback 3: Gemini
     const geminiAgentReply = await callGeminiFallback(prompt, history, sessionId, mode, null);
     if (geminiAgentReply) {
       logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "gemini-agent" } });
+      fireN8nWebhook({ sessionId, requestId, mode, provider: "gemini-agent", agencyId, agentId, prompt, reply: geminiAgentReply, timestamp: new Date().toISOString() });
       return NextResponse.json({
         reply: geminiAgentReply,
         prompt,
@@ -506,6 +525,7 @@ export async function POST(req: NextRequest) {
     // Fallback 4: OpenAI
     const agentReply = await callOpenAIFallback(prompt, history, sessionId, mode, null);
     logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "openai-agent" } });
+    fireN8nWebhook({ sessionId, requestId, mode, provider: "openai-agent", agencyId, agentId, prompt, reply: agentReply, timestamp: new Date().toISOString() });
     return NextResponse.json({
       reply: agentReply,
       prompt,
@@ -525,10 +545,24 @@ export async function POST(req: NextRequest) {
   }
   const agencySystemPrompt = buildAgencySystemPrompt(agencyConfig, agencyName);
 
-  // Primary: Zeniva VPS API (Claude) - only for client mode (skip for agency-specific)
+  // Primary: Groq (Llama 3.3 — free/fast)
+  const groqPrimary = await callGroqFallback(prompt, history, sessionId, mode, agencySystemPrompt);
+  if (groqPrimary) {
+    logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "groq" } });
+    fireN8nWebhook({ sessionId, requestId, mode, provider: "groq", agencyId, agentId, prompt, reply: groqPrimary, timestamp: new Date().toISOString() });
+    return NextResponse.json({
+      reply: groqPrimary,
+      prompt,
+      requestId,
+      meta: { provider: "groq", model: GROQ_MODEL },
+    });
+  }
+
+  // Fallback 1: Zeniva VPS (Claude) — skip if agency override active
   const primary = agencySystemPrompt ? null : await callZenivaAPI(prompt, history, sessionId);
   if (primary?.reply) {
     logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "zeniva-claude" } });
+    fireN8nWebhook({ sessionId, requestId, mode, provider: "zeniva-claude", agencyId, agentId, prompt, reply: primary.reply, timestamp: new Date().toISOString() });
     return NextResponse.json({
       reply: primary.reply,
       prompt,
@@ -537,11 +571,12 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // Fallback 1: Claude API direct
-  console.warn(`[lina] ${sessionId} VPS unavailable, trying Claude API direct`);
+  // Fallback 2: Claude API direct
+  console.warn(`[lina] ${sessionId} Groq+VPS unavailable, trying Claude API direct`);
   const claudeFallback = await callClaudeFallback(prompt, history, sessionId, mode, agencySystemPrompt);
   if (claudeFallback) {
     logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "claude-api-fallback" } });
+    fireN8nWebhook({ sessionId, requestId, mode, provider: "claude-api-fallback", agencyId, agentId, prompt, reply: claudeFallback, timestamp: new Date().toISOString() });
     return NextResponse.json({
       reply: claudeFallback,
       prompt,
@@ -550,24 +585,12 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // Fallback 2: Groq (Llama 3.3 — free)
-  console.warn(`[lina] ${sessionId} Claude API unavailable, trying Groq`);
-  const groqFallback = await callGroqFallback(prompt, history, sessionId, mode, agencySystemPrompt);
-  if (groqFallback) {
-    logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "groq-fallback" } });
-    return NextResponse.json({
-      reply: groqFallback,
-      prompt,
-      requestId,
-      meta: { provider: "groq-fallback", model: GROQ_MODEL },
-    });
-  }
-
   // Fallback 3: Gemini
-  console.warn(`[lina] ${sessionId} Groq unavailable, trying Gemini`);
+  console.warn(`[lina] ${sessionId} Claude API unavailable, trying Gemini`);
   const geminiFallback = await callGeminiFallback(prompt, history, sessionId, mode, agencySystemPrompt);
   if (geminiFallback) {
     logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "gemini-fallback" } });
+    fireN8nWebhook({ sessionId, requestId, mode, provider: "gemini-fallback", agencyId, agentId, prompt, reply: geminiFallback, timestamp: new Date().toISOString() });
     return NextResponse.json({
       reply: geminiFallback,
       prompt,
@@ -580,6 +603,7 @@ export async function POST(req: NextRequest) {
   console.warn(`[lina] ${sessionId} Gemini unavailable, falling back to OpenAI`);
   const fallbackReply = await callOpenAIFallback(prompt, history, sessionId, mode, agencySystemPrompt);
   logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "openai-fallback" } });
+  fireN8nWebhook({ sessionId, requestId, mode, provider: "openai-fallback", agencyId, agentId, prompt, reply: fallbackReply, timestamp: new Date().toISOString() });
 
   return NextResponse.json({
     reply: fallbackReply,
