@@ -187,6 +187,8 @@ const requestSchema = z.object({
 });
 
 const TIMEOUT_MS = Number(process.env.LINA_TIMEOUT_MS || 30000);
+const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
+const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
 const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const API_BASE = process.env.OPENAI_API_BASE || "https://api.openai.com/v1";
 const OPENAI_KEY =
@@ -235,7 +237,54 @@ async function callZenivaAPI(
 }
 
 /**
- * Fallback: direct OpenAI call
+ * Fallback 1: direct Anthropic Claude API call (preferred — same model as VPS)
+ */
+async function callClaudeFallback(
+  prompt: string,
+  history: { role: string; content: string }[],
+  requestId: string,
+  mode: "client" | "agent" = "client",
+  agencySystemPrompt?: string | null
+): Promise<string | null> {
+  if (!ANTHROPIC_KEY) return null;
+
+  const systemPrompt = agencySystemPrompt || (mode === "agent" ? SYSTEM_PROMPT_AGENT : SYSTEM_PROMPT_CLIENT);
+  const messages = [
+    ...history.map((m) => ({ role: m.role === "system" ? "user" as const : m.role as "user" | "assistant", content: m.content })),
+    { role: "user" as const, content: prompt },
+  ];
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_KEY,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: ANTHROPIC_MODEL,
+        max_tokens: 1024,
+        system: systemPrompt,
+        messages,
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const text = data?.content?.[0]?.text?.trim();
+    return text || null;
+  } catch {
+    clearTimeout(timeout);
+    return null;
+  }
+}
+
+/**
+ * Fallback 2: direct OpenAI call (last resort)
  */
 async function callOpenAIFallback(
   prompt: string,
@@ -310,7 +359,7 @@ export async function POST(req: NextRequest) {
   // B2B: extract agency context for multi-tenant tracking
   const { agencyId, agentId } = await getAgencyContext(req);
 
-  // Agent mode: try VPS first (Claude), fallback to OpenAI
+  // Agent mode: try VPS first (Claude), then Claude API, then OpenAI
   if (mode === "agent") {
     // Try VPS first
     const vpsPrimary = await callZenivaAPI(prompt, history, sessionId);
@@ -323,7 +372,18 @@ export async function POST(req: NextRequest) {
         meta: { provider: "zeniva-claude-agent", sessionId: vpsPrimary.sessionId, mode },
       });
     }
-    // Fallback to OpenAI
+    // Fallback 1: Claude API direct
+    const claudeReply = await callClaudeFallback(prompt, history, sessionId, mode, null);
+    if (claudeReply) {
+      logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "claude-api-agent" } });
+      return NextResponse.json({
+        reply: claudeReply,
+        prompt,
+        requestId,
+        meta: { provider: "claude-api-agent", sessionId, mode },
+      });
+    }
+    // Fallback 2: OpenAI
     const agentReply = await callOpenAIFallback(prompt, history, sessionId, mode, null);
     logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "openai-agent" } });
     return NextResponse.json({
@@ -357,8 +417,21 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // Fallback: OpenAI direct
-  console.warn(`[lina] ${sessionId} VPS unavailable, falling back to OpenAI`);
+  // Fallback 1: Claude API direct
+  console.warn(`[lina] ${sessionId} VPS unavailable, trying Claude API direct`);
+  const claudeFallback = await callClaudeFallback(prompt, history, sessionId, mode, agencySystemPrompt);
+  if (claudeFallback) {
+    logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "claude-api-fallback" } });
+    return NextResponse.json({
+      reply: claudeFallback,
+      prompt,
+      requestId,
+      meta: { provider: "claude-api-fallback", model: ANTHROPIC_MODEL },
+    });
+  }
+
+  // Fallback 2: OpenAI direct
+  console.warn(`[lina] ${sessionId} Claude API unavailable, falling back to OpenAI`);
   const fallbackReply = await callOpenAIFallback(prompt, history, sessionId, mode, agencySystemPrompt);
   logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "openai-fallback" } });
 
