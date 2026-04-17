@@ -229,6 +229,11 @@ async function callZenivaAPI(
     const data = await resp.json();
     const reply = data?.response || data?.reply || "";
     if (!reply) return null;
+    // Detect VPS error messages — treat as failure so we fallback to Claude API
+    if (/probl[eè]me technique|temporarily unavailable|erreur|indisponible/i.test(reply)) {
+      console.warn(`[lina] VPS returned error message: ${reply.slice(0, 80)}`);
+      return null;
+    }
     return { reply, sessionId: data?.sessionId };
   } catch {
     clearTimeout(timeout);
