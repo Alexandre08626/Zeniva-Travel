@@ -1,0 +1,76 @@
+{
+  "name": "Lina → Supabase lina_events",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lina-conversation",
+        "responseMode": "onReceived",
+        "options": {
+          "ignoreBots": false,
+          "rawBody": false
+        }
+      },
+      "id": "b4a1b0e1-0001-4f00-8e01-000000000001",
+      "name": "Webhook — /webhook/lina-conversation",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [260, 300],
+      "webhookId": "lina-conversation"
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "create",
+        "tableId": "lina_events",
+        "dataToSend": "defineBelow",
+        "fieldsUi": {
+          "fieldValues": [
+            { "fieldId": "session_id", "fieldValue": "={{ $json.body.sessionId }}" },
+            { "fieldId": "request_id", "fieldValue": "={{ $json.body.requestId }}" },
+            { "fieldId": "mode",       "fieldValue": "={{ $json.body.mode }}" },
+            { "fieldId": "provider",   "fieldValue": "={{ $json.body.provider }}" },
+            { "fieldId": "agency_id",  "fieldValue": "={{ $json.body.agencyId || null }}" },
+            { "fieldId": "agent_id",   "fieldValue": "={{ $json.body.agentId  || null }}" },
+            { "fieldId": "prompt",     "fieldValue": "={{ $json.body.prompt }}" },
+            { "fieldId": "reply",      "fieldValue": "={{ $json.body.reply }}" },
+            { "fieldId": "event_at",   "fieldValue": "={{ $json.body.timestamp }}" }
+          ]
+        }
+      },
+      "id": "b4a1b0e1-0002-4f00-8e02-000000000002",
+      "name": "Supabase — insert lina_events",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [540, 300]
+    }
+  ],
+  "connections": {
+    "Webhook — /webhook/lina-conversation": {
+      "main": [
+        [
+          {
+            "node": "Supabase — insert lina_events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "saveExecutionProgress": true
+  },
+  "versionId": "1",
+  "meta": {
+    "instanceId": "zeniva-travel"
+  },
+  "tags": [
+    { "name": "lina" },
+    { "name": "automated" }
+  ]
+}
