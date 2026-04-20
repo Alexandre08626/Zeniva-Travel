@@ -47,17 +47,45 @@ export default function MarcoPage() {
     setProspecting(true);
     setResult(null);
     try {
-      const res = await fetch("/api/prospecting/run", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ travelers, agencies, agents }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const saved = data.saved || { travelers: 0, agencies: 0, agents: 0, total: 0 };
-        setResult(saved);
-        saveHistory(saved);
+      const [redditRes, otherRes] = await Promise.all([
+        travelers > 0
+          ? fetch("/api/prospecting/reddit", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ count: travelers }),
+            }).catch(() => null)
+          : Promise.resolve(null),
+        agencies > 0 || agents > 0
+          ? fetch("/api/prospecting/run", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ travelers: 0, agencies, agents }),
+            }).catch(() => null)
+          : Promise.resolve(null),
+      ]);
+
+      let savedTravelers = 0;
+      let savedAgencies = 0;
+      let savedAgents = 0;
+
+      if (redditRes && redditRes.ok) {
+        const d = await redditRes.json();
+        savedTravelers = Number(d?.saved || 0);
       }
+      if (otherRes && otherRes.ok) {
+        const d = await otherRes.json();
+        savedAgencies = Number(d?.saved?.agencies || 0);
+        savedAgents = Number(d?.saved?.agents || 0);
+      }
+
+      const saved: ProspectResult = {
+        travelers: savedTravelers,
+        agencies: savedAgencies,
+        agents: savedAgents,
+        total: savedTravelers + savedAgencies + savedAgents,
+      };
+      setResult(saved);
+      saveHistory(saved);
     } catch {}
     setProspecting(false);
   };
@@ -128,7 +156,7 @@ export default function MarcoPage() {
         <div className="grid grid-cols-3 gap-4">
           <div className="rounded-xl p-4 border-2 border-blue-200 bg-blue-50">
             <label className="text-xs font-bold text-blue-600 uppercase block mb-2">✈️ Travelers</label>
-            <p className="text-[10px] text-blue-500 mb-2">Luxury travel intent, honeymoons, destination weddings</p>
+            <p className="text-[10px] text-blue-500 mb-2">Real Reddit posts — r/travel, r/honeymoontravel, r/luxurytravel (last 96h, GPT-qualified)</p>
             <input type="number" min="0" max="20" value={travelers} onChange={e => setTravelers(Number(e.target.value))}
               className="w-full font-black text-lg text-blue-800 bg-white rounded-lg px-3 py-2 border border-blue-200 focus:outline-none focus:border-blue-400" />
             <span className="text-[10px] text-blue-400 mt-1 block">leads per hunt</span>
@@ -171,7 +199,7 @@ export default function MarcoPage() {
               <Link href="/agent/outreach/newLeads" className="px-4 py-2 rounded-lg text-xs font-bold bg-red-500 text-white hover:bg-red-600 transition">
                 View Leads →
               </Link>
-              <span className="text-[10px] text-slate-500">Source: prospecting:ai · Status: new</span>
+              <span className="text-[10px] text-slate-500">Travelers: real Reddit posts (last 96h) · Agencies/Agents: AI</span>
             </div>
           </div>
         )}
