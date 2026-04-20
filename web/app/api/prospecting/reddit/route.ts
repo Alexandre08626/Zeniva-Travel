@@ -34,30 +34,41 @@ type RedditPost = {
   created: number;
 };
 
+const subStats: Record<string, { status: number; fetched: number; kept: number }> = {};
+
 async function fetchRedditPosts(): Promise<RedditPost[]> {
   const candidates: RedditPost[] = [];
   const seen = new Set<string>();
   for (const sub of SUBS) {
+    subStats[sub] = { status: 0, fetched: 0, kept: 0 };
     try {
-      const r = await fetch(`https://www.reddit.com/r/${sub}/new.json?limit=50`, {
+      const r = await fetch(`https://www.reddit.com/r/${sub}/new.json?limit=50&raw_json=1`, {
         headers: {
-          "User-Agent": "ZenivaTravelBot/1.0 (lead-research; +https://www.zenivatravel.com)",
+          "User-Agent": "ZenivaTravelBot/1.0 by u/zenivatravel",
           Accept: "application/json",
         },
         cache: "no-store",
       });
-      if (!r.ok) continue;
+      subStats[sub].status = r.status;
+      console.log(`[reddit] r/${sub} -> HTTP ${r.status}`);
+      if (!r.ok) {
+        const errBody = await r.text().catch(() => "");
+        console.log(`[reddit] r/${sub} err body: ${errBody.slice(0, 200)}`);
+        continue;
+      }
       const j: any = await r.json();
       const posts = j?.data?.children || [];
+      subStats[sub].fetched = posts.length;
       for (const p of posts) {
         const d = p?.data;
         if (!d || d.over_18 || d.stickied || d.removed_by_category) continue;
         if (!d.author || d.author === "[deleted]" || d.author === "AutoModerator") continue;
         const ageHours = (Date.now() / 1000 - (d.created_utc || 0)) / 3600;
-        if (ageHours > 96) continue;
+        if (ageHours > 168) continue; // 7 days
         const key = d.author + "|" + (d.title || "").slice(0, 60);
         if (seen.has(key)) continue;
         seen.add(key);
+        subStats[sub].kept++;
         candidates.push({
           sub,
           username: d.author,
@@ -67,10 +78,11 @@ async function fetchRedditPosts(): Promise<RedditPost[]> {
           created: d.created_utc || 0,
         });
       }
-    } catch {
-      /* skip sub */
+    } catch (e: any) {
+      console.log(`[reddit] r/${sub} threw: ${e?.message || e}`);
     }
   }
+  console.log(`[reddit] total candidates: ${candidates.length}`, subStats);
   return candidates;
 }
 
@@ -104,7 +116,7 @@ async function scoreLeads(posts: RedditPost[], count: number): Promise<Scored[]>
           intent: p.title.slice(0, 100),
         } as Scored;
       })
-      .filter((s) => s.score >= 70)
+      .filter((s) => s.score >= 60)
       .sort((a, b) => b.score - a.score)
       .slice(0, count);
   }
@@ -154,11 +166,13 @@ ${postText}`;
     const data = await res.json();
     const parsed = JSON.parse(data?.choices?.[0]?.message?.content || "{}");
     const leads: Scored[] = Array.isArray(parsed?.leads) ? parsed.leads : [];
+    console.log(`[reddit] GPT returned ${leads.length} scored, top scores: ${leads.slice(0, 5).map(l => l.score).join(",")}`);
     return leads
-      .filter((s) => s && typeof s.i === "number" && s.score >= 70 && s.i >= 0 && s.i < batch.length)
+      .filter((s) => s && typeof s.i === "number" && s.score >= 60 && s.i >= 0 && s.i < batch.length)
       .sort((a, b) => b.score - a.score)
       .slice(0, count);
-  } catch {
+  } catch (e: any) {
+    console.log(`[reddit] GPT error: ${e?.message || e}`);
     return [];
   }
 }
@@ -184,18 +198,24 @@ export async function POST(req: NextRequest) {
         saved: 0,
         fetched: 0,
         qualified: 0,
-        message: "No Reddit posts returned (may be rate-limited).",
+        subStats,
+        openai_key_set: !!OPENAI_KEY,
+        message: "No Reddit posts fetched. Reddit likely blocked Vercel IP. Check subStats for HTTP codes.",
       });
     }
 
     const scored = await scoreLeads(posts, count);
+    console.log(`[reddit] scored ${scored.length} qualified leads`);
     if (!scored.length) {
       return NextResponse.json({
         ok: true,
         saved: 0,
         fetched: posts.length,
         qualified: 0,
-        message: "No qualified leads (score >= 70) in the last 4 days.",
+        subStats,
+        openai_key_set: !!OPENAI_KEY,
+        samplePosts: posts.slice(0, 5).map(p => ({ sub: p.sub, user: p.username, title: p.title.slice(0, 100) })),
+        message: "Fetched posts but none scored >= 60. Threshold may be too strict, or GPT returned nothing.",
       });
     }
 
