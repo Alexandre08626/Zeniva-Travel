@@ -7,6 +7,44 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
 const OPENAI_KEY = process.env.OPENAI_API_KEY || "";
+const GROQ_KEY = process.env.GROQ_API_KEY || "";
+const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+
+async function callAIText(systemMsg: string, userMsg: string, maxTokens: number, temperature: number): Promise<string | null> {
+  const messages = [
+    { role: "system", content: systemMsg },
+    { role: "user", content: userMsg },
+  ];
+  // Primary: Groq
+  if (GROQ_KEY) {
+    try {
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${GROQ_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: GROQ_MODEL, temperature, max_tokens: maxTokens, messages }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const content = data?.choices?.[0]?.message?.content;
+        if (content) return content;
+      }
+    } catch { /* fall through */ }
+  }
+  // Fallback: OpenAI
+  if (!OPENAI_KEY) return null;
+  try {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${OPENAI_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "gpt-4o-mini", temperature, max_tokens: maxTokens, messages }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.choices?.[0]?.message?.content || null;
+  } catch {
+    return null;
+  }
+}
 
 type LeadCategory = "travelers" | "agencies" | "agents";
 
@@ -28,7 +66,7 @@ interface ProspectedLead {
 }
 
 async function aiProspect(category: LeadCategory, count: number): Promise<ProspectedLead[]> {
-  if (!OPENAI_KEY) return [];
+  if (!GROQ_KEY && !OPENAI_KEY) return [];
 
   const prompts: Record<LeadCategory, string> = {
     travelers: `You are a lead researcher for Zeniva Travel, a luxury AI travel agency based in the USA and Canada.
@@ -100,23 +138,13 @@ Return ONLY a JSON array of objects. No markdown, no explanation.`,
   };
 
   try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${OPENAI_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature: 0.9,
-        max_tokens: 4000,
-        messages: [
-          { role: "system", content: "You are a lead generation AI. Return ONLY valid JSON arrays. No markdown code fences." },
-          { role: "user", content: prompts[category] },
-        ],
-      }),
-    });
-
-    if (!res.ok) return [];
-    const data = await res.json();
-    const text = data.choices?.[0]?.message?.content || "[]";
+    const text = await callAIText(
+      "You are a lead generation AI. Return ONLY valid JSON arrays. No markdown code fences.",
+      prompts[category],
+      4000,
+      0.9
+    );
+    if (!text) return [];
     // Strip markdown fences and extract JSON array
     let clean = text.replace(/```json?\s*/g, "").replace(/```/g, "").trim();
     const arrStart = clean.indexOf("[");

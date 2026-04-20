@@ -6,6 +6,60 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
 const OPENAI_KEY = process.env.OPENAI_API_KEY || "";
+const GROQ_KEY = process.env.GROQ_API_KEY || "";
+const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+
+/**
+ * Groq primary → OpenAI fallback for chat completions with JSON mode.
+ * Returns the raw content string or null on failure.
+ */
+async function callAIJSON(systemMsg: string, userMsg: string, maxTokens: number, temperature: number): Promise<string | null> {
+  const messages = [
+    { role: "system", content: systemMsg },
+    { role: "user", content: userMsg },
+  ];
+  // Primary: Groq
+  if (GROQ_KEY) {
+    try {
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${GROQ_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: GROQ_MODEL,
+          temperature,
+          max_tokens: maxTokens,
+          response_format: { type: "json_object" },
+          messages,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const content = data?.choices?.[0]?.message?.content;
+        if (content) return content;
+      }
+    } catch { /* fall through */ }
+  }
+  // Fallback: OpenAI
+  if (!OPENAI_KEY) return null;
+  try {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${OPENAI_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        temperature,
+        max_tokens: maxTokens,
+        response_format: { type: "json_object" },
+        messages,
+      }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.choices?.[0]?.message?.content || null;
+  } catch {
+    return null;
+  }
+}
 
 const SUBS = [
   "travel",
@@ -98,7 +152,7 @@ type Scored = {
 async function scoreLeads(posts: RedditPost[], count: number): Promise<Scored[]> {
   if (!posts.length) return [];
 
-  if (!OPENAI_KEY) {
+  if (!GROQ_KEY && !OPENAI_KEY) {
     const intentRegex =
       /\b(honeymoon|planning|itinerary|budget|book(ing)?|trip to|travel(l)?ing to|vacation|recommend|help me plan|looking for)\b/i;
     return posts
@@ -148,23 +202,9 @@ Posts:
 ${postText}`;
 
   try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${OPENAI_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature: 0.2,
-        max_tokens: 3500,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: systemMsg },
-          { role: "user", content: userMsg },
-        ],
-      }),
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    const parsed = JSON.parse(data?.choices?.[0]?.message?.content || "{}");
+    const content = await callAIJSON(systemMsg, userMsg, 3500, 0.2);
+    if (!content) return [];
+    const parsed = JSON.parse(content || "{}");
     const leads: Scored[] = Array.isArray(parsed?.leads) ? parsed.leads : [];
     console.log(`[reddit] GPT returned ${leads.length} scored, top scores: ${leads.slice(0, 5).map(l => l.score).join(",")}`);
     return leads

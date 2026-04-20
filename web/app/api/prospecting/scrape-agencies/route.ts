@@ -6,6 +6,44 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
 const OPENAI_KEY = process.env.OPENAI_API_KEY || "";
+const GROQ_KEY = process.env.GROQ_API_KEY || "";
+const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+
+async function callAIText(systemMsg: string, userMsg: string, maxTokens: number, temperature: number): Promise<string | null> {
+  const messages = [
+    { role: "system", content: systemMsg },
+    { role: "user", content: userMsg },
+  ];
+  // Primary: Groq
+  if (GROQ_KEY) {
+    try {
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${GROQ_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: GROQ_MODEL, temperature, max_tokens: maxTokens, messages }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const content = data?.choices?.[0]?.message?.content;
+        if (content) return content;
+      }
+    } catch { /* fall through */ }
+  }
+  // Fallback: OpenAI
+  if (!OPENAI_KEY) return null;
+  try {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${OPENAI_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "gpt-4o", temperature, max_tokens: maxTokens, messages }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.choices?.[0]?.message?.content || null;
+  } catch {
+    return null;
+  }
+}
 
 interface ScrapedAgency {
   company_name: string;
@@ -25,27 +63,13 @@ interface ScrapedAgency {
  * The prompt instructs the model to only return agencies it can verify exist.
  */
 async function findRealAgencies(location: string, count: number): Promise<ScrapedAgency[]> {
-  if (!OPENAI_KEY) return [];
+  if (!GROQ_KEY && !OPENAI_KEY) return [];
 
-  try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${OPENAI_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        temperature: 0.2,
-        max_tokens: 4000,
-        messages: [
-          {
-            role: "system",
-            content: `You are a B2B sales researcher. You MUST return ONLY travel agencies that actually exist.
+  const systemMsg = `You are a B2B sales researcher. You MUST return ONLY travel agencies that actually exist.
 Every agency you return must be a REAL business with a REAL website, REAL phone number, and REAL email that can be verified.
 DO NOT invent or fabricate any data. If you cannot find enough real agencies, return fewer results.
-Only return agencies you are confident exist. Use their actual public contact information.`,
-          },
-          {
-            role: "user",
-            content: `Find ${count} REAL travel agencies in ${location} (Canada or USA).
+Only return agencies you are confident exist. Use their actual public contact information.`;
+  const userMsg = `Find ${count} REAL travel agencies in ${location} (Canada or USA).
 
 Requirements:
 - Must be actual operating travel agencies (not closed, not imaginary)
@@ -69,15 +93,11 @@ Return ONLY a JSON array. No markdown. No explanation. Example format:
   "country": "Canada",
   "notes": "Luxury travel agency specializing in Caribbean vacations, 10 agents",
   "source_url": "https://maps.google.com/..."
-}]`,
-          },
-        ],
-      }),
-    });
+}]`;
 
-    if (!res.ok) return [];
-    const data = await res.json();
-    const text = data.choices?.[0]?.message?.content || "[]";
+  try {
+    const text = await callAIText(systemMsg, userMsg, 4000, 0.2);
+    if (!text) return [];
     let clean = text.replace(/```json?\s*/g, "").replace(/```/g, "").trim();
     const arrStart = clean.indexOf("[");
     const arrEnd = clean.lastIndexOf("]");

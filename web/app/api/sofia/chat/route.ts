@@ -30,11 +30,13 @@ async function getAuth(req: NextRequest) {
   return s?.email ? s : null;
 }
 
-/* ── Config (Sofia uses OpenAI directly — VPS has hardcoded Lina prompt) ── */
+/* ── Config (Sofia: Groq primary → OpenAI fallback) ── */
 const TIMEOUT_MS = 45000;
 const MODEL = (process.env.OPENAI_MODEL || "gpt-4o-mini").trim();
 const API_BASE = (process.env.OPENAI_API_BASE || "https://api.openai.com/v1").trim();
 const OPENAI_KEY = (process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY || "").trim();
+const GROQ_KEY = (process.env.GROQ_API_KEY || "").trim();
+const GROQ_MODEL = (process.env.GROQ_MODEL || "llama-3.3-70b-versatile").trim();
 
 /* ── Sofia System Prompt (100% independant de Lina) ── */
 const SOFIA_SYSTEM_PROMPT = `Tu es Sofia, la specialiste en email marketing de Zeniva Travel (zenivatravel.com).
@@ -83,7 +85,48 @@ REGLES GENERALES:
 
 Signature: "— Sofia, Zeniva Marketing"`;
 
-/* ── OpenAI direct (Sofia a son propre prompt, independant de Lina/VPS) ── */
+/* ── Groq primary (Llama 3.3 70B — free/fast, remplace OpenAI) ── */
+async function callGroqPrimary(
+  prompt: string,
+  history: { role: string; content: string }[],
+  systemPrompt: string
+): Promise<string | null> {
+  if (!GROQ_KEY) return null;
+
+  const messages = [
+    { role: "system", content: systemPrompt },
+    ...history.slice(-20),
+    { role: "user", content: prompt },
+  ];
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${GROQ_KEY}`,
+      },
+      body: JSON.stringify({ model: GROQ_MODEL, messages, temperature: 0.7, max_tokens: 4000 }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    if (!resp.ok) {
+      const errText = await resp.text().catch(() => "");
+      console.error(`[Sofia] Groq error ${resp.status}: ${errText.slice(0, 200)}`);
+      return null;
+    }
+    const data = await resp.json();
+    return data?.choices?.[0]?.message?.content?.trim() || null;
+  } catch (err: any) {
+    clearTimeout(timeout);
+    console.error("[Sofia] Groq call failed:", err?.message);
+    return null;
+  }
+}
+
+/* ── OpenAI fallback (Sofia a son propre prompt, independant de Lina/VPS) ── */
 async function callOpenAIFallback(
   prompt: string,
   history: { role: string; content: string }[],
@@ -228,13 +271,23 @@ ${recipients ? `\nDestinataires (${recipients.length} premiers):\n${recipients.m
     }
   }
 
-  /* ── Call OpenAI directly (VPS has hardcoded Lina prompt, can't override) ── */
+  /* ── Call Groq primary, OpenAI fallback ── */
+  const groqReply = await callGroqPrimary(prompt, history, systemPrompt);
+  if (groqReply) {
+    return NextResponse.json({
+      reply: groqReply,
+      sessionId,
+      requestId,
+      meta: { provider: "groq", model: GROQ_MODEL },
+    });
+  }
+
   const reply = await callOpenAIFallback(prompt, history, systemPrompt);
 
   return NextResponse.json({
     reply,
     sessionId,
     requestId,
-    meta: { provider: "openai-direct", model: MODEL },
+    meta: { provider: "openai-fallback", model: MODEL },
   });
 }

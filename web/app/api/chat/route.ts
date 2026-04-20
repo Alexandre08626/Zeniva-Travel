@@ -143,51 +143,86 @@ export async function GET(request: Request) {
     }
 
     const apiKey = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
-    if (!apiKey) {
+    const groqKey = process.env.GROQ_API_KEY;
+    if (!apiKey && !groqKey) {
       return new Response(
-        JSON.stringify({ error: "Missing OPENAI_API_KEY (or NEXT_PUBLIC_OPENAI_API_KEY) on the server." }),
+        JSON.stringify({ error: "Missing GROQ_API_KEY or OPENAI_API_KEY on the server." }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
 
     const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
     const apiBase = process.env.OPENAI_API_BASE || "https://api.openai.com/v1";
+    const groqModel = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
 
-    const body = {
-      model,
-      messages: [
-        { role: "system", content: getSystemPrompt(mode) },
-        { role: "user", content: prompt },
-      ],
-      temperature: 0.7,
-    };
+    const messages = [
+      { role: "system", content: getSystemPrompt(mode) },
+      { role: "user", content: prompt },
+    ];
 
-    const resp = await fetch(`${apiBase}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(body),
-    });
+    // Primary: Groq (Llama 3.3 70B — free/fast)
+    let reply = "";
+    let usedProvider = "";
+    let usedModel = "";
 
-    if (!resp.ok) {
-      const text = await resp.text();
-      return new Response(JSON.stringify({ error: text || resp.statusText }), {
-        status: resp.status,
-        headers: { "Content-Type": "application/json" },
-      });
+    if (groqKey) {
+      try {
+        const gResp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${groqKey}`,
+          },
+          body: JSON.stringify({ model: groqModel, messages, temperature: 0.7 }),
+        });
+        if (gResp.ok) {
+          const gData = await gResp.json();
+          reply = gData?.choices?.[0]?.message?.content?.trim?.() || "";
+          if (reply) {
+            usedProvider = "groq";
+            usedModel = gData?.model || groqModel;
+          }
+        }
+      } catch { /* fall through to OpenAI */ }
     }
 
-    const data = await resp.json();
-    const reply = data?.choices?.[0]?.message?.content?.trim?.() || "";
+    // Fallback: OpenAI
+    if (!reply) {
+      if (!apiKey) {
+        return new Response(
+          JSON.stringify({ error: "Groq unavailable and OPENAI_API_KEY missing." }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
+      }
+      const resp = await fetch(`${apiBase}/chat/completions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({ model, messages, temperature: 0.7 }),
+      });
+
+      if (!resp.ok) {
+        const text = await resp.text();
+        return new Response(JSON.stringify({ error: text || resp.statusText }), {
+          status: resp.status,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      const data = await resp.json();
+      reply = data?.choices?.[0]?.message?.content?.trim?.() || "";
+      usedProvider = "openai-fallback";
+      usedModel = data?.model || model;
+    }
 
     // B2B usage tracking
     const { agencyId, agentId } = await getAgencyContext(request);
-    logUsage({ agencyId, agentId, service: "lina_ai", action: "chat_message", metadata: { mode, model: data?.model } });
+    logUsage({ agencyId, agentId, service: "lina_ai", action: "chat_message", metadata: { mode, model: usedModel, provider: usedProvider } });
 
     return new Response(
-      JSON.stringify({ prompt, reply, meta: { source: "openai", model: data?.model, created: data?.created } }),
+      JSON.stringify({ prompt, reply, meta: { source: usedProvider, model: usedModel } }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (err: any) {

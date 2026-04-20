@@ -8,6 +8,8 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const OPENAI_KEY = process.env.OPENAI_API_KEY || "";
+const GROQ_KEY = process.env.GROQ_API_KEY || "";
+const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
 
 /**
  * Smart auto-reply for B2B agency outreach.
@@ -109,20 +111,9 @@ function scanImap(): Promise<InboundEmail[]> {
 }
 
 async function generateReply(agencyName: string, contactName: string, theirMessage: string): Promise<string> {
-  if (!OPENAI_KEY) return "";
+  if (!GROQ_KEY && !OPENAI_KEY) return "";
 
-  try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${OPENAI_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature: 0.7,
-        max_tokens: 500,
-        messages: [
-          {
-            role: "system",
-            content: `You are Alexandre Blais, founder of Zeniva Travel. You're replying to a travel agency that responded to your outreach email about Lina AI (an AI travel concierge for agencies).
+  const systemMsg = `You are Alexandre Blais, founder of Zeniva Travel. You're replying to a travel agency that responded to your outreach email about Lina AI (an AI travel concierge for agencies).
 
 Rules:
 - Be warm, professional, and brief (3-5 sentences max)
@@ -134,16 +125,37 @@ Rules:
 - Include your contact: info@zeniva.ca | zenivatravel.com
 - Keep it conversational, NOT salesy
 - Do NOT use emojis
-- Do NOT write a subject line, just the body`,
-          },
-          {
-            role: "user",
-            content: `Agency: ${agencyName}\nContact: ${contactName}\nTheir reply:\n${theirMessage}`,
-          },
-        ],
-      }),
-    });
+- Do NOT write a subject line, just the body`;
+  const userMsg = `Agency: ${agencyName}\nContact: ${contactName}\nTheir reply:\n${theirMessage}`;
+  const messages = [
+    { role: "system", content: systemMsg },
+    { role: "user", content: userMsg },
+  ];
 
+  // Primary: Groq
+  if (GROQ_KEY) {
+    try {
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${GROQ_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: GROQ_MODEL, temperature: 0.7, max_tokens: 500, messages }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const content = data.choices?.[0]?.message?.content;
+        if (content) return content;
+      }
+    } catch { /* fall through */ }
+  }
+
+  // Fallback: OpenAI
+  if (!OPENAI_KEY) return "";
+  try {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${OPENAI_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "gpt-4o-mini", temperature: 0.7, max_tokens: 500, messages }),
+    });
     if (!res.ok) return "";
     const data = await res.json();
     return data.choices?.[0]?.message?.content || "";
