@@ -4,14 +4,11 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import airbnbsData from "../../src/data/airbnbs.json";
 
-const PROPERTY_TYPES = [
-  { key: "all", label: "🏠 All" },
-  { key: "villa", label: "🌴 Villas" },
-  { key: "condo", label: "🏢 Condos" },
-  { key: "house", label: "🏡 Houses" },
-  { key: "apartment", label: "🏙️ Apartments" },
-  { key: "chalet", label: "⛷️ Chalets" },
-  { key: "beachfront", label: "🏖 Beachfront" },
+const REGIONS = [
+  { key: "all", label: "🌍 All", match: [] as string[] },
+  { key: "canada", label: "🇨🇦 Canada", match: ["canada", "quebec", "québec", "ontario", "montreal", "montréal", "toronto", "vancouver", "calgary", "ottawa", "banff", "whistler"] },
+  { key: "florida", label: "🌴 Florida", match: ["florida", "miami", "orlando", "tampa", "naples", "key west", "fort lauderdale", "sarasota", "kissimmee"] },
+  { key: "mexico", label: "🇲🇽 Mexico", match: ["mexico", "mexique", "tulum", "cancun", "cancún", "playa del carmen", "cabo", "cozumel", "puerto vallarta", "riviera maya", "mérida", "merida", "oaxaca"] },
 ];
 
 function ResidencesContent() {
@@ -22,7 +19,7 @@ function ResidencesContent() {
   const [checkIn, setCheckIn] = useState(searchParams.get("checkin") || "");
   const [checkOut, setCheckOut] = useState(searchParams.get("checkout") || "");
   const [guests, setGuests] = useState(parseInt(searchParams.get("guests") || "2"));
-  const [propertyType, setPropertyType] = useState(searchParams.get("type") || "all");
+  const [region, setRegion] = useState(searchParams.get("region") || "all");
 
   const [curated, setCurated] = useState<any[]>([]);
   const [apiResults, setApiResults] = useState<any[]>([]);
@@ -84,7 +81,7 @@ function ResidencesContent() {
     try {
       const params = new URLSearchParams({
         destination: dest,
-        type: propertyType === "all" ? "short-term rental" : propertyType,
+        type: "short-term rental",
       });
       if (checkIn) params.set("checkIn", checkIn);
       if (checkOut) params.set("checkOut", checkOut);
@@ -119,7 +116,14 @@ function ResidencesContent() {
     window.open(`mailto:info@zeniva.ca?subject=${subject}&body=${body}`, "_blank");
   };
 
-  const displayList = searched ? apiResults : curated;
+  const rawList = searched ? apiResults : curated;
+  const activeRegion = REGIONS.find(r => r.key === region);
+  const displayList = !activeRegion || activeRegion.key === "all"
+    ? rawList
+    : rawList.filter((v: any) => {
+        const hay = `${v.city || ""} ${v.location || ""} ${v.name || ""} ${v.description || ""}`.toLowerCase();
+        return activeRegion.match.some(token => hay.includes(token));
+      });
 
   const renderCard = (villa: any, i: number) => {
     const isSelected = selectedId === (villa.id || String(i));
@@ -300,12 +304,12 @@ function ResidencesContent() {
             </div>
           </div>
 
-          {/* Property type pills */}
+          {/* Region pills */}
           <div className="mt-4 flex flex-wrap gap-2">
-            {PROPERTY_TYPES.map(pt => (
-              <button key={pt.key} onClick={() => setPropertyType(pt.key)}
-                className={`text-xs font-bold px-4 py-1.5 rounded-full transition border ${propertyType === pt.key ? "bg-white text-blue-700 border-white" : "bg-white/10 text-white border-white/20 hover:bg-white/20"}`}>
-                {pt.label}
+            {REGIONS.map(r => (
+              <button key={r.key} onClick={() => setRegion(r.key)}
+                className={`text-xs font-bold px-4 py-1.5 rounded-full transition border ${region === r.key ? "bg-white text-blue-700 border-white" : "bg-white/10 text-white border-white/20 hover:bg-white/20"}`}>
+                {r.label}
               </button>
             ))}
           </div>
@@ -335,13 +339,13 @@ function ResidencesContent() {
               <div>
                 {searched ? (
                   <>
-                    <h2 className="text-xl font-black text-slate-800">{apiResults.length} properties in <span className="capitalize">{destination}</span></h2>
+                    <h2 className="text-xl font-black text-slate-800">{displayList.length} properties in <span className="capitalize">{destination}</span>{activeRegion && activeRegion.key !== "all" ? ` · ${activeRegion.label}` : ""}</h2>
                     <p className="text-xs text-slate-400 mt-0.5">All bookings handled exclusively by Zeniva</p>
                   </>
                 ) : (
                   <>
-                    <h2 className="text-xl font-black text-slate-800">🏠 ZeniStay — Our curated collection</h2>
-                    <p className="text-xs text-slate-400 mt-0.5">{curated.length} properties · Exclusive Zeniva listings</p>
+                    <h2 className="text-xl font-black text-slate-800">🏠 ZeniStay — Our curated collection{activeRegion && activeRegion.key !== "all" ? ` · ${activeRegion.label}` : ""}</h2>
+                    <p className="text-xs text-slate-400 mt-0.5">{displayList.length} properties · Exclusive Zeniva listings</p>
                   </>
                 )}
               </div>
