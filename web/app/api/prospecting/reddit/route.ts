@@ -5,214 +5,79 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
-const OPENAI_KEY = process.env.OPENAI_API_KEY || "";
-const GROQ_KEY = process.env.GROQ_API_KEY || "";
-const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+// Multi-source real lead puller for Marco.
+// Current primary: Zeniva VPS (Facebook scanner with 200+ stored leads).
+// Falls back to Reddit JSON (blocked by datacenter IPs — kept for OAuth upgrade).
+// TODO: Reddit OAuth, Apollo.io B2B — pending user credentials.
 
-/**
- * Groq primary → OpenAI fallback for chat completions with JSON mode.
- * Returns the raw content string or null on failure.
- */
-async function callAIJSON(systemMsg: string, userMsg: string, maxTokens: number, temperature: number): Promise<string | null> {
-  const messages = [
-    { role: "system", content: systemMsg },
-    { role: "user", content: userMsg },
-  ];
-  // Primary: Groq
-  if (GROQ_KEY) {
-    try {
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${GROQ_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: GROQ_MODEL,
-          temperature,
-          max_tokens: maxTokens,
-          response_format: { type: "json_object" },
-          messages,
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const content = data?.choices?.[0]?.message?.content;
-        if (content) return content;
-      }
-    } catch { /* fall through */ }
+const VPS_BASE = process.env.ZENIVA_VPS_URL || "http://217.216.88.202:8000";
+const VPS_AUTH = `Bearer ${process.env.ZENIVA_VPS_TOKEN || "zeniva-secret-2025"}`;
+
+type VPSLead = {
+  id: string;
+  url: string;
+  post: string;
+  message?: string;
+  score: number;
+  intent: string;
+  destination: string;
+  type: string;
+  name: string;
+  summary: string;
+  outreach: string;
+  status: string;
+  found_at: string;
+  source: string;
+  platform: string;
+  post_id?: string;
+};
+
+function extractName(lead: VPSLead): { first: string; last: string } {
+  const raw = (lead.name || "").trim();
+  if (raw && raw !== "N/A" && raw.toLowerCase() !== "unknown" && raw.toLowerCase() !== "not specified") {
+    const parts = raw.split(/\s+/);
+    return { first: parts[0], last: parts.slice(1).join(" ") };
   }
-  // Fallback: OpenAI
-  if (!OPENAI_KEY) return null;
+  const fbMatch = lead.url?.match(/facebook\.com\/([^/]+)/);
+  if (fbMatch && fbMatch[1] !== "groups" && fbMatch[1] !== "reel") {
+    const handle = fbMatch[1].replace(/\./g, " ").replace(/\d+/g, "").trim();
+    const parts = handle.split(/\s+/).filter(Boolean);
+    if (parts.length) {
+      const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+      return { first: cap(parts[0]), last: parts.slice(1).map(cap).join(" ") };
+    }
+  }
+  return { first: "Reddit/FB User", last: "" };
+}
+
+async function triggerScan(): Promise<{ scanned: number; hot: number } | null> {
   try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${OPENAI_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature,
-        max_tokens: maxTokens,
-        response_format: { type: "json_object" },
-        messages,
-      }),
+    const r = await fetch(`${VPS_BASE}/marco/scan?queries_count=5&min_score=7`, {
+      method: "GET",
+      headers: { Authorization: VPS_AUTH },
+      cache: "no-store",
+      signal: AbortSignal.timeout(60000),
     });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data?.choices?.[0]?.message?.content || null;
+    if (!r.ok) return null;
+    const j: any = await r.json();
+    return { scanned: Number(j?.scanned || 0), hot: Number(j?.hot_leads || 0) };
   } catch {
     return null;
   }
 }
 
-const SUBS = [
-  "travel",
-  "solotravel",
-  "TravelHacks",
-  "Honeymoontravel",
-  "Luxurytravel",
-  "TravelAdvice",
-  "Cruise",
-  "disneyvacation",
-  "roadtrip",
-  "backpacking",
-  "itinerary",
-  "JapanTravel",
-  "ItalyTravel",
-  "MexicoTravel",
-  "Caribbean",
-];
-
-type RedditPost = {
-  sub: string;
-  username: string;
-  title: string;
-  text: string;
-  permalink: string;
-  created: number;
-};
-
-const subStats: Record<string, { status: number; fetched: number; kept: number }> = {};
-
-async function fetchRedditPosts(): Promise<RedditPost[]> {
-  const candidates: RedditPost[] = [];
-  const seen = new Set<string>();
-  for (const sub of SUBS) {
-    subStats[sub] = { status: 0, fetched: 0, kept: 0 };
-    try {
-      const r = await fetch(`https://www.reddit.com/r/${sub}/new.json?limit=50&raw_json=1`, {
-        headers: {
-          "User-Agent": "ZenivaTravelBot/1.0 by u/zenivatravel",
-          Accept: "application/json",
-        },
-        cache: "no-store",
-      });
-      subStats[sub].status = r.status;
-      console.log(`[reddit] r/${sub} -> HTTP ${r.status}`);
-      if (!r.ok) {
-        const errBody = await r.text().catch(() => "");
-        console.log(`[reddit] r/${sub} err body: ${errBody.slice(0, 200)}`);
-        continue;
-      }
-      const j: any = await r.json();
-      const posts = j?.data?.children || [];
-      subStats[sub].fetched = posts.length;
-      for (const p of posts) {
-        const d = p?.data;
-        if (!d || d.over_18 || d.stickied || d.removed_by_category) continue;
-        if (!d.author || d.author === "[deleted]" || d.author === "AutoModerator") continue;
-        const ageHours = (Date.now() / 1000 - (d.created_utc || 0)) / 3600;
-        if (ageHours > 168) continue; // 7 days
-        const key = d.author + "|" + (d.title || "").slice(0, 60);
-        if (seen.has(key)) continue;
-        seen.add(key);
-        subStats[sub].kept++;
-        candidates.push({
-          sub,
-          username: d.author,
-          title: d.title || "",
-          text: (d.selftext || "").slice(0, 1200),
-          permalink: `https://reddit.com${d.permalink || ""}`,
-          created: d.created_utc || 0,
-        });
-      }
-    } catch (e: any) {
-      console.log(`[reddit] r/${sub} threw: ${e?.message || e}`);
-    }
-  }
-  console.log(`[reddit] total candidates: ${candidates.length}`, subStats);
-  return candidates;
-}
-
-type Scored = {
-  i: number;
-  score: number;
-  destination: string;
-  budget: number | null;
-  timeline: string;
-  intent: string;
-};
-
-async function scoreLeads(posts: RedditPost[], count: number): Promise<Scored[]> {
-  if (!posts.length) return [];
-
-  if (!GROQ_KEY && !OPENAI_KEY) {
-    const intentRegex =
-      /\b(honeymoon|planning|itinerary|budget|book(ing)?|trip to|travel(l)?ing to|vacation|recommend|help me plan|looking for)\b/i;
-    return posts
-      .map((p, i) => {
-        const text = p.title + " " + p.text;
-        const score = intentRegex.test(text) ? 75 : 30;
-        const destMatch = text.match(/\bto\s+([A-Z][a-zA-Z\s]{2,25})/);
-        const budgetMatch = text.match(/\$\s*([\d,]{3,7})|\b([\d,]{3,7})\s*(usd|dollars|budget)/i);
-        return {
-          i,
-          score,
-          destination: destMatch?.[1]?.trim() || "",
-          budget: budgetMatch ? Number((budgetMatch[1] || budgetMatch[2]).replace(/,/g, "")) : null,
-          timeline: "",
-          intent: p.title.slice(0, 100),
-        } as Scored;
-      })
-      .filter((s) => s.score >= 60)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, count);
-  }
-
-  const batch = posts.slice(0, 60);
-  const postText = batch
-    .map((c, i) => `[${i}] r/${c.sub} u/${c.username}\nTITLE: ${c.title}\nBODY: ${c.text.slice(0, 500)}`)
-    .join("\n\n---\n\n");
-
-  const systemMsg =
-    "You score Reddit posts for a luxury travel agency. Return ONLY JSON: {\"leads\":[{\"i\":number,\"score\":number,\"destination\":string,\"budget\":number|null,\"timeline\":string,\"intent\":string}]}.";
-  const userMsg = `Score each post 0-100 for lead quality for a luxury travel agency (USA/Canada).
-
-SCORING:
-- 90+ : explicit trip planning with destination AND budget AND dates
-- 70-89 : explicit planning with destination OR budget
-- 50-69 : soft interest, asking for recs
-- <50  : not a lead (news, reviews only, complaints, already booked)
-
-Extract for each:
-- destination : city/region/country mentioned
-- budget : number in USD or null
-- timeline : e.g. "June 2026" or "" if none
-- intent : short reason in <=80 chars (why it's a lead)
-
-Include ALL posts in output with their score; I will filter.
-
-Posts:
-${postText}`;
-
+async function fetchVpsLeads(minScore: number, limit: number): Promise<VPSLead[]> {
   try {
-    const content = await callAIJSON(systemMsg, userMsg, 3500, 0.2);
-    if (!content) return [];
-    const parsed = JSON.parse(content || "{}");
-    const leads: Scored[] = Array.isArray(parsed?.leads) ? parsed.leads : [];
-    console.log(`[reddit] GPT returned ${leads.length} scored, top scores: ${leads.slice(0, 5).map(l => l.score).join(",")}`);
-    return leads
-      .filter((s) => s && typeof s.i === "number" && s.score >= 60 && s.i >= 0 && s.i < batch.length)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, count);
-  } catch (e: any) {
-    console.log(`[reddit] GPT error: ${e?.message || e}`);
+    const url = `${VPS_BASE}/marco/leads?min_score=${minScore}&status=new&limit=${limit}`;
+    const r = await fetch(url, {
+      headers: { Authorization: VPS_AUTH },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!r.ok) return [];
+    const j: any = await r.json();
+    return Array.isArray(j?.leads) ? j.leads : [];
+  } catch {
     return [];
   }
 }
@@ -220,42 +85,33 @@ ${postText}`;
 export async function POST(req: NextRequest) {
   try {
     const cookies = req.headers.get("cookie") || "";
-    const authHeader = req.headers.get("authorization");
+    const authHeader = req.headers.get("authorization") || "";
     const cronSecret = process.env.CRON_SECRET;
+    const n8nSecret = process.env.N8N_WEBHOOK_SECRET || "zeniva-n8n-2026";
     const isCron = cronSecret && authHeader === `Bearer ${cronSecret}`;
+    const isN8n = authHeader === `Bearer ${n8nSecret}`;
     const hasSession = cookies.includes("zeniva_session=");
-    if (!isCron && !hasSession) {
+    if (!isCron && !isN8n && !hasSession) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await req.json().catch(() => ({}));
-    const count: number = Math.min(Math.max(Number(body?.count ?? 10), 1), 25);
+    const count: number = Math.min(Math.max(Number(body?.count ?? 10), 1), 50);
+    const minScore: number = Math.max(Number(body?.minScore ?? 7), 1);
 
-    const posts = await fetchRedditPosts();
-    if (!posts.length) {
+    const scanResult = await triggerScan();
+    console.log(`[marco] scan result:`, scanResult);
+
+    const vpsLeads = await fetchVpsLeads(minScore, count * 3);
+    console.log(`[marco] VPS returned ${vpsLeads.length} leads`);
+
+    if (!vpsLeads.length) {
       return NextResponse.json({
         ok: true,
         saved: 0,
         fetched: 0,
-        qualified: 0,
-        subStats,
-        openai_key_set: !!OPENAI_KEY,
-        message: "No Reddit posts fetched. Reddit likely blocked Vercel IP. Check subStats for HTTP codes.",
-      });
-    }
-
-    const scored = await scoreLeads(posts, count);
-    console.log(`[reddit] scored ${scored.length} qualified leads`);
-    if (!scored.length) {
-      return NextResponse.json({
-        ok: true,
-        saved: 0,
-        fetched: posts.length,
-        qualified: 0,
-        subStats,
-        openai_key_set: !!OPENAI_KEY,
-        samplePosts: posts.slice(0, 5).map(p => ({ sub: p.sub, user: p.username, title: p.title.slice(0, 100) })),
-        message: "Fetched posts but none scored >= 60. Threshold may be too strict, or GPT returned nothing.",
+        scanResult,
+        message: "VPS returned no leads. Scanner may be empty or auth failed.",
       });
     }
 
@@ -264,53 +120,61 @@ export async function POST(req: NextRequest) {
     let saved = 0;
     const savedLeads: any[] = [];
 
-    for (const s of scored) {
-      const c = posts[s.i];
-      if (!c) continue;
-      const placeholderEmail = `${c.username}@reddit.zeniva`;
-      const destBits = [s.destination, s.timeline, s.budget ? `$${s.budget}` : ""].filter(Boolean);
-      const destinationText = (destBits.length ? destBits.join(" · ") : c.title).slice(0, 160);
+    for (const l of vpsLeads.slice(0, count)) {
+      if (!l.url) continue;
       try {
+        const { data: existing } = await client
+          .from("leads")
+          .select("id")
+          .eq("source_ref", l.url)
+          .limit(1);
+        if (existing && existing.length) continue;
+
+        const { first, last } = extractName(l);
+        const placeholderEmail = `${(first + "." + last).toLowerCase().replace(/\s+/g, "") || "lead"}-${(l.id || "").slice(-6)}@${l.platform || "social"}.zeniva`;
+        const dealValue = l.score >= 9 ? 15000 : l.score >= 7 ? 8000 : 3000;
+
         const { error } = await client.from("leads").insert({
           email: placeholderEmail,
-          first_name: c.username,
-          last_name: `Reddit · r/${c.sub}`,
+          first_name: first || "Lead",
+          last_name: last || `(${(l.platform || "social").toUpperCase()})`,
           phone: null,
-          destination: destinationText,
-          deal_value: s.budget || 0,
+          destination: (l.destination || l.intent || "").slice(0, 160),
+          deal_value: dealValue,
           language: "en",
           status: "new",
-          source: "prospecting:reddit",
-          source_ref: c.permalink,
+          source: `prospecting:${l.platform || l.source || "social"}`,
+          source_ref: l.url,
           created_at: now,
         });
+
         if (!error) {
           saved++;
           savedLeads.push({
-            username: c.username,
-            sub: c.sub,
-            title: c.title,
-            permalink: c.permalink,
-            destination: s.destination,
-            budget: s.budget,
-            timeline: s.timeline,
-            score: s.score,
-            intent: s.intent,
+            name: `${first} ${last}`.trim() || "Anonymous",
+            platform: l.platform || l.source,
+            destination: l.destination,
+            score: l.score,
+            intent: l.intent,
+            url: l.url,
+            summary: (l.summary || "").slice(0, 200),
           });
+        } else {
+          console.log(`[marco] insert error:`, error.message);
         }
-      } catch {
-        /* skip duplicates */
+      } catch (e: any) {
+        console.log(`[marco] loop error:`, e?.message || e);
       }
     }
 
     return NextResponse.json({
       ok: true,
-      fetched: posts.length,
-      qualified: scored.length,
       saved,
+      fetched: vpsLeads.length,
+      scanResult,
       leads: savedLeads,
     });
   } catch (err: any) {
-    return NextResponse.json({ error: err?.message || "Reddit prospecting failed" }, { status: 500 });
+    return NextResponse.json({ error: err?.message || "Marco pull failed" }, { status: 500 });
   }
 }
