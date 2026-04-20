@@ -117,6 +117,7 @@ export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [destinationFilter, setDestinationFilter] = useState("all");
   const [languageFilter, setLanguageFilter] = useState("all");
@@ -287,9 +288,14 @@ export default function LeadsPage() {
         <div className="flex flex-col sm:flex-row gap-3">
           <input
             type="text"
-            placeholder={activeTab === "travelers" ? "Search leads..." : "Search by name, email, company, city..."}
-            value={search}
-            onChange={e => setSearch(e.target.value)}
+            placeholder={activeTab === "travelers" ? "Search leads... (press Enter)" : "Search by name, email, company, city, province, country... (press Enter)"}
+            value={searchInput}
+            onChange={e => setSearchInput(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === "Enter") { e.preventDefault(); setSearch(searchInput.trim()); }
+              else if (e.key === "Escape") { setSearchInput(""); setSearch(""); }
+            }}
+            onBlur={() => setSearch(searchInput.trim())}
             className="flex-1 rounded-xl border border-slate-200 px-4 py-2 text-sm focus:outline-none focus:border-blue-400"
           />
           {activeTab === "travelers" && (
@@ -474,7 +480,15 @@ export default function LeadsPage() {
             {businessLeads.filter(lead => {
               const matchProv = provinceFilter === "all" || lead.province === provinceFilter;
               const matchCity = cityFilter === "all" || lead.city === cityFilter;
-              const matchSearch2 = !search || (lead.contact_name || "").toLowerCase().includes(search.toLowerCase()) || (lead.contact_email || "").toLowerCase().includes(search.toLowerCase()) || (lead.company_name || "").toLowerCase().includes(search.toLowerCase()) || (lead.city || "").toLowerCase().includes(search.toLowerCase());
+              const q = search.trim().toLowerCase();
+              const matchSearch2 = !q || [
+                lead.contact_name,
+                lead.contact_email,
+                lead.company_name,
+                lead.city,
+                lead.province,
+                (lead as unknown as { country?: string }).country,
+              ].some(f => (f || "").toLowerCase().includes(q));
               return matchProv && matchCity && matchSearch2;
             }).map(lead => {
               const isOverdue = lead.next_followup_at && new Date(lead.next_followup_at) < new Date();
