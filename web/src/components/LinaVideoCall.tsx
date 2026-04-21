@@ -12,28 +12,30 @@ function detectLang(text: string): Lang {
   return "en-US";
 }
 
-function pickVoice(lang: Lang): SpeechSynthesisVoice | null {
-  if (typeof window === "undefined") return null;
-  const voices = window.speechSynthesis.getVoices();
-  if (!voices.length) return null;
-  const prefix = lang.split("-")[0];
-  // Prefer high-quality female voices that sound human-ish
-  const preferred = [
-    /julie/i, /amelie/i, /aurelie/i, /marie/i, // French
-    /zira/i, /samantha/i, /ava/i, /jenny/i, /aria/i, // English
-    /monica/i, /paulina/i, /sofia/i, // Spanish
-    /google.+(français|french|español|spanish|female)/i,
-  ];
-  for (const re of preferred) {
-    const v = voices.find((v) => v.lang.toLowerCase().startsWith(prefix) && re.test(v.name));
-    if (v) return v;
+function langToGoogle(lang: Lang): string {
+  if (lang === "fr-FR") return "fr";
+  if (lang === "es-ES") return "es";
+  return "en";
+}
+
+/**
+ * Split a sentence into ≤200-char chunks that end on natural pauses
+ * (comma, semicolon, whitespace). Google Translate TTS rejects anything
+ * longer than 200 chars per request.
+ */
+function chunkForTts(text: string, maxLen = 190): string[] {
+  const out: string[] = [];
+  let remaining = text.trim();
+  while (remaining.length > maxLen) {
+    let cut = remaining.lastIndexOf(",", maxLen);
+    if (cut < 50) cut = remaining.lastIndexOf(";", maxLen);
+    if (cut < 50) cut = remaining.lastIndexOf(" ", maxLen);
+    if (cut < 50) cut = maxLen;
+    out.push(remaining.slice(0, cut + 1).trim());
+    remaining = remaining.slice(cut + 1).trim();
   }
-  // Fallback: any voice matching language, prefer non-default
-  return (
-    voices.find((v) => v.lang.toLowerCase().startsWith(prefix) && !v.default) ||
-    voices.find((v) => v.lang.toLowerCase().startsWith(prefix)) ||
-    voices[0]
-  );
+  if (remaining) out.push(remaining);
+  return out;
 }
 
 function stripPatchBlock(reply: string): { clean: string; patch: Record<string, any> | null } {
@@ -68,20 +70,9 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
   const activeRef = useRef(false);
   const speakingRef = useRef(false);
   const langRef = useRef<Lang>("en-US");
-  const voicesReadyRef = useRef(false);
   const ttsQueueRef = useRef<{ text: string; lang: Lang }[]>([]);
   const ttsRunningRef = useRef(false);
-
-  // Pre-load voices (some browsers load them async)
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-    const check = () => {
-      if (window.speechSynthesis.getVoices().length > 0) voicesReadyRef.current = true;
-    };
-    check();
-    window.speechSynthesis.addEventListener("voiceschanged", check);
-    return () => window.speechSynthesis.removeEventListener("voiceschanged", check);
-  }, []);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (state !== "idle" && state !== "error" && state !== "connecting") {
@@ -98,17 +89,36 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
 
   const speakOne = useCallback((text: string, lang: Lang): Promise<void> => {
     return new Promise((resolve) => {
-      if (typeof window === "undefined" || !window.speechSynthesis) return resolve();
-      const u = new SpeechSynthesisUtterance(text);
-      const voice = pickVoice(lang);
-      if (voice) u.voice = voice;
-      u.lang = lang;
-      u.rate = 1.02;
-      u.pitch = 1.08;
-      u.volume = 1;
-      u.onend = () => resolve();
-      u.onerror = () => resolve();
-      window.speechSynthesis.speak(u);
+      if (typeof window === "undefined") return resolve();
+      const chunks = chunkForTts(text);
+      if (!chunks.length) return resolve();
+      const gLang = langToGoogle(lang);
+      let idx = 0;
+
+      const playNext = () => {
+        if (idx >= chunks.length) {
+          currentAudioRef.current = null;
+          return resolve();
+        }
+        const chunk = chunks[idx++];
+        const src = `/api/tts?lang=${encodeURIComponent(gLang)}&text=${encodeURIComponent(chunk)}`;
+        const audio = new Audio(src);
+        audio.preload = "auto";
+        currentAudioRef.current = audio;
+        audio.onended = () => playNext();
+        audio.onerror = () => {
+          // Swallow errors and continue with next chunk
+          console.warn("TTS audio failed for chunk", chunk.slice(0, 40));
+          playNext();
+        };
+        audio.play().catch(() => {
+          // Autoplay can be blocked if the utterance wasn't inside a user gesture
+          console.warn("audio.play() rejected");
+          playNext();
+        });
+      };
+
+      playNext();
     });
   }, []);
 
@@ -423,8 +433,12 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       recognitionRef.current?.stop();
     } catch {}
     recognitionRef.current = null;
-    if (typeof window !== "undefined" && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
+    if (currentAudioRef.current) {
+      try {
+        currentAudioRef.current.pause();
+        currentAudioRef.current.src = "";
+      } catch {}
+      currentAudioRef.current = null;
     }
     if (timerRef.current) clearInterval(timerRef.current);
     setMicStatus("none");
@@ -437,8 +451,11 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       try {
         recognitionRef.current?.stop();
       } catch {}
-      if (typeof window !== "undefined" && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
+      if (currentAudioRef.current) {
+        try {
+          currentAudioRef.current.pause();
+          currentAudioRef.current.src = "";
+        } catch {}
       }
     };
   }, []);
