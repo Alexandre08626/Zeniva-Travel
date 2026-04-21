@@ -7,8 +7,10 @@ type Lang = "en-US" | "fr-FR" | "es-ES";
 
 function detectLang(text: string): Lang {
   const t = text.toLowerCase();
-  if (/\b(je|vous|bonjour|oui|où|où|voyager|voyage|merci|parfait|dates|budget)\b/.test(t)) return "fr-FR";
-  if (/\b(hola|por favor|dónde|sí|quiero|viaje|viajar|gracias|perfecto)\b/.test(t)) return "es-ES";
+  if (/\b(je|vous|bonjour|oui|où|voyager|voyage|merci|parfait|dates|budget|je veux|il y a|avec|pour)\b/.test(t))
+    return "fr-FR";
+  if (/\b(hola|por favor|dónde|sí|quiero|viaje|viajar|gracias|perfecto|con|para)\b/.test(t))
+    return "es-ES";
   return "en-US";
 }
 
@@ -18,11 +20,12 @@ function langToGoogle(lang: Lang): string {
   return "en";
 }
 
-/**
- * Split a sentence into ≤200-char chunks that end on natural pauses
- * (comma, semicolon, whitespace). Google Translate TTS rejects anything
- * longer than 200 chars per request.
- */
+function langToWhisper(lang: Lang): string {
+  if (lang === "fr-FR") return "fr";
+  if (lang === "es-ES") return "es";
+  return "en";
+}
+
 function chunkForTts(text: string, maxLen = 190): string[] {
   const out: string[] = [];
   let remaining = text.trim();
@@ -44,32 +47,46 @@ function stripPatchBlock(reply: string): { clean: string; patch: Record<string, 
   let patch: Record<string, any> | null = null;
   try {
     const parsed = JSON.parse(m[1].trim());
-    if (parsed && typeof parsed === "object") {
-      patch = parsed.patch || parsed;
-    }
-  } catch {
-    // ignore — keep clean reply but no patch
-  }
+    if (parsed && typeof parsed === "object") patch = parsed.patch || parsed;
+  } catch {}
   const clean = reply.replace(/TRIP_PATCH_START[\s\S]*?TRIP_PATCH_END/g, "").trim();
   return { clean, patch };
 }
 
+// VAD tuning — may need per-environment tweaks
+const VAD_SPEECH_THRESHOLD = 12;   // byte-delta from 128 (0-127)
+const VAD_SILENCE_MS = 900;        // ms of silence after speech → end of turn
+const VAD_MIN_AUDIO_BYTES = 6000;  // skip sends smaller than this (likely noise)
+const VAD_MAX_TURN_MS = 15000;     // hard stop after 15s without silence
+
 export default function LinaVideoCall({ tripId }: { tripId: string }) {
   const [state, setState] = useState<CallState>("idle");
   const [transcript, setTranscript] = useState<{ role: string; text: string }[]>([]);
-  const [userText, setUserText] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState("");
   const [micStatus, setMicStatus] = useState<"none" | "denied" | "ok">("none");
   const [snapshot, setSnapshot] = useState<Record<string, any>>({});
 
-  const recognitionRef = useRef<any>(null);
-  const historyRef = useRef<{ role: "user" | "assistant"; content: string }[]>([]);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  // Call lifecycle
   const activeRef = useRef(false);
   const speakingRef = useRef(false);
   const langRef = useRef<Lang>("en-US");
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const historyRef = useRef<{ role: "user" | "assistant"; content: string }[]>([]);
+
+  // Audio I/O
+  const streamRef = useRef<MediaStream | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const rafRef = useRef<number | null>(null);
+  const speechStartedRef = useRef(false);
+  const lastAboveRef = useRef(0);
+  const recStartedAtRef = useRef(0);
+
+  // TTS queue
   const ttsQueueRef = useRef<{ text: string; lang: Lang }[]>([]);
   const ttsRunningRef = useRef(false);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -85,7 +102,9 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
 
   useEffect(() => {
     scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight);
-  }, [transcript, userText]);
+  }, [transcript]);
+
+  // ——— TTS ——————————————————————————————————————————————
 
   const speakOne = useCallback((text: string, lang: Lang): Promise<void> => {
     return new Promise((resolve) => {
@@ -96,7 +115,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       let idx = 0;
 
       const playNext = () => {
-        if (idx >= chunks.length) {
+        if (idx >= chunks.length || !activeRef.current) {
           currentAudioRef.current = null;
           return resolve();
         }
@@ -107,17 +126,14 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
         currentAudioRef.current = audio;
         audio.onended = () => playNext();
         audio.onerror = () => {
-          // Swallow errors and continue with next chunk
-          console.warn("TTS audio failed for chunk", chunk.slice(0, 40));
+          console.warn("TTS audio failed for", chunk.slice(0, 40));
           playNext();
         };
         audio.play().catch(() => {
-          // Autoplay can be blocked if the utterance wasn't inside a user gesture
           console.warn("audio.play() rejected");
           playNext();
         });
       };
-
       playNext();
     });
   }, []);
@@ -127,11 +143,8 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
     ttsRunningRef.current = true;
     speakingRef.current = true;
     setState("speaking");
-    try {
-      recognitionRef.current?.stop();
-    } catch {}
 
-    while (ttsQueueRef.current.length > 0) {
+    while (ttsQueueRef.current.length > 0 && activeRef.current) {
       const next = ttsQueueRef.current.shift();
       if (!next) break;
       await speakOne(next.text, next.lang);
@@ -139,10 +152,10 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
 
     ttsRunningRef.current = false;
     speakingRef.current = false;
+    // Resume VAD after Lina is done
     if (activeRef.current) {
-      try {
-        recognitionRef.current?.start();
-      } catch {}
+      speechStartedRef.current = false;
+      lastAboveRef.current = 0;
       setState("listening");
     }
   }, [speakOne]);
@@ -172,6 +185,8 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
     [enqueueSpeech]
   );
 
+  // ——— Snapshot patch ————————————————————————————————————
+
   const applyPatchToTrip = useCallback(
     (args: Record<string, any>) => {
       setSnapshot((prev) => ({ ...prev, ...args }));
@@ -182,14 +197,15 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       if (args.checkIn && args.checkOut) snapPatch.dates = `${args.checkIn} → ${args.checkOut}`;
       else if (args.checkIn) snapPatch.dates = args.checkIn;
       if (args.adults)
-        snapPatch.travelers = `${args.adults} adult${args.adults > 1 ? "s" : ""}${args.children ? `, ${args.children} child${args.children > 1 ? "ren" : ""}` : ""}`;
+        snapPatch.travelers = `${args.adults} adult${args.adults > 1 ? "s" : ""}${
+          args.children ? `, ${args.children} child${args.children > 1 ? "ren" : ""}` : ""
+        }`;
       if (args.budget) snapPatch.budget = `${args.currency || "USD"} ${args.budget}`;
       if (args.style) snapPatch.style = args.style;
       if (args.accommodationType) snapPatch.accommodationType = args.accommodationType;
       if (args.transportationType) snapPatch.transportationType = args.transportationType;
       if (Object.keys(snapPatch).length > 0) updateSnapshot(tripId, snapPatch);
 
-      // Persist on server
       fetch(`/api/proposals?ownerEmail=voice-call@zenivatravel.com`)
         .then((r) => r.json())
         .then((d) => {
@@ -203,10 +219,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
               id: tripId,
               ownerEmail: "voice-call@zenivatravel.com",
               status: "Draft",
-              payload: {
-                tripDraft: { ...prevDraft, ...args },
-                snapshot: { ...prevSnap, ...snapPatch },
-              },
+              payload: { tripDraft: { ...prevDraft, ...args }, snapshot: { ...prevSnap, ...snapPatch } },
             }),
           });
         })
@@ -215,51 +228,39 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
     [tripId]
   );
 
+  // ——— Ask Lina (streaming) ——————————————————————————————
+
   const askLina = useCallback(
     async (userInput: string) => {
       historyRef.current.push({ role: "user", content: userInput });
       setTranscript((p) => [...p, { role: "user", text: userInput }]);
       setState("thinking");
 
-      // Lock the TTS language based on the user's input. If they spoke French,
-      // Lina replies in French. English → English. This is what makes the call
-      // feel natural — we switch sides on first user turn.
       const userLang = detectLang(userInput);
       langRef.current = userLang;
-      if (recognitionRef.current) recognitionRef.current.lang = userLang;
 
       try {
         const resp = await fetch("/api/lina-stream", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            prompt: userInput,
-            history: historyRef.current.slice(-20),
-          }),
+          body: JSON.stringify({ prompt: userInput, history: historyRef.current.slice(-20) }),
         });
-        if (!resp.ok || !resp.body) {
-          const text = await resp.text();
-          throw new Error(text || "Stream failed");
-        }
+        if (!resp.ok || !resp.body) throw new Error(await resp.text().catch(() => "stream failed"));
 
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
-        let sseBuffer = "";      // leftover bytes from incomplete SSE lines
-        let fullReply = "";       // everything Lina has generated (for history)
-        let speakBuffer = "";     // text not yet handed to TTS
-        let inPatch = false;      // inside TRIP_PATCH_START…TRIP_PATCH_END
+        let sseBuffer = "";
+        let fullReply = "";
+        let speakBuffer = "";
+        let inPatch = false;
         let patchText = "";
         const replyLang: Lang = userLang;
-
-        // Regex that matches a complete sentence at the start of speakBuffer
         const sentenceRe = /^([\s\S]*?[.!?…])(\s+|$)/;
 
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
           sseBuffer += decoder.decode(value, { stream: true });
-
-          // Process complete SSE lines
           let eol: number;
           while ((eol = sseBuffer.indexOf("\n")) >= 0) {
             const rawLine = sseBuffer.slice(0, eol);
@@ -269,11 +270,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
             const data = line.slice(line.indexOf(":") + 1).trim();
             if (data === "[DONE]") continue;
             let json: any;
-            try {
-              json = JSON.parse(data);
-            } catch {
-              continue;
-            }
+            try { json = JSON.parse(data); } catch { continue; }
             const token = json?.choices?.[0]?.delta?.content;
             if (!token) continue;
             fullReply += token;
@@ -282,9 +279,8 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
               patchText += token;
               const endIdx = patchText.indexOf("TRIP_PATCH_END");
               if (endIdx >= 0) {
-                const jsonPart = patchText.slice(0, endIdx).trim();
                 try {
-                  const parsed = JSON.parse(jsonPart);
+                  const parsed = JSON.parse(patchText.slice(0, endIdx).trim());
                   const patch = parsed?.patch || parsed;
                   if (patch && typeof patch === "object") applyPatchToTrip(patch);
                 } catch {}
@@ -295,16 +291,12 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
             }
 
             speakBuffer += token;
-            // Watch for the patch block opening and clip it off the spoken text
             const patchStart = speakBuffer.indexOf("TRIP_PATCH_START");
             if (patchStart >= 0) {
-              const before = speakBuffer.slice(0, patchStart);
-              speakBuffer = before;
+              speakBuffer = speakBuffer.slice(0, patchStart);
               inPatch = true;
               patchText = "";
             }
-
-            // Stream full sentences to TTS as soon as they land
             while (true) {
               const m = speakBuffer.match(sentenceRe);
               if (!m) break;
@@ -314,8 +306,6 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
             }
           }
         }
-
-        // Flush any trailing partial sentence
         if (speakBuffer.trim()) enqueueSpeech(speakBuffer.trim(), replyLang);
 
         const { clean } = stripPatchBlock(fullReply);
@@ -323,9 +313,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
         setTranscript((p) => [...p, { role: "lina", text: clean }]);
 
         const ready =
-          /generate proposal|proposal.*ready|génère votre|votre proposition|personnalisée|appuyez sur le bouton|cliquez sur le bouton|click the gold|botón dorado|votre proposition est pr/i.test(
-            clean
-          );
+          /generate proposal|proposal.*ready|génère votre|votre proposition|personnalisée|appuyez sur le bouton|cliquez sur le bouton|click the gold|botón dorado|votre proposition est pr/i.test(clean);
         if (ready) {
           setTimeout(() => {
             generateProposal(tripId);
@@ -333,13 +321,122 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
           }, 2500);
         }
       } catch (e: any) {
-        console.error("askLina stream error", e);
-        setError("Connection error. Check your internet and try again.");
+        console.error("askLina error", e);
+        setError("Connection error. Please try again.");
         setState("error");
       }
     },
     [tripId, enqueueSpeech, applyPatchToTrip]
   );
+
+  // ——— STT (Groq Whisper) ——————————————————————————————
+
+  const transcribeBlob = useCallback(
+    async (blob: Blob) => {
+      if (blob.size < VAD_MIN_AUDIO_BYTES) {
+        // too short — likely noise, go back to listening
+        if (activeRef.current && !speakingRef.current) {
+          speechStartedRef.current = false;
+          lastAboveRef.current = 0;
+          setState("listening");
+        }
+        return;
+      }
+      setState("thinking");
+      const form = new FormData();
+      form.append("file", blob, "audio.webm");
+      // Hint Whisper with the locked language if we have one
+      if (langRef.current === "fr-FR") form.append("language", "fr");
+      else if (langRef.current === "es-ES") form.append("language", "es");
+      // Don't hint for English — let Whisper auto-detect on first turn
+
+      try {
+        const resp = await fetch("/api/stt", { method: "POST", body: form });
+        const data = await resp.json();
+        const text = String(data?.text || "").trim();
+        if (text.length >= 2) {
+          await askLina(text);
+        } else {
+          if (activeRef.current && !speakingRef.current) setState("listening");
+        }
+      } catch (e) {
+        console.error("STT error", e);
+        if (activeRef.current && !speakingRef.current) setState("listening");
+      }
+    },
+    [askLina]
+  );
+
+  // ——— VAD loop ———————————————————————————————————————————
+
+  const stopRecording = useCallback((sendToStt: boolean) => {
+    const rec = recorderRef.current;
+    if (!rec) return;
+    if (rec.state !== "recording") return;
+    // Mark the next onstop handler
+    (rec as any).__send = sendToStt;
+    try {
+      rec.stop();
+    } catch {}
+  }, []);
+
+  const startRecording = useCallback(() => {
+    const rec = recorderRef.current;
+    if (!rec) return;
+    if (rec.state === "recording") return;
+    chunksRef.current = [];
+    try {
+      rec.start(250);
+      recStartedAtRef.current = Date.now();
+    } catch (e) {
+      console.warn("recorder.start failed", e);
+    }
+  }, []);
+
+  const vadTick = useCallback(() => {
+    if (!activeRef.current) return;
+    const analyser = analyserRef.current;
+    if (!analyser) {
+      rafRef.current = requestAnimationFrame(vadTick);
+      return;
+    }
+
+    // Don't VAD while Lina speaks — we'd record her own voice bleed
+    if (speakingRef.current) {
+      if (recorderRef.current?.state === "recording") stopRecording(false);
+      speechStartedRef.current = false;
+      rafRef.current = requestAnimationFrame(vadTick);
+      return;
+    }
+
+    const data = new Uint8Array(analyser.fftSize);
+    analyser.getByteTimeDomainData(data);
+    let peak = 0;
+    for (let i = 0; i < data.length; i++) {
+      const d = Math.abs(data[i] - 128);
+      if (d > peak) peak = d;
+    }
+    const now = Date.now();
+
+    if (peak > VAD_SPEECH_THRESHOLD) {
+      if (!speechStartedRef.current) {
+        speechStartedRef.current = true;
+        startRecording();
+      }
+      lastAboveRef.current = now;
+    } else if (speechStartedRef.current) {
+      const silent = now - lastAboveRef.current;
+      const turnTooLong = now - recStartedAtRef.current > VAD_MAX_TURN_MS;
+      if (silent > VAD_SILENCE_MS || turnTooLong) {
+        speechStartedRef.current = false;
+        stopRecording(true);
+      }
+    }
+
+    rafRef.current = requestAnimationFrame(vadTick);
+  }, [startRecording, stopRecording]);
+
+  // ——— Start / end call ——————————————————————————————————
 
   const startCall = useCallback(async () => {
     setState("connecting");
@@ -349,11 +446,16 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
     setSnapshot({});
     historyRef.current = [];
 
-    // Mic permission (SpeechRecognition will ask again but prompting upfront
-    // gives a clearer UX and pre-warms the permission grant on some browsers)
+    let stream: MediaStream;
     try {
-      const s = await navigator.mediaDevices.getUserMedia({ audio: true });
-      s.getTracks().forEach((t) => t.stop());
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
+      streamRef.current = stream;
       setMicStatus("ok");
     } catch {
       setMicStatus("denied");
@@ -362,77 +464,89 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       return;
     }
 
-    // Speech recognition support check
-    const SR: any =
-      (typeof window !== "undefined" && (window as any).SpeechRecognition) ||
-      (typeof window !== "undefined" && (window as any).webkitSpeechRecognition);
-    if (!SR) {
-      setError(
-        "Your browser doesn't support voice. Please use Chrome, Edge, or Safari (recent version)."
-      );
+    if (typeof MediaRecorder === "undefined") {
+      setError("Your browser doesn't support audio recording. Try Chrome, Edge, or Safari.");
       setState("error");
       return;
     }
 
-    const recog = new SR();
-    recognitionRef.current = recog;
-    recog.continuous = true;
-    recog.interimResults = true;
-    recog.lang = "en-US";
-
-    let interim = "";
-    recog.onresult = (e: any) => {
-      if (speakingRef.current) return;
-      interim = "";
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const res = e.results[i];
-        if (res.isFinal) {
-          const txt = String(res[0].transcript || "").trim();
-          if (txt.length >= 2) askLina(txt);
-        } else {
-          interim += res[0].transcript;
-        }
-      }
-      setUserText(interim);
+    // Pick a supported mime type for broad compatibility
+    const mime = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/mp4"].find(
+      (m) => MediaRecorder.isTypeSupported(m)
+    );
+    const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+    recorderRef.current = rec;
+    rec.ondataavailable = (e) => {
+      if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
+    };
+    rec.onstop = () => {
+      const sendToStt = (rec as any).__send !== false;
+      const blob = new Blob(chunksRef.current, { type: rec.mimeType || "audio/webm" });
+      chunksRef.current = [];
+      if (sendToStt) transcribeBlob(blob);
     };
 
-    recog.onerror = (e: any) => {
-      if (e?.error === "no-speech" || e?.error === "aborted") return;
-      console.warn("SpeechRecognition error:", e?.error);
-    };
-
-    recog.onend = () => {
-      setUserText("");
-      if (activeRef.current && !speakingRef.current) {
-        try {
-          recog.start();
-        } catch {}
-      }
-    };
+    // Web Audio → AnalyserNode for VAD
+    const Ctx: typeof AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext;
+    const ctx = new Ctx();
+    audioCtxRef.current = ctx;
+    if (ctx.state === "suspended") {
+      try {
+        await ctx.resume();
+      } catch {}
+    }
+    const src = ctx.createMediaStreamSource(stream);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 1024;
+    analyser.smoothingTimeConstant = 0.3;
+    src.connect(analyser);
+    analyserRef.current = analyser;
 
     activeRef.current = true;
-    try {
-      recog.start();
-    } catch {}
+    speechStartedRef.current = false;
+    lastAboveRef.current = 0;
+    rafRef.current = requestAnimationFrame(vadTick);
 
-    // Greet in English — Lina will switch to the user's language on their
-    // first reply (see language lock in askLina).
+    // Lina greets in English — will auto-switch on user's first reply
     const greeting = "Hi! I'm Lina from Zeniva. Where would you like to go?";
     setTranscript([{ role: "lina", text: greeting }]);
     historyRef.current = [{ role: "assistant", content: greeting }];
     setState("listening");
     await speakAndWait(greeting, "en-US");
-  }, [speakAndWait, askLina]);
+  }, [speakAndWait, transcribeBlob, vadTick]);
 
   const endCall = useCallback(() => {
     activeRef.current = false;
     speakingRef.current = false;
+    speechStartedRef.current = false;
     ttsRunningRef.current = false;
     ttsQueueRef.current = [];
-    try {
-      recognitionRef.current?.stop();
-    } catch {}
-    recognitionRef.current = null;
+
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
+
+    if (recorderRef.current) {
+      try {
+        if (recorderRef.current.state === "recording") recorderRef.current.stop();
+      } catch {}
+      recorderRef.current = null;
+    }
+    chunksRef.current = [];
+
+    if (analyserRef.current) {
+      try {
+        analyserRef.current.disconnect();
+      } catch {}
+      analyserRef.current = null;
+    }
+    if (audioCtxRef.current) {
+      audioCtxRef.current.close().catch(() => {});
+      audioCtxRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
     if (currentAudioRef.current) {
       try {
         currentAudioRef.current.pause();
@@ -445,25 +559,14 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
     setState("idle");
   }, []);
 
-  useEffect(() => {
-    return () => {
-      activeRef.current = false;
-      try {
-        recognitionRef.current?.stop();
-      } catch {}
-      if (currentAudioRef.current) {
-        try {
-          currentAudioRef.current.pause();
-          currentAudioRef.current.src = "";
-        } catch {}
-      }
-    };
-  }, []);
+  useEffect(() => () => endCall(), [endCall]);
 
   const active = !["idle", "error", "connecting"].includes(state);
   const speaking = state === "speaking";
   const listening = state === "listening";
-  const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+  const thinking = state === "thinking";
+  const fmt = (s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   return (
     <div
@@ -539,25 +642,22 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
               Speaking...
             </p>
           )}
-          {state === "thinking" && (
+          {thinking && (
             <p className="text-amber-300/70 text-xs font-medium flex items-center justify-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-              Processing...
+              Transcribing...
             </p>
           )}
           {active && micStatus === "denied" && (
-            <p className="text-red-300/80 text-xs font-medium mt-1">🔇 Microphone blocked — allow mic access in your browser and reload</p>
+            <p className="text-red-300/80 text-xs font-medium mt-1">
+              🔇 Microphone blocked — allow mic access in your browser and reload
+            </p>
           )}
         </div>
 
         {active && (
-          <div
-            ref={scrollRef}
-            className="w-full max-w-xl bg-black/20 backdrop-blur rounded-2xl border border-white/8 p-4 max-h-40 overflow-y-auto"
-          >
-            {transcript.length === 0 && !userText && (
-              <p className="text-white/25 text-sm text-center">Conversation will appear here...</p>
-            )}
+          <div ref={scrollRef} className="w-full max-w-xl bg-black/20 backdrop-blur rounded-2xl border border-white/8 p-4 max-h-40 overflow-y-auto">
+            {transcript.length === 0 && <p className="text-white/25 text-sm text-center">Conversation will appear here...</p>}
             {transcript.map((t, i) => (
               <div key={i} className={`mb-2 ${t.role === "user" ? "text-right" : ""}`}>
                 <span
@@ -572,13 +672,6 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
                 </span>
               </div>
             ))}
-            {userText && (
-              <div className="mb-2 text-right">
-                <span className="inline-block px-3 py-1.5 rounded-2xl rounded-br-sm text-sm bg-white/10 text-white/50">
-                  {userText}
-                </span>
-              </div>
-            )}
           </div>
         )}
 
@@ -587,54 +680,28 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
             <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">📋 Trip Snapshot</div>
             <div className="grid grid-cols-2 gap-1.5">
               {snapshot.destination && (
-                <p className="text-xs">
-                  <span className="text-white/35">Destination:</span>{" "}
-                  <span className="text-white/80 font-medium">{snapshot.destination}</span>
-                </p>
+                <p className="text-xs"><span className="text-white/35">Destination:</span> <span className="text-white/80 font-medium">{snapshot.destination}</span></p>
               )}
               {snapshot.departureCity && (
-                <p className="text-xs">
-                  <span className="text-white/35">From:</span>{" "}
-                  <span className="text-white/80 font-medium">{snapshot.departureCity}</span>
-                </p>
+                <p className="text-xs"><span className="text-white/35">From:</span> <span className="text-white/80 font-medium">{snapshot.departureCity}</span></p>
               )}
               {snapshot.checkIn && (
-                <p className="text-xs">
-                  <span className="text-white/35">In:</span>{" "}
-                  <span className="text-white/80 font-medium">{snapshot.checkIn}</span>
-                </p>
+                <p className="text-xs"><span className="text-white/35">In:</span> <span className="text-white/80 font-medium">{snapshot.checkIn}</span></p>
               )}
               {snapshot.checkOut && (
-                <p className="text-xs">
-                  <span className="text-white/35">Out:</span>{" "}
-                  <span className="text-white/80 font-medium">{snapshot.checkOut}</span>
-                </p>
+                <p className="text-xs"><span className="text-white/35">Out:</span> <span className="text-white/80 font-medium">{snapshot.checkOut}</span></p>
               )}
               {snapshot.adults && (
-                <p className="text-xs">
-                  <span className="text-white/35">Adults:</span>{" "}
-                  <span className="text-white/80 font-medium">{snapshot.adults}</span>
-                </p>
+                <p className="text-xs"><span className="text-white/35">Adults:</span> <span className="text-white/80 font-medium">{snapshot.adults}</span></p>
               )}
               {snapshot.children && (
-                <p className="text-xs">
-                  <span className="text-white/35">Children:</span>{" "}
-                  <span className="text-white/80 font-medium">{snapshot.children}</span>
-                </p>
+                <p className="text-xs"><span className="text-white/35">Children:</span> <span className="text-white/80 font-medium">{snapshot.children}</span></p>
               )}
               {snapshot.budget && (
-                <p className="text-xs">
-                  <span className="text-white/35">Budget:</span>{" "}
-                  <span className="text-white/80 font-medium">
-                    {snapshot.currency || "USD"} {snapshot.budget}
-                  </span>
-                </p>
+                <p className="text-xs"><span className="text-white/35">Budget:</span> <span className="text-white/80 font-medium">{snapshot.currency || "USD"} {snapshot.budget}</span></p>
               )}
               {snapshot.style && (
-                <p className="text-xs">
-                  <span className="text-white/35">Style:</span>{" "}
-                  <span className="text-white/80 font-medium">{snapshot.style}</span>
-                </p>
+                <p className="text-xs"><span className="text-white/35">Style:</span> <span className="text-white/80 font-medium">{snapshot.style}</span></p>
               )}
             </div>
           </div>
