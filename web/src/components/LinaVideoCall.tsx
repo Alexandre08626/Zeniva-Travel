@@ -15,7 +15,11 @@ function detectLang(text: string): Lang {
 }
 
 function langToGoogle(lang: Lang): string {
-  if (lang === "fr-FR") return "fr";
+  // User preference: French text should be read by the English TTS voice,
+  // i.e. French with an American accent. Keeps the voice consistent across
+  // turns (Google Translate fr TTS sometimes flip-flops between fr-FR and
+  // fr-CA, which sounded "mixed" to the user).
+  if (lang === "fr-FR") return "en";
   if (lang === "es-ES") return "es";
   return "en";
 }
