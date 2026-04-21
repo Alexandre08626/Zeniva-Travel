@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { applyTripPatch, generateProposal, updateSnapshot } from "../../lib/store/tripsStore";
 import {
+  LINA_REALTIME_MODEL,
   LINA_REALTIME_INSTRUCTIONS,
   LINA_REALTIME_VOICE,
   LINA_REALTIME_TOOLS,
@@ -214,7 +215,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       const key = data.client_secret?.value;
       if (!key) throw new Error(data.error || "No token");
 
-      const wsUrl = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2025-06-03";
+      const wsUrl = `wss://api.openai.com/v1/realtime?model=${encodeURIComponent(LINA_REALTIME_MODEL)}`;
       const ws = new WebSocket(wsUrl, ["realtime", "openai-insecure-api-key." + key, "openai-beta.realtime-v1"]);
       wsRef.current = ws;
 
@@ -361,7 +362,11 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
             handleFnCall(ws, cid, m.name, args);
             break;
           }
-          case "error": console.error("RT error:", m.error); break;
+          case "error":
+            console.error("RT error:", m.error);
+            setError(`${m.error?.code || "error"}: ${m.error?.message || "Unknown realtime error"}`);
+            setState("error");
+            break;
         }
       };
 

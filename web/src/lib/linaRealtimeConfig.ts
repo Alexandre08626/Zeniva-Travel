@@ -1,4 +1,4 @@
-export const LINA_REALTIME_MODEL = "gpt-4o-realtime-preview-2025-06-03";
+export const LINA_REALTIME_MODEL = "gpt-realtime";
 export const LINA_REALTIME_VOICE = "shimmer";
 
 export const LINA_REALTIME_INSTRUCTIONS = `You are Lina, the AI travel concierge at Zeniva (zenivatravel.com).
