@@ -1,6 +1,13 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { applyTripPatch, generateProposal, updateSnapshot } from "../../lib/store/tripsStore";
+import {
+  LINA_REALTIME_INSTRUCTIONS,
+  LINA_REALTIME_VOICE,
+  LINA_REALTIME_TOOLS,
+  LINA_REALTIME_TURN_DETECTION,
+  LINA_REALTIME_INPUT_TRANSCRIPTION,
+} from "../lib/linaRealtimeConfig";
 
 type CallState = "idle" | "connecting" | "speaking" | "listening" | "thinking" | "error";
 
@@ -291,7 +298,33 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
         }
 
         setState(hasMic ? "listening" : "speaking");
-        ws.send(JSON.stringify({ type: "response.create", response: { modalities: ["audio", "text"] } }));
+
+        // Apply full session config on the WS — the config passed to
+        // /v1/realtime/sessions is not always inherited by the WS connection,
+        // so we re-send it here to guarantee Lina has her instructions, voice,
+        // tools, and VAD settings before we trigger her greeting.
+        ws.send(JSON.stringify({
+          type: "session.update",
+          session: {
+            modalities: ["audio", "text"],
+            voice: LINA_REALTIME_VOICE,
+            instructions: LINA_REALTIME_INSTRUCTIONS,
+            tools: LINA_REALTIME_TOOLS,
+            tool_choice: "auto",
+            input_audio_transcription: LINA_REALTIME_INPUT_TRANSCRIPTION,
+            turn_detection: LINA_REALTIME_TURN_DETECTION,
+          },
+        }));
+
+        // Trigger Lina's greeting. The model will use the instructions above
+        // to say "Hi! I'm Lina..." as her first turn.
+        ws.send(JSON.stringify({
+          type: "response.create",
+          response: {
+            modalities: ["audio", "text"],
+            instructions: "Start the conversation now by saying your greeting exactly as specified in your instructions. Then wait for the client.",
+          },
+        }));
       };
 
       ws.onmessage = (ev) => {
