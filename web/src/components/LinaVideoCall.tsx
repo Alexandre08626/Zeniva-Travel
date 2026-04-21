@@ -67,8 +67,10 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef(false);
   const speakingRef = useRef(false);
-  const langRef = useRef<Lang>("fr-FR");
+  const langRef = useRef<Lang>("en-US");
   const voicesReadyRef = useRef(false);
+  const ttsQueueRef = useRef<{ text: string; lang: Lang }[]>([]);
+  const ttsRunningRef = useRef(false);
 
   // Pre-load voices (some browsers load them async)
   useEffect(() => {
@@ -94,10 +96,9 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
     scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight);
   }, [transcript, userText]);
 
-  const speak = useCallback((text: string, lang: Lang): Promise<void> => {
+  const speakOne = useCallback((text: string, lang: Lang): Promise<void> => {
     return new Promise((resolve) => {
       if (typeof window === "undefined" || !window.speechSynthesis) return resolve();
-      window.speechSynthesis.cancel(); // clear any pending
       const u = new SpeechSynthesisUtterance(text);
       const voice = pickVoice(lang);
       if (voice) u.voice = voice;
@@ -105,30 +106,61 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       u.rate = 1.02;
       u.pitch = 1.08;
       u.volume = 1;
-      speakingRef.current = true;
-      setState("speaking");
-      // Pause mic so we don't hear ourselves
-      try {
-        recognitionRef.current?.stop();
-      } catch {}
-      u.onend = () => {
-        speakingRef.current = false;
-        if (activeRef.current) {
-          try {
-            recognitionRef.current?.start();
-          } catch {}
-          setState("listening");
-        }
-        resolve();
-      };
-      u.onerror = () => {
-        speakingRef.current = false;
-        if (activeRef.current) setState("listening");
-        resolve();
-      };
+      u.onend = () => resolve();
+      u.onerror = () => resolve();
       window.speechSynthesis.speak(u);
     });
   }, []);
+
+  const runTtsQueue = useCallback(async () => {
+    if (ttsRunningRef.current) return;
+    ttsRunningRef.current = true;
+    speakingRef.current = true;
+    setState("speaking");
+    try {
+      recognitionRef.current?.stop();
+    } catch {}
+
+    while (ttsQueueRef.current.length > 0) {
+      const next = ttsQueueRef.current.shift();
+      if (!next) break;
+      await speakOne(next.text, next.lang);
+    }
+
+    ttsRunningRef.current = false;
+    speakingRef.current = false;
+    if (activeRef.current) {
+      try {
+        recognitionRef.current?.start();
+      } catch {}
+      setState("listening");
+    }
+  }, [speakOne]);
+
+  const enqueueSpeech = useCallback(
+    (text: string, lang: Lang) => {
+      const trimmed = text.trim();
+      if (!trimmed) return;
+      ttsQueueRef.current.push({ text: trimmed, lang });
+      runTtsQueue();
+    },
+    [runTtsQueue]
+  );
+
+  const speakAndWait = useCallback(
+    (text: string, lang: Lang): Promise<void> => {
+      return new Promise((resolve) => {
+        enqueueSpeech(text, lang);
+        const check = setInterval(() => {
+          if (!ttsRunningRef.current && ttsQueueRef.current.length === 0) {
+            clearInterval(check);
+            resolve();
+          }
+        }, 80);
+      });
+    },
+    [enqueueSpeech]
+  );
 
   const applyPatchToTrip = useCallback(
     (args: Record<string, any>) => {
@@ -179,51 +211,124 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       setTranscript((p) => [...p, { role: "user", text: userInput }]);
       setState("thinking");
 
+      // Lock the TTS language based on the user's input. If they spoke French,
+      // Lina replies in French. English → English. This is what makes the call
+      // feel natural — we switch sides on first user turn.
+      const userLang = detectLang(userInput);
+      langRef.current = userLang;
+      if (recognitionRef.current) recognitionRef.current.lang = userLang;
+
       try {
-        const resp = await fetch("/api/lina", {
+        const resp = await fetch("/api/lina-stream", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             prompt: userInput,
-            mode: "client",
             history: historyRef.current.slice(-20),
           }),
         });
-        const data = await resp.json();
-        const rawReply = data?.reply || "";
-        const { clean, patch } = stripPatchBlock(rawReply);
-        const reply = clean || "…";
+        if (!resp.ok || !resp.body) {
+          const text = await resp.text();
+          throw new Error(text || "Stream failed");
+        }
 
-        if (patch) applyPatchToTrip(patch);
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let sseBuffer = "";      // leftover bytes from incomplete SSE lines
+        let fullReply = "";       // everything Lina has generated (for history)
+        let speakBuffer = "";     // text not yet handed to TTS
+        let inPatch = false;      // inside TRIP_PATCH_START…TRIP_PATCH_END
+        let patchText = "";
+        const replyLang: Lang = userLang;
 
-        historyRef.current.push({ role: "assistant", content: reply });
-        setTranscript((p) => [...p, { role: "lina", text: reply }]);
+        // Regex that matches a complete sentence at the start of speakBuffer
+        const sentenceRe = /^([\s\S]*?[.!?…])(\s+|$)/;
 
-        const lang = detectLang(reply);
-        langRef.current = lang;
-        if (recognitionRef.current) recognitionRef.current.lang = lang;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          sseBuffer += decoder.decode(value, { stream: true });
 
-        // Trigger proposal redirect
+          // Process complete SSE lines
+          let eol: number;
+          while ((eol = sseBuffer.indexOf("\n")) >= 0) {
+            const rawLine = sseBuffer.slice(0, eol);
+            sseBuffer = sseBuffer.slice(eol + 1);
+            const line = rawLine.trim();
+            if (!line || !line.startsWith("data:")) continue;
+            const data = line.slice(line.indexOf(":") + 1).trim();
+            if (data === "[DONE]") continue;
+            let json: any;
+            try {
+              json = JSON.parse(data);
+            } catch {
+              continue;
+            }
+            const token = json?.choices?.[0]?.delta?.content;
+            if (!token) continue;
+            fullReply += token;
+
+            if (inPatch) {
+              patchText += token;
+              const endIdx = patchText.indexOf("TRIP_PATCH_END");
+              if (endIdx >= 0) {
+                const jsonPart = patchText.slice(0, endIdx).trim();
+                try {
+                  const parsed = JSON.parse(jsonPart);
+                  const patch = parsed?.patch || parsed;
+                  if (patch && typeof patch === "object") applyPatchToTrip(patch);
+                } catch {}
+                inPatch = false;
+                patchText = "";
+              }
+              continue;
+            }
+
+            speakBuffer += token;
+            // Watch for the patch block opening and clip it off the spoken text
+            const patchStart = speakBuffer.indexOf("TRIP_PATCH_START");
+            if (patchStart >= 0) {
+              const before = speakBuffer.slice(0, patchStart);
+              speakBuffer = before;
+              inPatch = true;
+              patchText = "";
+            }
+
+            // Stream full sentences to TTS as soon as they land
+            while (true) {
+              const m = speakBuffer.match(sentenceRe);
+              if (!m) break;
+              const sentence = m[1].trim();
+              speakBuffer = speakBuffer.slice(m[0].length);
+              if (sentence) enqueueSpeech(sentence, replyLang);
+            }
+          }
+        }
+
+        // Flush any trailing partial sentence
+        if (speakBuffer.trim()) enqueueSpeech(speakBuffer.trim(), replyLang);
+
+        const { clean } = stripPatchBlock(fullReply);
+        historyRef.current.push({ role: "assistant", content: clean });
+        setTranscript((p) => [...p, { role: "lina", text: clean }]);
+
         const ready =
           /generate proposal|proposal.*ready|génère votre|votre proposition|personnalisée|appuyez sur le bouton|cliquez sur le bouton|click the gold|botón dorado|votre proposition est pr/i.test(
-            reply
+            clean
           );
-
-        await speak(reply, lang);
-
         if (ready) {
           setTimeout(() => {
             generateProposal(tripId);
             window.location.href = `/proposals/${tripId}/select`;
-          }, 500);
+          }, 2500);
         }
       } catch (e: any) {
-        console.error("askLina error", e);
+        console.error("askLina stream error", e);
         setError("Connection error. Check your internet and try again.");
         setState("error");
       }
     },
-    [tripId, speak, applyPatchToTrip]
+    [tripId, enqueueSpeech, applyPatchToTrip]
   );
 
   const startCall = useCallback(async () => {
@@ -263,7 +368,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
     recognitionRef.current = recog;
     recog.continuous = true;
     recog.interimResults = true;
-    recog.lang = "fr-FR";
+    recog.lang = "en-US";
 
     let interim = "";
     recog.onresult = (e: any) => {
@@ -300,17 +405,20 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       recog.start();
     } catch {}
 
-    // Greet
-    const greeting = "Bonjour! Je suis Lina de Zeniva. Où souhaitez-vous voyager?";
+    // Greet in English — Lina will switch to the user's language on their
+    // first reply (see language lock in askLina).
+    const greeting = "Hi! I'm Lina from Zeniva. Where would you like to go?";
     setTranscript([{ role: "lina", text: greeting }]);
     historyRef.current = [{ role: "assistant", content: greeting }];
     setState("listening");
-    await speak(greeting, "fr-FR");
-  }, [speak, askLina]);
+    await speakAndWait(greeting, "en-US");
+  }, [speakAndWait, askLina]);
 
   const endCall = useCallback(() => {
     activeRef.current = false;
     speakingRef.current = false;
+    ttsRunningRef.current = false;
+    ttsQueueRef.current = [];
     try {
       recognitionRef.current?.stop();
     } catch {}
