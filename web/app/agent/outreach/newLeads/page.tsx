@@ -100,6 +100,19 @@ function matchesQuery(q: string, fields: unknown[]): boolean {
   return nq.split(/\s+/).every(tok => blob.includes(tok));
 }
 
+const CA_PROV = new Set(["qc","quebec","ontario","on","bc","british columbia","alberta","ab","manitoba","mb","saskatchewan","sk","nova scotia","ns","new brunswick","nb","newfoundland","newfoundland and labrador","nl","pei","pe","prince edward island","yukon","yt","nwt","nt","northwest territories","nunavut","nu","laval"]);
+const CA_CITY = new Set(["quebec","montreal","toronto","ottawa","vancouver","calgary","edmonton","winnipeg","hamilton","kitchener","london","victoria","halifax","saskatoon","regina","st john's","laval","gatineau","longueuil","sherbrooke","saguenay","levis","trois-rivieres","chicoutimi","rimouski","drummondville","granby","saint-jerome","mississauga","brampton","markham","vaughan","richmond hill","oakville","burlington","kingston","guelph","sudbury","thunder bay","windsor","whitby","oshawa","barrie","kelowna","surrey","burnaby","richmond","abbotsford","coquitlam"]);
+const US_STATES = new Set(["alabama","al","alaska","ak","arizona","az","arkansas","ar","california","ca","colorado","co","connecticut","ct","delaware","de","florida","fl","georgia","ga","hawaii","hi","idaho","id","illinois","il","indiana","in","iowa","ia","kansas","ks","kentucky","ky","louisiana","la","maine","me","maryland","md","massachusetts","ma","michigan","mi","minnesota","mn","mississippi","ms","missouri","mo","montana","mt","nebraska","ne","nevada","nv","new hampshire","nh","new jersey","nj","new mexico","nm","new york","ny","north carolina","nc","north dakota","nd","ohio","oh","oklahoma","ok","oregon","or","pennsylvania","pa","rhode island","ri","south carolina","sc","south dakota","sd","tennessee","tn","texas","tx","utah","ut","vermont","vt","virginia","va","washington","wa","west virginia","wv","wisconsin","wi","wyoming","wy","dc","district of columbia","hawaii","puerto rico","pr"]);
+const US_CITY = new Set(["new york","new york city","los angeles","chicago","houston","phoenix","philadelphia","san antonio","san diego","dallas","san jose","austin","jacksonville","fort worth","columbus","charlotte","indianapolis","san francisco","seattle","denver","boston","nashville","detroit","memphis","portland","oklahoma city","las vegas","miami","atlanta","minneapolis","tampa","orlando","saint louis","pittsburgh","cincinnati","kansas city","salt lake city","rapid city","panama city beach","honolulu"]);
+
+function inferCountry(lead: { city?: string | null; province?: string | null }): "Canada" | "USA" | "Other" {
+  const city = norm(lead.city);
+  const prov = norm(lead.province);
+  if (CA_PROV.has(prov) || CA_CITY.has(city)) return "Canada";
+  if (US_STATES.has(prov) || US_CITY.has(city)) return "USA";
+  return "Other";
+}
+
 function Avatar({ name, email }: { name: string; email: string }) {
   const colors = ["#0F6CF5","#7C3AED","#10B981","#F59E0B","#EF4444","#EC4899","#06B6D4","#8B5CF6"];
   const safeEmail = email || "";
@@ -134,6 +147,7 @@ export default function LeadsPage() {
   const [languageFilter, setLanguageFilter] = useState("all");
   const [provinceFilter, setProvinceFilter] = useState("all");
   const [cityFilter, setCityFilter] = useState("all");
+  const [countryFilter, setCountryFilter] = useState("all");
 
   const [activeTab, setActiveTab] = useState<"travelers" | "agents" | "agencies">("travelers");
   const [businessLeads, setBusinessLeads] = useState<BusinessLead[]>([]);
@@ -324,6 +338,13 @@ export default function LeadsPage() {
           )}
           {(activeTab === "agencies" || activeTab === "agents") && (
             <>
+              <select value={countryFilter} onChange={e => setCountryFilter(e.target.value)}
+                className="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400 min-w-[140px]">
+                <option value="all">All Countries</option>
+                <option value="Canada">Canada</option>
+                <option value="USA">USA</option>
+                <option value="Other">Other</option>
+              </select>
               <select value={cityFilter} onChange={e => setCityFilter(e.target.value)}
                 className="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-blue-400 min-w-[160px]">
                 <option value="all">All Cities</option>
@@ -490,6 +511,7 @@ export default function LeadsPage() {
             {businessLeads.filter(lead => {
               const matchProv = provinceFilter === "all" || lead.province === provinceFilter;
               const matchCity = cityFilter === "all" || lead.city === cityFilter;
+              const matchCountry = countryFilter === "all" || inferCountry(lead) === countryFilter;
               const matchSearch2 = matchesQuery(search, [
                 lead.contact_name,
                 lead.contact_email,
@@ -498,10 +520,9 @@ export default function LeadsPage() {
                 lead.website,
                 lead.city,
                 lead.province,
-                (lead as unknown as { country?: string }).country,
                 lead.notes,
               ]);
-              return matchProv && matchCity && matchSearch2;
+              return matchProv && matchCity && matchCountry && matchSearch2;
             }).map(lead => {
               const isOverdue = lead.next_followup_at && new Date(lead.next_followup_at) < new Date();
               return (
