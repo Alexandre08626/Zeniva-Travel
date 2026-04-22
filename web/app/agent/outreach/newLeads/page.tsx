@@ -89,6 +89,17 @@ const BIZ_SOURCES = ["manual", "website", "email", "linkedin", "referral", "cold
 const BIZ_PRIORITIES = ["low", "medium", "high", "urgent"];
 const BIZ_STATUSES = ["new", "contacted", "demo_scheduled", "demo_done", "negotiating", "signed", "lost"];
 
+function norm(s: unknown): string {
+  return String(s ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+
+function matchesQuery(q: string, fields: unknown[]): boolean {
+  const nq = norm(q).trim();
+  if (!nq) return true;
+  const blob = fields.map(norm).join(" ");
+  return nq.split(/\s+/).every(tok => blob.includes(tok));
+}
+
 function Avatar({ name, email }: { name: string; email: string }) {
   const colors = ["#0F6CF5","#7C3AED","#10B981","#F59E0B","#EF4444","#EC4899","#06B6D4","#8B5CF6"];
   const safeEmail = email || "";
@@ -221,8 +232,7 @@ export default function LeadsPage() {
 
   const filtered = leads.filter(l => {
     if (!l || l.email?.endsWith("@zeniva-lead.com")) return false;
-    const name = (l.first_name || "") + " " + (l.last_name || "");
-    const matchSearch = !search || name.toLowerCase().includes(search.toLowerCase()) || (l.email || "").toLowerCase().includes(search.toLowerCase()) || (l.destination || "").toLowerCase().includes(search.toLowerCase());
+    const matchSearch = matchesQuery(search, [l.first_name, l.last_name, l.email, l.destination, l.phone]);
     const matchStatus = statusFilter === "all" || l.status === statusFilter;
     const matchDest = destinationFilter === "all" || (l.destination || "").toLowerCase().includes(destinationFilter.toLowerCase());
     const matchLang = languageFilter === "all" || l.language === languageFilter;
@@ -480,15 +490,17 @@ export default function LeadsPage() {
             {businessLeads.filter(lead => {
               const matchProv = provinceFilter === "all" || lead.province === provinceFilter;
               const matchCity = cityFilter === "all" || lead.city === cityFilter;
-              const q = search.trim().toLowerCase();
-              const matchSearch2 = !q || [
+              const matchSearch2 = matchesQuery(search, [
                 lead.contact_name,
                 lead.contact_email,
+                lead.contact_phone,
                 lead.company_name,
+                lead.website,
                 lead.city,
                 lead.province,
                 (lead as unknown as { country?: string }).country,
-              ].some(f => (f || "").toLowerCase().includes(q));
+                lead.notes,
+              ]);
               return matchProv && matchCity && matchSearch2;
             }).map(lead => {
               const isOverdue = lead.next_followup_at && new Date(lead.next_followup_at) < new Date();
