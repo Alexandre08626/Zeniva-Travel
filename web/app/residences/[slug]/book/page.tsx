@@ -56,6 +56,12 @@ function BookingForm() {
         metadata: JSON.stringify({ property, slug, checkin, checkout, nights, guests, total: displayTotal, pricePerNight, confirmation: confNum }),
       }),
     }).catch(() => {});
+
+    fetch("/api/auth/auto-signup-traveler", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: name.trim(), email: email.trim(), phone: phone.trim() || undefined, origin: "zenistay_booking" }),
+    }).catch(() => {});
   };
 
   const handlePayNow = async () => {
