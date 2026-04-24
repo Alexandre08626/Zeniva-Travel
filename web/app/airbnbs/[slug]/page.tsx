@@ -126,7 +126,7 @@ export default async function AirbnbDetailPage({ params, searchParams }: { param
     bathrooms ? `${bathrooms} bath${bathrooms === '1' ? '' : 's'}` : null,
   ].filter(Boolean).join(' · ');
   const descriptionText = cleanDescription(item.description || '');
-  const pricePerNight = 980;
+  const pricePerNight = item.price_per_night || 980;
   const storageKey = `residenceDates:${slug}`;
 
   return (
