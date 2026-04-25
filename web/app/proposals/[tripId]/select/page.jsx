@@ -134,7 +134,8 @@ function resolveIATA(city) {
   const upper = city.toUpperCase();
   // If already 3 letters, assume IATA
   if (upper.length === 3 && /^[A-Z]{3}$/.test(upper)) return upper;
-  return upper.slice(0, 3); // fallback
+  // Don't make up codes from arbitrary text (used to .slice(0,3) which fed garbage like "TOU" to Duffel)
+  return "";
 }
 
 function normalizeText(value) {
@@ -1479,14 +1480,36 @@ function ProposalSelectPageInner() {
           </div>
         )}
 
-        {/* Always-visible trip editor: dates + travelers */}
+        {/* Always-visible trip editor: where + when + who */}
         <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 sm:p-5 mb-5">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-base">✏️</span>
             <h3 className="text-sm font-bold text-slate-800">Edit your trip</h3>
-            <span className="text-[10px] text-slate-500 ml-1">— change dates or travelers any time, results refresh</span>
+            <span className="text-[10px] text-slate-500 ml-1">— change anything, results refresh automatically</span>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="col-span-2 sm:col-span-3 lg:col-span-2">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">From (departure city)</label>
+              <input
+                type="text"
+                defaultValue={tripDraft?.departureCity || ""}
+                placeholder="e.g. New York, Montreal"
+                onBlur={(e) => { const v = e.target.value.trim(); if (v) applyTripPatch(tripId, { departureCity: v, transportationType: "Flights" }); }}
+                onKeyDown={(e) => { if (e.key === "Enter") { const v = e.target.value.trim(); if (v) applyTripPatch(tripId, { departureCity: v, transportationType: "Flights" }); } }}
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+              />
+            </div>
+            <div className="col-span-2 sm:col-span-3 lg:col-span-2">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">To (destination)</label>
+              <input
+                type="text"
+                defaultValue={tripDraft?.destination || ""}
+                placeholder="e.g. Cancun, Paris"
+                onBlur={(e) => { const v = e.target.value.trim(); if (v) applyTripPatch(tripId, { destination: v }); }}
+                onKeyDown={(e) => { if (e.key === "Enter") { const v = e.target.value.trim(); if (v) applyTripPatch(tripId, { destination: v }); } }}
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+              />
+            </div>
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Check-in</label>
               <input
