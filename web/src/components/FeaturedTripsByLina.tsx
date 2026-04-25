@@ -78,6 +78,7 @@ export default function FeaturedTripsByLina() {
       departureCity: trip.departureCity || "New York",
       departureAirport: trip.departureAirport || "JFK",
       includeTransfers: true,
+      transferComplimentary: true,
       accommodationType: "Hotel",
     });
 

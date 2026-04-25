@@ -1935,9 +1935,18 @@ function ProposalSelectPageInner() {
             <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
               <div className="bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-4 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">🚗</div>
-                <div>
-                  <h2 className="text-lg font-black text-white">Transfers</h2>
-                  <p className="text-orange-100 text-xs">{filteredTransfers.length} ground transport options</p>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-black text-white">Transfers</h2>
+                    {tripDraft?.transferComplimentary && (
+                      <span className="bg-white text-emerald-700 text-[10px] font-black tracking-wider px-2.5 py-1 rounded-full shadow-sm">✓ INCLUDED</span>
+                    )}
+                  </div>
+                  <p className="text-orange-100 text-xs">
+                    {tripDraft?.transferComplimentary
+                      ? "Airport transfer is included in your package"
+                      : `${filteredTransfers.length} ground transport options`}
+                  </p>
                 </div>
               </div>
 
@@ -1975,7 +1984,14 @@ function ProposalSelectPageInner() {
                             <p className="text-[10px] text-slate-400 mt-1">by {t.supplier}</p>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <p className="font-black text-orange-600 text-lg">{t.price}</p>
+                            {tripDraft?.transferComplimentary ? (
+                              <div className="flex flex-col items-end gap-1">
+                                <span className="line-through text-xs text-slate-400">{t.price}</span>
+                                <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black tracking-wider px-2 py-1 rounded-full border border-emerald-200">INCLUDED</span>
+                              </div>
+                            ) : (
+                              <p className="font-black text-orange-600 text-lg">{t.price}</p>
+                            )}
                             <button className={`mt-1 text-xs font-bold rounded-xl px-3 py-1 transition-colors ${active ? "bg-orange-500 text-white" : "bg-slate-100 text-slate-700 hover:bg-orange-50 hover:text-orange-700"}`}
                               onClick={e => { e.stopPropagation(); onSelectTransfer({ ...t, id: transferKey }); }}>
                               {active ? "✓ Selected" : "Select"}
