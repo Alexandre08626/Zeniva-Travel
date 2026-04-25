@@ -80,6 +80,7 @@ export default function FeaturedTripsByLina() {
       includeTransfers: true,
       transferComplimentary: true,
       accommodationType: "Hotel",
+      transportationType: "Flights",
     });
 
     router.push(`/proposals/${tripId}/select`);

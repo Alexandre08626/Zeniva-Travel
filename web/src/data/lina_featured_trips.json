@@ -114,6 +114,25 @@
     }
   },
   {
+    "id": "cabo-san-lucas-luxe",
+    "title": "Cabo San Lucas Luxe",
+    "description": "JFK → Cabo: oceanfront 5★ resort overlooking the Arch, sunset whale watching, Land's End cruise. Flight, hotel, transfer.",
+    "destination": "Cabo San Lucas, Mexico",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "October 18-24, 2026",
+    "price": 2190,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1562095241-8c6714fd4178?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": ["Land's End cruise", "Whale watching", "Beach club"]
+    }
+  },
+  {
     "id": "paris-summer",
     "title": "Paris Summer Romance",
     "description": "Direct from JFK to CDG, 4★ hotel near Champs-Élysées, Seine cruise and Eiffel Tower dinner. Transfers included.",
@@ -187,6 +206,25 @@
       "hotel": true,
       "transfer": true,
       "activities": ["Tegallalang rice terraces", "Private temple tour", "Beach dinner"]
+    }
+  },
+  {
+    "id": "iceland-northern-lights",
+    "title": "Iceland Northern Lights",
+    "description": "Direct from JFK to Reykjavik, Blue Lagoon spa, Golden Circle tour, aurora chase by night. Flight, hotel, transfer.",
+    "destination": "Reykjavik, Iceland",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "November 8-14, 2026",
+    "price": 2790,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1589311836849-4cec35b363cb?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": ["Blue Lagoon spa", "Golden Circle tour", "Aurora chase"]
     }
   }
 ]
