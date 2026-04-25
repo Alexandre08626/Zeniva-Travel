@@ -121,8 +121,9 @@ export default function FeaturedTripsByLina() {
             </div>
 
             <div className="p-4 sm:p-5 flex-1 flex flex-col">
-              <div className="text-[11px] uppercase tracking-wider text-slate-500 font-bold mb-2">
-                {formatTripDateRange(trip.dates, locale)}
+              <div className="text-[11px] uppercase tracking-wider text-blue-600 font-bold mb-2 flex items-center gap-1.5">
+                <span>📅</span>
+                <AutoTranslate text="Choose your dates" className="inline" />
               </div>
               <div className="text-sm text-slate-700 mb-3 line-clamp-3 leading-relaxed">{trip.description}</div>
 

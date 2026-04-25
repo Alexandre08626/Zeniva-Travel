@@ -1479,6 +1479,53 @@ function ProposalSelectPageInner() {
           </div>
         )}
 
+        {/* Always-visible trip editor: dates + travelers */}
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 sm:p-5 mb-5">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-base">✏️</span>
+            <h3 className="text-sm font-bold text-slate-800">Edit your trip</h3>
+            <span className="text-[10px] text-slate-500 ml-1">— change dates or travelers any time, results refresh</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Check-in</label>
+              <input
+                type="date"
+                value={tripDraft?.checkIn || ""}
+                min={new Date().toISOString().split("T")[0]}
+                onChange={(e) => { if (e.target.value) applyTripPatch(tripId, { checkIn: e.target.value }); }}
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Check-out</label>
+              <input
+                type="date"
+                value={tripDraft?.checkOut || ""}
+                min={tripDraft?.checkIn || new Date().toISOString().split("T")[0]}
+                onChange={(e) => { if (e.target.value) applyTripPatch(tripId, { checkOut: e.target.value }); }}
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Adults</label>
+              <div className="flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2 py-1.5">
+                <button type="button" onClick={() => applyTripPatch(tripId, { adults: Math.max(1, (Number(tripDraft?.adults) || 2) - 1) })} className="w-7 h-7 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition">−</button>
+                <span className="flex-1 text-center text-sm font-bold text-slate-900">{tripDraft?.adults || 2}</span>
+                <button type="button" onClick={() => applyTripPatch(tripId, { adults: Math.min(9, (Number(tripDraft?.adults) || 2) + 1) })} className="w-7 h-7 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition">+</button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Children</label>
+              <div className="flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2 py-1.5">
+                <button type="button" onClick={() => applyTripPatch(tripId, { children: Math.max(0, (Number(tripDraft?.children) || 0) - 1) })} className="w-7 h-7 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition">−</button>
+                <span className="flex-1 text-center text-sm font-bold text-slate-900">{tripDraft?.children || 0}</span>
+                <button type="button" onClick={() => applyTripPatch(tripId, { children: Math.min(8, (Number(tripDraft?.children) || 0) + 1) })} className="w-7 h-7 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Mobile filter toggle */}
         <div className="xl:hidden flex items-center justify-between gap-3 mb-4">
           <p className="text-xs text-slate-500 font-medium">
