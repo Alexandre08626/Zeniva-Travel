@@ -11,6 +11,8 @@ type Trip = {
   title: string;
   description: string;
   destination: string;
+  departureCity?: string;
+  departureAirport?: string;
   dates: string;
   price: number;
   currency: string;
@@ -19,6 +21,7 @@ type Trip = {
   details: {
     flight: boolean;
     hotel: boolean;
+    transfer?: boolean;
     activities: string[];
   };
 };
@@ -49,6 +52,10 @@ export default function FeaturedTripsByLina() {
   const handleBook = (trip: Trip) => {
     const destination = trip.destination.split(',')[0].trim();
     const tripId = createTrip({ title: trip.title, destination });
+    if (!tripId) {
+      console.error("Failed to create trip for", trip.id);
+      return;
+    }
 
     let { checkIn, checkOut } = parseDates(trip.dates) as { checkIn?: string; checkOut?: string };
 
@@ -68,7 +75,10 @@ export default function FeaturedTripsByLina() {
       children: 0,
       currency: trip.currency,
       budget: trip.price,
-      // departureCity intentionally left undefined so the client chooses origin on the Select page
+      departureCity: trip.departureCity || "New York",
+      departureAirport: trip.departureAirport || "JFK",
+      includeTransfers: true,
+      accommodationType: "Hotel",
     });
 
     router.push(`/proposals/${tripId}/select`);
@@ -76,25 +86,70 @@ export default function FeaturedTripsByLina() {
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
         {featuredTrips.map((trip) => (
-          <div key={trip.id} className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
-            <img src={trip.image} alt={trip.title} className="h-44 sm:h-52 md:h-56 w-full object-cover" />
+          <div
+            key={trip.id}
+            className="group relative rounded-3xl bg-white shadow-md hover:shadow-2xl ring-1 ring-slate-200/60 hover:ring-blue-300 overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1"
+          >
+            <div className="relative overflow-hidden">
+              <img
+                src={trip.image}
+                alt={trip.title}
+                className="h-52 sm:h-56 w-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-transparent" />
+              <div className="absolute top-3 left-3 flex gap-2">
+                <span className="bg-white/95 backdrop-blur text-slate-800 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">
+                  ✈ From NYC
+                </span>
+                <span className="bg-blue-600/95 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">
+                  All-Inclusive
+                </span>
+              </div>
+              <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
+                <div>
+                  <h3 className="text-white text-lg sm:text-xl font-extrabold drop-shadow-md leading-tight">
+                    {trip.title}
+                  </h3>
+                  <div className="text-white/90 text-xs font-medium drop-shadow">{trip.destination}</div>
+                </div>
+              </div>
+            </div>
+
             <div className="p-4 sm:p-5 flex-1 flex flex-col">
-              <h3 className="text-lg sm:text-xl font-bold mb-1 line-clamp-2">{trip.title}</h3>
-              <div className="text-xs sm:text-sm text-slate-600 mb-2">
-                {trip.destination} • {formatTripDateRange(trip.dates, locale)}
+              <div className="text-[11px] uppercase tracking-wider text-slate-500 font-bold mb-2">
+                {formatTripDateRange(trip.dates, locale)}
               </div>
-              <div className="text-sm text-slate-700 mb-3 line-clamp-3">{trip.description}</div>
-              <div className="text-base sm:text-lg font-extrabold text-blue-700 mb-4">
-                {formatCurrencyAmount(trip.price, trip.currency, locale)}
+              <div className="text-sm text-slate-700 mb-3 line-clamp-3 leading-relaxed">{trip.description}</div>
+
+              <div className="flex flex-wrap gap-1.5 mb-4">
+                {trip.details.flight && (
+                  <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md">✈ Flight</span>
+                )}
+                {trip.details.hotel && (
+                  <span className="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md">🏨 Hotel</span>
+                )}
+                {trip.details.transfer && (
+                  <span className="text-[10px] font-bold bg-amber-50 text-amber-700 px-2 py-1 rounded-md">🚐 Transfer</span>
+                )}
               </div>
-              <button
-                onClick={() => handleBook(trip)}
-                className="mt-auto w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl transition"
-              >
-                Book
-              </button>
+
+              <div className="mt-auto flex items-end justify-between">
+                <div>
+                  <div className="text-[10px] text-slate-500 font-semibold">From</div>
+                  <div className="text-2xl font-black text-slate-900 leading-none">
+                    {formatCurrencyAmount(trip.price, trip.currency, locale)}
+                  </div>
+                  <div className="text-[10px] text-slate-500 mt-0.5">per person · 2-4 travelers</div>
+                </div>
+                <button
+                  onClick={() => handleBook(trip)}
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-sm font-bold py-2.5 px-5 rounded-xl shadow-md hover:shadow-lg transition-all"
+                >
+                  Book →
+                </button>
+              </div>
             </div>
           </div>
         ))}

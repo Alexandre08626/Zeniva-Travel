@@ -1,98 +1,192 @@
 [
   {
-    "id": "paris-romantic-getaway",
-    "title": "Paris Romantic Getaway",
-    "description": "A magical romantic stay in Paris with direct flight, 4* hotel, cultural activities and dinners included.",
+    "id": "cancun-all-inclusive",
+    "title": "Cancun All-Inclusive Escape",
+    "description": "Direct flight from New York, beachfront 5-star resort, all meals & drinks, airport transfer included. Pure paradise.",
+    "destination": "Cancun, Mexico",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "June 14-19, 2026",
+    "price": 1690,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1552074284-5e88ef1aef18?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": ["Beach club", "Catamaran sunset", "Cenote tour"]
+    }
+  },
+  {
+    "id": "punta-cana-paradise",
+    "title": "Punta Cana Paradise",
+    "description": "Direct flight from JFK, oceanfront all-inclusive resort, white sand beaches, transfers and meals included.",
+    "destination": "Punta Cana, Dominican Republic",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "July 8-13, 2026",
+    "price": 1850,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1583693093140-cd15aa7af6e1?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": ["Snorkeling", "Saona Island day tour", "Spa retreat"]
+    }
+  },
+  {
+    "id": "costa-rica-eco",
+    "title": "Costa Rica Eco-Adventure",
+    "description": "From New York to Liberia: rainforest lodges, volcano hike, hot springs and zip-lining. Flight + hotel + transfer.",
+    "destination": "Liberia, Costa Rica",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "May 22-28, 2026",
+    "price": 1990,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1518509562904-e7ef99cddc85?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": ["Arenal volcano hike", "Zip-lining", "Hot springs"]
+    }
+  },
+  {
+    "id": "hawaii-waikiki",
+    "title": "Hawaii Waikiki Bliss",
+    "description": "JFK → Honolulu, beachfront Waikiki tower, Diamond Head sunrise, luau included. Transfers booked.",
+    "destination": "Honolulu, Hawaii",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "August 4-11, 2026",
+    "price": 2890,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1542259009477-d625272157b7?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": ["Diamond Head sunrise", "Luau night", "North Shore tour"]
+    }
+  },
+  {
+    "id": "bahamas-nassau",
+    "title": "Bahamas Nassau Getaway",
+    "description": "Quick flight from New York, oceanfront resort on Cable Beach, swim with dolphins, all transfers included.",
+    "destination": "Nassau, Bahamas",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "June 26-30, 2026",
+    "price": 1490,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": ["Atlantis Aquaventure", "Swim with dolphins", "Pirate cruise"]
+    }
+  },
+  {
+    "id": "aruba-one-happy-island",
+    "title": "Aruba One Happy Island",
+    "description": "JFK → Aruba: Caribbean sun, Palm Beach 5★ resort, snorkeling and sunset cruise. Flight, hotel, transfer.",
+    "destination": "Oranjestad, Aruba",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "September 5-11, 2026",
+    "price": 1990,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": ["Palm Beach", "Snorkel reef", "Sunset catamaran"]
+    }
+  },
+  {
+    "id": "paris-summer",
+    "title": "Paris Summer Romance",
+    "description": "Direct from JFK to CDG, 4★ hotel near Champs-Élysées, Seine cruise and Eiffel Tower dinner. Transfers included.",
     "destination": "Paris, France",
-    "dates": "September 12-17, 2026",
-    "price": 1985,
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "July 3-9, 2026",
+    "price": 2390,
     "currency": "USD",
-    "image": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1200&q=90",
+    "image": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1600&q=90",
     "partner": "Duffel",
     "details": {
       "flight": true,
       "hotel": true,
-      "activities": ["Eiffel Tower", "Seine Cruise", "Orsay Museum"]
-    }
-  },
-  {
-    "id": "miami-beach-vacation",
-    "title": "Miami Beach Vacation",
-    "description": "Festive trip to Miami: direct flight, 5* hotel, club access, boat excursions.",
-    "destination": "Miami, USA",
-    "dates": "July 15-20, 2026",
-    "price": 2150,
-    "currency": "USD",
-    "image": "https://images.unsplash.com/photo-1514214246283-d427a95c5d2f?auto=format&fit=crop&w=1200&q=90",
-    "partner": "Duffel",
-    "details": {
-      "flight": true,
-      "hotel": true,
-      "activities": ["Pool Party", "Boat Tour", "Club LIV"]
-    }
-  },
-  {
-    "id": "tokyo-culture",
-    "title": "Tokyo Culture",
-    "description": "Immerse in Tokyo: Michelin dining, private city tours, and cultural experiences.",
-    "destination": "Tokyo, Japan",
-    "dates": "Jun 1-10, 2026",
-    "price": 5100,
-    "currency": "USD",
-    "image": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=1200&q=90",
-    "partner": "Duffel",
-    "details": {
-      "flight": true,
-      "hotel": true,
-      "activities": ["Sushi masterclass", "Temple tour", "Sumo museum"]
-    }
-  },
-  {
-    "id": "bali-bliss",
-    "title": "Bali Bliss",
-    "description": "7 nights of villas, rice terraces and private beach dinners.",
-    "destination": "Bali, Indonesia",
-    "dates": "Oct 10-17, 2026",
-    "price": 4850,
-    "currency": "USD",
-    "image": "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?auto=format&fit=crop&w=1200&q=90",
-    "partner": "Duffel",
-    "details": {
-      "flight": true,
-      "hotel": true,
-      "activities": ["Private temple tour", "Beach day", "Spa retreat"]
-    }
-  },
-  {
-    "id": "dubai-luxe",
-    "title": "Dubai Luxe",
-    "description": "Luxury stay with desert safari, Burj Khalifa access and private yacht day.",
-    "destination": "Dubai, UAE",
-    "dates": "Aug 1-8, 2026",
-    "price": 4200,
-    "currency": "USD",
-    "image": "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?auto=format&fit=crop&w=1200&q=90",
-    "partner": "Duffel",
-    "details": {
-      "flight": true,
-      "hotel": true,
-      "activities": ["Desert safari", "Burj Khalifa", "Private yacht"]
+      "transfer": true,
+      "activities": ["Eiffel Tower dinner", "Seine cruise", "Louvre & Orsay"]
     }
   },
   {
     "id": "santorini-sunsets",
     "title": "Santorini Sunsets",
-    "description": "Cycladic charm, caldera views, private sunset cruise and wine tastings.",
+    "description": "JFK → Santorini, cliffside cave hotel in Oia, caldera sunset cruise and wine tour. Flight, hotel, transfer.",
     "destination": "Santorini, Greece",
-    "dates": "May 20-26, 2026",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "June 7-13, 2026",
     "price": 2890,
     "currency": "USD",
-    "image": "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=1200&q=90",
-    "partner": "YCN",
+    "image": "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
     "details": {
       "flight": true,
       "hotel": true,
-      "activities": ["Sunset cruise", "Wine tasting", "Private caldera dinner"]
+      "transfer": true,
+      "activities": ["Sunset caldera cruise", "Wine tasting", "Oia & Fira tour"]
+    }
+  },
+  {
+    "id": "tokyo-discovery",
+    "title": "Tokyo Discovery",
+    "description": "JFK direct to Tokyo Haneda, 4★ Shinjuku tower, Mt. Fuji day trip, sushi masterclass. All transfers included.",
+    "destination": "Tokyo, Japan",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "October 5-13, 2026",
+    "price": 4290,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": ["Mt. Fuji day trip", "Sushi masterclass", "Shibuya & Asakusa"]
+    }
+  },
+  {
+    "id": "bali-bliss",
+    "title": "Bali Tropical Bliss",
+    "description": "From New York to Denpasar via SQ premium connect, private villa with pool in Ubud, beach dinners and rice terraces.",
+    "destination": "Bali, Indonesia",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "September 18-26, 2026",
+    "price": 3990,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": ["Tegallalang rice terraces", "Private temple tour", "Beach dinner"]
     }
   }
 ]

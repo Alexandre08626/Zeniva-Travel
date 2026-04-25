@@ -218,12 +218,6 @@ function ensureTrip(tripId) {
 }
 
 export function createTrip(initial = {}) {
-  // Enforce 5 trip limit - block creation if limit reached
-  if (state.trips.length >= 5) {
-    console.warn("Cannot create trip: maximum of 5 trips reached. Please delete one first.");
-    return null; // Return null instead of tripId when limit is reached
-  }
-
   const id = uid();
   const title = initial.title || "New Trip";
   const createdAt = new Date().toISOString();
