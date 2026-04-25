@@ -2027,12 +2027,12 @@ function ProposalSelectPageInner() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <h2 className="text-lg font-black text-white">Transfers</h2>
-                    {tripDraft?.transferComplimentary && (
+                    {(tripDraft?.transferComplimentary && tripDraft?.source === "featured-deal") && (
                       <span className="bg-white text-emerald-700 text-[10px] font-black tracking-wider px-2.5 py-1 rounded-full shadow-sm">✓ INCLUDED</span>
                     )}
                   </div>
                   <p className="text-orange-100 text-xs">
-                    {tripDraft?.transferComplimentary
+                    {(tripDraft?.transferComplimentary && tripDraft?.source === "featured-deal")
                       ? "Airport transfer is included in your package"
                       : `${filteredTransfers.length} ground transport options`}
                   </p>
@@ -2073,7 +2073,7 @@ function ProposalSelectPageInner() {
                             <p className="text-[10px] text-slate-400 mt-1">by {t.supplier}</p>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            {tripDraft?.transferComplimentary ? (
+                            {(tripDraft?.transferComplimentary && tripDraft?.source === "featured-deal") ? (
                               <div className="flex flex-col items-end gap-1">
                                 <span className="line-through text-xs text-slate-400">{t.price}</span>
                                 <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black tracking-wider px-2 py-1 rounded-full border border-emerald-200">INCLUDED</span>
