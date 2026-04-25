@@ -418,8 +418,8 @@ export default function HomePage() {
           <div className="max-w-[1400px] mx-auto">
             <div className="flex items-end justify-between mb-10">
               <div>
-                <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">🔥 Hot Deals</p>
-                <h2 className="text-4xl font-black text-slate-900"><AutoTranslate text="Featured Trips by Lina" className="inline" /></h2>
+                <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">🔥 Hot Deals · Departing from New York</p>
+                <h2 className="text-4xl font-black text-slate-900"><AutoTranslate text="Top Trips from NYC by Lina" className="inline" /></h2>
               </div>
               <Link href="/packages" className="text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">
                 View all <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>

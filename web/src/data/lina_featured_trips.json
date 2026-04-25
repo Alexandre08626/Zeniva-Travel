@@ -7,7 +7,7 @@
     "departureCity": "New York",
     "departureAirport": "JFK",
     "dates": "June 14-19, 2026",
-    "price": 1690,
+    "price": 899,
     "currency": "USD",
     "image": "https://images.unsplash.com/photo-1552074284-5e88ef1aef18?auto=format&fit=crop&w=1600&q=90",
     "partner": "Duffel",
@@ -15,8 +15,13 @@
       "flight": true,
       "hotel": true,
       "transfer": true,
-      "activities": ["Beach club", "Catamaran sunset", "Cenote tour"]
-    }
+      "activities": [
+        "Beach club",
+        "Catamaran sunset",
+        "Cenote tour"
+      ]
+    },
+    "priceUnit": "per_person"
   },
   {
     "id": "punta-cana-paradise",
@@ -26,7 +31,7 @@
     "departureCity": "New York",
     "departureAirport": "JFK",
     "dates": "July 8-13, 2026",
-    "price": 1850,
+    "price": 929,
     "currency": "USD",
     "image": "https://images.unsplash.com/photo-1705507972578-78537a2dda73?auto=format&fit=crop&w=1600&q=90",
     "partner": "Duffel",
@@ -34,8 +39,13 @@
       "flight": true,
       "hotel": true,
       "transfer": true,
-      "activities": ["Snorkeling", "Saona Island day tour", "Spa retreat"]
-    }
+      "activities": [
+        "Snorkeling",
+        "Saona Island day tour",
+        "Spa retreat"
+      ]
+    },
+    "priceUnit": "per_person"
   },
   {
     "id": "costa-rica-eco",
@@ -45,7 +55,7 @@
     "departureCity": "New York",
     "departureAirport": "JFK",
     "dates": "May 22-28, 2026",
-    "price": 1990,
+    "price": 999,
     "currency": "USD",
     "image": "https://images.unsplash.com/photo-1664532869454-53ac5942d959?auto=format&fit=crop&w=1600&q=90",
     "partner": "Duffel",
@@ -53,8 +63,13 @@
       "flight": true,
       "hotel": true,
       "transfer": true,
-      "activities": ["Arenal volcano hike", "Zip-lining", "Hot springs"]
-    }
+      "activities": [
+        "Arenal volcano hike",
+        "Zip-lining",
+        "Hot springs"
+      ]
+    },
+    "priceUnit": "per_person"
   },
   {
     "id": "hawaii-waikiki",
@@ -64,7 +79,7 @@
     "departureCity": "New York",
     "departureAirport": "JFK",
     "dates": "August 4-11, 2026",
-    "price": 2890,
+    "price": 1499,
     "currency": "USD",
     "image": "https://images.unsplash.com/photo-1542259009477-d625272157b7?auto=format&fit=crop&w=1600&q=90",
     "partner": "Duffel",
@@ -72,8 +87,13 @@
       "flight": true,
       "hotel": true,
       "transfer": true,
-      "activities": ["Diamond Head sunrise", "Luau night", "North Shore tour"]
-    }
+      "activities": [
+        "Diamond Head sunrise",
+        "Luau night",
+        "North Shore tour"
+      ]
+    },
+    "priceUnit": "per_person"
   },
   {
     "id": "bahamas-nassau",
@@ -83,7 +103,7 @@
     "departureCity": "New York",
     "departureAirport": "JFK",
     "dates": "June 26-30, 2026",
-    "price": 1490,
+    "price": 749,
     "currency": "USD",
     "image": "https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?auto=format&fit=crop&w=1600&q=90",
     "partner": "Duffel",
@@ -91,8 +111,13 @@
       "flight": true,
       "hotel": true,
       "transfer": true,
-      "activities": ["Atlantis Aquaventure", "Swim with dolphins", "Pirate cruise"]
-    }
+      "activities": [
+        "Atlantis Aquaventure",
+        "Swim with dolphins",
+        "Pirate cruise"
+      ]
+    },
+    "priceUnit": "per_person"
   },
   {
     "id": "aruba-one-happy-island",
@@ -102,7 +127,7 @@
     "departureCity": "New York",
     "departureAirport": "JFK",
     "dates": "September 5-11, 2026",
-    "price": 1990,
+    "price": 999,
     "currency": "USD",
     "image": "https://images.unsplash.com/photo-1678449784319-423c621569b9?auto=format&fit=crop&w=1600&q=90",
     "partner": "Duffel",
@@ -110,8 +135,13 @@
       "flight": true,
       "hotel": true,
       "transfer": true,
-      "activities": ["Palm Beach", "Snorkel reef", "Sunset catamaran"]
-    }
+      "activities": [
+        "Palm Beach",
+        "Snorkel reef",
+        "Sunset catamaran"
+      ]
+    },
+    "priceUnit": "per_person"
   },
   {
     "id": "cabo-san-lucas-luxe",
@@ -121,7 +151,7 @@
     "departureCity": "New York",
     "departureAirport": "JFK",
     "dates": "October 18-24, 2026",
-    "price": 2190,
+    "price": 1099,
     "currency": "USD",
     "image": "https://images.unsplash.com/photo-1562095241-8c6714fd4178?auto=format&fit=crop&w=1600&q=90",
     "partner": "Duffel",
@@ -129,8 +159,13 @@
       "flight": true,
       "hotel": true,
       "transfer": true,
-      "activities": ["Land's End cruise", "Whale watching", "Beach club"]
-    }
+      "activities": [
+        "Land's End cruise",
+        "Whale watching",
+        "Beach club"
+      ]
+    },
+    "priceUnit": "per_person"
   },
   {
     "id": "paris-summer",
@@ -140,7 +175,7 @@
     "departureCity": "New York",
     "departureAirport": "JFK",
     "dates": "July 3-9, 2026",
-    "price": 2390,
+    "price": 1299,
     "currency": "USD",
     "image": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1600&q=90",
     "partner": "Duffel",
@@ -148,8 +183,13 @@
       "flight": true,
       "hotel": true,
       "transfer": true,
-      "activities": ["Eiffel Tower dinner", "Seine cruise", "Louvre & Orsay"]
-    }
+      "activities": [
+        "Eiffel Tower dinner",
+        "Seine cruise",
+        "Louvre & Orsay"
+      ]
+    },
+    "priceUnit": "per_person"
   },
   {
     "id": "santorini-sunsets",
@@ -159,7 +199,7 @@
     "departureCity": "New York",
     "departureAirport": "JFK",
     "dates": "June 7-13, 2026",
-    "price": 2890,
+    "price": 1599,
     "currency": "USD",
     "image": "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=1600&q=90",
     "partner": "Duffel",
@@ -167,8 +207,13 @@
       "flight": true,
       "hotel": true,
       "transfer": true,
-      "activities": ["Sunset caldera cruise", "Wine tasting", "Oia & Fira tour"]
-    }
+      "activities": [
+        "Sunset caldera cruise",
+        "Wine tasting",
+        "Oia & Fira tour"
+      ]
+    },
+    "priceUnit": "per_person"
   },
   {
     "id": "tokyo-discovery",
@@ -178,7 +223,7 @@
     "departureCity": "New York",
     "departureAirport": "JFK",
     "dates": "October 5-13, 2026",
-    "price": 4290,
+    "price": 2199,
     "currency": "USD",
     "image": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=1600&q=90",
     "partner": "Duffel",
@@ -186,8 +231,13 @@
       "flight": true,
       "hotel": true,
       "transfer": true,
-      "activities": ["Mt. Fuji day trip", "Sushi masterclass", "Shibuya & Asakusa"]
-    }
+      "activities": [
+        "Mt. Fuji day trip",
+        "Sushi masterclass",
+        "Shibuya & Asakusa"
+      ]
+    },
+    "priceUnit": "per_person"
   },
   {
     "id": "bali-bliss",
@@ -197,7 +247,7 @@
     "departureCity": "New York",
     "departureAirport": "JFK",
     "dates": "September 18-26, 2026",
-    "price": 3990,
+    "price": 2099,
     "currency": "USD",
     "image": "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?auto=format&fit=crop&w=1600&q=90",
     "partner": "Duffel",
@@ -205,8 +255,13 @@
       "flight": true,
       "hotel": true,
       "transfer": true,
-      "activities": ["Tegallalang rice terraces", "Private temple tour", "Beach dinner"]
-    }
+      "activities": [
+        "Tegallalang rice terraces",
+        "Private temple tour",
+        "Beach dinner"
+      ]
+    },
+    "priceUnit": "per_person"
   },
   {
     "id": "iceland-northern-lights",
@@ -216,7 +271,7 @@
     "departureCity": "New York",
     "departureAirport": "JFK",
     "dates": "November 8-14, 2026",
-    "price": 2790,
+    "price": 1399,
     "currency": "USD",
     "image": "https://images.unsplash.com/photo-1589311836849-4cec35b363cb?auto=format&fit=crop&w=1600&q=90",
     "partner": "Duffel",
@@ -224,7 +279,12 @@
       "flight": true,
       "hotel": true,
       "transfer": true,
-      "activities": ["Blue Lagoon spa", "Golden Circle tour", "Aurora chase"]
-    }
+      "activities": [
+        "Blue Lagoon spa",
+        "Golden Circle tour",
+        "Aurora chase"
+      ]
+    },
+    "priceUnit": "per_person"
   }
 ]

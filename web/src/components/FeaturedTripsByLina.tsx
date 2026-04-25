@@ -74,7 +74,7 @@ export default function FeaturedTripsByLina() {
       adults: 2,
       children: 0,
       currency: trip.currency,
-      budget: trip.price,
+      budget: trip.price * 2,
       departureCity: trip.departureCity || "New York",
       departureAirport: trip.departureAirport || "JFK",
       includeTransfers: true,
