@@ -14,23 +14,13 @@ function detectLang(text: string): Lang {
   return "en-US";
 }
 
-function langToGoogle(lang: Lang): string {
-  // User preference: French text should be read by the English TTS voice,
-  // i.e. French with an American accent. Keeps the voice consistent across
-  // turns (Google Translate fr TTS sometimes flip-flops between fr-FR and
-  // fr-CA, which sounded "mixed" to the user).
-  if (lang === "fr-FR") return "en";
-  if (lang === "es-ES") return "es";
-  return "en";
-}
-
 function langToWhisper(lang: Lang): string {
   if (lang === "fr-FR") return "fr";
   if (lang === "es-ES") return "es";
   return "en";
 }
 
-function chunkForTts(text: string, maxLen = 190): string[] {
+function chunkForTts(text: string, maxLen = 800): string[] {
   const out: string[] = [];
   let remaining = text.trim();
   while (remaining.length > maxLen) {
@@ -110,12 +100,11 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
 
   // ——— TTS ——————————————————————————————————————————————
 
-  const speakOne = useCallback((text: string, lang: Lang): Promise<void> => {
+  const speakOne = useCallback((text: string, _lang: Lang): Promise<void> => {
     return new Promise((resolve) => {
       if (typeof window === "undefined") return resolve();
       const chunks = chunkForTts(text);
       if (!chunks.length) return resolve();
-      const gLang = langToGoogle(lang);
       let idx = 0;
 
       const playNext = () => {
@@ -124,7 +113,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
           return resolve();
         }
         const chunk = chunks[idx++];
-        const src = `/api/tts?lang=${encodeURIComponent(gLang)}&text=${encodeURIComponent(chunk)}`;
+        const src = `/api/tts?text=${encodeURIComponent(chunk)}`;
         const audio = new Audio(src);
         audio.preload = "auto";
         currentAudioRef.current = audio;

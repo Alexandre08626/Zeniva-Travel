@@ -1,60 +1,66 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * Free French/English/Spanish TTS proxy using Google Translate's public TTS
- * endpoint. Returns MP3 audio. Google Translate TTS:
- *  - Returns neural Google voices (much better than browser speechSynthesis)
- *  - Is free (no API key)
- *  - Limits each request to ~200 characters (client must split sentences)
- *  - Requires a realistic User-Agent header, otherwise returns HTML/403.
+ * ElevenLabs TTS proxy. Streams MP3 audio of Lina's real voice
+ * (Jessica · eleven_multilingual_v2). Multilingual model auto-detects
+ * French / English / Spanish from the text — no need to force a language.
+ *
+ * Required env: ELEVENLABS_API_KEY
+ * Optional env: ELEVENLABS_VOICE_ID (defaults to Jessica)
+ *               ELEVENLABS_MODEL_ID  (defaults to eleven_multilingual_v2)
  */
+
+const DEFAULT_VOICE_ID = "cgSgspJ2msm6clMCkdW9"; // Jessica
+const DEFAULT_MODEL_ID = "eleven_multilingual_v2";
+
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const text = (url.searchParams.get("text") || "").trim();
-  const lang = url.searchParams.get("lang") || "en";
 
   if (!text) return NextResponse.json({ error: "text required" }, { status: 400 });
-  if (text.length > 200) {
+  if (text.length > 2000) {
+    return NextResponse.json({ error: "text too long (max 2000)" }, { status: 400 });
+  }
+
+  const apiKey = process.env.ELEVENLABS_API_KEY;
+  if (!apiKey) {
     return NextResponse.json(
-      { error: "text too long, split into sentences ≤200 chars" },
-      { status: 400 }
+      { error: "ELEVENLABS_API_KEY not configured" },
+      { status: 500 }
     );
   }
 
-  const googleUrl =
-    "https://translate.google.com/translate_tts?" +
-    new URLSearchParams({
-      ie: "UTF-8",
-      q: text,
-      tl: lang,
-      client: "tw-ob",
-      ttsspeed: "1.0",
-    }).toString();
+  const voiceId = process.env.ELEVENLABS_VOICE_ID || DEFAULT_VOICE_ID;
+  const modelId = process.env.ELEVENLABS_MODEL_ID || DEFAULT_MODEL_ID;
+
+  const elevenUrl =
+    `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}` +
+    `?output_format=mp3_44100_128`;
 
   try {
-    const resp = await fetch(googleUrl, {
+    const resp = await fetch(elevenUrl, {
+      method: "POST",
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
-          "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        Accept: "audio/mpeg, */*",
-        "Accept-Language": "en-US,en;q=0.9,fr;q=0.8",
-        Referer: "https://translate.google.com/",
+        "xi-api-key": apiKey,
+        "Content-Type": "application/json",
+        Accept: "audio/mpeg",
       },
+      body: JSON.stringify({
+        text,
+        model_id: modelId,
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.75,
+          style: 0.0,
+          use_speaker_boost: true,
+        },
+      }),
     });
 
     if (!resp.ok || !resp.body) {
       const body = await resp.text().catch(() => "");
       return NextResponse.json(
-        { error: `Upstream ${resp.status}`, detail: body.slice(0, 200) },
-        { status: 502 }
-      );
-    }
-
-    const ct = resp.headers.get("content-type") || "audio/mpeg";
-    if (!ct.startsWith("audio/")) {
-      return NextResponse.json(
-        { error: "Upstream returned non-audio", contentType: ct },
+        { error: `ElevenLabs ${resp.status}`, detail: body.slice(0, 300) },
         { status: 502 }
       );
     }
@@ -62,7 +68,7 @@ export async function GET(req: NextRequest) {
     return new Response(resp.body, {
       status: 200,
       headers: {
-        "Content-Type": ct,
+        "Content-Type": "audio/mpeg",
         "Cache-Control": "public, max-age=3600, s-maxage=86400",
       },
     });
