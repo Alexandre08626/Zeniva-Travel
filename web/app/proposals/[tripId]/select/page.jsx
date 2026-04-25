@@ -1480,9 +1480,10 @@ function ProposalSelectPageInner() {
           </div>
         )}
 
-        {/* Trip editor — shown only for Featured Trips deals (NYC packages).
-            Chat-driven trips already collected dates/travelers via Lina, so we don't re-ask. */}
-        {tripDraft?.source === "featured-deal" && (
+        {/* Trip editor — shown for Featured Trips deals (the visitor picks dates) and as a
+            recovery surface when chat-driven trips ended up with missing/invalid origin or
+            destination, so the visitor can repair the search without restarting the chat. */}
+        {(tripDraft?.source === "featured-deal" || !flightSearchContext.origin || !flightSearchContext.destination) && (
         <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 sm:p-5 mb-5">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-base">✏️</span>
