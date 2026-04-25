@@ -582,7 +582,22 @@ function ProposalSelectPageInner() {
         setOutboundFlights([]);
         setReturnFlights([]);
         setSelectedOutbound(null);
-        setErrorFlights(e?.message || "Failed to load flights");
+        const msg = e?.message || "Failed to load flights";
+        // Duffel returns "Invalid IATA code" 422 when the cached trip has unmapped text
+        // ("tout inclus", "all-inclusive"…). Wipe the bad destination so the Edit panel
+        // surfaces and the visitor sees a clean, actionable error.
+        if (/Invalid IATA code|invalid_iata|422/i.test(msg)) {
+          setErrorFlights(`We couldn't find that airport — please re-enter your departure city and destination below.`);
+          if (tripDraft?.destination && !flightSearchContext.destination) {
+            // destination text is set but didn't resolve to a real IATA code
+            applyTripPatch(tripId, { destination: "" });
+          }
+          if (tripDraft?.departureCity && !flightSearchContext.origin) {
+            applyTripPatch(tripId, { departureCity: "" });
+          }
+        } else {
+          setErrorFlights(msg);
+        }
       } finally {
         setLoadingFlights(false);
       }
