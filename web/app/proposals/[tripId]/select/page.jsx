@@ -1461,40 +1461,6 @@ function ProposalSelectPageInner() {
       </div>
 
       <div className="w-full px-4 xl:px-6 2xl:px-8 py-6">
-        {/* Missing trip data warning */}
-        {(!flightSearchContext.origin || !flightSearchContext.destination || !flightSearchContext.date) && (
-          <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 shadow-sm p-5 space-y-4 mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-xl flex-shrink-0">⚠️</div>
-              <div>
-                <p className="font-bold text-amber-900">Complete your trip details to search flights</p>
-                <p className="text-xs text-amber-700 mt-0.5">Fill in the missing fields below</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-              {[
-                { label: "Departure city", key: "departureCity", placeholder: "e.g. Montreal, New York", type: "text" },
-                { label: "Destination", key: "destination", placeholder: "e.g. Cancun, Paris", type: "text" },
-                { label: "Departure date", key: "checkIn", placeholder: "", type: "date" },
-                { label: "Return date", key: "checkOut", placeholder: "", type: "date" },
-              ].map(({ label, key, placeholder, type }) => (
-                <div key={key}>
-                  <label className="block text-xs font-bold text-slate-600 mb-1">{label}</label>
-                  <input
-                    type={type}
-                    defaultValue={tripDraft?.[key] || ""}
-                    placeholder={placeholder}
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition bg-white"
-                    onBlur={(e) => { const val = e.target.value.trim(); if (val) applyTripPatch(tripId, { [key]: val, ...(key === "departureCity" ? { transportationType: "Flights" } : {}) }); }}
-                    onChange={type === "date" ? (e) => { if (e.target.value) applyTripPatch(tripId, { [key]: e.target.value }); } : undefined}
-                    onKeyDown={(e) => { if (e.key === "Enter") { const val = e.target.value.trim(); if (val) applyTripPatch(tripId, { [key]: val }); } }}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Trip editor — shown for Featured Trips deals (the visitor picks dates) and as a
             recovery surface when chat-driven trips ended up with missing/invalid origin or
             destination, so the visitor can repair the search without restarting the chat. */}
