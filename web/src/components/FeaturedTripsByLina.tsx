@@ -5,6 +5,7 @@ import { createTrip, applyTripPatch } from "../../lib/store/tripsStore";
 import { useRouter } from "next/navigation";
 import { useI18n } from "../lib/i18n/I18nProvider";
 import { formatCurrencyAmount, formatTripDateRange } from "../lib/format";
+import AutoTranslate from "./AutoTranslate";
 
 type Trip = {
   id: string;
@@ -103,10 +104,10 @@ export default function FeaturedTripsByLina() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-transparent" />
               <div className="absolute top-3 left-3 flex gap-2">
                 <span className="bg-white/95 backdrop-blur text-slate-800 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">
-                  ✈ From NYC
+                  <AutoTranslate text="✈ From NYC" className="inline" />
                 </span>
                 <span className="bg-blue-600/95 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">
-                  All-Inclusive
+                  <AutoTranslate text="All-Inclusive" className="inline" />
                 </span>
               </div>
               <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
@@ -139,17 +140,17 @@ export default function FeaturedTripsByLina() {
 
               <div className="mt-auto flex items-end justify-between">
                 <div>
-                  <div className="text-[10px] text-slate-500 font-semibold">From</div>
+                  <div className="text-[10px] text-slate-500 font-semibold"><AutoTranslate text="From" className="inline" /></div>
                   <div className="text-2xl font-black text-slate-900 leading-none">
                     {formatCurrencyAmount(trip.price, trip.currency, locale)}
                   </div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">per person · 2-4 travelers</div>
+                  <div className="text-[10px] text-slate-500 mt-0.5"><AutoTranslate text="per person · 2-4 travelers" className="inline" /></div>
                 </div>
                 <button
                   onClick={() => handleBook(trip)}
                   className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-sm font-bold py-2.5 px-5 rounded-xl shadow-md hover:shadow-lg transition-all"
                 >
-                  Book →
+                  <AutoTranslate text="Book" className="inline" /> →
                 </button>
               </div>
             </div>

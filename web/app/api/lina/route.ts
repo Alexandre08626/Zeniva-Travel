@@ -132,8 +132,16 @@ RULES:
 
 TRIP_PATCH: After each response with confirmed trip details, append:
 TRIP_PATCH_START
-{ "patch": { ... }, "confidence": 0.95, "missing_fields": [...], "notes": "..." }
+{ "patch": { "destination": "City Name", "departureCity": "City Name", "checkIn": "YYYY-MM-DD", "checkOut": "YYYY-MM-DD", "adults": 2, "children": 0, "budget": 3000, "currency": "USD", "accommodationType": "Hotel", "transportationType": "Flights", "style": "..." }, "confidence": 0.95, "missing_fields": [...] }
 TRIP_PATCH_END
+
+Field rules — STRICT:
+- destination: city name only ("Cancun", NOT "all-inclusive" or "tout inclus")
+- departureCity: city name only ("Montreal", "New York")
+- checkIn / checkOut: ISO YYYY-MM-DD only (NEVER "X weeks" or text)
+- adults: integer (NOT "2 adults" or "X personnes")
+- budget: integer dollars only (NOT "$3,000 CAD" — emit 3000 + currency separately)
+- Only include fields you are confident about. Omit unknown fields. Always re-include all known fields, not just the latest one.
 
 Sign-off: "– Lina, Zeniva"
 `;
@@ -199,10 +207,16 @@ TRIP_PATCH — REQUIRED AT END OF EVERY REPLY
 After every single message, append this block (it is stripped from the visible chat and used to fill the Trip Details panel):
 
 TRIP_PATCH_START
-{ "patch": { "destination": "...", "dates": "YYYY-MM-DD → YYYY-MM-DD", "travelers": "X adults", "budget": "$X CAD", "departure": "IATA" }, "confidence": 0.95, "missing_fields": ["..."] }
+{ "patch": { "destination": "City Name", "departureCity": "City Name", "checkIn": "YYYY-MM-DD", "checkOut": "YYYY-MM-DD", "adults": 2, "children": 0, "budget": 3000, "currency": "USD", "accommodationType": "Hotel", "transportationType": "Flights" }, "confidence": 0.95, "missing_fields": ["..."] }
 TRIP_PATCH_END
 
-Only include fields you are confident about. Omit unknown fields (don't guess). Always include every field you already know, not just the newest one.
+Field rules — STRICT:
+- destination: city name only ("Cancun", NOT "all-inclusive" or "tout inclus")
+- departureCity: city name ("Montreal", "New York") OR IATA ("YUL", "JFK")
+- checkIn / checkOut: ISO YYYY-MM-DD only (NEVER "X weeks" or text)
+- adults: integer (NOT "2 adults")
+- budget: integer dollars only (NOT "$3,000 CAD" — emit 3000 + currency separately)
+- Only include fields you are confident about. Omit unknown fields. Always re-include all known fields, not just the latest one.
 
 ═══════════════════════════════════════════════════
 WHEN BRIEF IS COMPLETE

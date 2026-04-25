@@ -130,6 +130,73 @@ export async function sendMessageToLina(
   return { reply, raw: rawReply, tripPatch };
 }
 
+// Translate old-style Lina patch fields (dates, travelers, departure, budget "$X CAD")
+// to the canonical tripDraft format (checkIn/checkOut, adults, departureCity, budget number).
+// Backward-compatible: leaves modern fields alone.
+export function normalizeTripPatch(rawPatch: Record<string, any>): Record<string, any> {
+  if (!rawPatch || typeof rawPatch !== "object") return {};
+  const out: Record<string, any> = { ...rawPatch };
+
+  // dates "YYYY-MM-DD → YYYY-MM-DD" or single date → checkIn/checkOut
+  if (typeof out.dates === "string" && !out.checkIn && !out.checkOut) {
+    const isoMatches = out.dates.match(/\d{4}-\d{2}-\d{2}/g) || [];
+    if (isoMatches.length >= 2) {
+      out.checkIn = isoMatches[0];
+      out.checkOut = isoMatches[1];
+    } else if (isoMatches.length === 1) {
+      out.checkIn = isoMatches[0];
+    }
+  }
+  delete out.dates;
+
+  // travelers "X adults" → adults: X
+  if (typeof out.travelers === "string" && !out.adults) {
+    const m = out.travelers.match(/(\d+)/);
+    if (m) out.adults = parseInt(m[1], 10);
+  } else if (typeof out.travelers === "number" && !out.adults) {
+    out.adults = out.travelers;
+  }
+  delete out.travelers;
+
+  // departure (IATA or city) → departureCity
+  if (out.departure && !out.departureCity) {
+    out.departureCity = String(out.departure).trim();
+  }
+  delete out.departure;
+
+  // budget "$3,000 CAD" → number + currency
+  if (typeof out.budget === "string") {
+    const numMatch = out.budget.match(/[\d,]+(?:\.\d+)?/);
+    const curMatch = out.budget.match(/\b(USD|CAD|EUR|MXN|GBP|JPY)\b/i);
+    if (numMatch) {
+      const n = parseFloat(numMatch[0].replace(/,/g, ""));
+      if (Number.isFinite(n) && n > 0) out.budget = n;
+      else delete out.budget;
+    }
+    if (curMatch && !out.currency) out.currency = curMatch[1].toUpperCase();
+  }
+
+  // adults / children — coerce to numbers if string
+  if (typeof out.adults === "string") {
+    const n = parseInt(out.adults.match(/\d+/)?.[0] || "", 10);
+    if (Number.isFinite(n)) out.adults = n; else delete out.adults;
+  }
+  if (typeof out.children === "string") {
+    const n = parseInt(out.children.match(/\d+/)?.[0] || "", 10);
+    if (Number.isFinite(n)) out.children = n; else delete out.children;
+  }
+
+  // destination sanity — reject "tout inclus", "all-inclusive" and similar package keywords
+  if (typeof out.destination === "string") {
+    const d = out.destination.trim().toLowerCase();
+    if (/^(tout[\s-]?inclus|all[\s-]?inclusive|forfait|package|hotel|hôtel|cruise|croisière|yacht|resort)$/i.test(d)) {
+      delete out.destination;
+    }
+  }
+
+  return out;
+}
+
 // Extract TRIP_PATCH block from assistant text
 export function extractTripPatch(text?: string) {
   if (!text) return null;
@@ -140,6 +207,7 @@ export function extractTripPatch(text?: string) {
   try {
     const parsed = JSON.parse(jsonBlock);
     if (!parsed?.patch || typeof parsed.patch !== "object") return null;
+    parsed.patch = normalizeTripPatch(parsed.patch);
     return parsed;
   } catch (e: any) {
     console.warn("TRIP PATCH parse failed:", e?.message || e);

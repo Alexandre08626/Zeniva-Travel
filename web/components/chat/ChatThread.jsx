@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BRAND_BLUE, PREMIUM_BLUE, ACCENT_GOLD, LIGHT_BG, MUTED_TEXT, TITLE_TEXT } from "../../src/design/tokens";
 import { useTripsStore, addMessage, updateSnapshot, updateTrip, applyTripPatch, generateProposal, mergeTripMessages, setTripTitle, createTrip } from "../../lib/store/tripsStore";
-import { sendMessageToLina } from "../../src/lib/linaClient";
+import { sendMessageToLina, normalizeTripPatch } from "../../src/lib/linaClient";
 import Label from "../../src/components/Label";
 import { useAuthStore } from "../../src/lib/authStore";
 import { buildChatChannelId, fetchChatMessages, saveChatMessage } from "../../src/lib/chatPersistence";
@@ -31,8 +31,8 @@ function extractTripInfoFromConversation(allMessages) {
   const destMatch = tripPatchDestMatch || destKeywordMatch;
   if (destMatch) {
     const dest = destMatch[1].trim().replace(/\s+/g, " ").split(/[,\n•]/)[0].trim();
-    // Reject common French words that might be falsely matched
-    const blacklist = /^(aujourd|jourd|hui|maintenant|bientot|bientôt|demain|hier|toujours|jamais)/i;
+    // Reject common French words and package-type keywords that aren't destinations
+    const blacklist = /^(aujourd|jourd|hui|maintenant|bientot|bientôt|demain|hier|toujours|jamais|tout[\s-]?inclus|all[\s-]?inclusive|forfait|package|hotel|hôtel|cruise|croisière|yacht|resort)$/i;
     if (dest.length >= 3 && dest.length <= 40 && !blacklist.test(dest)) {
       patch.destination = dest;
     }
@@ -132,7 +132,8 @@ function extractTripInfoFromConversation(allMessages) {
   } else if (/no flights|pas de vol/i.test(fullText)) {
     patch.transportationType = "No Flights";
   }
-  return Object.keys(patch).length > 0 ? patch : null;
+  // Translate snapshot-style field names to tripDraft canonical format
+  return Object.keys(patch).length > 0 ? normalizeTripPatch(patch) : null;
 }
 
 
