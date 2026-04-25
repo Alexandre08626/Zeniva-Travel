@@ -1480,7 +1480,9 @@ function ProposalSelectPageInner() {
           </div>
         )}
 
-        {/* Always-visible trip editor: where + when + who */}
+        {/* Trip editor — shown only for Featured Trips deals (NYC packages).
+            Chat-driven trips already collected dates/travelers via Lina, so we don't re-ask. */}
+        {tripDraft?.source === "featured-deal" && (
         <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 sm:p-5 mb-5">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-base">✏️</span>
@@ -1548,6 +1550,7 @@ function ProposalSelectPageInner() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Mobile filter toggle */}
         <div className="xl:hidden flex items-center justify-between gap-3 mb-4">
