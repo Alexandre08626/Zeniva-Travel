@@ -12,11 +12,14 @@ const statusColors = {
 
 export default function ConversationsSidebar({ currentTripId, basePath = "/chat" }) {
   const router = useRouter();
-  const { trips, messages } = useTripsStore((s) => ({ trips: s.trips, messages: s.messages }));
+  const { trips, messages, tripDrafts } = useTripsStore((s) => ({ trips: s.trips, messages: s.messages, tripDrafts: s.tripDrafts }));
 
   const sortedTrips = useMemo(() => {
-    return [...trips].sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
-  }, [trips]);
+    // Exclude trips that came from Featured Deals on the homepage — those aren't chat
+    // conversations and shouldn't pollute the chat sidebar.
+    const filtered = trips.filter((t) => tripDrafts?.[t.id]?.source !== "featured-deal");
+    return filtered.sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+  }, [trips, tripDrafts]);
 
   const previewFor = (tripId) => {
     const last = (messages[tripId] || []).slice(-1)[0];
