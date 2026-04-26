@@ -4,6 +4,7 @@ import Link from "next/link";
 import Header from "../../src/components/Header";
 import Footer from "../../src/components/Footer";
 import FeaturedTripsByLina from "../../src/components/FeaturedTripsByLina";
+import LeadCapturePopup from "../../src/components/LeadCapturePopup.client";
 import featuredTrips from "../../src/data/lina_featured_trips.json";
 
 export const metadata: Metadata = {
@@ -152,6 +153,12 @@ export default function PackagesPage() {
         </section>
       </main>
       <Footer />
+      <LeadCapturePopup
+        source="packages_popup_nyc"
+        storageKey="zeniva_lead_popup_packages_v1"
+        delaySeconds={20}
+        scrollPct={60}
+      />
     </>
   );
 }
