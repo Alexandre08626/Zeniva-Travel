@@ -52,7 +52,10 @@ export default function FeaturedTripsByLina({ limit }: { limit?: number } = {}) 
   };
 
   const handleBook = (trip: Trip) => {
-    const destination = trip.destination.split(',')[0].trim();
+    // Pass the FULL destination string (e.g. "San José, Costa Rica") so the
+    // select page IATA resolver can fall back to the country name when the
+    // city alone isn't mapped (Oranjestad/Aruba, Bridgetown/Barbados, etc.)
+    const destination = trip.destination.trim();
     const tripId = createTrip({ title: trip.title, destination });
     if (!tripId) {
       console.error("Failed to create trip for", trip.id);

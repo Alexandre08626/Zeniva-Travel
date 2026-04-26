@@ -64,14 +64,14 @@ const iataMap = {
   "Jamaica": "MBJ", "Montego Bay": "MBJ", "Kingston": "KIN",
   "Nassau": "NAS", "Bahamas": "NAS",
   "Havana": "HAV", "Cuba": "HAV", "La Havane": "HAV",
-  "Aruba": "AUA", "Curacao": "CUR", "Curaçao": "CUR",
-  "Barbados": "BGI", "St Lucia": "UVF", "Saint Lucia": "UVF",
-  "Turks and Caicos": "PLS", "St Maarten": "SXM",
-  "Puerto Rico": "SJU", "San Juan": "SJU",
-  "Trinidad": "POS", "Antigua": "ANU", "Bermuda": "BDA",
+  "Aruba": "AUA", "Oranjestad": "AUA", "Curacao": "CUR", "Curaçao": "CUR",
+  "Barbados": "BGI", "Bridgetown": "BGI", "St Lucia": "UVF", "Saint Lucia": "UVF",
+  "Turks and Caicos": "PLS", "Providenciales": "PLS", "St Maarten": "SXM",
+  "Puerto Rico": "SJU", "San Juan": "SJU", "San Juan, Puerto Rico": "SJU",
+  "Trinidad": "POS", "Antigua": "ANU", "St John's": "ANU", "Saint John's": "ANU", "St. John's": "ANU", "Bermuda": "BDA",
   "Cayman Islands": "GCM", "Grand Cayman": "GCM",
   // Central & South America
-  "Costa Rica": "SJO", "San Jose Costa Rica": "SJO",
+  "Costa Rica": "SJO", "San Jose Costa Rica": "SJO", "San Jose, Costa Rica": "SJO", "San José": "SJO", "San José Costa Rica": "SJO",
   "Panama": "PTY", "Panama City": "PTY",
   "Bogota": "BOG", "Bogotá": "BOG", "Medellin": "MDE", "Medellín": "MDE", "Cartagena": "CTG",
   "Lima": "LIM", "Buenos Aires": "EZE", "Santiago": "SCL",
@@ -81,6 +81,7 @@ const iataMap = {
   "Paris": "CDG", "London": "LHR",
   "Barcelona": "BCN", "Madrid": "MAD",
   "Rome": "FCO", "Roma": "FCO", "Milan": "MXP", "Milano": "MXP",
+  "Naples": "NAP", "Napoli": "NAP", "Amalfi": "NAP", "Positano": "NAP", "Sorrento": "NAP", "Capri": "NAP",
   "Amsterdam": "AMS", "Berlin": "BER", "Munich": "MUC", "Frankfurt": "FRA",
   "Lisbon": "LIS", "Lisbonne": "LIS", "Porto": "OPO",
   "Dublin": "DUB", "Edinburgh": "EDI",
@@ -123,12 +124,20 @@ function resolveIATA(city) {
   // Check for IATA code in parentheses: "Montreal (YUL)" → YUL
   const parenMatch = city.match(/\(([A-Z]{3})\)/);
   if (parenMatch) return parenMatch[1];
-  const normalized = city.trim().toLowerCase();
-  // Case-insensitive lookup in iataMap
+  // Strip accents (NFD) so "San José" matches "San Jose" in the map
+  const stripAccents = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "");
+  const normalized = stripAccents(city.trim().toLowerCase());
+
+  // Pass 1 — exact-key match against the full input
   for (const [k, v] of Object.entries(iataMap)) {
-    const key = k.toLowerCase();
-    if (key === normalized || normalized.includes(key) || key.includes(normalized)) {
-      return v;
+    if (stripAccents(k.toLowerCase()) === normalized) return v;
+  }
+  // Pass 2 — split input on commas/dashes/slashes, try exact match on each token
+  // ("San José, Costa Rica" → tries "san jose" then "costa rica")
+  const tokens = normalized.split(/[,\-/]+/).map(t => t.trim()).filter(Boolean);
+  for (const token of tokens) {
+    for (const [k, v] of Object.entries(iataMap)) {
+      if (stripAccents(k.toLowerCase()) === token) return v;
     }
   }
   const upper = city.toUpperCase();
