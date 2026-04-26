@@ -1298,10 +1298,22 @@ function ProposalSelectPageInner() {
       })
       .slice();
 
+    const durationMin = (f) =>
+      Number(f.duration?.match(/(\d+)h/)?.[1] || 99) * 60 +
+      Number(f.duration?.match(/(\d+)m/)?.[1] || 0);
+    const stopsBucket = (f) => {
+      const s = Number(f.layovers || 0);
+      return s >= 2 ? 2 : s; // 0 = direct, 1 = one-stop, 2 = two+-stops
+    };
+
     if (filters.flightSort === "price") {
       list.sort((a, b) => (parsePriceValue(a.price) || Number.MAX_SAFE_INTEGER) - (parsePriceValue(b.price) || Number.MAX_SAFE_INTEGER));
     } else if (filters.flightSort === "duration") {
-      list.sort((a, b) => (Number(a.duration?.match(/(\d+)h/)?.[1] || 99) * 60 + Number(a.duration?.match(/(\d+)m/)?.[1] || 0)) - (Number(b.duration?.match(/(\d+)h/)?.[1] || 99) * 60 + Number(b.duration?.match(/(\d+)m/)?.[1] || 0)));
+      list.sort((a, b) => durationMin(a) - durationMin(b));
+    } else {
+      // "best" (default): direct first, then 1-stop, then 2+ stops.
+      // Within each bucket, sort by total duration ascending.
+      list.sort((a, b) => stopsBucket(a) - stopsBucket(b) || durationMin(a) - durationMin(b));
     }
 
     return list;
