@@ -80,6 +80,14 @@ export async function GET(req: NextRequest) {
         const total = data?.length || 0;
         return NextResponse.json({ leads: data || [], total });
       }
+      if (pathParam.startsWith("admin/agent-leads/")) {
+        // /agent/outreach/newLeads asks for leads assigned to the agent. The
+        // VPS used to filter by owner; with the Supabase fallback we return
+        // all recent leads (the page-side filtering handles HQ vs. agent view).
+        const { data } = await sb.from("leads").select("*").order("created_at", { ascending: false }).limit(500);
+        const total = data?.length || 0;
+        return NextResponse.json({ leads: data || [], total });
+      }
       if (pathParam === "admin/agents-list") {
         // Load from both agents table AND accounts table (merge, deduplicate)
         const [agentsResult, accountsResult] = await Promise.all([
