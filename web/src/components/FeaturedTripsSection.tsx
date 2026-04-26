@@ -2,6 +2,6 @@
 
 import FeaturedTripsByLina from "./FeaturedTripsByLina";
 
-export default function FeaturedTripsSection() {
-  return <FeaturedTripsByLina />;
+export default function FeaturedTripsSection({ limit = 12 }: { limit?: number } = {}) {
+  return <FeaturedTripsByLina limit={limit} />;
 }

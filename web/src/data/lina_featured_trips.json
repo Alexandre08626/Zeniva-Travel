@@ -286,5 +286,245 @@
       ]
     },
     "priceUnit": "per_person"
+  },
+  {
+    "id": "jamaica-montego-bay",
+    "title": "Jamaica Montego Bay All-Inclusive",
+    "description": "Direct from JFK to MBJ, beachfront 5★ all-inclusive on the Hip Strip, Dunn's River Falls and catamaran cruise. Flight, hotel, transfers and meals included.",
+    "destination": "Montego Bay, Jamaica",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "May 9-15, 2026",
+    "price": 879,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1580237541049-2d715a09486e?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Dunn's River Falls",
+        "Catamaran cruise",
+        "Negril Seven Mile Beach"
+      ]
+    },
+    "priceUnit": "per_person"
+  },
+  {
+    "id": "turks-caicos-grace-bay",
+    "title": "Turks & Caicos Grace Bay",
+    "description": "JFK to Providenciales, oceanfront luxury suite on Grace Bay (world's #1 beach), snorkel reef tour and sunset sail. Flight, hotel, transfer.",
+    "destination": "Providenciales, Turks & Caicos",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "April 18-23, 2026",
+    "price": 1349,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Grace Bay beach",
+        "Coral reef snorkel",
+        "Sunset catamaran"
+      ]
+    },
+    "priceUnit": "per_person"
+  },
+  {
+    "id": "st-lucia-pitons",
+    "title": "St. Lucia Pitons Escape",
+    "description": "JFK to UVF, oceanfront resort with Piton views, sulphur springs mud bath, rainforest zipline. Flight, hotel and transfers included.",
+    "destination": "Soufrière, St. Lucia",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "June 21-27, 2026",
+    "price": 1199,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Piton hike",
+        "Sulphur Springs spa",
+        "Rainforest zipline"
+      ]
+    },
+    "priceUnit": "per_person"
+  },
+  {
+    "id": "curacao-willemstad",
+    "title": "Curaçao Willemstad Color",
+    "description": "JFK to Curaçao, boutique resort steps from the colourful capital, blue curaçao distillery tour and reef snorkeling at Klein Curaçao.",
+    "destination": "Willemstad, Curaçao",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "September 12-17, 2026",
+    "price": 949,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1561489396-888724a1543d?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Klein Curaçao boat day",
+        "Distillery tour",
+        "Old town walking tour"
+      ]
+    },
+    "priceUnit": "per_person"
+  },
+  {
+    "id": "barcelona-gaudi",
+    "title": "Barcelona Gaudí & Tapas",
+    "description": "JFK to Barcelona, design hotel near Passeig de Gràcia, Sagrada Família skip-the-line, tapas crawl in El Born. Flight, hotel, transfers.",
+    "destination": "Barcelona, Spain",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "May 30-June 5, 2026",
+    "price": 1249,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Sagrada Família",
+        "Park Güell",
+        "Tapas & flamenco night"
+      ]
+    },
+    "priceUnit": "per_person"
+  },
+  {
+    "id": "rome-eternal-city",
+    "title": "Rome Eternal City",
+    "description": "JFK to Fiumicino, 4★ hotel in Centro Storico, Colosseum and Vatican guided tours, traditional Trastevere dinner. Flight, hotel, transfer.",
+    "destination": "Rome, Italy",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "September 25-October 1, 2026",
+    "price": 1399,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Colosseum guided tour",
+        "Vatican Museums",
+        "Trastevere food crawl"
+      ]
+    },
+    "priceUnit": "per_person"
+  },
+  {
+    "id": "amalfi-coast-positano",
+    "title": "Amalfi Coast & Positano",
+    "description": "JFK to Naples, cliffside boutique stay in Positano, Capri private boat day, lemon grove tasting. Flight, hotel, all transfers included.",
+    "destination": "Positano, Italy",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "July 20-26, 2026",
+    "price": 1899,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1530538987395-032d1800fdd4?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Capri private boat",
+        "Lemon grove tasting",
+        "Path of the Gods hike"
+      ]
+    },
+    "priceUnit": "per_person"
+  },
+  {
+    "id": "dubai-luxe",
+    "title": "Dubai Luxe Skyline",
+    "description": "JFK direct to DXB, 5★ hotel on Sheikh Zayed Road, Burj Khalifa Sky lounge, desert safari with falcon show. Flight, hotel, transfers.",
+    "destination": "Dubai, UAE",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "November 15-22, 2026",
+    "price": 1799,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Burj Khalifa Sky",
+        "Desert safari",
+        "Marina yacht dinner"
+      ]
+    },
+    "priceUnit": "per_person"
+  },
+  {
+    "id": "maldives-overwater",
+    "title": "Maldives Overwater Villa",
+    "description": "JFK to Malé via premium connection, private overwater villa in North Malé Atoll, all meals, snorkeling and sunset dolphin cruise.",
+    "destination": "Malé, Maldives",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "October 24-31, 2026",
+    "price": 2799,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "House-reef snorkeling",
+        "Sunset dolphin cruise",
+        "Private sandbank picnic"
+      ]
+    },
+    "priceUnit": "per_person"
+  },
+  {
+    "id": "phuket-beach-luxe",
+    "title": "Phuket Beach Luxe",
+    "description": "JFK to HKT via Asia connect, beachfront 5★ resort on Surin Beach, Phi Phi Islands speedboat day and Old Town foodie tour.",
+    "destination": "Phuket, Thailand",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "December 5-13, 2026",
+    "price": 1899,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Phi Phi speedboat",
+        "Old Town food tour",
+        "Spa & Thai massage"
+      ]
+    },
+    "priceUnit": "per_person"
   }
 ]
