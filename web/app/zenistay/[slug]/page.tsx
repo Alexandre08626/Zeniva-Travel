@@ -1,2 +1,2 @@
 export const dynamic = "force-dynamic";
-export { default } from "../../airbnbs/[slug]/page";
+export { default, generateMetadata } from "../../airbnbs/[slug]/page";

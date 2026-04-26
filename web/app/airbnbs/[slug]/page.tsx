@@ -1,4 +1,5 @@
 export const dynamic = "force-dynamic";
+import type { Metadata } from 'next';
 import { getAirbnbs } from '@/src/data/partners/airbnbs';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -7,6 +8,43 @@ import AirbnbBookingSummary from '@/src/components/airbnbs/AirbnbBookingSummary.
 import AddToProposalButton from '@/src/components/proposals/AddToProposalButton.client';
 import ResidenceGalleryLightbox from '@/src/components/residences/ResidenceGalleryLightbox.client';
 import { formatCurrencyAmount, normalizeListingTitle, normalizePetFriendly } from '@/src/lib/format';
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const data = getAirbnbs();
+  const item = data.find((p: any) => (p.id && p.id === slug) || slugify(p.title) === slug);
+  if (!item) {
+    return { title: 'ZeniStay — Luxury Vacation Rental | Zeniva Travel' };
+  }
+  const title = normalizeListingTitle(item.title) || item.title || 'ZeniStay';
+  const price = item.price_per_night ? `from $${item.price_per_night}/night` : '';
+  const location = item.location && item.location !== 'Property Description' ? item.location : '';
+  const headline = `${title}${location ? ' — ' + location : ''} ${price}`.trim();
+  const desc = `Book ${title}${location ? ' in ' + location : ''} with Zeniva Travel. Concierge support, instant quote with Lina AI.`;
+  const img = item.thumbnail || item.images?.[0] || '';
+  const absImg = img ? (img.startsWith('http') ? img : `https://www.zenivatravel.com${img}`) : 'https://www.zenivatravel.com/branding/lina-avatar.png';
+  const url = `https://www.zenivatravel.com/zenistay/${slug}`;
+  return {
+    title: `${headline} | ZeniStay`,
+    description: desc,
+    alternates: { canonical: url },
+    openGraph: {
+      title: headline,
+      description: desc,
+      url,
+      siteName: 'Zeniva Travel',
+      type: 'website',
+      locale: 'en_US',
+      images: [{ url: absImg, width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: headline,
+      description: desc,
+      images: [absImg],
+    },
+  };
+}
 
 function slugify(s: string) {
   return (s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');

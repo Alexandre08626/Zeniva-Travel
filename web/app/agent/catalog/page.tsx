@@ -140,7 +140,7 @@ export default function CatalogPage() {
     const items: { type: string; name: string; location: string; price: string; thumbnail: string; url: string }[] = [];
     selectedIds.forEach(id => {
       const stay = stays.find(s => s.id === id);
-      if (stay) items.push({ type: "ZeniStay", name: stay.title, location: stay.location || "", price: stay.price_per_night ? `$${stay.price_per_night}/night` : "", thumbnail: stay.thumbnail, url: `/zenistay` });
+      if (stay) items.push({ type: "ZeniStay", name: stay.title, location: stay.location || "", price: stay.price_per_night ? `$${stay.price_per_night}/night` : "", thumbnail: stay.thumbnail, url: `/zenistay/${stay.id}` });
       const yacht = yachts.find(y => y.id === id);
       if (yacht) items.push({ type: "ZeniYacht", name: yacht.title, location: yacht.destination, price: extractPrice(yacht.prices), thumbnail: yacht.thumbnail, url: `/zeniyacht` });
       const hotel = hotels.find(h => h.id === id);
@@ -673,8 +673,15 @@ export default function CatalogPage() {
         };
 
         const shareOnFacebook = () => {
+          // Facebook scrapes Open Graph tags from whatever URL we pass — sharing
+          // /chat gives a generic "chat with Lina" preview. Share the actual
+          // property page so FB shows the real photo, title and price.
+          const firstItemUrl = items[0]?.url || "/chat";
+          const shareUrl = firstItemUrl.startsWith("http")
+            ? firstItemUrl
+            : `https://www.zenivatravel.com${firstItemUrl}`;
           copyText(fbText, "fb");
-          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent("https://www.zenivatravel.com/chat")}`, "_blank", "width=600,height=500");
+          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, "_blank", "width=600,height=500");
         };
 
         return (
