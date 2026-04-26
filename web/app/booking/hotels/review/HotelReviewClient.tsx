@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { persistWorkflowStatePatch } from "../../../../src/lib/workflowPersistence";
 import { applyHotelMarkupLabel } from "../../../../src/lib/partnerMarkup";
 import { useAuthStore } from "../../../../src/lib/authStore";
+import FinishAccountModal from "../../../../src/components/FinishAccountModal.client";
 
 type DraftData = {
   selectedSearchResult?: {
@@ -70,6 +71,10 @@ export default function HotelReviewClient() {
   const [detailsPhotos, setDetailsPhotos] = useState<string[] | null>(null);
   const [showAllPhotos, setShowAllPhotos] = useState(false);
   const [activePhoto, setActivePhoto] = useState<string | null>(null);
+  // Account-creation popup state — fires after the traveler form saves if user is anonymous
+  const [accountModal, setAccountModal] = useState<{ open: boolean; email: string; name: string; phone: string; nextNav: () => void }>({
+    open: false, email: "", name: "", phone: "", nextNav: () => {},
+  });
 
   const termsUrl = process.env.NEXT_PUBLIC_TERMS_URL || "/terms";
 
@@ -346,6 +351,16 @@ export default function HotelReviewClient() {
                     accommodation_special_requests: formData.get("requests") as string,
                   };
 
+                  const navigate = () => {
+                    if (proposalTripId) {
+                      const modeSuffix = proposalMode === "agent" ? "?mode=agent" : "";
+                      router.push(`/proposals/${proposalTripId}/review${modeSuffix}`);
+                      return;
+                    }
+                    const nextParams = new URLSearchParams({ destination, checkIn, checkOut, guests, rooms, budget, resume: "payment" });
+                    router.push(`/search/hotels?${nextParams.toString()}`);
+                  };
+
                   const persistAndContinue = async () => {
                     try {
                       await fetch("/api/auth/me", {
@@ -364,13 +379,23 @@ export default function HotelReviewClient() {
                       try { existingChecklist = JSON.parse(window.localStorage.getItem(checklistKey) || "{}"); } catch { existingChecklist = {}; }
                       window.localStorage.setItem(checklistKey, JSON.stringify({ ...existingChecklist, hotelTravelerConfirmed: true, hotelPoliciesConfirmed: true, hotelCancellationConfirmed: true }));
                       void persistWorkflowStatePatch({ [proposalTripId]: { proposal_review_checklist: { hotelTravelerConfirmed: true, hotelPoliciesConfirmed: true, hotelCancellationConfirmed: true } } });
-                      const modeSuffix = proposalMode === "agent" ? "?mode=agent" : "";
-                      router.push(`/proposals/${proposalTripId}/review${modeSuffix}`);
+                    }
+
+                    // If the traveler isn't logged in yet, surface the inline
+                    // "create your free account" modal before navigating away.
+                    // Skipping it still continues the booking flow as a guest.
+                    if (!authUser && email) {
+                      setAccountModal({
+                        open: true,
+                        email,
+                        name: displayName,
+                        phone,
+                        nextNav: navigate,
+                      });
                       return;
                     }
 
-                    const nextParams = new URLSearchParams({ destination, checkIn, checkOut, guests, rooms, budget, resume: "payment" });
-                    router.push(`/search/hotels?${nextParams.toString()}`);
+                    navigate();
                   };
                   void persistAndContinue();
                 }}
@@ -475,6 +500,18 @@ export default function HotelReviewClient() {
           </aside>
         </div>
       </div>
+      <FinishAccountModal
+        open={accountModal.open}
+        email={accountModal.email}
+        name={accountModal.name}
+        phone={accountModal.phone}
+        origin="proposal_review_hotel"
+        onClose={() => {
+          const nav = accountModal.nextNav;
+          setAccountModal((prev) => ({ ...prev, open: false }));
+          nav();
+        }}
+      />
     </main>
   );
 }
