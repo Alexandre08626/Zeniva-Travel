@@ -12,80 +12,6 @@ export const maxDuration = 120;
 
 const VPS_BASE = process.env.ZENIVA_VPS_URL || "http://217.216.88.202:8000";
 const VPS_AUTH = `Bearer ${process.env.ZENIVA_VPS_TOKEN || "zeniva-secret-2025"}`;
-const GROQ_KEY = process.env.GROQ_API_KEY || "";
-const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
-const OPENAI_KEY = process.env.OPENAI_API_KEY || "";
-
-async function aiFallbackTravelers(count: number): Promise<Array<{
-  first_name: string; last_name: string; email: string; phone?: string;
-  destination_interest: string; estimated_value: number; notes: string; source: string;
-}>> {
-  if (!GROQ_KEY && !OPENAI_KEY) return [];
-  const systemMsg = "You are a lead generation AI. Return ONLY a valid JSON array. No markdown, no explanation.";
-  const userMsg = `Generate ${count} REALISTIC potential traveler leads for Zeniva Travel (luxury AI travel agency, USA/Canada).
-
-Profile each lead as someone who recently posted on Reddit r/travel, r/honeymoontravel, r/luxurytravel about an upcoming trip. They are READY TO BOOK in the next 30-90 days.
-
-For each lead provide:
-- first_name, last_name (real first/last names, varied ethnicities)
-- email (plausible gmail/outlook/yahoo built from their name — e.g. "sarah.miller92@gmail.com")
-- phone (plausible North American number, format "+1 555-xxx-xxxx")
-- city, province (real US/Canada city)
-- destination_interest (where they want to go: Cancun, Maldives, Santorini, Bali, Cabo, Punta Cana, Caribbean, Europe...)
-- estimated_value (trip budget USD between 3000 and 25000)
-- notes (1-2 sentences about WHY they are a hot lead — what they posted, group size, dates, urgency)
-- source (one of: "reddit:r/travel", "reddit:r/honeymoontravel", "reddit:r/luxurytravel", "reddit:r/solotravel")
-
-Return ONLY a JSON array with ${count} objects.`;
-
-  const messages = [
-    { role: "system", content: systemMsg },
-    { role: "user", content: userMsg },
-  ];
-
-  const tryProvider = async (url: string, headers: Record<string, string>, model: string) => {
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ model, temperature: 0.9, max_tokens: 4000, messages }),
-      });
-      if (!res.ok) return null;
-      const data = await res.json();
-      return data?.choices?.[0]?.message?.content || null;
-    } catch {
-      return null;
-    }
-  };
-
-  let text: string | null = null;
-  if (GROQ_KEY) {
-    text = await tryProvider(
-      "https://api.groq.com/openai/v1/chat/completions",
-      { Authorization: `Bearer ${GROQ_KEY}`, "Content-Type": "application/json" },
-      GROQ_MODEL,
-    );
-  }
-  if (!text && OPENAI_KEY) {
-    text = await tryProvider(
-      "https://api.openai.com/v1/chat/completions",
-      { Authorization: `Bearer ${OPENAI_KEY}`, "Content-Type": "application/json" },
-      "gpt-4o-mini",
-    );
-  }
-  if (!text) return [];
-
-  try {
-    let clean = text.replace(/```json?\s*/g, "").replace(/```/g, "").trim();
-    const arrStart = clean.indexOf("[");
-    const arrEnd = clean.lastIndexOf("]");
-    if (arrStart >= 0 && arrEnd > arrStart) clean = clean.slice(arrStart, arrEnd + 1);
-    const parsed = JSON.parse(clean);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
 
 type VPSLead = {
   id: string;
@@ -180,59 +106,16 @@ export async function POST(req: NextRequest) {
     const vpsLeads = await fetchVpsLeads(minScore, count * 3);
     console.log(`[marco] VPS returned ${vpsLeads.length} leads`);
 
-    // VPS scanner is unreachable / empty — generate the requested traveler
-    // leads via Groq/OpenAI so Marco's "Hunt" button never returns 0.
+    // VPS scanner is unreachable / empty. We deliberately do NOT generate
+    // synthetic leads here — fake names with 555 phone numbers pollute the
+    // pipeline. Return 0 honestly so we know the scanner needs to be fixed.
     if (!vpsLeads.length) {
-      const aiLeads = await aiFallbackTravelers(count);
-      if (!aiLeads.length) {
-        return NextResponse.json({
-          ok: true, saved: 0, fetched: 0, scanResult,
-          message: "VPS offline and no AI key available (set GROQ_API_KEY or OPENAI_API_KEY).",
-        });
-      }
-      const { client } = getSupabaseAdminClient();
-      const now = new Date().toISOString();
-      let saved = 0;
-      const savedLeads: any[] = [];
-      for (const l of aiLeads) {
-        const email = String((l as any).email || "").trim().toLowerCase();
-        if (!email || !email.includes("@")) continue;
-        try {
-          const { data: existing } = await client.from("leads").select("id").eq("email", email).limit(1);
-          if (existing && existing.length) continue;
-          const { error } = await client.from("leads").insert({
-            email,
-            first_name: l.first_name || "Lead",
-            last_name: l.last_name || "(AI)",
-            phone: l.phone || null,
-            destination: (l.destination_interest || "").slice(0, 160),
-            deal_value: Number(l.estimated_value) || 5000,
-            language: "en",
-            status: "new",
-            source: `prospecting:ai-fallback:${l.source || "reddit"}`,
-            created_at: now,
-          });
-          if (!error) {
-            saved++;
-            savedLeads.push({
-              name: `${l.first_name || ""} ${l.last_name || ""}`.trim() || "Anonymous",
-              platform: "ai-fallback",
-              destination: l.destination_interest,
-              score: 7,
-              intent: l.notes,
-              summary: (l.notes || "").slice(0, 200),
-            });
-          }
-        } catch { /* skip duplicates */ }
-      }
       return NextResponse.json({
         ok: true,
-        saved,
-        fetched: aiLeads.length,
+        saved: 0,
+        fetched: 0,
         scanResult,
-        leads: savedLeads,
-        fallback: "ai",
-        message: "VPS offline — used Groq/OpenAI fallback to generate traveler leads.",
+        message: "VPS scanner offline. Real leads come from /packages popup, /chat captures, or fixing the VPS.",
       });
     }
 
