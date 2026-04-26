@@ -50,8 +50,8 @@
   {
     "id": "costa-rica-eco",
     "title": "Costa Rica Eco-Adventure",
-    "description": "From New York to Liberia: rainforest lodges, volcano hike, hot springs and zip-lining. Flight + hotel + transfer.",
-    "destination": "Liberia, Costa Rica",
+    "description": "From New York to San José, then on to the rainforest: volcano hike, hot springs and zip-lining included. Flight, hotel and transfer.",
+    "destination": "San José, Costa Rica",
     "departureCity": "New York",
     "departureAirport": "JFK",
     "dates": "May 22-28, 2026",
@@ -312,62 +312,14 @@
     "priceUnit": "per_person"
   },
   {
-    "id": "turks-caicos-grace-bay",
-    "title": "Turks & Caicos Grace Bay",
-    "description": "JFK to Providenciales, oceanfront luxury suite on Grace Bay (world's #1 beach), snorkel reef tour and sunset sail. Flight, hotel, transfer.",
-    "destination": "Providenciales, Turks & Caicos",
+    "id": "san-juan-old-city",
+    "title": "San Juan Old City & Beaches",
+    "description": "JFK direct to San Juan, beachfront resort in Condado, Old San Juan colonial walking tour and El Yunque rainforest day. Flight, hotel and transfer.",
+    "destination": "San Juan, Puerto Rico",
     "departureCity": "New York",
     "departureAirport": "JFK",
     "dates": "April 18-23, 2026",
-    "price": 1349,
-    "currency": "USD",
-    "image": "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1600&q=90",
-    "partner": "Duffel",
-    "details": {
-      "flight": true,
-      "hotel": true,
-      "transfer": true,
-      "activities": [
-        "Grace Bay beach",
-        "Coral reef snorkel",
-        "Sunset catamaran"
-      ]
-    },
-    "priceUnit": "per_person"
-  },
-  {
-    "id": "st-lucia-pitons",
-    "title": "St. Lucia Pitons Escape",
-    "description": "JFK to UVF, oceanfront resort with Piton views, sulphur springs mud bath, rainforest zipline. Flight, hotel and transfers included.",
-    "destination": "Soufrière, St. Lucia",
-    "departureCity": "New York",
-    "departureAirport": "JFK",
-    "dates": "June 21-27, 2026",
-    "price": 1199,
-    "currency": "USD",
-    "image": "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=1600&q=90",
-    "partner": "Duffel",
-    "details": {
-      "flight": true,
-      "hotel": true,
-      "transfer": true,
-      "activities": [
-        "Piton hike",
-        "Sulphur Springs spa",
-        "Rainforest zipline"
-      ]
-    },
-    "priceUnit": "per_person"
-  },
-  {
-    "id": "curacao-willemstad",
-    "title": "Curaçao Willemstad Color",
-    "description": "JFK to Curaçao, boutique resort steps from the colourful capital, blue curaçao distillery tour and reef snorkeling at Klein Curaçao.",
-    "destination": "Willemstad, Curaçao",
-    "departureCity": "New York",
-    "departureAirport": "JFK",
-    "dates": "September 12-17, 2026",
-    "price": 949,
+    "price": 849,
     "currency": "USD",
     "image": "https://images.unsplash.com/photo-1561489396-888724a1543d?auto=format&fit=crop&w=1600&q=90",
     "partner": "Duffel",
@@ -376,9 +328,57 @@
       "hotel": true,
       "transfer": true,
       "activities": [
-        "Klein Curaçao boat day",
-        "Distillery tour",
-        "Old town walking tour"
+        "Old San Juan walking tour",
+        "El Yunque rainforest",
+        "Condado Beach"
+      ]
+    },
+    "priceUnit": "per_person"
+  },
+  {
+    "id": "barbados-platinum-coast",
+    "title": "Barbados Platinum Coast",
+    "description": "JFK direct to Bridgetown, west-coast 5★ resort on the Platinum Coast, sea-turtle catamaran cruise and Mount Gay rum heritage tour. Flight, hotel and transfer.",
+    "destination": "Bridgetown, Barbados",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "June 21-27, 2026",
+    "price": 1199,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Sea-turtle catamaran",
+        "Rum heritage tour",
+        "Crane Beach day"
+      ]
+    },
+    "priceUnit": "per_person"
+  },
+  {
+    "id": "antigua-365-beaches",
+    "title": "Antigua 365 Beaches",
+    "description": "JFK direct to Antigua, beachfront all-inclusive on Dickenson Bay, day-sail to Barbuda's pink beaches and Nelson's Dockyard heritage tour.",
+    "destination": "St. John's, Antigua",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "September 12-17, 2026",
+    "price": 1049,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Barbuda sail day",
+        "Nelson's Dockyard tour",
+        "Pillars of Hercules"
       ]
     },
     "priceUnit": "per_person"
@@ -432,10 +432,10 @@
     "priceUnit": "per_person"
   },
   {
-    "id": "amalfi-coast-positano",
-    "title": "Amalfi Coast & Positano",
-    "description": "JFK to Naples, cliffside boutique stay in Positano, Capri private boat day, lemon grove tasting. Flight, hotel, all transfers included.",
-    "destination": "Positano, Italy",
+    "id": "naples-amalfi-capri",
+    "title": "Naples, Amalfi & Capri",
+    "description": "JFK direct to Naples, 4★ stay near the bay, Capri private boat day, Amalfi Coast drive and Pompeii guided visit. Flight, hotel and all transfers included.",
+    "destination": "Naples, Italy",
     "departureCity": "New York",
     "departureAirport": "JFK",
     "dates": "July 20-26, 2026",
@@ -449,8 +449,8 @@
       "transfer": true,
       "activities": [
         "Capri private boat",
-        "Lemon grove tasting",
-        "Path of the Gods hike"
+        "Amalfi Coast drive",
+        "Pompeii guided tour"
       ]
     },
     "priceUnit": "per_person"
@@ -480,25 +480,25 @@
     "priceUnit": "per_person"
   },
   {
-    "id": "maldives-overwater",
-    "title": "Maldives Overwater Villa",
-    "description": "JFK to Malé via premium connection, private overwater villa in North Malé Atoll, all meals, snorkeling and sunset dolphin cruise.",
-    "destination": "Malé, Maldives",
+    "id": "cape-town-luxe",
+    "title": "Cape Town Luxe & Wine Country",
+    "description": "JFK to Cape Town via premium connection, 5★ stay at the V&A Waterfront, Table Mountain cable car, Cape Peninsula tour and Stellenbosch wine country day.",
+    "destination": "Cape Town, South Africa",
     "departureCity": "New York",
     "departureAirport": "JFK",
     "dates": "October 24-31, 2026",
-    "price": 2799,
+    "price": 2299,
     "currency": "USD",
-    "image": "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1600&q=90",
+    "image": "https://images.unsplash.com/photo-1580060839134-75a5edca2e99?auto=format&fit=crop&w=1600&q=90",
     "partner": "Duffel",
     "details": {
       "flight": true,
       "hotel": true,
       "transfer": true,
       "activities": [
-        "House-reef snorkeling",
-        "Sunset dolphin cruise",
-        "Private sandbank picnic"
+        "Table Mountain",
+        "Cape Peninsula tour",
+        "Stellenbosch wine day"
       ]
     },
     "priceUnit": "per_person"
