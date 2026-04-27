@@ -40,6 +40,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/packages/from-phoenix`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/packages/from-philadelphia`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
 
+    // ─── DEPARTURE-CITY PACKAGES (CANADA) ────────────
+    { url: `${BASE_URL}/packages/from-toronto`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/packages/from-vancouver`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/packages/from-montreal`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/packages/from-calgary`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+
     // ─── ZENIYACHT ────────────────────────────────────
     { url: `${BASE_URL}/zeniyacht`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },
 
@@ -76,6 +82,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/services/villa-rental`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/services/cruises`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/services/destination-weddings`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+
+    // ─── FR SERVICE PAGES ────────────────────────────
+    { url: `${BASE_URL}/fr/services/yacht-charter`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${BASE_URL}/fr/services/villa-rental`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${BASE_URL}/fr/services/cruises`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${BASE_URL}/fr/services/destination-weddings`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
 
     // ─── BLOG ────────────────────────────────────────
     { url: `${BASE_URL}/blog`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
