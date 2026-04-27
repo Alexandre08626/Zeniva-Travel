@@ -118,6 +118,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/accessible-travel`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
     { url: `${BASE_URL}/eco-friendly-travel`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
     { url: `${BASE_URL}/digital-nomad-destinations`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE_URL}/solo-travel`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE_URL}/wellness-retreats`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE_URL}/gourmet-food-travel`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE_URL}/pet-friendly-travel`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE_URL}/anniversary-trips`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
 
     // ─── FR SERVICE PAGES ────────────────────────────
     { url: `${BASE_URL}/fr/services/yacht-charter`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
@@ -153,6 +158,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/compare/zeniva-vs-kayak-ai`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
     { url: `${BASE_URL}/compare/zeniva-vs-roam-around`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
     { url: `${BASE_URL}/compare/zeniva-vs-tripnotes`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE_URL}/compare/zeniva-vs-pelago`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE_URL}/compare/zeniva-vs-travala`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE_URL}/compare/zeniva-vs-booking-ai`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
 
     // ─── ES (Spanish — LATAM market) ─────────────────
     { url: `${BASE_URL}/es`, lastModified: NOW, changeFrequency: "weekly", priority: 0.92 },
