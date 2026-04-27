@@ -100,6 +100,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/blog/yacht-charter-cost-2026`, lastModified: NOW, changeFrequency: "monthly", priority: 0.82 },
     { url: `${BASE_URL}/blog/cancun-vs-punta-cana-2026`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
 
+    // ─── COMPARISON PAGES (AI search-optimized) ─────
+    { url: `${BASE_URL}/compare/zeniva-vs-layla`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${BASE_URL}/compare/zeniva-vs-mindtrip`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${BASE_URL}/compare/zeniva-vs-booked-ai`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${BASE_URL}/compare/zeniva-vs-zenvoya`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
+
     // ─── DEALS ────────────────────────────────────────
     { url: `${BASE_URL}/deals`, lastModified: NOW, changeFrequency: "daily", priority: 0.85 },
 
