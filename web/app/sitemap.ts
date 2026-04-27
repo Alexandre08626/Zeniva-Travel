@@ -27,12 +27,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/packages/caribbean`, lastModified: NOW, changeFrequency: "weekly", priority: 0.86 },
     { url: `${BASE_URL}/packages/europe`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
 
+    // ─── DEPARTURE-CITY PACKAGES (USA) ───────────────
+    { url: `${BASE_URL}/packages/from-los-angeles`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/packages/from-miami`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/packages/from-chicago`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/packages/from-houston`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/packages/from-boston`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+
     // ─── ZENIYACHT ────────────────────────────────────
     { url: `${BASE_URL}/zeniyacht`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },
 
     // ─── PARTNERS & RESORTS ───────────────────────────
     { url: `${BASE_URL}/partners/resorts`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },
     { url: `${BASE_URL}/fr/partners/resorts`, lastModified: NOW, changeFrequency: "weekly", priority: 0.82 },
+    { url: `${BASE_URL}/fr/yachts`, lastModified: NOW, changeFrequency: "weekly", priority: 0.82 },
+    { url: `${BASE_URL}/fr/proposals`, lastModified: NOW, changeFrequency: "weekly", priority: 0.7 },
 
     // ─── ZENISTAY ─────────────────────────────────────
     { url: `${BASE_URL}/zenistay`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
@@ -57,6 +66,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/services/luxury-travel`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/services/group-travel`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/services/honeymoon`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/services/yacht-charter`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/services/villa-rental`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/services/cruises`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/services/destination-weddings`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
 
     // ─── BLOG ────────────────────────────────────────
     { url: `${BASE_URL}/blog`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
