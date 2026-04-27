@@ -11,6 +11,7 @@ import PWAPromptAfterLogin from "../src/components/PWAPromptAfterLogin.client";
 import PushNotifManager from "../src/components/PushNotifManager.client";
 import HelpCenterButton from "../src/components/HelpCenterButton.client";
 import ClientLayoutShell from "../src/components/ClientLayoutShell.client";
+import ExitIntentPopup from "../src/components/ExitIntentPopup.client";
 
 
 
@@ -324,6 +325,7 @@ export default function RootLayout({
           
           <ClientLayoutShell />
           <HelpCenterButton />
+          <ExitIntentPopup />
           {/* <PWAPromptAfterLogin /> */}
           {/* WelcomeBanner removed */}
           {children}
