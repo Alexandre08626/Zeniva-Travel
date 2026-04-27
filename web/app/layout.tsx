@@ -56,6 +56,7 @@ export const metadata: Metadata = {
       "en-US": "https://zenivatravel.com",
       "en-CA": "https://zenivatravel.com",
       "fr-CA": "https://zenivatravel.com/fr",
+      "es": "https://zenivatravel.com/es",
     },
   },
   robots: {

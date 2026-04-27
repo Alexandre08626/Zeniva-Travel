@@ -121,6 +121,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/compare/zeniva-vs-mindtrip`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
     { url: `${BASE_URL}/compare/zeniva-vs-booked-ai`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
     { url: `${BASE_URL}/compare/zeniva-vs-zenvoya`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${BASE_URL}/compare/zeniva-vs-penny`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${BASE_URL}/compare/zeniva-vs-eddy-travels`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${BASE_URL}/compare/zeniva-vs-acai-travel`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${BASE_URL}/compare/zeniva-vs-wonderplan`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${BASE_URL}/compare/zeniva-vs-chatgpt-for-travel`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
+
+    // ─── ES (Spanish — LATAM market) ─────────────────
+    { url: `${BASE_URL}/es`, lastModified: NOW, changeFrequency: "weekly", priority: 0.92 },
+    { url: `${BASE_URL}/es/services/ai-travel-agent`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${BASE_URL}/es/services/luxury-travel`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${BASE_URL}/es/services/yacht-charter`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${BASE_URL}/es/services/cruises`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
 
     // ─── DEALS ────────────────────────────────────────
     { url: `${BASE_URL}/deals`, lastModified: NOW, changeFrequency: "daily", priority: 0.85 },
