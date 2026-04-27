@@ -13,6 +13,7 @@ import HelpCenterButton from "../src/components/HelpCenterButton.client";
 import ClientLayoutShell from "../src/components/ClientLayoutShell.client";
 import ExitIntentPopup from "../src/components/ExitIntentPopup.client";
 import StickyMobileCTA from "../src/components/StickyMobileCTA.client";
+import CheckoutAbandonmentCapture from "../src/components/CheckoutAbandonmentCapture.client";
 
 
 
@@ -328,6 +329,7 @@ export default function RootLayout({
           <HelpCenterButton />
           <ExitIntentPopup />
           <StickyMobileCTA />
+          <CheckoutAbandonmentCapture />
           {/* <PWAPromptAfterLogin /> */}
           {/* WelcomeBanner removed */}
           {children}
