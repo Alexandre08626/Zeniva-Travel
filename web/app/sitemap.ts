@@ -49,6 +49,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/packages/from-nashville`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/packages/from-detroit`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/packages/from-minneapolis`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/packages/from-pittsburgh`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },
+    { url: `${BASE_URL}/packages/from-indianapolis`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },
+    { url: `${BASE_URL}/packages/from-sacramento`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },
+    { url: `${BASE_URL}/packages/from-portland`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },
+    { url: `${BASE_URL}/packages/from-austin`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },
+    { url: `${BASE_URL}/packages/from-new-orleans`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },
+    { url: `${BASE_URL}/packages/from-salt-lake-city`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },
+    { url: `${BASE_URL}/packages/from-cleveland`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },
 
     // ─── DEPARTURE-CITY PACKAGES (CANADA) ────────────
     { url: `${BASE_URL}/packages/from-toronto`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
@@ -141,6 +149,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/compare/zeniva-vs-acai-travel`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
     { url: `${BASE_URL}/compare/zeniva-vs-wonderplan`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
     { url: `${BASE_URL}/compare/zeniva-vs-chatgpt-for-travel`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${BASE_URL}/compare/zeniva-vs-hopper`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${BASE_URL}/compare/zeniva-vs-kayak-ai`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${BASE_URL}/compare/zeniva-vs-roam-around`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE_URL}/compare/zeniva-vs-tripnotes`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
 
     // ─── ES (Spanish — LATAM market) ─────────────────
     { url: `${BASE_URL}/es`, lastModified: NOW, changeFrequency: "weekly", priority: 0.92 },
