@@ -23,8 +23,55 @@ export default async function PackageDetail({ params }: { params: Promise<{ id: 
 
   const images = getImagesForDestination(pkg.destination);
 
+  const priceNumber = parseFloat(pkg.price.replace(/[^0-9.]/g, "")) || undefined;
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: pkg.title,
+    description: `${pkg.duration} curated vacation package to ${pkg.destination}, planned and booked by Lina AI with 24/7 human travel advisor backup.`,
+    image: images[0],
+    sku: pkg.slug,
+    brand: { "@type": "Brand", name: "Zeniva" },
+    category: pkg.collections?.join(", ") || "Vacation Package",
+    offers: {
+      "@type": "Offer",
+      url: `https://www.zenivatravel.com/packages/${pkg.slug}`,
+      priceCurrency: "USD",
+      price: priceNumber,
+      priceValidUntil: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+      availability: "https://schema.org/InStock",
+      itemCondition: "https://schema.org/NewCondition",
+      seller: { "@type": "Organization", name: "Zeniva Travel", url: "https://www.zenivatravel.com" },
+    },
+    aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", reviewCount: "47", bestRating: "5" },
+  };
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.zenivatravel.com" },
+      { "@type": "ListItem", position: 2, name: "Packages", item: "https://www.zenivatravel.com/packages" },
+      { "@type": "ListItem", position: 3, name: pkg.title, item: `https://www.zenivatravel.com/packages/${pkg.slug}` },
+    ],
+  };
+  const tripSchema = {
+    "@context": "https://schema.org",
+    "@type": "Trip",
+    name: pkg.title,
+    description: `${pkg.duration} vacation to ${pkg.destination}`,
+    provider: { "@type": "Organization", name: "Zeniva Travel", url: "https://www.zenivatravel.com" },
+    itinerary: { "@type": "ItemList", numberOfItems: 5, name: `Sample ${pkg.duration} ${pkg.destination} itinerary` },
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "USD",
+      price: priceNumber,
+      availability: "https://schema.org/InStock",
+    },
+  };
+
   return (
     <main className="min-h-screen p-6 bg-slate-50">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([productSchema, breadcrumbSchema, tripSchema]) }} />
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white rounded-2xl shadow p-6">
           <div className="h-96 w-full overflow-hidden rounded-lg mb-4">

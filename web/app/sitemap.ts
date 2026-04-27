@@ -104,6 +104,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/services/adults-only-resorts`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/services/spring-break`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
 
+    // ─── INTEREST-BASED LANDING PAGES ────────────────
+    { url: `${BASE_URL}/lgbtq-friendly-resorts`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE_URL}/senior-travel`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE_URL}/accessible-travel`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE_URL}/eco-friendly-travel`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE_URL}/digital-nomad-destinations`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
+
     // ─── FR SERVICE PAGES ────────────────────────────
     { url: `${BASE_URL}/fr/services/yacht-charter`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
     { url: `${BASE_URL}/fr/services/villa-rental`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
