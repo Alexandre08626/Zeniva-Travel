@@ -33,6 +33,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/packages/from-chicago`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/packages/from-houston`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/packages/from-boston`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/packages/from-dallas`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/packages/from-atlanta`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/packages/from-seattle`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/packages/from-denver`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/packages/from-phoenix`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/packages/from-philadelphia`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
 
     // ─── ZENIYACHT ────────────────────────────────────
     { url: `${BASE_URL}/zeniyacht`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },
@@ -78,6 +84,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/blog/top-honeymoon-destinations-2026`, lastModified: NOW, changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE_URL}/blog/caribbean-vs-mexico-all-inclusive`, lastModified: NOW, changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE_URL}/blog/why-book-ai-travel-agent`, lastModified: NOW, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE_URL}/blog/best-ai-travel-agents-usa-2026`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE_URL}/blog/yacht-charter-cost-2026`, lastModified: NOW, changeFrequency: "monthly", priority: 0.82 },
+    { url: `${BASE_URL}/blog/cancun-vs-punta-cana-2026`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
 
     // ─── DEALS ────────────────────────────────────────
     { url: `${BASE_URL}/deals`, lastModified: NOW, changeFrequency: "daily", priority: 0.85 },

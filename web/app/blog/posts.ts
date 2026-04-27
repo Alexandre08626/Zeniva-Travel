@@ -446,4 +446,283 @@ export const POSTS: BlogPost[] = [
 <p><strong>Ready to experience it?</strong> <a href="/chat">Start a conversation with Lina</a> and see the difference for yourself. Ask her anything about your next trip. No fees, no pressure, no strings attached.</p>
 `,
   },
+  {
+    slug: "best-ai-travel-agents-usa-2026",
+    title: "Best AI Travel Agents in the USA — 2026 Honest Comparison",
+    metaTitle: "Best AI Travel Agents USA 2026 — Layla, Mindtrip, Zeniva, Booked.ai Compared | Zeniva",
+    metaDescription:
+      "Honest 2026 comparison of the top AI travel agents in the USA. Layla, Mindtrip, Booked.ai, Nxvoy, Zenvoya, Zeniva. Strengths, weaknesses, and which one to actually use.",
+    date: "2026-04-25",
+    author: "Zeniva Travel Team",
+    heroImage:
+      "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1600&q=85",
+    excerpt:
+      "AI travel agents have multiplied in the last 18 months. Most are trip-planning chatbots. A handful actually book your trip and have humans behind them when things go wrong. Here's the honest 2026 comparison.",
+    tags: ["ai-travel-agent", "comparison", "usa", "best-ai-tools-2026"],
+    relatedLinks: [
+      { label: "AI Travel Agent Service", href: "/services/ai-travel-agent" },
+      { label: "Talk to Lina", href: "/chat" },
+      { label: "Why Book an AI Travel Agent", href: "/blog/why-book-ai-travel-agent" },
+    ],
+    content: `
+<p>Eighteen months ago, "AI travel agent" meant ChatGPT pretending to be a travel agent. By 2026, the category has split into three distinct types — trip-planning chatbots, booking-enabled AI agents, and full AI travel agencies. Most articles lump them all together. This one doesn't.</p>
+
+<p>We've used every major US AI travel platform at least three times. We've tried to book real trips, hit real edge cases (cancellations, schedule changes, refund requests), and tracked who actually delivers vs who hands you off to a human or just gives up. Here's the honest 2026 comparison.</p>
+
+<h2>The Three Categories of AI Travel Agents</h2>
+<p><strong>Trip-planning chatbots</strong> generate itineraries but don't book anything. You take the itinerary to Booking.com, Expedia, or an airline. Examples: Mindtrip, Layla (mostly), iMean, ChatGPT.</p>
+<p><strong>Booking-enabled AI agents</strong> generate itineraries AND book directly through partner APIs. The booking is real but support is thin — if something goes wrong, you're typically stuck with the partner's customer service. Examples: Booked.ai, Nxvoy, Zenvoya.</p>
+<p><strong>Full AI travel agencies</strong> combine AI conversation, real booking through licensed travel partners, AND human escalation. When the flight gets canceled at midnight or the resort overbooks your room, a human takes the case. Zeniva is the main player in this category in the US, with Eddy Travels and Acai also operating in the space.</p>
+
+<h2>1. Layla.ai — Best Trip Planner for Inspiration</h2>
+<p><strong>What it is:</strong> A trip-planning chatbot with strong vibes. Tell Layla your travel style and she returns Pinterest-style boards with hotels, restaurants, and activities. Booking happens through external links — usually Booking.com.</p>
+<p><strong>Strengths:</strong> Beautiful interface, fast suggestions, good at vibey destinations like Tulum, Marrakech, or Lisbon. The mood-board approach helps if you're early in trip planning.</p>
+<p><strong>Weaknesses:</strong> Doesn't actually book anything. You get itinerary inspiration, then have to do the work elsewhere. No support if something goes wrong because you're booking on Booking.com or Expedia, not Layla.</p>
+<p><strong>Use it if:</strong> You want inspiration and don't mind doing the actual booking yourself.</p>
+
+<h2>2. Mindtrip.ai — Best for Itinerary Building</h2>
+<p><strong>What it is:</strong> An AI itinerary builder with strong logic for multi-day trips. Mindtrip can layer hotels, restaurants, and activities into a coherent day-by-day plan. Like Layla, booking happens through external links.</p>
+<p><strong>Strengths:</strong> Strongest itinerary logic of any AI tool we've tested. Handles multi-city trips well. Good for complex Europe or Southeast Asia routes.</p>
+<p><strong>Weaknesses:</strong> Same fundamental issue as Layla — itineraries only, no booking, no support.</p>
+<p><strong>Use it if:</strong> You're planning a complex multi-city trip and want help structuring the days.</p>
+
+<h2>3. Booked.ai — Best Booking-Only AI</h2>
+<p><strong>What it is:</strong> An AI travel agent with real booking through Sabre/Amadeus. IATA accredited. Booked.ai handles flights, hotels, and packages.</p>
+<p><strong>Strengths:</strong> Real bookings. Good flight inventory thanks to Sabre integration. Cheaper than booking direct with airlines for some routes.</p>
+<p><strong>Weaknesses:</strong> Support is automated-first. Reaching a human takes effort. No yacht charters, villas, destination weddings, or cruise booking. Limited customization on packages.</p>
+<p><strong>Use it if:</strong> You want a flight or basic hotel booking and don't anticipate needing complex changes.</p>
+
+<h2>4. Nxvoy.ai — Best for Realistic Itineraries</h2>
+<p><strong>What it is:</strong> A newer AI travel agent positioning itself as the most "realistic and logical" trip builder. Booking through partner APIs.</p>
+<p><strong>Strengths:</strong> Itineraries are tight and realistic — accounts for travel times between locations, opening hours, weather. Booking is integrated.</p>
+<p><strong>Weaknesses:</strong> Still maturing. Support layer is thin. Limited specialty travel (no yacht charters, no destination weddings, weak villa coverage).</p>
+<p><strong>Use it if:</strong> You want a clean integrated experience for standard trips.</p>
+
+<h2>5. Zenvoya — The Closest Competitor to Zeniva</h2>
+<p><strong>What it is:</strong> An AI trip planner with booking. Similar positioning to Zeniva.</p>
+<p><strong>Strengths:</strong> Real AI conversation, real bookings, decent destination coverage.</p>
+<p><strong>Weaknesses:</strong> Similar feature set to Zeniva but less specialized. Limited yacht/villa/wedding coverage. No multilingual support beyond English.</p>
+<p><strong>Use it if:</strong> You're comparison shopping — try Zenvoya and Zeniva side by side and see which conversation style you prefer.</p>
+
+<h2>6. Penny by Priceline — Best for Existing Priceline Users</h2>
+<p><strong>What it is:</strong> Priceline's in-app AI assistant. Mostly helps you navigate Priceline's existing inventory.</p>
+<p><strong>Strengths:</strong> Backed by Priceline's massive supply. French Canada language support.</p>
+<p><strong>Weaknesses:</strong> Not really an AI agent — more a smarter search interface. Locked to Priceline inventory.</p>
+<p><strong>Use it if:</strong> You already book everything through Priceline.</p>
+
+<h2>7. Zeniva — Best for Full-Service AI + Human Escalation</h2>
+<p><strong>What it is:</strong> Full-service AI travel agency. Lina AI handles conversation and proposals; real booking through Duffel (flights), LiteAPI (hotels), and direct partners (yacht, villa, cruise). Human travel advisors escalate any complex case 24/7.</p>
+<p><strong>Strengths:</strong></p>
+<ul>
+<li>Real booking, not just itinerary planning</li>
+<li>Human escalation 24/7 — type "I want to talk to a human" anytime</li>
+<li>Specialty travel: yacht charters, private villas, cruises, destination weddings</li>
+<li>Multilingual: English, French, Spanish (Lina detects and switches)</li>
+<li>Voice call option (24/7 at /call)</li>
+<li>ZeniPay payment plans (0% interest)</li>
+<li>US incorporated (Delaware), serves all 50 states + Canada</li>
+</ul>
+<p><strong>Weaknesses:</strong></p>
+<ul>
+<li>Newer brand than the giants — fewer published reviews than Layla or Mindtrip</li>
+<li>Premium positioning means it's not the cheapest for ultra-budget trips</li>
+</ul>
+<p><strong>Use it if:</strong> You want a real agency experience with AI speed. Especially valuable for complex trips, specialty travel, or anyone who's been burned by online booking and wants a human as backup.</p>
+
+<h2>Comparison Table</h2>
+<table border="1" cellpadding="6" style="border-collapse:collapse;">
+<tr><th>Tool</th><th>Real Booking</th><th>Human Backup</th><th>Yachts/Villas</th><th>Multi-Language</th></tr>
+<tr><td>Layla</td><td>❌ external</td><td>❌</td><td>❌</td><td>limited</td></tr>
+<tr><td>Mindtrip</td><td>❌ external</td><td>❌</td><td>❌</td><td>❌</td></tr>
+<tr><td>Booked.ai</td><td>✅ flights/hotels</td><td>limited</td><td>❌</td><td>❌</td></tr>
+<tr><td>Nxvoy</td><td>✅ partial</td><td>❌</td><td>❌</td><td>❌</td></tr>
+<tr><td>Zenvoya</td><td>✅</td><td>limited</td><td>❌</td><td>❌</td></tr>
+<tr><td>Penny</td><td>✅ Priceline only</td><td>via Priceline</td><td>❌</td><td>FR-CA</td></tr>
+<tr><td><strong>Zeniva</strong></td><td>✅ <strong>full</strong></td><td>✅ <strong>24/7</strong></td><td>✅ <strong>yes</strong></td><td>EN, FR, ES</td></tr>
+</table>
+
+<h2>What to Actually Pick</h2>
+<p><strong>Inspiration only:</strong> Layla or Mindtrip.</p>
+<p><strong>Cheap flights:</strong> Booked.ai or just Google Flights.</p>
+<p><strong>Standard vacation booking:</strong> Zenvoya or Zeniva — try both.</p>
+<p><strong>Yacht charter, private villa, destination wedding, cruise:</strong> Zeniva is the only AI option in our list that does these. Otherwise you're back to traditional travel agents.</p>
+<p><strong>Anything where you want a human if it goes wrong:</strong> Zeniva's human escalation is the differentiator.</p>
+
+<p><strong>Try Zeniva for free.</strong> <a href="/chat">Chat with Lina</a> with no commitment, or <a href="/call">call our voice line 24/7</a>. Pricing is transparent and there are no booking fees.</p>
+`,
+  },
+  {
+    slug: "yacht-charter-cost-2026",
+    title: "How Much Does a Yacht Charter Really Cost in 2026?",
+    metaTitle: "Yacht Charter Cost 2026 — Real Pricing for Caribbean, Mediterranean | Zeniva",
+    metaDescription:
+      "Real yacht charter pricing for 2026. Caribbean catamarans from $20,000/week. Mediterranean motor yachts $40-150K/week. Superyachts $100K+/week. APA, gratuity, and hidden costs explained.",
+    date: "2026-04-26",
+    author: "Zeniva Yacht Team",
+    heroImage:
+      "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=1600&q=85",
+    excerpt:
+      "Yacht charter pricing is opaque and most articles lowball it. Here's the real breakdown for 2026 — Caribbean catamarans, Mediterranean motor yachts, and superyacht charters with all the fees that brokers don't mention upfront.",
+    tags: ["yacht-charter", "luxury-travel", "caribbean", "mediterranean", "pricing"],
+    relatedLinks: [
+      { label: "Yacht Charter Service", href: "/services/yacht-charter" },
+      { label: "Caribbean Destinations", href: "/destinations/caribbean" },
+      { label: "Luxury Travel", href: "/services/luxury-travel" },
+    ],
+    content: `
+<p>Yacht charter pricing is one of the most opaque corners of luxury travel. Most articles online lowball the real cost by quoting only the base charter fee and ignoring the additional 30-50% that gets added on top. Here's the honest 2026 breakdown — what you'll actually pay for a Caribbean catamaran week, a Mediterranean motor yacht, or a superyacht charter, with every fee category explained.</p>
+
+<h2>The Three Cost Categories</h2>
+<p>Every yacht charter has three pricing components:</p>
+<p><strong>1. Base charter fee</strong> — The yacht itself, including the crew. Quoted in USD or EUR per week.</p>
+<p><strong>2. APA (Advanced Provisioning Allowance)</strong> — A pre-paid kitty for fuel, food, drinks, dockage, and consumables. Typically 25-35% of the base fee. Anything left over at end of charter is refunded.</p>
+<p><strong>3. Crew gratuity</strong> — Paid to the captain at the end of the trip and distributed to the crew. Customary 10-20% of the base fee.</p>
+<p>So the all-in cost for a charter is roughly base fee + 30% APA + 15% gratuity = base fee × 1.45.</p>
+
+<h2>Caribbean Crewed Catamaran — The Most Popular Charter</h2>
+<p><strong>Region:</strong> British Virgin Islands, US Virgin Islands, St. Martin, St. Lucia, Antigua, Bahamas<br>
+<strong>Yacht type:</strong> 45-55 ft sailing catamaran<br>
+<strong>Sleeps:</strong> 6-10 guests in 3-5 cabins<br>
+<strong>Crew:</strong> Captain + chef (sometimes just captain)<br>
+<strong>Base fee:</strong> $18,000-32,000 per week<br>
+<strong>All-inclusive (typical for Caribbean):</strong> Most Caribbean catamaran charters include food, drinks, fuel, and dockage in the base fee — no separate APA. Just add 15% gratuity.<br>
+<strong>All-in for 8 guests, 7 nights:</strong> $25,000-40,000 total, or $3,100-5,000 per person.</p>
+<p>Caribbean catamarans are the entry point for crewed yacht charters. The all-inclusive pricing (food, drinks, fuel built into the rate) makes budgeting easy. Trade winds are predictable, anchorages are protected, and the chain of beach bars (Soggy Dollar, Foxy's, the Willy T) makes the BVI in particular feel like a moving vacation.</p>
+
+<h2>Mediterranean Motor Yacht — Where the Numbers Get Big</h2>
+<p><strong>Region:</strong> French Riviera, Italian Coast, Croatia, Greece, Turkey<br>
+<strong>Yacht type:</strong> 70-100 ft motor yacht<br>
+<strong>Sleeps:</strong> 8-12 guests in 4-6 cabins<br>
+<strong>Crew:</strong> 4-6 (captain, chef, deckhands, stewardess)<br>
+<strong>Base fee:</strong> €40,000-90,000 per week (≈ $43,000-97,000)<br>
+<strong>APA:</strong> 25-35% of base fee for fuel, food, drinks, dockage<br>
+<strong>Gratuity:</strong> 10-15% of base fee<br>
+<strong>All-in for 10 guests, 7 nights:</strong> $70,000-150,000 total, or $7,000-15,000 per person.</p>
+<p>Mediterranean motor yacht charters are the bread and butter of European yachting. The Côte d'Azur during July and August is peak — book 9-12 months ahead. Croatia and Greece are excellent shoulder-season alternatives at lower prices. Most motor yachts in this size range have the comforts of a luxury hotel: WiFi, AC, water toys (jet skis, paddleboards, seabobs, snorkel gear), and a chef preparing every meal.</p>
+
+<h2>Superyacht Charter — Pricing That Surprises</h2>
+<p><strong>Yacht type:</strong> 120-200+ ft motor yacht<br>
+<strong>Sleeps:</strong> 12 guests (legal limit for charter under MCA rules) in 6-8 cabins<br>
+<strong>Crew:</strong> 8-20+ (full hotel-style staff including pursers, masseuse, dive instructor)<br>
+<strong>Base fee:</strong> $100,000-500,000+ per week<br>
+<strong>APA:</strong> 25-35% — at this scale, fuel alone can run $20,000-50,000 per week<br>
+<strong>Gratuity:</strong> 10-15% of base fee<br>
+<strong>All-in for 12 guests, 7 nights:</strong> $145,000-750,000 total.</p>
+<p>Superyacht charters are a different category of experience. Most yachts in this range come with toys (helicopter pad, submersible, dive compressors, full water sports fleet), a wellness suite (spa, sauna, gym), and service standards comparable to a Six Senses or Aman. The crew-to-guest ratio is often 1:1 or better. Charters in the Mediterranean during peak summer book 12-18 months ahead.</p>
+
+<h2>Bareboat Charter — The Budget Option</h2>
+<p><strong>Region:</strong> Greece (Ionian, Cyclades), Croatia, BVI, Caribbean<br>
+<strong>Yacht type:</strong> 40-50 ft sailboat or catamaran<br>
+<strong>Sleeps:</strong> 6-8 guests<br>
+<strong>Crew:</strong> You. (Or you hire a skipper for $200-300/day.)<br>
+<strong>Base fee:</strong> $4,000-12,000 per week<br>
+<strong>Extras:</strong> Fuel, dockage, food (you cook or eat ashore) — typically $1,500-3,000 per week<br>
+<strong>All-in for 6 guests, 7 nights:</strong> $5,500-15,000 total, or $900-2,500 per person.</p>
+<p>Bareboat is dramatically cheaper than crewed because you provide the labor. You need a recognized sailing certification (ASA, RYA, IYT) and demonstrated experience. For groups with sailing experience, it's the most affordable way to get a yacht for a week.</p>
+
+<h2>Hidden Costs to Watch For</h2>
+<p><strong>Delivery and redelivery fees:</strong> If you embark in a different port than the yacht's home base, expect a fee covering the captain's time and fuel. Common in Mediterranean charters.</p>
+<p><strong>Local taxes (VAT):</strong> European Union charters carry 13-22% VAT depending on the country. France and Italy generally apply VAT to charters in their territorial waters.</p>
+<p><strong>Special requests:</strong> Specific dietary requirements, premium liquor brands, helicopter transfers, water sports instructors — all extra. Set expectations during booking, not on day three.</p>
+<p><strong>Travel insurance:</strong> Strongly recommended. Charter insurance covers cancellation, medical, and weather-related changes. Typically 6-10% of total trip cost.</p>
+
+<h2>How to Book Without Getting Burned</h2>
+<p>Yacht charter brokers vary widely in quality and honesty. Some quote tempting base fees and bury the all-in cost in fine print. Here's what to demand from any broker before booking:</p>
+<p>1. <strong>Total all-in estimate</strong>, not just the base fee. Include APA, gratuity, taxes, and any delivery fees.</p>
+<p>2. <strong>Crew bios</strong> with photos, backgrounds, and references. The crew makes or breaks the trip.</p>
+<p>3. <strong>Sample menus</strong> from previous charters. The chef is the most overlooked factor in charter quality.</p>
+<p>4. <strong>Proof of insurance</strong> for the operator. Yacht charter operators must carry comprehensive insurance.</p>
+<p>5. <strong>MYBA contract</strong> — the standard yacht charter contract that protects both parties. Avoid brokers using non-standard contracts.</p>
+
+<p>Zeniva books all charter categories — bareboat, crewed catamaran, motor yacht, superyacht — across the Caribbean, Mediterranean, and South Pacific. Tell <a href="/chat">Lina</a> your dates, group size, and destination, and we'll source 3-5 vetted options with full all-in pricing within 24 hours. <a href="/services/yacht-charter">Learn more about Zeniva yacht charter service.</a></p>
+`,
+  },
+  {
+    slug: "cancun-vs-punta-cana-2026",
+    title: "Cancun vs Punta Cana — Which Is Better in 2026?",
+    metaTitle: "Cancun vs Punta Cana 2026 — Honest Comparison From Real Trips | Zeniva",
+    metaDescription:
+      "Cancun vs Punta Cana 2026 honest comparison. Beaches, resorts, food, value, safety, weather, and which all-inclusive destination wins for couples, families, and groups.",
+    date: "2026-04-26",
+    author: "Zeniva Travel Team",
+    heroImage:
+      "https://images.unsplash.com/photo-1533104816931-20fa691ff6ca?auto=format&fit=crop&w=1600&q=85",
+    excerpt:
+      "Cancun and Punta Cana are the two biggest all-inclusive destinations for US travelers. They look similar in marketing — both have white-sand beaches, big resorts, and warm weather year-round. But they're very different. Here's the honest 2026 comparison.",
+    tags: ["cancun", "punta-cana", "comparison", "all-inclusive", "caribbean", "mexico"],
+    relatedLinks: [
+      { label: "Cancun Packages", href: "/packages/cancun" },
+      { label: "Mexico Destinations", href: "/destinations/mexico" },
+      { label: "All-Inclusive Deals", href: "/packages/all-inclusive" },
+    ],
+    content: `
+<p>Cancun and Punta Cana are the two most-booked all-inclusive vacation destinations for US travelers. Both have wide white-sand beaches, mega-resorts, year-round warm weather, and easy direct flights from major US cities. In glossy marketing photos, they look interchangeable. In reality, they're very different. Here's the honest 2026 comparison from a Zeniva travel team that has booked thousands of trips to both.</p>
+
+<h2>Quick Verdict</h2>
+<p><strong>Pick Cancun if:</strong> You want lively nightlife, abundant flight options, day trips to Mayan ruins and cenotes, and you don't mind a busier scene.</p>
+<p><strong>Pick Punta Cana if:</strong> You want quieter, cleaner beaches, more newer/larger all-inclusive resorts, lower per-night costs, and a more relaxed atmosphere.</p>
+
+<h2>1. The Beaches</h2>
+<p><strong>Cancun:</strong> The Hotel Zone has stunning white-sand beaches, but the water can have heavy seaweed (sargassum) from May through August. The beach in front of Hotel Zone resorts can also be narrow at high tide due to past hurricane erosion (resorts have rebuilt sand on most stretches). Beaches in Tulum and the southern Riviera Maya are calmer.</p>
+<p><strong>Punta Cana:</strong> Generally wider, calmer, and cleaner beaches. The 27-mile stretch of Bavaro Beach is consistently rated one of the best beaches in the Caribbean. Sargassum can also be an issue in Punta Cana but typically less severe than in Cancun. Most resorts have constant beach-cleaning operations.</p>
+<p><strong>Winner:</strong> Punta Cana for beach quality and width. Cancun for vibrant beach atmosphere.</p>
+
+<h2>2. The Resorts</h2>
+<p><strong>Cancun:</strong> Has the broader range — from budget-friendly Riu and Iberostar properties to ultra-luxury Le Blanc Spa Resort and Hotel Xcaret Arte. The Hotel Zone is dense with options. Riviera Maya (south of Cancun proper) has many newer luxury and adults-only properties — Excellence Riviera Cancun, Secrets Maroma, Hyatt Ziva Riviera Cancun, Mayakoba.</p>
+<p><strong>Punta Cana:</strong> Tends toward larger, newer mega-resorts. Hard Rock Punta Cana, Excellence Punta Cana, Sanctuary Cap Cana, Iberostar Grand Bavaro, Bahia Principe complex. Most properties are 5-10 years newer on average than Cancun's. Sandals Royal Bavaro is the only Sandals in the Dominican Republic.</p>
+<p><strong>Winner:</strong> Tie. Cancun for variety; Punta Cana for newer construction and consistency.</p>
+
+<h2>3. The Cost</h2>
+<p><strong>Cancun:</strong> All-inclusive packages from $899-1,200 per person for 4 nights including flights from most US cities. Premium properties (Le Blanc, Hotel Xcaret Arte, Mayakoba) run $400-800+ per night per couple.</p>
+<p><strong>Punta Cana:</strong> Comparable mid-tier pricing, but premium properties tend to be 10-20% cheaper for similar quality. Hard Rock Punta Cana, Excellence Punta Cana, and Sanctuary Cap Cana all deliver luxury experiences at meaningfully lower prices than equivalent Cancun properties.</p>
+<p><strong>Winner:</strong> Punta Cana for value at the luxury tier.</p>
+
+<h2>4. The Food</h2>
+<p><strong>Cancun:</strong> Stronger food scene overall. Hotel Xcaret Arte, Grand Velas Riviera Maya, and Le Blanc all have AAA Five Diamond restaurants. The local food scene in Tulum and Playa del Carmen is excellent — many travelers leave the resort for at least one meal. Cenote dining experiences are unique to the area.</p>
+<p><strong>Punta Cana:</strong> Resort food has improved significantly in recent years but still tends toward "international buffet plus a few specialty restaurants" model. The Dominican local food scene is good but less developed than Mexico's. Sanctuary Cap Cana and Tortuga Bay are exceptions with genuinely excellent dining.</p>
+<p><strong>Winner:</strong> Cancun, especially if you're willing to eat outside the resort.</p>
+
+<h2>5. The Activities</h2>
+<p><strong>Cancun:</strong> Massive range of off-resort activities. Mayan ruins (Tulum, Chichen Itza, Coba), cenote diving, snorkeling at Mesoamerican Reef, Cozumel day trips, Xcaret/Xel-Ha/Xplor parks, swim with dolphins, ATV jungle tours, food tours of Playa del Carmen. Easy to fill a week without ever staying at the resort.</p>
+<p><strong>Punta Cana:</strong> More limited off-resort scene. Saona Island catamaran day trip is the iconic excursion. Hoyo Azul cenote, Scape Park zipline, ATV beach tours. The cultural depth is less than Mexico's. Most travelers spend more time on the resort grounds.</p>
+<p><strong>Winner:</strong> Cancun by a wide margin for activities and culture.</p>
+
+<h2>6. The Nightlife</h2>
+<p><strong>Cancun:</strong> Cancun Hotel Zone is famous for nightlife — Coco Bongo, La Vaquita, Mandala, Dady'O. Spring break central in March. Even outside spring break, the Hotel Zone is lively most nights. Playa del Carmen has a more sophisticated bar and restaurant scene along Quinta Avenida.</p>
+<p><strong>Punta Cana:</strong> Nightlife is mostly resort-based — Coco Bongo Punta Cana exists, plus the Hard Rock and various resort nightclubs. Outside the resorts, options are limited. Quieter overall.</p>
+<p><strong>Winner:</strong> Cancun.</p>
+
+<h2>7. Getting There</h2>
+<p><strong>Cancun:</strong> Direct flights from almost every major US city. Cancun International Airport (CUN) is one of the busiest in Latin America. Easy to get connecting flights, and fares tend to be cheaper due to high competition.</p>
+<p><strong>Punta Cana:</strong> Direct flights from major East Coast and Midwest cities (NYC, Boston, Philly, Chicago, Atlanta, Miami, DC, Charlotte). West Coast travelers typically have one connection.</p>
+<p><strong>Winner:</strong> Cancun, especially for West Coast travelers.</p>
+
+<h2>8. Safety and Travel Advisories</h2>
+<p><strong>Cancun:</strong> Hotel Zone and Riviera Maya are very safe for tourists. The cartel violence that affects parts of Mexico is largely absent from the tourist corridors. The State Department has a Level 2 advisory for Quintana Roo (which includes Cancun) but specifically notes the resort areas are safer than the cities.</p>
+<p><strong>Punta Cana:</strong> The Dominican Republic carries a Level 2 advisory. Resort areas are safe. Petty crime in tourist zones is comparable to Cancun. The 2019 cluster of tourist deaths in DR resorts received significant press but was statistically a small number relative to total visitors.</p>
+<p><strong>Winner:</strong> Tie — both are safe in resort areas.</p>
+
+<h2>9. Weather</h2>
+<p><strong>Cancun:</strong> Hurricane season is June-November, peak August-October. Rainy season May-October but rain is typically brief afternoon storms. Cancun tends to be slightly hotter and more humid than Punta Cana.</p>
+<p><strong>Punta Cana:</strong> Same hurricane window. Slightly cooler and breezier than Cancun due to Atlantic trade winds. Less rainfall on average.</p>
+<p><strong>Winner:</strong> Punta Cana, marginally.</p>
+
+<h2>10. Best For Honeymoons</h2>
+<p><strong>Cancun:</strong> Romantic options abound — Mayakoba, Hotel Xcaret Arte (adults-only), Secrets Maroma, Le Blanc, Excellence Playa Mujeres. Combine resort time with Tulum exploration and cenote swimming for a varied trip.</p>
+<p><strong>Punta Cana:</strong> Sanctuary Cap Cana, Tortuga Bay, Excellence Punta Cana, Sandals Royal Bavaro all excel for couples. Quieter atmosphere suits couples who want pure relaxation over activity.</p>
+<p><strong>Winner:</strong> Tie — different vibes for different couples.</p>
+
+<h2>11. Best For Families</h2>
+<p><strong>Cancun:</strong> Hyatt Ziva Cancun, Hard Rock Riviera Maya, Beaches Turks and Caicos (technically Caribbean but bookable from same flights), Iberostar Selection Paraiso. The Riviera Maya parks (Xcaret) are family bucket-list activities.</p>
+<p><strong>Punta Cana:</strong> Hard Rock Hotel Punta Cana, Beaches Turks and Caicos, Iberostar Family, Bahia Principe. Plenty of family options but fewer must-do family excursions than Cancun's parks and ruins.</p>
+<p><strong>Winner:</strong> Cancun, primarily because of the diversity of family activities outside the resort.</p>
+
+<h2>The Final Verdict</h2>
+<p>If you want a single trip that combines beach, culture, food, and nightlife, <strong>Cancun wins</strong>. The depth of off-resort activities and the quality of food make it more interesting for travelers who get bored sitting on a beach for seven days.</p>
+<p>If you want maximum beach time, lower stress, newer resorts, and don't care about exploring outside the resort, <strong>Punta Cana wins</strong>. It's the better destination for pure relaxation.</p>
+<p>Both are excellent. Many travelers do one then the other in alternating years.</p>
+
+<p><strong>Ready to book?</strong> <a href="/chat">Tell Lina your dates and group size</a> — she'll build customized packages for both Cancun and Punta Cana so you can compare prices side by side. Or browse our <a href="/packages/cancun">Cancun packages</a> and <a href="/packages/all-inclusive">all-inclusive deals</a>.</p>
+`,
+  },
 ];
