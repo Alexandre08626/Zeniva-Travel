@@ -120,6 +120,22 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // ─── DOMAIN CONSOLIDATION ────────────────────────────────────────
+      // 301 the legacy zeniva.ca (Wix) traffic to zenivatravel.com so Google
+      // transfers the domain authority. Each host needs its own rule because
+      // Next.js `has` doesn't support OR semantics on a single field.
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "zeniva.ca" }],
+        destination: "https://www.zenivatravel.com/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.zeniva.ca" }],
+        destination: "https://www.zenivatravel.com/:path*",
+        permanent: true,
+      },
       {
         source: "/airbnbs",
         destination: "/zenistay",
