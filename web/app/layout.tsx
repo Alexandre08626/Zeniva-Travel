@@ -218,8 +218,7 @@ export default function RootLayout({
                 ],
                 "sameAs": [
                   "https://www.tiktok.com/@zeniva.travel",
-                  "https://zenivatravel.com",
-                  "https://zeniva.ca"
+                  "https://zenivatravel.com"
                 ],
                 "contactPoint": [
                   {
