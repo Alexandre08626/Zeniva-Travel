@@ -725,4 +725,255 @@ export const POSTS: BlogPost[] = [
 <p><strong>Ready to book?</strong> <a href="/chat">Tell Lina your dates and group size</a> — she'll build customized packages for both Cancun and Punta Cana so you can compare prices side by side. Or browse our <a href="/packages/cancun">Cancun packages</a> and <a href="/packages/all-inclusive">all-inclusive deals</a>.</p>
 `,
   },
+  {
+    slug: "family-all-inclusive-resorts-2026",
+    title: "Family All-Inclusive Resorts Guide 2026 — Top 12 by Category",
+    metaTitle: "Best Family All-Inclusive Resorts 2026 — Top 12 Ranked | Zeniva",
+    metaDescription: "Best family all-inclusive resorts 2026. Beaches, Hard Rock Family, Hyatt Ziva, Atlantis, Hotel Xcaret, Disney Cruise. Ranked by age group, budget, and trip type.",
+    date: "2026-04-27",
+    author: "Zeniva Family Travel Team",
+    heroImage: "https://images.unsplash.com/photo-1502136969935-8d8eef54d77b?auto=format&fit=crop&w=1600&q=85",
+    excerpt: "Most 'family-friendly' marketing is meaningless — every resort claims it. We've actually stayed at the top family all-inclusive resorts and built this honest 2026 ranking by age group, budget, and trip type.",
+    tags: ["family vacations", "all-inclusive", "kids", "resorts", "2026"],
+    relatedLinks: [
+      { label: "Family Vacations Service", href: "/services/family-vacations" },
+      { label: "All-Inclusive Resorts", href: "/services/all-inclusive" },
+      { label: "Cruise Planning", href: "/services/cruises" },
+    ],
+    content: `
+<p>Choosing a family all-inclusive is harder than choosing one for couples. The marketing all looks the same — splashing kids in pools, smiling families at the buffet. But the actual experience varies wildly: some resorts have noisy kids' clubs the parents can't escape, others have empty kids' programming despite advertising it. Some have "family suites" that are just regular rooms with a sofa bed, others have actual two-bedroom layouts.</p>
+
+<p>This 2026 guide ranks the top 12 family all-inclusive resorts globally based on 4 criteria: room configurations that actually work for families, kids' programming quality, multi-generational suitability, and parent-friendly amenities (adult-only zones, late-night room service, dedicated bars away from the splash zone).</p>
+
+<h2>1. Beaches Turks and Caicos — Best Overall</h2>
+<p><strong>Best for:</strong> Families with kids ages 3-15<br><strong>Price range:</strong> $700-1,400 per family per night<br><strong>Why it's #1:</strong> Sesame Street partnership with character meals and meet-and-greets. Pirates Island Waterpark with multiple slides and a lazy river. Age-segmented kids' clubs (Caribbean Adventure for 12+ months through teens). 5 distinct villages within the resort, each with its own pool and restaurants. The food is genuinely good — 21 restaurants including French, Italian, sushi, and a Sesame Street themed café for kids.</p>
+
+<h2>2. Hard Rock Hotel Riviera Maya / Punta Cana / Cancun — Best for Active Families</h2>
+<p><strong>Best for:</strong> Families with kids ages 6+, multi-generational with teens<br><strong>Price range:</strong> $400-900 per family per night<br><strong>Why it's strong:</strong> Family Suites have a separate kids' bedroom with bunk beds and gaming consoles. Massive water parks at Riviera Maya and Punta Cana properties. Adults can use the Heaven section while kids hit the kids' club. Hard Rock's signature music amenity menu (check out a Fender guitar).</p>
+
+<h2>3. Hyatt Ziva Cancun — Best Location & Beach</h2>
+<p><strong>Best for:</strong> Families wanting beach quality + Cancun proximity<br><strong>Price range:</strong> $500-1,000 per family per night<br><strong>Why it's strong:</strong> Sits on a private peninsula with beaches on three sides — calmer water than most Cancun properties. KidZ Club, water slides, splash pad. 6 restaurants, family-friendly buffet plus à la carte options. Connecting rooms available. Walking distance to Cancun Hotel Zone shopping.</p>
+
+<h2>4. Hotel Xcaret Mexico (family side) — Most Unique</h2>
+<p><strong>Best for:</strong> Families who want activities beyond the resort<br><strong>Price range:</strong> $700-1,500 per family per night<br><strong>Why it's unique:</strong> Your stay includes unlimited access to all 6 Xcaret parks (Xcaret, Xel-Ha, Xplor, Xenses, Xoximilco, Xenotes). 10 restaurants. River-swim pools winding through the jungle. The price is high but the included parks normally cost $100+ per person per day if booked separately.</p>
+
+<h2>5. Iberostar Selection Paraiso (Riviera Maya) — Best Value Mega-Resort</h2>
+<p><strong>Best for:</strong> Families wanting maximum variety at moderate price<br><strong>Price range:</strong> $400-700 per family per night<br><strong>Why it's strong:</strong> 5 interconnected hotels with shared access. Lazy river connecting pool areas. Wave pool. Star Camp kids' programs. Wide and well-maintained beach with snorkeling reef offshore. Selection tier gives priority restaurants while keeping access to the full complex.</p>
+
+<h2>6. Atlantis Paradise Island, Bahamas — Best Water Park Resort</h2>
+<p><strong>Best for:</strong> Families with kids ages 6+ who love water<br><strong>Price range:</strong> $600-1,200 per family per night (not all-inclusive — meals à la carte)<br><strong>Why it's strong:</strong> Aquaventure water park with 11 pools and the famous Mayan Temple slides. Marine habitats with sharks, dolphins, and sea lions. Multiple towers (Royal, Coral, Beach Tower, The Cove) at different price points. Note: NOT a true all-inclusive — meals are extra. Plan accordingly.</p>
+
+<h2>7. Disney Cruise Line — Gold Standard for Cruise Families</h2>
+<p><strong>Best for:</strong> Families with kids ages 4-12<br><strong>Price range:</strong> $4,000-12,000 per family for 7 nights<br><strong>Why it's strong:</strong> Character meets, age-appropriate kids' clubs (Oceaneer Club, Edge for tweens, Vibe for teens), no-cost rotational dining (different restaurant each night), Aqua Mouse water coaster on Wish-class ships, no-photo-fee character meets. The fanciest cabin tier (Concierge) provides Concierge Lounge access.</p>
+
+<h2>8. Karisma Generations (Riviera Maya) — Best for Multi-Gen</h2>
+<p><strong>Best for:</strong> Multi-generational trips (grandparents + parents + kids)<br><strong>Price range:</strong> $500-900 per family per night<br><strong>Why it's strong:</strong> Suites designed for 6-8 with separate kids' rooms. Dedicated kids' programming PLUS adults-only zones (parents need a break). The El Dorado portion next door is for adults — you can split the family for an evening.</p>
+
+<h2>9. Hyatt Ziva Cap Cana (Dominican Republic) — Best DR Family Option</h2>
+<p><strong>Best for:</strong> Families who want DR pricing with Hyatt service<br><strong>Price range:</strong> $400-800 per family per night<br><strong>Why it's strong:</strong> Newer construction (2018), three pools, KidZ Club, water park, swim-up bars. Cap Cana area is quieter and more upscale than Bavaro/Punta Cana. Excellent for first DR trip with kids.</p>
+
+<h2>10. Royal Caribbean Oasis-class ships — Best Mega-Cruise for Families</h2>
+<p><strong>Best for:</strong> Families with teens and tweens<br><strong>Price range:</strong> $3,500-8,000 per family for 7 nights<br><strong>Why it's strong:</strong> Wave pool, ice rink, surf simulator, zip line, climbing wall, multiple water slides, Adventure Ocean kids' programs by age. Ships are so large each family member can do their own thing and meet for dinner. Symphony of the Seas, Wonder of the Seas, Icon of the Seas all excellent.</p>
+
+<h2>11. Sandals Beaches Negril (Jamaica) — Best Beach Setting</h2>
+<p><strong>Best for:</strong> Families wanting Caribbean beach vibe at moderate price<br><strong>Price range:</strong> $500-900 per family per night<br><strong>Why it's strong:</strong> Seven Mile Beach is one of the world's best beaches. Sesame Street partnership (like Beaches TC). Caribbean Village + Riviera Village with kids' areas. Multiple restaurants, water sports included.</p>
+
+<h2>12. Grand Velas Riviera Maya (Family Section) — Best Food</h2>
+<p><strong>Best for:</strong> Families who prioritize dining quality<br><strong>Price range:</strong> $700-1,200 per family per night<br><strong>Why it's strong:</strong> 8 restaurants including Cocina de Autor (AAA Five Diamond). Dedicated Family Section with zen suites built for families. Personal concierge per room. Highest service ratio of any Mexican family resort.</p>
+
+<h2>How to choose for your family</h2>
+<p><strong>Kids under 5:</strong> Beaches Turks and Caicos, Hyatt Ziva Cancun, Karisma Generations. Avoid Disney Cruise (kids' clubs require potty training; under-3 charge applies).</p>
+<p><strong>Kids 6-12:</strong> All listed work; Disney Cruise, Hard Rock, Atlantis, Hotel Xcaret particularly excel.</p>
+<p><strong>Teens 13+:</strong> Hard Rock, Royal Caribbean Oasis-class, Atlantis. Beaches and Disney Cruise have dedicated teen programs.</p>
+<p><strong>Multi-generational (grandparents included):</strong> Karisma Generations, Hotel Xcaret, Hyatt Ziva Cap Cana, Royal Caribbean cruise.</p>
+<p><strong>Budget under $500/family/night:</strong> Iberostar Selection Paraiso, Hard Rock entry levels, Sandals Beaches Negril.</p>
+
+<p><strong>Ready to book?</strong> <a href="/chat">Tell Lina your kids' ages, dates, and budget</a> — she'll build customized packages from these resorts in seconds. Or browse our <a href="/services/family-vacations">family vacation service page</a>.</p>
+`,
+  },
+  {
+    slug: "how-to-plan-2-week-europe-trip-from-usa-2026",
+    title: "How to Plan a 2-Week Europe Trip from USA — Complete 2026 Guide",
+    metaTitle: "How to Plan a 2-Week Europe Trip from USA 2026 | Zeniva",
+    metaDescription: "Complete guide to planning a 2-week Europe trip from the USA in 2026. Routing, flights, hotels, transport, budget. From first-time travelers to seasoned multi-city planners.",
+    date: "2026-04-27",
+    author: "Zeniva Travel Team",
+    heroImage: "https://images.unsplash.com/photo-1431274172761-fca41d930114?auto=format&fit=crop&w=1600&q=85",
+    excerpt: "Planning a first 2-week Europe trip from the USA is overwhelming. This guide breaks down the proven routing patterns, the realistic budget, and the booking sequence that prevents the typical first-trip mistakes.",
+    tags: ["europe", "trip planning", "2-week trip", "first time europe", "2026"],
+    relatedLinks: [
+      { label: "Europe Destinations", href: "/destinations/europe" },
+      { label: "Luxury Travel", href: "/services/luxury-travel" },
+      { label: "Group Travel", href: "/services/group-travel" },
+    ],
+    content: `
+<p>A first 2-week Europe trip from the USA is a major commitment — easily $5,000-$15,000 per person depending on style — and the most common mistake is trying to do too much. We've planned hundreds of these trips. The patterns that work are simpler than the internet suggests.</p>
+
+<h2>Pick a routing pattern, then fill in details</h2>
+
+<p>For a 2-week first trip, three routings cover 90% of cases. Pick one, don't try to combine them.</p>
+
+<p><strong>1. Italy + France (the classic):</strong> Fly into Rome, train to Florence (2h), train to Venice (2h), fly to Paris (2h), fly home from Paris. 4 cities, 14 days, manageable transit. Best months: April-June, September-October.</p>
+
+<p><strong>2. Mediterranean coast:</strong> Fly into Barcelona, train to Provence (4h), train to French Riviera (2h), train to Italian Riviera + Cinque Terre (3h), train to Florence (3h), fly home from Rome or Florence. Coastal scenery, beach time, food. Best months: May-October.</p>
+
+<p><strong>3. Northern Europe:</strong> Fly into London, Eurostar to Paris (2.5h), train or fly to Amsterdam (3.5h or 1h), fly to Berlin (1.5h), fly home from Berlin. 4 cities, history-heavy, easier weather year-round. Best months: May-September.</p>
+
+<h2>Budget breakdown (2 travelers, 14 nights)</h2>
+
+<p><strong>Budget tier ($5,000-7,000 per person):</strong></p>
+<ul>
+<li>Flights from East Coast: $700-1,200 per person economy</li>
+<li>Hotels (3-star): $150-200/night × 14 = $2,100-2,800</li>
+<li>Trains/intra-Europe flights: $300-500</li>
+<li>Food: $80-100/day × 14 = $1,120-1,400</li>
+<li>Activities + transit: $500-800</li>
+</ul>
+
+<p><strong>Comfortable tier ($7,000-12,000 per person):</strong></p>
+<ul>
+<li>Flights premium economy: $1,500-2,500 per person</li>
+<li>Hotels (4-star or boutique): $250-400/night = $3,500-5,600</li>
+<li>Trains business class + select flights: $500-800</li>
+<li>Food (1 nice dinner per day): $150/day × 14 = $2,100</li>
+<li>Activities (museum priority access, day tours): $800-1,200</li>
+</ul>
+
+<p><strong>Luxury tier ($12,000-25,000+ per person):</strong></p>
+<ul>
+<li>Flights business class: $4,000-7,000 per person</li>
+<li>Hotels (5-star or designer boutique): $500-1,500/night = $7,000-21,000</li>
+<li>Private transfers, first-class trains: $2,000-3,500</li>
+<li>Food (Michelin meals 2-3 per week): $250+/day = $3,500</li>
+<li>Private guides, exclusive experiences: $2,000-5,000</li>
+</ul>
+
+<h2>Booking sequence (in order)</h2>
+
+<p><strong>9-12 months ahead:</strong> Lock in your dates and the first city you're flying into. Book the international flights — fares are usually best 6-9 months ahead for summer; can be later for shoulder season.</p>
+
+<p><strong>6-9 months ahead:</strong> Book hotels in your first and last cities (Rome and Paris if you're doing Italy + France). These are the highest-demand and need the most lead time.</p>
+
+<p><strong>4-6 months ahead:</strong> Book intra-Europe trains (Trenitalia, SNCF, ÖBB). Train fares are dynamic and rise as the date approaches. Book intra-Europe flights if needed (Vueling, Ryanair, easyJet).</p>
+
+<p><strong>2-3 months ahead:</strong> Book hotels in the middle cities. Reserve any timed-entry attractions (Vatican, Uffizi, Eiffel Tower summit, Versailles, Anne Frank House — all sell out weeks ahead in summer).</p>
+
+<p><strong>1-2 months ahead:</strong> Book restaurant reservations for any spots you really want (Michelin places typically open 1-2 months ahead). Confirm any private guides.</p>
+
+<p><strong>Week of:</strong> Download offline maps, install Google Translate camera mode, organize documents, set up phone international plan or local SIM.</p>
+
+<h2>Mistakes to avoid</h2>
+
+<p><strong>1. Too many cities.</strong> 4 cities in 14 days is the upper limit. 5+ feels like a march. The sweet spot is 3 cities with 4-5 nights each.</p>
+
+<p><strong>2. Underestimating transit.</strong> Train rides are pleasant but they're still 3-4 hours of your day. Add airport time for any flights.</p>
+
+<p><strong>3. Skipping shoulder season.</strong> Late April through early June and September through October are dramatically cheaper than July-August AND less crowded. The weather is often better.</p>
+
+<p><strong>4. Booking restaurants for every meal.</strong> Leave 3-4 dinners per week unbooked for spontaneity. Reserve only the must-do places.</p>
+
+<p><strong>5. Not buying timed-entry tickets.</strong> Vatican lines in summer are 3+ hours without a reservation. Same for Uffizi, Eiffel summit, Versailles, Sagrada Familia. Book online weeks ahead.</p>
+
+<h2>How Zeniva helps</h2>
+
+<p>Lina AI builds the full itinerary in chat — flights, hotels, trains, transfers, even restaurant reservations on request. For a 2-week multi-city Europe trip with 4 hotels and 5 transit segments, building it manually takes 8-15 hours of research; Lina builds it in 30 minutes of conversation.</p>
+
+<p>For complex trips (premium-cabin flights, luxury hotels, private guides), our human travel advisors take over to negotiate rates with partner hotels and source private experiences not available in any online catalog.</p>
+
+<p><strong>Ready to plan?</strong> <a href="/chat?prompt=Plan+a+2-week+Europe+trip+from+USA">Start a chat with Lina</a> with "Plan a 2-week Europe trip from USA" and your dates. Or browse our <a href="/destinations/europe">Europe destinations page</a>.</p>
+`,
+  },
+  {
+    slug: "cheap-flights-to-europe-from-usa-2026",
+    title: "Cheap Flights to Europe from USA — 2026 Booking Strategy",
+    metaTitle: "Cheap Flights to Europe from USA 2026 — Best Routes & Tips | Zeniva",
+    metaDescription: "Best cheap flights to Europe from USA 2026. When to book, which airlines, which routes, hidden tips. Honest 2026 strategy from a US travel agency.",
+    date: "2026-04-27",
+    author: "Zeniva Travel Team",
+    heroImage: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1600&q=85",
+    excerpt: "Finding cheap flights to Europe from the USA in 2026 means knowing which routes have competition, which months actually have deals, and which booking tricks still work. Honest 2026 guide.",
+    tags: ["cheap flights", "europe", "flight deals", "booking tips", "2026"],
+    relatedLinks: [
+      { label: "Europe Destinations", href: "/destinations/europe" },
+      { label: "All Packages", href: "/packages" },
+      { label: "AI Travel Agent", href: "/services/ai-travel-agent" },
+    ],
+    content: `
+<p>Cheap flights to Europe from the USA used to mean tracking deals on travel hack blogs. In 2026, the patterns have shifted: budget transatlantic carriers (Norse, French Bee, ITA) have changed pricing dynamics, the dollar-euro exchange swings affect when to book, and tools like Google Flights' price tracker have made manual deal-hunting less necessary.</p>
+
+<p>This is the honest 2026 strategy from a US travel agency that books hundreds of US-Europe trips per month.</p>
+
+<h2>The cheapest months to fly USA → Europe</h2>
+
+<p><strong>Cheapest:</strong> November, January (after the first week), February, early March. Roundtrip economy from East Coast can drop to $400-600 to most major European capitals during these windows.</p>
+
+<p><strong>Moderate:</strong> Late September, October, late March, early April, early May. Weather is often excellent and prices are 30-40% off summer.</p>
+
+<p><strong>Expensive:</strong> June, July, August, late December (Christmas/New Year), Easter week, Memorial Day weekend. Avoid these unless you have flexibility on the destination side.</p>
+
+<h2>Best US gateways for cheap Europe flights</h2>
+
+<p><strong>NYC (JFK, EWR, LGA):</strong> The most competition + most direct routes = consistently cheapest. La Compagnie operates all-business-class JFK-Paris/London for surprisingly competitive premium fares.</p>
+
+<p><strong>Boston (BOS):</strong> Strong direct network on JetBlue, Delta, American, plus Aer Lingus stopover via Dublin. Often cheaper than NYC for Ireland/UK.</p>
+
+<p><strong>Washington DC (IAD):</strong> United's East Coast international hub. Often cheaper than JFK for Africa-via-Europe routes.</p>
+
+<p><strong>Miami (MIA):</strong> Strong on Iberia (LATAM partnership) for Spain/Portugal.</p>
+
+<p><strong>Chicago (ORD):</strong> United hub. Strong direct to most European capitals.</p>
+
+<p><strong>Los Angeles (LAX) and San Francisco (SFO):</strong> Direct to most European capitals but premium pricing because flights are longer. Norse and French Bee offer budget transatlantic from LAX.</p>
+
+<h2>Budget transatlantic carriers — the actual savings</h2>
+
+<p><strong>Norse Atlantic:</strong> Boeing 787s on JFK/LAX/MIA/BOS routes to London, Paris, Berlin, Rome, Athens, Oslo. Roundtrip economy can hit $300-500 in shoulder season. Premium economy reasonable. Watch for fees on bags, seat selection, and meals.</p>
+
+<p><strong>French Bee:</strong> Newark, Miami, San Francisco, LAX to Paris ORY (Orly, not CDG). Tahiti and Reunion routes also available. Cheap base fare, fees for everything.</p>
+
+<p><strong>ITA Airways (the Alitalia successor, now Lufthansa Group):</strong> Direct from JFK, BOS, MIA, LAX to Rome and Milan. Better service than the budget carriers but slightly cheaper than Delta/American on the same routes. Not strictly "budget" but consistently good value.</p>
+
+<p><strong>Iberia and TAP Portugal:</strong> Strong on Spain and Portugal routes. Iberia from JFK, Boston, MIA, ORD. TAP from JFK, BOS, MIA, ORD with free 1-3 night stopover in Lisbon.</p>
+
+<p><strong>Iceland route via Icelandair / PLAY:</strong> Free 1-7 night stopover in Reykjavik on the way to mainland Europe. Iceland counts as a destination in its own right — you essentially get two trips for one fare.</p>
+
+<h2>When to book</h2>
+
+<p><strong>For summer (June-August):</strong> Book in February-April. Don't wait. Summer fares climb steadily and rarely drop.</p>
+
+<p><strong>For shoulder season (April-May, September-October):</strong> Book 3-5 months ahead. There are sometimes last-minute deals 4-6 weeks out for off-peak weeks.</p>
+
+<p><strong>For winter (November-March excluding holidays):</strong> Book 2-4 months ahead. Some of the best fares of the year. Last-minute deals also possible.</p>
+
+<p><strong>Holiday weeks (Christmas, New Year, Easter):</strong> Book 9-12 months ahead. Fares only go up.</p>
+
+<h2>Tools that actually work in 2026</h2>
+
+<p><strong>Google Flights:</strong> Best general search. Price tracker emails you when fares change. Date grid view shows cheapest days within a flexible window.</p>
+
+<p><strong>Going (formerly Scott's Cheap Flights):</strong> Email service that finds error fares and deep discounts. Premium tier worth it for serial European travelers.</p>
+
+<p><strong>Skyscanner / Kiwi:</strong> Good for multi-city or open-jaw routings. Sometimes finds combinations Google misses.</p>
+
+<p><strong>Direct airline websites:</strong> Necessary for the budget carriers (Norse, French Bee, PLAY) since they don't always show on aggregators with full pricing including fees.</p>
+
+<p><strong>Lina AI on Zeniva:</strong> Lina queries Duffel (which aggregates 300+ airlines including budget carriers) and presents the all-in price including bags and seats. Saves the comparison work.</p>
+
+<h2>Mistakes to avoid</h2>
+
+<p><strong>1. Not factoring fees into budget carrier fares.</strong> Norse base fare $299 sounds great until you add $80 each way for a checked bag, $40 each way for seat selection, and $35 for in-flight meals. The all-in is closer to $700.</p>
+
+<p><strong>2. Booking too early for shoulder season.</strong> Fares for April-May and September-October often drop in the months leading up. 9 months ahead can mean overpaying.</p>
+
+<p><strong>3. Booking from a different city than your home.</strong> "Positioning" flights (driving 4 hours to a cheaper airport) often costs more in time/gas than the fare savings.</p>
+
+<p><strong>4. Booking US-side and Europe-side hotels separately when a package would be cheaper.</strong> Many tour operators (Apple, Pleasant, GoGo, Costco) bundle flight + hotel at rates below booking separately. Worth comparing.</p>
+
+<h2>How Zeniva books cheap Europe flights</h2>
+
+<p>Lina AI queries Duffel which aggregates 300+ airlines including budget transatlantic carriers (Norse, French Bee, ITA), shows all-in pricing including bags + seats + meals, and compares against package deals when relevant. For premium cabin (business / first class), our human advisors source consolidator fares that beat published rates by 20-40%.</p>
+
+<p><strong>Try it:</strong> <a href="/chat?prompt=Find+me+cheap+flights+to+Europe">chat with Lina</a> "Find me cheap flights to Europe" and your origin city + flexible dates. Or browse our <a href="/destinations/europe">Europe destinations</a> for full vacation packages.</p>
+`,
+  },
 ];

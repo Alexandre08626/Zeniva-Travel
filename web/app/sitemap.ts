@@ -98,6 +98,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/services/villa-rental`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/services/cruises`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/services/destination-weddings`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/services/all-inclusive`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/services/family-vacations`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/services/business-travel`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },
+    { url: `${BASE_URL}/services/adults-only-resorts`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/services/spring-break`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
 
     // ─── FR SERVICE PAGES ────────────────────────────
     { url: `${BASE_URL}/fr/services/yacht-charter`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
@@ -115,6 +120,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/blog/best-ai-travel-agents-usa-2026`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
     { url: `${BASE_URL}/blog/yacht-charter-cost-2026`, lastModified: NOW, changeFrequency: "monthly", priority: 0.82 },
     { url: `${BASE_URL}/blog/cancun-vs-punta-cana-2026`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE_URL}/blog/family-all-inclusive-resorts-2026`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE_URL}/blog/how-to-plan-2-week-europe-trip-from-usa-2026`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${BASE_URL}/blog/cheap-flights-to-europe-from-usa-2026`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
 
     // ─── COMPARISON PAGES (AI search-optimized) ─────
     { url: `${BASE_URL}/compare/zeniva-vs-layla`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },

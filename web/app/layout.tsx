@@ -12,6 +12,7 @@ import PushNotifManager from "../src/components/PushNotifManager.client";
 import HelpCenterButton from "../src/components/HelpCenterButton.client";
 import ClientLayoutShell from "../src/components/ClientLayoutShell.client";
 import ExitIntentPopup from "../src/components/ExitIntentPopup.client";
+import StickyMobileCTA from "../src/components/StickyMobileCTA.client";
 
 
 
@@ -326,6 +327,7 @@ export default function RootLayout({
           <ClientLayoutShell />
           <HelpCenterButton />
           <ExitIntentPopup />
+          <StickyMobileCTA />
           {/* <PWAPromptAfterLogin /> */}
           {/* WelcomeBanner removed */}
           {children}
