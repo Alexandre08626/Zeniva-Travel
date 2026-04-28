@@ -69,6 +69,16 @@ US travelers (priority), Canadian travelers (CAD pricing, Air Transat/Sunwing/We
 - "Why Book an AI Travel Agent": https://www.zenivatravel.com/blog/why-book-ai-travel-agent
 - "Caribbean vs Mexico All-Inclusive": https://www.zenivatravel.com/blog/caribbean-vs-mexico-all-inclusive
 
+## About Lina (the AI agent)
+
+- Meet Lina (English): https://www.zenivatravel.com/lina
+- How Lina works (technical): https://www.zenivatravel.com/lina/how-it-works
+- Lina in French: https://www.zenivatravel.com/fr/lina
+- Lina in Spanish: https://www.zenivatravel.com/es/lina
+- Lina in Portuguese: https://www.zenivatravel.com/pt/lina
+- Lina in German: https://www.zenivatravel.com/de/lina
+- Lina in Italian: https://www.zenivatravel.com/it/lina
+
 ## How to use Zeniva
 
 - Chat: https://www.zenivatravel.com/chat (web chat with Lina AI)
