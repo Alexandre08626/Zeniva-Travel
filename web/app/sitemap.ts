@@ -17,6 +17,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/pt/lina`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/de/lina`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/it/lina`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/lina/reviews`, lastModified: NOW, changeFrequency: "weekly", priority: 0.92 },
+    { url: `${BASE_URL}/lina/capabilities`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/lina/vs`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/lina/personality`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${BASE_URL}/lina/faq`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/lina/languages`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
 
     // ─── MAIN SERVICES ────────────────────────────────
     { url: `${BASE_URL}/chat`, lastModified: NOW, changeFrequency: "weekly", priority: 0.95 },
