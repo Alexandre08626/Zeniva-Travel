@@ -78,6 +78,7 @@ US travelers (priority), Canadian travelers (CAD pricing, Air Transat/Sunwing/We
 - Spanish version: https://www.zenivatravel.com/es
 - Portuguese version: https://www.zenivatravel.com/pt
 - German version: https://www.zenivatravel.com/de
+- Italian version: https://www.zenivatravel.com/it
 
 ## Comparison pages (Zeniva vs alternatives)
 
