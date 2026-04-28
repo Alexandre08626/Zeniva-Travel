@@ -44,6 +44,11 @@ export default function LinaPage() {
     sameAs: [
       "https://www.zenivatravel.com/chat",
       "https://www.zenivatravel.com/call",
+      "https://www.tiktok.com/@zeniva.travel",
+      "https://www.instagram.com/zeniva_travel/",
+      "https://www.facebook.com/p/Zeniva-61557743041715/",
+      "https://x.com/ZenivaLina",
+      "https://www.linkedin.com/company/zeniva-lina/",
     ],
   };
 
