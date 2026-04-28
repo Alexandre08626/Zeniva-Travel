@@ -9,6 +9,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/`, lastModified: NOW, changeFrequency: "daily", priority: 1.0 },
     { url: `${BASE_URL}/fr`, lastModified: NOW, changeFrequency: "daily", priority: 0.95 },
 
+    // ─── LINA (brand persona pages — high SEO value) ─
+    { url: `${BASE_URL}/lina`, lastModified: NOW, changeFrequency: "weekly", priority: 0.95 },
+    { url: `${BASE_URL}/lina/how-it-works`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/fr/lina`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/es/lina`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/pt/lina`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/de/lina`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/it/lina`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+
     // ─── MAIN SERVICES ────────────────────────────────
     { url: `${BASE_URL}/chat`, lastModified: NOW, changeFrequency: "weekly", priority: 0.95 },
     { url: `${BASE_URL}/call`, lastModified: NOW, changeFrequency: "weekly", priority: 0.95 },
