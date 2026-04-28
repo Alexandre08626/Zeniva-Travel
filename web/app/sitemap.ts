@@ -124,6 +124,26 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/pet-friendly-travel`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
     { url: `${BASE_URL}/anniversary-trips`, lastModified: NOW, changeFrequency: "monthly", priority: 0.85 },
 
+    // ─── INTERNATIONAL DEPARTURE CITIES ──────────────
+    { url: `${BASE_URL}/packages/from-london`, lastModified: NOW, changeFrequency: "weekly", priority: 0.92 },
+    { url: `${BASE_URL}/packages/from-paris`, lastModified: NOW, changeFrequency: "weekly", priority: 0.92 },
+    { url: `${BASE_URL}/packages/from-sydney`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/packages/from-mexico-city`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/packages/from-sao-paulo`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/packages/from-frankfurt`, lastModified: NOW, changeFrequency: "weekly", priority: 0.92 },
+
+    // ─── PT (Portuguese — Brazil + Portugal) ─────────
+    { url: `${BASE_URL}/pt`, lastModified: NOW, changeFrequency: "weekly", priority: 0.92 },
+    { url: `${BASE_URL}/pt/services/ai-travel-agent`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${BASE_URL}/pt/services/luxury-travel`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${BASE_URL}/pt/services/cruises`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
+
+    // ─── DE (German — Germany/Austria/Switzerland) ───
+    { url: `${BASE_URL}/de`, lastModified: NOW, changeFrequency: "weekly", priority: 0.92 },
+    { url: `${BASE_URL}/de/services/ai-travel-agent`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${BASE_URL}/de/services/luxury-travel`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${BASE_URL}/de/services/yacht-charter`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
+
     // ─── FR SERVICE PAGES ────────────────────────────
     { url: `${BASE_URL}/fr/services/yacht-charter`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
     { url: `${BASE_URL}/fr/services/villa-rental`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
