@@ -24,6 +24,28 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/lina/faq`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE_URL}/lina/languages`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
 
+    // ─── ASIAN + ARABIC + DUTCH (5 new languages) ────
+    { url: `${BASE_URL}/ja`, lastModified: NOW, changeFrequency: "weekly", priority: 0.92 },
+    { url: `${BASE_URL}/ja/lina`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/zh`, lastModified: NOW, changeFrequency: "weekly", priority: 0.92 },
+    { url: `${BASE_URL}/zh/lina`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/ko`, lastModified: NOW, changeFrequency: "weekly", priority: 0.92 },
+    { url: `${BASE_URL}/ko/lina`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/ar`, lastModified: NOW, changeFrequency: "weekly", priority: 0.92 },
+    { url: `${BASE_URL}/ar/lina`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/nl`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE_URL}/nl/lina`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
+
+    // ─── PRESS KIT ───────────────────────────────────
+    { url: `${BASE_URL}/press`, lastModified: NOW, changeFrequency: "monthly", priority: 0.9 },
+
+    // ─── 5 LINA CASE STUDY BLOG POSTS ────────────────
+    { url: `${BASE_URL}/blog/i-asked-lina-ai-to-plan-my-honeymoon`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${BASE_URL}/blog/i-asked-lina-vs-doing-it-myself`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${BASE_URL}/blog/i-asked-lina-emergency-trip-booking`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${BASE_URL}/blog/i-asked-lina-to-book-yacht-charter`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${BASE_URL}/blog/i-asked-lina-cheap-cancun-trip`, lastModified: NOW, changeFrequency: "monthly", priority: 0.88 },
+
     // ─── MAIN SERVICES ────────────────────────────────
     { url: `${BASE_URL}/chat`, lastModified: NOW, changeFrequency: "weekly", priority: 0.95 },
     { url: `${BASE_URL}/call`, lastModified: NOW, changeFrequency: "weekly", priority: 0.95 },
