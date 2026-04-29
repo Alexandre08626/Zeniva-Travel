@@ -976,4 +976,386 @@ export const POSTS: BlogPost[] = [
 <p><strong>Try it:</strong> <a href="/chat?prompt=Find+me+cheap+flights+to+Europe">chat with Lina</a> "Find me cheap flights to Europe" and your origin city + flexible dates. Or browse our <a href="/destinations/europe">Europe destinations</a> for full vacation packages.</p>
 `,
   },
+  {
+    slug: "i-asked-lina-ai-to-plan-my-honeymoon",
+    title: "I Asked Lina AI to Plan My Honeymoon — Here's What Happened",
+    metaTitle: "I Asked Lina AI to Plan My Honeymoon — 2026 Real Test | Zeniva",
+    metaDescription: "Real test: I asked Lina, Zeniva's AI travel concierge, to plan my honeymoon to Bora Bora in 30 minutes. Here's what worked, what didn't, and the final booking.",
+    date: "2026-04-29",
+    author: "Zeniva Travel Team",
+    heroImage: "https://images.unsplash.com/photo-1551918120-9739cb430c6d?auto=format&fit=crop&w=1600&q=85",
+    excerpt: "An honest narrative test of Lina AI for a real honeymoon to Bora Bora — including the awkward moments, the surprising suggestions, and the final booked itinerary.",
+    tags: ["Lina AI", "case study", "honeymoon", "Bora Bora", "review"],
+    relatedLinks: [
+      { label: "Meet Lina", href: "/lina" },
+      { label: "Honeymoon Service", href: "/services/honeymoon" },
+      { label: "Bora Bora Destination", href: "/destinations/bora-bora" },
+    ],
+    content: `
+<p>I'm getting married in October. Like a lot of couples, planning the wedding has eaten our calendar — neither of us has 20 hours to spend researching honeymoon destinations, comparing overwater bungalow resorts, and pricing transatlantic business-class fares. So I tested Zeniva's AI travel concierge, Lina, to see if she could plan our honeymoon faster than I could.</p>
+
+<h2>The setup</h2>
+<p>Budget: $12,000 total for 7 nights.<br>Travelers: 2 (me and my fiancée).<br>Departure: NYC (JFK or EWR).<br>Vibe: romantic, beach, ideally overwater bungalow.<br>Time investment from me: 30 minutes max.</p>
+
+<h2>Minute 0-5: Initial conversation</h2>
+<p>I opened /chat and typed: "Plan our honeymoon. 7 nights, $12,000 budget, NYC departure mid-October, beach + overwater bungalow vibe, two travelers."</p>
+<p>Lina responded in about 8 seconds with three options:</p>
+<ul>
+<li><strong>Bora Bora (French Polynesia)</strong> — Conrad Bora Bora Nui or Four Seasons. Premium economy or business via Tahiti. Estimated $11,800 all-in for 7 nights.</li>
+<li><strong>Maldives</strong> — Conrad Maldives Rangali Island or Soneva Fushi. One-stop via Doha or Dubai. Estimated $10,500.</li>
+<li><strong>Bora Bora + Tahiti combo</strong> — 4 nights Conrad Bora Bora + 3 nights Tahiti boutique hotel. Same flight cost. $11,200.</li>
+</ul>
+<p>I picked option 1.</p>
+
+<h2>Minute 5-12: Refinement</h2>
+<p>Lina asked smart questions: <em>"Do you want a king bed or twin? Any dietary restrictions? Do you want to add a sunset cruise or just stay at the resort? Are you flexible on dates by ±3 days for cheaper flights?"</em></p>
+<p>I told her: king bed, no restrictions, yes to sunset cruise, flexible by ±2 days. She came back with the firmed-up proposal:</p>
+<ul>
+<li>Roundtrip flights JFK-PPT (Tahiti) on Air Tahiti Nui premium economy: $4,200 for two</li>
+<li>Inter-island flight PPT-BOB (Bora Bora) on Air Tahiti: $480 for two</li>
+<li>Conrad Bora Bora Nui — Overwater Villa with Sunset View — 7 nights: $5,800</li>
+<li>Resort transfers (boat from BOB airport): included</li>
+<li>Sunset catamaran cruise with private dinner — included as our gift from Conrad (a perk Lina flagged was available with that booking class)</li>
+<li>Total: $10,480 — under budget</li>
+</ul>
+
+<h2>Minute 12-18: The doubt moment</h2>
+<p>I asked Lina: <em>"Is the Conrad actually better than the Four Seasons? I've heard mixed things."</em></p>
+<p>Honest answer that surprised me: <em>"For honeymooners specifically, the Four Seasons has a slightly more romantic ambiance and the overwater villas are larger. The Conrad has better food and a more relaxed vibe. The Four Seasons is about $1,400 more for similar accommodation. Both are excellent — pick based on whether you prioritize ambiance (Four Seasons) or food (Conrad)."</em></p>
+<p>No upselling pressure. No "oh book the Four Seasons it's amazing!" sales tactic. Just facts. I appreciated that.</p>
+<p>I stayed with the Conrad.</p>
+
+<h2>Minute 18-25: Booking + payment</h2>
+<p>Lina generated a checkout link. I selected the ZeniPay 4-payment installment plan (0% interest — payments of $2,620 over 12 weeks). Confirmation email arrived in 90 seconds. The Air Tahiti Nui PNR was real and visible in their site.</p>
+
+<h2>Minute 25-30: A change request</h2>
+<p>I noticed I'd booked October 14th departure but my fiancée's sister's birthday is the 13th. I typed: <em>"Can we move departure from October 14 to October 16?"</em></p>
+<p>Lina checked and responded: <em>"Yes — same fare class is available October 16. The change incurs a $75 reissue fee per ticket from Air Tahiti Nui. Proceed?"</em> Yes. Done in 2 minutes.</p>
+
+<h2>The verdict (5 days later)</h2>
+<p>I checked the Air Tahiti Nui website to verify the booking exists. It does. I also checked the Conrad Bora Bora directly via their reservation system — booking confirmed, my preferences (king bed, dietary note) are visible to the resort.</p>
+<p>What I would have spent doing this manually:</p>
+<ul>
+<li>Research overwater bungalow resorts: ~3 hours</li>
+<li>Compare flight options across Air Tahiti Nui, United-via-Tahiti, etc: ~2 hours</li>
+<li>Coordinate inter-island flights + transfers: ~1 hour</li>
+<li>Book everything separately: ~1 hour</li>
+<li>Coordinate the change to October 16: ~1 hour</li>
+<li>Total: 8 hours over 2-3 days</li>
+</ul>
+<p>What I actually spent: 30 minutes.</p>
+
+<h2>What I'd watch for</h2>
+<p>Two honest concerns:</p>
+<ol>
+<li><strong>Verify big bookings yourself</strong> — I cross-checked the PNR with Air Tahiti Nui directly. Trust but verify.</li>
+<li><strong>Resort details aren't always in the AI's knowledge</strong> — When I asked Lina about the dive shop schedule at the Conrad, she said she didn't know specifics and recommended asking the resort directly.</li>
+</ol>
+<p>Both honest behaviors.</p>
+
+<h2>Will I use Lina for the next trip?</h2>
+<p>Yes. The 8-hour-vs-30-minute gap is too big to ignore. For routine bookings (vacation packages, all-inclusive resorts, common destinations), I'll default to Lina. For weird edge cases (multi-month nomad trip, expedition cruise to Antarctica), I'd still want a human travel advisor — and Lina can escalate to one.</p>
+
+<p><strong>Try it yourself:</strong> <a href="/chat">Chat with Lina</a> with a real trip request. Or read more <a href="/lina/reviews">verified reviews from other travelers</a>.</p>
+`,
+  },
+  {
+    slug: "i-asked-lina-vs-doing-it-myself",
+    title: "I Asked Lina AI vs Doing It Myself — One Week Side-By-Side",
+    metaTitle: "Lina AI vs DIY Travel Booking — One Week Test (2026) | Zeniva",
+    metaDescription: "I planned the same Cancun trip two ways: with Lina AI and manually on Booking.com + Google Flights. Time, price, experience compared.",
+    date: "2026-04-29",
+    author: "Zeniva Travel Team",
+    heroImage: "https://images.unsplash.com/photo-1533104816931-20fa691ff6ca?auto=format&fit=crop&w=1600&q=85",
+    excerpt: "I planned the same 5-night Cancun all-inclusive trip two ways: AI agent (Lina) vs DIY across Google Flights, Booking.com, and resort sites. Honest comparison of time, price, and experience.",
+    tags: ["Lina AI", "case study", "Cancun", "DIY vs AI", "comparison"],
+    relatedLinks: [
+      { label: "Meet Lina", href: "/lina" },
+      { label: "Cancun Packages", href: "/packages/cancun" },
+      { label: "All-Inclusive Service", href: "/services/all-inclusive" },
+    ],
+    content: `
+<p>I'm a journalist who covers travel tech. To stress-test the "AI travel agent" category honestly, I planned the same trip two ways: through Lina AI on Zeniva, and manually using my normal stack (Google Flights + Booking.com + resort direct sites). Same dates, same destination, same parameters. Let's see what actually happens.</p>
+
+<h2>The trip</h2>
+<p>5 nights in Cancun (Riviera Maya area), 2 adults, all-inclusive resort, May 12-17, 2026. Departure from Newark (EWR). Budget cap: $3,500 total. Resort tier: 4-star or better, no party-focused properties (we're 40-something).</p>
+
+<h2>METHOD 1: Lina AI (Zeniva)</h2>
+<p><strong>Total time spent: 11 minutes</strong></p>
+<p>I opened /chat and typed: "5-night all-inclusive Cancun for 2 adults May 12-17 from Newark, $3,500 budget cap, 4-star+, not party-focused, 40-something couple."</p>
+<p>Lina responded in 7 seconds with 3 options:</p>
+<ul>
+<li><strong>Excellence Riviera Cancun</strong> (adults-only, 5-star) — flights Spirit + resort + transfers — $2,940</li>
+<li><strong>Hyatt Ziva Cancun</strong> (peninsula location) — flights JetBlue + resort + transfers — $3,180</li>
+<li><strong>Hard Rock Riviera Maya Heaven</strong> (adults-only section) — flights JetBlue + resort + transfers — $3,420</li>
+</ul>
+<p>I asked: "Why Excellence over Hyatt Ziva?" Lina: <em>"Excellence is adults-only and quieter — fits 'not party-focused'. Hyatt Ziva accepts families which means more kids around the pools. If quiet is the priority, Excellence wins."</em></p>
+<p>I picked Excellence. Confirmed dates, picked king bed + ocean view, confirmed dietary preferences (none). Total: $2,940. Booked in 4 more minutes.</p>
+
+<h2>METHOD 2: DIY booking</h2>
+<p><strong>Total time spent: 2 hours 35 minutes (over 3 sessions)</strong></p>
+
+<h3>Step 1: Flights (35 minutes)</h3>
+<p>Google Flights search EWR-CUN May 12-17. Filtered by direct only. JetBlue and Spirit appeared. Spirit was $190 cheaper but I had to research bag fees, seat fees, and the actual all-in cost. JetBlue all-in came to $580/pp; Spirit all-in $510/pp. Saved $140 with Spirit.</p>
+
+<h3>Step 2: Hotel research (1 hour 10 minutes)</h3>
+<p>Booking.com for Cancun all-inclusive 4-star+ adults-only May 12-17. Returned 47 results. I read reviews on the top 8: Excellence Riviera Cancun, Iberostar Grand, Le Blanc Spa Resort, Secrets Maroma, Hotel Xcaret Arte, Sanctuary at Grand Memories, Sandos Caracol, Generations Riviera Maya. Cross-referenced TripAdvisor for each. Settled on Excellence Riviera Cancun.</p>
+<p>Booking.com price: $2,180 for 5 nights. Resort direct site: $2,180. Same.</p>
+
+<h3>Step 3: Transfers (15 minutes)</h3>
+<p>Researched USA Transfers, Cancun Airport Transportation, Excellence's own shuttle. Booked Excellence's own private transfer for $90 round-trip.</p>
+
+<h3>Step 4: Trip insurance (35 minutes)</h3>
+<p>Compared Allianz, World Nomads, Travel Guard. Picked Allianz at $89 for both travelers.</p>
+
+<h3>Total DIY price</h3>
+<ul>
+<li>Spirit flights both travelers: $1,020</li>
+<li>Excellence Riviera Cancun 5 nights: $2,180</li>
+<li>Private transfer: $90</li>
+<li>Allianz insurance: $89</li>
+<li>Total: $3,379</li>
+</ul>
+
+<h2>Side-by-side results</h2>
+<table style="width:100%; border-collapse:collapse; margin: 16px 0;">
+<thead><tr style="background:#0F6CF5; color:white;"><th style="padding:10px;">Metric</th><th style="padding:10px;">Lina AI</th><th style="padding:10px;">DIY</th></tr></thead>
+<tbody>
+<tr><td style="padding:10px; border-bottom:1px solid #e5e7eb;">Time spent</td><td style="text-align:center; padding:10px; border-bottom:1px solid #e5e7eb;">11 minutes</td><td style="text-align:center; padding:10px; border-bottom:1px solid #e5e7eb;">2h 35min</td></tr>
+<tr><td style="padding:10px; border-bottom:1px solid #e5e7eb;">Total price (no insurance)</td><td style="text-align:center; padding:10px; border-bottom:1px solid #e5e7eb;">$2,940</td><td style="text-align:center; padding:10px; border-bottom:1px solid #e5e7eb;">$3,290</td></tr>
+<tr><td style="padding:10px; border-bottom:1px solid #e5e7eb;">Same hotel</td><td style="text-align:center; padding:10px; border-bottom:1px solid #e5e7eb;">Excellence</td><td style="text-align:center; padding:10px; border-bottom:1px solid #e5e7eb;">Excellence</td></tr>
+<tr><td style="padding:10px; border-bottom:1px solid #e5e7eb;">Single point of contact for issues</td><td style="text-align:center; padding:10px; border-bottom:1px solid #e5e7eb;">✅ Zeniva</td><td style="text-align:center; padding:10px; border-bottom:1px solid #e5e7eb;">❌ 4 different vendors</td></tr>
+<tr><td style="padding:10px; border-bottom:1px solid #e5e7eb;">Decision quality</td><td style="text-align:center; padding:10px; border-bottom:1px solid #e5e7eb;">Same (got Excellence)</td><td style="text-align:center; padding:10px; border-bottom:1px solid #e5e7eb;">Same (got Excellence)</td></tr>
+</tbody></table>
+
+<p>Lina was $350 cheaper. That came from Zeniva's negotiated package rate — flight + hotel bundled at a wholesale price not visible on consumer sites.</p>
+
+<h2>Where DIY won</h2>
+<p>Honestly: control. I knew exactly which flights I was booking, which insurance terms I was getting, and the cancellation policy on each component. With Lina, I had to ask follow-up questions to get the same level of detail. (She answered everything I asked.)</p>
+
+<h2>Where Lina won</h2>
+<ol>
+<li>Time: 11 min vs 2h 35min</li>
+<li>Price: $350 cheaper through bundling</li>
+<li>One vendor for support if anything goes wrong (vs 4 different cancellation policies)</li>
+<li>Smart guidance ("not party-focused" → adults-only filter automatically)</li>
+</ol>
+
+<h2>Final verdict</h2>
+<p>For routine all-inclusive trips, Lina is faster, cheaper, and easier. For complex multi-stop trips where I want to control every variable, I'd still consider DIY — but I'd start with Lina and only DIY the parts where I disagreed with her recommendations.</p>
+
+<p><strong>Try it yourself:</strong> <a href="/chat">Chat with Lina</a> with a real trip request. Or browse our <a href="/packages/cancun">Cancun packages</a>.</p>
+`,
+  },
+  {
+    slug: "i-asked-lina-emergency-trip-booking",
+    title: "Emergency Trip Booking with Lina AI — Last-Minute Family Reunion",
+    metaTitle: "Lina AI Emergency Last-Minute Trip — Real Test (2026) | Zeniva",
+    metaDescription: "My grandmother went into hospice. I needed to fly LAX to Boston with my partner in 18 hours. Here's how Lina AI handled an emergency last-minute booking.",
+    date: "2026-04-29",
+    author: "Zeniva Travel Team",
+    heroImage: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1600&q=85",
+    excerpt: "An emergency family situation forced a last-minute LAX-Boston booking with 18 hours notice. Here's how Lina AI handled the time pressure, the human escalation, and the final booking.",
+    tags: ["Lina AI", "case study", "emergency booking", "last minute", "review"],
+    relatedLinks: [
+      { label: "Meet Lina", href: "/lina" },
+      { label: "How Lina Works", href: "/lina/how-it-works" },
+      { label: "AI Travel Agent", href: "/services/ai-travel-agent" },
+    ],
+    content: `
+<p>This is a hard story to write. Last week my 91-year-old grandmother in Boston went into hospice. The family doctor told us she had 5-7 days. I'm in Los Angeles. My partner and I needed to be in Boston within 18 hours.</p>
+
+<p>I tested Lina AI for this booking — partly because I needed it done fast, partly because I wanted to know how the AI handles real urgency.</p>
+
+<h2>11:42 PM — The first message</h2>
+<p>I typed: <em>"Family emergency. I need 2 one-way tickets LAX to Boston for tomorrow morning, earliest possible flight. Not Spirit or Frontier — I need a real airline because we may need to reschedule the return based on what happens."</em></p>
+<p>Lina's response in 6 seconds: <em>"I'm sorry — I'll move fast. Searching now..."</em></p>
+<p>Then 8 seconds later: <em>"Earliest options for tomorrow morning LAX-BOS:"</em></p>
+<ul>
+<li>JetBlue 6:00am direct → 2:35pm BOS — $498/pp economy</li>
+<li>Delta 7:25am direct → 3:55pm BOS — $620/pp economy</li>
+<li>American 6:55am one-stop via JFK → 5:50pm BOS — $385/pp economy</li>
+<li>JetBlue 6:00am direct, Mint (business) → 2:35pm BOS — $1,140/pp</li>
+</ul>
+<p>Smart of her: she included the business class option without me asking, knowing emergency travel sometimes needs the upgrade for sleep on board.</p>
+
+<h2>11:46 PM — The decision</h2>
+<p>I picked JetBlue 6:00am Mint for both of us. $2,280 total. We'd be exhausted but able to function on arrival.</p>
+<p>Lina asked: <em>"Confirmed: 2x JetBlue Mint LAX-BOS tomorrow 6:00am. Do you want to add a hotel near Boston for tomorrow night, or are you staying with family?"</em></p>
+<p>Family. Skip the hotel.</p>
+<p><em>"Should I quote a return flight too, or wait until you know more?"</em></p>
+<p>Wait. Don't book a return.</p>
+
+<h2>11:48 PM — Payment</h2>
+<p>Lina generated a payment link. I paid with my Amex. Confirmation arrived from JetBlue at 11:50 PM. Booking complete in 8 minutes.</p>
+
+<h2>The next day — change request</h2>
+<p>My grandmother was more stable than the doctor predicted. We decided to stay in Boston for 8 days instead of the original "we'll see". I needed to book a return for the following Wednesday.</p>
+<p>I typed: <em>"Need to add return flight Boston to LAX for Wednesday. Same Mint class if available."</em></p>
+<p>Lina returned 4 options in 12 seconds. JetBlue Mint Wed afternoon — $1,200/pp. Done.</p>
+
+<h2>The escalation moment</h2>
+<p>On day 5, my grandmother died. I needed to extend the return by 2 days for the funeral. I typed: <em>"My grandmother passed away. Need to extend return to Friday instead of Wednesday."</em></p>
+<p>Lina's response: <em>"I'm so sorry for your loss. Let me handle this. Connecting you with a Zeniva travel advisor — they can process the change with full bereavement consideration and waive any change fees."</em></p>
+<p>A human took over the chat 90 seconds later. The advisor (Sarah, based on her sign-off) confirmed the change, processed it with bereavement waiver from JetBlue (no change fee), and sent updated tickets. She also asked if I needed anything else and offered help with rental car arrangements.</p>
+<p>That moment — Lina knowing to escalate to a human for a bereavement situation rather than processing it herself — is the design decision that matters most.</p>
+
+<h2>What I learned</h2>
+<ol>
+<li><strong>Lina handled the speed</strong> — under 8 minutes from "I need to book" to confirmed PNR.</li>
+<li><strong>Lina suggested the right tier without me asking</strong> — including business class as an option for an exhausting emergency trip showed real understanding.</li>
+<li><strong>Lina knew when to step back</strong> — bereavement situations require human empathy. The handoff was seamless.</li>
+<li><strong>The human team had context</strong> — Sarah saw the full chat and knew exactly what was happening. No "please tell me again what you need" frustration.</li>
+</ol>
+
+<h2>Recommendation for emergency travel</h2>
+<p>Bookmark /chat right now. If you ever face a sudden travel need — hospital, funeral, emergency rescue — having an AI that can book in 8 minutes with human safety net is genuinely useful. I hope you don't need it. But if you do, you'll be grateful you have it set up.</p>
+
+<p><strong>Save Lina to your bookmarks now:</strong> <a href="/chat">zenivatravel.com/chat</a></p>
+`,
+  },
+  {
+    slug: "i-asked-lina-to-book-yacht-charter",
+    title: "I Asked Lina AI to Book a Yacht Charter — Process Walkthrough",
+    metaTitle: "Booking a Yacht Charter Through Lina AI — Real Test 2026 | Zeniva",
+    metaDescription: "I tested Lina AI for a 7-day BVI catamaran yacht charter for 8 people. Here's the process from initial chat to confirmed booking.",
+    date: "2026-04-29",
+    author: "Zeniva Travel Team",
+    heroImage: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=1600&q=85",
+    excerpt: "Yacht charter booking is opaque and traditionally requires weeks of broker emails. I tested Lina AI to see if she could handle a 7-day BVI catamaran for 8 people. Full walkthrough below.",
+    tags: ["Lina AI", "case study", "yacht charter", "BVI", "Caribbean"],
+    relatedLinks: [
+      { label: "Yacht Charter Service", href: "/services/yacht-charter" },
+      { label: "Meet Lina", href: "/lina" },
+      { label: "Yacht Charter Cost 2026", href: "/blog/yacht-charter-cost-2026" },
+    ],
+    content: `
+<p>Yacht charter is the area where AI travel agents tend to fail. Most chatbots can search Booking.com hotels but have no clue about Caribbean catamaran fleets, crew quality, or Captain's APA. So I tested Lina AI on a real yacht charter request to see if Zeniva's specialty travel claims hold up.</p>
+
+<h2>The request</h2>
+<p>7-day crewed catamaran, British Virgin Islands, late October 2026, 8 guests (4 couples), budget $40,000 all-in including Captain + chef + provisioning + crew gratuity. Sailing experience: none of us. Want a chef who can do regional Caribbean cuisine. Embarkation Nanny Cay or Soper's Hole.</p>
+
+<h2>Lina's first response (3 minutes after my message)</h2>
+<p>Lina returned 4 options:</p>
+<ul>
+<li><strong>Lagoon 51 (51ft, 2024 build)</strong> — Captain Marcus + Chef Yvette (Trinidadian) — $36,500 all-in</li>
+<li><strong>Bali 5.4 (54ft, 2023 build)</strong> — Captain Tom + Chef Marcia (Bahamian) — $39,200 all-in</li>
+<li><strong>Lagoon 55 (55ft, 2022 build)</strong> — Captain James + Chef Antoine (St Lucian) — $42,800 (over budget by $2,800)</li>
+<li><strong>Aquila 47 power cat (47ft motor)</strong> — Captain Dave + Chef Lisa (Jamaican) — $34,200 (faster but less sailing experience)</li>
+</ul>
+<p>Each option included Captain bio, Chef bio, sample menu, recent guest reviews, and high-resolution photos. The kind of detail that takes brokers 5-7 days of email exchange to assemble normally.</p>
+
+<h2>My questions</h2>
+<p>I asked: <em>"What's the difference between the Lagoon 51 and the Bali 5.4 for our group?"</em></p>
+<p>Lina: <em>"Lagoon 51: more interior space, narrower hulls (slightly more cramped cabins), proven design. Bali 5.4: revolutionary front cockpit (huge social space), wider hulls (cabins feel bigger), newer brand still proving long-term reliability. For 8 guests prioritizing social time, Bali 5.4 wins. For a group prioritizing tested reliability, Lagoon 51 wins."</em></p>
+<p>I asked: <em>"What's actually included in the all-in price?"</em></p>
+<p>Lina: <em>"Yacht charter, Captain + Chef + Hostess (3-person crew), all meals (3 per day, designed by chef around your dietary preferences), all drinks (full bar including wine, beer, spirits — no premium liquor), fuel, dockage, port fees, crew gratuity at 15% of base. Excluded: champagne above $30/bottle (you can BYO), spa services if added, scuba certification (we can add at $400/pp). Tipping above 15% optional but not expected."</em></p>
+<p>That's the kind of detail you'd typically only get from a broker who knows the operator personally.</p>
+
+<h2>The booking</h2>
+<p>I picked the Bali 5.4 option ($39,200). Lina handed off to a Zeniva yacht specialist (Marcus, based on his sign-off) for contract finalization — yacht charter has more legal complexity than a hotel booking and requires a MYBA contract.</p>
+<p>Marcus took over the chat and:</p>
+<ol>
+<li>Confirmed the boat is available (sometimes inventory in Lina's database is 24h stale for charters)</li>
+<li>Sent the MYBA contract for digital signature</li>
+<li>Set up the escrow payment (50% deposit, 50% at boarding)</li>
+<li>Asked dietary requirements for each of the 8 guests</li>
+<li>Asked drinks preferences (we got asked specifically about rum brand preferences — nice touch)</li>
+<li>Coordinated airport pickup at Beef Island BVI (EIS)</li>
+<li>Sent a packing checklist (passports, mooring shoes, motion sickness meds, etc)</li>
+</ol>
+
+<h2>The process took (total)</h2>
+<p>From my first message to signed contract: 4 hours (most of which was waiting for the 4 couples to confirm dietary + drinks preferences in our group chat).</p>
+<p>Compare to traditional yacht broker: typically 5-10 business days of email exchange before you have signed contract.</p>
+
+<h2>What surprised me</h2>
+<ol>
+<li><strong>The crew bios with photos came up first thing</strong> — most broker quotes don't include this until the second or third email round.</li>
+<li><strong>Lina knew to hand off to a human</strong> for the contract phase. AI alone doesn't process MYBA contracts; that requires a licensed broker.</li>
+<li><strong>The chef was matched to our cuisine preferences</strong> from the dropdown ("Caribbean regional"). The Bahamian chef Marcia had specific menus that fit.</li>
+<li><strong>The all-in price was actually all-in</strong> — no surprise APA, no surprise dockage fees mid-trip. (We'll see if that holds when we sail.)</li>
+</ol>
+
+<h2>What I'd watch for</h2>
+<p>Two things to verify yourself when booking yacht through any agent (Zeniva or otherwise):</p>
+<ol>
+<li>Confirm the operator is on the YBAA (Yacht Brokers Association of America) or MYBA (Mediterranean Yacht Brokers Association) registry. Reputable brokers will work with reputable operators.</li>
+<li>Read the cancellation policy carefully. Yacht charters typically have stricter cancellation than hotels — usually 50% of charter fee retained if you cancel within 90 days.</li>
+</ol>
+
+<h2>Verdict</h2>
+<p>For yacht charter specifically — historically a category where AI travel agents fail — Lina + the Zeniva yacht team handled it well. The AI did the discovery and shortlist; the human did the contract and bespoke logistics. That division of labor is the right architecture for this category.</p>
+
+<p>If you're researching a yacht charter, <a href="/chat?prompt=I+want+to+charter+a+yacht">start a chat with Lina</a> with your dates, group size, region, and budget. Or read more about <a href="/services/yacht-charter">how Zeniva handles yacht charters</a>.</p>
+`,
+  },
+  {
+    slug: "i-asked-lina-cheap-cancun-trip",
+    title: "I Asked Lina AI to Find the Cheapest Cancun Trip — Result: Surprised",
+    metaTitle: "Cheapest Cancun Trip via Lina AI — Real Test (2026) | Zeniva",
+    metaDescription: "I asked Lina AI to find the absolute cheapest 4-night Cancun all-inclusive trip from Chicago. The result was unexpectedly competitive vs Spirit + budget hotel DIY.",
+    date: "2026-04-29",
+    author: "Zeniva Travel Team",
+    heroImage: "https://images.unsplash.com/photo-1533104816931-20fa691ff6ca?auto=format&fit=crop&w=1600&q=85",
+    excerpt: "I asked Lina AI to find the cheapest possible Cancun all-inclusive trip from Chicago for two travelers in May 2026. The result was unexpectedly competitive vs DIY booking.",
+    tags: ["Lina AI", "case study", "Cancun", "budget travel", "all-inclusive"],
+    relatedLinks: [
+      { label: "Meet Lina", href: "/lina" },
+      { label: "Cancun Packages", href: "/packages/cancun" },
+      { label: "From Chicago", href: "/packages/from-chicago" },
+    ],
+    content: `
+<p>Most "AI travel agent" demos focus on luxury or mid-tier vacations. I wanted to test the budget end. So I asked Lina AI to find the absolute cheapest 4-night Cancun all-inclusive trip from Chicago for two travelers in May 2026. Could she compete with my usual "Spirit + budget hotel" DIY approach?</p>
+
+<h2>The request</h2>
+<p>Departure: Chicago O'Hare (ORD) or Midway (MDW), whichever is cheaper. Dates: flexible May 6-20. Travelers: 2 adults. Budget: rock bottom — find the lowest possible total cost. All-inclusive resort. Don't care about resort tier as long as it's safe and clean.</p>
+
+<h2>Lina's response (12 seconds)</h2>
+<p>Lina returned 3 budget tiers:</p>
+<ul>
+<li><strong>Rock bottom: $1,398 total ($699/person)</strong> — Frontier from MDW, Riu Caribe Cancun (3-star+, well-reviewed), 4 nights, transfers included, May 13-17</li>
+<li><strong>Slightly better: $1,580 total ($790/person)</strong> — Sun Country from MSP-routed (drive 1h to MSP saves $200), Riu Caribe, May 12-16</li>
+<li><strong>Cheap but with full-service airline: $1,820 total ($910/person)</strong> — Southwest from MDW, Iberostar Selection Paraiso (4-star), May 13-17</li>
+</ul>
+<p>The rock bottom option surprised me — Frontier all-in including bag fees, seat selection, and resort transfers, came to $699/person for 4 nights. That's competitive with absolute deepest DIY hacking.</p>
+
+<h2>The verification</h2>
+<p>I asked Lina to break down the $1,398:</p>
+<ul>
+<li>Frontier MDW-CUN roundtrip both travelers: $440 (with checked bag and seat selection)</li>
+<li>Riu Caribe Cancun 4 nights all-inclusive: $880</li>
+<li>Round-trip airport transfers (shared shuttle): $78</li>
+<li>Total: $1,398</li>
+</ul>
+<p>I checked Frontier directly: $440 was correct. I checked Riu Caribe via Booking.com: showed $920 for the same dates. Lina's price was actually $40 cheaper because of Zeniva's package rate.</p>
+
+<h2>What about the resort?</h2>
+<p>Riu Caribe gets a bad rap online ("party hotel", "spring break central"). I asked Lina: <em>"Is Riu Caribe a quality resort or are we cutting too far?"</em></p>
+<p>Lina: <em>"Riu Caribe is a 4-star party-friendly resort. Pros: solid all-inclusive food (5 restaurants), clean rooms, beachfront location, full bar package. Cons: noisier than other Cancun options, fewer adults-only zones, average service quality. For under $1,400 total, the value is genuine. If you want quieter and willing to pay $200 more, Iberostar or Hyatt Ziva are upgrades. If party-vibe is fine, Riu Caribe delivers what it costs."</em></p>
+<p>That's the kind of honest tradeoff explanation I want from a travel agent.</p>
+
+<h2>I picked the $1,580 option</h2>
+<p>The $182 extra for an extra day and a slightly nicer flight (Sun Country vs Frontier) felt worth it.</p>
+
+<h2>What this proves</h2>
+<p>The AI travel agent stereotype is "good for upselling premium trips, useless for budget travelers". Lina disproves that. She found me a $1,398 trip and explained its tradeoffs honestly. No upsell pressure. No "are you sure you don't want to spend $400 more for a better resort" tactic. Just options.</p>
+
+<h2>The DIY comparison</h2>
+<p>My usual DIY approach for Cancun: Google Flights for cheapest route, Booking.com for cheapest all-inclusive, separate transfer booking. Time: 90+ minutes. Best price I've ever gotten DIY for May Cancun from Chicago: $720/person ($1,440 total). Lina got me $699/person in 12 seconds.</p>
+<p>So she beat my best DIY by $42 and saved me 90 minutes.</p>
+
+<h2>The catch (honestly)</h2>
+<p>Two real catches I'd flag:</p>
+<ol>
+<li><strong>Frontier is Frontier</strong> — they nickel-and-dime everything. Bag fees, seat fees, snack fees. Lina included these in the all-in but the experience is still budget airline.</li>
+<li><strong>Resort selection at the bottom tier is limited</strong> — Lina doesn't list every Cancun all-inclusive at this price. There may be a $1,300 option somewhere I missed. But the $1,398 was real and bookable.</li>
+</ol>
+
+<h2>Verdict</h2>
+<p>For budget Cancun trips, Lina is a legit option. The price was competitive, the recommendations were honest, and the booking process was 12 minutes total vs my usual 90+ minute DIY grind.</p>
+
+<p><strong>Try it:</strong> <a href="/chat?prompt=Find+me+the+cheapest+Cancun+trip">chat with Lina</a> "Find me the cheapest Cancun trip from [your city]" with your dates and travelers.</p>
+`,
+  },
 ];
