@@ -128,8 +128,12 @@ const es: Messages = {
   },
 };
 
-const dictionaries: Record<Locale, Messages> = { en, fr, es };
+// Only en/fr/es have full UI dictionaries. New locales (pt, de, it, ja, zh, ko, ar, nl)
+// fall back to English UI strings while their pages provide native content via /pt, /de,
+// /it, /ja, /zh, /ko, /ar, /nl routes. AutoTranslate component handles dynamic content
+// translation when those locales are selected.
+const dictionaries: Partial<Record<Locale, Messages>> = { en, fr, es };
 
 export function getDictionary(locale: Locale): Messages {
-  return dictionaries[locale] || dictionaries.en;
+  return dictionaries[locale] || dictionaries.en!;
 }
