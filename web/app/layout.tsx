@@ -191,7 +191,7 @@ export default function RootLayout({
             fbq('track', 'PageView');
           `}} />
         )}
-        {/* JSON-LD Structured Data — TravelAgency + Organization + WebSite + FAQ */}
+        {/* JSON-LD Structured Data — TravelAgency + Organization + WebSite (FAQPage moved to /lina/faq where the Q&A is visible) */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -279,52 +279,6 @@ export default function RootLayout({
                   },
                   "query-input": "required name=search_term_string"
                 }
-              },
-              {
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                "mainEntity": [
-                  {
-                    "@type": "Question",
-                    "name": "What is Zeniva?",
-                    "acceptedAnswer": {
-                      "@type": "Answer",
-                      "text": "Zeniva is a US-based AI travel agency incorporated in Delaware. We use Lina AI, our 24/7 artificial intelligence concierge, to plan luxury vacations, custom trips, group travel, and yacht charters for clients across all 50 US states and Canada."
-                    }
-                  },
-                  {
-                    "@type": "Question",
-                    "name": "How does Lina AI work?",
-                    "acceptedAnswer": {
-                      "@type": "Answer",
-                      "text": "Lina is Zeniva's AI travel concierge. You simply describe your trip — destination, dates, budget, preferences — and Lina instantly builds a complete travel proposal including flights, hotels, transfers, and experiences. Available 24/7 via chat or voice call."
-                    }
-                  },
-                  {
-                    "@type": "Question",
-                    "name": "Does Zeniva offer yacht charters?",
-                    "acceptedAnswer": {
-                      "@type": "Answer",
-                      "text": "Yes. Zeniva offers private yacht charters and sailing trips worldwide. Our expert yacht brokers validate every booking. Visit zenivatravel.com/yachts for more information."
-                    }
-                  },
-                  {
-                    "@type": "Question",
-                    "name": "What destinations does Zeniva serve?",
-                    "acceptedAnswer": {
-                      "@type": "Answer",
-                      "text": "Zeniva serves 200+ destinations worldwide including Cancún, Maldives, Bali, Dubai, Paris, Miami, Tokyo, Santorini, Caribbean, and more. We specialize in luxury vacations and all-inclusive packages for US and Canadian travelers."
-                    }
-                  },
-                  {
-                    "@type": "Question",
-                    "name": "Is Zeniva available in French?",
-                    "acceptedAnswer": {
-                      "@type": "Answer",
-                      "text": "Yes. Zeniva is fully bilingual. Lina AI and all our services are available in English and French. Visit zenivatravel.com/fr for the French version of our website."
-                    }
-                  }
-                ]
               }
             ])
           }}
