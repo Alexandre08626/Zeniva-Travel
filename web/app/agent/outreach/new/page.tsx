@@ -151,6 +151,7 @@ export default function NewCampaignPage() {
               <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"><option value="all">All statuses</option>{(AUDIENCE_STATUS[audience] || []).map((s) => <option key={s} value={s}>{s}</option>)}</select>
               <span className="text-sm text-violet-600 font-semibold self-center">{selectedCount} selected of {total}</span>
               <button onClick={() => { setSelectAll(!selectAll); setSelected(new Set()); }} className="text-sm text-violet-600 hover:text-violet-800 font-semibold self-center underline">{selectAll ? "Deselect all" : "Select all matching"}</button>
+              <button onClick={() => setStep(1)} disabled={selectedCount === 0} className="ml-auto px-4 py-2 bg-violet-600 text-white rounded-xl font-semibold text-sm hover:bg-violet-700 disabled:opacity-40">Next: Compose {"→"}</button>
             </div>
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-4">
               {loading ? (<div className="p-6 space-y-3">{[1, 2, 3, 4, 5].map((i) => <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />)}</div>) : (
