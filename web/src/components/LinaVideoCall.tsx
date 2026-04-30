@@ -53,6 +53,12 @@ const VAD_SILENCE_MS = 900;        // ms of silence after speech → end of turn
 const VAD_MIN_AUDIO_BYTES = 6000;  // skip sends smaller than this (likely noise)
 const VAD_MAX_TURN_MS = 15000;     // hard stop after 15s without silence
 
+// Barge-in: while Lina speaks, the mic still listens but with a HIGHER
+// threshold so echo bleed from her own audio doesn't trigger interruption.
+// Echo cancellation in getUserMedia() handles most of it; this guards the rest.
+const BARGE_IN_THRESHOLD = 28;     // ~2.3x normal — must be clearly louder than echo
+const BARGE_IN_SUSTAIN_MS = 250;   // user must be above threshold for this long
+
 export default function LinaVideoCall({ tripId }: { tripId: string }) {
   const [state, setState] = useState<CallState>("idle");
   const [transcript, setTranscript] = useState<{ role: string; text: string }[]>([]);
@@ -80,6 +86,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
   const speechStartedRef = useRef(false);
   const lastAboveRef = useRef(0);
   const recStartedAtRef = useRef(0);
+  const bargeInStartRef = useRef(0); // when user-loudness first crossed threshold during Lina's speech
 
   // TTS queue
   const ttsQueueRef = useRef<{ text: string; lang: Lang }[]>([]);
@@ -437,14 +444,6 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       return;
     }
 
-    // Don't VAD while Lina speaks — we'd record her own voice bleed
-    if (speakingRef.current) {
-      if (recorderRef.current?.state === "recording") stopRecording(false);
-      speechStartedRef.current = false;
-      rafRef.current = requestAnimationFrame(vadTick);
-      return;
-    }
-
     const data = new Uint8Array(analyser.fftSize);
     analyser.getByteTimeDomainData(data);
     let peak = 0;
@@ -453,6 +452,37 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       if (d > peak) peak = d;
     }
     const now = Date.now();
+
+    // Barge-in: if Lina is speaking and the user starts talking loudly,
+    // cut Lina off and let the user take the floor. Higher threshold +
+    // sustain window prevents echo bleed from triggering false interrupts.
+    if (speakingRef.current) {
+      if (peak > BARGE_IN_THRESHOLD) {
+        if (bargeInStartRef.current === 0) bargeInStartRef.current = now;
+        if (now - bargeInStartRef.current >= BARGE_IN_SUSTAIN_MS) {
+          // Stop the audio that's currently playing
+          const cur = currentAudioRef.current;
+          if (cur) {
+            try { cur.pause(); cur.currentTime = 0; } catch {}
+            currentAudioRef.current = null;
+          }
+          // Drain the queue so Lina doesn't continue with the next chunk
+          ttsQueueRef.current = [];
+          ttsRunningRef.current = false;
+          speakingRef.current = false;
+          bargeInStartRef.current = 0;
+          // Hand the floor to the user immediately
+          speechStartedRef.current = true;
+          lastAboveRef.current = now;
+          startRecording();
+          setState("listening");
+        }
+      } else {
+        bargeInStartRef.current = 0;
+      }
+      rafRef.current = requestAnimationFrame(vadTick);
+      return;
+    }
 
     if (peak > VAD_SPEECH_THRESHOLD) {
       if (!speechStartedRef.current) {
