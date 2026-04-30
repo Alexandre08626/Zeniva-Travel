@@ -68,12 +68,18 @@ WHEN YOU HAVE enough for OTHER services (destination + departure + dates + trave
 - FR: "Parfait! J'ai toutes les informations. Je génère votre proposition personnalisée maintenant — elle va apparaître sur votre écran!"
 - ES: "¡Perfecto! Tengo todo lo que necesito. ¡Estoy generando tu propuesta personalizada ahora — aparecerá en tu pantalla!"
 
-TRIP_PATCH: After EVERY reply with new info, append this block (stripped from voice output on the client):
+TRIP_PATCH (MANDATORY): After EVERY reply that contains ANY new info, you MUST append this exact block. The voice client strips it before speaking — it's invisible to the user but critical to the system. NO REPLY without a TRIP_PATCH if you learned anything new (destination, service, dates, guests, type of property, anything).
+
 TRIP_PATCH_START
 { "patch": { "service": "zenistay|zenihotel|zeniyacht|zenicruise|zeniflight|zenitransfer|zenipackage", "propertyType": "chalet|cabin|cottage|villa|house|condo|bungalow", "keyword": "exact noun client used", "destination": "...", "departureCity": "...", "checkIn": "YYYY-MM-DD", "checkOut": "YYYY-MM-DD", "adults": N, "children": N, "budget": "...", "currency": "USD", "style": "..." }, "confidence": 0.9 }
 TRIP_PATCH_END
 
-Only include fields you are confident about. Omit unknown fields.`;
+ZENISTAY TRIGGER WORDS (set service=zenistay IMMEDIATELY when you hear any of these):
+EN: chalet, cabin, cottage, villa, vacation home, vacation rental, Airbnb, short-term rental, beach house, lake house, ski cabin
+FR: chalet, cabane, cabine, cottage, villa, maison de vacances, location courte durée, Airbnb, maison de plage, maison de lac
+ES: cabaña, casa de vacaciones, villa, alquiler vacacional, casa de playa
+
+Only include fields you are confident about. Omit unknown fields. NEVER omit the TRIP_PATCH block when the user gave you new info.`;
 
 export async function POST(req: NextRequest) {
   if (!GROQ_KEY) {

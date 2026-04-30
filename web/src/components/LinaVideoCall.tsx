@@ -195,31 +195,49 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       } else if (args.service === "zeniyacht") enriched.accommodationType = "Yacht";
       else if (args.service === "zenihotel") enriched.accommodationType = "Hotel";
 
-      setSnapshot((prev) => {
-        const next = { ...prev, ...enriched };
-        // ZeniStay flow: once we have a destination + dates + guests, generate
-        // the proposal and open it on the select screen. This is where Lina
-        // actually shows her ZeniStay inventory — chalets only when "chalet"
-        // was asked, thanks to the keyword filter.
-        const totalGuests = (Number(next.adults) || 0) + (Number(next.children) || 0);
-        const haveZeniStayMin =
-          (enriched.service === "zenistay" || next.service === "zenistay") &&
-          next.destination &&
-          next.checkIn &&
-          next.checkOut &&
-          totalGuests > 0;
-        if (!zenistayPushedRef.current && haveZeniStayMin) {
-          zenistayPushedRef.current = true;
-          // Fire-and-forget: build the proposal, then open the select page.
-          generateProposal(tripId)
-            .catch(() => {})
-            .finally(() => {
-              window.open(`/proposals/${tripId}/select`, "_blank", "noopener,noreferrer");
-            });
-        }
-        return next;
-      });
+      // Merge into the local snapshot first so the trigger check sees the union
+      // of everything Lina has accumulated this call (not just the latest patch).
+      const merged: Record<string, any> = { ...snapshot, ...enriched };
+      setSnapshot(merged);
+
+      // Apply to the store BEFORE generating the proposal — generateProposal
+      // reads from tripDrafts in the store, so applying first ensures the
+      // proposal contains the fields Lina just collected.
       applyTripPatch(tripId, enriched);
+
+      // ZeniStay trigger: as soon as we know it's ZeniStay + destination, fire.
+      // Dates / guests get sane defaults if missing so the proposal still opens
+      // and the user can refine on the select page.
+      const isZeniStay = (enriched.service === "zenistay" || merged.service === "zenistay" || merged.accommodationType === "ZeniStay");
+      const haveZeniStayMin = isZeniStay && Boolean(merged.destination);
+      if (!zenistayPushedRef.current && haveZeniStayMin) {
+        zenistayPushedRef.current = true;
+
+        // Fill defaults for missing fields so the proposal page can search.
+        const defaults: Record<string, any> = {};
+        if (!merged.checkIn) {
+          const inDate = new Date(Date.now() + 21 * 86400000); // 3 weeks out
+          defaults.checkIn = inDate.toISOString().split("T")[0];
+        }
+        if (!merged.checkOut) {
+          const baseIn = merged.checkIn || defaults.checkIn;
+          const outDate = new Date(new Date(baseIn).getTime() + 3 * 86400000); // 3 nights
+          defaults.checkOut = outDate.toISOString().split("T")[0];
+        }
+        const totalGuests = (Number(merged.adults) || 0) + (Number(merged.children) || 0);
+        if (totalGuests === 0) defaults.adults = 2;
+
+        if (Object.keys(defaults).length > 0) {
+          applyTripPatch(tripId, defaults);
+        }
+
+        // Now generate the proposal and open the select screen in a new tab.
+        generateProposal(tripId)
+          .catch(() => {})
+          .finally(() => {
+            window.open(`/proposals/${tripId}/select`, "_blank", "noopener,noreferrer");
+          });
+      }
       const snapPatch: Record<string, string> = {};
       if (args.departureCity) snapPatch.departure = args.departureCity;
       if (args.destination) snapPatch.destination = args.destination;
@@ -341,12 +359,36 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
         historyRef.current.push({ role: "assistant", content: clean });
         setTranscript((p) => [...p, { role: "lina", text: clean }]);
 
+        // Fallback ZeniStay trigger — if Lina mentioned a short-term-rental
+        // keyword anywhere in her reply but forgot the TRIP_PATCH block,
+        // synthesize a service=zenistay patch from whatever the user just said
+        // so the proposal still gets opened.
+        if (!zenistayPushedRef.current) {
+          const linaSaysStay = /\b(chalet|cabane|cabin|cottage|villa|airbnb|zenistay|vacation rental|short[- ]term|maison de vacances|location courte|casa de vacaciones|caba[ñn]a|alquiler vacacional)\b/i.test(clean);
+          if (linaSaysStay) {
+            const userBlob = historyRef.current
+              .filter((m) => m.role === "user")
+              .map((m) => m.content)
+              .join(" ");
+            const guessKeyword = (userBlob.match(/\b(chalet|cabane|cabin|cottage|villa|bungalow|condo|caba[ñn]a)\b/i) || [])[1] || "chalet";
+            // Only fire if we already have *something* about destination on file.
+            if (snapshot.destination) {
+              applyPatchToTrip({ service: "zenistay", keyword: String(guessKeyword).toLowerCase() });
+            }
+          }
+        }
+
+        // Generic "proposal is ready" handler — only run if the ZeniStay flow
+        // didn't already open a tab. Open in a new tab too so the call survives.
         const ready =
-          /generate proposal|proposal.*ready|génère votre|votre proposition|personnalisée|appuyez sur le bouton|cliquez sur le bouton|click the gold|botón dorado|votre proposition est pr/i.test(clean);
-        if (ready) {
+          /generate proposal|proposal.*ready|génère votre|votre proposition|personnalisée|appuyez sur le bouton|cliquez sur le bouton|click the gold|botón dorado|votre proposition est pr|ta proposition|tu propuesta/i.test(clean);
+        if (ready && !zenistayPushedRef.current) {
           setTimeout(() => {
-            generateProposal(tripId);
-            window.location.href = `/proposals/${tripId}/select`;
+            generateProposal(tripId)
+              .catch(() => {})
+              .finally(() => {
+                window.open(`/proposals/${tripId}/select`, "_blank", "noopener,noreferrer");
+              });
           }, 2500);
         }
       } catch (e: any) {
