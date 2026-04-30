@@ -252,17 +252,82 @@ function CheckoutPageInner() {
       window.sessionStorage.setItem(`checkout_confirmation_${bookingId}`, JSON.stringify(confirmationPayload));
     }
 
-    if (userId) {
-      const existing = (getDocumentsForUser(userId) || {})[tripId] || [];
-      upsertDocuments(userId, tripId, [confirmationDoc, invoiceDoc, ...existing]);
+    // Effective owner email: logged-in user OR the email collected on the
+    // traveler form. Anonymous bookings now ALWAYS land in /documents because
+    // we auto-create a traveler account in the background and key everything
+    // off the form email.
+    const effectiveUserId = (userId || travelerForm.email || "").trim().toLowerCase();
+    const wasAnonymous = !userId && Boolean(effectiveUserId);
+
+    // 1) Auto-signup an account so the traveler can log in afterwards and
+    //    see all their docs/bookings/invoices on /documents. Fire-and-forget
+    //    — the API is idempotent (returns existed:true if the email exists).
+    if (wasAnonymous) {
+      fetch("/api/auth/auto-signup-traveler", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: `${travelerForm.firstName} ${travelerForm.lastName}`.trim() || effectiveUserId,
+          email: effectiveUserId,
+          phone: travelerForm.phone || "",
+          origin: "checkout",
+        }),
+      }).catch(() => {});
+    }
+
+    // 2) Hit partner APIs (Duffel for flights, LiteAPI for hotels) to get the
+    //    real booking references. Falls back to the internal ZNV number if
+    //    partners fail or no flight/hotel was actually selected via API.
+    let partnerConfirmations = {};
+    try {
+      const passengers = [{
+        firstName: travelerForm.firstName,
+        lastName: travelerForm.lastName,
+        email: travelerForm.email,
+        phone: travelerForm.phone,
+        gender: "m",
+        dob: "1990-01-01",
+      }];
+      const execRes = await fetch("/api/bookings/execute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          proposalId,
+          selections: {
+            flights: { outbound: selection?.flight?.outbound || selection?.flight, inbound: selection?.flight?.inbound },
+            hotels: selection?.hotel ? [selection.hotel] : [],
+          },
+          passengers,
+          hotelGuests: passengers,
+          tripDraft,
+        }),
+      });
+      const execData = await execRes.json().catch(() => ({}));
+      if (execData?.ok && execData?.confirmations) {
+        partnerConfirmations = execData.confirmations;
+        // Inject real partner refs into the confirmation doc payload.
+        confirmationDoc.details = JSON.stringify({
+          ...JSON.parse(confirmationDoc.details || "{}"),
+          partnerConfirmations,
+        });
+        confirmationPayload.partnerConfirmations = partnerConfirmations;
+      }
+    } catch {
+      // best-effort — we still complete the booking even if a partner fails
+    }
+
+    if (effectiveUserId) {
+      const existing = (getDocumentsForUser(effectiveUserId) || {})[tripId] || [];
+      upsertDocuments(effectiveUserId, tripId, [confirmationDoc, invoiceDoc, ...existing]);
 
       await Promise.allSettled([
+        // 3) Persist BOTH documents to Supabase under the traveler's email.
         fetch("/api/documents", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             id: confirmationDoc.id,
-            ownerEmail: userId,
+            ownerEmail: effectiveUserId,
             tripId,
             updatedAt: now,
             payload: confirmationDoc,
@@ -273,22 +338,40 @@ function CheckoutPageInner() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             id: invoiceDoc.id,
-            ownerEmail: userId,
+            ownerEmail: effectiveUserId,
             tripId,
             updatedAt: now,
             payload: invoiceDoc,
           }),
         }),
+        // 4) Save the booking record (links everything together).
         fetch("/api/bookings", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             id: bookingId,
-            ownerEmail: userId,
+            ownerEmail: effectiveUserId,
             status: "Invoiced",
             createdAt: now,
             updatedAt: now,
-            payload: confirmationPayload,
+            payload: { ...confirmationPayload, partnerConfirmations },
+          }),
+        }),
+        // 5) ALWAYS send confirmation email — anonymous or logged-in.
+        fetch("/api/bookings/confirmation-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            clientEmail: effectiveUserId,
+            clientName: `${travelerForm.firstName} ${travelerForm.lastName}`.trim(),
+            destination: tripDraft?.destination || "",
+            dates: tripDraft?.checkIn && tripDraft?.checkOut ? `${tripDraft.checkIn} → ${tripDraft.checkOut}` : "",
+            totalPrice: pricing.hasAnyPrice ? pricing.total : 0,
+            bookingId,
+            confirmations: {
+              flight: partnerConfirmations?.flight || { bookingReference: confirmationNumber },
+              hotel: partnerConfirmations?.hotel || { confirmationNumber },
+            },
           }),
         }),
       ]);
@@ -296,8 +379,13 @@ function CheckoutPageInner() {
 
     setConfirmationId(confirmationNumber);
     setPaymentStatus("confirmation");
+    // Pass accountCreated flag so the confirmation page can prompt the
+    // anonymous traveler to set their password and access /documents.
+    const finalPath = wasAnonymous
+      ? `${confirmationPath}&accountCreated=1&email=${encodeURIComponent(effectiveUserId)}`
+      : confirmationPath;
     setTimeout(() => {
-      router.push(confirmationPath);
+      router.push(finalPath);
     }, 700);
   };
 
