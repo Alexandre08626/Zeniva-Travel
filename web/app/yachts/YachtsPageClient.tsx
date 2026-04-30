@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-// Image from next/image replaced with <img> to avoid double-encoding local paths
-const YACHT_IMG_BASE = "https://vmi3097009.contaboserver.net";
+// Image from next/image replaced with <img> to avoid double-encoding local paths.
+// Yacht photos live in /web/public/yachts/<slug>/photo_NNN.jpg — Next.js serves
+// them at /yachts/<slug>/photo_NNN.jpg natively. We previously rewrote those
+// paths to a Contabo VPS that no longer serves the files; keep paths local.
 function resolveYachtImg(src: string | undefined): string | undefined {
   if (!src) return undefined;
-  if (src.startsWith("http")) return src;
-  if (src.startsWith("/yachts/")) return `${YACHT_IMG_BASE}${src}`;
   return src;
 }
 import { useEffect, useState } from "react";
