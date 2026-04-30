@@ -20,6 +20,7 @@ function ResidencesContent() {
   const [checkOut, setCheckOut] = useState(searchParams.get("checkout") || "");
   const [guests, setGuests] = useState(parseInt(searchParams.get("guests") || "2"));
   const [region, setRegion] = useState(searchParams.get("region") || "all");
+  const keyword = (searchParams.get("keyword") || "").trim().toLowerCase(); // e.g. "chalet" → strict filter
 
   const [curated, setCurated] = useState<any[]>([]);
   const [apiResults, setApiResults] = useState<any[]>([]);
@@ -81,11 +82,12 @@ function ResidencesContent() {
     try {
       const params = new URLSearchParams({
         destination: dest,
-        type: "short-term rental",
+        type: keyword ? "villa" : "short-term rental",
       });
       if (checkIn) params.set("checkIn", checkIn);
       if (checkOut) params.set("checkOut", checkOut);
       params.set("guests", String(guests));
+      if (keyword) params.set("keyword", keyword);
       const res = await fetch(`/api/airbnb/villas/search?${params}`);
       const data = await res.json();
       if (data.villas?.length > 0) {

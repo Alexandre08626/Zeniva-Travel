@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
   const checkOut = searchParams.get("checkOut") || "";
   const guests = parseInt(searchParams.get("guests") || "2");
   const propertyType = (searchParams.get("type") || "shortterm").toLowerCase(); // villa | condo | shortterm | all
+  const keyword = (searchParams.get("keyword") || "").trim().toLowerCase(); // strict noun filter (e.g. "chalet")
 
   // Default dates — if dates are in the past, shift to 30 days from now
   const today = new Date();
@@ -80,11 +81,15 @@ export async function GET(req: NextRequest) {
     // Filter by property type
     const filtered = raw.filter((r: any) => {
       const pt = String(r.type || "").toLowerCase();
+      const name = String(r.name || "").toLowerCase();
       // Exclude hotel rooms and private rooms for short-term/villa/condo
       if (propertyType !== "all") {
         if (pt.includes("room in hotel") || pt.includes("private room")) return false;
       }
-      return matchesType(pt, propertyType);
+      if (!matchesType(pt, propertyType)) return false;
+      // Strict keyword filter (e.g. "chalet" → only listings whose type or name mentions chalet)
+      if (keyword && !pt.includes(keyword) && !name.includes(keyword)) return false;
+      return true;
     });
 
     const villas = filtered.map((r: any) => {
@@ -131,6 +136,7 @@ export async function GET(req: NextRequest) {
       villas: villas.slice(0, 15),
       destination,
       propertyType,
+      keyword: keyword || null,
       total: villas.length,
     });
   } catch (err: any) {

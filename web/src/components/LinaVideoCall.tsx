@@ -60,6 +60,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
   const [error, setError] = useState("");
   const [micStatus, setMicStatus] = useState<"none" | "denied" | "ok">("none");
   const [snapshot, setSnapshot] = useState<Record<string, any>>({});
+  const zenistayPushedRef = useRef(false);
 
   // Call lifecycle
   const activeRef = useRef(false);
@@ -182,7 +183,30 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
 
   const applyPatchToTrip = useCallback(
     (args: Record<string, any>) => {
-      setSnapshot((prev) => ({ ...prev, ...args }));
+      setSnapshot((prev) => {
+        const next = { ...prev, ...args };
+        // ZeniStay deep-link: as soon as the patch identifies a zenistay request
+        // with a destination, route the user to /zenistay prefilled with their
+        // criteria so they actually SEE chalets / cabins / villas matching the ask.
+        if (
+          !zenistayPushedRef.current &&
+          (args.service === "zenistay" || next.service === "zenistay") &&
+          (next.destination || args.destination)
+        ) {
+          zenistayPushedRef.current = true;
+          const qp = new URLSearchParams();
+          qp.set("destination", String(next.destination || args.destination));
+          if (next.checkIn) qp.set("checkin", String(next.checkIn));
+          if (next.checkOut) qp.set("checkout", String(next.checkOut));
+          const totalGuests = (Number(next.adults) || 0) + (Number(next.children) || 0);
+          if (totalGuests > 0) qp.set("guests", String(totalGuests));
+          const kw = String(next.keyword || next.propertyType || "").toLowerCase().trim();
+          if (kw) qp.set("keyword", kw);
+          // Open in a new tab so the active call keeps running
+          window.open(`/zenistay?${qp.toString()}`, "_blank", "noopener,noreferrer");
+        }
+        return next;
+      });
       applyTripPatch(tripId, args);
       const snapPatch: Record<string, string> = {};
       if (args.departureCity) snapPatch.departure = args.departureCity;
