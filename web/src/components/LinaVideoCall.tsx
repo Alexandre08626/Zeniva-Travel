@@ -231,11 +231,15 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
           applyTripPatch(tripId, defaults);
         }
 
-        // Now generate the proposal and open the select screen in a new tab.
+        // Generate proposal then redirect IN THE SAME TAB so it shows up as
+        // the proposal-presentation overlay (same UX as the regular Cancun-style
+        // flow). The call ends, the proposal page loads.
         generateProposal(tripId)
           .catch(() => {})
           .finally(() => {
-            window.open(`/proposals/${tripId}/select`, "_blank", "noopener,noreferrer");
+            setTimeout(() => {
+              window.location.href = `/proposals/${tripId}/select`;
+            }, 1500);
           });
       }
       const snapPatch: Record<string, string> = {};
@@ -378,17 +382,16 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
           }
         }
 
-        // Generic "proposal is ready" handler — only run if the ZeniStay flow
-        // didn't already open a tab. Open in a new tab too so the call survives.
+        // Generic "proposal is ready" handler — Cancun-style trip flow.
+        // Same-tab navigation so the proposal renders as the presentation
+        // overlay (the existing UX). Skipped if the ZeniStay flow already
+        // queued its own redirect to avoid double navigation.
         const ready =
           /generate proposal|proposal.*ready|génère votre|votre proposition|personnalisée|appuyez sur le bouton|cliquez sur le bouton|click the gold|botón dorado|votre proposition est pr|ta proposition|tu propuesta/i.test(clean);
         if (ready && !zenistayPushedRef.current) {
           setTimeout(() => {
-            generateProposal(tripId)
-              .catch(() => {})
-              .finally(() => {
-                window.open(`/proposals/${tripId}/select`, "_blank", "noopener,noreferrer");
-              });
+            generateProposal(tripId);
+            window.location.href = `/proposals/${tripId}/select`;
           }, 2500);
         }
       } catch (e: any) {
