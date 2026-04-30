@@ -161,11 +161,10 @@ const nextConfig: NextConfig = {
         destination: "/zeniyacht",
         permanent: true,
       },
-      {
-        source: "/yachts/:path*",
-        destination: "/zeniyacht/:path*",
-        permanent: true,
-      },
+      // NOTE: do NOT add a catch-all /yachts/:path* redirect here. It would
+      // capture /yachts/<slug>/photo_NNN.jpg (the static yacht photos served
+      // from /public/yachts/) and 308 them to /zeniyacht/... where the files
+      // don't exist, breaking every yacht thumbnail on /yachts and elsewhere.
     ];
   },
 };
