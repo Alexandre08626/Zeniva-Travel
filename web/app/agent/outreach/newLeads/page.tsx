@@ -267,27 +267,56 @@ export default function LeadsPage() {
   }, {} as Record<string, number>);
 
   return (
-    <div className="min-h-screen bg-[#F3F6FB] p-6">
+    <div className="min-h-screen bg-[#F3F6FB] p-6 print:bg-white print:p-0">
+      <style jsx global>{`
+        @media print {
+          @page { size: A4 portrait; margin: 12mm; }
+          body { background: white !important; }
+          .no-print { display: none !important; }
+          .print-grid { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
+          .print-card { break-inside: avoid; box-shadow: none !important; border: 1px solid #cbd5e1 !important; transform: none !important; }
+          .print-title { display: block !important; }
+        }
+        .print-title { display: none; }
+      `}</style>
+
+      <div className="print-title mb-3" style={{ borderBottom: "2px solid #0B1B4D", paddingBottom: 8 }}>
+        <div style={{ fontSize: 18, fontWeight: 800, color: "#0B1B4D" }}>Zeniva — Lead Pipeline</div>
+        <div style={{ fontSize: 11, color: "#475569" }}>
+          {activeTab === "travelers" ? "Travelers" : activeTab === "agents" ? "Travel Agents" : "Travel Agencies"}
+          {" · "}Printed {new Date().toLocaleString()}
+        </div>
+      </div>
+
       {/* Header */}
-      <div className="mb-6 flex items-start justify-between">
+      <div className="mb-6 flex items-start justify-between no-print">
         <div>
           <h1 className="text-2xl font-black text-slate-900">🎯 Lead Pipeline</h1>
           <p className="text-slate-500 text-sm mt-1">
             {hq ? "All leads across all agents" : "Your personal lead pipeline"}
           </p>
         </div>
-        {activeTab !== "travelers" && (
+        <div className="flex gap-2">
           <button
-            onClick={openAddBizModal}
-            className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
+            onClick={() => window.print()}
+            className="px-4 py-2 bg-slate-900 text-white text-sm font-semibold rounded-xl hover:bg-slate-700 transition-colors"
+            title="Imprimer la liste filtrée"
           >
-            + Add Lead
+            🖨️ Imprimer
           </button>
-        )}
+          {activeTab !== "travelers" && (
+            <button
+              onClick={openAddBizModal}
+              className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
+            >
+              + Add Lead
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-6 no-print">
         {([
           { key: "travelers" as const, label: "Travelers", count: realLeads.length },
           { key: "agents" as const, label: "Travel Agents", count: activeTab === "agents" ? businessLeads.length : null },
@@ -308,7 +337,7 @@ export default function LeadsPage() {
       </div>
 
       {/* Search & Filters — all tabs */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6 space-y-3">
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6 space-y-3 no-print">
         <div className="flex flex-col sm:flex-row gap-3">
           <input
             type="text"
@@ -378,7 +407,7 @@ export default function LeadsPage() {
 
       {activeTab === "travelers" && (<>
       {/* Stats bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 no-print">
         {[
           { label: "Total Leads", value: leads.length, color: "text-blue-600" },
           { label: "New", value: counts.new || 0, color: "text-blue-600" },
@@ -408,11 +437,11 @@ export default function LeadsPage() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 print-grid">
           {filtered.map(lead => {
             const name = `${lead.first_name || ""} ${lead.last_name || ""}`.trim() || lead.email;
             return (
-              <div key={lead.id} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-200">
+              <div key={lead.id} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-200 print-card">
                 <div className="flex items-start gap-3 mb-3">
                   <Avatar name={name} email={lead.email} />
                   <div className="flex-1 min-w-0">
@@ -450,7 +479,7 @@ export default function LeadsPage() {
                   </div>
                 </div>
 
-                <div className="mt-3 pt-3 border-t border-slate-100 flex gap-2">
+                <div className="mt-3 pt-3 border-t border-slate-100 flex gap-2 no-print">
                   <button className="flex-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-1.5 rounded-lg transition-colors">
                     📋 Propose
                   </button>
@@ -474,7 +503,7 @@ export default function LeadsPage() {
 
       {(activeTab === "agents" || activeTab === "agencies") && (<>
         {/* Business Stats bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6 no-print">
           {[
             { label: "Total Leads", value: businessLeads.length, color: "text-blue-600" },
             { label: "New This Week", value: businessLeads.filter(l => {
@@ -507,7 +536,7 @@ export default function LeadsPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 print-grid">
             {businessLeads.filter(lead => {
               const matchProv = provinceFilter === "all" || lead.province === provinceFilter;
               const matchCity = cityFilter === "all" || lead.city === cityFilter;
@@ -528,7 +557,7 @@ export default function LeadsPage() {
               return (
                 <div
                   key={lead.id}
-                  className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer"
+                  className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer print-card"
                   onClick={() => openEditBizModal(lead)}
                 >
                   <div className="flex items-start gap-3 mb-3">
@@ -581,7 +610,7 @@ export default function LeadsPage() {
                     )}
                   </div>
 
-                  <div className="mt-3 pt-3 border-t border-slate-100 flex gap-2">
+                  <div className="mt-3 pt-3 border-t border-slate-100 flex gap-2 no-print">
                     <button
                       onClick={(e) => { e.stopPropagation(); openEditBizModal(lead); }}
                       className="flex-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-1.5 rounded-lg transition-colors"
