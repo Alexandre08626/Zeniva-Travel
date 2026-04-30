@@ -283,7 +283,7 @@ export default function LeadsPage() {
 
   return (
     <div className="min-h-screen bg-[#F3F6FB] p-6">
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @media print {
           @page { size: A4 portrait; margin: 12mm; }
           body * { visibility: hidden !important; }
@@ -291,7 +291,7 @@ export default function LeadsPage() {
           .print-360-area { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; box-shadow: none !important; border: none !important; padding: 0 !important; max-height: none !important; overflow: visible !important; }
           .no-print-in-360, .no-print-in-360 * { display: none !important; }
         }
-      `}</style>
+      ` }} />
 
       {/* Header */}
       <div className="mb-6 flex items-start justify-between">
