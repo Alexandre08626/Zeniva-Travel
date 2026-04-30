@@ -183,31 +183,43 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
 
   const applyPatchToTrip = useCallback(
     (args: Record<string, any>) => {
+      // Map Lina's "service" taxonomy onto the proposal's accommodationType so
+      // /proposals/[tripId]/select knows what inventory to load.
+      const enriched: Record<string, any> = { ...args };
+      if (args.service === "zenistay") {
+        enriched.accommodationType = "ZeniStay";
+        enriched.villaType = "villa"; // includes chalet/cabin/cottage in TYPE_FILTERS
+        if (args.keyword || args.propertyType) {
+          enriched.villaKeyword = String(args.keyword || args.propertyType || "").toLowerCase().trim();
+        }
+      } else if (args.service === "zeniyacht") enriched.accommodationType = "Yacht";
+      else if (args.service === "zenihotel") enriched.accommodationType = "Hotel";
+
       setSnapshot((prev) => {
-        const next = { ...prev, ...args };
-        // ZeniStay deep-link: as soon as the patch identifies a zenistay request
-        // with a destination, route the user to /zenistay prefilled with their
-        // criteria so they actually SEE chalets / cabins / villas matching the ask.
-        if (
-          !zenistayPushedRef.current &&
-          (args.service === "zenistay" || next.service === "zenistay") &&
-          (next.destination || args.destination)
-        ) {
+        const next = { ...prev, ...enriched };
+        // ZeniStay flow: once we have a destination + dates + guests, generate
+        // the proposal and open it on the select screen. This is where Lina
+        // actually shows her ZeniStay inventory — chalets only when "chalet"
+        // was asked, thanks to the keyword filter.
+        const totalGuests = (Number(next.adults) || 0) + (Number(next.children) || 0);
+        const haveZeniStayMin =
+          (enriched.service === "zenistay" || next.service === "zenistay") &&
+          next.destination &&
+          next.checkIn &&
+          next.checkOut &&
+          totalGuests > 0;
+        if (!zenistayPushedRef.current && haveZeniStayMin) {
           zenistayPushedRef.current = true;
-          const qp = new URLSearchParams();
-          qp.set("destination", String(next.destination || args.destination));
-          if (next.checkIn) qp.set("checkin", String(next.checkIn));
-          if (next.checkOut) qp.set("checkout", String(next.checkOut));
-          const totalGuests = (Number(next.adults) || 0) + (Number(next.children) || 0);
-          if (totalGuests > 0) qp.set("guests", String(totalGuests));
-          const kw = String(next.keyword || next.propertyType || "").toLowerCase().trim();
-          if (kw) qp.set("keyword", kw);
-          // Open in a new tab so the active call keeps running
-          window.open(`/zenistay?${qp.toString()}`, "_blank", "noopener,noreferrer");
+          // Fire-and-forget: build the proposal, then open the select page.
+          generateProposal(tripId)
+            .catch(() => {})
+            .finally(() => {
+              window.open(`/proposals/${tripId}/select`, "_blank", "noopener,noreferrer");
+            });
         }
         return next;
       });
-      applyTripPatch(tripId, args);
+      applyTripPatch(tripId, enriched);
       const snapPatch: Record<string, string> = {};
       if (args.departureCity) snapPatch.departure = args.departureCity;
       if (args.destination) snapPatch.destination = args.destination;

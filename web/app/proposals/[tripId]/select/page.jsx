@@ -1112,6 +1112,10 @@ function ProposalSelectPageInner() {
       : "shortterm"
     );
     params.append("type", villaType);
+    // Strict keyword filter (e.g. "chalet" → only chalets) when Lina or the
+    // user expressed a specific property noun.
+    const kw = String(tripDraft?.villaKeyword || "").trim().toLowerCase();
+    if (kw) params.append("keyword", kw);
     fetch(`/api/airbnb/villas/search?${params}`)
       .then((r) => r.json())
       .then((data) => {
@@ -1125,7 +1129,7 @@ function ProposalSelectPageInner() {
       })
       .catch(() => setErrorVillas("Unable to load villas."))
       .finally(() => setLoadingVillas(false));
-  }, [tripDraft?.includeVillas, tripDraft?.villaType, tripDraft?.destination, tripDraft?.checkIn, tripDraft?.checkOut, tripDraft?.adults, tripId, showVillasOverride]);
+  }, [tripDraft?.includeVillas, tripDraft?.villaType, tripDraft?.villaKeyword, tripDraft?.destination, tripDraft?.checkIn, tripDraft?.checkOut, tripDraft?.adults, tripId, showVillasOverride]);
 
   const onSelectFlight = (flight) => {
     const parsePrice = (raw) => {
