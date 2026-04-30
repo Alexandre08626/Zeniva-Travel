@@ -113,6 +113,16 @@ function inferCountry(lead: { city?: string | null; province?: string | null }):
   return "Other";
 }
 
+function Field({ label, value, mono = false }: { label: string; value: string | number | null | undefined; mono?: boolean }) {
+  const display = value !== null && value !== undefined && value !== "" ? String(value) : "—";
+  return (
+    <div>
+      <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mb-0.5">{label}</div>
+      <div className={"text-sm text-slate-800 break-words " + (mono ? "font-mono text-xs text-slate-500" : "")}>{display}</div>
+    </div>
+  );
+}
+
 function Avatar({ name, email }: { name: string; email: string }) {
   const colors = ["#0F6CF5","#7C3AED","#10B981","#F59E0B","#EF4444","#EC4899","#06B6D4","#8B5CF6"];
   const safeEmail = email || "";
@@ -150,6 +160,11 @@ export default function LeadsPage() {
   const [countryFilter, setCountryFilter] = useState("all");
 
   const [activeTab, setActiveTab] = useState<"travelers" | "agents" | "agencies">("travelers");
+  const [view360, setView360] = useState<
+    | { kind: "traveler"; data: Lead }
+    | { kind: "biz"; data: BusinessLead }
+    | null
+  >(null);
   const [businessLeads, setBusinessLeads] = useState<BusinessLead[]>([]);
   const [businessLoading, setBusinessLoading] = useState(false);
   const [showBizModal, setShowBizModal] = useState(false);
@@ -267,56 +282,37 @@ export default function LeadsPage() {
   }, {} as Record<string, number>);
 
   return (
-    <div className="min-h-screen bg-[#F3F6FB] p-6 print:bg-white print:p-0">
+    <div className="min-h-screen bg-[#F3F6FB] p-6">
       <style jsx global>{`
         @media print {
           @page { size: A4 portrait; margin: 12mm; }
-          body { background: white !important; }
-          .no-print { display: none !important; }
-          .print-grid { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
-          .print-card { break-inside: avoid; box-shadow: none !important; border: 1px solid #cbd5e1 !important; transform: none !important; }
-          .print-title { display: block !important; }
+          body * { visibility: hidden !important; }
+          .print-360-area, .print-360-area * { visibility: visible !important; }
+          .print-360-area { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; box-shadow: none !important; border: none !important; padding: 0 !important; max-height: none !important; overflow: visible !important; }
+          .no-print-in-360, .no-print-in-360 * { display: none !important; }
         }
-        .print-title { display: none; }
       `}</style>
 
-      <div className="print-title mb-3" style={{ borderBottom: "2px solid #0B1B4D", paddingBottom: 8 }}>
-        <div style={{ fontSize: 18, fontWeight: 800, color: "#0B1B4D" }}>Zeniva — Lead Pipeline</div>
-        <div style={{ fontSize: 11, color: "#475569" }}>
-          {activeTab === "travelers" ? "Travelers" : activeTab === "agents" ? "Travel Agents" : "Travel Agencies"}
-          {" · "}Printed {new Date().toLocaleString()}
-        </div>
-      </div>
-
       {/* Header */}
-      <div className="mb-6 flex items-start justify-between no-print">
+      <div className="mb-6 flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-black text-slate-900">🎯 Lead Pipeline</h1>
           <p className="text-slate-500 text-sm mt-1">
             {hq ? "All leads across all agents" : "Your personal lead pipeline"}
           </p>
         </div>
-        <div className="flex gap-2">
+        {activeTab !== "travelers" && (
           <button
-            onClick={() => window.print()}
-            className="px-4 py-2 bg-slate-900 text-white text-sm font-semibold rounded-xl hover:bg-slate-700 transition-colors"
-            title="Imprimer la liste filtrée"
+            onClick={openAddBizModal}
+            className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
           >
-            🖨️ Imprimer
+            + Add Lead
           </button>
-          {activeTab !== "travelers" && (
-            <button
-              onClick={openAddBizModal}
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
-            >
-              + Add Lead
-            </button>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 no-print">
+      <div className="flex gap-2 mb-6">
         {([
           { key: "travelers" as const, label: "Travelers", count: realLeads.length },
           { key: "agents" as const, label: "Travel Agents", count: activeTab === "agents" ? businessLeads.length : null },
@@ -337,7 +333,7 @@ export default function LeadsPage() {
       </div>
 
       {/* Search & Filters — all tabs */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6 space-y-3 no-print">
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6 space-y-3">
         <div className="flex flex-col sm:flex-row gap-3">
           <input
             type="text"
@@ -407,7 +403,7 @@ export default function LeadsPage() {
 
       {activeTab === "travelers" && (<>
       {/* Stats bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 no-print">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         {[
           { label: "Total Leads", value: leads.length, color: "text-blue-600" },
           { label: "New", value: counts.new || 0, color: "text-blue-600" },
@@ -437,11 +433,15 @@ export default function LeadsPage() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 print-grid">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(lead => {
             const name = `${lead.first_name || ""} ${lead.last_name || ""}`.trim() || lead.email;
             return (
-              <div key={lead.id} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-200 print-card">
+              <div
+                key={lead.id}
+                onClick={() => setView360({ kind: "traveler", data: lead })}
+                className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer"
+              >
                 <div className="flex items-start gap-3 mb-3">
                   <Avatar name={name} email={lead.email} />
                   <div className="flex-1 min-w-0">
@@ -479,16 +479,19 @@ export default function LeadsPage() {
                   </div>
                 </div>
 
-                <div className="mt-3 pt-3 border-t border-slate-100 flex gap-2 no-print">
-                  <button className="flex-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-1.5 rounded-lg transition-colors">
-                    📋 Propose
+                <div className="mt-3 pt-3 border-t border-slate-100 flex gap-2">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setView360({ kind: "traveler", data: lead }); }}
+                    className="flex-1 text-xs bg-violet-50 hover:bg-violet-100 text-violet-700 font-semibold py-1.5 rounded-lg transition-colors"
+                  >
+                    🔍 360°
                   </button>
-                  <button className="flex-1 text-xs bg-slate-50 hover:bg-slate-100 text-slate-600 font-semibold py-1.5 rounded-lg transition-colors">
-                    💬 Chat
+                  <button onClick={(e) => e.stopPropagation()} className="flex-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-1.5 rounded-lg transition-colors">
+                    📋 Propose
                   </button>
                   {hq && (
                     <button
-                      onClick={() => void deleteLead(lead.id, lead.email)}
+                      onClick={(e) => { e.stopPropagation(); void deleteLead(lead.id, lead.email); }}
                       className="text-xs bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-2.5 py-1.5 rounded-lg transition-colors"
                       title="Delete lead"
                     >🗑️</button>
@@ -503,7 +506,7 @@ export default function LeadsPage() {
 
       {(activeTab === "agents" || activeTab === "agencies") && (<>
         {/* Business Stats bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6 no-print">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
           {[
             { label: "Total Leads", value: businessLeads.length, color: "text-blue-600" },
             { label: "New This Week", value: businessLeads.filter(l => {
@@ -536,7 +539,7 @@ export default function LeadsPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 print-grid">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {businessLeads.filter(lead => {
               const matchProv = provinceFilter === "all" || lead.province === provinceFilter;
               const matchCity = cityFilter === "all" || lead.city === cityFilter;
@@ -557,8 +560,8 @@ export default function LeadsPage() {
               return (
                 <div
                   key={lead.id}
-                  className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer print-card"
-                  onClick={() => openEditBizModal(lead)}
+                  className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer"
+                  onClick={() => setView360({ kind: "biz", data: lead })}
                 >
                   <div className="flex items-start gap-3 mb-3">
                     <Avatar name={lead.contact_name || "?"} email={lead.contact_email || "a@b.com"} />
@@ -610,7 +613,13 @@ export default function LeadsPage() {
                     )}
                   </div>
 
-                  <div className="mt-3 pt-3 border-t border-slate-100 flex gap-2 no-print">
+                  <div className="mt-3 pt-3 border-t border-slate-100 flex gap-2">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setView360({ kind: "biz", data: lead }); }}
+                      className="flex-1 text-xs bg-violet-50 hover:bg-violet-100 text-violet-700 font-semibold py-1.5 rounded-lg transition-colors"
+                    >
+                      🔍 360°
+                    </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); openEditBizModal(lead); }}
                       className="flex-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-1.5 rounded-lg transition-colors"
@@ -631,6 +640,121 @@ export default function LeadsPage() {
           </div>
         )}
       </>)}
+
+      {/* 360° Lead View Modal */}
+      {view360 && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setView360(null)}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[92vh] overflow-y-auto print-360-area" onClick={e => e.stopPropagation()}>
+            {(() => {
+              const isTraveler = view360.kind === "traveler";
+              const t = isTraveler ? view360.data : null;
+              const b = !isTraveler ? view360.data : null;
+              const displayName = isTraveler
+                ? `${t!.first_name || ""} ${t!.last_name || ""}`.trim() || t!.email
+                : b!.contact_name || b!.contact_email || "Lead";
+              const displayEmail = isTraveler ? t!.email : b!.contact_email;
+              const displayPhone = isTraveler ? t!.phone : b!.contact_phone;
+              return (
+                <>
+                  {/* Header band — also serves as the printed header */}
+                  <div className="px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-violet-50 to-blue-50">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <Avatar name={displayName} email={displayEmail || ""} />
+                        <div>
+                          <div className="text-xl font-black text-slate-900">{displayName}</div>
+                          <div className="text-sm text-slate-600">{displayEmail || "—"}</div>
+                          {displayPhone && <div className="text-sm text-slate-500">{displayPhone}</div>}
+                          {!isTraveler && b!.company_name && <div className="text-sm font-semibold text-slate-700 mt-0.5">{b!.company_name}</div>}
+                        </div>
+                      </div>
+                      <div className="flex gap-2 no-print-in-360">
+                        <button
+                          onClick={() => window.print()}
+                          className="px-4 py-2 bg-slate-900 text-white text-sm font-semibold rounded-xl hover:bg-slate-700 transition-colors"
+                        >🖨️ Imprimer</button>
+                        <button
+                          onClick={() => setView360(null)}
+                          className="px-3 py-2 bg-white border border-slate-200 text-slate-600 text-sm font-semibold rounded-xl hover:bg-slate-50"
+                        >✕</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Body — full lead details */}
+                  <div className="p-6 space-y-5 text-sm">
+                    {/* Status / priority strip */}
+                    <div className="flex flex-wrap gap-2">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold capitalize ${(isTraveler ? STATUS_COLORS : BIZ_STATUS_COLORS)[isTraveler ? t!.status : b!.status] || "bg-slate-100 text-slate-500"}`}>
+                        Status: {(isTraveler ? t!.status : b!.status)?.replace(/_/g, " ")}
+                      </span>
+                      {!isTraveler && (
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold capitalize ${PRIORITY_COLORS[b!.priority] || "bg-slate-100 text-slate-500"}`}>
+                          Priority: {b!.priority}
+                        </span>
+                      )}
+                      {!isTraveler && b!.type && (
+                        <span className="px-3 py-1 rounded-full text-xs font-bold capitalize bg-slate-100 text-slate-700">
+                          {b!.type.replace(/_/g, " ")}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Field grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+                      {isTraveler ? (
+                        <>
+                          <Field label="Email" value={t!.email} />
+                          <Field label="Phone" value={t!.phone} />
+                          <Field label="Destination" value={t!.destination} />
+                          <Field label="Language" value={t!.language} />
+                          <Field label="Source" value={t!.source} />
+                          <Field label="Deal value" value={t!.deal_value ? `$${t!.deal_value.toLocaleString()}` : null} />
+                          <Field label="Created" value={new Date(t!.created_at).toLocaleString()} />
+                          <Field label="Lead ID" value={t!.id} mono />
+                        </>
+                      ) : (
+                        <>
+                          <Field label="Contact email" value={b!.contact_email} />
+                          <Field label="Contact phone" value={b!.contact_phone} />
+                          <Field label="Company" value={b!.company_name} />
+                          <Field label="Website" value={b!.website} />
+                          <Field label="City" value={b!.city} />
+                          <Field label="Province / state" value={b!.province} />
+                          <Field label="Country (inferred)" value={inferCountry(b!)} />
+                          <Field label="Source" value={b!.source?.replace(/_/g, " ")} />
+                          {b!.type === "travel_agency" && <Field label="Number of agents" value={String(b!.number_of_agents || 0)} />}
+                          {b!.type === "travel_agency" && <Field label="Current suppliers" value={b!.current_suppliers} />}
+                          <Field label="Setup value" value={b!.estimated_setup_value ? `$${b!.estimated_setup_value.toLocaleString()}` : null} />
+                          <Field label="Monthly value" value={b!.estimated_monthly_value ? `$${b!.estimated_monthly_value.toLocaleString()}` : null} />
+                          <Field label="Last contacted" value={b!.last_contacted_at ? new Date(b!.last_contacted_at).toLocaleDateString() : null} />
+                          <Field label="Next follow-up" value={b!.next_followup_at ? new Date(b!.next_followup_at).toLocaleDateString() : null} />
+                          <Field label="Created" value={new Date(b!.created_at).toLocaleString()} />
+                          <Field label="Lead ID" value={b!.id} mono />
+                        </>
+                      )}
+                    </div>
+
+                    {/* Notes (biz only) */}
+                    {!isTraveler && b!.notes && (
+                      <div>
+                        <div className="text-xs font-bold uppercase text-slate-500 mb-1">Notes</div>
+                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-700 whitespace-pre-wrap">{b!.notes}</div>
+                      </div>
+                    )}
+
+                    {/* Print footer */}
+                    <div className="pt-4 border-t border-slate-200 text-[11px] text-slate-400 flex items-center justify-between">
+                      <span>Zeniva Lead 360°</span>
+                      <span>Printed {new Date().toLocaleString()}</span>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      )}
 
       {/* Business Lead Modal */}
       {showBizModal && (
