@@ -680,8 +680,51 @@ export default function CatalogPage() {
           const shareUrl = firstItemUrl.startsWith("http")
             ? firstItemUrl
             : `https://www.zenivatravel.com${firstItemUrl}`;
+
+          // CRITICAL: open the FB window FIRST and synchronously inside the
+          // click handler. Any async work before window.open (like awaiting
+          // clipboard.writeText) breaks the user-gesture context and most
+          // browsers will silently block the popup. Copy the text after.
+          // sharer.php no longer honors `quote=` for non-FB-app links — keep
+          // url-only and copy the post text to clipboard so the agent can
+          // paste it into the FB compose box that opens.
+          const shareHref = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+
+          // On mobile, prefer the native share sheet (FB app, IG, WhatsApp,
+          // SMS, etc. all show up). Use navigator.share when available.
+          const isMobile = typeof navigator !== "undefined" && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+          if (isMobile && typeof navigator !== "undefined" && (navigator as any).share) {
+            (navigator as any)
+              .share({ title: "Zeniva Travel", text: fbText, url: shareUrl })
+              .catch(() => {
+                window.location.href = shareHref;
+              });
+            // Best-effort copy in the background.
+            copyText(fbText, "fb");
+            return;
+          }
+
+          // Desktop: open the FB share dialog in a centered popup. If the popup
+          // is blocked, fall through to a same-tab navigation so the share
+          // still happens.
+          const w = 600;
+          const h = 600;
+          const left = typeof window !== "undefined" ? window.screenX + Math.max(0, (window.outerWidth - w) / 2) : 0;
+          const top = typeof window !== "undefined" ? window.screenY + Math.max(0, (window.outerHeight - h) / 2) : 0;
+          const popup = window.open(
+            shareHref,
+            "zenivaFbShare",
+            `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no`
+          );
+          if (!popup) {
+            // Popup blocked — fall back to in-tab navigation so the user still
+            // gets to Facebook's share dialog.
+            window.location.href = shareHref;
+            return;
+          }
+          // Now (after window.open succeeded) copy the post text in the
+          // background so the agent can paste it into the FB compose box.
           copyText(fbText, "fb");
-          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, "_blank", "width=600,height=500");
         };
 
         return (
