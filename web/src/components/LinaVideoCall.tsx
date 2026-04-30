@@ -193,7 +193,9 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
           enriched.villaKeyword = String(args.keyword || args.propertyType || "").toLowerCase().trim();
         }
       } else if (args.service === "zeniyacht") enriched.accommodationType = "Yacht";
-      else if (args.service === "zenihotel") enriched.accommodationType = "Hotel";
+      else if (args.service === "zenihotel" || args.service === "zenipackage") enriched.accommodationType = "Hotel";
+      // Any other service (zeniflight, zenitransfer, zenicruise) leaves
+      // accommodationType alone — the proposal page defaults to Hotel/LiteAPI.
 
       // Merge into the local snapshot first so the trigger check sees the union
       // of everything Lina has accumulated this call (not just the latest patch).
@@ -363,22 +365,16 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
         historyRef.current.push({ role: "assistant", content: clean });
         setTranscript((p) => [...p, { role: "lina", text: clean }]);
 
-        // Fallback ZeniStay trigger — if Lina mentioned a short-term-rental
-        // keyword anywhere in her reply but forgot the TRIP_PATCH block,
-        // synthesize a service=zenistay patch from whatever the user just said
-        // so the proposal still gets opened.
-        if (!zenistayPushedRef.current) {
-          const linaSaysStay = /\b(chalet|cabane|cabin|cottage|villa|airbnb|zenistay|vacation rental|short[- ]term|maison de vacances|location courte|casa de vacaciones|caba[ñn]a|alquiler vacacional)\b/i.test(clean);
-          if (linaSaysStay) {
-            const userBlob = historyRef.current
-              .filter((m) => m.role === "user")
-              .map((m) => m.content)
-              .join(" ");
-            const guessKeyword = (userBlob.match(/\b(chalet|cabane|cabin|cottage|villa|bungalow|condo|caba[ñn]a)\b/i) || [])[1] || "chalet";
-            // Only fire if we already have *something* about destination on file.
-            if (snapshot.destination) {
-              applyPatchToTrip({ service: "zenistay", keyword: String(guessKeyword).toLowerCase() });
-            }
+        // ZeniStay fallback — only fires when the USER's own message contained
+        // an unambiguous short-term-rental keyword (chalet/cabin/cottage/Airbnb).
+        // We deliberately exclude "villa" because a hotel villa is still a
+        // hotel — partner-API inventory should win unless the user clearly
+        // asked for a vacation rental.
+        if (!zenistayPushedRef.current && snapshot.destination) {
+          const lastUserMsg = historyRef.current.filter((m) => m.role === "user").slice(-1)[0]?.content || "";
+          const userKw = (lastUserMsg.match(/\b(chalet|cabane|cabin|cottage|airbnb|caba[ñn]a)\b/i) || [])[1];
+          if (userKw) {
+            applyPatchToTrip({ service: "zenistay", keyword: userKw.toLowerCase() });
           }
         }
 
