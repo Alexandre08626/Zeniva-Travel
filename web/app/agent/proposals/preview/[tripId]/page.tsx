@@ -338,6 +338,7 @@ export default function ProposalPreviewPage() {
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [sentResult, setSentResult] = useState<{ ok: number; failed: number } | null>(null);
 
   /* ── fetch proposal ── */
   useEffect(() => {
@@ -381,14 +382,33 @@ export default function ProposalPreviewPage() {
   /* ── send to client ── */
   const handleSend = useCallback(async () => {
     if (!proposal || sending) return;
-    const client = proposal.payload?.client;
-    if (!client?.email) {
-      alert("No client email assigned to this proposal. Go back to the builder and assign a client.");
+    // Multi-recipient: prefer the clients[] array set by the select page,
+    // fall back to legacy single-client payloads. Dedupe by lowercase email.
+    const recipientsRaw: any[] = Array.isArray(proposal.payload?.clients) && proposal.payload.clients.length
+      ? proposal.payload.clients
+      : (proposal.payload?.client ? [proposal.payload.client] : []);
+    const seen = new Set<string>();
+    const recipients = recipientsRaw
+      .filter((c: any) => c && c.email)
+      .filter((c: any) => {
+        const k = String(c.email).toLowerCase().trim();
+        if (!k || seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
+    if (recipients.length === 0) {
+      alert("No client email assigned to this proposal. Go back to the builder and pick at least one client or lead.");
       return;
     }
+    if (recipients.length > 5) {
+      const ok = window.confirm(`Send this proposal to ${recipients.length} recipients? Each one gets a personalized copy.`);
+      if (!ok) return;
+    }
+
     setSending(true);
+    setSentResult(null);
     try {
-      // Update proposal status
+      // Update proposal status (once for the whole proposal)
       await fetch("/api/proposals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -399,32 +419,47 @@ export default function ProposalPreviewPage() {
           payload: proposal.payload,
         }),
       });
-      // Send email with full trip details
+      // Send one email per recipient with personalized name. Run in parallel
+      // batches of 10 so a 60-recipient send doesn't fan out 60 fetches at once.
       const draft = proposal.payload?.tripDraft || {};
       const sel = proposal.payload?.selections || {};
-      await fetch("/api/proposals/send-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          proposalId: proposal.trip_id || tripId,
-          clientName: client.name,
-          clientEmail: client.email,
-          destination: draft.destination || proposal.destination || "",
-          dates: draft.checkIn && draft.checkOut ? `${fmtDate(draft.checkIn)} — ${fmtDate(draft.checkOut)}` : "",
-          totalPrice: grandTotal > 0 ? `$${grandTotal.toLocaleString()}` : "",
-          proposalUrl: `https://www.zenivatravel.com/agent/proposals/preview/${proposal.trip_id || tripId}`,
-          // Full selections for rich email
-          outboundFlight: sel.flights?.outbound || null,
-          returnFlight: sel.flights?.inbound || null,
-          hotels: sel.hotels || [],
-          activities: sel.activities || [],
-          transfers: sel.transfers || [],
-          travelers: draft.adults || 2,
-          departureCity: draft.departureCity || "",
-        }),
-      });
+      const proposalUrl = `https://www.zenivatravel.com/agent/proposals/preview/${proposal.trip_id || tripId}`;
+      const sendOne = (client: any) =>
+        fetch("/api/proposals/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            proposalId: proposal.trip_id || tripId,
+            clientName: client.name,
+            clientEmail: client.email,
+            destination: draft.destination || proposal.destination || "",
+            dates: draft.checkIn && draft.checkOut ? `${fmtDate(draft.checkIn)} — ${fmtDate(draft.checkOut)}` : "",
+            totalPrice: grandTotal > 0 ? `$${grandTotal.toLocaleString()}` : "",
+            proposalUrl,
+            outboundFlight: sel.flights?.outbound || null,
+            returnFlight: sel.flights?.inbound || null,
+            hotels: sel.hotels || [],
+            activities: sel.activities || [],
+            transfers: sel.transfers || [],
+            travelers: draft.adults || 2,
+            departureCity: draft.departureCity || "",
+          }),
+        });
+
+      let ok = 0;
+      let failed = 0;
+      const BATCH = 10;
+      for (let i = 0; i < recipients.length; i += BATCH) {
+        const slice = recipients.slice(i, i + BATCH);
+        const results = await Promise.allSettled(slice.map(sendOne));
+        for (const r of results) {
+          if (r.status === "fulfilled" && (r.value as Response).ok) ok++;
+          else failed++;
+        }
+      }
+      setSentResult({ ok, failed });
       setSent(true);
-      setTimeout(() => setSent(false), 4000);
+      setTimeout(() => setSent(false), 8000);
     } catch {
       alert("Failed to send proposal. Please try again.");
     } finally {
@@ -820,7 +855,9 @@ export default function ProposalPreviewPage() {
               d="M5 13l4 4L19 7"
             />
           </svg>
-          Proposal sent to {client?.email}!
+          {sentResult
+            ? `Proposal sent to ${sentResult.ok} recipient${sentResult.ok > 1 ? "s" : ""}${sentResult.failed > 0 ? ` (${sentResult.failed} failed)` : ""}`
+            : `Proposal sent to ${client?.email}!`}
         </div>
       )}
 
