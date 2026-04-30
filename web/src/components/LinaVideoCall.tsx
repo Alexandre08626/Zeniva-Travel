@@ -184,7 +184,10 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
   const applyPatchToTrip = useCallback(
     (args: Record<string, any>) => {
       // Map Lina's "service" taxonomy onto the proposal's accommodationType so
-      // /proposals/[tripId]/select knows what inventory to load.
+      // /proposals/[tripId]/select knows what inventory to load. We only stash
+      // the mapping here — the actual redirect happens later in the "ready"
+      // handler, after Lina has fully gathered the trip details and announced
+      // that the proposal is ready (same flow as the existing Cancun trip UX).
       const enriched: Record<string, any> = { ...args };
       if (args.service === "zenistay") {
         enriched.accommodationType = "ZeniStay";
@@ -197,53 +200,8 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       // Any other service (zeniflight, zenitransfer, zenicruise) leaves
       // accommodationType alone — the proposal page defaults to Hotel/LiteAPI.
 
-      // Merge into the local snapshot first so the trigger check sees the union
-      // of everything Lina has accumulated this call (not just the latest patch).
-      const merged: Record<string, any> = { ...snapshot, ...enriched };
-      setSnapshot(merged);
-
-      // Apply to the store BEFORE generating the proposal — generateProposal
-      // reads from tripDrafts in the store, so applying first ensures the
-      // proposal contains the fields Lina just collected.
+      setSnapshot((prev) => ({ ...prev, ...enriched }));
       applyTripPatch(tripId, enriched);
-
-      // ZeniStay trigger: as soon as we know it's ZeniStay + destination, fire.
-      // Dates / guests get sane defaults if missing so the proposal still opens
-      // and the user can refine on the select page.
-      const isZeniStay = (enriched.service === "zenistay" || merged.service === "zenistay" || merged.accommodationType === "ZeniStay");
-      const haveZeniStayMin = isZeniStay && Boolean(merged.destination);
-      if (!zenistayPushedRef.current && haveZeniStayMin) {
-        zenistayPushedRef.current = true;
-
-        // Fill defaults for missing fields so the proposal page can search.
-        const defaults: Record<string, any> = {};
-        if (!merged.checkIn) {
-          const inDate = new Date(Date.now() + 21 * 86400000); // 3 weeks out
-          defaults.checkIn = inDate.toISOString().split("T")[0];
-        }
-        if (!merged.checkOut) {
-          const baseIn = merged.checkIn || defaults.checkIn;
-          const outDate = new Date(new Date(baseIn).getTime() + 3 * 86400000); // 3 nights
-          defaults.checkOut = outDate.toISOString().split("T")[0];
-        }
-        const totalGuests = (Number(merged.adults) || 0) + (Number(merged.children) || 0);
-        if (totalGuests === 0) defaults.adults = 2;
-
-        if (Object.keys(defaults).length > 0) {
-          applyTripPatch(tripId, defaults);
-        }
-
-        // Generate proposal then redirect IN THE SAME TAB so it shows up as
-        // the proposal-presentation overlay (same UX as the regular Cancun-style
-        // flow). The call ends, the proposal page loads.
-        generateProposal(tripId)
-          .catch(() => {})
-          .finally(() => {
-            setTimeout(() => {
-              window.location.href = `/proposals/${tripId}/select`;
-            }, 1500);
-          });
-      }
       const snapPatch: Record<string, string> = {};
       if (args.departureCity) snapPatch.departure = args.departureCity;
       if (args.destination) snapPatch.destination = args.destination;
@@ -365,26 +323,15 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
         historyRef.current.push({ role: "assistant", content: clean });
         setTranscript((p) => [...p, { role: "lina", text: clean }]);
 
-        // ZeniStay fallback — only fires when the USER's own message contained
-        // an unambiguous short-term-rental keyword (chalet/cabin/cottage/Airbnb).
-        // We deliberately exclude "villa" because a hotel villa is still a
-        // hotel — partner-API inventory should win unless the user clearly
-        // asked for a vacation rental.
-        if (!zenistayPushedRef.current && snapshot.destination) {
-          const lastUserMsg = historyRef.current.filter((m) => m.role === "user").slice(-1)[0]?.content || "";
-          const userKw = (lastUserMsg.match(/\b(chalet|cabane|cabin|cottage|airbnb|caba[ñn]a)\b/i) || [])[1];
-          if (userKw) {
-            applyPatchToTrip({ service: "zenistay", keyword: userKw.toLowerCase() });
-          }
-        }
-
-        // Generic "proposal is ready" handler — Cancun-style trip flow.
-        // Same-tab navigation so the proposal renders as the presentation
-        // overlay (the existing UX). Skipped if the ZeniStay flow already
-        // queued its own redirect to avoid double navigation.
+        // Single source of truth for opening the proposal: only when Lina
+        // herself signals the conversation is complete (same UX as the
+        // original Cancun flow). This stops the page from jumping to the
+        // proposal mid-conversation just because a service+destination got
+        // detected early.
         const ready =
-          /generate proposal|proposal.*ready|génère votre|votre proposition|personnalisée|appuyez sur le bouton|cliquez sur le bouton|click the gold|botón dorado|votre proposition est pr|ta proposition|tu propuesta/i.test(clean);
+          /generate proposal|proposal.*ready|génère votre|votre proposition|personnalisée|appuyez sur le bouton|cliquez sur le bouton|click the gold|botón dorado|votre proposition est pr|ta proposition|prépare ta proposition|tu propuesta|preparo tu propuesta/i.test(clean);
         if (ready && !zenistayPushedRef.current) {
+          zenistayPushedRef.current = true;
           setTimeout(() => {
             generateProposal(tripId);
             window.location.href = `/proposals/${tripId}/select`;
