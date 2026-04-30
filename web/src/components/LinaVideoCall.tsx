@@ -329,12 +329,31 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
         // proposal mid-conversation just because a service+destination got
         // detected early.
         const ready =
-          /generate proposal|proposal.*ready|génère votre|votre proposition|personnalisée|appuyez sur le bouton|cliquez sur le bouton|click the gold|botón dorado|votre proposition est pr|ta proposition|prépare ta proposition|tu propuesta|preparo tu propuesta/i.test(clean);
+          /generate proposal|proposal.*ready|génère votre|votre proposition|prépare la proposition|prépare votre proposition|prepare your proposal|preparing your proposal|appears? shortly|sous peu|en breve|aparecer[aá] sous peu|aparecer[aá] en breve|personnalisée|appuyez sur le bouton|cliquez sur le bouton|click the gold|botón dorado|votre proposition est pr|ta proposition|prépare ta proposition|tu propuesta|preparo tu propuesta/i.test(clean);
         if (ready && !zenistayPushedRef.current) {
           zenistayPushedRef.current = true;
+
+          // ZeniStay → /zenistay (catalog page with prefilled search).
+          // Everything else → /proposals/<tripId>/select (full proposal builder).
+          const isZeniStay =
+            snapshot.service === "zenistay" || snapshot.accommodationType === "ZeniStay";
+          let target = `/proposals/${tripId}/select`;
+          if (isZeniStay) {
+            const qp = new URLSearchParams();
+            if (snapshot.destination) qp.set("destination", String(snapshot.destination));
+            if (snapshot.checkIn) qp.set("checkin", String(snapshot.checkIn));
+            if (snapshot.checkOut) qp.set("checkout", String(snapshot.checkOut));
+            const totalGuests = (Number(snapshot.adults) || 0) + (Number(snapshot.children) || 0);
+            if (totalGuests > 0) qp.set("guests", String(totalGuests));
+            const kw = String(snapshot.villaKeyword || snapshot.keyword || snapshot.propertyType || "").toLowerCase().trim();
+            if (kw) qp.set("keyword", kw);
+            const qs = qp.toString();
+            target = `/zenistay${qs ? `?${qs}` : ""}`;
+          }
+
           setTimeout(() => {
-            generateProposal(tripId);
-            window.location.href = `/proposals/${tripId}/select`;
+            if (!isZeniStay) generateProposal(tripId);
+            window.location.href = target;
           }, 2500);
         }
       } catch (e: any) {
