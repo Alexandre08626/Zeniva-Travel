@@ -6,6 +6,18 @@ export const dynamic = "force-dynamic";
 
 function esc(s: string) { return (s || "").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 
+// Email clients can't resolve relative URLs — they have no base. Anything
+// starting with "/" must be promoted to a full https URL or the <img> tag
+// renders as a broken-image icon. http(s) URLs pass through untouched.
+const SITE_BASE = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.zenivatravel.com").replace(/\/+$/, "");
+function absUrl(src: string): string {
+  if (!src) return "";
+  if (/^https?:\/\//i.test(src)) return src;
+  if (src.startsWith("//")) return "https:" + src;
+  if (src.startsWith("/")) return SITE_BASE + src;
+  return SITE_BASE + "/" + src;
+}
+
 interface CatalogItem {
   type: string;
   name: string;
@@ -29,7 +41,7 @@ function itemCard(item: CatalogItem) {
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${c.bg};border-radius:16px;overflow:hidden;">
         <tr>
           ${item.thumbnail ? `<td style="width:120px;vertical-align:top;">
-            <img src="${esc(item.thumbnail)}" width="120" height="100" style="display:block;object-fit:cover;border-radius:16px 0 0 16px;" alt="">
+            <img src="${esc(absUrl(item.thumbnail))}" width="120" height="100" style="display:block;object-fit:cover;border-radius:16px 0 0 16px;" alt="">
           </td>` : ""}
           <td style="padding:16px;vertical-align:top;">
             <span style="display:inline-block;background:${c.badge};color:white;font-size:10px;font-weight:800;padding:3px 8px;border-radius:999px;margin-bottom:8px;">${esc(item.type)}</span>
