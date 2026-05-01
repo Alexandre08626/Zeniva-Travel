@@ -245,6 +245,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/travel-agency-virginia`, lastModified: NOW, changeFrequency: "weekly", priority: 0.96 },
     { url: `${BASE_URL}/yacht-charters/miami`, lastModified: NOW, changeFrequency: "weekly", priority: 0.93 },
     { url: `${BASE_URL}/yacht-charters/palm-beach`, lastModified: NOW, changeFrequency: "weekly", priority: 0.93 },
+    { url: `${BASE_URL}/partners/affiliates`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
 
     // ─── DEALS ────────────────────────────────────────
     { url: `${BASE_URL}/deals`, lastModified: NOW, changeFrequency: "daily", priority: 0.85 },

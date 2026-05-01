@@ -59,12 +59,31 @@ const FOOTER_COMPARE = [
   { l: "vs Penny", h: "/compare/zeniva-vs-penny" },
   { l: "vs ChatGPT", h: "/compare/zeniva-vs-chatgpt-for-travel" },
 ];
+// Sitewide internal-link boost for the new geo/intent pages so PageRank
+// flows from every page on the site into the four landing pages we want
+// to rank for ('voyage tout inclus', NY/VA travel agency, etc.).
+const FOOTER_LOCAL = [
+  { l: "Voyage tout inclus", h: "/voyage-tout-inclus" },
+  { l: "Agence voyage Québec", h: "/agence-voyage-quebec" },
+  { l: "Travel Agency NYC", h: "/travel-agency-new-york" },
+  { l: "Travel Agency Virginia", h: "/travel-agency-virginia" },
+  { l: "Miami Yacht Charters", h: "/yacht-charters/miami" },
+  { l: "Palm Beach Yacht Charters", h: "/yacht-charters/palm-beach" },
+];
 
 export default function Footer() {
   return (
     <footer className="mt-10 border-t border-slate-100 pt-8 pb-24">
       {/* Mega-menu — sitewide internal linking for SEO + UX */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 mb-8 text-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6 mb-8 text-xs">
+        <div>
+          <div className="font-black mb-2 text-[11px] uppercase tracking-wide" style={{ color: PREMIUM_BLUE }}>Local</div>
+          <ul className="space-y-1.5">
+            {FOOTER_LOCAL.map((it) => (
+              <li key={it.h}><Link href={it.h} className="font-semibold hover:underline" style={{ color: MUTED_TEXT }}>{it.l}</Link></li>
+            ))}
+          </ul>
+        </div>
         <div>
           <div className="font-black mb-2 text-[11px] uppercase tracking-wide" style={{ color: PREMIUM_BLUE }}>From USA</div>
           <ul className="space-y-1.5">
