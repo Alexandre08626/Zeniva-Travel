@@ -1,4 +1,5 @@
 import SeoPage from "@/src/components/seo/SeoPage";
+import ZeniStayTeaser from "@/src/components/ZeniStayTeaser";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -18,6 +19,7 @@ export const metadata: Metadata = {
 
 export default function CancunPage() {
   return (
+    <>
     <SeoPage
       h1="Cancun All Inclusive Deals"
       subtitle="14 miles of Caribbean beachfront, world-class resorts, ancient Mayan ruins, and legendary nightlife — all at prices that consistently beat every other tropical destination."
@@ -177,5 +179,12 @@ export default function CancunPage() {
         ],
       }}
     />
+    <ZeniStayTeaser
+      region="mexico"
+      badge="Cancún & Riviera Maya"
+      title="🏠 ZeniStay villas, lofts & jungle cabins"
+      subtitle="Boho jungle havens in Tulum, beachfront 2BR penthouses with pool, charming lofts steps from the beach — handpicked Riviera Maya properties."
+    />
+    </>
   );
 }

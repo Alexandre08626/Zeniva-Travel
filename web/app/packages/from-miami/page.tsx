@@ -1,4 +1,5 @@
 import SeoPage from "@/src/components/seo/SeoPage";
+import SouthFloridaYachtsTeaser from "@/src/components/SouthFloridaYachtsTeaser";
 import type { Metadata } from "next";
 
 const CITY = "Miami";
@@ -27,6 +28,7 @@ export const metadata: Metadata = {
 
 export default function FromMiamiPage() {
   return (
+    <>
     <SeoPage
       h1={`Vacation Packages Departing from ${CITY}`}
       subtitle={`The shortest flights to the Caribbean and Latin America come from ${AIRPORT}. Hand-picked all-inclusive and luxury packages with flights, hotel, and transfers included.`}
@@ -90,5 +92,11 @@ export default function FromMiamiPage() {
         fromLocation: { "@type": "City", name: CITY, address: { "@type": "PostalAddress", addressCountry: "US", addressRegion: "FL" } },
       }}
     />
+    <SouthFloridaYachtsTeaser
+      badge="Add to your Miami getaway"
+      title="South Florida yacht charters"
+      subtitle="Pair your Miami package with a yacht — half-day, full-day or weekly charters from Miami, Miami Beach, Fort Lauderdale, Key West (and Palm Beach charters depart from Fort Lauderdale)."
+    />
+    </>
   );
 }

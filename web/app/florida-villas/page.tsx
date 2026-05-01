@@ -1,6 +1,8 @@
 export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
 import Link from "next/link";
+import SouthFloridaYachtsTeaser from "../../src/components/SouthFloridaYachtsTeaser";
+import ZeniStayTeaser from "../../src/components/ZeniStayTeaser";
 
 export const metadata: Metadata = {
   title: "Luxury Florida Villa Rentals — AI Travel Concierge | Zeniva",
@@ -131,6 +133,19 @@ export default function FloridaVillasPage() {
           "acceptedAnswer": { "@type": "Answer", "text": f.a }
         }))
       })}} />
+
+      <ZeniStayTeaser
+        region="florida"
+        badge="Florida — chalets, villas & condos"
+        title="🏠 ZeniStay villas & condos in Florida"
+        subtitle="Curated short-term rentals across Florida — beachfront condos, pool villas, downtown lofts. Chat with Lina to lock in your dates."
+      />
+
+      <SouthFloridaYachtsTeaser
+        badge="Pair with your villa"
+        title="South Florida yacht charters"
+        subtitle="Add a half-day or full-day yacht to your Florida villa stay — Miami, Miami Beach, Fort Lauderdale, Key West and Palm Beach (chartered from Fort Lauderdale)."
+      />
 
       {/* CTA */}
       <section style={{ background: "linear-gradient(135deg, #0B1B4D, #0F6CF5)", padding: "64px 24px", textAlign: "center" }}>
