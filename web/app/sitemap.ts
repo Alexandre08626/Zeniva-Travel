@@ -237,6 +237,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/es/services/yacht-charter`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
     { url: `${BASE_URL}/es/services/cruises`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
 
+    // ─── HIGH-PRIORITY GEO/INTENT LANDING PAGES ──────
+    // These target queries Zeniva needs to rank for: Quebec FR + NY/VA EN.
+    { url: `${BASE_URL}/voyage-tout-inclus`, lastModified: NOW, changeFrequency: "weekly", priority: 0.98 },
+    { url: `${BASE_URL}/agence-voyage-quebec`, lastModified: NOW, changeFrequency: "weekly", priority: 0.96 },
+    { url: `${BASE_URL}/travel-agency-new-york`, lastModified: NOW, changeFrequency: "weekly", priority: 0.96 },
+    { url: `${BASE_URL}/travel-agency-virginia`, lastModified: NOW, changeFrequency: "weekly", priority: 0.96 },
+    { url: `${BASE_URL}/yacht-charters/miami`, lastModified: NOW, changeFrequency: "weekly", priority: 0.93 },
+    { url: `${BASE_URL}/yacht-charters/palm-beach`, lastModified: NOW, changeFrequency: "weekly", priority: 0.93 },
+
     // ─── DEALS ────────────────────────────────────────
     { url: `${BASE_URL}/deals`, lastModified: NOW, changeFrequency: "daily", priority: 0.85 },
 
