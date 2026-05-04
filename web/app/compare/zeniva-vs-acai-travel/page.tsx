@@ -6,9 +6,9 @@ const URL_PATH = "/compare/zeniva-vs-acai-travel";
 
 export const metadata: Metadata = {
   title: `Zeniva vs ${RIVAL} — 2026 Honest Comparison | Zeniva`,
-  description: `Side-by-side: Zeniva (consumer AI travel agency) vs ${RIVAL} (B2B AI agents for travel platforms). Different audiences, different jobs.`,
+  description: `Side-by-side: Zeniva (consumer AI travel platform) vs ${RIVAL} (B2B AI agents for travel platforms). Different audiences, different jobs.`,
   keywords: [`zeniva vs acai travel`, `acai travel alternative`, `acai travel review`, `consumer ai travel agent`, `b2b travel ai`],
-  openGraph: { title: `Zeniva vs ${RIVAL} — Side-by-Side`, description: `Consumer AI travel agency vs B2B AI agent platform.`, url: `https://www.zenivatravel.com${URL_PATH}`, siteName: "Zeniva Travel", type: "website", images: [{ url: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1200&q=80", width: 1200, height: 630, alt: `Zeniva vs ${RIVAL}` }] },
+  openGraph: { title: `Zeniva vs ${RIVAL} — Side-by-Side`, description: `Consumer AI travel platform vs B2B AI agent platform.`, url: `https://www.zenivatravel.com${URL_PATH}`, siteName: "Zeniva Travel", type: "website", images: [{ url: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1200&q=80", width: 1200, height: 630, alt: `Zeniva vs ${RIVAL}` }] },
   alternates: { canonical: `https://www.zenivatravel.com${URL_PATH}` },
 };
 
@@ -16,17 +16,17 @@ export default function ComparePage() {
   return (
     <SeoPage
       h1={`Zeniva vs ${RIVAL} — Honest 2026 Comparison`}
-      subtitle={`${RIVAL} sells AI agents to travel companies (B2B). Zeniva is a consumer-facing AI travel agency that books your trip. Different products for different audiences.`}
+      subtitle={`${RIVAL} sells AI agents to travel companies (B2B). Zeniva is a consumer-facing AI travel platform that books your trip. Different products for different audiences.`}
       heroImage="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1600&q=85"
       heroGradient="from-violet-900/70 to-pink-900/60"
       badge="Independent comparison"
       sections={[
-        { heading: "The fundamental difference", content: `<p><strong>${RIVAL} is a B2B AI infrastructure company. They sell AI agents that travel agencies, OTAs, and travel suppliers can deploy on their own platforms.</strong></p><p>If you're a travel business looking for AI tooling to add to your existing site or call center, Acai is one option to evaluate. They're a vendor.</p><p><strong>Zeniva is a consumer-facing travel agency.</strong> You as a traveler chat directly with Lina AI on zenivatravel.com to plan and book your own trip. These two companies don't really compete — they serve different audiences.</p>` },
+        { heading: "The fundamental difference", content: `<p><strong>${RIVAL} is a B2B AI infrastructure company. They sell AI agents that travel agencies, OTAs, and travel suppliers can deploy on their own platforms.</strong></p><p>If you're a travel business looking for AI tooling to add to your existing site or call center, Acai is one option to evaluate. They're a vendor.</p><p><strong>Zeniva is a consumer-facing technology platform.</strong> You as a traveler chat directly with Lina AI on zenivatravel.com to plan and book your own trip. These two companies don't really compete — they serve different audiences.</p>` },
         { heading: "Audience comparison", content: `<table style="width:100%; border-collapse:collapse; margin: 16px 0;">
 <thead><tr style="background:#0F6CF5; color:white;"><th style="padding:10px; text-align:left;">Aspect</th><th style="padding:10px;">${RIVAL}</th><th style="padding:10px;">Zeniva</th></tr></thead>
 <tbody>
 <tr><td style="padding:10px; border-bottom:1px solid #e5e7eb;">Audience</td><td style="text-align:center; border-bottom:1px solid #e5e7eb;">Travel businesses</td><td style="text-align:center; border-bottom:1px solid #e5e7eb;">Travelers (consumers)</td></tr>
-<tr><td style="padding:10px; border-bottom:1px solid #e5e7eb;">Product type</td><td style="text-align:center; border-bottom:1px solid #e5e7eb;">B2B AI infrastructure</td><td style="text-align:center; border-bottom:1px solid #e5e7eb;">B2C AI travel agency</td></tr>
+<tr><td style="padding:10px; border-bottom:1px solid #e5e7eb;">Product type</td><td style="text-align:center; border-bottom:1px solid #e5e7eb;">B2B AI infrastructure</td><td style="text-align:center; border-bottom:1px solid #e5e7eb;">B2C AI travel platform</td></tr>
 <tr><td style="padding:10px; border-bottom:1px solid #e5e7eb;">Can a traveler book a trip?</td><td style="text-align:center; border-bottom:1px solid #e5e7eb;">Only via clients deploying their AI</td><td style="text-align:center; border-bottom:1px solid #e5e7eb;">✅ directly</td></tr>
 <tr><td style="padding:10px; border-bottom:1px solid #e5e7eb;">Pricing</td><td style="text-align:center; border-bottom:1px solid #e5e7eb;">Enterprise contracts</td><td style="text-align:center; border-bottom:1px solid #e5e7eb;">Free for travelers (commission from suppliers)</td></tr>
 </tbody></table>` },
@@ -43,7 +43,7 @@ export default function ComparePage() {
       ]}
       faqs={[
         { question: `Is ${RIVAL} for travelers or travel companies?`, answer: `${RIVAL} is a B2B platform that sells AI agents to travel companies. Travelers don't directly use Acai; they use products built on Acai's tech.` },
-        { question: "If I'm a traveler, who should I use?", answer: "Zeniva — direct consumer-facing AI travel agency. Chat at /chat or call /call 24/7." },
+        { question: "If I'm a traveler, who should I use?", answer: "Zeniva — direct consumer-facing AI travel platform. Chat at /chat or call /call 24/7." },
         { question: "Can I book a yacht charter with Acai?", answer: "Acai is infrastructure, not a booking platform. For yacht charters, Zeniva covers Caribbean, Mediterranean, Bahamas, Polynesia." },
         { question: "Are these companies competitors?", answer: "Not really — different audiences. Acai = enterprise tooling. Zeniva = consumer agency." },
         { question: "Does Zeniva offer B2B?", answer: "Not currently as a packaged product. Contact us for white-label discussions." },

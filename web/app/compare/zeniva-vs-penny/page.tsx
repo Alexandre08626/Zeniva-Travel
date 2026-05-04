@@ -6,7 +6,7 @@ const URL_PATH = "/compare/zeniva-vs-penny";
 
 export const metadata: Metadata = {
   title: `Zeniva vs ${RIVAL} — 2026 Honest Comparison | Zeniva`,
-  description: `Side-by-side comparison: Zeniva (full AI travel agency) vs ${RIVAL} (Priceline's in-app AI). Specialty travel, multilingual, payment plans.`,
+  description: `Side-by-side comparison: Zeniva (full AI travel technology platform) vs ${RIVAL} (Priceline's in-app AI). Specialty travel, multilingual, payment plans.`,
   keywords: [`zeniva vs penny`, `priceline penny alternative`, `penny ai travel`, `priceline ai`, `best ai travel agent`, `alternative to priceline`],
   openGraph: { title: `Zeniva vs ${RIVAL} — Side-by-Side`, description: `Full AI agency vs Priceline's in-app AI assistant.`, url: `https://www.zenivatravel.com${URL_PATH}`, siteName: "Zeniva Travel", type: "website", images: [{ url: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1200&q=80", width: 1200, height: 630, alt: `Zeniva vs ${RIVAL}` }] },
   alternates: { canonical: `https://www.zenivatravel.com${URL_PATH}` },
@@ -16,12 +16,12 @@ export default function ComparePage() {
   return (
     <SeoPage
       h1={`Zeniva vs ${RIVAL} — Honest 2026 Comparison`}
-      subtitle={`${RIVAL} is Priceline's in-app AI assistant — locked to Priceline inventory. Zeniva is an independent full AI travel agency with multi-supplier inventory and human escalation.`}
+      subtitle={`${RIVAL} is Priceline's in-app AI assistant — locked to Priceline inventory. Zeniva is an independent full AI travel technology platform with multi-supplier inventory and human escalation.`}
       heroImage="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1600&q=85"
       heroGradient="from-indigo-900/70 to-blue-900/60"
       badge="Independent comparison"
       sections={[
-        { heading: "The fundamental difference", content: `<p><strong>${RIVAL} is a smart search interface inside the Priceline app. Zeniva is a standalone AI travel agency.</strong></p><p>Penny helps you navigate Priceline's existing inventory faster — answering questions like "what's the cheapest hotel in Cancun in March" using Priceline's data. The booking happens through Priceline's checkout. Support routes through Priceline.</p><p>Zeniva is independent — Lina AI sources from Duffel (flights), LiteAPI (hotels — 1.5M+ properties globally including ones not on Priceline), and direct partners for yacht/villa/cruise. Booking and support happen through Zeniva with 24/7 human escalation.</p>` },
+        { heading: "The fundamental difference", content: `<p><strong>${RIVAL} is a smart search interface inside the Priceline app. Zeniva is a standalone AI travel platform.</strong></p><p>Penny helps you navigate Priceline's existing inventory faster — answering questions like "what's the cheapest hotel in Cancun in March" using Priceline's data. The booking happens through Priceline's checkout. Support routes through Priceline.</p><p>Zeniva is independent — Lina AI sources from Duffel (flights), LiteAPI (hotels — 1.5M+ properties globally including ones not on Priceline), and direct partners for yacht/villa/cruise. Booking and support happen through Zeniva with 24/7 human escalation.</p>` },
         { heading: "Side-by-side feature table", content: `<table style="width:100%; border-collapse:collapse; margin: 16px 0;">
 <thead><tr style="background:#0F6CF5; color:white;"><th style="padding:10px; text-align:left;">Feature</th><th style="padding:10px;">${RIVAL}</th><th style="padding:10px;">Zeniva</th></tr></thead>
 <tbody>

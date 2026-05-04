@@ -3,6 +3,10 @@ export const LEGAL_EFFECTIVE_DATE = "February 12, 2026";
 export const LEGAL_POLICY_VERSION = "1.0";
 
 export const LEGAL_OPERATOR = "Zeniva LLC";
+// Parent technology operator. Zeniva LLC is the registered legal entity for the
+// platform; International Luxury Management Inc. is the operating company shown
+// in user-facing platform disclaimers.
+export const LEGAL_PARENT_OPERATOR = "International Luxury Management Inc.";
 export const LEGAL_BRAND = "Zeniva";
 export const LEGAL_WEBSITE = "https://www.zenivatravel.com";
 export const LEGAL_BASE_URL = "https://www.zenivatravel.com";

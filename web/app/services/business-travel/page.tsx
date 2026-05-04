@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Business Travel Service — Corporate Bookings, MICE | Zeniva",
   description: "Corporate business travel with Zeniva. Flights, hotels, ground transport, MICE coordination. Lina AI handles last-minute changes 24/7 with human escalation.",
-  keywords: ["business travel agency", "corporate travel management", "TMC", "MICE travel", "business class booking", "corporate flights", "executive travel"],
+  keywords: ["business travel platform", "corporate travel management", "TMC", "MICE travel", "business class booking", "corporate flights", "executive travel"],
   openGraph: { title: "Business Travel Service | Zeniva", description: "Corporate flights, hotels, ground, MICE. AI speed + human handling.", url: "https://www.zenivatravel.com/services/business-travel", siteName: "Zeniva Travel", type: "website", images: [{ url: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=1200&q=80", width: 1200, height: 630, alt: "Business Travel — Zeniva" }] },
   alternates: { canonical: "https://www.zenivatravel.com/services/business-travel" },
 };

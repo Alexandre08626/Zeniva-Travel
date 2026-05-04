@@ -29,11 +29,11 @@ export const metadata: Metadata = {
     "Zeniva is a US-based AI travel company (Delaware, New York, Virginia). Plan luxury trips, custom vacations, and group travel with Lina AI — your 24/7 AI travel concierge serving all 50 states and Canada.",
   keywords: [
     "Zeniva",
-    "travel agency USA",
-    "travel agency New York",
-    "travel agency Delaware",
-    "travel agency Virginia",
-    "luxury travel agency USA",
+    "AI travel platform USA",
+    "AI travel platform New York",
+    "AI travel platform Delaware",
+    "AI travel platform Virginia",
+    "luxury travel technology platform",
     "AI travel concierge",
     "AI travel planner USA",
     "custom vacation planner",
@@ -41,15 +41,14 @@ export const metadata: Metadata = {
     "all-inclusive vacations",
     "group travel USA",
     "yacht charter USA",
-    "travel agency Canada",
-    "best travel agency USA",
-    "online travel agency",
+    "AI travel platform Canada",
+    "best AI travel platform USA",
+    "online travel platform",
     "plan a trip online",
     "Lina AI",
-    "Zeniva",
     "travel concierge online",
     "vacation planning service",
-    "international travel agency",
+    "international travel platform",
   ],
   alternates: {
     canonical: "https://zenivatravel.com",
@@ -115,7 +114,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Zeniva | AI Travel Concierge USA",
     description:
-      "Plan luxury trips with Lina AI. US-based travel agency (Delaware, NY, Virginia) serving all 50 states & Canada.",
+      "Plan luxury trips with Lina AI. US-based AI travel technology platform (Delaware, NY, Virginia) serving all 50 states & Canada — travel services provided by third-party suppliers.",
     images: ["/api/og?title=Zeniva+%E2%80%94+AI+Travel+Concierge&description=Plan+luxury+trips+with+Lina+AI.+Serving+USA+%26+Canada+24/7."],
   },
   manifest: "/manifest.json",
@@ -131,7 +130,7 @@ export const metadata: Metadata = {
     shortcut: "/icons/icon-192x192.png",
   },
   category: "travel",
-  classification: "Travel Agency",
+  classification: "Travel Technology Platform",
   authors: [{ name: "Zeniva", url: "https://zenivatravel.com" }],
   creator: "Zeniva",
   publisher: "Zeniva",
@@ -198,7 +197,7 @@ export default function RootLayout({
             __html: JSON.stringify([
               {
                 "@context": "https://schema.org",
-                "@type": ["TravelAgency", "Organization"],
+                "@type": "Organization",
                 "name": "Zeniva",
                 "legalName": "Zeniva LLC",
                 "url": "https://www.zenivatravel.com",
@@ -209,7 +208,7 @@ export default function RootLayout({
                   "height": 60
                 },
                 "image": "https://www.zenivatravel.com/branding/lina-avatar.png",
-                "description": "Zeniva is a US-based AI travel company offering luxury trip planning, custom vacations, group travel, and yacht charters. Powered by Lina AI, our 24/7 AI concierge serves all 50 states and Canada.",
+                "description": "Zeniva is a US-based AI-powered travel technology platform offering luxury trip planning, custom vacations, group travel and yacht charters. Powered by Lina AI, our 24/7 AI concierge serves all 50 states and Canada. Zeniva acts solely as a technology intermediary; travel services are provided by third-party suppliers.",
                 "foundingDate": "2024",
                 "foundingLocation": {
                   "@type": "Place",
@@ -270,7 +269,7 @@ export default function RootLayout({
                 "@type": "WebSite",
                 "name": "Zeniva",
                 "url": "https://www.zenivatravel.com",
-                "description": "AI-powered luxury travel agency — USA & Canada",
+                "description": "AI-powered luxury travel technology platform — USA & Canada",
                 "potentialAction": {
                   "@type": "SearchAction",
                   "target": {

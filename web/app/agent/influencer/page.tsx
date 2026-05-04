@@ -531,7 +531,7 @@ export default function InfluencerPage() {
                       <div className="mt-2 space-y-2">
                         {[
                           { platform: "Instagram/TikTok", text: `🌴 Dreaming of a luxury trip? Lina AI handles everything — hotels, flights, VIP experiences. Fill out the form and get your proposal in 24h! ✈️\n\n${videoShareLink(video.id)}\n\n#travel #luxurytravel #zenivatravel #aitravel` },
-                          { platform: "Facebook/LinkedIn", text: `🚀 I work with Zeniva — an AI travel agency that plans personalized luxury trips. Fill out their form and get a custom proposal in 24h. 100% free, no commitment.\n\n${videoShareLink(video.id)}` },
+                          { platform: "Facebook/LinkedIn", text: `🚀 I work with Zeniva — an AI travel platform that plans personalized luxury trips. Fill out their form and get a custom proposal in 24h. 100% free, no commitment.\n\n${videoShareLink(video.id)}` },
                           { platform: "WhatsApp/SMS", text: `Hey! Wanted to share this with you — Zeniva creates dream trips with Lina AI. Fill out the form, it's free and you get a proposal in 24h: ${videoShareLink(video.id)}` },
                         ].map(c => (
                           <div key={c.platform} className="rounded-lg border border-white/5 bg-white/5 p-2">
@@ -1124,7 +1124,7 @@ export default function InfluencerPage() {
               <div className="space-y-3">
                 {[
                   "🌴 Planning a luxury trip? Lina AI handles everything — flights, hotels, VIP experiences. Link in bio! ✈️",
-                  "🔥 Discovered Zeniva — an AI travel agency that creates 100% personalized trips. Fill out the form and get your free proposal in 24h!",
+                  "🔥 Discovered Zeniva — an AI travel platform that creates 100% personalized trips. Fill out the form and get your free proposal in 24h!",
                   "✈️ Dream vacation = Zeniva. Lina AI analyzes your preferences and finds the best options. Check the link in my bio to get started!",
                   "🏝️ No more cookie-cutter vacations! Zeniva creates unique experiences with Lina AI — Cancún, Maldives, Paris, anywhere. Your dream trip is waiting!",
                 ].map((caption, i) => (
@@ -1166,7 +1166,7 @@ export default function InfluencerPage() {
             <div className="rounded-3xl border border-blue-400/20 bg-gradient-to-br from-blue-500/10 to-indigo-500/5 p-6 backdrop-blur-sm">
               <h3 className="text-xl font-black text-white mb-4">🏢 About Zeniva Travel</h3>
               <p className="text-slate-300 leading-relaxed mb-4">
-                <strong className="text-white">Zeniva Travel</strong> is a premium AI-powered travel agency based in <strong className="text-white">Delaware, USA</strong>.
+                <strong className="text-white">Zeniva Travel</strong> is a premium AI-powered travel technology platform based in <strong className="text-white">Delaware, USA</strong>.
                 Our AI assistant <strong className="text-yellow-300">Lina</strong> creates 100% personalized trip proposals in minutes, covering every
                 aspect of luxury travel. We handle everything from search to booking to payment.
               </p>

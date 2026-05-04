@@ -9,6 +9,7 @@ import { useAuthStore } from "../../../src/lib/authStore";
 import { getImagesForDestination } from "../../../src/lib/images";
 import { computePrice, parseMoney, formatCurrency } from "../../../src/lib/pricing";
 import { MUTED_TEXT, TITLE_TEXT } from "../../../src/design/tokens";
+import SupplierDisclosure from "../../../src/components/legal/SupplierDisclosure";
 
 
 import React from "react";
@@ -607,6 +608,20 @@ function CheckoutPageInner() {
                 💡 <strong>Price on request</strong> — Our team will confirm exact pricing within 24h and send you a payment link.
               </div>
             )}
+            <SupplierDisclosure
+              supplier={
+                [
+                  selection?.flight?.airline || flight.airline,
+                  selection?.hotel?.chain || selection?.hotel?.brand || selection?.hotel?.name || hotel.name,
+                  selection?.villa?.operator || selection?.shortterm?.operator,
+                  selection?.transfer?.operator,
+                  selection?.activity?.operator || selection?.activity?.name,
+                ]
+                  .filter(Boolean)
+                  .filter((value, index, array) => array.indexOf(value) === index)
+                  .join(" · ") || null
+              }
+            />
             <ZeniPayButton
               amount={trueTotal > 0 ? trueTotal : (pricing.hasAnyPrice ? pricing.total : 500)}
               currency="USD"

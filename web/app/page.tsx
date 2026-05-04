@@ -13,14 +13,14 @@ import AppHomeGate from "../src/components/AppHomeGate.client";
 
 export const metadata: Metadata = {
   title: "#1 AI Travel Concierge USA — Luxury Trips & Custom Vacations",
-  description: "Zeniva — America's AI travel agency. Plan luxury vacations, custom trips & group travel with Lina AI, available 24/7. Incorporated in Delaware. Start planning in seconds.",
+  description: "Zeniva — America's AI travel platform. Plan luxury vacations, custom trips & group travel with Lina AI, available 24/7. Incorporated in Delaware. Start planning in seconds.",
   alternates: {
     canonical: "https://zenivatravel.com",
     languages: { "en-US": "https://zenivatravel.com", "fr-CA": "https://zenivatravel.com/fr" },
   },
   openGraph: {
     title: "AI Travel Concierge USA",
-    description: "America's AI travel agency. Luxury vacations, custom trips, yacht charters — planned by Lina AI in seconds.",
+    description: "America's AI travel platform. Luxury vacations, custom trips, yacht charters — planned by Lina AI in seconds.",
     url: "https://zenivatravel.com",
     siteName: "Zeniva",
     type: "website",
@@ -63,7 +63,7 @@ export default function HomePage() {
     name: "Zeniva",
     url: "https://zenivatravel.com",
     logo: "https://zenivatravel.com/branding/logo.png",
-    description: "AI-powered travel agency with Lina AI concierge",
+    description: "AI-powered travel technology platform with Lina AI concierge",
   };
 
   return (

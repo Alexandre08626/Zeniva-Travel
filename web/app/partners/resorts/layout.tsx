@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     "Caribbean resort packages",
     "Bali luxury hotels",
     "Dubai 5 star hotels",
-    "best travel agency resorts",
+    "best technology platform resorts",
     "Zeniva resorts",
     "all-inclusive vacation packages",
   ],

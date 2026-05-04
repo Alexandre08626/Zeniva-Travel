@@ -511,7 +511,7 @@ export const POSTS: BlogPost[] = [
 <p><strong>Use it if:</strong> You already book everything through Priceline.</p>
 
 <h2>7. Zeniva — Best for Full-Service AI + Human Escalation</h2>
-<p><strong>What it is:</strong> Full-service AI travel agency. Lina AI handles conversation and proposals; real booking through Duffel (flights), LiteAPI (hotels), and direct partners (yacht, villa, cruise). Human travel advisors escalate any complex case 24/7.</p>
+<p><strong>What it is:</strong> Full-service AI travel platform. Lina AI handles conversation and proposals; real booking through Duffel (flights), LiteAPI (hotels), and direct partners (yacht, villa, cruise). Human travel advisors escalate any complex case 24/7.</p>
 <p><strong>Strengths:</strong></p>
 <ul>
 <li>Real booking, not just itinerary planning</li>
@@ -887,7 +887,7 @@ export const POSTS: BlogPost[] = [
     slug: "cheap-flights-to-europe-from-usa-2026",
     title: "Cheap Flights to Europe from USA — 2026 Booking Strategy",
     metaTitle: "Cheap Flights to Europe from USA 2026 — Best Routes & Tips | Zeniva",
-    metaDescription: "Best cheap flights to Europe from USA 2026. When to book, which airlines, which routes, hidden tips. Honest 2026 strategy from a US travel agency.",
+    metaDescription: "Best cheap flights to Europe from USA 2026. When to book, which airlines, which routes, hidden tips. Honest 2026 strategy from a US travel technology platform.",
     date: "2026-04-27",
     author: "Zeniva Travel Team",
     heroImage: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1600&q=85",
@@ -901,7 +901,7 @@ export const POSTS: BlogPost[] = [
     content: `
 <p>Cheap flights to Europe from the USA used to mean tracking deals on travel hack blogs. In 2026, the patterns have shifted: budget transatlantic carriers (Norse, French Bee, ITA) have changed pricing dynamics, the dollar-euro exchange swings affect when to book, and tools like Google Flights' price tracker have made manual deal-hunting less necessary.</p>
 
-<p>This is the honest 2026 strategy from a US travel agency that books hundreds of US-Europe trips per month.</p>
+<p>This is the honest 2026 strategy from a US travel technology platform that books hundreds of US-Europe trips per month.</p>
 
 <h2>The cheapest months to fly USA → Europe</h2>
 

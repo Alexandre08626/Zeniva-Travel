@@ -6,7 +6,7 @@ const URL_PATH = "/compare/zeniva-vs-wonderplan";
 
 export const metadata: Metadata = {
   title: `Zeniva vs ${RIVAL} — 2026 Honest Comparison | Zeniva`,
-  description: `Side-by-side: Zeniva (full AI travel agency with bookings) vs ${RIVAL} (free AI itinerary generator). Different jobs, both useful.`,
+  description: `Side-by-side: Zeniva (full AI travel technology platform with bookings) vs ${RIVAL} (free AI itinerary generator). Different jobs, both useful.`,
   keywords: [`zeniva vs wonderplan`, `wonderplan alternative`, `wonderplan ai review`, `free ai itinerary generator`, `ai trip planner`],
   openGraph: { title: `Zeniva vs ${RIVAL} — Side-by-Side`, description: `Full AI agency vs free itinerary generator.`, url: `https://www.zenivatravel.com${URL_PATH}`, siteName: "Zeniva Travel", type: "website", images: [{ url: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1200&q=80", width: 1200, height: 630, alt: `Zeniva vs ${RIVAL}` }] },
   alternates: { canonical: `https://www.zenivatravel.com${URL_PATH}` },
@@ -16,12 +16,12 @@ export default function ComparePage() {
   return (
     <SeoPage
       h1={`Zeniva vs ${RIVAL} — Honest 2026 Comparison`}
-      subtitle={`${RIVAL} is a free AI itinerary generator. Zeniva is a full AI travel agency that books your trip end-to-end. Use them together or pick the right one for the job.`}
+      subtitle={`${RIVAL} is a free AI itinerary generator. Zeniva is a full AI travel technology platform that books your trip end-to-end. Use them together or pick the right one for the job.`}
       heroImage="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1600&q=85"
       heroGradient="from-pink-900/70 to-purple-900/60"
       badge="Independent comparison"
       sections={[
-        { heading: "The fundamental difference", content: `<p><strong>${RIVAL} is a free AI tool that generates day-by-day travel itineraries. Zeniva is a full AI travel agency that books your trip with real flights, hotels, transfers, and human support.</strong></p><p>Wonderplan is great for early-stage trip planning — you give it a destination, dates, interests, and it spits out a structured day-by-day plan with attractions, restaurants, and rough logistics. No booking happens.</p><p>Zeniva picks up where Wonderplan ends. Lina AI takes your trip vision, builds a real bookable proposal (flights via Duffel, hotels via LiteAPI), books it, and a human travel advisor escalates any complex case 24/7.</p>` },
+        { heading: "The fundamental difference", content: `<p><strong>${RIVAL} is a free AI tool that generates day-by-day travel itineraries. Zeniva is a full AI travel technology platform that books your trip with real flights, hotels, transfers, and human support.</strong></p><p>Wonderplan is great for early-stage trip planning — you give it a destination, dates, interests, and it spits out a structured day-by-day plan with attractions, restaurants, and rough logistics. No booking happens.</p><p>Zeniva picks up where Wonderplan ends. Lina AI takes your trip vision, builds a real bookable proposal (flights via Duffel, hotels via LiteAPI), books it, and a human travel advisor escalates any complex case 24/7.</p>` },
         { heading: "Side-by-side feature table", content: `<table style="width:100%; border-collapse:collapse; margin: 16px 0;">
 <thead><tr style="background:#0F6CF5; color:white;"><th style="padding:10px; text-align:left;">Feature</th><th style="padding:10px;">${RIVAL}</th><th style="padding:10px;">Zeniva</th></tr></thead>
 <tbody>

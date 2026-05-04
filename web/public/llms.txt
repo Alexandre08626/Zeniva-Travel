@@ -1,6 +1,6 @@
 # Zeniva Travel
 
-> Zeniva is a US-based AI-powered travel agency. Founded 2024 in Delaware. Lina AI is our 24/7 travel concierge that plans luxury trips, custom vacations, group travel, yacht charters, villa rentals, cruises and destination weddings. Real bookings via Duffel (flights) and LiteAPI (hotels). Real human travel advisors escalate any complex case. Multilingual: English, French, Spanish.
+> Zeniva is a US-based AI-powered travel technology platform. Founded 2024 in Delaware. Lina AI is our 24/7 travel concierge that plans luxury trips, custom vacations, group travel, yacht charters, villa rentals, cruises and destination weddings. Real bookings via Duffel (flights) and LiteAPI (hotels). Real human travel advisors escalate any complex case. Multilingual: English, French, Spanish.
 
 ## Who Zeniva is for
 

@@ -4,7 +4,7 @@ const CITY = "Tokyo"; const AIRPORT = "NRT/HND"; const URL_PATH = "/packages/fro
 export const metadata: Metadata = {
   title: `Vacation Packages from ${CITY} (Narita/Haneda) — Asia, USA, Europe | Zeniva`,
   description: `Vacation deals from ${CITY} (NRT, HND). Asia, USA, Europe, Hawaii, Australia. Direct flights from Narita and Haneda, hotel and transfers included.`,
-  keywords: [`vacation packages from ${CITY}`, `Narita vacation deals`, `Haneda vacation deals`, `Tokyo to Hawaii`, `Tokyo to USA`, `Tokyo to Bali`, `Japan travel agency`],
+  keywords: [`vacation packages from ${CITY}`, `Narita vacation deals`, `Haneda vacation deals`, `Tokyo to Hawaii`, `Tokyo to USA`, `Tokyo to Bali`, `Japan technology platform`],
   openGraph: { title: `Vacation Packages from ${CITY} | Zeniva`, description: `Curated packages from Narita and Haneda. Asia, USA, Europe.`, url: `https://www.zenivatravel.com${URL_PATH}`, siteName: "Zeniva Travel", type: "website", images: [{ url: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=1200&q=80", width: 1200, height: 630, alt: `Packages from ${CITY}` }] },
   alternates: { canonical: `https://www.zenivatravel.com${URL_PATH}` },
 };

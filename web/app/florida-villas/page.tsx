@@ -29,7 +29,7 @@ const FAQS = [
   { q: "Can I book a Florida villa last-minute?", a: "Yes. Lina specializes in last-minute luxury bookings. Many of our Florida villa partners hold inventory for urgent requests. Just chat with Lina and she'll find available options immediately." },
   { q: "Do Florida villas include a concierge?", a: "Most luxury properties we partner with include a dedicated concierge. Lina can also arrange airport transfers, private chefs, yacht charters, and day trips as part of your villa package." },
   { q: "What's the minimum rental period?", a: "Most Florida luxury villas require a 3-night minimum. Weekly rentals often come with significant discounts. Lina will always show you the best rate for your dates." },
-  { q: "Is Zeniva licensed?", a: "Yes. Zeniva is incorporated in Delaware, USA and operates with full compliance. We are an AI-powered travel agency serving all 50 US states and Canada." },
+  { q: "Is Zeniva licensed?", a: "Yes. Zeniva is incorporated in Delaware, USA and operates with full compliance. We are an AI-powered travel technology platform serving all 50 US states and Canada." },
 ];
 
 export default function FloridaVillasPage() {

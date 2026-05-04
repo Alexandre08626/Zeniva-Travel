@@ -5,9 +5,9 @@ import Header from "../../src/components/Header";
 import Footer from "../../src/components/Footer";
 
 export const metadata: Metadata = {
-  title: "About Zeniva — US AI Travel Agency | Delaware, New York, Virginia",
+  title: "About Zeniva — US AI Travel Technology Platform | Delaware, New York, Virginia",
   description:
-    "Zeniva is an AI-powered travel agency incorporated in Delaware, USA, with offices in New York and Virginia. We serve travelers across all 50 US states and Canada. Meet Lina AI, your 24/7 travel concierge.",
+    "Zeniva is an AI-powered travel technology platform incorporated in Delaware, USA, with offices in New York and Virginia. Travel services are provided by third-party suppliers. Meet Lina AI, your 24/7 travel concierge.",
   alternates: {
     canonical: "https://zenivatravel.com/about",
     languages: {
@@ -16,9 +16,9 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "About Zeniva — US AI Travel Agency",
+    title: "About Zeniva — US AI Travel Technology Platform",
     description:
-      "AI-powered travel agency based in the USA (Delaware, NY, Virginia). Serving all 50 states & Canada with luxury trip planning, custom vacations, and 24/7 AI concierge.",
+      "AI-powered travel technology platform based in the USA (Delaware, NY, Virginia). Travel services are provided by third-party suppliers. Lina AI is the 24/7 concierge.",
     url: "https://zenivatravel.com/about",
     type: "website",
     locale: "en_US",
@@ -27,12 +27,12 @@ export const metadata: Metadata = {
 
 const schemaOrg = {
   "@context": "https://schema.org",
-  "@type": ["TravelAgency", "Organization"],
+  "@type": ["Organization", "TechnologyCompany"],
   "name": "Zeniva",
   "legalName": "Zeniva LLC",
   "url": "https://zenivatravel.com",
   "logo": "https://zenivatravel.com/branding/logo.png",
-  "description": "AI-powered travel agency incorporated in Delaware, USA. Offices in New York and Virginia. Serving all 50 US states and Canada.",
+  "description": "AI-powered travel technology platform incorporated in Delaware, USA. Offices in New York and Virginia. Zeniva acts solely as a technology intermediary; travel services are provided by third-party suppliers.",
   "foundingDate": "2024",
   "address": {
     "@type": "PostalAddress",
@@ -61,10 +61,10 @@ export default function AboutPage() {
               🇺🇸 Incorporated in Delaware, USA
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-              America's AI Travel Agency
+              America's AI Travel Technology Platform
             </h1>
             <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-              Zeniva is a US-based travel technology company. We combine artificial intelligence with human expertise to plan the perfect trip — for every traveler, every destination, every budget.
+              Zeniva is a US-based travel technology company. We combine artificial intelligence with human expertise to help travelers plan the perfect trip — for every traveler, every destination, every budget. Zeniva Travel acts solely as a technology intermediary; travel services are provided by third-party suppliers.
             </p>
           </div>
         </section>
@@ -81,7 +81,7 @@ export default function AboutPage() {
                 Our flagship product, <strong>Lina AI</strong>, is a 24/7 AI travel concierge that helps travelers plan luxury vacations, custom trips, ZeniGroup, and ZeniYacht — in minutes, not hours.
               </p>
               <p className="text-gray-600 leading-relaxed">
-                We're a fully digital travel agency. No brick-and-mortar storefront, no waiting on hold. Just fast, intelligent trip planning — available anytime.
+                We're a fully digital travel technology platform. No brick-and-mortar storefront, no waiting on hold. Just fast, intelligent trip planning — available anytime. Bookings are fulfilled by independent third-party suppliers identified at checkout.
               </p>
             </div>
 
@@ -152,7 +152,7 @@ export default function AboutPage() {
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Serving All 50 US States & Canada</h2>
             <p className="text-gray-600 text-lg mb-8">
-              Zeniva is a fully digital travel agency. We serve customers in every US state — including California, Texas, Florida, New York, Illinois, Pennsylvania, Ohio, Georgia, North Carolina, Michigan — and across all Canadian provinces.
+              Zeniva is a fully digital travel technology platform. We serve customers in every US state — including California, Texas, Florida, New York, Illinois, Pennsylvania, Ohio, Georgia, North Carolina, Michigan — and across all Canadian provinces.
             </p>
             <div className="flex flex-wrap justify-center gap-2 text-sm">
               {["New York", "California", "Texas", "Florida", "Illinois", "Virginia", "Delaware", "Pennsylvania", "Georgia", "North Carolina", "Ohio", "Michigan", "New Jersey", "Washington", "Colorado", "Arizona", "Ontario", "Quebec", "British Columbia", "Alberta"].map(state => (

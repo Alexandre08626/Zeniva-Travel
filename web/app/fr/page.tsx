@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Agence de voyage IA",
+  title: "Plateforme de voyage IA",
   description:
     "Zeniva est une Travel Tech propulsée par l’IA. Lina AI crée des itinéraires sur mesure, validés par des experts concierge.",
   alternates: {
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Zeniva | Agence de voyage IA",
+    title: "Zeniva | Plateforme de voyage IA",
     description:
       "Voyages personnalisés avec Lina AI : itinéraires intelligents validés par un concierge humain.",
     url: "https://zenivatravel.com/fr",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zeniva | Agence de voyage IA",
+    title: "Zeniva | Plateforme de voyage IA",
     description:
       "Voyages personnalisés avec Lina AI : itinéraires intelligents validés par un concierge humain.",
     images: ["/branding/lina-avatar.png"],
@@ -44,11 +44,14 @@ export default function HomePageFr() {
       <section className="mx-auto max-w-5xl px-6 py-16">
         <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Zeniva</p>
         <h1 className="mt-4 text-4xl sm:text-5xl font-black text-slate-900">
-          Agence de voyage IA
+          Plateforme de voyage IA
         </h1>
         <p className="mt-5 text-lg text-slate-600">
-          Zeniva est une Travel Tech qui utilise l’intelligence artificielle pour concevoir des voyages sur mesure.
-          Lina AI découvre votre intention, génère des propositions intelligentes et notre équipe concierge finalise chaque détail.
+          Zeniva est une plateforme technologique de voyage qui utilise l’intelligence artificielle pour concevoir des voyages sur mesure.
+          Lina AI découvre votre intention, génère des propositions intelligentes et notre équipe concierge coordonne chaque détail avec les fournisseurs partenaires.
+        </p>
+        <p className="mt-3 text-xs text-slate-500">
+          Zeniva Travel agit uniquement comme intermédiaire technologique. Les services de voyage sont fournis par des fournisseurs tiers.
         </p>
 
         <div className="mt-10 flex flex-wrap gap-3">

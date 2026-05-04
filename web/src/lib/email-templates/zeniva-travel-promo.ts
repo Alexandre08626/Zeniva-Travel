@@ -192,7 +192,7 @@ Decouvrez nos forfaits exclusifs et partez a l'aventure avec Zeniva Travel
 <td style="background-color:#0B1B4D;padding:28px 40px;text-align:center;">
   <p style="margin:0;font-size:14px;font-weight:700;color:#ffffff;letter-spacing:0.5px;">ZENIVA <span style="color:#E6B85A;">TRAVEL</span></p>
   <p style="margin:8px 0 0;font-size:12px;color:rgba(255,255,255,0.6);line-height:1.5;">
-    Votre agence de voyage premium au Canada
+    Votre plateforme technologique de voyage premium au Canada
   </p>
   <table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px auto 0;">
   <tr>

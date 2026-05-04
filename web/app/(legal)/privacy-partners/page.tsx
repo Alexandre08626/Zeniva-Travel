@@ -59,7 +59,7 @@ export default function PrivacyPartnersPage() {
       <section id="introduction" className="legal-section">
         <h2>Introduction</h2>
         <p>
-          Zeniva is an AI-powered travel agency platform operated by {LEGAL_OPERATOR}.
+          Zeniva is an AI-powered travel technology platform operated by {LEGAL_OPERATOR}. Zeniva acts solely as a technology intermediary; travel services are provided by third-party suppliers.
           Partner Mode is designed for independent contractors such as property
           hosts, yacht providers, tour operators, and luxury service suppliers.
         </p>

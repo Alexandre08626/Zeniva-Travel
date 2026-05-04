@@ -3,17 +3,17 @@ import type { Metadata } from "next";
 const RIVAL = "Travala"; const URL_PATH = "/compare/zeniva-vs-travala";
 export const metadata: Metadata = {
   title: `Zeniva vs ${RIVAL} — 2026 Honest Comparison | Zeniva`,
-  description: `Side-by-side: Zeniva (full AI travel agency with human escalation) vs ${RIVAL} (crypto-friendly OTA with AI). Different value props.`,
+  description: `Side-by-side: Zeniva (full AI travel technology platform with human escalation) vs ${RIVAL} (crypto-friendly OTA with AI). Different value props.`,
   keywords: [`zeniva vs travala`, `travala alternative`, `crypto travel booking`, `book travel with bitcoin`, `ai travel agent`],
   openGraph: { title: `Zeniva vs ${RIVAL} — Side-by-Side`, description: `Full AI agency vs crypto-friendly OTA.`, url: `https://www.zenivatravel.com${URL_PATH}`, siteName: "Zeniva Travel", type: "website", images: [{ url: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1200&q=80", width: 1200, height: 630, alt: `Zeniva vs ${RIVAL}` }] },
   alternates: { canonical: `https://www.zenivatravel.com${URL_PATH}` },
 };
 export default function P() { return (
   <SeoPage h1={`Zeniva vs ${RIVAL} — Honest 2026 Comparison`}
-    subtitle={`${RIVAL} is a crypto-friendly OTA — accepts Bitcoin, Ethereum, AVA, USDT for travel bookings. Zeniva is a full AI travel agency in USD/CAD with human escalation. Different value propositions.`}
+    subtitle={`${RIVAL} is a crypto-friendly OTA — accepts Bitcoin, Ethereum, AVA, USDT for travel bookings. Zeniva is a full AI travel technology platform in USD/CAD with human escalation. Different value propositions.`}
     heroImage="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1600&q=85" heroGradient="from-amber-900/70 to-violet-900/60" badge="Independent comparison"
     sections={[
-      { heading: "The fundamental difference", content: `<p>${RIVAL} positions itself as the crypto traveler's OTA. The differentiator is the ability to pay for hotels, flights, and activities using Bitcoin, Ethereum, AVA, USDT and other cryptocurrencies. The platform itself functions like a standard OTA (search, book, confirm) with AI assistance for trip planning added on top.</p><p>Zeniva is a traditional currency (USD/CAD) full AI travel agency with Lina AI as the front door, real bookings via Duffel + LiteAPI, and 24/7 human escalation. ZeniPay handles installment payment plans (0% interest) but doesn't accept crypto.</p>` },
+      { heading: "The fundamental difference", content: `<p>${RIVAL} positions itself as the crypto traveler's OTA. The differentiator is the ability to pay for hotels, flights, and activities using Bitcoin, Ethereum, AVA, USDT and other cryptocurrencies. The platform itself functions like a standard OTA (search, book, confirm) with AI assistance for trip planning added on top.</p><p>Zeniva is a traditional currency (USD/CAD) full AI travel technology platform with Lina AI as the front door, real bookings via Duffel + LiteAPI, and 24/7 human escalation. ZeniPay handles installment payment plans (0% interest) but doesn't accept crypto.</p>` },
       { heading: "Side-by-side", content: `<table style="width:100%; border-collapse:collapse; margin: 16px 0;">
 <thead><tr style="background:#0F6CF5; color:white;"><th style="padding:10px; text-align:left;">Feature</th><th style="padding:10px;">${RIVAL}</th><th style="padding:10px;">Zeniva</th></tr></thead>
 <tbody>

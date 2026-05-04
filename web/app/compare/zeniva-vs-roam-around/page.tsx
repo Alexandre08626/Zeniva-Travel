@@ -3,17 +3,17 @@ import type { Metadata } from "next";
 const RIVAL = "Roam Around"; const URL_PATH = "/compare/zeniva-vs-roam-around";
 export const metadata: Metadata = {
   title: `Zeniva vs ${RIVAL} — 2026 Honest Comparison | Zeniva`,
-  description: `Side-by-side: Zeniva (full AI travel agency that books) vs ${RIVAL} (free AI itinerary generator). Different jobs, both useful.`,
+  description: `Side-by-side: Zeniva (full AI travel technology platform that books) vs ${RIVAL} (free AI itinerary generator). Different jobs, both useful.`,
   keywords: [`zeniva vs roam around`, `roam around alternative`, `free ai itinerary generator`, `ai trip planner free`],
   openGraph: { title: `Zeniva vs ${RIVAL} — Side-by-Side`, description: `Full AI agency vs free itinerary generator.`, url: `https://www.zenivatravel.com${URL_PATH}`, siteName: "Zeniva Travel", type: "website", images: [{ url: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1200&q=80", width: 1200, height: 630, alt: `Zeniva vs ${RIVAL}` }] },
   alternates: { canonical: `https://www.zenivatravel.com${URL_PATH}` },
 };
 export default function P() { return (
   <SeoPage h1={`Zeniva vs ${RIVAL} — Honest 2026 Comparison`}
-    subtitle={`${RIVAL} is a free AI itinerary generator — give it a destination, it produces a structured trip plan. Zeniva is a full AI travel agency that takes your plan and actually books the flights, hotels, and transfers.`}
+    subtitle={`${RIVAL} is a free AI itinerary generator — give it a destination, it produces a structured trip plan. Zeniva is a full AI travel technology platform that takes your plan and actually books the flights, hotels, and transfers.`}
     heroImage="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1600&q=85" heroGradient="from-orange-900/70 to-pink-900/60" badge="Independent comparison"
     sections={[
-      { heading: "The fundamental difference", content: `<p>${RIVAL} is part of the wave of free AI itinerary generators that emerged 2023-2025 — Wonderplan, Layla, Mindtrip, and Roam Around all do similar things. They generate a draft itinerary from a destination + interests prompt. Booking happens elsewhere.</p><p>Zeniva is a full AI travel agency. Lina AI generates the trip AND books it through real partners (Duffel, LiteAPI) AND a real human travel advisor handles complex cases. The trip lifecycle is owned by one company.</p>` },
+      { heading: "The fundamental difference", content: `<p>${RIVAL} is part of the wave of free AI itinerary generators that emerged 2023-2025 — Wonderplan, Layla, Mindtrip, and Roam Around all do similar things. They generate a draft itinerary from a destination + interests prompt. Booking happens elsewhere.</p><p>Zeniva is a full AI travel technology platform. Lina AI generates the trip AND books it through real partners (Duffel, LiteAPI) AND a real human travel advisor handles complex cases. The trip lifecycle is owned by one company.</p>` },
       { heading: "Side-by-side", content: `<table style="width:100%; border-collapse:collapse; margin: 16px 0;">
 <thead><tr style="background:#0F6CF5; color:white;"><th style="padding:10px; text-align:left;">Feature</th><th style="padding:10px;">${RIVAL}</th><th style="padding:10px;">Zeniva</th></tr></thead>
 <tbody>

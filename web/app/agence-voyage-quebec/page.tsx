@@ -4,16 +4,16 @@ import type { Metadata } from "next";
 const URL_PATH = "/agence-voyage-quebec";
 
 export const metadata: Metadata = {
-  title: "Agence de voyage Québec — Lina AI 24/7 en français | Zeniva",
+  title: "Plateforme de voyage IA — Québec, Lina AI 24/7 en français | Zeniva",
   description:
-    "Zeniva, agence de voyage AI au Québec. Forfaits tout inclus, croisières, voyages sur mesure. Service en français 24/7 par Lina AI. Vols directs depuis Montréal (YUL) et Québec (YQB).",
+    "Zeniva, plateforme technologique de voyage propulsée par l'IA pour le Québec. Forfaits tout inclus, croisières, voyages sur mesure offerts par des fournisseurs tiers. Service en français 24/7 par Lina AI. Vols directs depuis Montréal (YUL) et Québec (YQB).",
   keywords: [
-    "agence voyage Québec",
-    "agence de voyage Québec",
-    "agence voyage Montréal",
-    "agence voyage Lac Beauport",
-    "meilleure agence voyage Québec",
-    "agent voyage Québec",
+    "plateforme voyage Québec",
+    "plateforme de voyage IA Québec",
+    "AI voyage Montréal",
+    "AI voyage Lac Beauport",
+    "meilleure plateforme voyage Québec",
+    "concierge voyage Québec",
     "voyage Québec Cuba",
     "voyage Québec Mexique",
     "voyage Québec Caraïbes",
@@ -21,8 +21,8 @@ export const metadata: Metadata = {
     "Lina AI Québec",
   ],
   openGraph: {
-    title: "Agence de voyage Québec | Zeniva",
-    description: "Forfaits tout inclus, croisières, vols et hôtels — service francophone 24/7 partout au Québec.",
+    title: "Plateforme de voyage IA Québec | Zeniva",
+    description: "Forfaits tout inclus, croisières, vols et hôtels — service francophone 24/7 partout au Québec, fournis par des partenaires tiers via la plateforme Zeniva.",
     url: `https://www.zenivatravel.com${URL_PATH}`,
     siteName: "Zeniva Travel",
     type: "website",
@@ -37,19 +37,19 @@ export const metadata: Metadata = {
 export default function AgenceVoyageQuebecPage() {
   return (
     <SeoPage
-      h1="Agence de voyage Québec — service AI 24/7 en français"
-      subtitle="Zeniva est l'agence de voyage AI conçue pour les Québécois. Lina AI parle français, prix en CAD, vols directs depuis Montréal et Québec, support humain 24/7. Aucuns frais de réservation."
+      h1="Plateforme de voyage IA Québec — service AI 24/7 en français"
+      subtitle="Zeniva est la plateforme technologique de voyage IA conçue pour les Québécois. Lina AI parle français, prix en CAD, vols directs depuis Montréal et Québec, support humain 24/7. Aucuns frais de plateforme — les services de voyage sont fournis par des fournisseurs tiers identifiés au moment du paiement."
       heroImage="https://images.unsplash.com/photo-1572804013427-4d7ca7268217?auto=format&fit=crop&w=1600&q=85"
       heroGradient="from-blue-900/70 to-indigo-900/60"
       badge="🇨🇦 Québec · CAD · français"
       sections={[
         {
-          heading: "Pourquoi Zeniva est l'agence de voyage idéale au Québec",
-          content: `<p>Zeniva combine la rapidité de l'AI avec l'expertise des vrais agents de voyage québécois. Lina AI te trouve le meilleur tout-inclus, le meilleur vol ou la meilleure croisière en quelques secondes — puis un humain expert vérifie chaque réservation. Service entièrement en français, prix en dollars canadiens, support 24/7.</p>
+          heading: "Pourquoi Zeniva est la plateforme idéale au Québec",
+          content: `<p>Zeniva combine la rapidité de l'AI avec l'expertise des concierges de voyage québécois. Lina AI te trouve le meilleur tout-inclus, le meilleur vol ou la meilleure croisière en quelques secondes — puis un humain expert coordonne la réservation avec le fournisseur. Service entièrement en français, prix en dollars canadiens, support 24/7.</p>
 <p><strong>Vols directs depuis :</strong> Montréal (YUL), Québec (YQB), Mont-Tremblant (YTM), Saguenay (YBG), Sept-Îles (YZV).</p>`,
         },
         {
-          heading: "Ce que Zeniva offre aux Québécois",
+          heading: "Ce que la plateforme Zeniva offre aux Québécois",
           content: `<p><strong>Tout-inclus Sud :</strong> Cuba, Cancún, Punta Cana, Varadero, Riviera Maya — vols directs depuis YUL et YQB. <a href="/voyage-tout-inclus">Voir les forfaits tout inclus</a>.</p>
 <p><strong>Croisières :</strong> Royal Caribbean, MSC, Carnival, Norwegian — départs Floride avec vols depuis le Québec.</p>
 <p><strong>Voyages Europe :</strong> Paris, Rome, Londres, Lisbonne, Athènes — vols Air Transat et Air Canada depuis YUL.</p>
@@ -59,29 +59,29 @@ export default function AgenceVoyageQuebecPage() {
         {
           heading: "Comment ça marche",
           content: `<p>Étape 1 : Discute avec Lina sur <a href="/chat">/chat</a> ou appelle-la au <a href="/call">/call</a> 24/7.</p>
-<p>Étape 2 : Lina te propose 3 options en moins de 30 secondes.</p>
-<p>Étape 3 : Tu choisis, tu payes (carte ou ZeniPay 0% intérêt en versements). Tout est confirmé immédiatement et accessible sur ton tableau de bord <a href="/documents">/documents</a>.</p>`,
+<p>Étape 2 : Lina te propose 3 options en moins de 30 secondes — fournies par des partenaires fournisseurs identifiés.</p>
+<p>Étape 3 : Tu choisis, tu payes (carte ou ZeniPay 0% intérêt en versements). La confirmation du fournisseur est accessible immédiatement sur ton tableau de bord <a href="/documents">/documents</a>.</p>`,
         },
         {
           heading: "Conformité et protection",
-          content: `<p>Zeniva LLC est enregistrée au Delaware (USA) et opère au Québec en partenariat avec des fournisseurs autorisés (Air Transat, Sunwing, Air Canada Vacations, Royal Caribbean, MSC, etc.). Tous les paiements sont sécurisés via Stripe et ZeniPay.</p>
-<p>Les billets et confirmations sont émis directement par les fournisseurs (compagnie aérienne, hôtel, croisiériste) — Zeniva est l'intermédiaire qui négocie et orchestre.</p>`,
+          content: `<p>Zeniva LLC est enregistrée au Delaware (USA). <strong>Zeniva Travel agit uniquement comme intermédiaire technologique</strong> et opère au Québec en facilitant les réservations chez des fournisseurs autorisés (Air Transat, Sunwing, Air Canada Vacations, Royal Caribbean, MSC, etc.). Tous les paiements sont sécurisés via Stripe et ZeniPay.</p>
+<p>Les billets, confirmations et services de voyage sont fournis et émis directement par les fournisseurs tiers (compagnie aérienne, hôtel, croisiériste) identifiés au paiement.</p>`,
         },
       ]}
       highlights={[
         { icon: "phone", title: "Lina AI en français 24/7", description: "Chat, voix, courriel — toujours en français." },
         { icon: "star", title: "Vols directs YUL et YQB", description: "Cuba, Cancún, Punta Cana en direct depuis Québec." },
-        { icon: "gift", title: "Aucuns frais de réservation", description: "Tout en CAD, taxes et transferts inclus." },
+        { icon: "gift", title: "Aucuns frais de plateforme", description: "Tout en CAD, taxes et transferts inclus." },
         { icon: "shield", title: "Support en voyage 24/7", description: "Un humain joignable de partout en cas de pépin." },
         { icon: "users", title: "ZeniPay 0% intérêt", description: "Paiement en versements jusqu'au départ." },
         { icon: "map", title: "Spécialistes Cuba et Caraïbes", description: "Les destinations préférées des Québécois." },
       ]}
       faqs={[
-        { question: "Zeniva est-elle vraiment une agence québécoise?", answer: "Zeniva est une agence AI nord-américaine qui sert le Québec en français. Notre équipe support inclut des agents francophones et nous travaillons avec tous les fournisseurs principaux du marché québécois (Air Transat, Sunwing, Air Canada Vacations)." },
+        { question: "Zeniva est-elle une agence de voyage?", answer: "Non. Zeniva est une plateforme technologique de voyage IA. Les services de voyage (vols, hôtels, croisières) sont fournis par des fournisseurs tiers indépendants identifiés au moment du paiement. Zeniva agit uniquement comme intermédiaire technologique." },
         { question: "Lina AI parle-t-elle vraiment français?", answer: "Oui — Lina détecte automatiquement le français (chat ou voix) et répond en français. C'est la même Lina pour tous les clients, mais elle change de langue selon toi." },
-        { question: "Puis-je parler à un vrai humain?", answer: "Oui, à tout moment. Écris « parler à un humain » dans le chat et un vrai agent prend la relève en quelques minutes, 24/7." },
+        { question: "Puis-je parler à un vrai humain?", answer: "Oui, à tout moment. Écris « parler à un humain » dans le chat et un vrai concierge prend la relève en quelques minutes, 24/7." },
         { question: "Comment paye-t-on?", answer: "Carte de crédit (Stripe) ou ZeniPay (versements à 0% d'intérêt avec 25% de dépôt initial). Toutes devises supportées (CAD, USD, EUR)." },
-        { question: "Quels sont vos prix?", answer: "Aucuns frais de réservation — Zeniva gagne via les commissions des fournisseurs. Les prix affichés sont les prix finaux." },
+        { question: "Quels sont vos prix?", answer: "Aucuns frais de plateforme — Zeniva gagne via les commissions des fournisseurs. Les prix affichés sont les prix finaux du fournisseur." },
       ]}
       ctaText="Parler à Lina maintenant"
       ctaPrompt="Bonjour Lina, je suis au Québec et je cherche un voyage"
@@ -94,9 +94,9 @@ export default function AgenceVoyageQuebecPage() {
       ]}
       jsonLd={{
         "@context": "https://schema.org",
-        "@type": "TravelAgency",
+        "@type": "Organization",
         name: "Zeniva Travel Québec",
-        description: "Agence de voyage AI au Québec — Lina AI 24/7 en français.",
+        description: "Plateforme technologique de voyage IA au Québec — Lina AI 24/7 en français. Les services de voyage sont fournis par des fournisseurs tiers.",
         url: `https://www.zenivatravel.com${URL_PATH}`,
         areaServed: [
           { "@type": "AdministrativeArea", name: "Québec" },

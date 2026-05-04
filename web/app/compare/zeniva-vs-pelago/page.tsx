@@ -3,14 +3,14 @@ import type { Metadata } from "next";
 const RIVAL = "Pelago"; const URL_PATH = "/compare/zeniva-vs-pelago";
 export const metadata: Metadata = {
   title: `Zeniva vs ${RIVAL} — 2026 Honest Comparison | Zeniva`,
-  description: `Side-by-side: Zeniva (full AI travel agency, USA + Canada focus) vs ${RIVAL} (Singapore Airlines' experiences-focused booking platform). Different scopes.`,
+  description: `Side-by-side: Zeniva (full AI travel technology platform, USA + Canada focus) vs ${RIVAL} (Singapore Airlines' experiences-focused booking platform). Different scopes.`,
   keywords: [`zeniva vs pelago`, `pelago alternative`, `singapore airlines pelago`, `experiences booking ai`],
   openGraph: { title: `Zeniva vs ${RIVAL} — Side-by-Side`, description: `Full AI agency vs experiences-focused platform.`, url: `https://www.zenivatravel.com${URL_PATH}`, siteName: "Zeniva Travel", type: "website", images: [{ url: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1200&q=80", width: 1200, height: 630, alt: `Zeniva vs ${RIVAL}` }] },
   alternates: { canonical: `https://www.zenivatravel.com${URL_PATH}` },
 };
 export default function P() { return (
   <SeoPage h1={`Zeniva vs ${RIVAL} — Honest 2026 Comparison`}
-    subtitle={`${RIVAL} is Singapore Airlines' experience-focused travel platform — strong for Asian destinations and tour/activity bookings. Zeniva is a full AI travel agency for US/Canadian travelers with comprehensive trip booking + human escalation.`}
+    subtitle={`${RIVAL} is Singapore Airlines' experience-focused travel platform — strong for Asian destinations and tour/activity bookings. Zeniva is a full AI travel technology platform for US/Canadian travelers with comprehensive trip booking + human escalation.`}
     heroImage="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1600&q=85" heroGradient="from-cyan-900/70 to-rose-900/60" badge="Independent comparison"
     sections={[
       { heading: "Different markets, different scopes", content: `<p>${RIVAL} (Singapore Airlines) focuses on travel experiences (tours, activities, restaurant reservations, transport) primarily in Asia + select global destinations. Strong if you're flying Singapore Airlines or based in Asia.</p><p>Zeniva is built for US and Canadian travelers — full trip booking (flights via Duffel + hotels via LiteAPI + transfers + experiences) with 24/7 human travel advisor escalation. Specialty travel (yacht, villa, cruise, weddings) included.</p>` },

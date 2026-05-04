@@ -3,6 +3,7 @@ import { useMemo, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { BRAND_BLUE, LIGHT_BG, MUTED_TEXT, TITLE_TEXT } from "../../../../src/design/tokens";
+import SupplierDisclosure from "../../../../src/components/legal/SupplierDisclosure";
 
 function CheckoutConfirmationPageInner() {
   const searchParams = useSearchParams();
@@ -14,6 +15,7 @@ function CheckoutConfirmationPageInner() {
   const confirmationNumber = searchParams.get("confirmationNumber") || "";
   const accountCreated = searchParams.get("accountCreated") === "1";
   const accountEmail = searchParams.get("email") || "";
+  const supplierName = searchParams.get("supplier") || "";
 
   const links = useMemo(() => {
     const confirmationPdf = `/api/partners/duffel-stays/bookings/mock-pdf?docId=${encodeURIComponent(bookingId || "confirmation")}`;
@@ -114,9 +116,12 @@ function CheckoutConfirmationPageInner() {
               <div className="text-sm font-bold" style={{ color: TITLE_TEXT }}>{bookingId || "N/A"}</div>
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Trip Id</div>
-              <div className="text-sm font-bold" style={{ color: TITLE_TEXT }}>{tripId || "N/A"}</div>
+              <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: MUTED_TEXT }}>Supplier</div>
+              <div className="text-sm font-bold" style={{ color: TITLE_TEXT }}>{supplierName || "Confirmed partner"}</div>
             </div>
+          </div>
+          <div className="mt-4">
+            <SupplierDisclosure supplier={supplierName} />
           </div>
         </section>
 

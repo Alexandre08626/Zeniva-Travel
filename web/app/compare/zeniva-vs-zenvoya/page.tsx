@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: `Side-by-side comparison of Zeniva vs ${RIVAL}: two AI travel agencies compared on bookings, human escalation, specialty travel, and multilingual support.`,
   keywords: [
     `zeniva vs zenvoya`, `zenvoya alternative`, `zenvoya vs zeniva`,
-    `best ai travel agent 2026`, `ai travel agency comparison`,
+    `best ai travel agent 2026`, `ai technology platform comparison`,
     `zenvoya review`, `alternative to zenvoya`,
   ],
   openGraph: {
@@ -34,7 +34,7 @@ export default function ComparePage() {
       sections={[
         {
           heading: "The fundamental difference",
-          content: `<p>${RIVAL} and Zeniva are the closest direct competitors in the AI travel agency category. Both let you describe a trip in conversation, both build a real bookable proposal with flights and hotels, and both charge $0 in customer fees.</p>
+          content: `<p>${RIVAL} and Zeniva are the closest direct competitors in the AI travel platform category. Both let you describe a trip in conversation, both build a real bookable proposal with flights and hotels, and both charge $0 in customer fees.</p>
 <p>The differentiators show up in specialty travel coverage, language support, voice option, and human escalation depth.</p>`,
         },
         {
@@ -64,7 +64,7 @@ export default function ComparePage() {
         },
         {
           heading: `When ${RIVAL} is the right pick`,
-          content: `<p>Pick ${RIVAL} if you've used it before and like the conversation style, you're an English-only US traveler, and your trips fit into the standard flight + hotel + activities pattern. ${RIVAL} is a competent AI travel agency for those use cases.</p>`,
+          content: `<p>Pick ${RIVAL} if you've used it before and like the conversation style, you're an English-only US traveler, and your trips fit into the standard flight + hotel + activities pattern. ${RIVAL} is a competent AI travel platform for those use cases.</p>`,
         },
         {
           heading: "When Zeniva is the right pick",

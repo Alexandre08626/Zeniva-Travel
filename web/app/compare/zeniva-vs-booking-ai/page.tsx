@@ -3,14 +3,14 @@ import type { Metadata } from "next";
 const RIVAL = "Booking.com AI Trip Planner"; const URL_PATH = "/compare/zeniva-vs-booking-ai";
 export const metadata: Metadata = {
   title: `Zeniva vs ${RIVAL} — 2026 Honest Comparison | Zeniva`,
-  description: `Side-by-side: Zeniva (independent full AI travel agency with human escalation) vs ${RIVAL} (Booking.com's in-app AI). Different scopes, different support.`,
-  keywords: [`zeniva vs booking.com`, `booking.com ai`, `booking ai trip planner`, `ai travel agency`, `alternative to booking.com`],
+  description: `Side-by-side: Zeniva (independent full AI travel technology platform with human escalation) vs ${RIVAL} (Booking.com's in-app AI). Different scopes, different support.`,
+  keywords: [`zeniva vs booking.com`, `booking.com ai`, `booking ai trip planner`, `ai technology platform`, `alternative to booking.com`],
   openGraph: { title: `Zeniva vs ${RIVAL} — Side-by-Side`, description: `Independent AI agency vs Booking.com's in-app AI.`, url: `https://www.zenivatravel.com${URL_PATH}`, siteName: "Zeniva Travel", type: "website", images: [{ url: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1200&q=80", width: 1200, height: 630, alt: `Zeniva vs ${RIVAL}` }] },
   alternates: { canonical: `https://www.zenivatravel.com${URL_PATH}` },
 };
 export default function P() { return (
   <SeoPage h1={`Zeniva vs ${RIVAL} — Honest 2026 Comparison`}
-    subtitle={`${RIVAL} is the in-app AI assistant inside the Booking.com app — locked to Booking.com inventory. Zeniva is an independent AI travel agency with multi-supplier inventory and human escalation outside any single OTA's catalog.`}
+    subtitle={`${RIVAL} is the in-app AI assistant inside the Booking.com app — locked to Booking.com inventory. Zeniva is an independent AI travel platform with multi-supplier inventory and human escalation outside any single OTA's catalog.`}
     heroImage="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1600&q=85" heroGradient="from-blue-900/70 to-slate-900/60" badge="Independent comparison"
     sections={[
       { heading: "The fundamental difference", content: `<p>${RIVAL} is Booking.com's evolution of their search experience — describe your trip in conversation and the AI surfaces options from Booking.com's existing catalog. The booking happens through Booking.com. Support flows through Booking.com.</p><p>Zeniva is independent. Lina AI sources from Duffel (flights — every airline), LiteAPI (1.5M+ hotels), and direct partners (yacht, villa, cruise). When you book through Zeniva, the support relationship is with Zeniva — not whoever Booking.com routed your reservation to.</p>` },
@@ -38,7 +38,7 @@ export default function P() { return (
       { icon: "gift", title: "Negotiated rates", description: "LiteAPI + supplier-direct rates often beat consumer OTAs." },
     ]}
     faqs={[
-      { question: `Is ${RIVAL} as good as a real travel agency?`, answer: `Booking.com's AI is good for hotel-focused trip discovery within their inventory. For full trips (flights + hotel + transfers + specialty) and reliable human support when issues arise, a real agency like Zeniva is more comprehensive.` },
+      { question: `Is ${RIVAL} as good as a AI travel platform?`, answer: `Booking.com's AI is good for hotel-focused trip discovery within their inventory. For full trips (flights + hotel + transfers + specialty) and reliable human support when issues arise, a real agency like Zeniva is more comprehensive.` },
       { question: "Hotel inventory comparison?", answer: "Booking.com has very broad hotel inventory (a major OTA). Zeniva's LiteAPI also has 1.5M+ properties + supplier-direct relationships that often unlock luxury rates not on consumer OTAs." },
       { question: "Yacht charter or villa booking?", answer: "Booking.com lists vacation rentals but doesn't broker yacht charters or coordinate destination weddings. Zeniva covers all four specialty categories." },
       { question: "Customer service?", answer: "Booking.com's support is automated-first with documented issues for cancellations, refunds, and complex changes. Zeniva offers 24/7 instant human escalation in-chat." },
