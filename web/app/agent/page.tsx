@@ -66,6 +66,7 @@ const HQ_LINKS = [
   { label: "Influencer", href: "/agent/influencer", icon: "⭐" },
   { label: "AI Agents Hub", href: "/ai-agents", icon: "🤖" },
   { label: "Sofia \u2014 Marketing", href: "/agent/outreach", icon: "📬" },
+  { label: "Pitch (prive)", href: "/pitch", icon: "🔒" },
 ];
 
 // Zeniva HQ only (info@zeniva.ca) — extra admin items
