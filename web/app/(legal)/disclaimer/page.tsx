@@ -7,7 +7,6 @@ import { createLegalMetadata } from "../../../src/components/legal/legal-metadat
 import {
   LEGAL_LAST_UPDATED,
   LEGAL_POLICY_VERSION,
-  LEGAL_PARENT_OPERATOR,
   LEGAL_OPERATOR,
 } from "../../../src/components/legal/legal-constants";
 
@@ -43,8 +42,7 @@ export default function DisclaimerPage() {
             travel supplier.
           </li>
           <li>
-            The platform is operated by {LEGAL_PARENT_OPERATOR} (registered
-            entity: {LEGAL_OPERATOR}).
+            The platform is operated by {LEGAL_OPERATOR}, a Delaware company.
           </li>
           <li>
             Flights, hotels, yachts, villas, cruises, transfers, activities and
@@ -82,7 +80,7 @@ export default function DisclaimerPage() {
           checkout and document workflows — provides software tools that help
           travelers discover, compare, and request travel arrangements offered by
           independent third-party suppliers. The platform is operated by{" "}
-          {LEGAL_PARENT_OPERATOR}.
+          {LEGAL_OPERATOR}, a company incorporated in Delaware, USA.
         </p>
         <p>
           Zeniva does not operate aircraft, hotels, vessels, villas, ground
@@ -118,7 +116,7 @@ export default function DisclaimerPage() {
         <p>
           Suppliers listed or accessible through the Zeniva platform are
           independent contractors. They are not agents, employees, partners,
-          joint venturers or franchisees of Zeniva or {LEGAL_PARENT_OPERATOR}.
+          joint venturers or franchisees of {LEGAL_OPERATOR}.
           Nothing on the platform should be interpreted as Zeniva providing,
           operating, managing, marketing-as-its-own, sponsoring or endorsing any
           underlying travel service, except where Zeniva expressly states a
@@ -164,8 +162,8 @@ export default function DisclaimerPage() {
       <section id="liability" className="legal-section">
         <h2>Limitation of liability</h2>
         <p>
-          To the maximum extent permitted by law, Zeniva and {LEGAL_PARENT_OPERATOR}{" "}
-          are not liable for the acts, omissions, defaults, breaches, injuries,
+          To the maximum extent permitted by law, {LEGAL_OPERATOR}{" "}
+          is not liable for the acts, omissions, defaults, breaches, injuries,
           losses, delays, cancellations or damages caused by any third-party
           supplier or by force-majeure events beyond reasonable control. Any
           aggregate liability of Zeniva is limited to the platform fees paid

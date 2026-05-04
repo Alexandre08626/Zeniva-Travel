@@ -2,7 +2,7 @@ import Link from "next/link";
 import React from "react";
 import { PREMIUM_BLUE, MUTED_TEXT } from "../design/tokens";
 import AutoTranslate from "./AutoTranslate";
-import { LEGAL_PARENT_OPERATOR } from "./legal/legal-constants";
+import { LEGAL_OPERATOR } from "./legal/legal-constants";
 
 const FOOTER_USA = [
   { l: "From New York", h: "/packages" },
@@ -183,7 +183,7 @@ export default function Footer() {
       >
         <p className="font-semibold">
           <AutoTranslate
-            text={`Zeniva Travel acts solely as a technology intermediary. The Zeniva platform is operated by ${LEGAL_PARENT_OPERATOR} Travel services are provided by third-party suppliers.`}
+            text={`Zeniva Travel acts solely as a technology intermediary. The Zeniva platform is operated by ${LEGAL_OPERATOR}. Travel services are provided by third-party suppliers.`}
             className="inline"
           />
         </p>
@@ -192,6 +192,9 @@ export default function Footer() {
             text="ZeniStay listings are curated by Zeniva but operated and fulfilled by independent property partners."
             className="inline"
           />
+        </p>
+        <p className="mt-3 text-[10px]">
+          © {new Date().getFullYear()} Zeniva Travel — {LEGAL_OPERATOR}. All rights reserved.
         </p>
       </div>
     </footer>
