@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { useAuthStore, logout, switchActiveSpace, setPreviewRole } from '@/src/lib/authStore';
+import { useAuthStore, logout, switchActiveSpace, setPreviewRole, isHQ } from '@/src/lib/authStore';
 import { canPreviewRole, RBAC_ROLES, type RbacRole } from '@/src/lib/rbac';
 import { locales, localeLabels } from '../lib/i18n/config';
 import { useI18n } from '../lib/i18n/I18nProvider';
@@ -20,6 +20,10 @@ const T: Record<string, Record<string, string>> = {
     signOut: "Sign out",
     previewMode: "Preview mode",
     off: "Off",
+    investorPitch: "Investor pitch",
+    investorPitchHint: "Private — founder only",
+    copyLink: "Copy link",
+    copied: "✓ Link copied",
   },
   fr: {
     signedIn: "Connecté en tant que",
@@ -32,6 +36,10 @@ const T: Record<string, Record<string, string>> = {
     signOut: "Se déconnecter",
     previewMode: "Mode aperçu",
     off: "Désactivé",
+    investorPitch: "Pitch investisseurs",
+    investorPitchHint: "Privé — founder uniquement",
+    copyLink: "Copier le lien",
+    copied: "✓ Lien copié",
   },
   es: {
     signedIn: "Conectado como",
@@ -44,6 +52,10 @@ const T: Record<string, Record<string, string>> = {
     signOut: "Cerrar sesión",
     previewMode: "Modo vista previa",
     off: "Desactivado",
+    investorPitch: "Pitch para inversores",
+    investorPitchHint: "Privado — solo founder",
+    copyLink: "Copiar enlace",
+    copied: "✓ Enlace copiado",
   },
 };
 
@@ -52,6 +64,7 @@ export default function AccountMenu() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [menuStyle, setMenuStyle] = useState<{ top: number; right: number } | null>(null);
+  const [pitchCopied, setPitchCopied] = useState(false);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   const roles = user?.roles || (user?.role ? [user.role] : []);
@@ -59,10 +72,36 @@ export default function AccountMenu() {
   const canAgent = roles.some((r) => RBAC_ROLES.includes(r as RbacRole));
   const isInfluencer = roles.includes('influencer');
   const canTraveler = roles.includes('traveler') || !!user?.travelerProfile;
+  const isFounder = !!user && isHQ(user);
   const canPreview = canPreviewRole({ email: user?.email, id: (user as any)?.id });
   const previewRole = user?.effectiveRole || '';
   const { locale, setLocale } = useI18n();
   const t = T[locale] || T.en;
+
+  async function copyPitchLink() {
+    const url = typeof window !== 'undefined'
+      ? `${window.location.origin}/pitch`
+      : 'https://www.zenivatravel.com/pitch';
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+      } else if (typeof document !== 'undefined') {
+        const textarea = document.createElement('textarea');
+        textarea.value = url;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setPitchCopied(true);
+      window.setTimeout(() => setPitchCopied(false), 1800);
+    } catch {
+      setPitchCopied(false);
+    }
+  }
 
   function goTo(space: 'traveler'|'partner'|'agent'|'influencer') {
     setOpen(false);
@@ -166,6 +205,43 @@ export default function AccountMenu() {
                 </button>
               )}
             </div>
+
+            {isFounder && (
+              <>
+                <div className="border-t my-2" />
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-2.5">
+                  <div className="flex items-center justify-between gap-2 px-1 pb-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-700">
+                      🔒 {t.investorPitch}
+                    </span>
+                  </div>
+                  <p className="px-1 pb-2 text-[10px] text-slate-500">{t.investorPitchHint}</p>
+                  <div className="flex flex-col gap-1.5">
+                    <a
+                      href="/pitch"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setOpen(false)}
+                      className="inline-flex items-center justify-center rounded-lg bg-gradient-to-br from-[#0B1B4D] to-[#0F6CF5] px-3 py-2 text-xs font-extrabold text-white"
+                    >
+                      {t.investorPitch} →
+                    </a>
+                    <button
+                      type="button"
+                      onClick={copyPitchLink}
+                      className={[
+                        'inline-flex items-center justify-center rounded-lg border px-3 py-2 text-xs font-bold transition-colors',
+                        pitchCopied
+                          ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                          : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100',
+                      ].join(' ')}
+                    >
+                      {pitchCopied ? t.copied : t.copyLink}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
 
             <div className="border-t my-2" />
             <button onClick={() => { router.push('/reset-password'); setOpen(false); }} className="w-full text-left px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 text-xs">

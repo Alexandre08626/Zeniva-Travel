@@ -13,6 +13,7 @@ import HelpCenterButton from "../src/components/HelpCenterButton.client";
 import ClientLayoutShell from "../src/components/ClientLayoutShell.client";
 import ExitIntentPopup from "../src/components/ExitIntentPopup.client";
 import CheckoutAbandonmentCapture from "../src/components/CheckoutAbandonmentCapture.client";
+import StandaloneRouteGate from "../src/components/StandaloneRouteGate.client";
 
 
 
@@ -301,18 +302,22 @@ export default function RootLayout({
       <body data-brand="blue" className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Providers>
           <PlatformOsTag />
-          
-          
+
+
           <PushNotifManager />
-          
+
           <ClientLayoutShell />
-          <HelpCenterButton />
-          <ExitIntentPopup />
-          <CheckoutAbandonmentCapture />
-          {/* <PWAPromptAfterLogin /> */}
-          {/* WelcomeBanner removed */}
+          <StandaloneRouteGate>
+            <HelpCenterButton />
+            <ExitIntentPopup />
+            <CheckoutAbandonmentCapture />
+            {/* <PWAPromptAfterLogin /> */}
+            {/* WelcomeBanner removed */}
+          </StandaloneRouteGate>
           {children}
-          <CookieConsent />
+          <StandaloneRouteGate>
+            <CookieConsent />
+          </StandaloneRouteGate>
         </Providers>
       </body>
     </html>
