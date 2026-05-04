@@ -20,26 +20,26 @@ const SNIPPETS: { id: string; label: string; rec: string; html: string }[] = [
   },
   {
     id: "agence-quebec",
-    label: "Agence voyage Québec (FR — Quebec partners)",
+    label: "Plateforme voyage Québec (FR — Quebec partners)",
     rec: "Best for: Lac-Beauport chalet hosts, Quebec wedding planners, ski resorts, restaurants in tourist zones.",
     html: `<a href="${SITE}/agence-voyage-quebec?utm_source=affiliate&utm_medium=embed" target="_blank" rel="sponsored noopener" style="display:inline-flex;align-items:center;gap:10px;padding:12px 22px;border-radius:14px;background:linear-gradient(135deg,#0F3A8A,#0F6CF5);color:#fff;font-family:system-ui,sans-serif;font-weight:800;font-size:14px;text-decoration:none;box-shadow:0 4px 14px rgba(15,108,245,0.25)">
-  <span style="font-size:18px">🇨🇦</span> Agence voyage AI 24/7 — Zeniva
+  <span style="font-size:18px">🇨🇦</span> Plateforme voyage AI 24/7 — Zeniva
 </a>`,
   },
   {
     id: "nyc",
-    label: "Travel Agency New York (EN — NYC partners)",
+    label: "Travel Platform New York (EN — NYC partners)",
     rec: "Best for: Manhattan concierge desks, Hamptons rentals, NYC honeymoon photographers, hotel concierges.",
     html: `<a href="${SITE}/travel-agency-new-york?utm_source=affiliate&utm_medium=embed" target="_blank" rel="sponsored noopener" style="display:inline-flex;align-items:center;gap:10px;padding:12px 22px;border-radius:14px;background:linear-gradient(135deg,#0B1B4D,#7c3aed);color:#fff;font-family:system-ui,sans-serif;font-weight:800;font-size:14px;text-decoration:none;box-shadow:0 4px 14px rgba(124,58,237,0.25)">
-  <span style="font-size:18px">🗽</span> Plan your trip — NYC Travel Agency
+  <span style="font-size:18px">🗽</span> Plan your trip — NYC Travel Platform
 </a>`,
   },
   {
     id: "virginia",
-    label: "Travel Agency Virginia (EN — VA partners)",
+    label: "Travel Platform Virginia (EN — VA partners)",
     rec: "Best for: Williamsburg attractions, Virginia Beach hotels, Norfolk cruise terminal partners, government contractor newsletters.",
     html: `<a href="${SITE}/travel-agency-virginia?utm_source=affiliate&utm_medium=embed" target="_blank" rel="sponsored noopener" style="display:inline-flex;align-items:center;gap:10px;padding:12px 22px;border-radius:14px;background:linear-gradient(135deg,#065f46,#0F6CF5);color:#fff;font-family:system-ui,sans-serif;font-weight:800;font-size:14px;text-decoration:none;box-shadow:0 4px 14px rgba(15,108,245,0.25)">
-  <span style="font-size:18px">🌳</span> Virginia Travel Agency — 24/7
+  <span style="font-size:18px">🌳</span> Virginia Travel Platform — 24/7
 </a>`,
   },
   {

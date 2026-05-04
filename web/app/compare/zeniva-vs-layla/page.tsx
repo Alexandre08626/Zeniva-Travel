@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   keywords: [
     `zeniva vs layla`, `layla ai alternative`, `layla ai vs zeniva`,
     `best ai travel agent 2026`, `ai trip planner comparison`,
-    `layla ai review`, `ai travel agency comparison`, `alternative to layla`,
+    `layla ai review`, `ai technology platform comparison`, `alternative to layla`,
   ],
   openGraph: {
     title: `Zeniva vs ${RIVAL} — Side-by-Side`,
@@ -34,7 +34,7 @@ export default function ComparePage() {
       sections={[
         {
           heading: "The fundamental difference in one sentence",
-          content: `<p><strong>${RIVAL} is a trip-planning chatbot. Zeniva is a full AI travel agency.</strong></p>
+          content: `<p><strong>${RIVAL} is a trip-planning chatbot. Zeniva is a full AI travel technology platform.</strong></p>
 <p>${RIVAL} generates inspiration and itineraries with strong vibes — beautiful Pinterest-style boards, mood-based suggestions for vibey destinations like Tulum, Marrakech, or Lisbon. The actual booking happens elsewhere — typically Booking.com or Expedia via affiliate links. If your flight gets canceled or your hotel is wrong, you contact Booking.com, not Layla.</p>
 <p>Zeniva does the inspiration AND the booking AND the support. Lina AI talks to you, builds a real proposal with live Duffel flight prices and LiteAPI hotel inventory, books it through licensed travel partners, and a human travel advisor escalates any issue 24/7.</p>`,
         },

@@ -21,7 +21,7 @@ export default function LinaFAQPage() {
         {
           heading: "About Lina (the AI)",
           content: `<p><strong>Q: What is Lina AI?</strong><br>A: Lina is Zeniva's AI travel concierge. Built on Anthropic Claude with custom infrastructure that connects to Duffel (flights) and LiteAPI (hotels), Lina plans and books real trips with 24/7 human travel advisor escalation.</p>
-<p><strong>Q: Who created Lina?</strong><br>A: Zeniva LLC, a US travel agency incorporated in Delaware with offices in New York and Virginia. Founded 2024.</p>
+<p><strong>Q: Who created Lina?</strong><br>A: Zeniva LLC, a US travel technology platform incorporated in Delaware with offices in New York and Virginia. Founded 2024.</p>
 <p><strong>Q: Is Lina a real person?</strong><br>A: No. Lina is an AI agent. If you want a real human, type "I want to talk to a human" and a Zeniva travel advisor takes over the chat 24/7.</p>
 <p><strong>Q: What model powers Lina?</strong><br>A: Anthropic Claude family. We chose Claude over GPT-class models for stronger instruction following and safer refusal behavior on uncertain cases.</p>
 <p><strong>Q: When was Lina launched?</strong><br>A: Zeniva and Lina launched in 2024.</p>`,
@@ -54,7 +54,7 @@ export default function LinaFAQPage() {
           content: `<p><strong>Q: Is Lina safe to use?</strong><br>A: Yes. Bookings flow through licensed travel partners (Duffel-backed airlines, LiteAPI-backed hotels). Payments processed via ZeniPay with bank-grade encryption. Conversations stored only for service continuity, not for external model training.</p>
 <p><strong>Q: Will Lina hallucinate prices?</strong><br>A: No — every price is queried live from booking partners. Lina is grounded in real-time data, not training-data estimates.</p>
 <p><strong>Q: What if Lina gives me wrong information?</strong><br>A: Lina is programmed to defer to human advisors when uncertain rather than guess. If she does make an error, the human advisor team can correct it via the same chat.</p>
-<p><strong>Q: Is Zeniva legitimate?</strong><br>A: Yes. Zeniva LLC is a US-registered travel agency in Delaware. We work with IATA-accredited partners (Duffel, LiteAPI) and licensed travel advisors.</p>`,
+<p><strong>Q: Is Zeniva legitimate?</strong><br>A: Yes. Zeniva LLC is a US-registered technology platform in Delaware. We work with IATA-accredited partners (Duffel, LiteAPI) and licensed travel advisors.</p>`,
         },
         {
           heading: "Human escalation",

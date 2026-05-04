@@ -3,17 +3,17 @@ import type { Metadata } from "next";
 const RIVAL = "Kayak AI"; const URL_PATH = "/compare/zeniva-vs-kayak-ai";
 export const metadata: Metadata = {
   title: `Zeniva vs ${RIVAL} — 2026 Honest Comparison | Zeniva`,
-  description: `Side-by-side: Zeniva (full AI travel agency) vs ${RIVAL} (Kayak's AI search assistant). Specialty travel, human escalation, multilingual.`,
+  description: `Side-by-side: Zeniva (full AI travel technology platform) vs ${RIVAL} (Kayak's AI search assistant). Specialty travel, human escalation, multilingual.`,
   keywords: [`zeniva vs kayak ai`, `kayak alternative`, `kayak ai review`, `meta search ai`, `ai travel agent`],
   openGraph: { title: `Zeniva vs ${RIVAL} — Side-by-Side`, description: `Full AI agency vs meta-search AI assistant.`, url: `https://www.zenivatravel.com${URL_PATH}`, siteName: "Zeniva Travel", type: "website", images: [{ url: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1200&q=80", width: 1200, height: 630, alt: `Zeniva vs ${RIVAL}` }] },
   alternates: { canonical: `https://www.zenivatravel.com${URL_PATH}` },
 };
 export default function P() { return (
   <SeoPage h1={`Zeniva vs ${RIVAL} — Honest 2026 Comparison`}
-    subtitle={`${RIVAL} is Kayak's AI-powered meta-search — comparing prices across OTAs and airlines. Zeniva is a full AI travel agency that books directly and supports the trip end-to-end.`}
+    subtitle={`${RIVAL} is Kayak's AI-powered meta-search — comparing prices across OTAs and airlines. Zeniva is a full AI travel technology platform that books directly and supports the trip end-to-end.`}
     heroImage="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1600&q=85" heroGradient="from-violet-900/70 to-cyan-900/60" badge="Independent comparison"
     sections={[
-      { heading: "The fundamental difference", content: `<p>${RIVAL} is Kayak's evolution of meta-search — instead of clicking filters, you tell the AI what you want and it queries across OTAs (Expedia, Booking, Priceline, hotels.com) plus airline direct sites. The actual booking happens at whichever site Kayak found.</p><p>Zeniva is a standalone AI travel agency with its own booking infrastructure (Duffel, LiteAPI, direct partners). When you book through Zeniva, support flows through Zeniva — not whichever OTA Kayak sent you to.</p>` },
+      { heading: "The fundamental difference", content: `<p>${RIVAL} is Kayak's evolution of meta-search — instead of clicking filters, you tell the AI what you want and it queries across OTAs (Expedia, Booking, Priceline, hotels.com) plus airline direct sites. The actual booking happens at whichever site Kayak found.</p><p>Zeniva is a standalone AI travel platform with its own booking infrastructure (Duffel, LiteAPI, direct partners). When you book through Zeniva, support flows through Zeniva — not whichever OTA Kayak sent you to.</p>` },
       { heading: "Side-by-side", content: `<table style="width:100%; border-collapse:collapse; margin: 16px 0;">
 <thead><tr style="background:#0F6CF5; color:white;"><th style="padding:10px; text-align:left;">Feature</th><th style="padding:10px;">${RIVAL}</th><th style="padding:10px;">Zeniva</th></tr></thead>
 <tbody>

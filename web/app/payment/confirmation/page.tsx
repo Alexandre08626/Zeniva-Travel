@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
+import SupplierDisclosure from "../../../src/components/legal/SupplierDisclosure";
 
 const VPS = "https://vmi3097009.contaboserver.net";
 const AUTH = "Bearer zeniva-secret-2025";
@@ -10,6 +11,7 @@ const AUTH = "Bearer zeniva-secret-2025";
 function ConfirmationContent() {
   const params = useSearchParams();
   const orderId = params.get("order_id") || params.get("orderId") || "";
+  const supplierName = params.get("supplier") || "";
   const notified = useRef(false);
   const [bookingRef, setBookingRef] = useState<string>("");
 
@@ -106,8 +108,16 @@ function ConfirmationContent() {
             {orderId && bookingRef && (
               <p className="text-xs text-gray-400">ZeniPay payment: {orderId}</p>
             )}
+            <p className="text-xs text-gray-500 pt-1">
+              <span className="uppercase tracking-wider text-gray-400">Supplier:</span>{" "}
+              <span className="font-semibold text-[#0B1B4D]">{supplierName || "Confirmed partner"}</span>
+            </p>
           </div>
         )}
+
+        <div className="mb-6 text-left">
+          <SupplierDisclosure supplier={supplierName} />
+        </div>
 
         {/* Next steps */}
         <div className="bg-blue-50 rounded-xl p-4 mb-6 text-left space-y-2">

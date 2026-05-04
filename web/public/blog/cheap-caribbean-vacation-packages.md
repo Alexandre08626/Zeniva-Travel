@@ -66,7 +66,7 @@ All-inclusive resorts can often provide the most value, covering meals, drinks, 
 ### 4. **Book in Advance**
 Securing your vacation well in advance can often yield the best prices, especially for flights and popular resorts.
 
-### 5. **Use a Travel Agency**
+### 5. **Use a Travel Platform**
 Letting professionals handle your travel arrangements can save you time and money. Zeniva Travel offers tailored packages to fit your budget and preferences.
 
 ## Exclusive Deals Just for You!

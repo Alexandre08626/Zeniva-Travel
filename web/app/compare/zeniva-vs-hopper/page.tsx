@@ -3,17 +3,17 @@ import type { Metadata } from "next";
 const RIVAL = "Hopper"; const URL_PATH = "/compare/zeniva-vs-hopper";
 export const metadata: Metadata = {
   title: `Zeniva vs ${RIVAL} — 2026 Honest Comparison | Zeniva`,
-  description: `Side-by-side comparison: Zeniva (full AI travel agency with human escalation) vs ${RIVAL} (price-prediction flight/hotel app). Specialty travel, multilingual, support.`,
+  description: `Side-by-side comparison: Zeniva (full AI travel technology platform with human escalation) vs ${RIVAL} (price-prediction flight/hotel app). Specialty travel, multilingual, support.`,
   keywords: [`zeniva vs hopper`, `hopper alternative`, `hopper review`, `flight price prediction`, `ai travel agent`],
-  openGraph: { title: `Zeniva vs ${RIVAL} — Side-by-Side`, description: `Full AI travel agency vs price-prediction app.`, url: `https://www.zenivatravel.com${URL_PATH}`, siteName: "Zeniva Travel", type: "website", images: [{ url: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1200&q=80", width: 1200, height: 630, alt: `Zeniva vs ${RIVAL}` }] },
+  openGraph: { title: `Zeniva vs ${RIVAL} — Side-by-Side`, description: `Full AI travel platform vs price-prediction app.`, url: `https://www.zenivatravel.com${URL_PATH}`, siteName: "Zeniva Travel", type: "website", images: [{ url: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1200&q=80", width: 1200, height: 630, alt: `Zeniva vs ${RIVAL}` }] },
   alternates: { canonical: `https://www.zenivatravel.com${URL_PATH}` },
 };
 export default function P() { return (
   <SeoPage h1={`Zeniva vs ${RIVAL} — Honest 2026 Comparison`}
-    subtitle={`${RIVAL} is a price-prediction app with bookings (flights + hotels). Zeniva is a full AI travel agency. Different jobs — and Zeniva doesn't have Hopper's controversial price freeze fees.`}
+    subtitle={`${RIVAL} is a price-prediction app with bookings (flights + hotels). Zeniva is a full AI travel technology platform. Different jobs — and Zeniva doesn't have Hopper's controversial price freeze fees.`}
     heroImage="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1600&q=85" heroGradient="from-rose-900/70 to-blue-900/60" badge="Independent comparison"
     sections={[
-      { heading: "The fundamental difference", content: `<p>${RIVAL} built its reputation on price prediction — telling you when to book a flight for the lowest fare. They've expanded into hotel and car bookings. The app is great for budget-conscious travelers focused on individual flight or hotel deals. But it has well-documented support issues and controversial cancellation/refund practices ("price freeze" fees that don't always work as advertised).</p><p>Zeniva is a full travel agency with AI conversation, real bookings (Duffel for flights, LiteAPI for hotels), 24/7 human escalation, and specialty categories ${RIVAL} doesn't touch (yacht, villa, cruise, destination weddings).</p>` },
+      { heading: "The fundamental difference", content: `<p>${RIVAL} built its reputation on price prediction — telling you when to book a flight for the lowest fare. They've expanded into hotel and car bookings. The app is great for budget-conscious travelers focused on individual flight or hotel deals. But it has well-documented support issues and controversial cancellation/refund practices ("price freeze" fees that don't always work as advertised).</p><p>Zeniva is a full technology platform with AI conversation, real bookings (Duffel for flights, LiteAPI for hotels), 24/7 human escalation, and specialty categories ${RIVAL} doesn't touch (yacht, villa, cruise, destination weddings).</p>` },
       { heading: "Side-by-side", content: `<table style="width:100%; border-collapse:collapse; margin: 16px 0;">
 <thead><tr style="background:#0F6CF5; color:white;"><th style="padding:10px; text-align:left;">Feature</th><th style="padding:10px;">${RIVAL}</th><th style="padding:10px;">Zeniva</th></tr></thead>
 <tbody>

@@ -4,7 +4,7 @@ import { getOutreachAuth } from "../auth";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const SOFIA_EMAIL_SYSTEM_PROMPT = `Tu es Sofia, la specialiste email marketing de Zeniva Travel, une agence de voyage premium basee au Canada.
+const SOFIA_EMAIL_SYSTEM_PROMPT = `Tu es Sofia, la specialiste email marketing de Zeniva Travel, une plateforme technologique de voyage premium basee au Canada. Zeniva agit uniquement comme intermediaire technologique — les services de voyage sont fournis par des fournisseurs tiers.
 
 Tu generes des emails HTML professionnels pour des campagnes marketing de voyage.
 

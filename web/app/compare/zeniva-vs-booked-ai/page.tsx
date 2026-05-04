@@ -34,7 +34,7 @@ export default function ComparePage() {
       sections={[
         {
           heading: "The fundamental difference",
-          content: `<p><strong>${RIVAL} is an AI flight + hotel booking tool with IATA accreditation. Zeniva is a full AI travel agency covering every travel category.</strong></p>
+          content: `<p><strong>${RIVAL} is an AI flight + hotel booking tool with IATA accreditation. Zeniva is a full AI travel technology platform covering every travel category.</strong></p>
 <p>${RIVAL} integrates with Sabre/Amadeus for flight inventory and is IATA accredited — that's serious infrastructure for flights. The platform handles hotels and packages but is most polished for flight booking. Support is automated-first; reaching a human takes effort.</p>
 <p>Zeniva covers flights (Duffel API), hotels (LiteAPI — 1.5M+ properties), plus yacht charters, private villas, cruises, and destination weddings. Critically, Zeniva has a 24/7 human travel advisor team that can escalate any booking. The AI is the front door, but humans are behind it.</p>`,
         },
@@ -65,7 +65,7 @@ export default function ComparePage() {
           heading: `When ${RIVAL} wins`,
           content: `<p>Pick ${RIVAL} if:</p>
 <ul>
-<li><strong>You're booking a flight, period.</strong> Sabre integration gives ${RIVAL} access to flight inventory comparable to a traditional travel agency.</li>
+<li><strong>You're booking a flight, period.</strong> Sabre integration gives ${RIVAL} access to flight inventory comparable to a traditional technology platform.</li>
 <li><strong>You want a no-frills booking experience</strong> without a sales conversation.</li>
 <li><strong>You don't need handholding.</strong> If you're confident the trip will go smoothly, automated support is enough.</li>
 </ul>`,

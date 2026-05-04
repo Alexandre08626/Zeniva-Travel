@@ -182,7 +182,7 @@ function DefaultOG({ title, description, config }: { title: string; description:
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const title = searchParams.get("title") || "Zeniva Travel";
-  const description = searchParams.get("description") || "AI-Powered Travel Agency";
+  const description = searchParams.get("description") || "AI-Powered Travel Platform";
   const type = searchParams.get("type") || "default";
 
   const config = CONFIGS[type] || CONFIGS.default;

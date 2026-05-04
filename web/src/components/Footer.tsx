@@ -2,6 +2,7 @@ import Link from "next/link";
 import React from "react";
 import { PREMIUM_BLUE, MUTED_TEXT } from "../design/tokens";
 import AutoTranslate from "./AutoTranslate";
+import { LEGAL_OPERATOR } from "./legal/legal-constants";
 
 const FOOTER_USA = [
   { l: "From New York", h: "/packages" },
@@ -61,12 +62,12 @@ const FOOTER_COMPARE = [
 ];
 // Sitewide internal-link boost for the new geo/intent pages so PageRank
 // flows from every page on the site into the four landing pages we want
-// to rank for ('voyage tout inclus', NY/VA travel agency, etc.).
+// to rank for ('voyage tout inclus', NY/VA local platform pages, etc.).
 const FOOTER_LOCAL = [
   { l: "Voyage tout inclus", h: "/voyage-tout-inclus" },
-  { l: "Agence voyage Québec", h: "/agence-voyage-quebec" },
-  { l: "Travel Agency NYC", h: "/travel-agency-new-york" },
-  { l: "Travel Agency Virginia", h: "/travel-agency-virginia" },
+  { l: "Plateforme voyage Québec", h: "/agence-voyage-quebec" },
+  { l: "AI Travel Platform NYC", h: "/travel-agency-new-york" },
+  { l: "AI Travel Platform Virginia", h: "/travel-agency-virginia" },
   { l: "Miami Yacht Charters", h: "/yacht-charters/miami" },
   { l: "Palm Beach Yacht Charters", h: "/yacht-charters/palm-beach" },
 ];
@@ -134,7 +135,7 @@ export default function Footer() {
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
         <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
-          {process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva'} — <AutoTranslate text="AI Travel Concierge" className="inline" />
+          {process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Zeniva'} — <AutoTranslate text="AI-powered technology platform" className="inline" />
         </div>
         <div className="flex items-center gap-2">
           <Link href="/partner" className="text-xs font-extrabold underline" style={{ color: PREMIUM_BLUE }}>
@@ -148,10 +149,16 @@ export default function Footer() {
           </Link>
         </div>
       </div>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
         <span className="text-[11px] font-semibold" style={{ color: MUTED_TEXT }}>Legal:</span>
-        <Link href="/privacy-policy" className="text-[11px] font-extrabold underline" style={{ color: PREMIUM_BLUE }}>
+        <Link href="/terms" className="text-[11px] font-extrabold underline" style={{ color: PREMIUM_BLUE }}>
+          <AutoTranslate text="Terms" className="inline" />
+        </Link>
+        <Link href="/privacy" className="text-[11px] font-extrabold underline" style={{ color: PREMIUM_BLUE }}>
           <AutoTranslate text="Privacy" className="inline" />
+        </Link>
+        <Link href="/disclaimer" className="text-[11px] font-extrabold underline" style={{ color: PREMIUM_BLUE }}>
+          <AutoTranslate text="Disclaimer" className="inline" />
         </Link>
         <Link href="/privacy-agents" className="text-[11px] font-extrabold underline" style={{ color: PREMIUM_BLUE }}>
           <AutoTranslate text="Privacy Agents" className="inline" />
@@ -162,9 +169,6 @@ export default function Footer() {
         <Link href="/cookie-policy" className="text-[11px] font-extrabold underline" style={{ color: PREMIUM_BLUE }}>
           <AutoTranslate text="Cookies" className="inline" />
         </Link>
-        <Link href="/terms" className="text-[11px] font-extrabold underline" style={{ color: PREMIUM_BLUE }}>
-          <AutoTranslate text="Terms" className="inline" />
-        </Link>
         <Link href="/ai-terms" className="text-[11px] font-extrabold underline" style={{ color: PREMIUM_BLUE }}>
           <AutoTranslate text="AI Terms" className="inline" />
         </Link>
@@ -172,8 +176,26 @@ export default function Footer() {
           <AutoTranslate text="Data Requests" className="inline" />
         </Link>
       </div>
-      <div className="mt-4 text-[11px] font-semibold" style={{ color: MUTED_TEXT }}>
-        ZeniStay is a curated collection of vacation rentals and private homes managed by Zeniva.
+      <div
+        className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4 text-[11px] leading-relaxed"
+        style={{ color: MUTED_TEXT }}
+        role="contentinfo"
+      >
+        <p className="font-semibold">
+          <AutoTranslate
+            text={`Zeniva Travel acts solely as a technology intermediary. The Zeniva platform is operated by ${LEGAL_OPERATOR}. Travel services are provided by third-party suppliers.`}
+            className="inline"
+          />
+        </p>
+        <p className="mt-2">
+          <AutoTranslate
+            text="ZeniStay listings are curated by Zeniva but operated and fulfilled by independent property partners."
+            className="inline"
+          />
+        </p>
+        <p className="mt-3 text-[10px]">
+          © {new Date().getFullYear()} Zeniva Travel — {LEGAL_OPERATOR}. All rights reserved.
+        </p>
       </div>
     </footer>
   );

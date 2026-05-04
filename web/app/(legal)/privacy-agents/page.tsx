@@ -14,7 +14,7 @@ import {
 export const metadata = createLegalMetadata({
   title: "Privacy Policy – Agents | Zeniva",
   description:
-    "Privacy policy for Zeniva Agent Mode, covering AI-powered travel agency data protection and US/Canada compliance.",
+    "Privacy policy for Zeniva Agent Mode, covering AI-powered travel technology platform data protection and US/Canada compliance.",
   path: "/privacy-agents",
 });
 
@@ -61,8 +61,8 @@ export default function PrivacyAgentsPage() {
       <section id="introduction" className="legal-section">
         <h2>Introduction</h2>
         <p>
-          Zeniva is an AI-powered travel agency platform operated by {LEGAL_OPERATOR}
-          with operations in Canada and the United States. This policy applies only
+          Zeniva is an AI-powered travel technology platform operated by {LEGAL_OPERATOR}
+          with operations in Canada and the United States. Zeniva acts solely as a technology intermediary; travel services are provided by third-party suppliers. This policy applies only
           to Agent Mode users and does not replace the Traveler or Partner privacy
           notices.
         </p>

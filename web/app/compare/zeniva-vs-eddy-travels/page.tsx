@@ -6,7 +6,7 @@ const URL_PATH = "/compare/zeniva-vs-eddy-travels";
 
 export const metadata: Metadata = {
   title: `Zeniva vs ${RIVAL} — 2026 Honest Comparison | Zeniva`,
-  description: `Side-by-side comparison: Zeniva (full AI travel agency) vs ${RIVAL} (chat-based AI travel assistant). Bookings, human escalation, specialty travel.`,
+  description: `Side-by-side comparison: Zeniva (full AI travel technology platform) vs ${RIVAL} (chat-based AI travel assistant). Bookings, human escalation, specialty travel.`,
   keywords: [`zeniva vs eddy travels`, `eddy travels alternative`, `eddy travels review`, `messenger ai travel`, `chat ai travel agent`],
   openGraph: { title: `Zeniva vs ${RIVAL} — Side-by-Side`, description: `Full AI agency vs chat-based travel assistant.`, url: `https://www.zenivatravel.com${URL_PATH}`, siteName: "Zeniva Travel", type: "website", images: [{ url: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1200&q=80", width: 1200, height: 630, alt: `Zeniva vs ${RIVAL}` }] },
   alternates: { canonical: `https://www.zenivatravel.com${URL_PATH}` },
@@ -16,7 +16,7 @@ export default function ComparePage() {
   return (
     <SeoPage
       h1={`Zeniva vs ${RIVAL} — Honest 2026 Comparison`}
-      subtitle={`${RIVAL} is a chat-first travel assistant primarily for finding flight and hotel deals. Zeniva is a full AI travel agency with end-to-end booking, human escalation, and specialty travel.`}
+      subtitle={`${RIVAL} is a chat-first travel assistant primarily for finding flight and hotel deals. Zeniva is a full AI travel technology platform with end-to-end booking, human escalation, and specialty travel.`}
       heroImage="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1600&q=85"
       heroGradient="from-emerald-900/70 to-teal-900/60"
       badge="Independent comparison"

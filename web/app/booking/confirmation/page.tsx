@@ -1,5 +1,7 @@
 export const dynamic = "force-dynamic";
 
+import SupplierDisclosure from "../../../src/components/legal/SupplierDisclosure";
+
 const BLUE = "#0F6CF5";
 const NAVY = "#0B1B4D";
 const GOLD = "#E6B85A";
@@ -8,12 +10,13 @@ const GREEN = "#10B981";
 export default function BookingConfirmationPage({
   searchParams,
 }: {
-  searchParams: { ref?: string; trip?: string; total?: string; payment?: string };
+  searchParams: { ref?: string; trip?: string; total?: string; payment?: string; supplier?: string };
 }) {
   const bookingRef = searchParams.ref || "ZNV-CONFIRMED";
   const tripName = decodeURIComponent(searchParams.trip || "Your Trip");
   const total = searchParams.total || "";
   const paymentStatus = searchParams.payment || "completed";
+  const supplierName = searchParams.supplier ? decodeURIComponent(searchParams.supplier) : "";
 
   return (
     <div style={{ minHeight: "100vh", background: `linear-gradient(135deg, #020810 0%, ${NAVY} 60%, #0F1E5A 100%)`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "system-ui,sans-serif", padding: 20 }}>
@@ -41,11 +44,20 @@ export default function BookingConfirmationPage({
               <span style={{ color: "white", fontWeight: 700 }}>{total.startsWith("$") ? total : `$${total}`}</span>
             </div>
           )}
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
             <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>Status</span>
             <span style={{ color: GREEN, fontWeight: 700 }}>✓ Paid via ZeniPay</span>
           </div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>Supplier</span>
+            <span style={{ color: "white", fontWeight: 700 }}>{supplierName || "Confirmed partner"}</span>
+          </div>
         </div>
+        {paymentStatus !== "failed" && (
+          <div style={{ marginBottom: 24, textAlign: "left" }}>
+            <SupplierDisclosure supplier={supplierName} tone="dark" />
+          </div>
+        )}
         <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, marginBottom: 28 }}>
           {paymentStatus === "failed"
             ? "Please contact info@zeniva.ca or try a different payment method."

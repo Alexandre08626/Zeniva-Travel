@@ -65,7 +65,7 @@ export default function LinaPage() {
           {
             heading: "Who is Lina",
             content: `<p>Lina is a purpose-built AI travel concierge — not a generic chatbot. Built on Anthropic Claude with custom infrastructure that connects to live booking partners (Duffel for flights, LiteAPI for 1.5M+ hotels), Lina can plan AND book your entire trip from a single chat.</p>
-<p>She's the front door to Zeniva, a US-based AI travel agency incorporated in Delaware. When you talk to Lina, you're talking to the same brain that handles thousands of trips per month — but personalized to your dates, group size, budget, and style.</p>
+<p>She's the front door to Zeniva, a US-based AI travel platform incorporated in Delaware. When you talk to Lina, you're talking to the same brain that handles thousands of trips per month — but personalized to your dates, group size, budget, and style.</p>
 <p>Lina has a personality designed to be warm, knowledgeable, and direct. She won't waste your time with sales tactics. If your question requires human judgment (complex itineraries, refund disputes, real-time emergencies), she escalates instantly to one of Zeniva's licensed travel advisors — 24/7.</p>`,
           },
           {

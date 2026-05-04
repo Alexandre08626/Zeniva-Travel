@@ -174,6 +174,11 @@ const nextConfig: NextConfig = {
       // capture /yachts/<slug>/photo_NNN.jpg (the static yacht photos served
       // from /public/yachts/) and 308 them to /zeniyacht/... where the files
       // don't exist, breaking every yacht thumbnail on /yachts and elsewhere.
+      {
+        source: "/privacy",
+        destination: "/privacy-policy",
+        permanent: true,
+      },
     ];
   },
 };

@@ -6,7 +6,7 @@ const URL_PATH = "/compare/zeniva-vs-mindtrip";
 
 export const metadata: Metadata = {
   title: `Zeniva vs ${RIVAL} — 2026 Honest Comparison | Zeniva`,
-  description: `Side-by-side comparison of Zeniva vs ${RIVAL}: itinerary builder vs full AI travel agency. Real bookings, human escalation, multilingual support, specialty travel.`,
+  description: `Side-by-side comparison of Zeniva vs ${RIVAL}: itinerary builder vs full AI travel technology platform. Real bookings, human escalation, multilingual support, specialty travel.`,
   keywords: [
     `zeniva vs mindtrip`, `mindtrip alternative`, `mindtrip vs zeniva`,
     `best ai travel agent 2026`, `ai itinerary builder comparison`,
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: `Zeniva vs ${RIVAL} — Side-by-Side`,
-    description: `Itinerary builder vs full AI travel agency. What each does and doesn't.`,
+    description: `Itinerary builder vs full AI travel technology platform. What each does and doesn't.`,
     url: `https://www.zenivatravel.com${URL_PATH}`,
     siteName: "Zeniva Travel",
     type: "website",
@@ -27,14 +27,14 @@ export default function ComparePage() {
   return (
     <SeoPage
       h1={`Zeniva vs ${RIVAL} — Honest 2026 Comparison`}
-      subtitle={`${RIVAL} is one of the strongest itinerary builders for multi-day trips. Zeniva is a full AI travel agency. Different tools, different jobs.`}
+      subtitle={`${RIVAL} is one of the strongest itinerary builders for multi-day trips. Zeniva is a full AI travel technology platform. Different tools, different jobs.`}
       heroImage="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1600&q=85"
       heroGradient="from-emerald-900/70 to-blue-900/60"
       badge="Independent comparison"
       sections={[
         {
           heading: "The fundamental difference",
-          content: `<p><strong>${RIVAL} is a trip itinerary builder. Zeniva is a full AI travel agency that books your trip end-to-end.</strong></p>
+          content: `<p><strong>${RIVAL} is a trip itinerary builder. Zeniva is a full AI travel technology platform that books your trip end-to-end.</strong></p>
 <p>${RIVAL} excels at structuring multi-day, multi-city itineraries — the day-by-day logic of "morning at the museum, lunch in the old town, afternoon walk along the river" — better than most AI tools we've tested. Booking happens through external links to hotels, restaurants, and activities.</p>
 <p>Zeniva covers itinerary planning AND real bookings (flights via Duffel, hotels via LiteAPI, packages with transfers) AND 24/7 human escalation. If your trip needs handling — schedule changes, cancellations, special requests — Zeniva has the infrastructure to handle it.</p>`,
         },

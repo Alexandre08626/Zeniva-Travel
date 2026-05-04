@@ -3,14 +3,14 @@ import type { Metadata } from "next";
 const RIVAL = "Tripnotes"; const URL_PATH = "/compare/zeniva-vs-tripnotes";
 export const metadata: Metadata = {
   title: `Zeniva vs ${RIVAL} — 2026 Honest Comparison | Zeniva`,
-  description: `Side-by-side: Zeniva (full AI travel agency that books) vs ${RIVAL} (AI trip planner with notes). Specialty travel, human escalation, multilingual.`,
+  description: `Side-by-side: Zeniva (full AI travel technology platform that books) vs ${RIVAL} (AI trip planner with notes). Specialty travel, human escalation, multilingual.`,
   keywords: [`zeniva vs tripnotes`, `tripnotes alternative`, `tripnotes ai review`, `ai trip notes planner`, `ai travel agent`],
   openGraph: { title: `Zeniva vs ${RIVAL} — Side-by-Side`, description: `Full AI agency vs note-taking trip planner.`, url: `https://www.zenivatravel.com${URL_PATH}`, siteName: "Zeniva Travel", type: "website", images: [{ url: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1200&q=80", width: 1200, height: 630, alt: `Zeniva vs ${RIVAL}` }] },
   alternates: { canonical: `https://www.zenivatravel.com${URL_PATH}` },
 };
 export default function P() { return (
   <SeoPage h1={`Zeniva vs ${RIVAL} — Honest 2026 Comparison`}
-    subtitle={`${RIVAL} combines AI trip planning with note-taking and itinerary organization. Zeniva is a full AI travel agency that books your trip end-to-end with 24/7 human backup.`}
+    subtitle={`${RIVAL} combines AI trip planning with note-taking and itinerary organization. Zeniva is a full AI travel technology platform that books your trip end-to-end with 24/7 human backup.`}
     heroImage="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1600&q=85" heroGradient="from-cyan-900/70 to-violet-900/60" badge="Independent comparison"
     sections={[
       { heading: "The fundamental difference", content: `<p>${RIVAL} is positioned as a "trip planning workspace" — AI generates suggestions and you organize them with notes, lists, and itinerary structure. It's particularly strong for travelers who want to research a trip in detail before booking. Booking happens externally via partner links.</p><p>Zeniva collapses planning + booking + support into one conversation with Lina AI plus 24/7 human escalation. Different philosophy: less workspace, more turnkey.</p>` },

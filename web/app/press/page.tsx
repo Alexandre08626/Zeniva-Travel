@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Press Kit — Zeniva & Lina AI | Media Resources",
   description: "Press kit for Zeniva and Lina AI. Logos, brand assets, executive bios, fact sheet, screenshots. For journalists, podcasters, content creators covering AI travel.",
-  keywords: ["Zeniva press kit", "Lina AI press", "Zeniva media kit", "Zeniva fact sheet", "AI travel agency press"],
+  keywords: ["Zeniva press kit", "Lina AI press", "Zeniva media kit", "Zeniva fact sheet", "AI travel platform press"],
   openGraph: { title: "Zeniva & Lina AI Press Kit", description: "Media resources for journalists and content creators.", url: "https://www.zenivatravel.com/press", siteName: "Zeniva Travel", type: "article", images: [{ url: "/branding/lina-avatar.png", width: 1200, height: 630, alt: "Zeniva press kit" }] },
   alternates: { canonical: "https://www.zenivatravel.com/press" },
 };
@@ -18,7 +18,7 @@ export default function PressPage() {
     foundingDate: "2024",
     foundingLocation: { "@type": "Place", name: "Delaware, USA" },
     founder: { "@type": "Person", name: "Alexandre", jobTitle: "President" },
-    description: "Zeniva is a US-based AI travel agency. Lina AI is its 24/7 multilingual concierge.",
+    description: "Zeniva is a US-based AI travel platform. Lina AI is its 24/7 multilingual concierge.",
     url: "https://www.zenivatravel.com",
     logo: "https://www.zenivatravel.com/branding/logo.png",
     sameAs: [
@@ -46,7 +46,7 @@ export default function PressPage() {
       <section style={{ marginBottom: 40 }}>
         <h2 style={{ fontSize: 24, fontWeight: 800, color: "#0B1B4D", marginBottom: 12 }}>One-line description</h2>
         <p style={{ background: "white", padding: 16, borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 15, color: "#334155" }}>
-          Zeniva is a US-based AI travel agency where Lina AI plans and books real trips — flights, hotels, yachts, villas, cruises — across 7 languages with 24/7 human travel advisor escalation.
+          Zeniva is a US-based AI travel platform where Lina AI plans and books real trips — flights, hotels, yachts, villas, cruises — across 7 languages with 24/7 human travel advisor escalation.
         </p>
       </section>
 
@@ -106,9 +106,9 @@ export default function PressPage() {
           <li><strong>"AI agents that actually book trips"</strong> — Most "AI travel agents" are itinerary generators. Lina is the agent that turns research into a confirmed reservation with human safety net.</li>
           <li><strong>"The real architecture of an AI travel concierge"</strong> — Claude LLM + Duffel + LiteAPI + 24/7 human escalation. Honest technical breakdown at /lina/how-it-works.</li>
           <li><strong>"Why 'Lina' has a personality (and why it matters)"</strong> — Brand persona design for a $5,000+ trip transaction. Why we chose warm-but-direct over robotic.</li>
-          <li><strong>"AI travel agency vs ChatGPT"</strong> — The gap between "research with LLM" and "book with agency". Real-world examples at /compare/zeniva-vs-chatgpt-for-travel.</li>
+          <li><strong>"AI travel platform vs ChatGPT"</strong> — The gap between "research with LLM" and "book with agency". Real-world examples at /compare/zeniva-vs-chatgpt-for-travel.</li>
           <li><strong>"Multilingual AI for travel"</strong> — Why a French-Canadian booking from Quebec to Cuba is different from a French-French booking from Paris to Maldives — and why Lina handles both natively.</li>
-          <li><strong>"The rise of AI-first US travel agencies"</strong> — Zeniva as a case study of post-2024 US travel agency formation built around AI from day one.</li>
+          <li><strong>"The rise of AI-first US travel agencies"</strong> — Zeniva as a case study of post-2024 US travel technology platform formation built around AI from day one.</li>
         </ul>
       </section>
 

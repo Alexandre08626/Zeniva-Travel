@@ -2,6 +2,9 @@ export const LEGAL_LAST_UPDATED = "February 12, 2026";
 export const LEGAL_EFFECTIVE_DATE = "February 12, 2026";
 export const LEGAL_POLICY_VERSION = "1.0";
 
+// Operating entity for zenivatravel.com — Zeniva LLC, Delaware, USA.
+// Do NOT swap in the ZeniPay (Canada) parent entity here; the ZeniPay
+// operating company must not appear anywhere on the Zeniva Travel site.
 export const LEGAL_OPERATOR = "Zeniva LLC";
 export const LEGAL_BRAND = "Zeniva";
 export const LEGAL_WEBSITE = "https://www.zenivatravel.com";

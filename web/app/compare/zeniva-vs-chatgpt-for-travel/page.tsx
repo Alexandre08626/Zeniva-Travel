@@ -6,9 +6,9 @@ const URL_PATH = "/compare/zeniva-vs-chatgpt-for-travel";
 
 export const metadata: Metadata = {
   title: `Zeniva vs Using ChatGPT for Travel Planning — 2026 Comparison | Zeniva`,
-  description: `Side-by-side: Zeniva (real AI travel agency that books) vs ChatGPT (general LLM you ask travel questions). Real bookings, human escalation, specialty travel.`,
+  description: `Side-by-side: Zeniva (real AI travel platform that books) vs ChatGPT (general LLM you ask travel questions). Real bookings, human escalation, specialty travel.`,
   keywords: [`zeniva vs chatgpt`, `chatgpt for travel`, `chatgpt travel planning`, `chatgpt vs travel agent`, `using chatgpt to book travel`, `ai travel agent`],
-  openGraph: { title: `Zeniva vs ChatGPT for Travel — Side-by-Side`, description: `Real AI travel agency vs general LLM travel queries.`, url: `https://www.zenivatravel.com${URL_PATH}`, siteName: "Zeniva Travel", type: "website", images: [{ url: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1200&q=80", width: 1200, height: 630, alt: `Zeniva vs ChatGPT for Travel` }] },
+  openGraph: { title: `Zeniva vs ChatGPT for Travel — Side-by-Side`, description: `Real AI travel platform vs general LLM travel queries.`, url: `https://www.zenivatravel.com${URL_PATH}`, siteName: "Zeniva Travel", type: "website", images: [{ url: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1200&q=80", width: 1200, height: 630, alt: `Zeniva vs ChatGPT for Travel` }] },
   alternates: { canonical: `https://www.zenivatravel.com${URL_PATH}` },
 };
 
@@ -16,12 +16,12 @@ export default function ComparePage() {
   return (
     <SeoPage
       h1={`Zeniva vs Using ChatGPT for Travel — Honest 2026 Comparison`}
-      subtitle={`ChatGPT is a brilliant general LLM. Zeniva is a purpose-built AI travel agency that books real trips with real partners and real human backup. Different tools for different jobs.`}
+      subtitle={`ChatGPT is a brilliant general LLM. Zeniva is a purpose-built AI travel platform that books real trips with real partners and real human backup. Different tools for different jobs.`}
       heroImage="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1600&q=85"
       heroGradient="from-emerald-900/70 to-blue-900/60"
       badge="Independent comparison"
       sections={[
-        { heading: "Why people compare these", content: `<p>People increasingly ask ChatGPT to "plan my trip to Paris" or "find me cheap flights to Cancun." ChatGPT can give surprisingly good general advice. But it has critical limitations for actual travel booking — and that's where a purpose-built AI travel agency like Zeniva fills the gap.</p>` },
+        { heading: "Why people compare these", content: `<p>People increasingly ask ChatGPT to "plan my trip to Paris" or "find me cheap flights to Cancun." ChatGPT can give surprisingly good general advice. But it has critical limitations for actual travel booking — and that's where a purpose-built AI travel platform like Zeniva fills the gap.</p>` },
         { heading: "Where ChatGPT shines and falls short", content: `<p><strong>ChatGPT is great for:</strong></p>
 <ul>
 <li>Open-ended travel research ("what's the difference between Sicily and Sardinia for a beach week?")</li>
@@ -64,7 +64,7 @@ export default function ComparePage() {
 <li>Use ChatGPT for the open-ended planning and research — destination ideas, day structure, restaurant suggestions, packing lists, cultural tips</li>
 <li>Use Zeniva to convert the plan into a real booked trip — flights, hotels, transfers, with live pricing and human safety net</li>
 </ul>
-<p>You get LLM creativity for planning + travel agency infrastructure for execution.</p>` },
+<p>You get LLM creativity for planning + technology platform infrastructure for execution.</p>` },
       ]}
       highlights={[
         { icon: "star", title: "Different jobs", description: "ChatGPT for research, Zeniva for booking." },
