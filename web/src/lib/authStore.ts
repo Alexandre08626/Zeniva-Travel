@@ -580,39 +580,67 @@ export async function login(email: string, password: string, opts?: { role?: Rol
 }
 
 export async function logout(redirectTo = "/") {
+  // 1) Clear in-memory store immediately so any UI listening to useAuthStore
+  //    flips to a logged-out state on the very next render.
   setState((s) => ({ ...s, user: null }));
-  if (typeof window !== "undefined") {
-    // ALWAYS call logout API to properly clear cookies on server
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-    } catch (error) {
-      console.error("[AUTH] Logout API call failed:", error);
-    }
-    setTimeout(() => {
-      import("../../lib/store/tripsStore")
-        .then((mod) => {
-          if (mod.setTripUserScope) mod.setTripUserScope("guest");
-        })
-        .catch(() => undefined);
-    }, 0);
-    // Clear all auth-related storage
-    try {
-      window.localStorage.removeItem(STORAGE_KEY);
-      window.localStorage.removeItem("zeniva_impersonating");
-      window.sessionStorage.removeItem("zeniva_logout_timestamp");
-      window.sessionStorage.setItem("zeniva_logout_timestamp", Date.now().toString());
-    } catch {
-      // ignore
-    }
-    // Delete ALL session cookies including the main session token
-    deleteCookie("zeniva_session"); // CRITICAL: Delete the main session token!
-    deleteCookie("zeniva_active_space");
-    deleteCookie("zeniva_roles");
-    deleteCookie("zeniva_email");
-    deleteCookie("zeniva_agent_enabled");
-    deleteCookie("zeniva_agent_divisions");
-    deleteCookie("zeniva_has_traveler_profile");
-    deleteCookie("zeniva_zero_margin");
+  if (typeof window === "undefined") return;
+
+  // 2) Client-side state + cookie clear runs FIRST and synchronously, so even
+  //    if the server-side fetch below hangs, the local browser state is
+  //    already wiped before the hard redirect.
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem("zeniva_impersonating");
+    window.sessionStorage.setItem("zeniva_logout_timestamp", Date.now().toString());
+  } catch {
+    // ignore storage errors (quota, private mode, etc.)
+  }
+  // Cookie tokens that aren't HttpOnly — clear from JS.
+  deleteCookie("zeniva_session"); // best-effort; server clears the HttpOnly version
+  deleteCookie("zeniva_active_space");
+  deleteCookie("zeniva_roles");
+  deleteCookie("zeniva_email");
+  deleteCookie("zeniva_agent_enabled");
+  deleteCookie("zeniva_agent_divisions");
+  deleteCookie("zeniva_has_traveler_profile");
+  deleteCookie("zeniva_zero_margin");
+
+  // 3) Server-side cookie clear — capped at 3s so a hung /api/auth/logout
+  //    can never block the redirect. The HttpOnly session cookie can only be
+  //    cleared by the server's Set-Cookie response, but if that fails we
+  //    still proceed: the 2-second logout-timestamp guard in hydrateFromServer
+  //    keeps the user logged out client-side, and middleware will reject
+  //    further /agent navigation on the next stale request.
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timer = controller
+    ? window.setTimeout(() => controller.abort(), 3000)
+    : null;
+  try {
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      keepalive: true,
+      credentials: "same-origin",
+      signal: controller?.signal,
+    });
+  } catch {
+    // network failure / timeout — proceed regardless
+  } finally {
+    if (timer) window.clearTimeout(timer);
+  }
+
+  // 4) Reset trips store scope (fire-and-forget — doesn't block redirect).
+  void import("../../lib/store/tripsStore")
+    .then((mod) => {
+      if (mod.setTripUserScope) mod.setTripUserScope("guest");
+    })
+    .catch(() => undefined);
+
+  // 5) Hard redirect via replace() so the back button can't restore the
+  //    logged-in page from history. assign() as a final fallback in case the
+  //    browser blocks replace() in some edge environment.
+  try {
+    window.location.replace(redirectTo);
+  } catch {
     window.location.href = redirectTo;
   }
 }

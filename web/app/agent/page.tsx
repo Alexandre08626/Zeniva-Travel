@@ -162,6 +162,19 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
     kai: "/agent/kai",
   };
   const [navOpen, setNavOpen] = useState(true); // open by default — labels visible
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    void logout("/").finally(() => {
+      // Belt-and-suspenders: if logout() somehow returns without redirecting,
+      // force the navigation here so the user is never stuck on /agent.
+      if (typeof window !== "undefined" && window.location.pathname.startsWith("/agent")) {
+        window.location.replace("/");
+      }
+    });
+  };
 
   // Trip search — now uses /agent/trip-search page
 
@@ -374,7 +387,14 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
             <div className="rounded-xl bg-slate-50 border border-slate-200 p-2">
               <p className="text-slate-800 text-xs font-semibold truncate">{user.name || user.email}</p>
               <p className="text-slate-500 text-xs truncate">{effectiveRole}</p>
-              <button onClick={() => logout()} className="text-rose-400 text-xs mt-1 hover:text-rose-300">Déconnexion</button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="text-rose-500 text-xs mt-1 font-semibold hover:text-rose-700 disabled:opacity-60 disabled:cursor-wait"
+              >
+                {loggingOut ? "Déconnexion…" : "Déconnexion"}
+              </button>
             </div>
           )}
         </div>
