@@ -15,6 +15,8 @@ const COMMON_DISALLOW = [
   "/checkout/",
   "/payment/",
   "/profile/",
+  // Private investor pitch — never index
+  "/pitch",
 ];
 
 export default function robots(): MetadataRoute.Robots {

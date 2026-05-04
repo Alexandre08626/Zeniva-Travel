@@ -108,6 +108,15 @@ const nextConfig: NextConfig = {
         headers: securityHeaders,
       },
       {
+        // Private investor pitch — belt-and-suspenders noindex (page metadata
+        // already sets robots:false; this hardens the response at the edge).
+        source: "/pitch",
+        headers: [
+          ...securityHeaders,
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive, nosnippet, noimageindex" },
+        ],
+      },
+      {
         source: "/api/:path*",
         headers: [
           ...securityHeaders,

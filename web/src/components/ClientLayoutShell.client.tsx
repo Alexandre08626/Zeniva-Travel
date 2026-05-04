@@ -7,6 +7,7 @@ let BackButton: React.ComponentType | null = null;
 let AppShell: React.ComponentType | null = null;
 let LinaFloatingChat: React.ComponentType | null = null;
 let BottomNav: React.ComponentType | null = null;
+let HqFloatingWidget: React.ComponentType | null = null;
 
 export default function ClientLayoutShell() {
   const [mounted, setMounted] = useState(false);
@@ -14,6 +15,7 @@ export default function ClientLayoutShell() {
   const [AS, setAS] = useState<React.ComponentType | null>(null);
   const [LFC, setLFC] = useState<React.ComponentType | null>(null);
   const [BN, setBN] = useState<React.ComponentType | null>(null);
+  const [HQ, setHQ] = useState<React.ComponentType | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -23,11 +25,13 @@ export default function ClientLayoutShell() {
       import("./AppShell.client"),
       import("../../components/LinaFloatingChat"),
       import("../../components/BottomNav"),
-    ]).then(([bc, as_, lfc, bn]) => {
+      import("./hq/HqFloatingWidget.client"),
+    ]).then(([bc, as_, lfc, bn, hq]) => {
       setBC(() => bc.default);
       setAS(() => as_.default);
       setLFC(() => lfc.default);
       setBN(() => bn.default);
+      setHQ(() => hq.default);
     }).catch(() => {/* silent */});
   }, []);
 
@@ -39,6 +43,7 @@ export default function ClientLayoutShell() {
       {AS && <AS />}
       {LFC && <LFC />}
       {BN && <BN />}
+      {HQ && <HQ />}
     </>
   );
 }
