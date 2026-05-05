@@ -296,6 +296,12 @@ export async function GET(req: NextRequest) {
 
         const rawPrice = formatPrice(priceAmount, nights);
         const price = skipMarkup ? rawPrice : applyHotelMarkupLabel(rawPrice);
+        // The displayed price includes the markup. Parse it back so the
+        // numeric fields exposed to consumers stay aligned with the string.
+        const displayedTotal = (() => {
+          const n = parseFloat(String(price).replace(/[^0-9.]/g, ""));
+          return Number.isFinite(n) && n > 0 ? Math.round(n) : Math.round(priceAmount);
+        })();
 
         const name = getStr(meta?.name) || `Hotel ${idx + 1}`;
         const cityStr = getStr(meta?.city);
@@ -327,7 +333,7 @@ export async function GET(req: NextRequest) {
           || fallbackPhoto;
         const rating = starsByHotelId.get(hotelId) || getNum(meta?.stars) || 0; // stars from /data/hotels
         const room = getStr(rt?.rates?.[0]?.name, rt?.name, rt?.roomTypeName) || "Room";
-        const perNight = Math.round(priceAmount / nights);
+        const perNight = nights > 0 ? Math.round(displayedTotal / nights) : displayedTotal;
 
         const perks: string[] = [
           `$${perNight}/night`,
@@ -341,6 +347,14 @@ export async function GET(req: NextRequest) {
           name,
           location,
           price,
+          // Structured numeric fields — always trustworthy and aligned with
+          // the displayed `price` string (markup included). Downstream code
+          // (agent select, preview, review, computePrice) should prefer
+          // these over re-parsing `price`.
+          priceTotal: displayedTotal,
+          pricePerNight: perNight,
+          nights,
+          currency: "USD",
           room: room.slice(0, 60),
           perks,
           rating,

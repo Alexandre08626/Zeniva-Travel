@@ -923,9 +923,15 @@ function ProposalReviewPageInner() {
                 const ht = (() => {
                   const h = selection?.hotel;
                   if (!h) return 0;
+                  // Prefer explicit numeric fields (LiteAPI now exposes them).
+                  if (typeof h.priceTotal === "number" && h.priceTotal > 0) return h.priceTotal;
                   const np = pm(h.price);
                   if (np <= 0) return 0;
-                  // LiteAPI returns total price already — only multiply if price says "/night"
+                  if (typeof h.pricePerNight === "number" && h.pricePerNight > 0) {
+                    const ni = pm(h.nights) || pm(tripDraft?.nights) || 5;
+                    return h.pricePerNight * ni;
+                  }
+                  // Legacy fallback: only multiply if the price string mentions "/night"
                   const isPerNight = /night|nuit/i.test(String(h.price || ""));
                   if (isPerNight) {
                     const ni = pm(h.nights) || pm(tripDraft?.nights) || 5;

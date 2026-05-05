@@ -101,6 +101,7 @@ async function searchHotels(destination, checkIn, checkOut, guests) {
     const ciDate = new Date(ci);
     co = new Date(ciDate.getTime() + 7 * 86400000).toISOString().slice(0, 10);
   }
+  const nights = Math.max(1, Math.round((new Date(co).getTime() - new Date(ci).getTime()) / 86400000));
   try {
     const params = new URLSearchParams({
       destination, checkIn: ci, checkOut: co,
@@ -113,19 +114,33 @@ async function searchHotels(destination, checkIn, checkOut, guests) {
     const raw = data?.offers || data?.hotels || data?.data || [];
     if (!Array.isArray(raw) || raw.length === 0) return [];
     // Pass through API data directly — no re-mapping needed
-    return raw.slice(0, 10).map((h, i) => ({
-      ...h,
-      id: h.id || h.hotelId || `hotel-${i}`,
-      name: h.name || "Hotel",
-      price: typeof h.price === "number" ? h.price : (parseFloat(String(h.price || "0").replace(/[^0-9.]/g, "")) || 0),
-      location: h.location || h.address || "",
-      image: h.image || (Array.isArray(h.images) && h.images[0]) || null,
-      images: Array.isArray(h.images) ? h.images : [],
-      perks: Array.isArray(h.perks) ? h.perks : [],
-      rating: h.rating || 0,
-      badge: h.badge || "",
-      provider: h.provider || "liteapi",
-    }));
+    return raw.slice(0, 10).map((h, i) => {
+      const totalNum = typeof h.priceTotal === "number"
+        ? h.priceTotal
+        : (parseFloat(String(h.price || "0").replace(/[^0-9.]/g, "")) || 0);
+      const perNightNum = typeof h.pricePerNight === "number"
+        ? h.pricePerNight
+        : (totalNum > 0 && nights > 0 ? Math.round(totalNum / nights) : 0);
+      return {
+        ...h,
+        id: h.id || h.hotelId || `hotel-${i}`,
+        name: h.name || "Hotel",
+        // Keep `price` as a numeric TOTAL for legacy code; expose explicit
+        // structured fields so downstream pages never have to guess.
+        price: totalNum,
+        priceTotal: totalNum,
+        pricePerNight: perNightNum,
+        nights: typeof h.nights === "number" ? h.nights : nights,
+        currency: h.currency || "USD",
+        location: h.location || h.address || "",
+        image: h.image || (Array.isArray(h.images) && h.images[0]) || null,
+        images: Array.isArray(h.images) ? h.images : [],
+        perks: Array.isArray(h.perks) ? h.perks : [],
+        rating: h.rating || 0,
+        badge: h.badge || "",
+        provider: h.provider || "liteapi",
+      };
+    });
   } catch (err) {
     console.error("[hotels] error:", err);
     return [];
@@ -353,8 +368,15 @@ function HotelCard({ hotel, isSelected, onToggle }) {
         </div>
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-lg font-black text-slate-900">{fmtPrice(hotel.price)}</p>
-            <p className="text-[10px] text-slate-400">/night</p>
+            <p className="text-lg font-black text-slate-900">
+              {fmtPrice(typeof hotel.pricePerNight === "number" ? hotel.pricePerNight : hotel.price)}
+              <span className="text-[10px] text-slate-400 font-semibold ml-1">/night</span>
+            </p>
+            {typeof hotel.priceTotal === "number" && typeof hotel.nights === "number" && hotel.nights > 0 && (
+              <p className="text-[11px] text-slate-500 font-semibold">
+                {fmtPrice(hotel.priceTotal)} <span className="text-slate-400">total · {hotel.nights} night{hotel.nights > 1 ? "s" : ""}</span>
+              </p>
+            )}
           </div>
           <button
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors ${

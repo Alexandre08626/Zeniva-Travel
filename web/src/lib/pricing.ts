@@ -59,12 +59,70 @@ function parseNights(raw: unknown): number {
 
 function isNightly(label?: string) {
   if (!label) return false;
-  return /night|nightly|per night/i.test(label);
+  return /night|nightly|per night|nuit/i.test(label);
 }
 
 export function formatCurrency(amount: number): string {
   const rounded = Math.round(amount);
   return `$${rounded.toLocaleString()}`;
+}
+
+// Single source-of-truth hotel pricing extractor. Hotels reach the proposal
+// payload from many sources (LiteAPI search → agent select → preview, traveler
+// flow, ZeniStay villas, Duffel Stays test). Each source labels the price
+// slightly differently — sometimes per-night, sometimes total, sometimes a
+// numeric `priceTotal` is set explicitly. This helper normalizes all of them
+// so downstream code never has to guess.
+export function extractHotelPricing(
+  h: any,
+  nights: number,
+): { totalPrice: number; perNight: number; source: "explicit-total" | "explicit-per-night" | "string-per-night" | "string-total" | "none" } {
+  const n = Number.isFinite(nights) && nights > 0 ? nights : 1;
+  const num = (v: unknown) => {
+    if (typeof v === "number" && Number.isFinite(v)) return v;
+    if (typeof v === "string") {
+      const parsed = parseFloat(v.replace(/[^0-9.]/g, ""));
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  };
+
+  // 1) Explicit numeric fields on the hotel object win (LiteAPI v3 + select).
+  const explicitTotal = num(h?.priceTotal) ?? num(h?.totalPrice);
+  const explicitPerNight = num(h?.pricePerNight) ?? num(h?.nightlyPrice);
+  if (explicitTotal != null && explicitPerNight != null) {
+    return { totalPrice: explicitTotal, perNight: explicitPerNight, source: "explicit-total" };
+  }
+  if (explicitTotal != null) {
+    return {
+      totalPrice: explicitTotal,
+      perNight: Math.round(explicitTotal / n),
+      source: "explicit-total",
+    };
+  }
+  if (explicitPerNight != null) {
+    return {
+      totalPrice: Math.round(explicitPerNight * n),
+      perNight: explicitPerNight,
+      source: "explicit-per-night",
+    };
+  }
+
+  // 2) Fall back to parsing the legacy `price` string.
+  const raw = h?.price;
+  const amount = num(raw);
+  if (amount == null) {
+    return { totalPrice: 0, perNight: 0, source: "none" };
+  }
+  if (typeof raw === "string" && isNightly(raw)) {
+    return { totalPrice: Math.round(amount * n), perNight: amount, source: "string-per-night" };
+  }
+  // Numeric price or string without "/night" → treat as TOTAL across the stay.
+  return {
+    totalPrice: amount,
+    perNight: n > 0 ? Math.round(amount / n) : amount,
+    source: "string-total",
+  };
 }
 
 export function computePrice(selection: any, tripDraft: any, options?: { strict?: boolean }) {
@@ -80,12 +138,7 @@ export function computePrice(selection: any, tripDraft: any, options?: { strict?
 
   const hotelItems = [selection?.hotel, ...(tripDraft?.extraHotels || [])].filter(Boolean);
   const hotelTotal = hotelItems.reduce((sum: number, item: any) => {
-    const amountParsed = parseMoney(item?.price);
-    const amount = amountParsed ?? 0;
-    if (isNightly(item?.price)) {
-      return sum + amount * nights;
-    }
-    return sum + amount;
+    return sum + extractHotelPricing(item, nights).totalPrice;
   }, 0);
 
   const activityItems = [selection?.activity, ...(tripDraft?.extraActivities || [])].filter(Boolean);
@@ -95,7 +148,12 @@ export function computePrice(selection: any, tripDraft: any, options?: { strict?
   const transferTotal = transferItems.reduce((sum: number, item: any) => sum + (parseMoney(item?.price) ?? 0), 0);
 
   const hasFlightPrice = flightBaseParsed !== null;
-  const hasHotelPrice = hotelItems.some((item: any) => parseMoney(item?.price) !== null);
+  const hasHotelPrice = hotelItems.some(
+    (item: any) =>
+      parseMoney(item?.priceTotal) !== null ||
+      parseMoney(item?.pricePerNight) !== null ||
+      parseMoney(item?.price) !== null,
+  );
   const hasActivityPrice = activityItems.some((item: any) => parseMoney(item?.price) !== null);
   const hasTransferPrice = transferItems.some((item: any) => parseMoney(item?.price) !== null);
   const hasAnyPrice = hasFlightPrice || hasHotelPrice || hasActivityPrice || hasTransferPrice;
@@ -109,7 +167,9 @@ export function computePrice(selection: any, tripDraft: any, options?: { strict?
     travelers,
     nights,
     flightBase,
-    hotelNightly: parseMoney(selection?.hotel?.price) ?? (strict ? 0 : 420),
+    hotelNightly: selection?.hotel
+      ? extractHotelPricing(selection.hotel, nights).perNight
+      : (strict ? 0 : 420),
     flightTotal,
     hotelTotal,
     activityTotal,

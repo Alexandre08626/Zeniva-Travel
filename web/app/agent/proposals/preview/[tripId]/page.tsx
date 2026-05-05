@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { extractHotelPricing } from "../../../../../src/lib/pricing";
 
 /* ──────────────────────────── types ──────────────────────────── */
 
@@ -369,8 +370,11 @@ export default function ProposalPreviewPage() {
 
   const flightTotal =
     (parseFloat(_flights.outbound?.price) || 0) + (parseFloat(_flights.inbound?.price) || 0);
+  // Use the shared extractor — handles explicit numeric fields (priceTotal /
+  // pricePerNight from LiteAPI) AND legacy `price` strings. Fixes the bug
+  // where a 7-night total was being multiplied by nights again ($3,214 × 7).
   const hotelTotal = _hotels.reduce(
-    (s: number, h: any) => s + ((parseFloat(String(h.price || h.pricePerNight || "0").replace(/[^0-9.]/g, "")) || 0) * _nights),
+    (s: number, h: any) => s + extractHotelPricing(h, _nights).totalPrice,
     0
   );
   const activityTotal = _activities.reduce((s: number, a: any) => s + (parseFloat(a.price) || 0), 0);
@@ -660,20 +664,27 @@ export default function ProposalPreviewPage() {
                       )}
                     </div>
                     <div className="mt-4 flex items-end justify-between">
-                      <div>
-                        <span className="text-2xl font-extrabold text-slate-900">
-                          {fmtMoney((parseFloat(String(hotel.price || hotel.pricePerNight || "0").replace(/[^0-9.]/g, "")) || 0))}
-                        </span>
-                        <span className="text-sm text-slate-400 ml-1">
-                          / night
-                        </span>
-                      </div>
-                      <span className="text-sm font-semibold text-slate-500">
-                        {nights} night{nights !== 1 ? "s" : ""} ={" "}
-                        <span className="text-slate-900">
-                          {fmtMoney((parseFloat(String(hotel.price || hotel.pricePerNight || "0").replace(/[^0-9.]/g, "")) || 0) * nights)}
-                        </span>
-                      </span>
+                      {(() => {
+                        const { totalPrice, perNight } = extractHotelPricing(hotel, nights);
+                        return (
+                          <>
+                            <div>
+                              <span className="text-2xl font-extrabold text-slate-900">
+                                {fmtMoney(perNight)}
+                              </span>
+                              <span className="text-sm text-slate-400 ml-1">
+                                / night
+                              </span>
+                            </div>
+                            <span className="text-sm font-semibold text-slate-500">
+                              {nights} night{nights !== 1 ? "s" : ""} ={" "}
+                              <span className="text-slate-900">
+                                {fmtMoney(totalPrice)}
+                              </span>
+                            </span>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
