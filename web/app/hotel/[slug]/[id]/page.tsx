@@ -17,6 +17,33 @@ interface HotelData {
 
 const SITE = "https://www.zenivatravel.com";
 
+// Server-safe whitelist sanitizer for the LiteAPI description, which
+// arrives as raw HTML (<p>, <strong>, <br>, etc). Strips scripts/styles
+// and any tag/attribute outside the allowlist.
+const ALLOWED_TAGS = /^(p|br|strong|b|em|i|ul|ol|li|h2|h3|h4)$/i;
+function sanitizeDescription(html: string): string {
+  if (!html) return "";
+  // Drop <script>/<style> blocks entirely (case-insensitive, multiline).
+  let out = html.replace(/<\s*(script|style)[\s\S]*?<\s*\/\s*\1\s*>/gi, "");
+  // Strip every tag's attributes; drop tags not in the allowlist.
+  out = out.replace(/<\s*\/?\s*([a-z0-9]+)([^>]*)>/gi, (_, tag) => {
+    if (!ALLOWED_TAGS.test(tag)) return "";
+    const isClosing = /^<\s*\//.test(_);
+    const isSelfClose = /\/\s*>$/.test(_) || /^br$/i.test(tag);
+    if (isClosing) return `</${tag.toLowerCase()}>`;
+    return isSelfClose && /^br$/i.test(tag) ? "<br/>" : `<${tag.toLowerCase()}>`;
+  });
+  return out.trim();
+}
+
+function plainTextFromHtml(html: string): string {
+  return html
+    .replace(/<\s*(script|style)[\s\S]*?<\s*\/\s*\1\s*>/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 async function fetchHotel(id: string): Promise<HotelData | null> {
   try {
     const res = await fetch(
@@ -51,8 +78,9 @@ export async function generateMetadata({
   const title = hotel.name
     ? `${hotel.name}${locationStr ? ` · ${locationStr}` : ""} · Zeniva Travel`
     : "Hotel · Zeniva Travel";
+  const descPlain = hotel.description ? plainTextFromHtml(hotel.description) : "";
   const desc =
-    (hotel.description && hotel.description.slice(0, 200)) ||
+    (descPlain && descPlain.slice(0, 200)) ||
     `Exclusive hotel selected by Zeniva Travel${locationStr ? ` in ${locationStr}` : ""}. Contact us to book your stay.`;
   const ogImage = hotel.photos?.[0] || `${SITE}/branding/zeniva-og.jpg`;
   const url = `${SITE}/hotel/${slug}/${id}`;
@@ -161,15 +189,29 @@ export default async function HotelSharePage({
         {/* Description */}
         {hotel.description && (
           <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-100">
-            <h2 className="text-xs font-black tracking-widest text-slate-500 uppercase mb-3">
+            <h2 className="text-xs font-black tracking-widest text-slate-500 uppercase mb-4">
               About this hotel
             </h2>
-            <p className="text-slate-700 leading-relaxed whitespace-pre-line">
-              {hotel.description}
-            </p>
+            <div
+              className="hotel-description text-slate-700 leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: sanitizeDescription(hotel.description) }}
+            />
             {hotel.address && (
-              <p className="mt-4 text-sm text-slate-500">📍 {hotel.address}</p>
+              <p className="mt-5 text-sm text-slate-500 border-t border-slate-100 pt-4">
+                📍 {hotel.address}
+              </p>
             )}
+            <style>{`
+              .hotel-description p { margin-bottom: 1rem; }
+              .hotel-description p:last-child { margin-bottom: 0; }
+              .hotel-description strong, .hotel-description b {
+                color: #0B1B4D; font-weight: 800;
+                display: block; margin-top: 0.5rem; margin-bottom: 0.25rem;
+                font-size: 0.95rem;
+              }
+              .hotel-description ul, .hotel-description ol { padding-left: 1.25rem; margin-bottom: 1rem; }
+              .hotel-description li { margin-bottom: 0.25rem; }
+            `}</style>
           </div>
         )}
 
@@ -234,4 +276,6 @@ export default async function HotelSharePage({
   );
 }
 
-export const dynamic = "force-dynamic";
+// Cache the share page so the FB scraper hits a warm response and doesn't
+// time out — first request fetches LiteAPI, subsequent ones are instant.
+export const revalidate = 3600;
