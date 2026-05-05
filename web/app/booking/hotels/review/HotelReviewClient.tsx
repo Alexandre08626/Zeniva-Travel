@@ -8,6 +8,19 @@ import { applyHotelMarkupLabel } from "../../../../src/lib/partnerMarkup";
 import { useAuthStore } from "../../../../src/lib/authStore";
 import FinishAccountModal from "../../../../src/components/FinishAccountModal.client";
 
+type RateRow = {
+  id?: string;
+  room_type?: { name?: string };
+  refundable?: boolean;
+  conditions?: string;
+  cancellation_timeline?: Array<{ deadline?: string; at?: string; refund_amount?: string; penalty_amount?: string }>;
+  total_amount?: string;
+  total_currency?: string;
+  per_night_amount?: string;
+  board_name?: string;
+  provider?: string;
+};
+
 type DraftData = {
   selectedSearchResult?: {
     id?: string;
@@ -20,13 +33,9 @@ type DraftData = {
     provider?: string;
   } | null;
   selectedRateId?: string;
-  selectedRate?: {
-    id?: string;
-    room_type?: { name?: string };
-    refundable?: boolean;
-    conditions?: string;
-    cancellation_timeline?: Array<{ deadline?: string; at?: string; refund_amount?: string; penalty_amount?: string }>;
-  } | null;
+  selectedRate?: RateRow | null;
+  // Full list of rates the user can switch to without leaving the review page.
+  rates?: RateRow[];
   quote?: {
     id?: string;
     total_amount?: string;
@@ -191,6 +200,39 @@ export default function HotelReviewClient() {
 
   const isAirbnb = Boolean(draft?.isAirbnb) || draft?.selectedSearchResult?.provider === "airbnb";
 
+  // Switch to a different rate/room without leaving the review page. Updates
+  // selectedRate + selectedRateId + quote totals, persists the new draft to
+  // sessionStorage, and the price card on the right re-renders automatically.
+  const handleSwitchRate = (rate: RateRow) => {
+    setDraft((prev) => {
+      if (!prev) return prev;
+      const next: DraftData = {
+        ...prev,
+        selectedRateId: rate.id,
+        selectedRate: rate,
+        quote: prev.quote
+          ? {
+              ...prev.quote,
+              total_amount: rate.total_amount || prev.quote.total_amount,
+              total_currency: rate.total_currency || prev.quote.total_currency,
+              refundable: typeof rate.refundable === "boolean" ? rate.refundable : prev.quote.refundable,
+            }
+          : prev.quote,
+      };
+      try {
+        window.sessionStorage.setItem(BOOKING_DRAFT_KEY, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const rateOptions: RateRow[] = Array.isArray(draft?.rates) ? draft!.rates! : [];
+  const sortedRateOptions = [...rateOptions].sort((a, b) => {
+    const av = parseFloat(String(a?.total_amount || "0").replace(/[^0-9.]/g, "")) || 0;
+    const bv = parseFloat(String(b?.total_amount || "0").replace(/[^0-9.]/g, "")) || 0;
+    return av - bv;
+  });
+
   if (!draft || (!quote && !isAirbnb)) {
     return (
       <main className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
@@ -294,6 +336,73 @@ export default function HotelReviewClient() {
                 ) : null)}
               </div>
             </section>
+
+            {/* Room / rate picker — only when more than one option is available */}
+            {!isAirbnb && sortedRateOptions.length > 1 && (
+              <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-4 flex items-center gap-3">
+                  <span className="text-lg">🛏️</span>
+                  <h2 className="font-black text-white">{sortedRateOptions.length} room options — pick one</h2>
+                </div>
+                <div className="p-5 space-y-2">
+                  {sortedRateOptions.map((rate) => {
+                    const isActive = (rate.id || "") === (draft?.selectedRateId || "");
+                    const fmt = (amt?: string, cur?: string) => {
+                      if (!amt) return "";
+                      const n = parseFloat(String(amt).replace(/[^0-9.]/g, ""));
+                      if (!Number.isFinite(n)) return "";
+                      return `${cur || "USD"} ${Math.round(n).toLocaleString()}`;
+                    };
+                    const totalLabel = fmt(rate.total_amount, rate.total_currency);
+                    const perNightLabel = rate.per_night_amount
+                      ? fmt(rate.per_night_amount, rate.total_currency)
+                      : (nights && Number.isFinite(parseFloat(String(rate.total_amount || "0")))
+                          ? `${rate.total_currency || "USD"} ${Math.round((parseFloat(String(rate.total_amount).replace(/[^0-9.]/g, "")) || 0) / Math.max(1, nights)).toLocaleString()}`
+                          : "");
+                    return (
+                      <button
+                        key={rate.id}
+                        type="button"
+                        onClick={() => handleSwitchRate(rate)}
+                        className={`w-full text-left rounded-xl border-2 px-4 py-3 transition-all ${
+                          isActive
+                            ? "border-violet-500 bg-violet-50 ring-2 ring-violet-200 shadow-sm"
+                            : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <p className={`text-sm font-bold ${isActive ? "text-violet-800" : "text-slate-900"}`}>
+                              {isActive ? "✓ " : ""}{rate.room_type?.name || "Room"}
+                            </p>
+                            <div className="mt-1 flex flex-wrap gap-1.5">
+                              {rate.board_name && (
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
+                                  {rate.board_name}
+                                </span>
+                              )}
+                              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${rate.refundable ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}>
+                                {rate.refundable ? "Free cancellation" : "Non-refundable"}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0">
+                            {perNightLabel && (
+                              <p className="text-sm font-black text-slate-900">
+                                {perNightLabel}<span className="text-[10px] text-slate-400 font-semibold">/night</span>
+                              </p>
+                            )}
+                            {totalLabel && (
+                              <p className="text-[11px] text-slate-500 font-semibold">{totalLabel} total</p>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
 
             {/* Cancellation policy */}
             <section className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">

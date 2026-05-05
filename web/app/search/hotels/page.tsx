@@ -321,6 +321,9 @@ function HotelsSearchContent() {
           selectedSearchResult,
           selectedRateId: rateId,
           selectedRate: rates.find((rate) => rate.id === rateId) || null,
+          // Full rates list — enables the review page to render a room/rate
+          // picker so the agent or traveler can switch without going back.
+          rates,
           quote: json.quote,
           searchContext: {
             destination,
@@ -395,30 +398,63 @@ function HotelsSearchContent() {
   };
 
   const handleSelectLiteApiAccommodation = (option: StayOption) => {
-    const syntheticQuote = buildLiteApiQuote(option);
-    const syntheticRate = {
-      id: `liteapi-rate-${option.id}`,
-      room_type: { name: option.room || "Room" },
-      refundable: false,
-      conditions: "LiteAPI sourced offer. Final supplier conditions apply at confirmation.",
-      cancellation_timeline: [],
-      total_amount: syntheticQuote.total_amount,
-      total_currency: syntheticQuote.total_currency,
+    // LiteAPI search now ships a `rooms[]` array on each offer — one entry per
+    // roomType returned by /hotels/rates, with its own offerId / priceTotal /
+    // pricePerNight / board / refundable. Build a real per-room rates list so
+    // the review page can render a picker instead of a single synthetic rate.
+    const optionRooms: any[] = Array.isArray((option as any).rooms) ? (option as any).rooms : [];
+    const cheapestPrice = (option.price as any) ?? "";
+    const cheapestQuote = buildLiteApiQuote(option);
+
+    const liteRates = optionRooms.length > 0
+      ? optionRooms.map((rm) => ({
+          id: rm.offerId || `liteapi-rate-${option.id}-${rm.name}`,
+          room_type: { name: rm.name || option.room || "Room" },
+          refundable: !!rm.refundable,
+          conditions: rm.refundable
+            ? "Free cancellation per supplier deadline."
+            : "LiteAPI sourced offer. Final supplier conditions apply at confirmation.",
+          cancellation_timeline: [],
+          total_amount: typeof rm.priceTotal === "number" ? rm.priceTotal.toFixed(2) : "0.00",
+          total_currency: rm.currency || "USD",
+          board_name: rm.board || "",
+          per_night_amount: typeof rm.pricePerNight === "number" ? rm.pricePerNight.toFixed(2) : "0.00",
+          provider: "liteapi",
+        }))
+      : [{
+          id: `liteapi-rate-${option.id}`,
+          room_type: { name: option.room || "Room" },
+          refundable: false,
+          conditions: "LiteAPI sourced offer. Final supplier conditions apply at confirmation.",
+          cancellation_timeline: [],
+          total_amount: cheapestQuote.total_amount,
+          total_currency: cheapestQuote.total_currency,
+          provider: "liteapi",
+        }];
+
+    const initialRateId = liteRates[0].id;
+    const initialRate = liteRates[0];
+    const initialQuote = optionRooms.length > 0 ? {
+      id: `liteapi-quote-${option.id}-${Date.now()}`,
+      total_amount: initialRate.total_amount,
+      total_currency: initialRate.total_currency,
+      refundable: !!initialRate.refundable,
       provider: "liteapi",
-    };
+    } : cheapestQuote;
 
     setSelectedId(option.id);
     setSelectedSearchResult(option);
-    setQuote(syntheticQuote);
-    setRates([syntheticRate]);
-    setSelectedRateId(syntheticRate.id);
+    setQuote(initialQuote);
+    setRates(liteRates);
+    setSelectedRateId(initialRateId);
 
     if (typeof window !== "undefined") {
       const draft = {
         selectedSearchResult: { ...option, provider: "liteapi" },
-        selectedRateId: syntheticRate.id,
-        selectedRate: syntheticRate,
-        quote: syntheticQuote,
+        selectedRateId: initialRateId,
+        selectedRate: initialRate,
+        rates: liteRates,
+        quote: initialQuote,
         searchContext: {
           destination,
           checkIn,
@@ -435,6 +471,8 @@ function HotelsSearchContent() {
       };
       window.sessionStorage.setItem(BOOKING_DRAFT_KEY, JSON.stringify(draft));
     }
+    // Suppress unused warning — kept for context if needed later.
+    void cheapestPrice;
 
     const reviewParams = new URLSearchParams({
       destination,
