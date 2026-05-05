@@ -1806,45 +1806,32 @@ export default function AgentProposalSelectPage() {
           }
         };
 
-        // Share to Facebook. CRITICAL: the click handler must stay
-        // synchronous so the browser still considers it a user gesture —
-        // otherwise window.open is blocked and navigator.share is rejected.
-        // Files are pre-fetched into `marketingFiles` when the modal opens,
-        // so we can hand them directly to the share API here.
-        const shareToFacebook = () => {
-          const files = marketingFiles;
-          const canShareFiles =
-            typeof navigator !== "undefined" &&
-            typeof navigator.share === "function" &&
-            typeof navigator.canShare === "function" &&
-            files.length > 0 &&
-            navigator.canShare({ files });
+        // Whether the browser can share image files via the native sheet.
+        // Computed at render so we can switch the share button between
+        // an <a> (desktop) and a real native-share trigger (mobile).
+        const canShareFiles =
+          typeof navigator !== "undefined" &&
+          typeof navigator.share === "function" &&
+          typeof navigator.canShare === "function" &&
+          marketingFiles.length > 0 &&
+          navigator.canShare({ files: marketingFiles });
 
+        // Side effects fired on Share click (besides the actual sharing).
+        // Anchor navigation handles "open Facebook" reliably; this just
+        // copies the post text and starts the photo downloads.
+        const onShareClick = (e) => {
           if (canShareFiles) {
-            // Native share sheet (mobile, macOS Safari) — Facebook, IG,
-            // WhatsApp, Messages all show up here with photos attached.
-            navigator.share({ title: `Zeniva — ${dest}`, text: fbText, files }).catch(() => {});
-            // Copy text in the background so the agent can paste it again
-            // if the share target strips it.
+            // Mobile / supported: native sheet, no FB tab needed.
+            e.preventDefault();
+            navigator.share({ title: `Zeniva — ${dest}`, text: fbText, files: marketingFiles }).catch(() => {});
             copyText(fbText, "fb");
             return;
           }
-
-          // Desktop fallback. Open FB FIRST, synchronously, before any
-          // await — otherwise the popup is blocked.
-          const fbWin = window.open("https://www.facebook.com/", "_blank", "noopener,noreferrer");
-          // Then copy the post text + kick off the photo downloads so the
-          // agent can drag them into the FB composer.
+          // Desktop fallback: the <a target="_blank"> opens facebook.com,
+          // we copy the caption + start downloading photos so the agent
+          // can drag them into the FB composer.
           copyText(fbText, "fb");
           downloadAllPhotos();
-          if (!fbWin) {
-            // Popup blocked — give the agent a manual escape hatch.
-            alert(
-              "Facebook didn't open (popup blocked).\n\n" +
-              "Post text is copied to your clipboard and the photos are downloading.\n" +
-              "Open facebook.com, paste the text, and drag the photos in.",
-            );
-          }
         };
 
         return (
@@ -1902,9 +1889,15 @@ export default function AgentProposalSelectPage() {
                 <button onClick={() => copyText(fbText, "post2")} className={`flex-1 py-3 rounded-xl text-sm font-bold transition ${copiedLabel === "post2" ? "bg-green-500 text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}>
                   {copiedLabel === "post2" ? "Copied!" : "Copy Post Text"}
                 </button>
-                <button onClick={shareToFacebook} disabled={hotelPhotos.length === 0} className="flex-1 py-3 rounded-xl bg-[#1877F2] text-white text-sm font-bold hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                <a
+                  href={canShareFiles ? "#" : "https://www.facebook.com/"}
+                  target={canShareFiles ? undefined : "_blank"}
+                  rel="noopener noreferrer"
+                  onClick={onShareClick}
+                  className={`flex-1 py-3 rounded-xl bg-[#1877F2] text-white text-sm font-bold hover:opacity-90 transition text-center ${hotelPhotos.length === 0 ? "opacity-50 pointer-events-none" : ""}`}
+                >
                   Share to Facebook
-                </button>
+                </a>
               </div>
             </div>
           </div>
