@@ -166,10 +166,40 @@ export async function GET(req: Request) {
     }
 
     const root = pickFirstObject(upstream.data) || {};
-    const name = getFirstString(root?.name, root?.hotel?.name, root?.property?.name);
+    const hotelNode = root?.hotel || root?.property || root;
+    const name = getFirstString(root?.name, hotelNode?.name);
     const photos = extractPhotoUrls(upstream.data);
+    const address = getFirstString(
+      hotelNode?.address,
+      hotelNode?.location?.address,
+      hotelNode?.fullAddress,
+    );
+    const city = getFirstString(hotelNode?.city, hotelNode?.location?.city);
+    const country = getFirstString(hotelNode?.country, hotelNode?.location?.country);
+    const description = getFirstString(
+      hotelNode?.hotelDescription,
+      hotelNode?.description,
+      hotelNode?.shortDescription,
+    );
+    const rating = typeof hotelNode?.rating === "number"
+      ? hotelNode.rating
+      : (typeof hotelNode?.starRating === "number" ? hotelNode.starRating : 0);
+    const stars = typeof hotelNode?.stars === "number"
+      ? hotelNode.stars
+      : (typeof hotelNode?.starRating === "number" ? hotelNode.starRating : 0);
 
-    return NextResponse.json({ ok: true, hotelId, name, photos });
+    return NextResponse.json({
+      ok: true,
+      hotelId,
+      name,
+      photos,
+      address,
+      city,
+      country,
+      description,
+      rating,
+      stars,
+    });
   } catch (err: any) {
     return NextResponse.json({ ok: false, error: err?.message || String(err) }, { status: 502 });
   }

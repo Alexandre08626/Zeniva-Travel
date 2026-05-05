@@ -1749,8 +1749,27 @@ export default function AgentProposalSelectPage() {
           fbLines.push("");
           fbLines.push(grandTotal === grandTotalMax ? `💰 From ${fmtRound(grandTotal)}` : `💰 From ${fmtRound(grandTotal)} – ${fmtRound(grandTotalMax)}`);
         }
+
+        // Public share URL for the selected hotel — shows photos + details
+        // and (critically) carries OG tags so Facebook renders a preview card.
+        const featuredHotel = selected.hotels[0];
+        const hotelSlug = (featuredHotel?.name || "hotel")
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[̀-ͯ]/g, "")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)/g, "")
+          .slice(0, 60) || "hotel";
+        const shareUrl = featuredHotel?.id
+          ? `https://www.zenivatravel.com/hotel/${hotelSlug}/${encodeURIComponent(featuredHotel.id)}`
+          : "";
+
         fbLines.push("");
         fbLines.push("🔥 Limited availability — DM us or comment BOOK to reserve!");
+        if (shareUrl) {
+          fbLines.push("");
+          fbLines.push(`👉 ${shareUrl}`);
+        }
         fbLines.push("");
         fbLines.push("#ZenivaTravel #" + dest.replace(/[^a-zA-Z]/g, "") + " #TravelDeals #LuxuryTravel #AITravel #Vacation");
         const fbText = fbLines.join("\n");
@@ -1816,22 +1835,30 @@ export default function AgentProposalSelectPage() {
           marketingFiles.length > 0 &&
           navigator.canShare({ files: marketingFiles });
 
-        // Side effects fired on Share click (besides the actual sharing).
-        // Anchor navigation handles "open Facebook" reliably; this just
-        // copies the post text and starts the photo downloads.
+        // Where the desktop "Share to Facebook" anchor points. With a real
+        // share URL, Facebook's sharer.php renders a preview card from the
+        // page's OG tags — agent only needs to add a comment + click Post.
+        const fbSharerUrl = shareUrl
+          ? `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
+          : "https://www.facebook.com/";
+
+        // Side effects fired on Share click. Anchor navigation handles the
+        // FB redirect reliably (no popup blocker). On mobile / browsers
+        // with Web Share, prefer the native sheet so photos can attach.
         const onShareClick = (e) => {
           if (canShareFiles) {
-            // Mobile / supported: native sheet, no FB tab needed.
             e.preventDefault();
-            navigator.share({ title: `Zeniva — ${dest}`, text: fbText, files: marketingFiles }).catch(() => {});
+            navigator
+              .share({ title: `Zeniva — ${dest}`, text: fbText, url: shareUrl || undefined, files: marketingFiles })
+              .catch(() => {});
             copyText(fbText, "fb");
             return;
           }
-          // Desktop fallback: the <a target="_blank"> opens facebook.com,
-          // we copy the caption + start downloading photos so the agent
-          // can drag them into the FB composer.
+          // Desktop: the anchor takes us to FB's sharer with our URL —
+          // FB will scrape the OG tags and show a hotel preview card.
+          // We also copy the caption so the agent can paste it into the
+          // FB share dialog's comment box.
           copyText(fbText, "fb");
-          downloadAllPhotos();
         };
 
         return (
@@ -1845,6 +1872,35 @@ export default function AgentProposalSelectPage() {
 
               {/* Scrollable content */}
               <div className="flex-1 overflow-y-auto min-h-0 p-5 space-y-5">
+
+                {/* Public share URL — what FB will preview */}
+                {shareUrl && (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                        Hotel Page URL
+                      </h3>
+                      <button
+                        onClick={() => copyText(shareUrl, "url")}
+                        className={`text-xs font-bold transition ${copiedLabel === "url" ? "text-green-600" : "text-blue-600 hover:text-blue-800"}`}
+                      >
+                        {copiedLabel === "url" ? "Copied!" : "Copy URL"}
+                      </button>
+                    </div>
+                    <a
+                      href={shareUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-xs text-blue-700 font-mono break-all hover:bg-blue-100 transition"
+                    >
+                      {shareUrl}
+                    </a>
+                    <p className="mt-2 text-[11px] text-slate-500">
+                      Click to preview the page Facebook will show. Includes
+                      photos, location, and a contact CTA.
+                    </p>
+                  </div>
+                )}
 
                 {/* Facebook Post Text */}
                 <div>
@@ -1890,11 +1946,11 @@ export default function AgentProposalSelectPage() {
                   {copiedLabel === "post2" ? "Copied!" : "Copy Post Text"}
                 </button>
                 <a
-                  href={canShareFiles ? "#" : "https://www.facebook.com/"}
+                  href={canShareFiles ? "#" : fbSharerUrl}
                   target={canShareFiles ? undefined : "_blank"}
                   rel="noopener noreferrer"
                   onClick={onShareClick}
-                  className={`flex-1 py-3 rounded-xl bg-[#1877F2] text-white text-sm font-bold hover:opacity-90 transition text-center ${hotelPhotos.length === 0 ? "opacity-50 pointer-events-none" : ""}`}
+                  className={`flex-1 py-3 rounded-xl bg-[#1877F2] text-white text-sm font-bold hover:opacity-90 transition text-center ${!shareUrl ? "opacity-50 pointer-events-none" : ""}`}
                 >
                   Share to Facebook
                 </a>
