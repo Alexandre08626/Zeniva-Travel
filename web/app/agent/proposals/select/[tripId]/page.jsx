@@ -1630,7 +1630,6 @@ export default function AgentProposalSelectPage() {
     </div>` : ""}
     <div style="margin-top:16px;text-align:center;">
       <div style="display:inline-block;background:linear-gradient(90deg,#0F6CF5,#0B1B4D);color:white;font-size:13px;font-weight:800;padding:14px 36px;border-radius:50px;">DM us or comment BOOK ✨</div>
-      <p style="font-size:11px;color:#94A3B8;margin-top:10px;">zenivatravel.com</p>
     </div>
   </div>
 </div>
