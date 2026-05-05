@@ -1122,14 +1122,14 @@ export default function PitchPage() {
                   backgroundClip: "text",
                 }}
               >
-                $400K
+                $350K
               </div>
               <div style={{ marginTop: 6, fontSize: 14, color: INK, fontWeight: 600 }}>
-                Manual LiteAPI sales, pre-platform launch.
+                Manual TBO sales, pre-platform launch.
               </div>
             </div>
             <div style={{ flex: "0 1 320px", fontSize: 13.5, color: MUTED, lineHeight: 1.6 }}>
-              Achieved by the founder hand-selling hotel and package bookings through the LiteAPI supplier network — without any AI platform automation, paid acquisition channel or sales team. Validates demand and unlocks the platform-led revenue scale modeled on slide 13.
+              Achieved by the founder hand-selling hotel and package bookings through the TBO supplier network — without any AI platform automation, paid acquisition channel or sales team. The platform now uses LiteAPI as its primary hotel inventory supplier; this $350K is the founder&apos;s direct-sale baseline that validates demand for the platform-led revenue scale modeled on slide 13.
             </div>
           </div>
 
