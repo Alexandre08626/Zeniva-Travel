@@ -824,7 +824,7 @@ export default function PitchPage() {
                 <span style={{ marginTop: 4, fontWeight: 700 }}>info@zeniva.ca</span>
               </a>
               <a
-                href="tel:+13322900021"
+                href="tel:+15817487017"
                 style={{
                   display: "flex",
                   flexDirection: "column",
@@ -839,7 +839,7 @@ export default function PitchPage() {
                 <span style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 700 }}>
                   Phone
                 </span>
-                <span style={{ marginTop: 4, fontWeight: 700 }}>+1 (332) 290-0021</span>
+                <span style={{ marginTop: 4, fontWeight: 700 }}>+1 (581) 748-7017</span>
               </a>
             </div>
             <p style={{ margin: "16px 0 0", fontSize: 12, color: "rgba(255,255,255,0.6)" }}>
