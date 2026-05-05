@@ -1567,9 +1567,6 @@ export default function AgentProposalSelectPage() {
         fbLines.push("");
         fbLines.push("🔥 Limited availability — DM us or comment BOOK to reserve!");
         fbLines.push("");
-        fbLines.push("💬 Chat with Lina AI to customize your trip:");
-        fbLines.push("👉 zenivatravel.com/chat");
-        fbLines.push("");
         fbLines.push("#ZenivaTravel #" + dest.replace(/[^a-zA-Z]/g, "") + " #TravelDeals #LuxuryTravel #AITravel #Vacation");
         const fbText = fbLines.join("\n");
 
@@ -1610,8 +1607,8 @@ export default function AgentProposalSelectPage() {
       <p style="font-size:26px;font-weight:900;color:white;margin-top:6px;">${priceStr}</p>
     </div>` : ""}
     <div style="margin-top:16px;text-align:center;">
-      <a href="https://www.zenivatravel.com/chat" style="display:inline-block;background:linear-gradient(90deg,#0F6CF5,#0B1B4D);color:white;font-size:13px;font-weight:800;padding:14px 36px;border-radius:50px;text-decoration:none;">Book Now — Chat with Lina ✨</a>
-      <p style="font-size:11px;color:#94A3B8;margin-top:10px;">DM or comment BOOK · zenivatravel.com</p>
+      <div style="display:inline-block;background:linear-gradient(90deg,#0F6CF5,#0B1B4D);color:white;font-size:13px;font-weight:800;padding:14px 36px;border-radius:50px;">DM us or comment BOOK ✨</div>
+      <p style="font-size:11px;color:#94A3B8;margin-top:10px;">zenivatravel.com</p>
     </div>
   </div>
 </div>
