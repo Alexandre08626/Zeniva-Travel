@@ -257,6 +257,11 @@ export async function GET(req: NextRequest) {
     const ratesRes = await liteApiFetchJson<any>({
       path: "/hotels/rates",
       method: "POST",
+      // Request multiple rates per hotel so we can surface real room-type
+      // choices (Standard / Deluxe / Beach Villa / Overwater, etc.) on the
+      // proposal builder. roomMapping: true groups rates by room category
+      // so we get distinct room types instead of just board variants.
+      query: { rm: true },
       body: {
         hotelIds,
         occupancies,
@@ -264,7 +269,8 @@ export async function GET(req: NextRequest) {
         currency: "USD",
         checkin: checkIn,
         checkout: checkOut,
-        maxRatesPerHotel: 1,
+        maxRatesPerHotel: 10,
+        roomMapping: true,
         includeHotelData: true,
       },
       timeoutMs: 30000,
