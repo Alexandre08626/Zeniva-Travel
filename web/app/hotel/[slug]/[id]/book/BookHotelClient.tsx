@@ -25,12 +25,13 @@ export default function BookHotelClient({ initial }: { initial: BookInitial }) {
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [setupUrl, setSetupUrl] = useState("");
   const [error, setError] = useState("");
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || (!email.trim() && !phone.trim())) {
-      setError("Please fill in your name and either email or phone.");
+    if (!name.trim() || !email.trim()) {
+      setError("Please enter your name and email — email is required so we can create your free account.");
       return;
     }
     setError("");
@@ -54,13 +55,15 @@ export default function BookHotelClient({ initial }: { initial: BookInitial }) {
           checkOut,
           pax: travelers,
           quotedPrice: initial.price,
+          memberDiscount: "15% (first booking via hotel share link)",
           notes: notes.trim(),
         }),
       });
+      const json = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        throw new Error(j?.error || "Failed to submit booking request");
+        throw new Error(json?.error || "Failed to submit booking request");
       }
+      if (json?.setupUrl) setSetupUrl(json.setupUrl);
       setSubmitted(true);
     } catch (e: any) {
       setError(e?.message || "Something went wrong. Please try again.");
@@ -76,11 +79,34 @@ export default function BookHotelClient({ initial }: { initial: BookInitial }) {
           <div className="text-5xl mb-4">✅</div>
           <h1 className="text-2xl font-black text-[#0B1B4D]">Booking request sent!</h1>
           <p className="mt-3 text-slate-600">
-            Thanks {name.split(" ")[0]} — a Zeniva Travel agent will email you within 1 hour at <strong>{email || phone}</strong> with the final quote and a secure ZeniPay link to confirm your stay at <strong>{initial.hotelName}</strong>.
+            Thanks {name.split(" ")[0]} — a Zeniva Travel agent will email you within 1 hour at <strong>{email}</strong> with the final quote and a secure ZeniPay link to confirm your stay at <strong>{initial.hotelName}</strong>.
           </p>
+
+          {setupUrl && (
+            <div className="mt-6 bg-gradient-to-br from-[#FEF3C7] to-[#FDE68A] border border-[#F59E0B]/40 rounded-2xl p-5 text-left">
+              <p className="text-[11px] font-black uppercase tracking-widest text-[#92400E]">
+                ⭐ Unlock 15% off
+              </p>
+              <h2 className="mt-1 text-lg font-black text-[#7C2D12]">
+                Set your password & save 15% on this trip
+              </h2>
+              <p className="mt-2 text-sm text-[#7C2D12]/80">
+                Your free Zeniva account is ready. Set a password now to lock
+                in 15% off your stay at <strong>{initial.hotelName}</strong>{" "}
+                and access exclusive member rates on every future booking.
+              </p>
+              <a
+                href={setupUrl}
+                className="block text-center mt-4 px-6 py-3 rounded-full bg-[#0B1B4D] text-white font-bold text-sm hover:opacity-90 transition"
+              >
+                🔒 Set my password & claim 15% off
+              </a>
+            </div>
+          )}
+
           <a
             href="/"
-            className="inline-block mt-6 px-7 py-3 rounded-full bg-[#0B1B4D] text-white font-bold text-sm hover:opacity-90 transition"
+            className="inline-block mt-6 text-xs font-semibold text-slate-500 hover:text-slate-700 transition"
           >
             Back to Zeniva Travel
           </a>
@@ -179,7 +205,17 @@ export default function BookHotelClient({ initial }: { initial: BookInitial }) {
           </div>
 
           <div className="border-t border-slate-100 pt-5 space-y-3">
-            <h3 className="text-sm font-bold text-[#0B1B4D]">Your contact info</h3>
+            <div className="flex items-start justify-between gap-3">
+              <h3 className="text-sm font-bold text-[#0B1B4D]">Your contact info</h3>
+              <span className="bg-amber-100 text-amber-800 text-[10px] font-black uppercase tracking-wide px-2 py-1 rounded-full">
+                15% OFF
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 -mt-1">
+              Your free Zeniva account is created automatically — set your
+              password after submitting to <strong>save 15%</strong> on this
+              trip and unlock member rates.
+            </p>
             <Field label="Full name *">
               <input
                 type="text"
@@ -191,9 +227,10 @@ export default function BookHotelClient({ initial }: { initial: BookInitial }) {
               />
             </Field>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Field label="Email">
+              <Field label="Email *">
                 <input
                   type="email"
+                  required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@email.com"
