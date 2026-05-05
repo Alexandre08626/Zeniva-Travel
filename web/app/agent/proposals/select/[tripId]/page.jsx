@@ -659,6 +659,7 @@ export default function AgentProposalSelectPage() {
   const [copiedLabel, setCopiedLabel] = useState("");
   const [marketingPhotos, setMarketingPhotos] = useState([]);
   const [marketingPhotosLoading, setMarketingPhotosLoading] = useState(false);
+  const [marketingFiles, setMarketingFiles] = useState([]);
 
   /* ─── Load clients (refresh session first to avoid 401) ─── */
   useEffect(() => {
@@ -813,10 +814,12 @@ export default function AgentProposalSelectPage() {
     const hotel = selected?.hotels?.[0];
     if (!hotel) {
       setMarketingPhotos([]);
+      setMarketingFiles([]);
       return;
     }
 
     const toAbs = (u) => (typeof u === "string" && u ? (u.startsWith("http") ? u : "https://www.zenivatravel.com" + u) : null);
+    const slug = (searchForm.destination || "trip").replace(/\s+/g, "-").toLowerCase();
     const seed = [];
     const seen = new Set();
     const push = (u) => {
@@ -828,32 +831,58 @@ export default function AgentProposalSelectPage() {
     push(hotel.image);
     (Array.isArray(hotel.images) ? hotel.images : []).forEach(push);
     setMarketingPhotos(seed.slice(0, 10));
+    setMarketingFiles([]);
 
-    if ((hotel.provider || "liteapi") !== "liteapi" || !hotel.id) return;
     let cancelled = false;
     setMarketingPhotosLoading(true);
+
+    // Pre-fetch image blobs as File[] so the share click handler can call
+    // navigator.share synchronously (required for Web Share to work).
+    const buildFiles = async (urls) => {
+      const out = await Promise.all(
+        urls.slice(0, 10).map(async (url, i) => {
+          try {
+            const r = await fetch(url, { mode: "cors" });
+            if (!r.ok) return null;
+            const blob = await r.blob();
+            const mime = blob.type || "image/jpeg";
+            const ext = (mime.split("/")[1] || "jpg").replace("jpeg", "jpg");
+            return new File([blob], `zeniva-${slug}-${String(i + 1).padStart(2, "0")}.${ext}`, { type: mime });
+          } catch {
+            return null;
+          }
+        }),
+      );
+      return out.filter(Boolean);
+    };
+
     (async () => {
-      try {
-        const res = await fetch(`/api/partners/liteapi/hotels/details?hotelId=${encodeURIComponent(hotel.id)}`);
-        if (!res.ok) return;
-        const json = await res.json();
-        const fresh = Array.isArray(json?.photos) ? json.photos : [];
-        if (cancelled) return;
-        const merged = [];
-        const mSeen = new Set();
-        [...seed, ...fresh.map(toAbs).filter(Boolean)].forEach((u) => {
-          if (mSeen.has(u)) return;
-          mSeen.add(u);
-          merged.push(u);
-        });
-        setMarketingPhotos(merged.slice(0, 10));
-      } catch {}
-      finally {
-        if (!cancelled) setMarketingPhotosLoading(false);
+      let merged = seed;
+      if ((hotel.provider || "liteapi") === "liteapi" && hotel.id) {
+        try {
+          const res = await fetch(`/api/partners/liteapi/hotels/details?hotelId=${encodeURIComponent(hotel.id)}`);
+          if (res.ok) {
+            const json = await res.json();
+            const fresh = Array.isArray(json?.photos) ? json.photos.map(toAbs).filter(Boolean) : [];
+            const m = [];
+            const mSeen = new Set();
+            [...seed, ...fresh].forEach((u) => {
+              if (mSeen.has(u)) return;
+              mSeen.add(u);
+              m.push(u);
+            });
+            merged = m.slice(0, 10);
+            if (!cancelled) setMarketingPhotos(merged);
+          }
+        } catch {}
       }
+      const files = await buildFiles(merged);
+      if (!cancelled) setMarketingFiles(files);
+      if (!cancelled) setMarketingPhotosLoading(false);
     })();
+
     return () => { cancelled = true; };
-  }, [showMarketingModal, selected?.hotels?.[0]?.id]);
+  }, [showMarketingModal, selected?.hotels?.[0]?.id, searchForm.destination]);
 
   /* ─── Selection helpers ─── */
   const selectFlight = (direction, flight) => {
@@ -1777,24 +1806,13 @@ export default function AgentProposalSelectPage() {
           }
         };
 
-        // Share to Facebook (and other apps): use the native Web Share API
-        // with image files when supported (mobile + macOS Safari). Otherwise
-        // copy the post text and open Facebook so the agent can paste +
-        // drag the photos in.
-        const shareToFacebook = async () => {
-          // Build File[] from the photo URLs. Skip any that fail CORS.
-          const files = [];
-          for (let i = 0; i < hotelPhotos.length; i++) {
-            try {
-              const res = await fetch(hotelPhotos[i], { mode: "cors" });
-              if (!res.ok) continue;
-              const blob = await res.blob();
-              const mime = blob.type || "image/jpeg";
-              const ext = mime.split("/")[1] || "jpg";
-              files.push(new File([blob], `zeniva-${slug}-${String(i + 1).padStart(2, "0")}.${ext === "jpeg" ? "jpg" : ext}`, { type: mime }));
-            } catch {}
-          }
-
+        // Share to Facebook. CRITICAL: the click handler must stay
+        // synchronous so the browser still considers it a user gesture —
+        // otherwise window.open is blocked and navigator.share is rejected.
+        // Files are pre-fetched into `marketingFiles` when the modal opens,
+        // so we can hand them directly to the share API here.
+        const shareToFacebook = () => {
+          const files = marketingFiles;
           const canShareFiles =
             typeof navigator !== "undefined" &&
             typeof navigator.share === "function" &&
@@ -1803,21 +1821,30 @@ export default function AgentProposalSelectPage() {
             navigator.canShare({ files });
 
           if (canShareFiles) {
-            try {
-              await navigator.share({ title: `Zeniva — ${dest}`, text: fbText, files });
-              return;
-            } catch (e) {
-              // User cancelled — don't fall through to opening FB.
-              if (e && e.name === "AbortError") return;
-            }
+            // Native share sheet (mobile, macOS Safari) — Facebook, IG,
+            // WhatsApp, Messages all show up here with photos attached.
+            navigator.share({ title: `Zeniva — ${dest}`, text: fbText, files }).catch(() => {});
+            // Copy text in the background so the agent can paste it again
+            // if the share target strips it.
+            copyText(fbText, "fb");
+            return;
           }
 
-          // Desktop / unsupported: copy text and open FB. Agent pastes the
-          // caption and uploads the photos (they'll already be downloaded
-          // since we trigger downloadAllPhotos in the same gesture).
-          await copyText(fbText, "fb");
+          // Desktop fallback. Open FB FIRST, synchronously, before any
+          // await — otherwise the popup is blocked.
+          const fbWin = window.open("https://www.facebook.com/", "_blank", "noopener,noreferrer");
+          // Then copy the post text + kick off the photo downloads so the
+          // agent can drag them into the FB composer.
+          copyText(fbText, "fb");
           downloadAllPhotos();
-          window.open("https://www.facebook.com/", "_blank", "noopener");
+          if (!fbWin) {
+            // Popup blocked — give the agent a manual escape hatch.
+            alert(
+              "Facebook didn't open (popup blocked).\n\n" +
+              "Post text is copied to your clipboard and the photos are downloading.\n" +
+              "Open facebook.com, paste the text, and drag the photos in.",
+            );
+          }
         };
 
         return (
