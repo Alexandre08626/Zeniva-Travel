@@ -31,43 +31,91 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 const NAVY = "#0B1B4D";
+const NAVY_DEEP = "#060F35";
 const BLUE = "#0F6CF5";
 const GOLD = "#E6B85A";
+const GOLD_DEEP = "#C9941F";
 const INK = "#0B1228";
 const MUTED = "#475569";
+const SUBTLE = "#94A3B8";
 const HAIRLINE = "#E5E7EB";
 
-type SectionProps = { id: string; eyebrow: string; title: string; children: React.ReactNode };
+type Section = {
+  id: string;
+  num: string;
+  eyebrow: string;
+  title: string;
+};
 
-function Section({ id, eyebrow, title, children }: SectionProps) {
+const TOC: Section[] = [
+  { id: "problem", num: "01", eyebrow: "Problem", title: "Travel planning is still painful" },
+  { id: "solution", num: "02", eyebrow: "Solution", title: "Lina AI — plan, book, support" },
+  { id: "market", num: "03", eyebrow: "Market", title: "Large, online-shifting, AI-native" },
+  { id: "product", num: "04", eyebrow: "Product", title: "From conversation to confirmed booking" },
+  { id: "why-now", num: "05", eyebrow: "Why now", title: "LLMs finally close the booking loop" },
+  { id: "business", num: "06", eyebrow: "Business model", title: "Commissions + take-rate + B2B" },
+  { id: "traction", num: "07", eyebrow: "Traction", title: "Live product, expanding distribution" },
+  { id: "moat", num: "08", eyebrow: "Moat", title: "Data + relationships compound" },
+  { id: "competition", num: "09", eyebrow: "Competition", title: "Builders, OTAs, AI bolt-ons" },
+  { id: "team", num: "10", eyebrow: "Team", title: "Operator-led, technology-first" },
+  { id: "ask", num: "11", eyebrow: "The ask", title: "Seed round to extend our lead" },
+  { id: "contact", num: "12", eyebrow: "Contact", title: "Direct line" },
+];
+
+function SectionShell({
+  id,
+  num,
+  eyebrow,
+  title,
+  children,
+}: {
+  id: string;
+  num: string;
+  eyebrow: string;
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <section
       id={id}
       style={{
-        padding: "56px 0",
+        scrollMarginTop: 24,
+        padding: "72px 0",
         borderTop: `1px solid ${HAIRLINE}`,
       }}
     >
-      <p
-        style={{
-          margin: 0,
-          fontSize: 11,
-          letterSpacing: "0.22em",
-          textTransform: "uppercase",
-          fontWeight: 800,
-          color: BLUE,
-        }}
-      >
-        {eyebrow}
-      </p>
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: 16, marginBottom: 8 }}>
+        <span
+          style={{
+            fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+            fontSize: 12,
+            fontWeight: 700,
+            color: GOLD_DEEP,
+            letterSpacing: "0.18em",
+          }}
+        >
+          {num}
+        </span>
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 800,
+            color: BLUE,
+            letterSpacing: "0.24em",
+            textTransform: "uppercase",
+          }}
+        >
+          {eyebrow}
+        </span>
+      </div>
       <h2
         style={{
-          margin: "8px 0 22px",
-          fontSize: 30,
-          lineHeight: 1.18,
+          margin: "0 0 28px",
+          fontSize: "clamp(28px, 4vw, 38px)",
+          lineHeight: 1.12,
           fontWeight: 800,
           color: INK,
-          letterSpacing: "-0.01em",
+          letterSpacing: "-0.022em",
         }}
       >
         {title}
@@ -77,38 +125,130 @@ function Section({ id, eyebrow, title, children }: SectionProps) {
   );
 }
 
-function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function Bullet({
+  marker,
+  children,
+}: {
+  marker?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <li
+      style={{
+        position: "relative",
+        listStyle: "none",
+        padding: "10px 0 10px 38px",
+        borderBottom: `1px solid ${HAIRLINE}`,
+        lineHeight: 1.62,
+        color: INK,
+        fontSize: 15,
+      }}
+    >
+      <span
+        aria-hidden
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 12,
+          minWidth: 28,
+          fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+          fontSize: 11,
+          fontWeight: 700,
+          color: GOLD_DEEP,
+          letterSpacing: "0.08em",
+        }}
+      >
+        {marker || "→"}
+      </span>
+      {children}
+    </li>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  sub,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+}) {
   return (
     <div
       style={{
-        flex: "1 1 180px",
+        flex: "1 1 200px",
         minWidth: 180,
-        padding: "18px 20px",
-        borderRadius: 14,
+        padding: "22px 22px 20px",
+        borderRadius: 18,
+        background: "linear-gradient(180deg, #ffffff 0%, #F8FAFC 100%)",
         border: `1px solid ${HAIRLINE}`,
-        background: "white",
+        boxShadow: "0 1px 0 rgba(11,27,77,0.04)",
       }}
     >
-      <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 800,
+          color: MUTED,
+          letterSpacing: "0.16em",
+          textTransform: "uppercase",
+        }}
+      >
         {label}
       </div>
-      <div style={{ fontSize: 28, fontWeight: 800, color: INK, marginTop: 4, letterSpacing: "-0.01em" }}>{value}</div>
+      <div
+        style={{
+          marginTop: 8,
+          fontSize: 36,
+          fontWeight: 800,
+          color: NAVY,
+          letterSpacing: "-0.025em",
+          lineHeight: 1,
+          background: `linear-gradient(135deg, ${NAVY} 0%, ${BLUE} 100%)`,
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          backgroundClip: "text",
+        }}
+      >
+        {value}
+      </div>
       {sub ? (
-        <div style={{ fontSize: 12, color: MUTED, marginTop: 4 }}>{sub}</div>
+        <div style={{ fontSize: 12, color: MUTED, marginTop: 8, lineHeight: 1.45 }}>
+          {sub}
+        </div>
       ) : null}
     </div>
   );
 }
 
-function Bullet({ children }: { children: React.ReactNode }) {
+function PullQuote({ children }: { children: React.ReactNode }) {
   return (
-    <li style={{ margin: "0 0 10px", lineHeight: 1.6, color: INK }}>{children}</li>
+    <blockquote
+      style={{
+        margin: "24px 0 8px",
+        padding: "18px 20px",
+        borderLeft: `3px solid ${GOLD}`,
+        background: "rgba(230,184,90,0.07)",
+        borderRadius: "0 12px 12px 0",
+        fontSize: 16,
+        lineHeight: 1.55,
+        color: INK,
+        fontWeight: 600,
+      }}
+    >
+      {children}
+    </blockquote>
   );
 }
 
 export default function PitchPage() {
   const today = new Date();
-  const formattedDate = today.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const formattedDate = today.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
   return (
     <main
@@ -116,294 +256,619 @@ export default function PitchPage() {
         minHeight: "100vh",
         background: "white",
         color: INK,
-        fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+        fontFamily:
+          "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
       }}
     >
-      <div
+      {/* Hero — dark premium */}
+      <header
         style={{
-          maxWidth: 880,
-          margin: "0 auto",
-          padding: "44px 24px 96px",
+          background: `radial-gradient(140% 110% at 8% 0%, ${BLUE} 0%, transparent 55%), linear-gradient(180deg, ${NAVY} 0%, ${NAVY_DEEP} 100%)`,
+          color: "white",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
-        {/* Confidentiality bar */}
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage:
+              "radial-gradient(rgba(230,184,90,0.06) 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+            mixBlendMode: "screen",
+            pointerEvents: "none",
+          }}
+        />
         <div
           style={{
-            background: NAVY,
-            color: "white",
-            borderRadius: 12,
-            padding: "10px 16px",
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 10,
-            alignItems: "center",
-            justifyContent: "space-between",
-            fontSize: 12,
-            fontWeight: 700,
-            letterSpacing: "0.04em",
+            maxWidth: 1080,
+            margin: "0 auto",
+            padding: "28px 24px 96px",
+            position: "relative",
           }}
         >
-          <span style={{ color: GOLD }}>● PRIVATE — INVESTOR USE ONLY</span>
-          <span style={{ color: "rgba(255,255,255,0.7)" }}>Confidential. Do not distribute.</span>
-        </div>
+          {/* Confidentiality bar */}
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              padding: "10px 14px",
+              border: "1px solid rgba(230,184,90,0.45)",
+              borderRadius: 999,
+              background: "rgba(230,184,90,0.08)",
+              fontSize: 11,
+              fontWeight: 800,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: GOLD,
+            }}
+          >
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+              <span
+                aria-hidden
+                style={{
+                  display: "inline-block",
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: GOLD,
+                  boxShadow: "0 0 0 4px rgba(230,184,90,0.18)",
+                }}
+              />
+              Private · Investor use only
+            </span>
+            <span style={{ color: "rgba(255,255,255,0.6)", fontWeight: 600, letterSpacing: "0.08em" }}>
+              Confidential — do not distribute
+            </span>
+          </div>
 
-        {/* Hero */}
-        <header style={{ padding: "40px 0 24px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+          {/* Brand mark */}
+          <div style={{ marginTop: 56, display: "flex", alignItems: "center", gap: 12 }}>
             <span
+              aria-hidden
               style={{
                 display: "inline-flex",
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: `linear-gradient(135deg, ${GOLD} 0%, ${GOLD_DEEP} 100%)`,
+                color: NAVY,
                 alignItems: "center",
                 justifyContent: "center",
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                background: NAVY,
-                color: "white",
                 fontWeight: 800,
+                fontSize: 18,
                 letterSpacing: "0.04em",
               }}
             >
               Z
             </span>
-            <span style={{ fontWeight: 800, letterSpacing: "0.18em", color: INK }}>ZENIVA</span>
+            <span
+              style={{
+                fontWeight: 800,
+                letterSpacing: "0.32em",
+                fontSize: 13,
+                color: "rgba(255,255,255,0.85)",
+              }}
+            >
+              ZENIVA · TRAVEL
+            </span>
           </div>
+
+          {/* Headline */}
           <h1
             style={{
-              margin: "0 0 14px",
-              fontSize: 44,
-              lineHeight: 1.08,
+              margin: "28px 0 18px",
+              fontSize: "clamp(40px, 6.4vw, 72px)",
+              lineHeight: 1.02,
+              letterSpacing: "-0.035em",
               fontWeight: 800,
-              letterSpacing: "-0.02em",
-              color: INK,
+              maxWidth: 880,
             }}
           >
-            Zeniva — the AI travel technology platform
+            The AI travel <span style={{ color: GOLD }}>technology platform</span>{" "}
+            people will actually book on.
           </h1>
-          <p style={{ margin: "0 0 6px", fontSize: 18, lineHeight: 1.55, color: MUTED }}>
-            Lina, our AI concierge, plans and books real flights, hotels, yachts and villas in seconds — operated end-to-end on a software platform, fulfilled by third-party suppliers.
-          </p>
-          <p style={{ margin: 0, fontSize: 12, color: MUTED }}>
-            Investor pitch · {formattedDate} · {LEGAL_OPERATOR} (Delaware, USA)
-          </p>
-        </header>
 
-        <Section id="problem" eyebrow="Problem" title="Travel planning is still painful and high-friction">
-          <ul style={{ paddingLeft: 18, margin: 0 }}>
-            <Bullet>
-              Multi-supplier trips (flights + hotels + transfers + activities) require 6-8 tools and hours of work, even for experienced travelers.
+          <p
+            style={{
+              margin: "0 0 28px",
+              maxWidth: 720,
+              fontSize: "clamp(16px, 1.8vw, 19px)",
+              lineHeight: 1.55,
+              color: "rgba(255,255,255,0.82)",
+            }}
+          >
+            Lina, our AI concierge, plans and books real flights, hotels, yachts and villas in seconds — operated end-to-end on a software platform, fulfilled by third-party suppliers, backed by humans 24/7.
+          </p>
+
+          {/* Hero stats strip */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: 12,
+              maxWidth: 720,
+              marginTop: 12,
+            }}
+          >
+            {[
+              { k: "Live", v: "Bookings", s: "Flights · hotels · yachts · villas" },
+              { k: "24/7", v: "Lina AI", s: "Chat + voice in 7 languages" },
+              { k: "0%", v: "Customer fees", s: "Supplier-commission revenue" },
+            ].map((stat) => (
+              <div
+                key={stat.k}
+                style={{
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  background: "rgba(255,255,255,0.04)",
+                  borderRadius: 14,
+                  padding: "14px 16px",
+                  backdropFilter: "blur(6px)",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 800,
+                    color: GOLD,
+                    letterSpacing: "0.18em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {stat.k}
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 800, marginTop: 2 }}>{stat.v}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", marginTop: 4, lineHeight: 1.45 }}>
+                  {stat.s}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Meta row */}
+          <div
+            style={{
+              marginTop: 40,
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              gap: 14,
+              fontSize: 12,
+              color: "rgba(255,255,255,0.6)",
+              letterSpacing: "0.04em",
+            }}
+          >
+            <span>Investor pitch · {formattedDate}</span>
+            <span aria-hidden style={{ color: "rgba(255,255,255,0.3)" }}>·</span>
+            <span>{LEGAL_OPERATOR} · Delaware, USA</span>
+          </div>
+        </div>
+      </header>
+
+      {/* TOC strip */}
+      <nav
+        aria-label="Table of contents"
+        style={{
+          background: "white",
+          borderBottom: `1px solid ${HAIRLINE}`,
+          position: "sticky",
+          top: 0,
+          zIndex: 5,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1080,
+            margin: "0 auto",
+            padding: "10px 24px",
+            display: "flex",
+            gap: 6,
+            overflowX: "auto",
+            scrollbarWidth: "none",
+            WebkitOverflowScrolling: "touch",
+          }}
+        >
+          {TOC.map((s) => (
+            <a
+              key={s.id}
+              href={`#${s.id}`}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 12px",
+                borderRadius: 999,
+                fontSize: 12,
+                fontWeight: 700,
+                color: MUTED,
+                textDecoration: "none",
+                whiteSpace: "nowrap",
+                border: `1px solid ${HAIRLINE}`,
+                background: "white",
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: SUBTLE,
+                }}
+              >
+                {s.num}
+              </span>
+              <span>{s.eyebrow}</span>
+            </a>
+          ))}
+        </div>
+      </nav>
+
+      {/* Body */}
+      <div style={{ maxWidth: 880, margin: "0 auto", padding: "0 24px 96px" }}>
+        <SectionShell
+          id="problem"
+          num="01"
+          eyebrow="Problem"
+          title="Travel planning is still painful and high-friction"
+        >
+          <ul style={{ padding: 0, margin: 0 }}>
+            <Bullet marker="•">
+              Multi-supplier trips (flights + hotels + transfers + activities) require 6–8 tools and hours of work, even for experienced travelers.
             </Bullet>
-            <Bullet>
+            <Bullet marker="•">
               Existing AI travel tools generate inspiration but stop at booking — they hand off to OTAs and disappear when something goes wrong.
             </Bullet>
-            <Bullet>
-              Traditional agencies charge fees, are slow and can't be reached at 2 a.m. when a flight cancels.
+            <Bullet marker="•">
+              Traditional agencies charge fees, are slow and can&apos;t be reached at 2 a.m. when a flight cancels.
             </Bullet>
-            <Bullet>
+            <Bullet marker="•">
               Travelers want one place to chat, plan, book and get help — across destinations, languages and budgets.
             </Bullet>
           </ul>
-        </Section>
+        </SectionShell>
 
-        <Section id="solution" eyebrow="Solution" title="Lina AI — a concierge that plans and books, with humans on standby">
-          <ul style={{ paddingLeft: 18, margin: 0 }}>
-            <Bullet>
+        <SectionShell
+          id="solution"
+          num="02"
+          eyebrow="Solution"
+          title="Lina AI — a concierge that plans and books, with humans on standby"
+        >
+          <ul style={{ padding: 0, margin: 0 }}>
+            <Bullet marker="01">
               <strong>Conversation-first:</strong> chat or voice in 7 languages, 24/7. Lina returns 3 personalized options in under 30 seconds.
             </Bullet>
-            <Bullet>
+            <Bullet marker="02">
               <strong>Real bookings:</strong> live inventory through Duffel (300+ airlines), LiteAPI (1.5M+ hotels), plus curated yacht, villa and cruise partners.
             </Bullet>
-            <Bullet>
+            <Bullet marker="03">
               <strong>Human escalation:</strong> &ldquo;parler à un humain&rdquo; routes to a senior advisor in minutes. Same brain handles the whole trip.
             </Bullet>
-            <Bullet>
+            <Bullet marker="04">
               <strong>Payments:</strong> Stripe + ZeniPay 0% installments — 25% deposit, balance through trip date.
             </Bullet>
-            <Bullet>
+            <Bullet marker="05">
               <strong>Platform-only positioning:</strong> Zeniva acts solely as a technology intermediary; supplier fulfilment is fully disclosed at checkout.
             </Bullet>
           </ul>
-        </Section>
+        </SectionShell>
 
-        <Section id="market" eyebrow="Market" title="Large, online-shifting, AI-native">
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 18 }}>
+        <SectionShell
+          id="market"
+          num="03"
+          eyebrow="Market"
+          title="Large, online-shifting, AI-native"
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: 14,
+              marginBottom: 22,
+            }}
+          >
             <Stat label="Global online travel" value="$833B" sub="2024 global online travel sales" />
             <Stat label="N. America TAM" value="$220B" sub="USA + Canada online leisure + business" />
             <Stat label="AI travel SOM" value="$8B+" sub="Conversational booking + concierge layer" />
           </div>
-          <p style={{ margin: 0, lineHeight: 1.6, color: INK }}>
+          <p style={{ margin: 0, lineHeight: 1.66, color: INK, fontSize: 16 }}>
             US/CA travelers shifted to mobile-first booking; AI-native interfaces are the next disruption after meta-search and OTAs. Zeniva targets the high-AOV slice: luxury, multi-supplier, group and specialty (yacht, villa, cruise, wedding).
           </p>
-        </Section>
+        </SectionShell>
 
-        <Section id="product" eyebrow="Product" title="From conversation to confirmed booking, end-to-end">
-          <ol style={{ paddingLeft: 18, margin: 0 }}>
-            <Bullet>
+        <SectionShell
+          id="product"
+          num="04"
+          eyebrow="Product"
+          title="From conversation to confirmed booking, end-to-end"
+        >
+          <ul style={{ padding: 0, margin: 0 }}>
+            <Bullet marker="01">
               <strong>Discover:</strong> chat or voice on /chat or /call. Lina parses dates, group, budget, style.
             </Bullet>
-            <Bullet>
+            <Bullet marker="02">
               <strong>Compare:</strong> live multi-supplier search returns flights, hotels, ground, activities in one proposal.
             </Bullet>
-            <Bullet>
+            <Bullet marker="03">
               <strong>Book:</strong> traveler accepts a proposal; payment via Stripe or ZeniPay; supplier names disclosed on the confirmation.
             </Bullet>
-            <Bullet>
+            <Bullet marker="04">
               <strong>Travel:</strong> documents land in the traveler dashboard; Lina + advisor handle changes mid-trip.
             </Bullet>
-            <Bullet>
+            <Bullet marker="05">
               <strong>Loyalty:</strong> referral and ZeniGroup pricing pull travelers back per cohort.
             </Bullet>
-          </ol>
-        </Section>
+          </ul>
+        </SectionShell>
 
-        <Section id="why-now" eyebrow="Why now" title="LLMs finally close the booking loop">
-          <ul style={{ paddingLeft: 18, margin: 0 }}>
-            <Bullet>
-              Production-grade tool calling makes &ldquo;plan + book + support&rdquo; a single conversation for the first time.
-            </Bullet>
-            <Bullet>
+        <SectionShell
+          id="why-now"
+          num="05"
+          eyebrow="Why now"
+          title="LLMs finally close the booking loop"
+        >
+          <PullQuote>
+            Production-grade tool calling makes &ldquo;plan + book + support&rdquo; a single conversation for the first time.
+          </PullQuote>
+          <ul style={{ padding: 0, margin: "12px 0 0" }}>
+            <Bullet marker="•">
               Supplier APIs (Duffel, LiteAPI, etc.) are finally programmable end-to-end with NDC fares and instant confirmations.
             </Bullet>
-            <Bullet>
+            <Bullet marker="•">
               Consumer comfort with chat-first commerce has crossed the chasm post-2024.
             </Bullet>
-            <Bullet>
+            <Bullet marker="•">
               Embedded payment platforms (Stripe + installments) remove the last friction point at checkout.
             </Bullet>
           </ul>
-        </Section>
+        </SectionShell>
 
-        <Section id="business" eyebrow="Business model" title="Commission + take-rate, with installment fees">
-          <ul style={{ paddingLeft: 18, margin: 0 }}>
-            <Bullet>
-              <strong>Supplier commission</strong> on every booking (8-25% depending on vertical — yacht and villa highest).
+        <SectionShell
+          id="business"
+          num="06"
+          eyebrow="Business model"
+          title="Commission + take-rate, with installment fees"
+        >
+          <ul style={{ padding: 0, margin: 0 }}>
+            <Bullet marker="•">
+              <strong>Supplier commission</strong> on every booking (8–25% depending on vertical — yacht and villa highest).
             </Bullet>
-            <Bullet>
+            <Bullet marker="•">
               <strong>ZeniPay installment fee</strong> on plans (small spread on the financing).
             </Bullet>
-            <Bullet>
+            <Bullet marker="•">
               <strong>B2B platform fee</strong> from agencies using the Lina + CRM stack via /for-agencies.
             </Bullet>
-            <Bullet>
+            <Bullet marker="•">
               <strong>No customer-facing booking fee</strong> on the consumer site — increases conversion and fits the &ldquo;technology platform&rdquo; positioning.
             </Bullet>
           </ul>
-        </Section>
+        </SectionShell>
 
-        <Section id="traction" eyebrow="Traction" title="Live product, expanding distribution">
-          <ul style={{ paddingLeft: 18, margin: 0 }}>
-            <Bullet>
+        <SectionShell
+          id="traction"
+          num="07"
+          eyebrow="Traction"
+          title="Live product, expanding distribution"
+        >
+          <ul style={{ padding: 0, margin: 0 }}>
+            <Bullet marker="•">
               Lina concierge in production on zenivatravel.com with chat + voice (Groq + Google) in 6 languages.
             </Bullet>
-            <Bullet>
+            <Bullet marker="•">
               Booking pipeline live across flights (Duffel), hotels (LiteAPI), yachts (36-boat South-Florida fleet), villas, cruises.
             </Bullet>
-            <Bullet>
+            <Bullet marker="•">
               SEO footprint: 88+ indexed URLs, 22 new geo/intent landing pages, IndexNow auto-push.
             </Bullet>
-            <Bullet>
+            <Bullet marker="•">
               Paid acquisition piloted at $100/day in NYC; landing on /packages.
             </Bullet>
-            <Bullet>
+            <Bullet marker="•">
               Social presence (TikTok, IG, FB, X, LinkedIn) driving top-of-funnel for Lina.
             </Bullet>
           </ul>
-        </Section>
+        </SectionShell>
 
-        <Section id="moat" eyebrow="Moat" title="Data + relationships compound over time">
-          <ul style={{ paddingLeft: 18, margin: 0 }}>
-            <Bullet>
+        <SectionShell
+          id="moat"
+          num="08"
+          eyebrow="Moat"
+          title="Data + relationships compound over time"
+        >
+          <ul style={{ padding: 0, margin: 0 }}>
+            <Bullet marker="•">
               Proprietary trip-intent dataset trains better proposal ranking than generic LLM agents.
             </Bullet>
-            <Bullet>
+            <Bullet marker="•">
               Direct supplier relationships (yacht, villa, all-inclusive operators) gate inventory not available through OTAs.
             </Bullet>
-            <Bullet>
+            <Bullet marker="•">
               ZeniPay installment infrastructure shifts wallet share away from card-only competitors.
             </Bullet>
-            <Bullet>
+            <Bullet marker="•">
               Bilingual EN/FR product opens markets (Quebec, France, Caribbean francophone) that English-only AI agents can&apos;t serve.
             </Bullet>
           </ul>
-        </Section>
+        </SectionShell>
 
-        <Section id="competition" eyebrow="Competition" title="Itinerary builders, OTAs, and AI bolts-ons">
-          <ul style={{ paddingLeft: 18, margin: 0 }}>
-            <Bullet>
+        <SectionShell
+          id="competition"
+          num="09"
+          eyebrow="Competition"
+          title="Itinerary builders, OTAs, and AI bolt-ons"
+        >
+          <ul style={{ padding: 0, margin: 0 }}>
+            <Bullet marker="vs">
               <strong>Layla, Mindtrip, Wonderplan, Roam Around:</strong> generate inspiration, hand off to Booking.com — no booking ownership, no human escalation.
             </Bullet>
-            <Bullet>
+            <Bullet marker="vs">
               <strong>Hopper, Kayak AI, Penny:</strong> price-prediction and meta-search inside an OTA — locked inventory, narrow scope.
             </Bullet>
-            <Bullet>
+            <Bullet marker="vs">
               <strong>Traditional agencies / TMCs:</strong> human-only, slow, fee-heavy, not 24/7.
             </Bullet>
-            <Bullet>
-              <strong>Zeniva:</strong> the only platform that combines AI-first chat, real bookings, human safety net, multilingual support and specialty inventory in one product.
-            </Bullet>
           </ul>
-        </Section>
+          <PullQuote>
+            Zeniva is the only platform that combines AI-first chat, real bookings, human safety net, multilingual support and specialty inventory in one product.
+          </PullQuote>
+        </SectionShell>
 
-        <Section id="team" eyebrow="Team" title="Operator-led, technology-first">
-          <ul style={{ paddingLeft: 18, margin: 0 }}>
-            <Bullet>
-              <strong>Founder & CEO:</strong> Alexandre — full-stack operator, builds + ships product end-to-end.
+        <SectionShell
+          id="team"
+          num="10"
+          eyebrow="Team"
+          title="Operator-led, technology-first"
+        >
+          <ul style={{ padding: 0, margin: 0 }}>
+            <Bullet marker="•">
+              <strong>Founder &amp; CEO:</strong> Alexandre — full-stack operator, builds + ships product end-to-end.
             </Bullet>
-            <Bullet>
+            <Bullet marker="•">
               <strong>Lina (AI concierge):</strong> in-house assistant, multilingual, voice-enabled.
             </Bullet>
-            <Bullet>
+            <Bullet marker="•">
               <strong>Senior advisors:</strong> human escalation team backing every AI booking 24/7.
             </Bullet>
-            <Bullet>
+            <Bullet marker="•">
               <strong>Hiring:</strong> growth engineer, partnerships lead (yacht/villa), brand designer.
             </Bullet>
           </ul>
-        </Section>
+        </SectionShell>
 
-        <Section id="ask" eyebrow="The ask" title="Seed round to extend distribution and data lead">
+        <SectionShell
+          id="ask"
+          num="11"
+          eyebrow="The ask"
+          title="Seed round to extend distribution and data lead"
+        >
           <div
             style={{
-              borderRadius: 16,
+              borderRadius: 18,
+              padding: 26,
+              background: `linear-gradient(160deg, #ffffff 0%, #F5F8FF 100%)`,
               border: `1px solid ${HAIRLINE}`,
-              padding: 22,
-              background: "white",
+              boxShadow: "0 1px 0 rgba(11,27,77,0.04)",
             }}
           >
-            <p style={{ margin: "0 0 12px", fontSize: 16, color: INK }}>
+            <p style={{ margin: "0 0 16px", fontSize: 16, lineHeight: 1.62, color: INK }}>
               Capital used to (a) scale paid acquisition in proven channels, (b) deepen direct supplier relationships in yacht/villa/cruise, (c) ship the agency B2B SaaS and (d) build the data flywheel that compounds Lina&apos;s ranking quality.
             </p>
-            <ul style={{ paddingLeft: 18, margin: 0 }}>
-              <Bullet>Use of funds: ~50% growth, ~30% product/AI, ~20% partnerships & ops.</Bullet>
-              <Bullet>Milestones: bookings volume, supplier roster, advisor coverage, B2B agency pilots.</Bullet>
-              <Bullet>Round details, KPIs and data room available on request — direct contact only.</Bullet>
+            <ul style={{ padding: 0, margin: 0 }}>
+              <Bullet marker="01">
+                Use of funds: ~50% growth, ~30% product/AI, ~20% partnerships &amp; ops.
+              </Bullet>
+              <Bullet marker="02">
+                Milestones: bookings volume, supplier roster, advisor coverage, B2B agency pilots.
+              </Bullet>
+              <Bullet marker="03">
+                Round details, KPIs and data room available on request — direct contact only.
+              </Bullet>
             </ul>
           </div>
-        </Section>
+        </SectionShell>
 
-        <Section id="contact" eyebrow="Contact" title="Direct line">
-          <p style={{ margin: 0, fontSize: 16, lineHeight: 1.6 }}>
-            Founder · Alexandre &nbsp;·&nbsp;{" "}
-            <a href="mailto:info@zeniva.ca" style={{ color: BLUE, fontWeight: 700 }}>
-              info@zeniva.ca
-            </a>{" "}
-            &nbsp;·&nbsp; +1 (332) 290-0021
-          </p>
-          <p style={{ margin: "8px 0 0", fontSize: 13, color: MUTED }}>
-            Materials shared under NDA on request.
-          </p>
-        </Section>
+        <SectionShell id="contact" num="12" eyebrow="Contact" title="Direct line">
+          <div
+            style={{
+              borderRadius: 18,
+              padding: 26,
+              background: `linear-gradient(140deg, ${NAVY} 0%, ${NAVY_DEEP} 100%)`,
+              color: "white",
+              boxShadow: "0 18px 48px rgba(11,27,77,0.18)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 800,
+                color: GOLD,
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+              }}
+            >
+              Founder
+            </div>
+            <div style={{ marginTop: 6, fontSize: 24, fontWeight: 800, letterSpacing: "-0.012em" }}>
+              Alexandre Blais
+            </div>
+            <div
+              style={{
+                marginTop: 16,
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                gap: 12,
+                fontSize: 14,
+              }}
+            >
+              <a
+                href="mailto:info@zeniva.ca"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  padding: "12px 14px",
+                  borderRadius: 12,
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  color: "white",
+                  textDecoration: "none",
+                }}
+              >
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 700 }}>
+                  Email
+                </span>
+                <span style={{ marginTop: 4, fontWeight: 700 }}>info@zeniva.ca</span>
+              </a>
+              <a
+                href="tel:+13322900021"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  padding: "12px 14px",
+                  borderRadius: 12,
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  color: "white",
+                  textDecoration: "none",
+                }}
+              >
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 700 }}>
+                  Phone
+                </span>
+                <span style={{ marginTop: 4, fontWeight: 700 }}>+1 (332) 290-0021</span>
+              </a>
+            </div>
+            <p style={{ margin: "16px 0 0", fontSize: 12, color: "rgba(255,255,255,0.6)" }}>
+              Materials shared under NDA on request.
+            </p>
+          </div>
+        </SectionShell>
 
+        {/* Footer */}
         <footer
           style={{
-            borderTop: `1px solid ${HAIRLINE}`,
-            marginTop: 40,
+            marginTop: 48,
             paddingTop: 24,
+            borderTop: `1px solid ${HAIRLINE}`,
             fontSize: 11,
             color: MUTED,
-            lineHeight: 1.6,
+            lineHeight: 1.65,
           }}
         >
+          <div
+            aria-hidden
+            style={{
+              height: 2,
+              width: 56,
+              background: `linear-gradient(90deg, ${GOLD} 0%, ${GOLD_DEEP} 100%)`,
+              marginBottom: 16,
+              borderRadius: 2,
+            }}
+          />
           <p style={{ margin: 0 }}>
             Confidential — for the named recipient only. © {today.getFullYear()} Zeniva Travel — {LEGAL_OPERATOR}. All rights reserved.
           </p>
