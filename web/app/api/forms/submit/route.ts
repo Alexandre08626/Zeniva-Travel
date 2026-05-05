@@ -17,7 +17,7 @@ async function sendWelcomeSMS(phone: string, name: string, destination: string) 
     if (!phone || phone.length < 8) return;
     const sid = process.env.TWILIO_ACCOUNT_SID;
     const auth = process.env.TWILIO_AUTH_TOKEN;
-    const from = process.env.TWILIO_PHONE || "+13322900021";
+    const from = process.env.TWILIO_PHONE || "+15817487017";
     if (!sid || !auth) { console.warn("[sms-welcome] Twilio env missing"); return; }
     const firstName = name.split(" ")[0];
     const cleanPhone = phone.replace(/\D/g, "");

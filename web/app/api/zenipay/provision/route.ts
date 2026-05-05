@@ -48,7 +48,7 @@ export async function POST() {
           attributes: {
             name: "Zeniva LLC",
             ein: "12-3456789",
-            phone: { countryCode: "1", number: "3322900021" },
+            phone: { countryCode: "1", number: "5817487017" },
             address: {
               street: "8 The Green",
               city: "Dover",
@@ -63,7 +63,7 @@ export async function POST() {
             contact: {
               fullName: { first: "Alexandre", last: "Dupont" },
               email: "info@zeniva.ca",
-              phone: { countryCode: "1", number: "3322900021" },
+              phone: { countryCode: "1", number: "5817487017" },
             },
             authorizedUsers: [],
           },

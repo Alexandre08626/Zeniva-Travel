@@ -488,11 +488,11 @@ type Cell = "yes3" | "yes" | "partial" | "no";
 const COMP_HEADERS = ["Zeniva", "Hopper", "Layla", "Booking", "Airbnb", "TripActions"];
 const COMP_ROWS: { criterion: string; cells: Cell[] }[] = [
   { criterion: "AI native multi-modes", cells: ["yes3", "partial", "yes", "no", "no", "no"] },
-  { criterion: "Réservation directe", cells: ["yes3", "yes", "no", "yes", "yes", "yes"] },
-  { criterion: "Marketplace fournisseurs", cells: ["yes3", "no", "no", "no", "yes", "no"] },
+  { criterion: "Direct booking", cells: ["yes3", "yes", "no", "yes", "yes", "yes"] },
+  { criterion: "Supplier marketplace", cells: ["yes3", "no", "no", "no", "yes", "no"] },
   { criterion: "B2B agency white-label", cells: ["yes3", "no", "no", "no", "no", "partial"] },
-  { criterion: "Bilingue FR/EN natif", cells: ["yes3", "no", "no", "partial", "partial", "no"] },
-  { criterion: "Paiements intégrés (0% intérêt)", cells: ["yes3", "partial", "no", "no", "no", "no"] },
+  { criterion: "Native EN/FR bilingual", cells: ["yes3", "no", "no", "partial", "partial", "no"] },
+  { criterion: "Integrated payments (0% APR)", cells: ["yes3", "partial", "no", "no", "no", "no"] },
 ];
 
 const CELL_RENDER: Record<Cell, { label: string; color: string; bg: string }> = {
@@ -527,7 +527,7 @@ function CompTable() {
                 color: GOLD,
               }}
             >
-              Critère
+              Criterion
             </th>
             {COMP_HEADERS.map((h, i) => (
               <th
@@ -912,10 +912,10 @@ export default function PitchPage() {
               tagline="Travel agencies run their business on Lina + the 12-agent ops stack."
               accent={TEAL}
               bullets={[
-                "White-label Lina concierge",
-                "CRM, proposals, invoicing, commissions",
-                "Same supplier inventory, agency-branded",
-                "$1,999+/mo SaaS, zero booking commission",
+                "Starter — $99/mo (solo agent, core CRM + Lina chat)",
+                "Pro — $1,999/mo (full Lina + CRM + proposals + invoicing + commissions)",
+                "Enterprise — variable (custom branding + featured marketplace placement)",
+                "Same supplier inventory across every tier; zero booking commission",
               ]}
             />
             <ColumnCard
@@ -1062,6 +1062,77 @@ export default function PitchPage() {
 
         {/* 08 Traction with timeline */}
         <SectionShell id="traction" num="08" eyebrow="Traction" title="Live product, two years of compounding milestones">
+          {/* Dominant revenue proof — only concrete revenue today */}
+          <div
+            style={{
+              position: "relative",
+              padding: "28px 32px",
+              borderRadius: 22,
+              background: `linear-gradient(135deg, ${CREAM} 0%, #FFF6DC 100%)`,
+              border: `2px solid ${GOLD}`,
+              boxShadow: "0 18px 38px rgba(230,184,90,0.22)",
+              marginBottom: 28,
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              gap: 24,
+              justifyContent: "space-between",
+            }}
+          >
+            <div
+              aria-hidden
+              style={{
+                position: "absolute",
+                top: -1,
+                right: 22,
+                background: GOLD,
+                color: NAVY,
+                fontSize: 10,
+                fontWeight: 800,
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                padding: "4px 10px",
+                borderRadius: "0 0 8px 8px",
+              }}
+            >
+              Concrete revenue · pre-platform
+            </div>
+            <div style={{ minWidth: 240 }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 800,
+                  color: GOLD_DEEP,
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                }}
+              >
+                2025 revenue
+              </div>
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: "clamp(48px, 8vw, 84px)",
+                  fontWeight: 800,
+                  letterSpacing: "-0.035em",
+                  lineHeight: 0.95,
+                  background: `linear-gradient(135deg, ${NAVY} 0%, ${GOLD_DEEP} 100%)`,
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                $400K
+              </div>
+              <div style={{ marginTop: 6, fontSize: 14, color: INK, fontWeight: 600 }}>
+                Manual TBO sales, pre-platform launch.
+              </div>
+            </div>
+            <div style={{ flex: "0 1 320px", fontSize: 13.5, color: MUTED, lineHeight: 1.6 }}>
+              Achieved by the founder hand-selling traditional package bookings through the TBO supplier network — without any AI platform automation, paid acquisition channel or sales team. Validates demand and unlocks the platform-led revenue scale modeled on slide 13.
+            </div>
+          </div>
+
           <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.2fr) minmax(0, 1fr)", gap: 32, alignItems: "start" }}>
             <Timeline />
             <div style={{ display: "grid", gap: 12 }}>
@@ -1174,7 +1245,7 @@ export default function PitchPage() {
               Defensibility
             </div>
             <div style={{ marginTop: 6, fontSize: 18, fontWeight: 800, letterSpacing: "-0.012em" }}>
-              ARR projeté 2030 : <span style={{ color: GOLD }}>26,8 M$</span> — 70 % du revenue est récurrent SaaS.
+              Projected 2030 ARR: <span style={{ color: GOLD }}>$26.8M</span> — 70% of revenue is recurring SaaS.
             </div>
           </div>
 
@@ -1202,15 +1273,15 @@ export default function PitchPage() {
         </SectionShell>
 
         {/* 13 Financials */}
-        <SectionShell id="financials" num="13" eyebrow="Projections financières" title="Revenue 39 M$ et profitable d'ici 5 ans.">
+        <SectionShell id="financials" num="13" eyebrow="Financials" title="Revenue $39M and profitable within 5 years.">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24, alignItems: "start" }}>
             <BarChart />
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
-              <Stat label="Agences B2B (cumul 2030)" value="2 480" sub="White-label SaaS pipeline" accent={`linear-gradient(135deg, ${TEAL} 0%, #0F766E 100%)`} />
-              <Stat label="ARR fin 2030" value="$26.8M" sub="70% of total revenue (recurring)" accent={`linear-gradient(135deg, ${TEAL} 0%, #0F766E 100%)`} />
-              <Stat label="Marge brute steady-state" value="82%" sub="Software-economics tilted" />
+              <Stat label="B2B agencies (cumulative 2030)" value="2,480" sub="White-label SaaS pipeline" accent={`linear-gradient(135deg, ${TEAL} 0%, #0F766E 100%)`} />
+              <Stat label="ARR end of 2030" value="$26.8M" sub="70% of total revenue (recurring)" accent={`linear-gradient(135deg, ${TEAL} 0%, #0F766E 100%)`} />
+              <Stat label="Gross margin (steady-state)" value="82%" sub="Software-economics tilted" />
               <Stat label="EBITDA 2030" value="+$9.6M" sub="Profitable run-rate" />
-              <Stat label="Cash flow break-even" value="Q3 2029" sub="On current capital plan" />
+              <Stat label="Cash-flow break-even" value="Q3 2029" sub="On current capital plan" />
               <Stat label="LTV / CAC ratio" value="8.4×" sub="Bookings + SaaS retention" accent={`linear-gradient(135deg, ${GOLD} 0%, ${GOLD_DEEP} 100%)`} />
             </div>
           </div>
@@ -1248,9 +1319,9 @@ export default function PitchPage() {
             />
             <AskCard
               num="CARD 3"
-              title="Pour la sortie"
+              title="Exit strategy"
               tone="dark"
-              body="Deux paths d'exit indépendants : Zeniva Travel (acquéreur travel tech) et ZeniPay (acquéreur fintech ou IPO). Réduit le risque, double le upside."
+              body="Two independent exit paths: Zeniva Travel (travel-tech acquirer) and ZeniPay (fintech acquirer or IPO). Reduces risk, doubles the upside."
             />
           </div>
         </SectionShell>

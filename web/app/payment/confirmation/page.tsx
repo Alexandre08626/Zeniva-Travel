@@ -155,7 +155,7 @@ function ConfirmationContent() {
           Questions? Email us at{" "}
           <a href="mailto:info@zeniva.ca" className="text-[#0F6CF5]">info@zeniva.ca</a>
           {" "}or call{" "}
-          <a href="tel:+13322900021" className="text-[#0F6CF5]">+1 (332) 290-0021</a>
+          <a href="tel:+15817487017" className="text-[#0F6CF5]">+1 (581) 748-7017</a>
         </p>
       </div>
     </div>

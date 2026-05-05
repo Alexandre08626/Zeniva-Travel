@@ -70,7 +70,7 @@ function TripCard({
             {destination || "Destination"} • {dates || "Dates TBC"} • Travelers: {travelers || "n/a"}
           </div>
           <div className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
-            Zeniva support: info@zeniva.ca · +1 (332) 290-0021 (24/7)
+            Zeniva support: info@zeniva.ca · +1 (581) 748-7017 (24/7)
           </div>
         </div>
         <Link
@@ -612,7 +612,7 @@ export default function DocumentsPage() {
                           {b.total_price ? ` · $${Number(b.total_price).toLocaleString()} paid` : ""}
                         </div>
                         <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
-                          Zeniva support: <a href="mailto:info@zeniva.ca" style={{ color: "#0F6CF5" }}>info@zeniva.ca</a> · <a href="tel:+13322900021" style={{ color: "#0F6CF5" }}>+1 (332) 290-0021</a> (24/7)
+                          Zeniva support: <a href="mailto:info@zeniva.ca" style={{ color: "#0F6CF5" }}>info@zeniva.ca</a> · <a href="tel:+15817487017" style={{ color: "#0F6CF5" }}>+1 (581) 748-7017</a> (24/7)
                         </div>
                       </div>
                       <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>

@@ -83,7 +83,7 @@ function docFooter() {
       <div style="margin-bottom:6px;">
         <strong style="color:#E6B85A;">Zeniva</strong> — AI-Powered Luxury Travel Concierge
       </div>
-      <div>📧 <a href="mailto:info@zeniva.ca">info@zeniva.ca</a> &nbsp;·&nbsp; 📞 <a href="tel:+13322900021">+1 (332) 290-0021</a> &nbsp;·&nbsp; 🌐 <a href="https://www.zenivatravel.com">zenivatravel.com</a></div>
+      <div>📧 <a href="mailto:info@zeniva.ca">info@zeniva.ca</a> &nbsp;·&nbsp; 📞 <a href="tel:+15817487017">+1 (581) 748-7017</a> &nbsp;·&nbsp; 🌐 <a href="https://www.zenivatravel.com">zenivatravel.com</a></div>
       <div style="margin-top:8px;font-size:10px;">Zeniva Inc. — Delaware, USA &nbsp;·&nbsp; Available 24/7</div>
     </div>
   `;
@@ -398,7 +398,7 @@ function generateTransferDoc(params: URLSearchParams) {
       <div class="label" style="margin-bottom:10px;">ℹ️ Instructions</div>
       <ul style="padding-left:18px;font-size:13px;color:#475569;line-height:1.8;">
         <li>Your driver will be waiting at the <strong>arrivals hall</strong> with a name sign</li>
-        <li>If you cannot find your driver, call <strong>Zeniva: +1 (332) 290-0021</strong></li>
+        <li>If you cannot find your driver, call <strong>Zeniva: +1 (581) 748-7017</strong></li>
         <li>Transfer includes waiting time: <strong>60 min for flights, 15 min for hotels</strong></li>
         <li>Extra stops may be subject to additional charge</li>
       </ul>
@@ -531,7 +531,7 @@ function generateInvoiceDoc(params: URLSearchParams) {
     <div class="section" style="background:#f8fafc;">
       <div style="font-size:11px;color:#94a3b8;line-height:1.7;text-align:center;">
         This invoice serves as official proof of payment for services rendered by <strong>Zeniva Inc.</strong>, incorporated in Delaware, USA.<br>
-        For questions or support: <strong>info@zeniva.ca</strong> · <strong>+1 (332) 290-0021</strong> · <strong>zenivatravel.com</strong>
+        For questions or support: <strong>info@zeniva.ca</strong> · <strong>+1 (581) 748-7017</strong> · <strong>zenivatravel.com</strong>
       </div>
     </div>
 

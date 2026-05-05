@@ -203,7 +203,7 @@ export default function InvoiceViewPage() {
           <div>
             <div style={{ fontSize: 28, fontWeight: 900, letterSpacing: "-0.5px" }}>✈️ Zeniva</div>
             <div style={{ fontSize: 12, opacity: 0.6, marginTop: 4 }}>Zeniva LLC · Delaware, USA</div>
-            <div style={{ fontSize: 12, opacity: 0.6 }}>info@zeniva.ca · +1 (332) 290-0021</div>
+            <div style={{ fontSize: 12, opacity: 0.6 }}>info@zeniva.ca · +1 (581) 748-7017</div>
             <div style={{ fontSize: 12, opacity: 0.6 }}>zenivatravel.com</div>
           </div>
           <div style={{ textAlign: "right" }}>
@@ -370,7 +370,7 @@ export default function InvoiceViewPage() {
         <div style={{ background: LIGHT, padding: "20px 48px", borderTop: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ fontSize: 11, color: "#94a3b8" }}>
             Zeniva LLC · Delaware, USA · EIN: [your EIN]<br />
-            info@zeniva.ca · zenivatravel.com · +1 (332) 290-0021
+            info@zeniva.ca · zenivatravel.com · +1 (581) 748-7017
           </div>
           <div style={{ fontSize: 11, color: "#94a3b8", textAlign: "right" as const }}>
             Powered by ZeniPay™<br />
