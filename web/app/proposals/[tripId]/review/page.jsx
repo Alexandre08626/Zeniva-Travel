@@ -54,6 +54,49 @@ function ProposalReviewPageInner() {
     }
   }, [tripId, proposal]);
 
+  // Backfill: legacy proposals were saved before LiteAPI exposed per-hotel
+  // rooms[]. If the selected hotel is a LiteAPI offer and has no rooms array,
+  // re-search the destination/dates and merge the freshly-returned room types
+  // into the hotel selection so the picker can render.
+  useEffect(() => {
+    const h = selection?.hotel;
+    if (!h) return;
+    if (h.provider !== "liteapi") return;
+    if (Array.isArray(h.rooms) && h.rooms.length > 0) return;
+    const destination = tripDraft?.destination;
+    const checkIn = tripDraft?.checkIn;
+    const checkOut = tripDraft?.checkOut;
+    if (!destination || !checkIn || !checkOut) return;
+
+    const abort = new AbortController();
+    const params = new URLSearchParams({
+      destination,
+      checkIn,
+      checkOut,
+      guests: String(tripDraft?.adults || 2),
+      rooms: "1",
+    });
+    fetch(`/api/partners/liteapi/hotels/search?${params}`, { signal: abort.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!data || !Array.isArray(data.offers)) return;
+        const match = data.offers.find((o) => o.id === h.id || o.name === h.name);
+        if (!match || !Array.isArray(match.rooms) || match.rooms.length === 0) return;
+        const enriched = {
+          ...h,
+          rooms: match.rooms,
+          selectedOfferId: h.selectedOfferId || match.rooms[0]?.offerId || null,
+          priceTotal: typeof h.priceTotal === "number" ? h.priceTotal : match.priceTotal,
+          pricePerNight: typeof h.pricePerNight === "number" ? h.pricePerNight : match.pricePerNight,
+          nights: h.nights || match.nights,
+          currency: h.currency || match.currency || "USD",
+        };
+        setProposalSelection(tripId, { hotel: enriched });
+      })
+      .catch(() => undefined);
+    return () => abort.abort();
+  }, [tripId, selection?.hotel?.id, selection?.hotel?.provider, selection?.hotel?.name, tripDraft?.destination, tripDraft?.checkIn, tripDraft?.checkOut, tripDraft?.adults]);
+
   const heroImage = useMemo(() => {
     // Priority: villa photo > hotel images > destination photo
     const dest = tripDraft?.destination || proposal?.title || "trip";
