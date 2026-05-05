@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import {
   LEGAL_OPERATOR,
 } from "../../src/components/legal/legal-constants";
+import PrintPitchButton from "../../src/components/pitch/PrintPitchButton.client";
 
 // Private investor pitch deck. Direct-URL access only — no internal links
 // from the public site, robots fully blocked, no canonical published.
@@ -676,6 +677,29 @@ export default function PitchPage() {
           "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
       }}
     >
+      <style
+        // Print stylesheet — make the deck render cleanly when the founder
+        // hits Download PDF (which calls window.print).
+        dangerouslySetInnerHTML={{
+          __html: `
+            @media print {
+              @page { size: A4; margin: 12mm; }
+              .no-print { display: none !important; }
+              * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+              }
+              body { background: white !important; }
+              main > header { padding-top: 12px !important; padding-bottom: 32px !important; }
+              section { break-inside: avoid; page-break-inside: avoid; }
+              h1, h2, h3 { break-after: avoid-page; page-break-after: avoid; }
+              a { color: inherit !important; text-decoration: none !important; }
+              img { max-width: 100% !important; }
+            }
+          `,
+        }}
+      />
       {/* Hero */}
       <header
         style={{
@@ -698,6 +722,7 @@ export default function PitchPage() {
         />
         <div style={{ maxWidth: 1080, margin: "0 auto", padding: "28px 24px 96px", position: "relative" }}>
           <div
+            className="no-print"
             style={{
               display: "flex",
               flexWrap: "wrap",
@@ -729,8 +754,11 @@ export default function PitchPage() {
               />
               Private · Investor use only
             </span>
-            <span style={{ color: "rgba(255,255,255,0.6)", fontWeight: 600, letterSpacing: "0.08em" }}>
-              Confidential — do not distribute
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 14 }}>
+              <span style={{ color: "rgba(255,255,255,0.6)", fontWeight: 600, letterSpacing: "0.08em" }}>
+                Confidential — do not distribute
+              </span>
+              <PrintPitchButton tone="dark" />
             </span>
           </div>
 
@@ -837,6 +865,7 @@ export default function PitchPage() {
       {/* TOC */}
       <nav
         aria-label="Table of contents"
+        className="no-print"
         style={{ background: "white", borderBottom: `1px solid ${HAIRLINE}`, position: "sticky", top: 0, zIndex: 5 }}
       >
         <div
