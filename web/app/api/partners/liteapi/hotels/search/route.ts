@@ -287,21 +287,59 @@ export async function GET(req: NextRequest) {
         const hotelId = getStr(item?.hotelId, item?.id);
         if (!hotelId) return null;
         const meta = metaById.get(hotelId);
-        const rt = Array.isArray(item?.roomTypes) ? item.roomTypes[0] : null;
-        if (!rt) return null;
+        const allRoomTypes: any[] = Array.isArray(item?.roomTypes) ? item.roomTypes : [];
+        if (allRoomTypes.length === 0) return null;
 
-        const priceObj = rt?.suggestedSellingPrice || rt?.offerRetailRate || rt?.offerInitialPrice;
-        const priceAmount = getNum(priceObj?.amount);
-        if (priceAmount === null) return null; // Skip hotels with no price
+        // Build a normalized list of room options (one per LiteAPI roomType).
+        // Each entry carries its own price, rate name, board, refundability —
+        // so the UI can show real choices instead of just the cheapest.
+        const rooms = allRoomTypes
+          .map((rt: any, rIdx: number) => {
+            const priceObj = rt?.suggestedSellingPrice || rt?.offerRetailRate || rt?.offerInitialPrice;
+            const amount = getNum(priceObj?.amount);
+            if (amount === null) return null;
+            const rawRoomPrice = formatPrice(amount, nights);
+            const roomPriceStr = skipMarkup ? rawRoomPrice : applyHotelMarkupLabel(rawRoomPrice);
+            const roomTotal = (() => {
+              const n = parseFloat(String(roomPriceStr).replace(/[^0-9.]/g, ""));
+              return Number.isFinite(n) && n > 0 ? Math.round(n) : Math.round(amount);
+            })();
+            const roomPerNight = nights > 0 ? Math.round(roomTotal / nights) : roomTotal;
+            const rate0 = Array.isArray(rt?.rates) ? rt.rates[0] : null;
+            const roomName = getStr(rate0?.name, rt?.name, rt?.roomTypeName) || `Room ${rIdx + 1}`;
+            const board = getStr(rate0?.boardName) || "";
+            const refundable = rate0?.cancellationPolicies?.refundableTag === "RFN";
+            const offerId = getStr(rt?.offerId, rate0?.rateId, rate0?.id) || `${hotelId}-rt-${rIdx}`;
+            return {
+              offerId,
+              name: roomName.slice(0, 80),
+              priceTotal: roomTotal,
+              pricePerNight: roomPerNight,
+              priceLabel: roomPriceStr,
+              nights,
+              currency: "USD",
+              board,
+              refundable,
+            };
+          })
+          .filter(Boolean) as Array<{
+            offerId: string;
+            name: string;
+            priceTotal: number;
+            pricePerNight: number;
+            priceLabel: string;
+            nights: number;
+            currency: string;
+            board: string;
+            refundable: boolean;
+          }>;
+        if (rooms.length === 0) return null;
+        // Sort cheapest first so the headline price reflects the best rate.
+        rooms.sort((a, b) => a.priceTotal - b.priceTotal);
+        const cheapest = rooms[0];
 
-        const rawPrice = formatPrice(priceAmount, nights);
-        const price = skipMarkup ? rawPrice : applyHotelMarkupLabel(rawPrice);
-        // The displayed price includes the markup. Parse it back so the
-        // numeric fields exposed to consumers stay aligned with the string.
-        const displayedTotal = (() => {
-          const n = parseFloat(String(price).replace(/[^0-9.]/g, ""));
-          return Number.isFinite(n) && n > 0 ? Math.round(n) : Math.round(priceAmount);
-        })();
+        const price = cheapest.priceLabel;
+        const displayedTotal = cheapest.priceTotal;
 
         const name = getStr(meta?.name) || `Hotel ${idx + 1}`;
         const cityStr = getStr(meta?.city);
@@ -332,15 +370,16 @@ export async function GET(req: NextRequest) {
           || getStr(meta?.main_photo, meta?.mainPhoto, meta?.thumbnail)
           || fallbackPhoto;
         const rating = starsByHotelId.get(hotelId) || getNum(meta?.stars) || 0; // stars from /data/hotels
-        const room = getStr(rt?.rates?.[0]?.name, rt?.name, rt?.roomTypeName) || "Room";
-        const perNight = nights > 0 ? Math.round(displayedTotal / nights) : displayedTotal;
+        const room = cheapest.name;
+        const perNight = cheapest.pricePerNight;
 
         const perks: string[] = [
           `$${perNight}/night`,
           `${nights} night${nights > 1 ? "s" : ""}`,
-          rt?.rates?.[0]?.boardName || "",
-          rt?.rates?.[0]?.cancellationPolicies?.refundableTag === "RFN" ? "Free cancellation" : "",
-        ].filter(Boolean).slice(0, 4);
+          cheapest.board,
+          cheapest.refundable ? "Free cancellation" : "",
+          rooms.length > 1 ? `${rooms.length} room types available` : "",
+        ].filter(Boolean).slice(0, 5);
 
         return {
           id: hotelId,
@@ -356,6 +395,11 @@ export async function GET(req: NextRequest) {
           nights,
           currency: "USD",
           room: room.slice(0, 60),
+          // All available room options for this hotel (cheapest first). Each
+          // carries its own offerId, name, priceTotal, pricePerNight, board
+          // and refundable flag so the UI can render a list of real choices.
+          rooms,
+          selectedOfferId: cheapest.offerId,
           perks,
           rating,
           badge: rating >= 5 ? "5★" : rating >= 4 ? "4★ Premium" : undefined,

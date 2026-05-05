@@ -121,6 +121,7 @@ async function searchHotels(destination, checkIn, checkOut, guests) {
       const perNightNum = typeof h.pricePerNight === "number"
         ? h.pricePerNight
         : (totalNum > 0 && nights > 0 ? Math.round(totalNum / nights) : 0);
+      const rooms = Array.isArray(h.rooms) ? h.rooms : [];
       return {
         ...h,
         id: h.id || h.hotelId || `hotel-${i}`,
@@ -139,6 +140,12 @@ async function searchHotels(destination, checkIn, checkOut, guests) {
         rating: h.rating || 0,
         badge: h.badge || "",
         provider: h.provider || "liteapi",
+        // Room options (cheapest first). Each option carries its own offerId,
+        // priceTotal, pricePerNight, board and refundable flag — agent can
+        // pick the right room for the trip.
+        rooms,
+        selectedOfferId: h.selectedOfferId || rooms[0]?.offerId || null,
+        room: h.room || rooms[0]?.name || "Room",
       };
     });
   } catch (err) {
@@ -293,10 +300,18 @@ function FlightCard({ flight, isSelected, onToggle }) {
 }
 
 /* ─── Hotel Card ─── */
-function HotelCard({ hotel, isSelected, onToggle }) {
+function HotelCard({ hotel, isSelected, onToggle, onChooseRoom }) {
+  const rooms = Array.isArray(hotel.rooms) ? hotel.rooms : [];
+  const selectedOfferId = hotel.selectedOfferId || rooms[0]?.offerId || null;
+  // Click anywhere on the card toggles selection — but the room picker
+  // shouldn't bubble up. Use stopPropagation on the inner buttons.
+  const handleCardClick = (e) => {
+    if (e.target.closest?.("[data-room-picker]")) return;
+    onToggle?.();
+  };
   return (
     <div
-      onClick={onToggle}
+      onClick={handleCardClick}
       className={`rounded-2xl border-2 overflow-hidden cursor-pointer transition-all ${
         isSelected
           ? "border-teal-500 bg-teal-50 ring-2 ring-teal-200 shadow-md"
@@ -388,6 +403,48 @@ function HotelCard({ hotel, isSelected, onToggle }) {
             {isSelected ? "Selected" : "Select"}
           </button>
         </div>
+
+        {/* Room picker — visible when LiteAPI returned more than one rate.
+            Cheapest is pre-selected; agent can switch and the price updates. */}
+        {rooms.length > 1 && (
+          <div data-room-picker className="mt-4 border-t border-slate-200 pt-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">
+              {rooms.length} room option{rooms.length > 1 ? "s" : ""} — pick one
+            </p>
+            <div className="space-y-1.5">
+              {rooms.map((room) => {
+                const isActive = room.offerId === selectedOfferId;
+                return (
+                  <button
+                    key={room.offerId}
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); onChooseRoom?.(room.offerId); }}
+                    className={`w-full text-left rounded-lg border px-3 py-2 transition-colors ${
+                      isActive
+                        ? "border-teal-500 bg-white ring-1 ring-teal-200"
+                        : "border-slate-200 bg-white hover:border-slate-300"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-xs font-bold ${isActive ? "text-teal-700" : "text-slate-800"} truncate`}>
+                          {isActive ? "✓ " : ""}{room.name}
+                        </p>
+                        <p className="text-[10px] text-slate-500 mt-0.5">
+                          {[room.board, room.refundable ? "Free cancellation" : ""].filter(Boolean).join(" · ")}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-xs font-black text-slate-900">{fmtPrice(room.pricePerNight)}<span className="text-[9px] text-slate-400 font-semibold">/night</span></p>
+                        <p className="text-[10px] text-slate-500 font-semibold">{fmtPrice(room.priceTotal)} total</p>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -778,6 +835,32 @@ export default function AgentProposalSelectPage() {
     return (selected[type] || []).some(i => (i.id || i.name) === (item.id || item.name));
   };
 
+  // Switch which room option is active for a hotel. Updates both the search
+  // results list and any already-selected proposal entry so the proposal
+  // payload reflects the chosen room.
+  const chooseRoom = (hotelId, offerId) => {
+    const apply = (h) => {
+      if (!h || h.id !== hotelId || !Array.isArray(h.rooms)) return h;
+      const room = h.rooms.find((r) => r.offerId === offerId);
+      if (!room) return h;
+      return {
+        ...h,
+        selectedOfferId: room.offerId,
+        room: room.name,
+        board: room.board || h.board,
+        priceTotal: room.priceTotal,
+        pricePerNight: room.pricePerNight,
+        price: room.priceTotal,
+        currency: room.currency || h.currency,
+      };
+    };
+    setHotels((prev) => prev.map(apply));
+    setSelected((prev) => ({
+      ...prev,
+      hotels: (prev.hotels || []).map((h) => (h.id === hotelId ? apply(h) : h)),
+    }));
+  };
+
   const removeItem = (type, item) => {
     if (type === "flights-outbound") {
       setSelected(prev => ({ ...prev, flights: { ...prev.flights, outbound: null } }));
@@ -1147,6 +1230,7 @@ export default function AgentProposalSelectPage() {
                         hotel={hotel}
                         isSelected={isMultiSelected("hotels", hotel)}
                         onToggle={() => toggleMulti("hotels", hotel)}
+                        onChooseRoom={(offerId) => chooseRoom(hotel.id, offerId)}
                       />
                     ))}
                   </div>
