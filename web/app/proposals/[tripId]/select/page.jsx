@@ -279,6 +279,7 @@ function ProposalSelectPageInner() {
   const [showMoreFlights, setShowMoreFlights] = useState(false);
   const FLIGHTS_PAGE_SIZE = 20;
   const [hotelModal, setHotelModal] = useState(null);
+  const [roomModalHotel, setRoomModalHotel] = useState(null);
   const [departureCityInput, setDepartureCityInput] = useState("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [filters, setFilters] = useState({
@@ -1985,52 +1986,15 @@ function ProposalSelectPageInner() {
                             📷 View photos & details
                           </button>
 
-                          {/* Room/rate picker — only when LiteAPI returned more than one room type */}
+                          {/* Room/rate selector — opens a modal so the card stays clean */}
                           {Array.isArray(h.rooms) && h.rooms.length > 1 && (
-                            <div className="mt-3 border-t border-slate-200 pt-3" onClick={(e) => e.stopPropagation()}>
-                              <p className="text-[10px] font-bold uppercase tracking-wider text-purple-600 mb-1.5">
-                                {h.rooms.length} room option{h.rooms.length > 1 ? "s" : ""} — pick one
-                              </p>
-                              <div className="space-y-1">
-                                {h.rooms.map((rm) => {
-                                  const activeRoom = (h.selectedOfferId || h.rooms[0].offerId) === rm.offerId;
-                                  return (
-                                    <div
-                                      key={rm.offerId}
-                                      role="button"
-                                      tabIndex={0}
-                                      onClick={(e) => { e.stopPropagation(); onChooseRoom(h.id, rm.offerId); }}
-                                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); onChooseRoom(h.id, rm.offerId); } }}
-                                      className={`w-full rounded-lg border px-2.5 py-1.5 cursor-pointer transition-colors ${
-                                        activeRoom
-                                          ? "border-purple-500 bg-purple-50 ring-1 ring-purple-200"
-                                          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
-                                      }`}
-                                    >
-                                      <div className="flex items-start justify-between gap-2">
-                                        <div className="min-w-0 flex-1">
-                                          <p className={`text-[11px] font-bold truncate ${activeRoom ? "text-purple-700" : "text-slate-800"}`}>
-                                            {activeRoom ? "✓ " : ""}{rm.name}
-                                          </p>
-                                          <p className="text-[10px] text-slate-500 mt-0.5 truncate">
-                                            {[rm.board, rm.refundable ? "Free cancellation" : ""].filter(Boolean).join(" · ")}
-                                          </p>
-                                        </div>
-                                        <div className="text-right shrink-0">
-                                          <p className="text-[11px] font-black text-slate-900 leading-tight">
-                                            ${typeof rm.pricePerNight === "number" ? rm.pricePerNight.toLocaleString() : "—"}
-                                            <span className="text-[9px] text-slate-400 font-semibold">/night</span>
-                                          </p>
-                                          <p className="text-[10px] text-slate-500 font-semibold leading-tight">
-                                            ${typeof rm.priceTotal === "number" ? rm.priceTotal.toLocaleString() : "—"} total
-                                          </p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); setRoomModalHotel(h); }}
+                              className="mt-2 w-full text-center text-[11px] font-bold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg py-1.5 transition"
+                            >
+                              🛏 See {h.rooms.length} room options →
+                            </button>
                           )}
                         </div>
                       </button>
@@ -2660,6 +2624,97 @@ function ProposalSelectPageInner() {
           </div>
         </div>
       )}
+
+      {/* ── ROOM OPTIONS MODAL ── */}
+      {roomModalHotel && (() => {
+        const rooms = Array.isArray(roomModalHotel.rooms) ? roomModalHotel.rooms : [];
+        const activeOfferId = roomModalHotel.selectedOfferId || rooms[0]?.offerId;
+        return (
+          <div
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
+            onClick={() => setRoomModalHotel(null)}
+          >
+            <div
+              className="w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[88vh] flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] uppercase tracking-widest font-bold text-white/70">Room options</p>
+                  <h2 className="text-lg font-black truncate">{roomModalHotel.name}</h2>
+                  <p className="text-xs text-white/80 mt-0.5">
+                    {rooms.length} option{rooms.length > 1 ? "s" : ""} · {roomModalHotel.nights || ""} night{(roomModalHotel.nights || 0) > 1 ? "s" : ""}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setRoomModalHotel(null)}
+                  className="w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white font-black text-lg"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="overflow-y-auto p-4 space-y-2">
+                {rooms.map((rm) => {
+                  const activeRoom = rm.offerId === activeOfferId;
+                  return (
+                    <button
+                      key={rm.offerId}
+                      type="button"
+                      onClick={() => {
+                        onChooseRoom(roomModalHotel.id, rm.offerId);
+                        setRoomModalHotel((prev) => prev ? { ...prev, selectedOfferId: rm.offerId } : prev);
+                      }}
+                      className={`w-full text-left rounded-xl border-2 px-4 py-3 transition-all ${
+                        activeRoom
+                          ? "border-purple-500 bg-purple-50 ring-2 ring-purple-200 shadow-sm"
+                          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className={`text-sm font-bold ${activeRoom ? "text-purple-800" : "text-slate-900"}`}>
+                            {activeRoom ? "✓ " : ""}{rm.name}
+                          </p>
+                          <div className="mt-1 flex flex-wrap gap-1.5">
+                            {rm.board && (
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
+                                {rm.board}
+                              </span>
+                            )}
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${rm.refundable ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}>
+                              {rm.refundable ? "Free cancellation" : "Non-refundable"}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-base font-black text-slate-900">
+                            ${typeof rm.pricePerNight === "number" ? rm.pricePerNight.toLocaleString() : "—"}
+                            <span className="text-[10px] text-slate-400 font-semibold">/night</span>
+                          </p>
+                          <p className="text-[11px] text-slate-500 font-semibold">
+                            ${typeof rm.priceTotal === "number" ? rm.priceTotal.toLocaleString() : "—"} total
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
+                <p className="text-xs text-slate-500">Click a room to switch the price for this hotel.</p>
+                <button
+                  type="button"
+                  onClick={() => setRoomModalHotel(null)}
+                  className="rounded-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-5 py-2 transition"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── HOTEL DETAIL MODAL ── */}
       {hotelModal && (() => {
