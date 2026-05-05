@@ -676,7 +676,7 @@ export default function CatalogPage() {
           // Facebook scrapes Open Graph tags from whatever URL we pass — sharing
           // /chat gives a generic "chat with Lina" preview. Share the actual
           // property page so FB shows the real photo, title and price.
-          const firstItemUrl = items[0]?.url || "/chat";
+          const firstItemUrl = items[0]?.url || "/";
           const shareUrl = firstItemUrl.startsWith("http")
             ? firstItemUrl
             : `https://www.zenivatravel.com${firstItemUrl}`;

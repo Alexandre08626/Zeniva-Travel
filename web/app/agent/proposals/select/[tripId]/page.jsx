@@ -1645,7 +1645,7 @@ export default function AgentProposalSelectPage() {
         const shareOnFacebook = () => {
           // Copy text first, then open share dialog
           copyText(fbText, "fb");
-          const shareUrl = encodeURIComponent("https://www.zenivatravel.com/chat");
+          const shareUrl = encodeURIComponent("https://www.zenivatravel.com");
           window.open(`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`, "_blank", "width=600,height=500");
         };
 
