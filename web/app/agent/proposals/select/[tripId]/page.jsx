@@ -657,6 +657,8 @@ export default function AgentProposalSelectPage() {
   const [leadsLoading, setLeadsLoading] = useState(false);
   const [showMarketingModal, setShowMarketingModal] = useState(false);
   const [copiedLabel, setCopiedLabel] = useState("");
+  const [marketingPhotos, setMarketingPhotos] = useState([]);
+  const [marketingPhotosLoading, setMarketingPhotosLoading] = useState(false);
 
   /* ─── Load clients (refresh session first to avoid 401) ─── */
   useEffect(() => {
@@ -804,6 +806,54 @@ export default function AgentProposalSelectPage() {
   useEffect(() => {
     if (searchForm.destination && !hasSearched) runSearch();
   }, [searchForm.destination]);
+
+  /* ─── Marketing photos (richer gallery than what came back in search) ─── */
+  useEffect(() => {
+    if (!showMarketingModal) return;
+    const hotel = selected?.hotels?.[0];
+    if (!hotel) {
+      setMarketingPhotos([]);
+      return;
+    }
+
+    const toAbs = (u) => (typeof u === "string" && u ? (u.startsWith("http") ? u : "https://www.zenivatravel.com" + u) : null);
+    const seed = [];
+    const seen = new Set();
+    const push = (u) => {
+      const abs = toAbs(u);
+      if (!abs || seen.has(abs)) return;
+      seen.add(abs);
+      seed.push(abs);
+    };
+    push(hotel.image);
+    (Array.isArray(hotel.images) ? hotel.images : []).forEach(push);
+    setMarketingPhotos(seed.slice(0, 10));
+
+    if ((hotel.provider || "liteapi") !== "liteapi" || !hotel.id) return;
+    let cancelled = false;
+    setMarketingPhotosLoading(true);
+    (async () => {
+      try {
+        const res = await fetch(`/api/partners/liteapi/hotels/details?hotelId=${encodeURIComponent(hotel.id)}`);
+        if (!res.ok) return;
+        const json = await res.json();
+        const fresh = Array.isArray(json?.photos) ? json.photos : [];
+        if (cancelled) return;
+        const merged = [];
+        const mSeen = new Set();
+        [...seed, ...fresh.map(toAbs).filter(Boolean)].forEach((u) => {
+          if (mSeen.has(u)) return;
+          mSeen.add(u);
+          merged.push(u);
+        });
+        setMarketingPhotos(merged.slice(0, 10));
+      } catch {}
+      finally {
+        if (!cancelled) setMarketingPhotosLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [showMarketingModal, selected?.hotels?.[0]?.id]);
 
   /* ─── Selection helpers ─── */
   const selectFlight = (direction, flight) => {
@@ -1676,23 +1726,7 @@ export default function AgentProposalSelectPage() {
         fbLines.push("#ZenivaTravel #" + dest.replace(/[^a-zA-Z]/g, "") + " #TravelDeals #LuxuryTravel #AITravel #Vacation");
         const fbText = fbLines.join("\n");
 
-        // Collect up to 10 unique hotel photos from the selected hotels.
-        const hotelPhotos = (() => {
-          const seen = new Set();
-          const out = [];
-          const push = url => {
-            if (!url || seen.has(url)) return;
-            seen.add(url);
-            const abs = url.startsWith("http") ? url : "https://www.zenivatravel.com" + url;
-            out.push(abs);
-          };
-          for (const h of selected.hotels) {
-            push(h.image);
-            (Array.isArray(h.images) ? h.images : []).forEach(push);
-            if (out.length >= 10) break;
-          }
-          return out.slice(0, 10);
-        })();
+        const hotelPhotos = marketingPhotos;
 
         const copyText = async (text, label) => {
           try {
@@ -1743,6 +1777,49 @@ export default function AgentProposalSelectPage() {
           }
         };
 
+        // Share to Facebook (and other apps): use the native Web Share API
+        // with image files when supported (mobile + macOS Safari). Otherwise
+        // copy the post text and open Facebook so the agent can paste +
+        // drag the photos in.
+        const shareToFacebook = async () => {
+          // Build File[] from the photo URLs. Skip any that fail CORS.
+          const files = [];
+          for (let i = 0; i < hotelPhotos.length; i++) {
+            try {
+              const res = await fetch(hotelPhotos[i], { mode: "cors" });
+              if (!res.ok) continue;
+              const blob = await res.blob();
+              const mime = blob.type || "image/jpeg";
+              const ext = mime.split("/")[1] || "jpg";
+              files.push(new File([blob], `zeniva-${slug}-${String(i + 1).padStart(2, "0")}.${ext === "jpeg" ? "jpg" : ext}`, { type: mime }));
+            } catch {}
+          }
+
+          const canShareFiles =
+            typeof navigator !== "undefined" &&
+            typeof navigator.share === "function" &&
+            typeof navigator.canShare === "function" &&
+            files.length > 0 &&
+            navigator.canShare({ files });
+
+          if (canShareFiles) {
+            try {
+              await navigator.share({ title: `Zeniva — ${dest}`, text: fbText, files });
+              return;
+            } catch (e) {
+              // User cancelled — don't fall through to opening FB.
+              if (e && e.name === "AbortError") return;
+            }
+          }
+
+          // Desktop / unsupported: copy text and open FB. Agent pastes the
+          // caption and uploads the photos (they'll already be downloaded
+          // since we trigger downloadAllPhotos in the same gesture).
+          await copyText(fbText, "fb");
+          downloadAllPhotos();
+          window.open("https://www.facebook.com/", "_blank", "noopener");
+        };
+
         return (
           <div className="fixed inset-0 z-[9999] bg-black/60 flex items-end sm:items-center justify-center" onClick={() => setShowMarketingModal(false)}>
             <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
@@ -1771,31 +1848,22 @@ export default function AgentProposalSelectPage() {
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                       Hotel Photos {hotelPhotos.length > 0 ? `(${hotelPhotos.length})` : ""}
+                      {marketingPhotosLoading && <span className="ml-2 text-slate-400 normal-case tracking-normal font-medium">loading…</span>}
                     </h3>
-                    {hotelPhotos.length > 0 && (
-                      <button onClick={downloadAllPhotos} className="text-xs font-bold text-pink-600 hover:text-pink-800 transition">
-                        Download All
-                      </button>
-                    )}
                   </div>
                   {hotelPhotos.length === 0 ? (
                     <div className="bg-slate-50 rounded-xl p-6 text-center text-xs text-slate-500 border border-slate-200">
-                      No photos available for the selected hotel(s).
+                      {marketingPhotosLoading ? "Loading photos…" : "No photos available for the selected hotel(s)."}
                     </div>
                   ) : (
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                       {hotelPhotos.map((src, i) => (
-                        <button
+                        <div
                           key={i}
-                          onClick={() => downloadOnePhoto(src, i)}
-                          className="group relative aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-100 hover:border-pink-400 transition"
-                          title="Click to download"
+                          className="relative aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-100"
                         >
                           <img src={src} alt="" className="w-full h-full object-cover" loading="lazy" />
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition flex items-center justify-center">
-                            <span className="text-white text-[10px] font-bold opacity-0 group-hover:opacity-100">⬇ Download</span>
-                          </div>
-                        </button>
+                        </div>
                       ))}
                     </div>
                   )}
@@ -1804,14 +1872,12 @@ export default function AgentProposalSelectPage() {
 
               {/* Footer */}
               <div className="px-5 py-4 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-shrink-0 bg-white">
-                <button onClick={() => copyText(fbText, "post2")} className={`flex-1 py-3 rounded-xl text-sm font-bold transition ${copiedLabel === "post2" ? "bg-green-500 text-white" : "bg-blue-600 text-white hover:bg-blue-700"}`}>
+                <button onClick={() => copyText(fbText, "post2")} className={`flex-1 py-3 rounded-xl text-sm font-bold transition ${copiedLabel === "post2" ? "bg-green-500 text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}>
                   {copiedLabel === "post2" ? "Copied!" : "Copy Post Text"}
                 </button>
-                {hotelPhotos.length > 0 && (
-                  <button onClick={downloadAllPhotos} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-orange-500 text-white text-sm font-bold hover:opacity-90 transition">
-                    Download {hotelPhotos.length} Photo{hotelPhotos.length > 1 ? "s" : ""}
-                  </button>
-                )}
+                <button onClick={shareToFacebook} disabled={hotelPhotos.length === 0} className="flex-1 py-3 rounded-xl bg-[#1877F2] text-white text-sm font-bold hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                  Share to Facebook
+                </button>
               </div>
             </div>
           </div>
