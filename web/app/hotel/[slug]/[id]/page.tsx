@@ -108,10 +108,18 @@ export async function generateMetadata({
 
 export default async function HotelSharePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string; id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { id } = await params;
+  const { slug, id } = await params;
+  const sp = await searchParams;
+  const pick = (k: string) => {
+    const v = sp[k];
+    return typeof v === "string" ? v : Array.isArray(v) ? v[0] || "" : "";
+  };
+
   const hotel = await fetchHotel(id);
   if (!hotel || !hotel.name) notFound();
 
@@ -121,6 +129,21 @@ export default async function HotelSharePage({
   const locationParts = [hotel.city, hotel.country].filter(Boolean);
   const locationStr = locationParts.join(", ");
   const stars = hotel.stars || hotel.rating || 0;
+
+  // Optional trip context (passed by the marketing modal so customers see
+  // the same dates / travelers / departure that the agent selected).
+  const trip = {
+    checkIn: pick("checkIn"),
+    checkOut: pick("checkOut"),
+    travelers: pick("travelers"),
+    from: pick("from"),
+    price: pick("price"),
+  };
+  const hasTripContext = Boolean(trip.checkIn || trip.checkOut || trip.travelers || trip.from || trip.price);
+
+  const bookHref = `/hotel/${slug}/${id}/book?${new URLSearchParams(
+    Object.entries(trip).filter(([, v]) => v) as [string, string][],
+  ).toString()}`;
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -241,6 +264,46 @@ export default async function HotelSharePage({
           </div>
         )}
 
+        {/* Trip context selected by the agent (if passed in URL params) */}
+        {hasTripContext && (
+          <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-100">
+            <h2 className="text-xs font-black tracking-widest text-slate-500 uppercase mb-4">
+              Your trip
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {trip.from && (
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">From</p>
+                  <p className="mt-1 text-sm font-bold text-slate-900">✈️ {trip.from}</p>
+                </div>
+              )}
+              {trip.checkIn && (
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Check-in</p>
+                  <p className="mt-1 text-sm font-bold text-slate-900">📅 {trip.checkIn}</p>
+                </div>
+              )}
+              {trip.checkOut && (
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Check-out</p>
+                  <p className="mt-1 text-sm font-bold text-slate-900">📅 {trip.checkOut}</p>
+                </div>
+              )}
+              {trip.travelers && (
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Travelers</p>
+                  <p className="mt-1 text-sm font-bold text-slate-900">👥 {trip.travelers}</p>
+                </div>
+              )}
+            </div>
+            {trip.price && (
+              <p className="mt-4 text-center text-base font-black text-[#0B1B4D]">
+                💰 From ${Number(trip.price).toLocaleString()}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* CTA */}
         <div className="bg-gradient-to-br from-[#0B1B4D] to-[#0F3A8A] rounded-2xl p-8 sm:p-10 text-center text-white shadow-lg">
           <p className="text-[11px] font-black text-[#E6B85A] tracking-widest uppercase">
@@ -250,20 +313,20 @@ export default async function HotelSharePage({
             Reserve {hotel.name}
           </h2>
           <p className="mt-3 text-white/80 max-w-xl mx-auto text-sm sm:text-base">
-            Contact a Zeniva Travel agent for exclusive rates, custom packages, and concierge service.
+            Confirm your dates and details — a Zeniva Travel agent will reach out with the final quote and a secure ZeniPay link.
           </p>
           <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
             <a
-              href="/chat"
-              className="px-7 py-3 rounded-full bg-[#E6B85A] text-[#0B1B4D] font-black text-sm hover:opacity-90 transition"
+              href={bookHref}
+              className="px-8 py-4 rounded-full bg-[#E6B85A] text-[#0B1B4D] font-black text-base hover:opacity-90 transition shadow-lg"
             >
-              💬 Chat with our concierge
+              🔒 Book Now
             </a>
             <a
-              href="mailto:hello@zenivatravel.com"
-              className="px-7 py-3 rounded-full bg-white/10 border border-white/30 text-white font-bold text-sm hover:bg-white/20 transition"
+              href="mailto:info@zeniva.ca"
+              className="px-7 py-3 rounded-full bg-white/10 border border-white/30 text-white font-bold text-sm hover:bg-white/20 transition self-center"
             >
-              ✉ hello@zenivatravel.com
+              ✉ info@zeniva.ca
             </a>
           </div>
         </div>

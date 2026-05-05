@@ -1760,8 +1760,20 @@ export default function AgentProposalSelectPage() {
           .replace(/[^a-z0-9]+/g, "-")
           .replace(/(^-|-$)/g, "")
           .slice(0, 60) || "hotel";
+        // Trip context the customer will see on the hotel share page +
+        // pre-filled in the Book Now form.
+        const shareParams = (() => {
+          const p = new URLSearchParams();
+          if (searchForm.origin) p.set("from", searchForm.origin);
+          if (searchForm.checkIn) p.set("checkIn", searchForm.checkIn);
+          if (searchForm.checkOut) p.set("checkOut", searchForm.checkOut);
+          if (searchForm.travelers) p.set("travelers", String(searchForm.travelers));
+          if (grandTotal > 0) p.set("price", String(Math.round(grandTotal)));
+          const s = p.toString();
+          return s ? "?" + s : "";
+        })();
         const shareUrl = featuredHotel?.id
-          ? `https://www.zenivatravel.com/hotel/${hotelSlug}/${encodeURIComponent(featuredHotel.id)}`
+          ? `https://www.zenivatravel.com/hotel/${hotelSlug}/${encodeURIComponent(featuredHotel.id)}${shareParams}`
           : "";
 
         fbLines.push("");
