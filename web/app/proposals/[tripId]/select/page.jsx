@@ -763,14 +763,23 @@ function ProposalSelectPageInner() {
               name: h.name,
               location: h.location,
               price: h.price,
+              priceTotal: h.priceTotal,
+              pricePerNight: h.pricePerNight,
+              nights: h.nights,
+              currency: h.currency || "USD",
               room: h.room || "Room",
               rating: Number(h.rating || 0),
               badge: h.badge,
               image: h.image,
-              images: [h.image].filter(Boolean),
+              images: Array.isArray(h.images) && h.images.length > 0
+                ? h.images
+                : [h.image].filter(Boolean),
               type: "hotel",
               provider: "liteapi",
               perks: Array.isArray(h.perks) ? h.perks : [],
+              // All room options (cheapest first) — UI renders an inline picker
+              rooms: Array.isArray(h.rooms) ? h.rooms : [],
+              selectedOfferId: h.selectedOfferId || (Array.isArray(h.rooms) && h.rooms[0]?.offerId) || null,
             }))
           : [];
 
@@ -1194,6 +1203,33 @@ function ProposalSelectPageInner() {
       // Hotel and ZeniStay are mutually exclusive — clear villa when hotel chosen
       userClearedHotelRef.current = false; // allow hotel selection normally
       setProposalSelection(tripId, { hotel, villa: null });
+    }
+  };
+
+  // Switch the active room option for a given hotel. Updates the search-result
+  // list (so the card re-renders) AND the active selection if the hotel is
+  // already picked, so the proposal payload uses the chosen room downstream.
+  const onChooseRoom = (hotelId, offerId) => {
+    const apply = (h) => {
+      if (!h || h.id !== hotelId || !Array.isArray(h.rooms)) return h;
+      const room = h.rooms.find((r) => r.offerId === offerId);
+      if (!room) return h;
+      return {
+        ...h,
+        selectedOfferId: room.offerId,
+        room: room.name,
+        board: room.board || h.board,
+        priceTotal: room.priceTotal,
+        pricePerNight: room.pricePerNight,
+        // Keep `price` aligned (legacy code reads it as a string). Use the
+        // labelled string from LiteAPI when available, else build one.
+        price: room.priceLabel || (typeof room.priceTotal === "number" ? `USD ${room.priceTotal}` : h.price),
+        currency: room.currency || h.currency,
+      };
+    };
+    setHotels((prev) => prev.map(apply));
+    if (selection?.hotel?.id === hotelId) {
+      setProposalSelection(tripId, { hotel: apply(selection.hotel) });
     }
   };
 
@@ -1948,6 +1984,54 @@ function ProposalSelectPageInner() {
                           >
                             📷 View photos & details
                           </button>
+
+                          {/* Room/rate picker — only when LiteAPI returned more than one room type */}
+                          {Array.isArray(h.rooms) && h.rooms.length > 1 && (
+                            <div className="mt-3 border-t border-slate-200 pt-3" onClick={(e) => e.stopPropagation()}>
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-purple-600 mb-1.5">
+                                {h.rooms.length} room option{h.rooms.length > 1 ? "s" : ""} — pick one
+                              </p>
+                              <div className="space-y-1">
+                                {h.rooms.map((rm) => {
+                                  const activeRoom = (h.selectedOfferId || h.rooms[0].offerId) === rm.offerId;
+                                  return (
+                                    <div
+                                      key={rm.offerId}
+                                      role="button"
+                                      tabIndex={0}
+                                      onClick={(e) => { e.stopPropagation(); onChooseRoom(h.id, rm.offerId); }}
+                                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); onChooseRoom(h.id, rm.offerId); } }}
+                                      className={`w-full rounded-lg border px-2.5 py-1.5 cursor-pointer transition-colors ${
+                                        activeRoom
+                                          ? "border-purple-500 bg-purple-50 ring-1 ring-purple-200"
+                                          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                                      }`}
+                                    >
+                                      <div className="flex items-start justify-between gap-2">
+                                        <div className="min-w-0 flex-1">
+                                          <p className={`text-[11px] font-bold truncate ${activeRoom ? "text-purple-700" : "text-slate-800"}`}>
+                                            {activeRoom ? "✓ " : ""}{rm.name}
+                                          </p>
+                                          <p className="text-[10px] text-slate-500 mt-0.5 truncate">
+                                            {[rm.board, rm.refundable ? "Free cancellation" : ""].filter(Boolean).join(" · ")}
+                                          </p>
+                                        </div>
+                                        <div className="text-right shrink-0">
+                                          <p className="text-[11px] font-black text-slate-900 leading-tight">
+                                            ${typeof rm.pricePerNight === "number" ? rm.pricePerNight.toLocaleString() : "—"}
+                                            <span className="text-[9px] text-slate-400 font-semibold">/night</span>
+                                          </p>
+                                          <p className="text-[10px] text-slate-500 font-semibold leading-tight">
+                                            ${typeof rm.priceTotal === "number" ? rm.priceTotal.toLocaleString() : "—"} total
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </button>
                     );

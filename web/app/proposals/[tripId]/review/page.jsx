@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { BRAND_BLUE, LIGHT_BG, MUTED_TEXT, PREMIUM_BLUE, TITLE_TEXT } from "../../../../src/design/tokens";
-import { useTripsStore, generateProposal } from "../../../../lib/store/tripsStore";
+import { useTripsStore, generateProposal, setProposalSelection } from "../../../../lib/store/tripsStore";
 import { getImagesForDestination, getPartnerHotelImages } from "../../../../src/lib/images";
 import { computePrice, formatCurrency } from "../../../../src/lib/pricing";
 import SelectedSummary from "../../../../src/components/SelectedSummary";
@@ -812,6 +812,65 @@ function ProposalReviewPageInner() {
                             + {stayImages.length - 9} more photos
                           </button>
                         )}
+                      </div>
+                    )}
+
+                    {/* Room/rate picker — switch room type without leaving the review */}
+                    {type !== "Yacht" && Array.isArray(stay.rooms) && stay.rooms.length > 1 && (
+                      <div className="rounded-xl border border-purple-200 bg-purple-50 p-4">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-purple-700 mb-2">
+                          🛏 {stay.rooms.length} room options — change your selection
+                        </p>
+                        <div className="space-y-1.5">
+                          {stay.rooms.map((rm) => {
+                            const activeRoom = (stay.selectedOfferId || stay.rooms[0].offerId) === rm.offerId;
+                            return (
+                              <button
+                                key={rm.offerId}
+                                type="button"
+                                onClick={() => {
+                                  if (idx !== 0) return; // only the primary hotel is editable here
+                                  const next = {
+                                    ...stay,
+                                    selectedOfferId: rm.offerId,
+                                    room: rm.name,
+                                    board: rm.board || stay.board,
+                                    priceTotal: rm.priceTotal,
+                                    pricePerNight: rm.pricePerNight,
+                                    price: rm.priceLabel || (typeof rm.priceTotal === "number" ? `USD ${rm.priceTotal}` : stay.price),
+                                    currency: rm.currency || stay.currency,
+                                  };
+                                  setProposalSelection(tripId, { hotel: next });
+                                }}
+                                className={`w-full text-left rounded-lg border-2 px-3 py-2 transition-all ${
+                                  activeRoom
+                                    ? "border-purple-500 bg-white ring-1 ring-purple-200 shadow-sm"
+                                    : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                                }`}
+                              >
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="min-w-0 flex-1">
+                                    <p className={`text-sm font-bold ${activeRoom ? "text-purple-700" : "text-slate-900"}`}>
+                                      {activeRoom ? "✓ " : ""}{rm.name}
+                                    </p>
+                                    <p className="text-[11px] text-slate-500 mt-0.5">
+                                      {[rm.board, rm.refundable ? "Free cancellation" : "Non-refundable"].filter(Boolean).join(" · ")}
+                                    </p>
+                                  </div>
+                                  <div className="text-right shrink-0">
+                                    <p className="text-sm font-black text-slate-900">
+                                      ${typeof rm.pricePerNight === "number" ? rm.pricePerNight.toLocaleString() : "—"}
+                                      <span className="text-[10px] text-slate-400 font-semibold">/night</span>
+                                    </p>
+                                    <p className="text-[11px] text-slate-500 font-semibold">
+                                      ${typeof rm.priceTotal === "number" ? rm.priceTotal.toLocaleString() : "—"} total
+                                    </p>
+                                  </div>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </div>
