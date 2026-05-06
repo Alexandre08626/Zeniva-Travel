@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 import { searchDuffelOffers, duffelIsConfigured } from "../../../../src/lib/duffelClient";
+import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// Cache freshness: rows older than this are treated as missing so the
+// daily cron is the source of truth and the public endpoint never hits a
+// supplier API directly. Layout and headline price stay stable for 24h.
+const CACHE_FRESH_MS = 24 * 60 * 60 * 1000;
 
 type TripQuery = {
   tripId: string;
@@ -28,11 +34,9 @@ type PriceRow = {
   nights?: number;
 };
 
-// 30-min in-memory cache. Vercel function cold starts will reset it; that's
-// acceptable for a "live deal pricing" surface where stale-by-30min beats
-// hammering Duffel on every page reload.
-const cache = new Map<string, { value: PriceRow; ts: number }>();
-const CACHE_TTL_MS = 30 * 60 * 1000;
+function cacheKey(origin: string, tripId: string, checkIn: string, checkOut: string, travelers: number) {
+  return `${origin}|${tripId}|${checkIn || ""}|${checkOut || ""}|${travelers}`;
+}
 
 function fallbackFlightFromOriginUSD(originIATA: string, destIATA: string, baseFromJFK: number): number {
   // Cheap heuristic when Duffel is unavailable: same as NYC for nearby USA
@@ -180,91 +184,76 @@ export async function POST(req: Request) {
 
   const duffelOn = duffelIsConfigured();
 
-  const requestOrigin = new URL(req.url).origin;
+  // Read all prices for this origin from the Supabase cache. The daily cron
+  // (POST /api/cron/refresh-package-prices) pre-computes Duffel + LiteAPI
+  // for every origin × trip pair and upserts them here, so the public
+  // endpoint can stay sync-fast and never reach out to suppliers itself.
+  const { client: supa } = getSupabaseAdminClient();
+  const tripIds = trips.map((t) => t.tripId);
+  const { data: cacheRows } = await supa
+    .from("package_prices_cache")
+    .select("*")
+    .eq("origin_airport", originAirport)
+    .in("trip_id", tripIds);
 
-  const lookups = await Promise.all(
-    trips.map(async (t): Promise<PriceRow> => {
-      const dest = String(t.destinationAirport || "").trim().toUpperCase();
-      if (!/^[A-Z]{3}$/.test(dest)) {
-        return {
-          tripId: t.tripId,
-          flightTotalUSD: null,
-          hotelTotalUSD: null,
-          pricePerPersonUSD: typeof t.basePrice === "number" ? t.basePrice : null,
-          source: "fallback",
-          flightSource: "fallback",
-          hotelSource: "fallback",
-        };
-      }
-      const cacheKey = `${originAirport}-${dest}-${t.destinationCity || ""}-${t.checkIn || ""}-${t.checkOut || ""}-${travelers}`;
-      const cached = cache.get(cacheKey);
-      if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
-        return { ...cached.value, tripId: t.tripId };
-      }
+  const byTrip = new Map<string, any>();
+  for (const row of cacheRows || []) byTrip.set(row.trip_id, row);
 
-      // Run flight + hotel lookups in parallel — they're independent.
-      const [flightRes, hotelRes] = await Promise.all([
-        duffelOn && t.checkIn
-          ? fetchDuffelCheapest(originAirport, dest, t.checkIn, t.checkOut || null, travelers)
-          : Promise.resolve({ totalUSD: null }),
-        fetchLiteApiCheapestHotel(requestOrigin, t.destinationCity || "", t.checkIn || "", t.checkOut || "", travelers),
-      ]);
-
-      let flightTotalUSD: number | null = flightRes.totalUSD;
-      let flightSource: PriceRow["flightSource"] = flightTotalUSD != null ? "duffel" : "fallback";
-      const airline = (flightRes as any).airline;
-
-      // Heuristic fallback for the flight when Duffel returned nothing.
-      if (flightTotalUSD == null && typeof t.estimatedFlightFromJFK_USD === "number") {
-        flightTotalUSD = fallbackFlightFromOriginUSD(originAirport, dest, t.estimatedFlightFromJFK_USD);
-        flightSource = "fallback";
-      }
-
-      let hotelTotalUSD: number | null = hotelRes.totalUSD;
-      let hotelSource: PriceRow["hotelSource"] = hotelTotalUSD != null ? "liteapi" : "fallback";
-      const hotelName = (hotelRes as any).name;
-      const hotelNights = (hotelRes as any).nights;
-
-      // Heuristic hotel baseline if LiteAPI returned nothing — derive from
-      // JSON `basePrice` minus the assumed NYC flight portion (per person).
-      if (
-        hotelTotalUSD == null &&
-        typeof t.basePrice === "number" &&
-        typeof t.estimatedFlightFromJFK_USD === "number"
-      ) {
-        const hotelBasePerPerson = Math.max(0, t.basePrice - Math.round(t.estimatedFlightFromJFK_USD / travelers));
-        hotelTotalUSD = Math.round(hotelBasePerPerson * travelers);
-        hotelSource = "fallback";
-      }
-
-      // Final per-person package price.
-      let pricePerPersonUSD: number | null = null;
-      if (flightTotalUSD != null && hotelTotalUSD != null && travelers > 0) {
-        pricePerPersonUSD = Math.round((flightTotalUSD + hotelTotalUSD) / travelers);
-      } else if (typeof t.basePrice === "number") {
-        pricePerPersonUSD = t.basePrice;
-      }
-
-      const allLive = flightSource === "duffel" && hotelSource === "liteapi";
-      const allFallback = flightSource === "fallback" && hotelSource === "fallback";
-      const source: PriceRow["source"] = allLive ? "live" : allFallback ? (duffelOn ? "fallback" : "mock") : "fallback";
-
-      const row: PriceRow = {
+  const now = Date.now();
+  const lookups: PriceRow[] = trips.map((t): PriceRow => {
+    const dest = String(t.destinationAirport || "").trim().toUpperCase();
+    const cached = byTrip.get(t.tripId);
+    const cachedAge = cached?.updated_at ? now - new Date(cached.updated_at).getTime() : Infinity;
+    if (cached && cachedAge < CACHE_FRESH_MS && /^[A-Z]{3}$/.test(dest)) {
+      return {
         tripId: t.tripId,
-        flightTotalUSD,
-        hotelTotalUSD,
-        pricePerPersonUSD,
-        source,
-        flightSource,
-        hotelSource,
-        airline,
-        hotelName,
-        nights: hotelNights,
+        flightTotalUSD: cached.flight_total_usd != null ? Number(cached.flight_total_usd) : null,
+        hotelTotalUSD: cached.hotel_total_usd != null ? Number(cached.hotel_total_usd) : null,
+        pricePerPersonUSD: cached.price_per_person_usd != null ? Number(cached.price_per_person_usd) : null,
+        source: cached.source || (cached.flight_source === "duffel" && cached.hotel_source === "liteapi" ? "live" : "fallback"),
+        flightSource: cached.flight_source || "fallback",
+        hotelSource: cached.hotel_source || "fallback",
+        airline: cached.airline || undefined,
+        hotelName: cached.hotel_name || undefined,
+        nights: cached.nights ?? undefined,
       };
-      cache.set(cacheKey, { value: row, ts: Date.now() });
-      return row;
-    }),
-  );
+    }
+
+    // Cache miss / stale row → return a heuristic estimate immediately so the
+    // UI always renders something stable. The cron will refresh the row on
+    // the next 24h tick (or use ?refresh=1 to force an inline refresh below).
+    if (!/^[A-Z]{3}$/.test(dest)) {
+      return {
+        tripId: t.tripId,
+        flightTotalUSD: null,
+        hotelTotalUSD: null,
+        pricePerPersonUSD: typeof t.basePrice === "number" ? t.basePrice : null,
+        source: "fallback",
+        flightSource: "fallback",
+        hotelSource: "fallback",
+      };
+    }
+    const flightFallback = typeof t.estimatedFlightFromJFK_USD === "number"
+      ? fallbackFlightFromOriginUSD(originAirport, dest, t.estimatedFlightFromJFK_USD)
+      : null;
+    const hotelFallback =
+      typeof t.basePrice === "number" && typeof t.estimatedFlightFromJFK_USD === "number"
+        ? Math.max(0, t.basePrice - Math.round(t.estimatedFlightFromJFK_USD / travelers)) * travelers
+        : null;
+    const ppFallback =
+      flightFallback != null && hotelFallback != null && travelers > 0
+        ? Math.round((flightFallback + hotelFallback) / travelers)
+        : (typeof t.basePrice === "number" ? t.basePrice : null);
+    return {
+      tripId: t.tripId,
+      flightTotalUSD: flightFallback,
+      hotelTotalUSD: hotelFallback,
+      pricePerPersonUSD: ppFallback,
+      source: duffelOn ? "fallback" : "mock",
+      flightSource: "fallback",
+      hotelSource: "fallback",
+    };
+  });
 
   const prices: Record<string, PriceRow> = {};
   for (const row of lookups) prices[row.tripId] = row;

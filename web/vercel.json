@@ -12,6 +12,10 @@
     {
       "path": "/api/cron/indexnow",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/refresh-package-prices",
+      "schedule": "0 4 * * *"
     }
   ],
   "functions": {
@@ -27,6 +31,9 @@
     },
     "app/api/cron/indexnow/route.ts": {
       "maxDuration": 30
+    },
+    "app/api/cron/refresh-package-prices/route.ts": {
+      "maxDuration": 300
     }
   },
   "rewrites": [
