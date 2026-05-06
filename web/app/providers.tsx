@@ -1,6 +1,7 @@
 "use client";
 
 import { I18nProvider } from "../src/lib/i18n/I18nProvider";
+import { CurrencyProvider } from "../src/lib/i18n/CurrencyProvider";
 import { useEffect } from "react";
 import { useAuthStore } from "../src/lib/authStore";
 import { setTripUserScope, syncTripsFromServer } from "../lib/store/tripsStore";
@@ -47,11 +48,13 @@ function ActiveSpaceBridge() {
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <I18nProvider>
-      <TripsScopeBridge />
-      <ActiveSpaceBridge />
-      <ReferralTracker />
-      <GlobalTranslator />
-      {children}
+      <CurrencyProvider>
+        <TripsScopeBridge />
+        <ActiveSpaceBridge />
+        <ReferralTracker />
+        <GlobalTranslator />
+        {children}
+      </CurrencyProvider>
     </I18nProvider>
   );
 }

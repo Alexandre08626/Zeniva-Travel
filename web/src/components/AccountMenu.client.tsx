@@ -7,6 +7,7 @@ import { useAuthStore, logout, switchActiveSpace, setPreviewRole, isHQ } from '@
 import { canPreviewRole, RBAC_ROLES, type RbacRole } from '@/src/lib/rbac';
 import { locales, localeLabels } from '../lib/i18n/config';
 import { useI18n } from '../lib/i18n/I18nProvider';
+import { useCurrency, currencies, currencyLabels } from '../lib/i18n/CurrencyProvider';
 
 const T: Record<string, Record<string, string>> = {
   en: {
@@ -24,6 +25,7 @@ const T: Record<string, Record<string, string>> = {
     investorPitchHint: "Private — founder only",
     copyLink: "Copy link",
     copied: "✓ Link copied",
+    currency: "Currency",
   },
   fr: {
     signedIn: "Connecté en tant que",
@@ -40,6 +42,7 @@ const T: Record<string, Record<string, string>> = {
     investorPitchHint: "Privé — founder uniquement",
     copyLink: "Copier le lien",
     copied: "✓ Lien copié",
+    currency: "Devise",
   },
   es: {
     signedIn: "Conectado como",
@@ -56,6 +59,7 @@ const T: Record<string, Record<string, string>> = {
     investorPitchHint: "Privado — solo founder",
     copyLink: "Copiar enlace",
     copied: "✓ Enlace copiado",
+    currency: "Moneda",
   },
 };
 
@@ -76,6 +80,7 @@ export default function AccountMenu() {
   const canPreview = canPreviewRole({ email: user?.email, id: (user as any)?.id });
   const previewRole = user?.effectiveRole || '';
   const { locale, setLocale } = useI18n();
+  const { currency, setCurrency } = useCurrency();
   const t = T[locale] || T.en;
 
   async function copyPitchLink() {
@@ -179,6 +184,26 @@ export default function AccountMenu() {
                     ].join(' ')}
                   >
                     {localeLabels[loc]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Currency switcher */}
+            <div className="mb-3 border rounded-xl p-2.5 bg-slate-50">
+              <p className="text-[11px] font-semibold text-slate-500 mb-2 px-0.5 uppercase tracking-wider">💱 {t.currency}</p>
+              <div className="grid grid-cols-4 gap-1">
+                {currencies.map((cur) => (
+                  <button
+                    key={cur}
+                    onClick={() => setCurrency(cur)}
+                    className={[
+                      'py-1.5 rounded-lg text-[11px] font-bold transition-all',
+                      currency === cur ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-200',
+                    ].join(' ')}
+                    title={currencyLabels[cur]}
+                  >
+                    {cur}
                   </button>
                 ))}
               </div>
