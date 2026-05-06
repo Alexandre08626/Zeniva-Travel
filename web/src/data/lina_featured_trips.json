@@ -21,7 +21,9 @@
         "Cenote tour"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "CUN",
+    "estimatedFlightFromJFK_USD": 700
   },
   {
     "id": "punta-cana-paradise",
@@ -45,7 +47,9 @@
         "Spa retreat"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "PUJ",
+    "estimatedFlightFromJFK_USD": 720
   },
   {
     "id": "costa-rica-eco",
@@ -69,7 +73,9 @@
         "Hot springs"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "SJO",
+    "estimatedFlightFromJFK_USD": 760
   },
   {
     "id": "hawaii-waikiki",
@@ -93,7 +99,9 @@
         "North Shore tour"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "HNL",
+    "estimatedFlightFromJFK_USD": 1100
   },
   {
     "id": "bahamas-nassau",
@@ -117,7 +125,9 @@
         "Pirate cruise"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "NAS",
+    "estimatedFlightFromJFK_USD": 620
   },
   {
     "id": "aruba-one-happy-island",
@@ -141,7 +151,9 @@
         "Sunset catamaran"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "AUA",
+    "estimatedFlightFromJFK_USD": 740
   },
   {
     "id": "cabo-san-lucas-luxe",
@@ -165,7 +177,9 @@
         "Beach club"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "SJD",
+    "estimatedFlightFromJFK_USD": 780
   },
   {
     "id": "paris-summer",
@@ -189,7 +203,9 @@
         "Louvre & Orsay"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "CDG",
+    "estimatedFlightFromJFK_USD": 1300
   },
   {
     "id": "santorini-sunsets",
@@ -213,7 +229,9 @@
         "Oia & Fira tour"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "JTR",
+    "estimatedFlightFromJFK_USD": 1500
   },
   {
     "id": "tokyo-discovery",
@@ -237,7 +255,9 @@
         "Shibuya & Asakusa"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "HND",
+    "estimatedFlightFromJFK_USD": 1900
   },
   {
     "id": "bali-bliss",
@@ -261,7 +281,9 @@
         "Beach dinner"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "DPS",
+    "estimatedFlightFromJFK_USD": 2100
   },
   {
     "id": "iceland-northern-lights",
@@ -285,7 +307,9 @@
         "Aurora chase"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "KEF",
+    "estimatedFlightFromJFK_USD": 900
   },
   {
     "id": "jamaica-montego-bay",
@@ -309,7 +333,9 @@
         "Negril Seven Mile Beach"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "MBJ",
+    "estimatedFlightFromJFK_USD": 700
   },
   {
     "id": "san-juan-old-city",
@@ -333,7 +359,9 @@
         "Condado Beach"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "SJU",
+    "estimatedFlightFromJFK_USD": 540
   },
   {
     "id": "barbados-platinum-coast",
@@ -357,7 +385,9 @@
         "Crane Beach day"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "BGI",
+    "estimatedFlightFromJFK_USD": 980
   },
   {
     "id": "antigua-365-beaches",
@@ -381,7 +411,9 @@
         "Pillars of Hercules"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "ANU",
+    "estimatedFlightFromJFK_USD": 880
   },
   {
     "id": "barcelona-gaudi",
@@ -405,7 +437,9 @@
         "Tapas & flamenco night"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "BCN",
+    "estimatedFlightFromJFK_USD": 1300
   },
   {
     "id": "rome-eternal-city",
@@ -429,7 +463,9 @@
         "Trastevere food crawl"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "FCO",
+    "estimatedFlightFromJFK_USD": 1320
   },
   {
     "id": "naples-amalfi-capri",
@@ -453,7 +489,9 @@
         "Pompeii guided tour"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "NAP",
+    "estimatedFlightFromJFK_USD": 1320
   },
   {
     "id": "dubai-luxe",
@@ -477,7 +515,9 @@
         "Marina yacht dinner"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "DXB",
+    "estimatedFlightFromJFK_USD": 1700
   },
   {
     "id": "cape-town-luxe",
@@ -501,7 +541,9 @@
         "Stellenbosch wine day"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "CPT",
+    "estimatedFlightFromJFK_USD": 1900
   },
   {
     "id": "phuket-beach-luxe",
@@ -525,6 +567,8 @@
         "Spa & Thai massage"
       ]
     },
-    "priceUnit": "per_person"
+    "priceUnit": "per_person",
+    "destinationAirport": "HKT",
+    "estimatedFlightFromJFK_USD": 2000
   }
 ]
