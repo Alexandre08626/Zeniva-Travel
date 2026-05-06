@@ -286,9 +286,27 @@ export default function LeadsPage() {
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
           @page { size: A4 portrait; margin: 12mm; }
-          body * { visibility: hidden !important; }
-          .print-360-area, .print-360-area * { visibility: visible !important; }
-          .print-360-area { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; box-shadow: none !important; border: none !important; padding: 0 !important; max-height: none !important; overflow: visible !important; }
+          /* Tag the open 360 modal as the only printable region. The body
+             attribute is toggled by handlePrint360 just before window.print()
+             so we can fully unmount the lead list / sidebar / tabs from the
+             printed output (display:none, not visibility:hidden — otherwise
+             the browser kept blank pages where the hidden list used to be). */
+          html, body { background: white !important; }
+          body[data-printing="360"] > *:not(.print-360-host) { display: none !important; }
+          body[data-printing="360"] .print-360-host { display: block !important; padding: 0 !important; margin: 0 !important; background: white !important; }
+          body[data-printing="360"] .print-360-host > *:not(.print-360-area) { display: none !important; }
+          body[data-printing="360"] .print-360-area {
+            position: static !important;
+            box-shadow: none !important;
+            border: none !important;
+            background: white !important;
+            max-height: none !important;
+            overflow: visible !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+          }
           .no-print-in-360, .no-print-in-360 * { display: none !important; }
         }
       ` }} />
@@ -643,7 +661,7 @@ export default function LeadsPage() {
 
       {/* 360° Lead View Modal */}
       {view360 && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setView360(null)}>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 print-360-host" onClick={() => setView360(null)}>
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[92vh] overflow-y-auto print-360-area" onClick={e => e.stopPropagation()}>
             {(() => {
               const isTraveler = view360.kind === "traveler";
@@ -670,7 +688,21 @@ export default function LeadsPage() {
                       </div>
                       <div className="flex gap-2 no-print-in-360">
                         <button
-                          onClick={() => window.print()}
+                          onClick={() => {
+                            // Tag the body so our @media print rule unmounts
+                            // every sibling except this modal. Reset after
+                            // print so the rest of the UI stays interactive.
+                            if (typeof document === "undefined") return;
+                            document.body.setAttribute("data-printing", "360");
+                            const cleanup = () => {
+                              document.body.removeAttribute("data-printing");
+                              window.removeEventListener("afterprint", cleanup);
+                            };
+                            window.addEventListener("afterprint", cleanup);
+                            // Fallback for browsers that don't fire afterprint
+                            window.setTimeout(cleanup, 8000);
+                            window.print();
+                          }}
                           className="px-4 py-2 bg-slate-900 text-white text-sm font-semibold rounded-xl hover:bg-slate-700 transition-colors"
                         >🖨️ Imprimer</button>
                         <button
