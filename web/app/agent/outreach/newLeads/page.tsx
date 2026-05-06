@@ -286,17 +286,19 @@ export default function LeadsPage() {
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
           @page { size: A4 portrait; margin: 12mm; }
-          /* Tag the open 360 modal as the only printable region. The body
-             attribute is toggled by handlePrint360 just before window.print()
-             so we can fully unmount the lead list / sidebar / tabs from the
-             printed output (display:none, not visibility:hidden — otherwise
-             the browser kept blank pages where the hidden list used to be). */
           html, body { background: white !important; }
-          body[data-printing="360"] > *:not(.print-360-host) { display: none !important; }
-          body[data-printing="360"] .print-360-host { display: block !important; padding: 0 !important; margin: 0 !important; background: white !important; }
-          body[data-printing="360"] .print-360-host > *:not(.print-360-area) { display: none !important; }
-          body[data-printing="360"] .print-360-area {
-            position: static !important;
+          /* When printing, handlePrint clones the 360 panel into a dedicated
+             #zeniva-print-clone div at body root and sets data-printing="360".
+             Hide every other body child so only the clone reaches the printer. */
+          body[data-printing="360"] > *:not(#zeniva-print-clone) { display: none !important; }
+          body[data-printing="360"] #zeniva-print-clone {
+            display: block !important;
+            background: white !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+          body[data-printing="360"] #zeniva-print-clone .print-360-area,
+          body[data-printing="360"] #zeniva-print-clone > * {
             box-shadow: none !important;
             border: none !important;
             background: white !important;
@@ -306,6 +308,7 @@ export default function LeadsPage() {
             max-width: 100% !important;
             margin: 0 !important;
             border-radius: 0 !important;
+            position: static !important;
           }
           .no-print-in-360, .no-print-in-360 * { display: none !important; }
         }
@@ -689,19 +692,35 @@ export default function LeadsPage() {
                       <div className="flex gap-2 no-print-in-360">
                         <button
                           onClick={() => {
-                            // Tag the body so our @media print rule unmounts
-                            // every sibling except this modal. Reset after
-                            // print so the rest of the UI stays interactive.
+                            // Clone the open 360 panel into a dedicated div
+                            // appended directly to <body>, then hide every
+                            // other body-level child via the print stylesheet.
+                            // This avoids fighting the modal's flex/fixed
+                            // wrappers and survives Next.js Providers nesting.
                             if (typeof document === "undefined") return;
+                            const source = document.querySelector(".print-360-area");
+                            if (!source) {
+                              window.print();
+                              return;
+                            }
+                            // Remove any leftover clone from a previous run
+                            const stale = document.getElementById("zeniva-print-clone");
+                            if (stale) stale.remove();
+                            const printDiv = document.createElement("div");
+                            printDiv.id = "zeniva-print-clone";
+                            printDiv.appendChild(source.cloneNode(true));
+                            document.body.appendChild(printDiv);
                             document.body.setAttribute("data-printing", "360");
                             const cleanup = () => {
                               document.body.removeAttribute("data-printing");
+                              printDiv.remove();
                               window.removeEventListener("afterprint", cleanup);
                             };
                             window.addEventListener("afterprint", cleanup);
-                            // Fallback for browsers that don't fire afterprint
-                            window.setTimeout(cleanup, 8000);
-                            window.print();
+                            // 30s safety net for browsers that swallow afterprint
+                            window.setTimeout(cleanup, 30000);
+                            // Defer one tick so the clone is in the DOM before print
+                            window.setTimeout(() => window.print(), 50);
                           }}
                           className="px-4 py-2 bg-slate-900 text-white text-sm font-semibold rounded-xl hover:bg-slate-700 transition-colors"
                         >🖨️ Imprimer</button>
