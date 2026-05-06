@@ -26,7 +26,12 @@ export default function BookHotelClient({ initial }: { initial: BookInitial }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [setupUrl, setSetupUrl] = useState("");
+  const [paymentUrl, setPaymentUrl] = useState("");
+  const [chargedAmount, setChargedAmount] = useState(0);
+  const [discountApplied, setDiscountApplied] = useState(false);
   const [error, setError] = useState("");
+
+  const basePrice = Math.round(Number(initial.price) || 0);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +43,9 @@ export default function BookHotelClient({ initial }: { initial: BookInitial }) {
     setSubmitting(true);
     try {
       const destination = initial.hotelLocation || initial.hotelName;
-      const res = await fetch("/api/forms/submit", {
+
+      // 1) Create the lead + account
+      const formRes = await fetch("/api/forms/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -59,11 +66,45 @@ export default function BookHotelClient({ initial }: { initial: BookInitial }) {
           notes: notes.trim(),
         }),
       });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(json?.error || "Failed to submit booking request");
+      const formJson = await formRes.json().catch(() => ({}));
+      if (!formRes.ok) {
+        throw new Error(formJson?.error || "Failed to submit booking request");
       }
-      if (json?.setupUrl) setSetupUrl(json.setupUrl);
+      const isNewAccount = Boolean(formJson?.setupUrl);
+      if (isNewAccount) setSetupUrl(formJson.setupUrl);
+
+      // 2) Generate the ZeniPay checkout link with the agent-quoted price.
+      //    Apply the 15% discount only for brand-new accounts.
+      if (basePrice > 0) {
+        const finalAmount = isNewAccount
+          ? Math.round(basePrice * 0.85 * 100) / 100
+          : basePrice;
+        const datesStr = checkIn && checkOut ? ` (${checkIn} → ${checkOut})` : "";
+        const description = `Zeniva Travel · ${initial.hotelName}${datesStr} · ${travelers} traveler${Number(travelers) > 1 ? "s" : ""}${isNewAccount ? " · 15% member discount" : ""}`;
+        try {
+          const payRes = await fetch("/api/zenipay/payments/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              amount: finalAmount,
+              currency: "USD",
+              description,
+              customerName: name.trim(),
+              customerEmail: email.trim(),
+            }),
+          });
+          const payJson = await payRes.json().catch(() => ({}));
+          if (payRes.ok && payJson?.checkout_url) {
+            setPaymentUrl(payJson.checkout_url);
+            setChargedAmount(finalAmount);
+            setDiscountApplied(isNewAccount);
+          }
+        } catch {
+          // Payment link failed — keep the lead, but the success screen
+          // will fall back to "agent will email you with a link".
+        }
+      }
+
       setSubmitted(true);
     } catch (e: any) {
       setError(e?.message || "Something went wrong. Please try again.");
@@ -75,41 +116,85 @@ export default function BookHotelClient({ initial }: { initial: BookInitial }) {
   if (submitted) {
     return (
       <main className="min-h-screen bg-slate-50 flex items-center justify-center px-5 py-10">
-        <div className="bg-white rounded-2xl shadow-lg max-w-lg w-full p-8 text-center">
-          <div className="text-5xl mb-4">✅</div>
-          <h1 className="text-2xl font-black text-[#0B1B4D]">Booking request sent!</h1>
-          <p className="mt-3 text-slate-600">
-            Thanks {name.split(" ")[0]} — a Zeniva Travel agent will email you within 1 hour at <strong>{email}</strong> with the final quote and a secure ZeniPay link to confirm your stay at <strong>{initial.hotelName}</strong>.
-          </p>
+        <div className="bg-white rounded-2xl shadow-lg max-w-lg w-full p-8">
+          <div className="text-center">
+            <div className="text-5xl mb-3">✅</div>
+            <h1 className="text-2xl font-black text-[#0B1B4D]">
+              {paymentUrl ? "You're almost there!" : "Booking request sent!"}
+            </h1>
+            <p className="mt-3 text-slate-600">
+              Thanks {name.split(" ")[0]} — your stay at{" "}
+              <strong>{initial.hotelName}</strong> is reserved for{" "}
+              <strong>
+                {checkIn || "TBD"}
+                {checkOut ? ` → ${checkOut}` : ""}
+              </strong>{" "}
+              for <strong>{travelers}</strong> traveler{Number(travelers) > 1 ? "s" : ""}.
+            </p>
+          </div>
+
+          {paymentUrl ? (
+            <div className="mt-6 bg-gradient-to-br from-[#0B1B4D] to-[#0F3A8A] rounded-2xl p-6 text-white">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[11px] font-black uppercase tracking-widest text-[#E6B85A]">
+                  Pay securely with ZeniPay
+                </p>
+                {discountApplied && (
+                  <span className="bg-[#E6B85A] text-[#0B1B4D] text-[10px] font-black px-2 py-1 rounded-full">
+                    −15% MEMBER
+                  </span>
+                )}
+              </div>
+              {discountApplied && basePrice > 0 && (
+                <p className="text-xs text-white/60 line-through mb-1">
+                  Original ${basePrice.toLocaleString()}
+                </p>
+              )}
+              <p className="text-3xl font-black">
+                ${chargedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{" "}
+                <span className="text-sm text-white/70 font-medium">USD</span>
+              </p>
+              <a
+                href={paymentUrl}
+                className="block text-center mt-4 px-6 py-4 rounded-full bg-[#E6B85A] text-[#0B1B4D] font-black text-base hover:opacity-95 transition shadow-lg"
+              >
+                💳 Pay now
+              </a>
+              <p className="mt-3 text-[11px] text-white/60 text-center">
+                You'll be redirected to ZeniPay's secure checkout. Bank-grade encryption.
+              </p>
+            </div>
+          ) : (
+            <div className="mt-6 bg-slate-50 border border-slate-200 rounded-2xl p-5 text-center text-sm text-slate-600">
+              We couldn't generate a payment link automatically — a Zeniva
+              Travel agent will email you at <strong>{email}</strong> within
+              1 hour with a secure ZeniPay link.
+            </div>
+          )}
 
           {setupUrl && (
-            <div className="mt-6 bg-gradient-to-br from-[#FEF3C7] to-[#FDE68A] border border-[#F59E0B]/40 rounded-2xl p-5 text-left">
-              <p className="text-[11px] font-black uppercase tracking-widest text-[#92400E]">
-                ⭐ Unlock 15% off
+            <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 text-left">
+              <p className="text-xs font-bold text-amber-900">
+                Welcome, member! 🎉
               </p>
-              <h2 className="mt-1 text-lg font-black text-[#7C2D12]">
-                Set your password & save 15% on this trip
-              </h2>
-              <p className="mt-2 text-sm text-[#7C2D12]/80">
-                Your free Zeniva account is ready. Set a password now to lock
-                in 15% off your stay at <strong>{initial.hotelName}</strong>{" "}
-                and access exclusive member rates on every future booking.
+              <p className="mt-1 text-xs text-amber-800/85">
+                Your free Zeniva account is ready. Set a password to log in
+                and track your booking.
               </p>
               <a
                 href={setupUrl}
-                className="block text-center mt-4 px-6 py-3 rounded-full bg-[#0B1B4D] text-white font-bold text-sm hover:opacity-90 transition"
+                className="inline-block mt-3 px-4 py-2 rounded-full bg-amber-900 text-white font-bold text-xs hover:opacity-90 transition"
               >
-                🔒 Set my password & claim 15% off
+                🔒 Set my password
               </a>
             </div>
           )}
 
-          <a
-            href="/"
-            className="inline-block mt-6 text-xs font-semibold text-slate-500 hover:text-slate-700 transition"
-          >
-            Back to Zeniva Travel
-          </a>
+          <p className="mt-6 text-center">
+            <a href="/" className="text-xs font-semibold text-slate-500 hover:text-slate-700 transition">
+              Back to Zeniva Travel
+            </a>
+          </p>
         </div>
       </main>
     );
@@ -269,11 +354,15 @@ export default function BookHotelClient({ initial }: { initial: BookInitial }) {
             disabled={submitting}
             className="w-full py-4 rounded-full bg-gradient-to-r from-[#E6B85A] to-[#C9941F] text-[#0B1B4D] font-black text-base hover:opacity-95 transition disabled:opacity-50 shadow-lg"
           >
-            {submitting ? "Sending…" : "🔒 Request booking & get ZeniPay link"}
+            {submitting
+              ? "Preparing your payment link…"
+              : basePrice > 0
+              ? `🔒 Continue to ZeniPay — $${basePrice.toLocaleString()}`
+              : "🔒 Continue to ZeniPay"}
           </button>
 
           <p className="text-center text-[11px] text-slate-400">
-            No payment yet — an agent will email you with the final quote first.
+            Secured by ZeniPay · You'll see the final amount before paying.
           </p>
         </form>
       </section>
