@@ -105,12 +105,13 @@ export default function FeaturedTripsByLina({ limit, initialPrices }: Props = {}
     [initialPrices],
   );
 
-  // Refresh prices whenever the origin changes — but skip the very first
-  // mount when the server already prefetched the default-origin rows: the
-  // initialPrices prop is the source of truth and a client-side refetch
-  // would only make the headline price jump for a few hundred ms.
+  // Refresh prices whenever the origin changes — but skip the default
+  // origin (JFK): the JSON `price` already IS the JFK baseline so refetching
+  // would only flicker the headline. The server-prefetched cache (when
+  // populated by the daily cron) shows up via initialPrices on first paint
+  // without any loading state.
   useEffect(() => {
-    if (origin.code === ORIGINS[0].code && hasInitialPrices) return;
+    if (origin.code === ORIGINS[0].code) return;
 
     let abort = false;
     const controller = new AbortController();
@@ -325,7 +326,7 @@ export default function FeaturedTripsByLina({ limit, initialPrices }: Props = {}
                 <div className="mt-auto flex items-end justify-between gap-3">
                   <div className="min-w-0">
                     <div className="text-[10px] text-slate-500 font-semibold"><AutoTranslate text="From" className="inline" /></div>
-                    <div className={`text-xl sm:text-2xl font-black leading-none ${pricesLoading ? "text-slate-400 animate-pulse" : "text-slate-900"}`}>
+                    <div className="text-xl sm:text-2xl font-black leading-none text-slate-900">
                       {formatCurrencyAmount(displayPrice, trip.currency, locale)}
                     </div>
                     <div className="text-[10px] text-slate-500 mt-0.5"><AutoTranslate text="per person · 2-4 travelers" className="inline" /></div>
