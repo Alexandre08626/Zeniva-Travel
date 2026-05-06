@@ -44,9 +44,14 @@ const ORIGINS: Origin[] = [
 type PriceRow = {
   tripId: string;
   flightTotalUSD: number | null;
+  hotelTotalUSD: number | null;
   pricePerPersonUSD: number | null;
-  source: "duffel" | "mock" | "fallback";
+  source: "live" | "mock" | "fallback";
+  flightSource: "duffel" | "fallback";
+  hotelSource: "liteapi" | "fallback";
   airline?: string;
+  hotelName?: string;
+  nights?: number;
 };
 
 function parseDates(datesStr: string): { checkIn?: string; checkOut?: string } {
@@ -100,9 +105,13 @@ export default function FeaturedTripsByLina({ limit }: { limit?: number } = {}) 
       travelers: 2,
       trips: allTrips.map((t) => {
         const { checkIn, checkOut } = parseDates(t.dates);
+        // LiteAPI takes a city name — strip the country suffix from
+        // "Cancun, Mexico" / "San José, Costa Rica" / "Bali, Indonesia".
+        const destinationCity = String(t.destination || "").split(",")[0].trim();
         return {
           tripId: t.id,
           destinationAirport: t.destinationAirport,
+          destinationCity,
           checkIn,
           checkOut,
           basePrice: t.price,
@@ -207,9 +216,10 @@ export default function FeaturedTripsByLina({ limit }: { limit?: number } = {}) 
           const live = prices[trip.id];
           const livePerPerson = live?.pricePerPersonUSD ?? null;
           const flightTotal = live?.flightTotalUSD ?? null;
+          const hotelTotal = live?.hotelTotalUSD ?? null;
           const displayPrice = livePerPerson != null ? livePerPerson : trip.price;
-          const sourceTag =
-            live?.source === "duffel" ? "Live · Duffel" : live?.source === "mock" ? "Estimate" : "Estimate";
+          const flightTag = live?.flightSource === "duffel" ? "Live · Duffel" : "Estimate";
+          const hotelTag = live?.hotelSource === "liteapi" ? "Live · LiteAPI" : "Estimate";
           return (
             <div
               key={trip.id}
@@ -259,23 +269,39 @@ export default function FeaturedTripsByLina({ limit }: { limit?: number } = {}) 
                   )}
                 </div>
 
-                {/* Reserved-height flight pill — always rendered (skeleton during
-                    loading) so the card doesn't jump when Duffel responds and
-                    the surrounding image / price block stays anchored. */}
-                <div className="mb-3 rounded-lg border border-blue-100 bg-blue-50/60 px-2.5 py-1.5 text-[11px] flex items-center justify-between gap-2 min-h-[28px]">
+                {/* Reserved-height live-pricing pills (flight + hotel). Always
+                    rendered so the card layout doesn't shift when API
+                    responses land — placeholders animate while loading. */}
+                <div className="mb-2 rounded-lg border border-blue-100 bg-blue-50/60 px-2.5 py-1.5 text-[11px] flex items-center justify-between gap-2 min-h-[28px]">
                   {flightTotal != null ? (
                     <>
                       <span className="text-blue-700 font-semibold truncate">
                         ✈ Flight {origin.code} → {trip.destinationAirport}: ${Math.round(flightTotal).toLocaleString()}
                         <span className="text-blue-400 font-normal"> / 2 pax</span>
                       </span>
-                      <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded shrink-0 ${live?.source === "duffel" ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-600"}`}>
-                        {sourceTag}
+                      <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded shrink-0 ${live?.flightSource === "duffel" ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-600"}`}>
+                        {flightTag}
                       </span>
                     </>
                   ) : (
                     <span className="text-blue-400 italic animate-pulse">
                       ✈ Searching live flight {origin.code} → {trip.destinationAirport}…
+                    </span>
+                  )}
+                </div>
+                <div className="mb-3 rounded-lg border border-violet-100 bg-violet-50/60 px-2.5 py-1.5 text-[11px] flex items-center justify-between gap-2 min-h-[28px]">
+                  {hotelTotal != null ? (
+                    <>
+                      <span className="text-violet-700 font-semibold truncate">
+                        🏨 Hotel{live?.nights ? ` × ${live.nights} nights` : ""}: ${Math.round(hotelTotal).toLocaleString()}
+                      </span>
+                      <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded shrink-0 ${live?.hotelSource === "liteapi" ? "bg-violet-600 text-white" : "bg-slate-200 text-slate-600"}`}>
+                        {hotelTag}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-violet-400 italic animate-pulse">
+                      🏨 Searching live hotel in {trip.destination.split(",")[0]}…
                     </span>
                   )}
                 </div>
