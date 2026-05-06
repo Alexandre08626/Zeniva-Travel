@@ -158,8 +158,8 @@ function getFormConfig(formId: string) {
   return FORM_DEFINITIONS.find((f) => f.id === formId) || null;
 }
 
-async function ensureTravelerAccount(email: string, name: string, division: string) {
-  if (!email) return;
+async function ensureTravelerAccount(email: string, name: string, division: string): Promise<{ accountCreated: boolean }> {
+  if (!email) return { accountCreated: false };
   const normalized = normalizeEmail(email);
   const { client: admin } = getSupabaseAdminClient();
   const { data: existing } = await admin
@@ -167,7 +167,7 @@ async function ensureTravelerAccount(email: string, name: string, division: stri
     .select("id")
     .eq("email", normalized)
     .limit(1);
-  if ((existing || []).length) return;
+  if ((existing || []).length) return { accountCreated: false };
   const id = `acct-${normalized.replace(/[^a-z0-9]/gi, "-")}`;
   await admin
     .from("accounts")
@@ -182,6 +182,7 @@ async function ensureTravelerAccount(email: string, name: string, division: stri
       created_at: new Date().toISOString(),
     });
   console.log(`ACCOUNT CREATED: id=${id} email=${normalized}`);
+  return { accountCreated: true };
 }
 
 function buildNotesFromPayload(formId: string, payload: Record<string, any>) {
@@ -315,17 +316,21 @@ export async function POST(request: Request) {
 
       const saved = mapClientRow(updatedRows);
       if (email) {
-        await ensureTravelerAccount(email, name || saved.name || "Traveler", form.division);
-        // Generate setup token for existing client too — lets them set/update password
+        const { accountCreated } = await ensureTravelerAccount(email, name || saved.name || "Traveler", form.division);
+        // Only generate the setup token + 15% onboarding link for brand-new
+        // accounts. Returning clients are already set up — don't re-offer
+        // them the password-setup flow as if they were new.
         const setupExp = Math.floor(Date.now() / 1000) + 60 * 60 * 2;
         const setupToken = signSession({ email, roles: ["traveler"], exp: setupExp, type: "setup" } as any);
-        const setupUrl = `/api/auth/auto-login?token=${encodeURIComponent(setupToken)}&redirect=${encodeURIComponent("/set-password?new=1")}`;
+        const setupUrl = accountCreated
+          ? `/api/auth/auto-login?token=${encodeURIComponent(setupToken)}&redirect=${encodeURIComponent("/set-password?new=1")}`
+          : undefined;
         const HQ_ALL_EMAILS2 = ["info@zeniva.ca", "info@zenivatravel.com", "info@zeniva.com"];
         if (!HQ_ALL_EMAILS2.includes(email.toLowerCase()) && body?.phone) {
           sendWelcomeSMS(String(body.phone), saved.name, body?.destination || "travel").catch(() => {});
         }
         notifyVpsNewLead(saved, body).catch(() => {});
-        return NextResponse.json({ data: saved, updated: true, setupUrl });
+        return NextResponse.json({ data: saved, updated: true, accountCreated, ...(setupUrl ? { setupUrl } : {}) });
       }
       notifyVpsNewLead(saved, body).catch(() => {});
       return NextResponse.json({ data: saved, updated: true });
@@ -385,8 +390,11 @@ export async function POST(request: Request) {
 
     const saved = mapClientRow(insertedRows);
     console.log(`CLIENT CREATED: id=${saved.id} email=${saved.email || ""}`);
+    let setupUrl: string | undefined;
+    let accountCreated = false;
     if (email) {
-      await ensureTravelerAccount(email, saved.name, form.division);
+      const acct = await ensureTravelerAccount(email, saved.name, form.division);
+      accountCreated = acct.accountCreated;
       // Send welcome email to new client (fire and forget)
       const HQ_ALL_EMAILS = ["info@zeniva.ca", "info@zenivatravel.com", "info@zeniva.com"];
       if (!HQ_ALL_EMAILS.includes(email.toLowerCase())) {
@@ -395,10 +403,14 @@ export async function POST(request: Request) {
         if (body?.phone) sendWelcomeSMS(String(body.phone), saved.name, dest).catch(() => {});
       }
 
-      // Generate a one-time setup token so the client can auto-login + set password
-      const setupExp = Math.floor(Date.now() / 1000) + 60 * 60 * 2; // 2h
-      const setupToken = signSession({ email, roles: ["traveler"], exp: setupExp, type: "setup" } as any);
-      const setupUrl = `/api/auth/auto-login?token=${encodeURIComponent(setupToken)}&redirect=${encodeURIComponent("/set-password?new=1")}`;
+      // Only generate the password-setup link for first-time accounts. A
+      // returning customer already owns an account — don't dangle the
+      // "set your password" carrot at them as if they were brand new.
+      if (accountCreated) {
+        const setupExp = Math.floor(Date.now() / 1000) + 60 * 60 * 2; // 2h
+        const setupToken = signSession({ email, roles: ["traveler"], exp: setupExp, type: "setup" } as any);
+        setupUrl = `/api/auth/auto-login?token=${encodeURIComponent(setupToken)}&redirect=${encodeURIComponent("/set-password?new=1")}`;
+      }
 
       // Push notification to HQ — new lead!
       sendPushToHQ({
@@ -433,7 +445,10 @@ export async function POST(request: Request) {
           .catch(() => {});
       }
 
-      return NextResponse.json({ data: saved, created: true, setupUrl }, { status: 201 });
+      return NextResponse.json(
+        { data: saved, created: true, accountCreated, ...(setupUrl ? { setupUrl } : {}) },
+        { status: 201 },
+      );
     }
     // Notify VPS for lead capture + email notification (fallback if no email)
     notifyVpsNewLead(saved, body).catch(() => {});
