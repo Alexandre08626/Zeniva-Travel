@@ -1106,6 +1106,29 @@ function ProposalReviewPageInner() {
                     {paying ? "Redirecting to ZeniPay..." : "✓ Pay securely via ZeniPay →"}
                   </button>
                 )}
+                {/* Settlement-currency notice. Trip prices are in USD; the
+                    ZeniPay merchant account collects in CAD until Finix is
+                    live. Show the converted CAD figure so the customer is
+                    not surprised at checkout. */}
+                {(() => {
+                  const pm = (v) => { if (!v) return 0; const s = String(v).replace(/[^0-9.-]/g,""); return parseFloat(s) || 0; };
+                  const ft = pm(selection?.flight?.outbound ? (pm(selection.flight.outbound.price) + pm(selection.flight.inbound?.price)) : selection?.flight?.price) || 0;
+                  const ht = pm(selection?.hotel?.price) || 0;
+                  const vt = pm(selection?.villa?.price) || pm(selection?.shortterm?.price) || 0;
+                  const at = pm(selection?.activity?.price) || 0;
+                  const tt = pm(selection?.transfer?.price) || 0;
+                  const ct = pm(selection?.car?.price) || 0;
+                  const sub = ft + ht + vt + at + tt + ct;
+                  const totalUSD = sub > 0 ? Math.round(sub * 1.06 * 100) / 100 : (pricing?.total || 0);
+                  if (totalUSD <= 0) return null;
+                  const FX_USD_CAD = 1.37;
+                  const cad = Math.ceil(totalUSD * FX_USD_CAD * 100) / 100;
+                  return (
+                    <div className="rounded-xl border border-blue-100 bg-blue-50/70 px-3 py-2 text-[11px] text-blue-900 leading-relaxed">
+                      <span className="font-bold">💱 Currency:</span> Trip is priced in <strong>USD ${totalUSD.toLocaleString(undefined, { maximumFractionDigits: 2 })}</strong>. ZeniPay charges in CAD <strong>~${cad.toLocaleString(undefined, { maximumFractionDigits: 2 })}</strong> at the current rate ({FX_USD_CAD}). USD billing arrives with Finix soon.
+                    </div>
+                  );
+                })()}
                 <p className="text-center text-slate-500 text-[10px]">🔒 Secure · Cancellation policy applies</p>
               </div>
             </div>
