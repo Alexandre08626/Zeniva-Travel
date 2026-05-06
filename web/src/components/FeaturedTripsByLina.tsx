@@ -259,17 +259,26 @@ export default function FeaturedTripsByLina({ limit }: { limit?: number } = {}) 
                   )}
                 </div>
 
-                {flightTotal != null && (
-                  <div className="mb-3 rounded-lg border border-blue-100 bg-blue-50/60 px-2.5 py-1.5 text-[11px] flex items-center justify-between gap-2">
-                    <span className="text-blue-700 font-semibold truncate">
-                      ✈ Flight {origin.code} → {trip.destinationAirport}: ${Math.round(flightTotal).toLocaleString()}
-                      <span className="text-blue-400 font-normal"> / 2 pax</span>
+                {/* Reserved-height flight pill — always rendered (skeleton during
+                    loading) so the card doesn't jump when Duffel responds and
+                    the surrounding image / price block stays anchored. */}
+                <div className="mb-3 rounded-lg border border-blue-100 bg-blue-50/60 px-2.5 py-1.5 text-[11px] flex items-center justify-between gap-2 min-h-[28px]">
+                  {flightTotal != null ? (
+                    <>
+                      <span className="text-blue-700 font-semibold truncate">
+                        ✈ Flight {origin.code} → {trip.destinationAirport}: ${Math.round(flightTotal).toLocaleString()}
+                        <span className="text-blue-400 font-normal"> / 2 pax</span>
+                      </span>
+                      <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded shrink-0 ${live?.source === "duffel" ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-600"}`}>
+                        {sourceTag}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-blue-400 italic animate-pulse">
+                      ✈ Searching live flight {origin.code} → {trip.destinationAirport}…
                     </span>
-                    <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${live?.source === "duffel" ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-600"}`}>
-                      {sourceTag}
-                    </span>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 <div className="mt-auto flex items-end justify-between gap-3">
                   <div className="min-w-0">
