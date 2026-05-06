@@ -274,8 +274,8 @@ export default function FeaturedTripsByLina({ limit }: { limit?: number } = {}) 
                 <div className="mt-auto flex items-end justify-between gap-3">
                   <div className="min-w-0">
                     <div className="text-[10px] text-slate-500 font-semibold"><AutoTranslate text="From" className="inline" /></div>
-                    <div className={`text-xl sm:text-2xl font-black leading-none ${pricesLoading ? "text-slate-400" : "text-slate-900"}`}>
-                      {pricesLoading ? "—" : formatCurrencyAmount(displayPrice, trip.currency, locale)}
+                    <div className={`text-xl sm:text-2xl font-black leading-none ${pricesLoading ? "text-slate-400 animate-pulse" : "text-slate-900"}`}>
+                      {formatCurrencyAmount(displayPrice, trip.currency, locale)}
                     </div>
                     <div className="text-[10px] text-slate-500 mt-0.5"><AutoTranslate text="per person · 2-4 travelers" className="inline" /></div>
                   </div>

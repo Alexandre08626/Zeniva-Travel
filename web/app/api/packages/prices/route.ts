@@ -52,6 +52,35 @@ function fallbackFlightFromOriginUSD(originIATA: string, destIATA: string, baseF
   return Math.round(baseFromJFK * factor);
 }
 
+// Static FX rates for converting Duffel offers to USD. Duffel's default
+// account currency is often GBP, and many corridors return EUR or local
+// currencies — strict USD-only filtering was rejecting every live offer.
+// These rates are intentionally rough (no live FX); the goal is "live-ish
+// pricing within ~5%" which is more accurate than the heuristic fallback.
+const FX_TO_USD: Record<string, number> = {
+  USD: 1.0,
+  GBP: 1.27,
+  EUR: 1.08,
+  CAD: 0.74,
+  AUD: 0.66,
+  JPY: 0.0067,
+  CHF: 1.13,
+  MXN: 0.057,
+  AED: 0.27,
+  SGD: 0.74,
+  THB: 0.028,
+  IDR: 0.000063,
+  INR: 0.012,
+  ZAR: 0.054,
+};
+
+function offerToUSD(amount: number, currency: string): number | null {
+  const cur = currency.toUpperCase();
+  const rate = FX_TO_USD[cur];
+  if (!rate) return null;
+  return amount * rate;
+}
+
 async function fetchDuffelCheapest(
   origin: string,
   destination: string,
@@ -62,7 +91,9 @@ async function fetchDuffelCheapest(
   const passengers = Array.from({ length: Math.max(1, Math.min(travelers, 9)) }, () => ({ type: "adult" }));
   const slices = [{ origin, destination, departure_date: departureDate }];
   if (returnDate) slices.push({ origin: destination, destination: origin, departure_date: returnDate });
-  const payload = { passengers, slices };
+  // Ask Duffel to price in USD when possible — falls back to account
+  // currency for routes the API can't price in USD natively.
+  const payload = { passengers, slices, currency: "USD" };
   try {
     const result: any = await searchDuffelOffers(payload);
     const offers: any[] = result?.data?.offers || result?.offers || [];
@@ -73,10 +104,10 @@ async function fetchDuffelCheapest(
       const amount = parseFloat(offer?.total_amount || "0");
       const currency = String(offer?.total_currency || "USD").toUpperCase();
       if (!Number.isFinite(amount) || amount <= 0) continue;
-      // Only accept USD; skip currency conversion for now to keep prices honest.
-      if (currency !== "USD") continue;
-      if (bestUSD == null || amount < bestUSD) {
-        bestUSD = amount;
+      const usd = offerToUSD(amount, currency);
+      if (usd == null) continue; // unknown currency — skip rather than mis-price
+      if (bestUSD == null || usd < bestUSD) {
+        bestUSD = Math.round(usd);
         bestAirline = offer?.owner?.name || offer?.owner?.iata_code;
       }
     }
