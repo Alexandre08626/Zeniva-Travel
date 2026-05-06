@@ -2,6 +2,11 @@
 
 import FeaturedTripsByLina from "./FeaturedTripsByLina";
 
-export default function FeaturedTripsSection({ limit = 12 }: { limit?: number } = {}) {
-  return <FeaturedTripsByLina limit={limit} />;
+type Props = {
+  limit?: number;
+  initialPrices?: Record<string, any>;
+};
+
+export default function FeaturedTripsSection({ limit = 12, initialPrices }: Props = {}) {
+  return <FeaturedTripsByLina limit={limit} initialPrices={initialPrices} />;
 }

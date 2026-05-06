@@ -54,6 +54,15 @@ type PriceRow = {
   nights?: number;
 };
 
+type Props = {
+  limit?: number;
+  // Server-prefetched price map keyed by trip.id for the default origin
+  // (JFK). When supplied the grid renders with real numbers on first paint
+  // and skips the client-side fetch for the default origin — eliminates the
+  // post-hydration price jump from JSON baseline → cache.
+  initialPrices?: Record<string, PriceRow>;
+};
+
 function parseDates(datesStr: string): { checkIn?: string; checkOut?: string } {
   if (!datesStr) return {};
   // "June 14-19, 2026"
@@ -82,20 +91,27 @@ function parseDates(datesStr: string): { checkIn?: string; checkOut?: string } {
   return {};
 }
 
-export default function FeaturedTripsByLina({ limit }: { limit?: number } = {}) {
+export default function FeaturedTripsByLina({ limit, initialPrices }: Props = {}) {
   const router = useRouter();
   const { locale } = useI18n();
   const allTrips = (limit ? featuredTrips.slice(0, limit) : featuredTrips) as Trip[];
 
   const [origin, setOrigin] = useState<Origin>(ORIGINS[0]);
-  const [prices, setPrices] = useState<Record<string, PriceRow>>({});
+  const [prices, setPrices] = useState<Record<string, PriceRow>>(initialPrices || {});
   const [pricesLoading, setPricesLoading] = useState(false);
   const [pricesError, setPricesError] = useState<string | null>(null);
+  const hasInitialPrices = useMemo(
+    () => initialPrices != null && Object.keys(initialPrices).length > 0,
+    [initialPrices],
+  );
 
-  // Refresh prices whenever the origin changes. NYC (JFK) is the JSON
-  // baseline — we still hit the API so the cache warms up and we surface a
-  // real Duffel price for "Flight from NYC" on those cards too.
+  // Refresh prices whenever the origin changes — but skip the very first
+  // mount when the server already prefetched the default-origin rows: the
+  // initialPrices prop is the source of truth and a client-side refetch
+  // would only make the headline price jump for a few hundred ms.
   useEffect(() => {
+    if (origin.code === ORIGINS[0].code && hasInitialPrices) return;
+
     let abort = false;
     const controller = new AbortController();
     setPricesLoading(true);
@@ -142,7 +158,7 @@ export default function FeaturedTripsByLina({ limit }: { limit?: number } = {}) 
       abort = true;
       controller.abort();
     };
-  }, [origin.code, allTrips]);
+  }, [origin.code, allTrips, hasInitialPrices]);
 
   const handleBook = (trip: Trip) => {
     const destination = trip.destination.trim();

@@ -6,6 +6,7 @@ import Footer from "../../src/components/Footer";
 import FeaturedTripsByLina from "../../src/components/FeaturedTripsByLina";
 import LeadCapturePopup from "../../src/components/LeadCapturePopup.client";
 import featuredTrips from "../../src/data/lina_featured_trips.json";
+import { readPackagePriceCache } from "../../src/lib/packages/readPriceCache";
 
 export const metadata: Metadata = {
   title: "Hot Deals from New York 2026 — All-Inclusive Vacations & Luxury Trips | Zeniva",
@@ -30,7 +31,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PackagesPage() {
+export default async function PackagesPage() {
+  // SSR-prefetch the JFK rows from Supabase so the deal grid renders with
+  // real cached prices on first paint — no JSON-baseline → cache flicker.
+  const initialPrices = await readPackagePriceCache("JFK");
+
   const schema = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -76,7 +81,7 @@ export default function PackagesPage() {
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mb-3 leading-tight">Every Hot Deal from New York</h2>
               <p className="text-sm sm:text-base text-gray-500 max-w-2xl mx-auto leading-relaxed">Flights, hotels and transfers included. 100% customizable by Lina AI — just tell her your dates, group size, and preferences.</p>
             </div>
-            <FeaturedTripsByLina />
+            <FeaturedTripsByLina initialPrices={initialPrices} />
           </div>
         </section>
 

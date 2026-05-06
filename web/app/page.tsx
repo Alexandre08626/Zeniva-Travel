@@ -9,6 +9,7 @@ import LinaAvatar from "../src/components/LinaAvatar";
 import AutoTranslate from "../src/components/AutoTranslate";
 import FeaturedTripsSection from "../src/components/FeaturedTripsSection";
 import AppHomeGate from "../src/components/AppHomeGate.client";
+import { readPackagePriceCache } from "../src/lib/packages/readPriceCache";
 // MobilePromoBadge removed — no more 15% badge for anonymous users
 
 export const metadata: Metadata = {
@@ -56,7 +57,11 @@ const STATS = [
 const isLoggedIn = false;
 const userEmail = "user@email.com";
 
-export default function HomePage() {
+export default async function HomePage() {
+  // SSR-prefetch the JFK rows so the deal grid below renders with real
+  // cached prices on first paint — the post-hydration price jump is gone.
+  const initialPrices = await readPackagePriceCache("JFK");
+
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "TravelAgency",
@@ -425,7 +430,7 @@ export default function HomePage() {
                 View all <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
               </Link>
             </div>
-            <FeaturedTripsSection />
+            <FeaturedTripsSection initialPrices={initialPrices} />
           </div>
         </section>
 
