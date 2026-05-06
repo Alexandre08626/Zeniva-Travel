@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
 
+// Emails that must never be deletable as a "client" — these belong to
+// the founder / HQ accounts and blocking them locks the operator out.
+const PROTECTED_EMAILS = new Set([
+  "info@zeniva.ca",
+  "info@zenivatravel.com",
+  "info@zeniva.com",
+  "zenipay@zeniva.ca",
+]);
+
 export async function POST(req: NextRequest) {
   // Auth: HQ/admin only
   const sessionCookie = req.cookies.get("zeniva_session")?.value || "";
@@ -11,6 +20,13 @@ export async function POST(req: NextRequest) {
 
   const { email } = await req.json();
   if (!email) return NextResponse.json({ error: "email required" }, { status: 400 });
+
+  if (PROTECTED_EMAILS.has(String(email).toLowerCase())) {
+    return NextResponse.json(
+      { error: "This email is a protected HQ account and cannot be deleted." },
+      { status: 403 },
+    );
+  }
 
   const { client } = getSupabaseAdminClient();
 

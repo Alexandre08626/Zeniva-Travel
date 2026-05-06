@@ -4,6 +4,16 @@ import { getSupabaseAdminClient } from "@/src/lib/supabase/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// Emails that must never be deletable as an "agent" — these belong to
+// the founder / HQ accounts and blocking them locks the operator out.
+const PROTECTED_EMAILS = new Set([
+  "info@zeniva.ca",
+  "info@zenivatravel.com",
+  "info@zeniva.com",
+  "zenipay@zeniva.ca",
+]);
+const PROTECTED_AGENT_IDS = new Set(["hq-zeniva"]);
+
 export async function POST(req: NextRequest) {
   // Auth: HQ or admin only (cookie-based, same as agents-proxy)
   const sessionCookie = req.cookies.get("zeniva_session")?.value || "";
@@ -15,6 +25,17 @@ export async function POST(req: NextRequest) {
   const { agentId, email } = await req.json();
   if (!agentId && !email) {
     return NextResponse.json({ error: "agentId or email required" }, { status: 400 });
+  }
+
+  const lcEmail = email ? String(email).toLowerCase() : "";
+  if (
+    (lcEmail && PROTECTED_EMAILS.has(lcEmail)) ||
+    (agentId && PROTECTED_AGENT_IDS.has(String(agentId)))
+  ) {
+    return NextResponse.json(
+      { error: "This account is a protected HQ account and cannot be deleted." },
+      { status: 403 },
+    );
   }
 
   const { client } = getSupabaseAdminClient();
