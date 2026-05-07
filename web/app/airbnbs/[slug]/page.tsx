@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import AirbnbAvailability from '@/src/components/airbnbs/AirbnbAvailability.client';
 import AirbnbBookingSummary from '@/src/components/airbnbs/AirbnbBookingSummary.client';
+import VillaShareButton from '@/src/components/airbnbs/VillaShareButton.client';
 import AddToProposalButton from '@/src/components/proposals/AddToProposalButton.client';
 import ResidenceGalleryLightbox from '@/src/components/residences/ResidenceGalleryLightbox.client';
 import { formatCurrencyAmount, normalizeListingTitle, normalizePetFriendly } from '@/src/lib/format';
@@ -180,7 +181,7 @@ export default async function AirbnbDetailPage({ params, searchParams }: { param
                 <p className="text-[11px] font-semibold text-blue-700">Concierge option</p>
               </div>
             </Link>
-            <button className="rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-semibold text-blue-700">Share</button>
+            <VillaShareButton slug={slug} title={displayTitle} />
             <button className="rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-semibold text-blue-700">Save</button>
           </div>
         </div>
