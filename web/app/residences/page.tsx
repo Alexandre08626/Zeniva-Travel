@@ -193,21 +193,10 @@ function ResidencesContent() {
           </div>
 
           <div className="mt-3 space-y-2">
-            <button onClick={() => {
-              const params = new URLSearchParams({
-                name: villa.name || "",
-                city: villa.city || villa.location || "",
-                photo: villa.photo || "",
-                price: String(villa.rawPrice || 0),
-                type: villa.propertyType || villa.type || "ZeniStay",
-                bedrooms: String(villa.bedrooms || ""),
-                bathrooms: String(villa.bathrooms || ""),
-                maxGuests: String(villa.maxGuests || guests),
-                desc: villa.description || "",
-              });
-              router.push(`/zenistay/${villa.id || villaId}?${params.toString()}`);
-            }}
-              className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-black py-3 hover:opacity-90 transition shadow">
+            <button
+              onClick={() => router.push(`/zenistay/${villa.id || villaId}`)}
+              className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-black py-3 hover:opacity-90 transition shadow"
+            >
               🏠 View & Book — Photos + Payment →
             </button>
             <div className="grid grid-cols-2 gap-2">
@@ -400,18 +389,13 @@ function ResidencesContent() {
                 </div>
               )}
               <div className="mt-5 flex flex-col gap-2">
-                <button onClick={() => {
-                  const p = new URLSearchParams({
-                    name: photoModal.name || "", city: photoModal.city || photoModal.location || "",
-                    photo: photoModal.photo || "", price: String(photoModal.rawPrice || 0),
-                    type: photoModal.propertyType || photoModal.type || "ZeniStay",
-                    bedrooms: String(photoModal.bedrooms || ""), bathrooms: String(photoModal.bathrooms || ""),
-                    maxGuests: String(photoModal.maxGuests || guests), desc: photoModal.description || "",
-                  });
-                  router.push(`/zenistay/${photoModal.id}?${p.toString()}`);
-                  setPhotoModal(null);
-                }}
-                  className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black py-3.5 hover:opacity-90 transition shadow">
+                <button
+                  onClick={() => {
+                    router.push(`/zenistay/${photoModal.id}`);
+                    setPhotoModal(null);
+                  }}
+                  className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black py-3.5 hover:opacity-90 transition shadow"
+                >
                   🏠 View & Book — Photos + Payment →
                 </button>
                 <div className="grid grid-cols-2 gap-2">

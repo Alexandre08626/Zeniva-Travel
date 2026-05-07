@@ -186,13 +186,11 @@ export default async function AirbnbDetailPage({ params, searchParams }: { param
         </div>
 
         <div className="space-y-2">
-          <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold">Zeniva travel</p>
-          <h1 className="text-3xl font-black text-slate-900">{displayTitle}</h1>
-          <div className="flex flex-wrap items-center gap-2 text-sm text-blue-800">
-            <span className="font-semibold">4.94 · 87 reviews</span>
-            <span>· Top host</span>
-            {propertyLocation && <span>· {propertyLocation}</span>}
-          </div>
+          <p className="text-xs uppercase tracking-[0.18em] text-blue-600 font-bold">Zeniva · ZeniStay</p>
+          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 leading-tight">{displayTitle}</h1>
+          {propertyLocation && (
+            <p className="text-sm font-semibold text-blue-800">📍 {propertyLocation}</p>
+          )}
           <p className="text-sm text-slate-600">{metaLine}</p>
         </div>
 
@@ -203,12 +201,11 @@ export default async function AirbnbDetailPage({ params, searchParams }: { param
             {propertyType ? `Entire ${propertyType.toLowerCase()}` : "Entire guest suite"} in {propertyLocation || "your destination"}
           </p>
           <p className="mt-1 text-sm text-slate-600">
-            {`2 guests${bedrooms ? ` · ${bedrooms} ${bedrooms === "1" ? "bedroom" : "bedrooms"}` : " · Studio"}${bathrooms ? ` · ${bathrooms} ${bathrooms === "1" ? "bath" : "baths"}` : " · 1 bath"}`}
+            {`${bedrooms ? `${bedrooms} ${bedrooms === "1" ? "bedroom" : "bedrooms"}` : "Studio"}${bathrooms ? ` · ${bathrooms} ${bathrooms === "1" ? "bath" : "baths"}` : " · 1 bath"}`}
           </p>
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-blue-800">
-            <span className="font-semibold">4.94</span>
-            <span>· 87 reviews</span>
-          </div>
+          <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-800">
+            ✓ Concierge support included
+          </p>
         </section>
 
         <div className="grid gap-8 lg:grid-cols-[1fr,360px]">
@@ -217,49 +214,32 @@ export default async function AirbnbDetailPage({ params, searchParams }: { param
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-slate-900">About this place</h2>
-                  <p className="text-sm text-blue-700">Hosted by Zeniva Concierge</p>
+                  <p className="text-sm text-blue-700">Curated & managed by Zeniva</p>
                 </div>
                 <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">Verified</span>
               </div>
-              <details className="group mt-4">
-                <summary className="cursor-pointer text-sm font-semibold text-blue-700">
-                  View description
-                </summary>
-                <p className="mt-3 text-sm leading-relaxed text-slate-700 whitespace-pre-line">
-                  {descriptionText || "Private stays curated by Zeniva, bookable with concierge support."}
-                </p>
-                <div className="mt-2 text-xs text-slate-500">Click again to close.</div>
-              </details>
-            </section>
-
-            <section className="rounded-2xl border border-blue-100 bg-white p-6">
-              <h3 className="text-lg font-semibold text-slate-900">What this place offers</h3>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 text-sm text-blue-800">
-                <span>• Ocean view</span>
-                <span>• Private pool</span>
-                <span>• Concierge check‑in</span>
-                <span>• Fast Wi‑Fi</span>
-                <span>• Full kitchen</span>
-                <span>• Daily housekeeping</span>
+              <div className="zenistay-description mt-4 text-sm leading-relaxed text-slate-700 whitespace-pre-line">
+                {descriptionText || "Private stays curated by Zeniva, bookable with concierge support."}
               </div>
             </section>
 
             <section className="rounded-2xl border border-blue-100 bg-white p-6">
-              <h3 className="text-lg font-semibold text-slate-900">Where you’ll sleep</h3>
-              <p className="mt-2 text-sm text-slate-700">{bedrooms ? `${bedrooms} bedroom` : "Private suite"} with fresh linens and on-site amenities.</p>
+              <h3 className="text-lg font-semibold text-slate-900">What's included with Zeniva</h3>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 text-sm text-slate-700">
+                <span>✓ Concierge check-in</span>
+                <span>✓ 24/7 trip support</span>
+                <span>✓ Verified property</span>
+                <span>✓ Secure ZeniPay checkout</span>
+              </div>
             </section>
 
             <section className="rounded-2xl border border-blue-100 bg-white p-6">
               <h3 className="text-lg font-semibold text-slate-900">Location</h3>
-              <p className="mt-2 text-sm text-blue-800">Address shared after final reservation.</p>
-            </section>
-
-            <section className="rounded-2xl border border-blue-100 bg-white p-6">
-              <h3 className="text-lg font-semibold text-slate-900">Reviews</h3>
-              <div className="mt-3 space-y-3 text-sm text-slate-700">
-                <p>“Perfect stay, Zeniva team handled everything smoothly.” — Camille</p>
-                <p>“Stunning views and the concierge was super responsive.” — Marc</p>
-              </div>
+              <p className="mt-2 text-sm text-blue-800">
+                {propertyLocation
+                  ? `${propertyLocation} — exact address shared after your reservation is confirmed.`
+                  : "Exact address shared after your reservation is confirmed."}
+              </p>
             </section>
 
             <AirbnbAvailability storageKey={storageKey} />
