@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore, isHQ } from "../lib/authStore";
+import AgentAvailabilityToggle from "../../components/handoff/AgentAvailabilityToggle.client";
+import AgentHandoffInbox from "../../components/handoff/AgentHandoffInbox.client";
 
 const BLUE = "#0F6CF5";
 const GREEN = "#10b981";
@@ -110,6 +112,7 @@ export default function AppAgentDashboard() {
               <div style={{ width: 7, height: 7, borderRadius: "50%", background: GREEN }} />
               <span style={{ fontSize: 11, fontWeight: 700, color: "#15803d" }}>ONLINE</span>
             </div>
+            <AgentAvailabilityToggle />
           </div>
         </div>
         {/* Stats */}
@@ -155,6 +158,11 @@ export default function AppAgentDashboard() {
             </div>
           </button>
         )}
+
+        {/* ── HUMAN HANDOFF INBOX ── */}
+        <div style={{ marginBottom: 14 }}>
+          <AgentHandoffInbox />
+        </div>
 
         {/* ── AI AGENTS — PHOTOS WOW ── */}
         <div style={{ background: "white", border: "1.5px solid #e2e8f0", borderRadius: 20, overflow: "hidden", marginBottom: 14 }}>
