@@ -105,7 +105,10 @@ export default function HumanHandoffModal({
       if (method === "call") {
         router.push(`/call/handoff/${encodeURIComponent(json.id)}?locale=${locale}`);
       } else {
-        router.push(`/chat?handoff=${encodeURIComponent(json.id)}&locale=${locale}`);
+        // Route chat to the live human-agent page (Supabase Realtime on
+        // agent_inbox_messages). /chat alone would land on Lina AI.
+        const src = encodeURIComponent(sourcePage || "/");
+        router.push(`/chat/agent?channel=agent-alexandre&source=${src}`);
       }
     } catch (err: any) {
       setMode("choice");
