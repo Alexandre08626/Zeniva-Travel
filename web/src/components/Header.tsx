@@ -147,7 +147,7 @@ export default function Header({
             <Link href="/zenistay" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="ZeniStays" className="inline" /></Link>
             {!loggedIn && (
               <>
-                <Link href="/agents" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="For Agents" className="inline" /></Link>
+                <Link href="/carrieres" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="Careers" className="inline" /></Link>
                 <Link href="/for-agencies" className="text-sm text-slate-700 hover:underline"><AutoTranslate text="For Agencies" className="inline" /></Link>
               </>
             )}
@@ -293,7 +293,7 @@ export default function Header({
                   { href: "/cruises", icon: "\uD83D\uDEA2", label: "ZeniCruise" },
                   { href: "/collections/group", icon: "\uD83D\uDC65", label: "ZeniGroup" },
                   ...(!loggedIn ? [
-                    { href: "/agents", icon: "\uD83D\uDCBC", label: "Become an Agent" },
+                    { href: "/carrieres", icon: "\uD83D\uDCBC", label: "Careers" },
                     { href: "/for-agencies", icon: "\uD83C\uDFE2", label: "For Agencies" },
                   ] : []),
                   { href: "/destinations", icon: "\uD83C\uDF0D", label: "Destinations" },
