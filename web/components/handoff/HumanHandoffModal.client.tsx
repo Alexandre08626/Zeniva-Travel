@@ -78,10 +78,6 @@ export default function HumanHandoffModal({
   }, [mode, onClose]);
 
   async function pickContactMethod(method: "chat" | "call") {
-    if (availability && availability.available_agents === 0) {
-      setMode("no_agent");
-      return;
-    }
     setMode("submitting");
     setError(null);
     try {
@@ -102,10 +98,13 @@ export default function HumanHandoffModal({
       if (!res.ok || !json?.ok) {
         throw new Error(json?.error || "Failed to start handoff");
       }
+      // Always route the visitor to the chat / call room. The agent gets
+      // notified by email + web push regardless of whether they're already
+      // online — the visitor can wait inside the room until the agent picks
+      // up. They can also fall back to "leave my contact" without restarting.
       if (method === "call") {
         router.push(`/call/handoff/${encodeURIComponent(json.id)}?locale=${locale}`);
       } else {
-        // Existing chat experience picks up the handoff via a query param.
         router.push(`/chat?handoff=${encodeURIComponent(json.id)}&locale=${locale}`);
       }
     } catch (err: any) {
@@ -174,12 +173,22 @@ export default function HumanHandoffModal({
                 <p className="mt-4 text-sm font-semibold text-red-600 text-center">{error}</p>
               ) : null}
 
-              <div className="mt-6 text-center">
+              <div className="mt-6 flex flex-col items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setMode("no_agent")}
+                  disabled={mode === "submitting"}
+                  className="text-sm font-semibold text-slate-600 hover:text-slate-900 underline transition disabled:opacity-50"
+                >
+                  {locale === "fr"
+                    ? "Préfère qu'on te rappelle ? Laisse tes coordonnées"
+                    : "Prefer a callback? Leave your contact instead"}
+                </button>
                 <button
                   type="button"
                   onClick={onClose}
                   disabled={mode === "submitting"}
-                  className="text-sm font-bold text-slate-500 hover:text-slate-900 transition disabled:opacity-50"
+                  className="text-xs font-bold text-slate-400 hover:text-slate-700 transition disabled:opacity-50"
                 >
                   {dict.cancel}
                 </button>
