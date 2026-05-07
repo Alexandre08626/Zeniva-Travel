@@ -40,6 +40,14 @@ export interface HandoffDict {
   postCallDesc: string;
   goToPayment: string;
   resumeCall: string;
+  // Chat waiting room (salle d'attente)
+  waitingTitle: string;
+  waitingSub: string;
+  waitingChecking: string;
+  waitingBusy: string;
+  waitingEstimate: (mins: number) => string;
+  startChatting: string;
+  backToPage: string;
 }
 
 export const HANDOFF_EN: HandoffDict = {
@@ -87,6 +95,13 @@ export const HANDOFF_EN: HandoffDict = {
   postCallDesc: "Your agent has sent you a payment link. Click below to finish your booking.",
   goToPayment: "Go to payment",
   resumeCall: "Something wrong? Resume call",
+  waitingTitle: "Connecting you to a Zeniva agent",
+  waitingSub: "We are notifying our team. You can start chatting right now — your message will reach a real human.",
+  waitingChecking: "Checking availability…",
+  waitingBusy: "All agents are busy — leave us a message and we'll reply by email",
+  waitingEstimate: (m) => (m <= 1 ? "est. wait under a minute" : `est. wait ${m} min`),
+  startChatting: "Start chatting",
+  backToPage: "Back to my page",
 };
 
 export const HANDOFF_FR: HandoffDict = {
@@ -134,6 +149,13 @@ export const HANDOFF_FR: HandoffDict = {
   postCallDesc: "Ton agent t'a envoyé un lien de paiement. Clique ci-dessous pour finaliser ta réservation.",
   goToPayment: "Aller au paiement",
   resumeCall: "Quelque chose ne va pas ? Reprendre l'appel",
+  waitingTitle: "On te connecte à un agent Zeniva",
+  waitingSub: "On prévient notre équipe. Tu peux commencer à écrire dès maintenant — ton message arrive à un vrai humain.",
+  waitingChecking: "Vérification des disponibilités…",
+  waitingBusy: "Tous nos agents sont occupés — laisse-nous un message, on te répond par courriel",
+  waitingEstimate: (m) => (m <= 1 ? "attente moins d'une minute" : `attente ~${m} min`),
+  startChatting: "Démarrer le chat",
+  backToPage: "Retour à ma page",
 };
 
 export function getHandoffDict(locale: HandoffLocale): HandoffDict {
