@@ -131,6 +131,42 @@ export default function TravelerAgentChatClient() {
   const [sending, setSending] = useState(false);
   const [activeTab, setActiveTab] = useState<"lina" | "agent">(hasExplicitAgentChannel ? "agent" : "lina");
 
+  // "salle d'attente" — only shown when arriving on the agent tab via the
+  // handoff modal (i.e. ?channel=...). Skippable with ?skipWait=1.
+  const skipWait = searchParams?.get("skipWait") === "1";
+  const [chatPhase, setChatPhase] = useState<"waiting" | "chat">(
+    hasExplicitAgentChannel && !skipWait ? "waiting" : "chat",
+  );
+  const [availability, setAvailability] = useState<{
+    available_agents: number;
+    estimated_wait_minutes: number | null;
+  } | null>(null);
+
+  useEffect(() => {
+    if (chatPhase !== "waiting") return;
+    let alive = true;
+    const fetchAvailability = async () => {
+      try {
+        const res = await fetch("/api/handoff/availability", { cache: "no-store" });
+        const json = await res.json();
+        if (alive && json?.ok) {
+          setAvailability({
+            available_agents: json.available_agents || 0,
+            estimated_wait_minutes: json.estimated_wait_minutes ?? null,
+          });
+        }
+      } catch {
+        if (alive) setAvailability({ available_agents: 0, estimated_wait_minutes: null });
+      }
+    };
+    void fetchAvailability();
+    const id = window.setInterval(fetchAvailability, 15000);
+    return () => {
+      alive = false;
+      window.clearInterval(id);
+    };
+  }, [chatPhase]);
+
   const quickHelpOptions = [
     "Change my dates",
     "Cancel or refund",
@@ -283,6 +319,75 @@ export default function TravelerAgentChatClient() {
       await postAgentMessage({ id: userMessage.id, createdAt: userMessage.createdAt || new Date().toISOString(), channelIds: [channelId, ADMIN_CHANNEL_ID], sourcePath, propertyName: listing, author: user?.name || user?.email || "Traveler", senderRole: "client", source: "traveler-chat", message: text });
     } finally { setSending(false); }
   };
+
+  if (chatPhase === "waiting") {
+    const online = (availability?.available_agents ?? 0) > 0;
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-[#0B1B4D] via-[#1E3A8A] to-[#0F6CF5] text-white flex items-center justify-center px-4 py-10">
+        <div className="w-full max-w-xl rounded-3xl border border-white/15 bg-white/10 backdrop-blur p-8 sm:p-10 shadow-2xl text-center">
+          <div className="flex justify-center mb-6">
+            <div className="relative">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#0F6CF5] to-[#7C3AED] flex items-center justify-center">
+                <User className="w-10 h-10 text-white" />
+              </div>
+              {online ? (
+                <span className="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-emerald-400 border-4 border-[#0B1B4D] animate-pulse" />
+              ) : null}
+            </div>
+          </div>
+          <h1 className="text-3xl font-black mb-2">Connecting you to a Zeniva agent</h1>
+          <p className="text-white/70 mb-6">
+            We are notifying our team. You can start chatting right now — your message will reach a real human.
+          </p>
+
+          <div
+            className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold mb-8 ${
+              availability === null
+                ? "bg-white/10 border-white/20 text-white/80"
+                : online
+                ? "bg-emerald-500/20 border-emerald-400/40 text-emerald-100"
+                : "bg-amber-500/20 border-amber-400/40 text-amber-100"
+            }`}
+          >
+            <span
+              className={`inline-block w-2 h-2 rounded-full ${
+                availability === null
+                  ? "bg-white/60 animate-pulse"
+                  : online
+                  ? "bg-emerald-400 animate-pulse"
+                  : "bg-amber-400"
+              }`}
+            />
+            {availability === null
+              ? "Checking availability…"
+              : online
+              ? `${availability!.available_agents} agent${availability!.available_agents > 1 ? "s" : ""} available${
+                  availability!.estimated_wait_minutes != null
+                    ? ` · est. wait ${availability!.estimated_wait_minutes} min`
+                    : ""
+                }`
+              : "All agents are busy — leave us a message and we'll reply by email"}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setChatPhase("chat")}
+            className="w-full rounded-2xl px-6 py-4 text-lg font-black shadow-2xl transition hover:scale-[1.01]"
+            style={{ background: "linear-gradient(135deg, #E6B85A, #C9941F)", color: "#0B1B4D" }}
+          >
+            Start chatting →
+          </button>
+
+          <Link
+            href={sourcePath}
+            className="block mt-4 text-sm text-white/60 hover:text-white underline"
+          >
+            ← Back to my page
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white">
