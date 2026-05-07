@@ -7,6 +7,7 @@ import { persistWorkflowStatePatch } from "../../../../src/lib/workflowPersisten
 import { applyHotelMarkupLabel } from "../../../../src/lib/partnerMarkup";
 import { useAuthStore } from "../../../../src/lib/authStore";
 import FinishAccountModal from "../../../../src/components/FinishAccountModal.client";
+import HumanHandoffButton from "../../../../components/handoff/HumanHandoffButton.client";
 
 type RateRow = {
   id?: string;
@@ -592,6 +593,33 @@ export default function HotelReviewClient() {
                 >
                   {isAirbnb ? (proposalTripId ? "✓ Confirm Airbnb & return to proposal →" : "✓ Request ZeniStay booking →") : (proposalTripId ? "✓ Confirm & return to proposal →" : "✓ Continue to payment →")}
                 </button>
+                <div className="mt-3">
+                  <HumanHandoffButton
+                    className="w-full"
+                    cartSnapshot={{
+                      total: Number(String(selectedRate?.total_amount || draft?.quote?.total_amount || "").replace(/[^0-9.]/g, "")) || 0,
+                      currency: selectedRate?.total_currency || draft?.quote?.total_currency || "USD",
+                      total_label: "Total",
+                      destination,
+                      items: [
+                        {
+                          label: selectedSearchResult?.name || "Hotel stay",
+                          detail: [
+                            selectedSearchResult?.location,
+                            checkIn && checkOut ? `${checkIn} → ${checkOut}` : null,
+                            nights ? `${nights} night${nights > 1 ? "s" : ""}` : null,
+                            `${guests} guest${Number(guests) > 1 ? "s" : ""}`,
+                            rooms ? `${rooms} room${Number(rooms) > 1 ? "s" : ""}` : null,
+                          ].filter(Boolean).join(" · "),
+                          amount: Number(String(selectedRate?.total_amount || draft?.quote?.total_amount || "").replace(/[^0-9.]/g, "")) || 0,
+                          currency: selectedRate?.total_currency || draft?.quote?.total_currency || "USD",
+                        },
+                      ],
+                    }}
+                    sourcePage={proposalTripId ? `/booking/hotels/review?proposalTripId=${proposalTripId}` : "/booking/hotels/review"}
+                    locale="en"
+                  />
+                </div>
                 <p className="text-center text-slate-500 text-[10px] mt-2">🔒 Secure booking · No payment now</p>
               </div>
             </div>

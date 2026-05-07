@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import HumanHandoffButton from "../../../../components/handoff/HumanHandoffButton.client";
 
 type OfferCard = {
   id: string;
@@ -181,13 +182,28 @@ export default function FlightPaymentPage() {
             <span className="text-lg font-black text-slate-900">{totalPrice}</span>
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <button
               onClick={onContinue}
               className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white"
             >
               {proposalReturnPath ? "Continue to proposal review" : "Continue to payment"}
             </button>
+            <HumanHandoffButton
+              cartSnapshot={{
+                total: Number(String(totalPrice).replace(/[^0-9.]/g, "")) || 0,
+                currency: "USD",
+                total_label: "Total due",
+                items: offers.map((o) => ({
+                  label: `${o.carrier} · ${o.code}`,
+                  detail: `${o.depart} → ${o.arrive} · ${o.cabin}`,
+                  amount: Number(String(o.price).replace(/[^0-9.]/g, "")) || 0,
+                  currency: "USD",
+                })),
+              }}
+              sourcePage="/booking/flights/payment"
+              locale="en"
+            />
           </div>
         </section>
       </div>
