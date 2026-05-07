@@ -107,8 +107,12 @@ export default function HumanHandoffModal({
       } else {
         // Route chat to the live human-agent page (Supabase Realtime on
         // agent_inbox_messages). /chat alone would land on Lina AI.
+        // Pass the handoff id so the visitor's channel matches the channel
+        // the agent will open when they click "Accept →".
         const src = encodeURIComponent(sourcePage || "/");
-        router.push(`/chat/agent?channel=agent-alexandre&source=${src}&locale=${locale}`);
+        router.push(
+          `/chat/agent?channel=agent-alexandre&source=${src}&locale=${locale}&handoff=${encodeURIComponent(json.id)}`,
+        );
       }
     } catch (err: any) {
       setMode("choice");
