@@ -219,9 +219,15 @@ export default async function AirbnbDetailPage({ params, searchParams }: { param
                 </div>
                 <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">Verified</span>
               </div>
-              <div className="zenistay-description mt-4 text-sm leading-relaxed text-slate-700 whitespace-pre-line">
-                {descriptionText || "Private stays curated by Zeniva, bookable with concierge support."}
-              </div>
+              <details className="group mt-4">
+                <summary className="cursor-pointer list-none flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-blue-700 hover:bg-slate-100 transition">
+                  <span>Read full description</span>
+                  <span className="text-slate-400 transition-transform group-open:rotate-180">▾</span>
+                </summary>
+                <div className="mt-4 text-sm leading-relaxed text-slate-700 whitespace-pre-line">
+                  {descriptionText || "Private stays curated by Zeniva, bookable with concierge support."}
+                </div>
+              </details>
             </section>
 
             <section className="rounded-2xl border border-blue-100 bg-white p-6">
