@@ -7,6 +7,7 @@ import { Send, ArrowLeft, Clock, Shield, CheckCircle, User, Sparkles } from "luc
 import { getSupabaseClient } from "../../../src/lib/supabase/client";
 import { useAuthStore } from "../../../src/lib/authStore";
 import { normalizeRbacRole } from "../../../src/lib/rbac";
+import { getHandoffDict, type HandoffLocale } from "../../../components/handoff/handoffDict";
 
 const ADMIN_CHANNEL_ID = "hq";
 
@@ -34,6 +35,10 @@ export default function TravelerAgentChatClient() {
   const sourcePath = searchParams?.get("source") || "/";
   const rawChannelId = searchParams?.get("channel") || "agent-alexandre";
   const hasExplicitAgentChannel = Boolean(searchParams?.get("channel"));
+  const localeQuery = searchParams?.get("locale");
+  const locale: HandoffLocale =
+    localeQuery === "fr" || sourcePath.startsWith("/fr/") ? "fr" : "en";
+  const dict = getHandoffDict(locale);
   const user = useAuthStore((s) => s.user);
   const roles = useMemo(() => (user?.roles && user.roles.length ? user.roles : user?.role ? [user.role] : []), [user]);
   const effectiveRole = useMemo(() => normalizeRbacRole(user?.effectiveRole) || normalizeRbacRole(roles[0]), [user?.effectiveRole, roles]);
@@ -335,10 +340,8 @@ export default function TravelerAgentChatClient() {
               ) : null}
             </div>
           </div>
-          <h1 className="text-3xl font-black mb-2">Connecting you to a Zeniva agent</h1>
-          <p className="text-white/70 mb-6">
-            We are notifying our team. You can start chatting right now — your message will reach a real human.
-          </p>
+          <h1 className="text-3xl font-black mb-2">{dict.waitingTitle}</h1>
+          <p className="text-white/70 mb-6">{dict.waitingSub}</p>
 
           <div
             className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold mb-8 ${
@@ -359,14 +362,14 @@ export default function TravelerAgentChatClient() {
               }`}
             />
             {availability === null
-              ? "Checking availability…"
+              ? dict.waitingChecking
               : online
-              ? `${availability!.available_agents} agent${availability!.available_agents > 1 ? "s" : ""} available${
+              ? `${dict.agentsAvailable(availability!.available_agents)}${
                   availability!.estimated_wait_minutes != null
-                    ? ` · est. wait ${availability!.estimated_wait_minutes} min`
+                    ? ` · ${dict.waitingEstimate(availability!.estimated_wait_minutes)}`
                     : ""
                 }`
-              : "All agents are busy — leave us a message and we'll reply by email"}
+              : dict.waitingBusy}
           </div>
 
           <button
@@ -375,14 +378,14 @@ export default function TravelerAgentChatClient() {
             className="w-full rounded-2xl px-6 py-4 text-lg font-black shadow-2xl transition hover:scale-[1.01]"
             style={{ background: "linear-gradient(135deg, #E6B85A, #C9941F)", color: "#0B1B4D" }}
           >
-            Start chatting →
+            {dict.startChatting} →
           </button>
 
           <Link
             href={sourcePath}
             className="block mt-4 text-sm text-white/60 hover:text-white underline"
           >
-            ← Back to my page
+            ← {dict.backToPage}
           </Link>
         </div>
       </main>
