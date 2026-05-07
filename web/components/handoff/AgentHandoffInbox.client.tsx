@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseClient } from "../../src/lib/supabase/client";
+import { useAuthStore } from "../../src/lib/authStore";
 import { projectCartSnapshot } from "./CartSidebar.client";
 
 interface HandoffRow {
@@ -27,8 +28,10 @@ const PING_DATA_URI =
  */
 export default function AgentHandoffInbox({ className = "" }: { className?: string }) {
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
   const [items, setItems] = useState<HandoffRow[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [claimingId, setClaimingId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -81,11 +84,47 @@ export default function AgentHandoffInbox({ className = "" }: { className?: stri
     };
   }, []);
 
-  function open(row: HandoffRow) {
-    if (row.contact_method === "call") {
-      router.push(`/agent/handoff/${encodeURIComponent(row.id)}?locale=${row.locale || "en"}`);
-    } else {
-      router.push(`/agent/chat?handoff=${encodeURIComponent(row.id)}`);
+  async function open(row: HandoffRow) {
+    if (claimingId) return;
+    const agentId = user?.id || user?.email || "agent";
+    setClaimingId(row.id);
+    try {
+      const res = await fetch("/api/handoff/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ request_id: row.id, agent_id: agentId }),
+      });
+      if (res.status === 409) {
+        // Another agent already claimed it — the realtime UPDATE will purge
+        // the row, but drop it locally too so the UI feels instant.
+        setItems((prev) => prev.filter((p) => p.id !== row.id));
+        return;
+      }
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json?.error || "Failed to accept request");
+      }
+      // Optimistically remove — realtime UPDATE will hit too but this avoids
+      // any flicker between click and the WS round-trip.
+      setItems((prev) => prev.filter((p) => p.id !== row.id));
+      if (row.contact_method === "call") {
+        router.push(`/agent/handoff/${encodeURIComponent(row.id)}?locale=${row.locale || "en"}`);
+      } else {
+        // Use the deterministic handoff channel id so the agent sees the
+        // same thread the visitor is typing in. The "label" makes the
+        // sidebar entry meaningful.
+        const cart = projectCartSnapshot(row.cart_snapshot);
+        const labelBits = [row.client_name || row.client_email || "Visitor", row.source_page, cart.totalAmount].filter(Boolean);
+        const label = labelBits.join(" · ");
+        const channel = `handoff-${row.id}`;
+        router.push(
+          `/agent/chat?channel=${encodeURIComponent(channel)}&label=${encodeURIComponent(label)}`,
+        );
+      }
+    } catch (err: any) {
+      setError(err?.message || "Failed to accept request");
+    } finally {
+      setClaimingId(null);
     }
   }
 
@@ -114,8 +153,9 @@ export default function AgentHandoffInbox({ className = "" }: { className?: stri
               <li key={row.id}>
                 <button
                   type="button"
-                  onClick={() => open(row)}
-                  className="w-full text-left px-4 py-3 hover:bg-slate-50 transition flex items-start gap-3"
+                  onClick={() => void open(row)}
+                  disabled={claimingId === row.id}
+                  className="w-full text-left px-4 py-3 hover:bg-slate-50 transition flex items-start gap-3 disabled:opacity-60 disabled:cursor-wait"
                 >
                   <div className="text-2xl">{row.contact_method === "call" ? "📹" : "🗨️"}</div>
                   <div className="flex-1 min-w-0">
@@ -131,7 +171,7 @@ export default function AgentHandoffInbox({ className = "" }: { className?: stri
                     </div>
                   </div>
                   <span className="text-xs font-bold text-slate-900 bg-amber-100 border border-amber-200 rounded-full px-2 py-0.5">
-                    Accept →
+                    {claimingId === row.id ? "Accepting…" : "Accept →"}
                   </span>
                 </button>
               </li>

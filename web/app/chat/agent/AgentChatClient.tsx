@@ -34,6 +34,7 @@ export default function TravelerAgentChatClient() {
   const listing = searchParams?.get("listing") || "Help Center";
   const sourcePath = searchParams?.get("source") || "/";
   const rawChannelId = searchParams?.get("channel") || "agent-alexandre";
+  const handoffId = searchParams?.get("handoff");
   const hasExplicitAgentChannel = Boolean(searchParams?.get("channel"));
   const localeQuery = searchParams?.get("locale");
   const locale: HandoffLocale =
@@ -44,9 +45,14 @@ export default function TravelerAgentChatClient() {
   const effectiveRole = useMemo(() => normalizeRbacRole(user?.effectiveRole) || normalizeRbacRole(roles[0]), [user?.effectiveRole, roles]);
   const isYachtBroker = effectiveRole === "yacht_broker";
 
-  // Generate a PRIVATE channel per client so conversations are isolated
-  // Logged-in: use their email slug. Guest: use a persistent random session ID
+  // Generate a PRIVATE channel per client so conversations are isolated.
+  // Priority order:
+  //   1. ?handoff=<id> → use handoff-<id> so the agent and visitor land on
+  //      the same thread when the agent clicks "Accept →".
+  //   2. Logged-in users → email slug.
+  //   3. Guests → persistent random session ID from localStorage.
   const clientChannelId = useMemo(() => {
+    if (handoffId) return `handoff-${handoffId}`;
     if (user?.email) {
       // e.g. "agent-alexandre-client-louisblais26"
       const emailSlug = String(user.email).split("@")[0].toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 20);
@@ -63,7 +69,7 @@ export default function TravelerAgentChatClient() {
       return `${rawChannelId}-guest-${guestId}`;
     }
     return rawChannelId;
-  }, [user?.email, rawChannelId]);
+  }, [handoffId, user?.email, rawChannelId]);
 
   const brokerChannelId = useMemo(() => {
     if (!isYachtBroker || !user?.email) return null;
