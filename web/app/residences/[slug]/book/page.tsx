@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import Image from "next/image";
+import HumanHandoffButton from "../../../../components/handoff/HumanHandoffButton.client";
 
 const VPS = "https://vmi3097009.contaboserver.net";
 
@@ -230,6 +231,29 @@ function BookingForm() {
             className="w-full py-3.5 rounded-2xl border-2 border-slate-200 text-slate-700 font-bold text-sm hover:border-blue-300 hover:text-blue-600 transition disabled:opacity-50">
             {loading ? "Sending…" : "📋 Reserve now, pay later — Agent will confirm"}
           </button>
+          <HumanHandoffButton
+            className="w-full"
+            cartSnapshot={{
+              total: displayTotal,
+              currency: "USD",
+              total_label: "Total",
+              items: [
+                {
+                  label: property || slug || "ZeniStay",
+                  detail: checkin && checkout ? `${checkin} → ${checkout} · ${nights} night${nights > 1 ? "s" : ""} · ${guests} guest${Number(guests) > 1 ? "s" : ""}` : `${nights} night${nights > 1 ? "s" : ""}`,
+                  amount: subtotal,
+                  currency: "USD",
+                },
+                { label: "Cleaning fee", amount: CLEANING_FEE, currency: "USD" },
+                { label: "Concierge fee", amount: CONCIERGE_FEE, currency: "USD" },
+                { label: "Taxes", amount: taxes, currency: "USD" },
+              ],
+            }}
+            clientName={name || undefined}
+            clientEmail={email || undefined}
+            sourcePage={`/zenistay/${slug}/book`}
+            locale="en"
+          />
           <p className="text-center text-xs text-slate-400">🔒 Visa · Mastercard · Amex · Apple Pay · No hidden fees</p>
         </div>
       </div>

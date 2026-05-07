@@ -9,6 +9,7 @@ import SelectedSummary from "../../../../src/components/SelectedSummary";
 import { loadTripWorkflowState, persistWorkflowStatePatch } from "../../../../src/lib/workflowPersistence";
 import yachtsData from "../../../../src/data/ycn_packages.json";
 import airbnbsData from "../../../../src/data/airbnbs.json";
+import HumanHandoffButton from "../../../../components/handoff/HumanHandoffButton.client";
 
 function ProposalReviewPageInner() {
   const params = useParams();
@@ -1127,6 +1128,41 @@ function ProposalReviewPageInner() {
                     <div className="rounded-xl border border-blue-100 bg-blue-50/70 px-3 py-2 text-[11px] text-blue-900 leading-relaxed">
                       <span className="font-bold">💱 Currency:</span> Trip is priced in <strong>USD ${totalUSD.toLocaleString(undefined, { maximumFractionDigits: 2 })}</strong>. ZeniPay charges in CAD <strong>~${cad.toLocaleString(undefined, { maximumFractionDigits: 2 })}</strong> at the current rate ({FX_USD_CAD}). USD billing arrives with Finix soon.
                     </div>
+                  );
+                })()}
+                {(() => {
+                  const pm = (v) => { if (!v) return 0; const s = String(v).replace(/[^0-9.-]/g,""); return parseFloat(s) || 0; };
+                  const ft = pm(selection?.flight?.outbound ? (pm(selection.flight.outbound.price) + pm(selection.flight.inbound?.price)) : selection?.flight?.price) || 0;
+                  const ht = pm(selection?.hotel?.price) || 0;
+                  const vt = pm(selection?.villa?.price) || pm(selection?.shortterm?.price) || 0;
+                  const at = pm(selection?.activity?.price) || 0;
+                  const tt = pm(selection?.transfer?.price) || 0;
+                  const ct = pm(selection?.car?.price) || 0;
+                  const sub = ft + ht + vt + at + tt + ct;
+                  const totalUSD = sub > 0 ? Math.round(sub * 1.06 * 100) / 100 : (pricing?.total || 0);
+                  const items = [];
+                  if (selection?.flight) items.push({ label: "Flight", detail: selection.flight.airline || selection.flight.route || "", amount: ft, currency: "USD" });
+                  if (selection?.hotel) items.push({ label: "Stay", detail: selection.hotel.name || "", amount: ht, currency: "USD" });
+                  if (selection?.villa) items.push({ label: "Villa", detail: selection.villa.name || "", amount: pm(selection.villa.price), currency: "USD" });
+                  if (selection?.shortterm) items.push({ label: "Short-term rental", detail: selection.shortterm.name || "", amount: pm(selection.shortterm.price), currency: "USD" });
+                  if (selection?.activity) items.push({ label: "Activity", detail: selection.activity.name || "", amount: at, currency: "USD" });
+                  if (selection?.transfer) items.push({ label: "Transfer", detail: selection.transfer.name || "", amount: tt, currency: "USD" });
+                  if (selection?.car) items.push({ label: "Car", detail: selection.car.name || "", amount: ct, currency: "USD" });
+                  return (
+                    <HumanHandoffButton
+                      className="w-full"
+                      cartSnapshot={{
+                        total: totalUSD,
+                        currency: "USD",
+                        total_label: "Total",
+                        destination: tripDraft?.destination || proposal?.title || "",
+                        items,
+                      }}
+                      clientName={(tripDraft?.clientName || proposal?.clientName || "") || undefined}
+                      clientEmail={(tripDraft?.clientEmail || tripDraft?.email || proposal?.clientEmail || "") || undefined}
+                      sourcePage={`/proposals/${tripId}/review`}
+                      locale="en"
+                    />
                   );
                 })()}
                 <p className="text-center text-slate-500 text-[10px]">🔒 Secure · Cancellation policy applies</p>
