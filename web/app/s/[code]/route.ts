@@ -6,7 +6,7 @@
  * so a slow DB write never holds up the redirect.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseAdminClient } from "../../../../src/lib/supabase/server";
+import { getSupabaseAdminClient } from "../../../src/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
