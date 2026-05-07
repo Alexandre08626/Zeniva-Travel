@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
 import ZeniPayButton from "../../../src/components/ZeniPayButton.client";
+import HumanHandoffButton from "../../../components/handoff/HumanHandoffButton.client";
 import { useTripsStore } from "../../../lib/store/tripsStore";
 import { useAuthStore } from "../../../src/lib/authStore";
 import { getImagesForDestination } from "../../../src/lib/images";
@@ -626,6 +627,27 @@ function CheckoutPageInner() {
               amount={trueTotal > 0 ? trueTotal : (pricing.hasAnyPrice ? pricing.total : 500)}
               currency="USD"
               disabled={!travelerForm.firstName.trim() || !travelerForm.email.trim()}
+            />
+            <HumanHandoffButton
+              className="w-full"
+              cartSnapshot={{
+                total: trueTotal > 0 ? trueTotal : (pricing.hasAnyPrice ? pricing.total : 0),
+                currency: "USD",
+                total_label: "Total",
+                destination: tripDraft?.destination || "",
+                items: [
+                  selection?.flight ? { label: "Flight", detail: `${flight.airline} · ${flightRouteLabel}`, amount: Number(String(selection.flight.price || "").replace(/[^0-9.]/g, "")) || 0, currency: "USD" } : null,
+                  selection?.hotel ? { label: tripDraft?.accommodationType || "Stay", detail: `${hotel.name} · ${hotel.location || ""}`, amount: Number(String(selection.hotel.price || "").replace(/[^0-9.]/g, "")) || 0, currency: "USD" } : null,
+                  selection?.villa ? { label: "Villa", detail: selection.villa.name || "", amount: Number(String(selection.villa.price || "").replace(/[^0-9.]/g, "")) || 0, currency: "USD" } : null,
+                  selection?.shortterm ? { label: "Short-term rental", detail: selection.shortterm.name || "", amount: Number(String(selection.shortterm.price || "").replace(/[^0-9.]/g, "")) || 0, currency: "USD" } : null,
+                  selection?.activity ? { label: "Activity", detail: selection.activity.name || "", amount: Number(String(selection.activity.price || "").replace(/[^0-9.]/g, "")) || 0, currency: "USD" } : null,
+                  selection?.transfer ? { label: "Transfer", detail: selection.transfer.name || "", amount: Number(String(selection.transfer.price || "").replace(/[^0-9.]/g, "")) || 0, currency: "USD" } : null,
+                ].filter(Boolean),
+              }}
+              clientName={`${travelerForm.firstName || ""} ${travelerForm.lastName || ""}`.trim() || undefined}
+              clientEmail={travelerForm.email || undefined}
+              sourcePage={`/checkout/${proposalId}`}
+              locale="en"
             />
             <div className="rounded-xl border border-slate-200 bg-white p-3 text-xs" style={{ color: MUTED_TEXT }}>
               After payment, your concierge will confirm ticketing and send e-tickets via email.
