@@ -29,7 +29,7 @@ type ChatThread = {
   messages: ChatMessage[];
 };
 
-export default function TravelerAgentChatClient() {
+export default function TravelerChatClient() {
   const searchParams = useSearchParams();
   const listing = searchParams?.get("listing") || "Help Center";
   const sourcePath = searchParams?.get("source") || "/";
