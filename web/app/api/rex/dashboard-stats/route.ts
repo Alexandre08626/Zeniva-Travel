@@ -123,17 +123,7 @@ export async function GET(req: NextRequest) {
       // Table might not exist or query failed
     }
 
-    // 7. Lina Chats - total messages
-    try {
-      const { count: messagesCount } = await supabase
-        .from("agent_inbox_messages")
-        .select("*", { count: "exact", head: true });
-      stats.total_messages = messagesCount || 0;
-    } catch {
-      stats.total_messages = 0;
-    }
-
-    // 8. Open dossiers (trips/bookings in progress)
+    // 7. Open dossiers (trips/bookings in progress)
     try {
       const { count: dossiers } = await supabase
         .from("bookings")
@@ -144,7 +134,7 @@ export async function GET(req: NextRequest) {
       stats.open_dossiers = 0;
     }
 
-    // 9. Follow-ups due (bookings/leads with follow_up_date <= today)
+    // 8. Follow-ups due (bookings/leads with follow_up_date <= today)
     try {
       const { count: followups } = await supabase
         .from("bookings")

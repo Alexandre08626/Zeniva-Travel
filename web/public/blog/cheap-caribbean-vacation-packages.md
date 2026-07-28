@@ -80,6 +80,6 @@ At **Zeniva Travel**, we believe everyone deserves a little slice of paradise. *
 
 With so many affordable options in the Caribbean, now is the perfect time to plan your escape. Whether you’re seeking adventure, relaxation, or cultural immersion, there’s a vacation package that fits your desires and budget.
 
-**Ready to book? Chat with Lina, our AI travel concierge, and get a personalized quote in minutes → [zenivatravel.com](https://zenivatravel.com)**
+**Ready to book? Chat with Zeniva AI, our travel concierge, and get a personalized quote in minutes → [zenivatravel.com](https://zenivatravel.com)**
 
 Your dream Caribbean vacation is just a click away! Don’t miss out on the chance to explore the beauty of the Caribbean without breaking the bank. Let Zeniva Travel help you make unforgettable memories!

@@ -180,7 +180,7 @@ Decouvrez nos forfaits exclusifs et partez a l'aventure avec Zeniva Travel
     <td width="33%" style="text-align:center;vertical-align:top;padding:0 8px;">
       <p style="margin:0;font-size:20px;">&#9733;</p>
       <p style="margin:4px 0 0;font-size:12px;font-weight:700;color:#0B1228;">Support 24/7</p>
-      <p style="margin:2px 0 0;font-size:11px;color:#6B7280;">Lina, votre concierge</p>
+      <p style="margin:2px 0 0;font-size:11px;color:#6B7280;">Support premium</p>
     </td>
   </tr>
   </table>
@@ -270,7 +270,7 @@ export const ZENIVA_AGENCY_OUTREACH_TEMPLATE = {
     <table role="presentation" cellpadding="0" cellspacing="0">
     <tr><td style="padding:4px 0;font-size:14px;color:#6B7280;">&#10003; &nbsp;Moteur de recherche multi-GDS integre</td></tr>
     <tr><td style="padding:4px 0;font-size:14px;color:#6B7280;">&#10003; &nbsp;Systeme de paiement ZeniPay securise</td></tr>
-    <tr><td style="padding:4px 0;font-size:14px;color:#6B7280;">&#10003; &nbsp;IA concierge Lina pour vos clients</td></tr>
+    <tr><td style="padding:4px 0;font-size:14px;color:#6B7280;">&#10003; &nbsp;IA concierge Zeniva pour vos clients</td></tr>
     <tr><td style="padding:4px 0;font-size:14px;color:#6B7280;">&#10003; &nbsp;Tableaux de bord et analytics en temps reel</td></tr>
     <tr><td style="padding:4px 0;font-size:14px;color:#6B7280;">&#10003; &nbsp;Commission competitive et support dedie</td></tr>
     </table>

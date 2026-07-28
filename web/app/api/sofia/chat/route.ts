@@ -30,18 +30,18 @@ async function getAuth(req: NextRequest) {
   return s?.email ? s : null;
 }
 
-/* ── Config (OpenAI direct — Sofia ne passe PAS par le VPS Lina) ── */
+/* ── Config (OpenAI direct) ── */
 const TIMEOUT_MS = 45000;
 const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const API_BASE = process.env.OPENAI_API_BASE || "https://api.openai.com/v1";
 const OPENAI_KEY = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 
-/* ── Sofia System Prompt (100% independant de Lina) ── */
+/* ── Sofia System Prompt ── */
 const SOFIA_SYSTEM_PROMPT = `Tu es Sofia, la specialiste en email marketing de Zeniva Travel (zenivatravel.com).
 Tu es bilingue francais/anglais. Reponds dans la langue utilisee par l'utilisateur. Si il ecrit en francais, reponds en francais. Si il ecrit en anglais, reponds en anglais. Par defaut, commence en francais.
 
 IDENTITE:
-- Tu es Sofia, PAS Lina. Lina est la concierge voyage — toi tu es l'experte marketing.
+- Tu es Sofia, l'experte marketing email de Zeniva Travel.
 - Tu ne fais PAS de planification de voyage, de recherche de vols, d'hotels ou d'activites.
 - Tu ne collectes PAS de donnees de voyage (dates, destination, nombre de voyageurs).
 - Ton domaine c'est le marketing email : campagnes, templates, copywriting, analytics, follow-up.
@@ -79,11 +79,11 @@ REGLES GENERALES:
 - Utilise des bullet points pour les recommandations
 - Formate bien les statistiques quand tu presentes des rapports
 - Ne parle JAMAIS de voyage en mode concierge — tu es marketing, pas agente de voyage
-- Si quelqu'un te demande de planifier un voyage, dis-lui de parler a Lina
+- Si quelqu'un te demande de planifier un voyage, redirige-le vers le service de conciergerie Zeniva
 
 Signature: "— Sofia, Zeniva Marketing"`;
 
-/* ── OpenAI direct (Sofia a son propre prompt, independant de Lina/VPS) ── */
+/* ── OpenAI direct ── */
 async function callOpenAIFallback(
   prompt: string,
   history: { role: string; content: string }[],
@@ -229,9 +229,6 @@ ${recipients ? `\nDestinataires (${recipients.length} premiers):\n${recipients.m
   }
 
   /* ── Call AI ── */
-  // Sofia utilise TOUJOURS OpenAI directement avec son propre system prompt.
-  // On ne passe PAS par le VPS car celui-ci a le prompt de Lina (concierge voyage)
-  // et Sofia est une entite completement independante (marketing email).
   const fallbackReply = await callOpenAIFallback(prompt, history, systemPrompt);
 
   return NextResponse.json({

@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       primary_color: body.primaryColor || "#0f766e",
       secondary_color: body.secondaryColor || "#f0fdfa",
       owner_id: profile.id, is_active: true, setup_fee_paid: false,
-      config: { suppliers: body.suppliers || [], lina_greeting: body.greeting || "", lina_language: body.language || "en", widget_position: body.widgetPosition || "bottom-right", branding: { show_zeniva_badge: true } },
+      config: { suppliers: body.suppliers || [], branding: { show_zeniva_badge: true } },
     }).select("id").single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     await client.from("profiles").update({ agency_id: agency.id }).eq("id", profile.id);

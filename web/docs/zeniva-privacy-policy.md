@@ -1,11 +1,11 @@
 ## Overview
-Zeniva Travel is a concierge travel service operated by Zeniva LLC. This Privacy Policy explains how we collect, use, and protect personal information when you visit our website, use Lina AI, or communicate with us through messaging platforms.
+Zeniva Travel is a concierge travel service operated by Zeniva LLC. This Privacy Policy explains how we collect, use, and protect personal information when you visit our website, use Zeniva AI, or communicate with us through messaging platforms.
 
 ## Scope
 This policy applies to:
 - Visitors of https://www.zenivatravel.com
 - Travelers and clients who request trip planning or bookings
-- Communications handled through Lina AI, human agents, and automated systems
+- Communications handled through Zeniva AI, human agents, and automated systems
 
 ## Information We Collect
 We may collect the following categories of information:
@@ -18,8 +18,8 @@ We may collect the following categories of information:
 ## Messaging Platforms
 If you contact us via WhatsApp, Instagram, or Messenger, your messages are processed through Meta Business APIs. We may use automated messaging to acknowledge requests and provide updates. You can request a human agent at any time.
 
-## AI Concierge (Lina AI)
-Lina AI provides AI-powered responses to help draft itineraries, answer common questions, and route requests to our concierge team. AI outputs are informational and may require human validation. You can request human review or escalation at any time.
+## AI Concierge
+Zeniva AI provides AI-powered responses to help draft itineraries, answer common questions, and route requests to our concierge team. AI outputs are informational and may require human validation. You can request human review or escalation at any time.
 
 ## Data Processing
 We process conversations to deliver services, improve support quality, and comply with legal obligations. This includes data processing of conversations, message storage for audit and service continuity, and secure access controls. We retain messages only as long as needed for service delivery and compliance.
@@ -30,7 +30,7 @@ We may send automated messages for confirmations or updates. You can opt out of 
 ## How We Use Information
 We use your information to:
 - Provide travel planning, booking coordination, and customer support
-- Respond to inquiries through Lina AI or human agents
+- Respond to inquiries through Zeniva AI or human agents
 - Improve our services, security, and performance
 - Comply with legal, tax, and regulatory requirements
 

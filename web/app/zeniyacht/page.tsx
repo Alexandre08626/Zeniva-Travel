@@ -6,7 +6,7 @@ import YachtsPageClient from "../yachts/YachtsPageClient";
 export const metadata: Metadata = {
   title: "ZeniYacht — Private Yacht Charters & Sailing Trips | Zeniva",
   description:
-    "Book private yacht charters with ZeniYacht by Zeniva. Luxury sailing trips, mega-yacht rentals and ocean cruises worldwide — curated by Lina AI and validated by expert brokers. Serving all 50 states & Caribbean.",
+    "Book private yacht charters with ZeniYacht by Zeniva. Luxury sailing trips, mega-yacht rentals and ocean cruises worldwide — curated by Zeniva AI and validated by expert brokers. Serving all 50 states & Caribbean.",
   keywords: [
     "ZeniYacht",
     "luxury yacht charter USA",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "ZeniYacht — Private Yacht Charters & Sailing Trips | Zeniva",
     description:
-      "Private yacht charters worldwide. Sailing trips, mega-yachts, ocean cruises — curated by Lina AI. Expert brokers validate every booking.",
+      "Private yacht charters worldwide. Sailing trips, mega-yachts, ocean cruises — curated by Zeniva AI. Expert brokers validate every booking.",
     url: "https://www.zenivatravel.com/zeniyacht",
     siteName: "Zeniva",
     type: "website",
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "ZeniYacht — Private Yacht Charters & Sailing Trips",
     description:
-      "Private yacht charters & sailing trips worldwide. Curated by Lina AI, validated by expert brokers.",
+      "Private yacht charters & sailing trips worldwide. Curated by Zeniva AI, validated by expert brokers.",
     images: ["/api/og?title=ZeniYacht&description=Private+Yacht+Charters+%26+Sailing+Trips+Worldwide&type=zeniyacht"],
   },
 };

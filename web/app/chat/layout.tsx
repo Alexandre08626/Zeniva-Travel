@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "AI Travel Agent Chat",
   description:
-    "Chat with Lina AI, the travel concierge for intelligent itineraries. Discover destinations, budgets, and personalized experiences.",
+    "Chat with Zeniva AI, the travel concierge for intelligent itineraries. Discover destinations, budgets, and personalized experiences.",
   alternates: {
     canonical: "https://zenivatravel.com/chat",
     languages: {
@@ -15,26 +15,26 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Zeniva | AI Travel Agent Chat",
-    description:
-      "Chat with Lina AI to design a trip, then finalize with Zeniva’s concierge team.",
-    url: "https://zenivatravel.com/chat",
-    siteName: "Zeniva",
-    type: "website",
-    images: [
-      {
-        url: "/api/og?title=Chat+with+Lina+AI&description=Design+your+dream+trip+with+our+AI+travel+concierge&type=chat",
-        width: 1200,
-        height: 630,
-        alt: "Zeniva AI Chat",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Zeniva | AI Travel Agent Chat",
-    description:
-      "Chat with Lina AI to design a trip, then finalize with Zeniva’s concierge team.",
-    images: ["/api/og?title=Chat+with+Lina+AI&description=Design+your+dream+trip+with+our+AI+travel+concierge&type=chat"],
+      description:
+        "Chat with Zeniva AI to design a trip, then finalize with Zeniva's concierge team.",
+      url: "https://zenivatravel.com/chat",
+      siteName: "Zeniva",
+      type: "website",
+      images: [
+        {
+          url: "/api/og?title=Chat+with+Zeniva+AI&description=Design+your+dream+trip+with+our+AI+travel+concierge&type=chat",
+          width: 1200,
+          height: 630,
+          alt: "Zeniva AI Chat",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Zeniva | AI Travel Agent Chat",
+      description:
+        "Chat with Zeniva AI to design a trip, then finalize with Zeniva's concierge team.",
+      images: ["/api/og?title=Chat+with+Zeniva+AI&description=Design+your+dream+trip+with+our+AI+travel+concierge&type=chat"],
   },
 };
 

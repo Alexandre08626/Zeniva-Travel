@@ -10,7 +10,7 @@ const GOLD = "#E6B85A";
 const SEEN_KEY = "zeniva_agent_seen_v2";
 
 const AI_AGENTS = [
-  { name: "Lina",  role: "AI Concierge",    color: "#6366f1", icon: "✈️", status: "live",   photo: "/agents/lina.png"  },
+
   { name: "Marco", role: "Lead Hunter",      color: "#ef4444", icon: "🎯", status: "live",   photo: "/agents/marco.png" },
   { name: "Sofia", role: "Email Marketing",  color: "#ec4899", icon: "📧", status: "active", photo: "/agents/sofia.png" },
   { name: "Ben",  role: "Follow-up",        color: "#f59e0b", icon: "🔔", status: "active", photo: "/agents/noah.png"  },

@@ -53,11 +53,6 @@ export async function GET(req: NextRequest) {
     healthReport.checks.push(proposalsCheck);
     if (proposalsCheck.status !== "success") healthReport.issuesFound++;
 
-    // Check 6: Messages/conversations for Lina chats
-    const messagesCheck = await checkTable(supabase, "agent_inbox_messages", "lina_messages");
-    healthReport.checks.push(messagesCheck);
-    if (messagesCheck.status !== "success") healthReport.issuesFound++;
-
     // Determine overall status
     if (healthReport.issuesFound > 0) {
       healthReport.overallStatus = healthReport.issuesFound > 3 ? "critical" : "warning";

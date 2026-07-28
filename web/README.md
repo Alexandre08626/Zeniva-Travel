@@ -47,10 +47,6 @@ LITEAPI_BOOK_BASE_URL=https://book.liteapi.travel/v3.0
 
 ### Optional
 ```
-# Lina / Chat server
-LINA_API_URL=https://your-lina-server.example.com
-LINA_API_KEY=your_lina_api_key_here
-
 # Stripe (Payment processing)
 STRIPE_SECRET_KEY=your_stripe_secret_key_here
 ```
@@ -100,13 +96,6 @@ netlify deploy --prod
 ## Health and tests
 
 - Health: GET `/api/health` returns env status and provider reachability.
-- Smoke test (server must be running or set `LINA_BASE_URL`):
-
-```bash
-npm run test:lina
-```
-
-This posts to `/api/lina` with a sample prompt and fails fast if the provider or env are misconfigured.
 
 ### Duffel Stays end-to-end demo
 
@@ -134,7 +123,6 @@ If your Duffel account is not yet approved for Live mode, the server will automa
 - `/api/partners/duffel-stays` - Hotel search
 - `/api/partners/amadeus` - Alternative flight search
 - `/api/partners/liteapi` - LiteAPI (Nuitee) proxy (server-side)
-- `/api/lina` - AI chat
 - `/api/health` - System health check
 
 ### Amadeus (non-flight / non-hotel)

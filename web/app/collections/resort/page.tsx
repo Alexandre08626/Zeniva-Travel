@@ -26,7 +26,7 @@ export default function ResortsPage() {
                 <span className="block text-white/80 text-2xl md:text-3xl font-semibold mt-2">AI‑curated stays, smooth transfers, concierge support</span>
               </h1>
               <p className="text-sm md:text-base text-white/80 max-w-xl">
-                Lina AI and our team curate resorts for comfort, location, amenities, and seamless arrivals. We handle holds, arrivals, and trip coordination end‑to‑end.
+                Our team curates resorts for comfort, location, amenities, and seamless arrivals. We handle holds, arrivals, and trip coordination end‑to‑end.
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link href="/call" className="rounded-full px-5 py-2 text-sm font-bold text-slate-900" style={{ backgroundColor: ACCENT_GOLD || "#f8d475" }}>

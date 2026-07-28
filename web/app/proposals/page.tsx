@@ -244,7 +244,7 @@ export default function ProposalsPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Proposals & booking</p>
               <h1 className="text-3xl font-black" style={{ color: TITLE_TEXT }}>Your saved trips</h1>
               <p className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>
-                Lina keeps every proposal here. Pick up where you left off and finish booking in minutes.
+                Every proposal is saved here. Pick up where you left off and finish booking in minutes.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -270,7 +270,7 @@ export default function ProposalsPage() {
           <div className="rounded-2xl border border-dashed border-slate-200 bg-white/70 p-8 text-center shadow-sm">
             <div className="text-xl font-black" style={{ color: TITLE_TEXT }}>No proposals yet</div>
             <p className="mt-2 text-sm font-semibold" style={{ color: MUTED_TEXT }}>
-              Chat with Lina to generate your first proposal. Every draft, selection, and price lives here.
+              Chat with Zeniva AI to generate your first proposal. Every draft, selection, and price lives here.
             </p>
             <div className="mt-4 flex justify-center gap-2">
               <Link
@@ -278,7 +278,7 @@ export default function ProposalsPage() {
                 className="rounded-full px-5 py-2 text-sm font-bold text-white"
                 style={{ backgroundColor: PREMIUM_BLUE }}
               >
-                Chat with Lina
+                Plan new trip
               </Link>
               <Link
                 href="/collections/resort"

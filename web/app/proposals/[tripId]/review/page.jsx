@@ -558,10 +558,10 @@ function ProposalReviewPageInner() {
             ✏️ Edit selections
           </button>
           <button
-            onClick={() => router.push(isAgentMode ? `/agent/lina/chat/${tripId}` : `/chat/${tripId}`)}
+            onClick={() => router.push(isAgentMode ? `/agent/chat/${tripId}` : `/chat/${tripId}`)}
             className="flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 px-4 py-2 text-sm font-semibold text-white hover:bg-white/30 transition"
           >
-            💬 {isAgentMode ? "Back to Lina" : "Back to chat"}
+            💬 Back to chat
           </button>
         </div>
         {/* Title overlay */}

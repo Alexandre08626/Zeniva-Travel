@@ -4,7 +4,7 @@ type ChatSavePayload = {
   channelIds: string[];
   message: string;
   author: string;
-  senderRole: "agent" | "hq" | "lina" | "client";
+  senderRole: "agent" | "hq" | "client";
   source: string;
   sourcePath: string;
   propertyName?: string;

@@ -17,7 +17,6 @@ export async function POST(req: NextRequest) {
     const { email, type } = await req.json();
     const toEmail = email || "info@zeniva.ca";
 
-    // Email content from Lina
     const emailSubject = type === "sms"
       ? "📱 Luna SMS Test - Your 15% Welcome Discount Awaits!"
       : "✈️ Welcome to Zeniva Travel - Get 15% OFF Your First Trip!";
@@ -70,7 +69,7 @@ function generateWelcomeEmail() {
             </td>
           </tr>
 
-          <!-- Lina Avatar -->
+          <!-- Avatar -->
           <tr>
             <td style="padding: 30px 30px 20px 30px; text-align: center;">
               <div style="width: 80px; height: 80px; margin: 0 auto 15px; background: linear-gradient(135deg, #6366f1, #8B5CF6); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 40px;">
@@ -89,7 +88,7 @@ function generateWelcomeEmail() {
                 Hi there! 👋
               </p>
               <p style="margin: 0 0 20px 0; color: #1e293b; font-size: 16px; line-height: 1.6;">
-                I'm <strong>Lina</strong>, your personal AI travel assistant at Zeniva Travel. I noticed you're interested in planning your next adventure, and I'm here to help make it unforgettable!
+                Welcome to Zeniva Travel! We noticed you're interested in planning your next adventure, and we're here to help make it unforgettable!
               </p>
 
               <!-- Discount Box -->
@@ -158,8 +157,7 @@ function generateWelcomeEmail() {
               </p>
 
               <p style="margin: 20px 0 0 0; color: #1e293b; font-size: 16px;">
-                <strong>Lina</strong><br>
-                <span style="color: #64748b; font-size: 14px;">Your AI Travel Concierge</span><br>
+                <strong>The Zeniva Team</strong><br>
                 <span style="color: #64748b; font-size: 14px;">Zeniva Travel</span>
               </p>
             </td>

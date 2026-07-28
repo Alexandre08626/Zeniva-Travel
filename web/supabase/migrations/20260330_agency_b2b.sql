@@ -71,7 +71,7 @@ RETURNS VOID AS $$
 BEGIN
   INSERT INTO agency_pricing (agency_id, service, price_per_unit, cost_per_unit, unit_label)
   VALUES
-    (p_agency_id, 'lina_ai',     0.25, 0.01, 'interaction'),
+    (p_agency_id, 'ai_chat',     0.25, 0.01, 'interaction'),
     (p_agency_id, 'sms_twilio',  0.03, 0.008, 'message'),
     (p_agency_id, 'whatsapp',    0.02, 0.005, 'message'),
     (p_agency_id, 'email',       0.01, 0.002, 'courriel'),

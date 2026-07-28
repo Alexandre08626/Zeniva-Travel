@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "ZeniStay — Luxury Villas & Vacation Rentals | Zeniva",
   description:
-    "Book luxury ZeniStay villas, private homes, and premium vacation rentals worldwide through Zeniva. Curated properties in top destinations — planned by Lina AI.",
+    "Book luxury ZeniStay villas, private homes, and premium vacation rentals worldwide through Zeniva. Curated properties in top destinations — planned by Zeniva AI.",
   keywords: [
     "ZeniStay",
     "luxury ZeniStays USA",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "ZeniStay — Luxury Villas & Vacation Rentals | Zeniva",
-    description: "Premium vacation homes, private villas & luxury rentals worldwide. Curated by Lina AI.",
+    description: "Premium vacation homes, private villas & luxury rentals worldwide. Curated by Zeniva AI.",
     url: "https://www.zenivatravel.com/zenistay",
     siteName: "Zeniva",
     type: "website",

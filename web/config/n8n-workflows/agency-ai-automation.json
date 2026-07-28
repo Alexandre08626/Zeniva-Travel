@@ -1,0 +1,20 @@
+{
+  "name": "Agency AI - Auto-onboard New Agencies",
+  "nodes": [
+    {
+      "name": "CRON Trigger",
+      "type": "n8n-nodes-base.cron",
+      "parameters": { "triggerTimes": { "item": [{ "mode": "everyDay", "hour": 8 }, { "mode": "everyDay", "hour": 20 }] } }
+    },
+    {
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "method": "GET",
+        "url": "https://zeniva-dev-dashboard.vercel.app/api/automation/agency?secret=zeniva-cron-2026",
+        "authentication": "none"
+      }
+    }
+  ],
+  "connections": { "CRON Trigger": { "main": [[ { "node": "HTTP Request", "type": "main", "index": 0 } ]] } }
+}

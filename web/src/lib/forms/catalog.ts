@@ -41,7 +41,7 @@ export const FORM_DEFINITIONS: FormDefinition[] = [
     id: "travel-agent",
     title: "Plan Your Dream Trip ✈️",
     division: "TRAVEL",
-    description: "Fill out this form and our AI travel assistant Lina will start building your perfect trip!",
+    description: "Fill out this form and Zeniva AI will start building your perfect trip!",
     origin: "marketing-facebook",
     leadSource: "marketing travel",
     ownerPolicy: "fixed",

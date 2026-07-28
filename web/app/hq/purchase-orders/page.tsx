@@ -19,7 +19,7 @@ type BookingRequest = {
   title: string;
   clientName: string;
   dossierId: string;
-  source: "agent" | "lina" | "api";
+  source: "agent" | "api";
   provider: string;
   status: Status;
   paymentStatus: "paid" | "unpaid" | "unknown";

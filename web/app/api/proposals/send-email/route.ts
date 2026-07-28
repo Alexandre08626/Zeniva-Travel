@@ -266,7 +266,7 @@ export async function POST(req: NextRequest) {
           <tr>
             <td style="padding:16px 40px 32px;text-align:center;">
               <p style="margin:0 0 6px;font-size:13px;color:#6B7280;line-height:1.6;">
-                Questions? Reply to this email or chat with Lina at
+                Questions? Reply to this email or visit
                 <a href="https://zenivatravel.com" style="color:#0F6CF5;text-decoration:none;font-weight:600;">zenivatravel.com</a>
               </p>
               <p style="margin:12px 0 0;font-size:11px;color:#9CA3AF;">

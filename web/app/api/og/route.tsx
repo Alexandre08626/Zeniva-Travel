@@ -15,7 +15,6 @@ const CONFIGS: Record<string, { gradient: string; icon: string; badge?: string }
 };
 
 const AGENCY_AGENTS = [
-  { name: "Lina", role: "AI Concierge", image: "lina.png" },
   { name: "Sofia", role: "Operations", image: "sofia.png" },
   { name: "Luna", role: "Client Relations", image: "luna.png" },
   { name: "Rex", role: "Intelligence", image: "rex.png" },

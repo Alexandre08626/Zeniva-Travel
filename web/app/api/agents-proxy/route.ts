@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const VPS_BASE = "http://217.216.88.202:8000";
-const VPS_WEBHOOK = "https://vmi3097009.contaboserver.net/webhook/zeniva-lina-chat";
 const AUTH = "Bearer zeniva-secret-2025";
 
 export async function GET(req: NextRequest) {
@@ -43,7 +42,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(await r.json());
     }
     if (endpoint === "webhook-test") {
-      // Replaced: no longer sends messages to Lina — use /health instead
+      // Use /health instead
       const r = await fetch(`${VPS_BASE}/`, { next: { revalidate: 0 } });
       return NextResponse.json(await r.json());
     }

@@ -16,13 +16,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Zeniva | Trip Proposals",
     description:
-      "AI travel proposals created by Lina AI and validated by human concierge experts.",
+      "AI travel proposals created and validated by human concierge experts.",
     url: "https://zenivatravel.com/proposals",
     siteName: "Zeniva",
     type: "website",
     images: [
       {
-        url: "/api/og?title=Your+Trip+Proposal&description=AI+travel+proposals+by+Lina+AI%2C+validated+by+experts&type=proposal",
+        url: "/api/og?title=Your+Trip+Proposal&description=AI+travel+proposals+by+experts&type=proposal",
         width: 1200,
         height: 630,
         alt: "Zeniva Trip Proposal",
@@ -33,8 +33,8 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Zeniva | Trip Proposals",
     description:
-      "AI travel proposals created by Lina AI and validated by human concierge experts.",
-    images: ["/api/og?title=Your+Trip+Proposal&description=AI+travel+proposals+by+Lina+AI%2C+validated+by+experts&type=proposal"],
+      "AI travel proposals created and validated by human concierge experts.",
+    images: ["/api/og?title=Your+Trip+Proposal&description=AI+travel+proposals+by+experts&type=proposal"],
   },
 };
 

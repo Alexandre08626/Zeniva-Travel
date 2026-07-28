@@ -24,8 +24,7 @@ export async function appendLedger(entry: Omit<ZeniLedgerEntry, "id" | "created_
 }
 
 // ─── Append payment distribution (called after successful payment) ─────────
-// Travel agent involved: Agent 70%, Zeniva 30%
-// Lina books alone: Zeniva 70%, Agent 30%
+// Split: Agent 70%, Zeniva 30%
 // For now: 100% → Platform wallet (admin distributes manually)
 export async function recordPaymentReceived(opts: {
   paymentId: string;

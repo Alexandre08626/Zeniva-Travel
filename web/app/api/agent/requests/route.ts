@@ -63,7 +63,7 @@ type AgentRequest = {
   sourcePath?: string;
   propertyName?: string;
   author?: string;
-  senderRole?: "agent" | "hq" | "lina" | "client";
+  senderRole?: "agent" | "hq" | "client";
   source?: string;
 };
 
@@ -360,11 +360,11 @@ export async function POST(request: Request) {
     const channelIds = Array.from(new Set([...channelIdsSeed, "hq"]));
 
     const senderRole =
-      body?.senderRole === "agent" || body?.senderRole === "hq" || body?.senderRole === "lina" || body?.senderRole === "client"
+      body?.senderRole === "agent" || body?.senderRole === "hq" || body?.senderRole === "client"
         ? body.senderRole
         : undefined;
 
-    // Only authenticated agents/HQ/Lina can send non-client messages.
+    // Only authenticated agents/HQ can send non-client messages.
     if (senderRole && senderRole !== "client") {
       // Try x-user-email header first (used by AgentChat.client.tsx — bypasses JWT timing)
       const emailHeader = (request.headers.get("x-user-email") || "").toLowerCase().trim();

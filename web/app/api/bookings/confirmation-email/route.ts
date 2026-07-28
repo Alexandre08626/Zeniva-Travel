@@ -78,7 +78,7 @@ export async function POST(request: Request) {
       </div>
 
       <p style="color:#64748b;font-size:14px;line-height:1.6;margin:0 0 24px;">
-        You will receive your detailed flight itinerary and hotel voucher within 24 hours. If you have any questions, simply reply to this email or chat with Lina at zenivatravel.com.
+        You will receive your detailed flight itinerary and hotel voucher within 24 hours. If you have any questions, simply reply to this email or visit zenivatravel.com.
       </p>
 
       <div style="text-align:center;">

@@ -2,13 +2,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import nextDynamic from "next/dynamic";
 import ConversationsSidebar from "../../../components/chat/ConversationsSidebar";
 import ChatThread from "../../../components/chat/ChatThread";
 import TripSnapshotPanel from "../../../components/chat/TripSnapshotPanel";
 import { ensureSeedTrip, useTripsStore } from "../../../lib/store/tripsStore";
-
-const LinaVideoCall = nextDynamic(() => import("../../../src/components/LinaVideoCall"), { ssr: false });
 
 export default function CallTripPage() {
   const params = useParams();
@@ -37,9 +34,8 @@ export default function CallTripPage() {
             </Link>
             <div className="h-4 w-px bg-white/10" />
             <div className="flex items-center gap-2">
-              <img src="/branding/lina-hero.png" alt="Lina" className="h-8 w-8 rounded-full object-cover object-top" />
-              <span className="text-white font-bold text-sm">Lina AI</span>
-              <span className="text-white/40 text-xs">· Video Call</span>
+              <span className="text-white font-bold text-sm">Video Call</span>
+              <span className="text-white/40 text-xs">· Concierge</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -60,7 +56,9 @@ export default function CallTripPage() {
       <div className={`max-w-7xl mx-auto px-4 py-6 ${showChat ? "grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6" : ""}`}>
         {/* Video call - main area */}
         <div>
-          <LinaVideoCall tripId={tripId} />
+          <div className="flex items-center justify-center h-96 rounded-2xl bg-slate-800/50 border border-white/5">
+            <p className="text-white/40 text-sm">Video call interface</p>
+          </div>
         </div>
 
         {/* Side panel - chat + snapshot */}

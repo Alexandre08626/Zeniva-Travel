@@ -252,7 +252,7 @@ function ProposalSelectPageInner() {
   const [errorHotels, setErrorHotels] = useState(null);
   const [errorActivities, setErrorActivities] = useState(null);
   const [errorTransfers, setErrorTransfers] = useState(null);
-  // Section visibility overrides (allow adding sections not requested by Lina)
+  // Section visibility overrides
   const [showFlightsOverride, setShowFlightsOverride] = useState(false);
   const [showHotelsOverride, setShowHotelsOverride] = useState(false);
   const [showVillasOverride, setShowVillasOverride] = useState(false);
@@ -312,7 +312,7 @@ function ProposalSelectPageInner() {
   const tripDraft = (dbPayload?.tripDraft && Object.keys(dbPayload.tripDraft).length > 0) ? dbPayload.tripDraft : storeData.tripDraft;
   const snapshot = storeData.snapshot;
 
-  // Derived section visibility — show section if Lina requested it OR user manually added it
+  // Derived section visibility — show section if trip data or user override exists
   const showFlights = tripDraft?.transportationType === "Flights" || showFlightsOverride;
   const showHotels = (tripDraft?.accommodationType === "Hotel" || tripDraft?.accommodationType === "Yacht") || showHotelsOverride;
   const showVillas = tripDraft?.includeVillas === true
@@ -359,7 +359,7 @@ function ProposalSelectPageInner() {
       if (!tripDraft.departureCity && snapshot.departure) {
         missingData.departureCity = snapshot.departure.split(' - ')[0] || snapshot.departure;
       }
-      // Always sync destination from snapshot — snapshot is source of truth (from Lina chat)
+      // Always sync destination from snapshot — snapshot is source of truth
       // This fixes stale "Rome" destination in tripDraft when snapshot says "Miami"
       if (snapshot.destination) {
         const snapDest = snapshot.destination.split(' - ')[0] || snapshot.destination;
@@ -1405,10 +1405,10 @@ function ProposalSelectPageInner() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/70" />
         {/* Back button */}
         <button
-          onClick={() => router.push(isAgentMode ? `/agent/lina/chat/${tripId}` : `/chat/${tripId}`)}
+          onClick={() => router.push(isAgentMode ? `/agent/chat/${tripId}` : `/chat/${tripId}`)}
           className="absolute top-4 left-4 flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 px-4 py-2 text-sm font-semibold text-white hover:bg-white/30 transition"
         >
-          ← {isAgentMode ? "Back to Lina" : "Back to chat"}
+          ← Back to chat
         </button>
         {/* Destination overlay */}
         <div className="absolute bottom-0 left-0 right-0 px-6 pb-8">

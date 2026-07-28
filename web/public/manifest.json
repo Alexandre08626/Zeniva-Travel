@@ -1,7 +1,7 @@
 {
   "name": "Zeniva",
   "short_name": "Zeniva",
-  "description": "AI Travel Concierge — Luxury Trips & Custom Vacations powered by Lina AI",
+  "description": "AI Travel Concierge — Luxury Trips & Custom Vacations powered by Zeniva AI",
   "start_url": "/?pwa=1",
   "display": "standalone",
   "background_color": "#0B1B4D",
@@ -11,13 +11,6 @@
   "scope": "/",
   "categories": ["travel", "lifestyle"],
   "shortcuts": [
-    {
-      "name": "Chat with Lina",
-      "short_name": "Chat",
-      "description": "Start a new trip with Lina AI",
-      "url": "/chat",
-      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
-    },
     {
       "name": "My Trips",
       "short_name": "Trips",
@@ -38,13 +31,5 @@
     { "src": "/icons/icon-192x192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
     { "src": "/icons/icon-512x512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
-  "screenshots": [
-    {
-      "src": "/branding/lina-hero.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Zeniva — Chat with Lina AI"
-    }
-  ]
+  "screenshots": []
 }

@@ -34,9 +34,6 @@ interface ProposalData {
   imagesHTML?: string;
   logo?: string;
   logoDataUri?: string | null;
-  linaAvatar?: string | null;
-  linaNote?: string;
-  linaIntroText?: string;
   heroImage?: string | null;
   galleryHTML?: string;
   imageGridHTML?: string;
@@ -271,9 +268,6 @@ export async function POST(request: NextRequest) {
     const logoPath = path.join('branding', 'logo.png');
     logoDataUri = await inlineImage(`/${logoPath}`) || await inlineImage(proposal.logo) || null;
 
-    // Inline Lina avatar if provided via proposal.linaAvatar or use public branding avatar
-    const linaAvatar = await inlineImage('/branding/lina-avatar.png') || await inlineImage(proposal.linaAvatar) || null;
-
     // Build images HTML gallery from proposal.images or shortlist items with image property
     const imageSources: string[] = [];
     if (Array.isArray(proposal.images) && proposal.images.length > 0) {
@@ -337,26 +331,10 @@ export async function POST(request: NextRequest) {
       `;
     }
 
-    // Build Lina's summary text based on selections (shortlist, itinerary, and key fields)
-    const selectedItems = [] as string[];
-    if (proposal.shortlist && Array.isArray(proposal.shortlist)) {
-      for (const s of proposal.shortlist) {
-        if (s.selected !== false) selectedItems.push(`${s.type || ''}${s.title ? `: ${s.title}` : ''}`.trim());
-      }
-    }
-    // Fallback to itinerary items if no shortlist
-    if (selectedItems.length === 0 && Array.isArray(proposal.itinerary) && proposal.itinerary.length > 0) {
-      selectedItems.push(proposal.itinerary[0]);
-    }
-
-    const linaIntroText = proposal.linaNote || `Hello ${proposal.clientName || 'Client'}, I recommend this curated selection for ${proposal.destination || ''} (${proposal.travelDates || 'Dates not specified'}). Key picks: ${selectedItems.join(' · ') || 'to be defined'}. Estimated price: ${proposal.totalPrice || 'on request'}.`;
-
     // Attach computed values to the proposal so template can use them
     proposal.logoDataUri = logoDataUri;
-    proposal.linaAvatar = linaAvatar;
     proposal.heroImage = heroImage || null;
     proposal.imageGridHTML = imageGridHTML || '';
-    proposal.linaIntroText = linaIntroText;
 
     const html = generateProposalHTML(proposal);
 

@@ -8,7 +8,6 @@
     "start": "next start",
     "lint": "eslint",
     "check:no-zeniva-ca": "node scripts/check-zeniva-domain.mjs",
-    "test:lina": "node scripts/test-lina.mjs",
     "test:duffel:e2e": "node scripts/duffel-stays-e2e.mjs",
     "pack:duffel:artifacts": "node scripts/pack-duffel-artifacts.mjs",
     "vercel-build": "next build"
@@ -37,6 +36,7 @@
     "react-leaflet": "^5.0.0",
     "recharts": "^3.6.0",
     "stripe": "^20.4.1",
+    "twilio": "^6.0.2",
     "web-push": "^3.6.7",
     "zod": "^3.25.76"
   },

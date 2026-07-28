@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
-import LinaAvatar from "../../src/components/LinaAvatar";
+
 
 // Persist tab in URL hash so page refresh / uploads don't reset it
 function useTabWithHash(defaultTab: TabId): [TabId, (t: TabId) => void] {
@@ -73,9 +73,11 @@ const STATUS_CFG: Record<AgentStatus, { label: string; ring: string; dot: string
 };
 
 const AGENT_COLORS: Record<string, string> = {
-  lina:     "#6366f1", lead_machine: "#f59e0b", converter: "#3b82f6",
+  lead_machine: "#f59e0b", converter: "#3b82f6",
   followup: "#8b5cf6", social:       "#ec4899", cyber:     "#10b981",
   bug:      "#ef4444", twilio:       "#06b6d4",
+  travel_ai: "#f97316", agency_ai:   "#6366f1", zenipay_ai: "#14b8a6",
+  dev_ai:   "#64748b",  proposals_ai: "#d946ef", onboarding_ai: "#22c55e",
 };
 
 const SOURCE_COLORS: Record<string, string> = {
@@ -783,7 +785,7 @@ export default function AIAgentsPageClient() {
   // ── State
   const [apiHealth, setApiHealth]   = useState<SvcStatus>("checking");
   const [dbHealth, setDbHealth]     = useState<SvcStatus>("checking");
-  const [linaHealth, setLinaHealth] = useState<SvcStatus>("checking");
+
   const [totalLeads, setTotalLeads]   = useState(0);
   const [totalClients, setTotalClients] = useState(0);
   const [clientsToday, setClientsToday] = useState(0);
@@ -838,7 +840,7 @@ export default function AIAgentsPageClient() {
   const [agentView, setAgentView] = useState<UserView>("boss");
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
 
-  const linaStatusRef = useRef<AgentStatus>("live");
+
 
   // ── Clock
   useEffect(() => {
@@ -884,25 +886,6 @@ export default function AIAgentsPageClient() {
 
   // ── Agent definitions for each view
   const AGENT_VIEW_AGENTS: AgentDef[] = [
-    {
-      id: "lina_agent", name: "Lina", emoji: "🤖", avatar: "/agents/lina.png", status: "live", type: "AI Travel Concierge", schedule: "Real-time (24/7)", color: "#6366f1",
-      description: "Your personal AI assistant for managing clients. Handles inquiries, provides instant answers, and helps you close deals faster.",
-      intro: "Hi! I'm Lina, your AI assistant. I help you manage client conversations, answer questions instantly, and keep your pipeline organized. Think of me as your 24/7 co-pilot!",
-      features: ["Client chat support", "Instant answers", "Multi-language", "Booking assistance", "Client history", "Smart suggestions"],
-      scenarios: [
-        { icon: "💬", title: "Client asks about Cancun packages", desc: "Lina instantly pulls the best matching packages and drafts a response for you to review." },
-        { icon: "🌍", title: "Client speaks Spanish", desc: "Lina detects the language and responds fluently in Spanish, then translates the summary for you." },
-        { icon: "📋", title: "You need a quick quote", desc: "Just tell Lina the destination and dates — she generates a 3-tier quote in seconds." },
-      ],
-      activityLog: [
-        { time: "2 min ago", action: "Handled client inquiry — Caribbean cruise", status: "success" },
-        { time: "15 min ago", action: "Generated quote for Miami Beach package", status: "success" },
-        { time: "1h ago", action: "Translated conversation FR→EN for client handoff", status: "success" },
-      ],
-      stats: [{ label: "Chats today", value: "12" }, { label: "Avg response", value: "2.3s" }],
-      lastRun: "Just now", nextRun: "Always on", enabled: true, progress: 100, uptime: "99.9%", tasksCompleted: 847, successRate: "98.2%",
-      logs: [],
-    },
     {
       id: "client_mgr", name: "Max", emoji: "📋", avatar: "/agents/max.png", status: "active", type: "Client Manager · CRM", schedule: "Real-time", color: "#f59e0b",
       description: "Keeps your client portfolio organized. Tracks interactions, follow-ups due, birthdays, and preferences for each client.",
@@ -961,24 +944,6 @@ export default function AIAgentsPageClient() {
 
   const BROKER_VIEW_AGENTS: AgentDef[] = [
     {
-      id: "lina_broker", name: "Lina", emoji: "🤖", avatar: "/agents/lina.png", status: "live", type: "Broker Support · AI", schedule: "Real-time (24/7)", color: "#6366f1",
-      description: "Your dedicated AI support assistant. Answers questions about policies, commissions, and helps manage your agent network.",
-      intro: "Hi! I'm Lina, your broker support assistant. I help you manage your agent network, track commissions, and stay on top of market trends. Available 24/7!",
-      features: ["Policy support", "Agent management", "Commission queries", "Multi-language", "Report generation", "Training materials"],
-      scenarios: [
-        { icon: "❓", title: "Agent asks about commission structure", desc: "Lina explains the tiered commission rates and calculates estimated earnings for a specific booking." },
-        { icon: "👥", title: "New agent onboarding", desc: "Lina walks the new agent through the platform, policies, and provides training resources." },
-        { icon: "📞", title: "Urgent supplier issue", desc: "Lina escalates to the right contact and provides you with a summary of the situation." },
-      ],
-      activityLog: [
-        { time: "5 min ago", action: "Answered commission query from Agent #12", status: "success" },
-        { time: "1h ago", action: "Generated monthly broker report", status: "success" },
-      ],
-      stats: [{ label: "Queries today", value: "18" }, { label: "Agents active", value: "6" }],
-      lastRun: "Just now", nextRun: "Always on", enabled: true, progress: 100, uptime: "99.9%", tasksCompleted: 1203, successRate: "97.5%",
-      logs: [],
-    },
-    {
       id: "market_insights", name: "Victor", emoji: "📈", avatar: "/agents/victor.png", status: "active", type: "Market Intelligence · AI", schedule: "Daily 7 AM", color: "#f59e0b",
       description: "Real-time travel market intelligence. Tracks pricing trends, demand patterns, competitor moves, and seasonal opportunities.",
       intro: "I'm your market intelligence engine! I scan thousands of data points daily to give you actionable insights on travel trends, pricing, and demand.",
@@ -1034,32 +999,7 @@ export default function AIAgentsPageClient() {
     },
   ];
 
-  const buildAgents = useCallback((linaSt: AgentStatus, leads: number, msgs: number): AgentDef[] => [
-    {
-      id: "lina", name: "Lina", emoji: "🤖", avatar: "/agents/lina.png",
-      status: linaSt, type: "AI Travel Concierge · GPT-4o",
-      schedule: "Real-time (24/7)", color: "#6366f1",
-      description: "Polyglot AI travel concierge. Qualifies leads, quotes packages, saves to Supabase. Speaks every language your clients do.",
-      intro: "Hi! I'm Lina, your AI travel concierge. I chat with your website visitors 24/7, qualify leads automatically, generate quotes in seconds, and speak every language. I never sleep, never take breaks, and I love helping travelers find their dream trip!",
-      features: ["GPT-4o", "Multi-language", "Lead extraction", "Memory", "Quotes", "Email alerts"],
-      scenarios: [
-        { icon: "🌍", title: "A visitor asks about trips to Japan", desc: "Lina engages them naturally, extracts their budget and dates, saves the lead to Supabase, and sends you an email alert." },
-        { icon: "🇫🇷", title: "French-speaking client on WhatsApp", desc: "Lina detects French and responds fluently, then qualifies the lead and logs everything in English for you." },
-        { icon: "💰", title: "Client wants a quick quote", desc: "Lina generates a 3-tier quote (Budget, Standard, Premium) and sends it within the chat — all under 10 seconds." },
-        { icon: "📞", title: "Someone calls after hours", desc: "Lina picks up via Twilio, answers their questions by voice, and logs the lead for follow-up in the morning." },
-      ],
-      activityLog: [
-        { time: "2 min ago", action: "Chat handled — Caribbean package inquiry", status: "success" },
-        { time: "14 min ago", action: "Lead qualified and saved to Supabase", status: "success" },
-        { time: "45 min ago", action: "Quote generated for Maldives honeymoon", status: "success" },
-        { time: "1h ago", action: "Translated conversation ES→EN", status: "success" },
-      ],
-      stats: [{ label: "Messages", value: String(msgs) }, { label: "Leads", value: String(leads) }],
-      lastRun: "Just now", nextRun: "Always on",
-      enabled: agentEnabled["lina"] !== false,
-      progress: 100, uptime: "99.9%", tasksCompleted: msgs || 847, successRate: "98.2%",
-      logs: ["Chat handled in 2.3s", `${msgs} total messages processed`, "Supabase lead saved"],
-    },
+  const buildAgents = useCallback((leads: number, msgs: number): AgentDef[] => [
     {
       id: "lead_machine", name: "Marco", emoji: "🔥", avatar: "/agents/marco.png",
       status: "active", type: "Lead Hunter · Facebook AI + Multi-Engine",
@@ -1069,7 +1009,7 @@ export default function AIAgentsPageClient() {
       features: ["Facebook scan", "GPT scoring 0-10", "Auto-pipeline", "Outreach AI", "Destination detect", "Budget signals"],
       scenarios: [
         { icon: "🔍", title: "Facebook post detected", desc: "Someone posts 'Looking for a travel agent for a May cruise for 8 people' — Marco scores it 9/10 and auto-saves to pipeline with destination + budget hint." },
-        { icon: "✉️", title: "Personalized outreach generated", desc: "Marco writes: 'Hi! I saw you're planning a cruise in May — Lina at Zeniva can plan the entire thing for free! zenivatravel.com/chat?...'" },
+        { icon: "✉️", title: "Personalized outreach generated", desc: "Marco writes: 'Hi! I saw you're planning a cruise in May — Zeniva AI can plan the entire thing for free! zenivatravel.com/chat?...'" },
         { icon: "🧠", title: "AI qualification engine", desc: "GPT-4o-mini analyzes intent, urgency, budget signals and destination — eliminates spam and irrelevant posts automatically." },
         { icon: "📊", title: "Auto pipeline save", desc: "Hot leads (score ≥ 6) are saved instantly to /agent/leads with source URL, destination, deal value estimate and outreach message." },
       ],
@@ -1207,7 +1147,7 @@ export default function AIAgentsPageClient() {
       intro: "I'm Rex, your AI Platform Engineer. I monitor the entire backend 24/7 — APIs, databases, services, performance. Every morning at 8am I send a health report. When something breaks, I detect it instantly, attempt auto-fix, and alert the team. I keep your platform running smoothly.",
       features: ["Bug Detection", "API Monitoring", "Performance", "Auto-Fix", "Daily Reports", "Team Alerts", "Code Maintenance"],
       scenarios: [
-        { icon: "🔍", title: "API endpoint failure detected", desc: "The /api/lina endpoint returns 500 errors. Rex detects it within seconds, attempts auto-restart, and sends a Slack alert with error logs." },
+        { icon: "🔍", title: "API endpoint failure detected", desc: "The /api/chat endpoint returns 500 errors. Rex detects it within seconds, attempts auto-restart, and sends a Slack alert with error logs." },
         { icon: "📊", title: "Daily health report at 8am", desc: "Every morning Rex sends a complete report: API response times, error rates, database performance, disk usage, and optimization suggestions." },
         { icon: "⚡", title: "Performance degradation alert", desc: "API response time increased from 200ms to 1.2s. Rex alerts the team and suggests database index optimization." },
         { icon: "🛠️", title: "Auto-fix successful", desc: "Database connection pool exhausted. Rex automatically restarts the service and scales up connection limits to prevent recurrence." },
@@ -1228,23 +1168,23 @@ export default function AIAgentsPageClient() {
       id: "twilio", name: "Luna", emoji: "📞", avatar: "/agents/luna.png",
       status: "live", type: "Email + SMS + Voice · All-in-One",
       schedule: "Real-time (inbound/outbound)", color: "#06b6d4",
-      description: "Luna handles ALL client communications: emails at info@zeniva.ca, SMS via Twilio, and voice calls. She replies to clients, sends follow-ups, and is the main post-Lina contact point.",
-      intro: "I'm the voice and SMS gateway! When someone calls or texts your Zeniva number, I connect them with Lina's AI brain. Inbound calls get a natural voice conversation, texts get instant AI responses.",
+      description: "Luna handles ALL client communications: emails at info@zeniva.ca, SMS via Twilio, and voice calls. She replies to clients, sends follow-ups, and manages ongoing conversations.",
+      intro: "I'm the voice and SMS gateway! When someone calls or texts your Zeniva number, I handle the conversation naturally. Inbound calls get a natural voice conversation, texts get instant AI responses.",
       features: ["Inbound SMS", "Outbound SMS", "Voice calls", "AI responses", "Quote SMS", "Alerts"],
       scenarios: [
-        { icon: "📱", title: "Client texts asking about pricing", desc: "Twilio receives the SMS, routes it to Lina AI, and sends back a personalized response within seconds." },
-        { icon: "📞", title: "Incoming call at midnight", desc: "Lina answers the phone in the caller's language, qualifies their trip interest, and schedules a callback." },
+        { icon: "📱", title: "Client texts asking about pricing", desc: "Twilio receives the SMS, processes it with Zeniva AI, and sends back a personalized response within seconds." },
+        { icon: "📞", title: "Incoming call at midnight", desc: "Zeniva AI answers the phone in the caller's language, qualifies their trip interest, and schedules a callback." },
         { icon: "💬", title: "Quote delivery via SMS", desc: "After generating a quote, automatically sends a beautiful SMS summary with a link to the full proposal." },
       ],
       activityLog: [
-        { time: "3 min ago", action: "Inbound SMS received and routed to Lina", status: "success" },
+        { time: "3 min ago", action: "Inbound SMS received and processed", status: "success" },
         { time: "30 min ago", action: "Voice call handled — 45 second conversation", status: "success" },
       ],
       stats: [{ label: "Number", value: "+1 447" }, { label: "Status", value: "Active" }],
       lastRun: "Real-time", nextRun: "Always on",
       enabled: agentEnabled["twilio"] !== false,
       progress: 100, uptime: "99.8%", tasksCompleted: 234, successRate: "97.0%",
-      logs: ["Twilio webhook connected", "Inbound SMS routing to Lina", "Outbound SMS ready"],
+      logs: ["Twilio webhook connected", "Inbound SMS processing active", "Outbound SMS ready"],
     },
     {
       id: "max", name: "Max", emoji: "📋", avatar: "/agents/max.png",
@@ -1318,6 +1258,94 @@ export default function AIAgentsPageClient() {
       uptime: "99.8%", tasksCompleted: 624, successRate: "99.2%",
       logs: ["8 bookings analyzed", "Avg margin: 11.2%", "0 low-margin flags today"],
     },
+    {
+      id: "travel_ai", name: "Zeniva Travel AI", emoji: "✈️",
+      status: "live", type: "Trip Planning Specialist · AI",
+      schedule: "Real-time", color: "#f97316",
+      description: "Dedicated AI trip planner. Collects exact travel details and generates complete proposals — flights, hotels, transfers, and activities — through structured conversations.",
+      intro: "I'm Zeniva Travel AI, your dedicated trip planning specialist. Tell me where you want to go and when, and I'll collect every detail needed to create your perfect itinerary — flights, hotels, excursions, all tailored to your budget and style.",
+      features: ["Trip Planning", "Flight Search", "Hotel Booking", "Itineraries", "Budget Optimization", "Multi-destination"],
+      scenarios: [
+        { icon: "🗺️", title: "Client wants a honeymoon in Maldives", desc: "Travel AI collects dates, budget, and preferences over 8 guided questions, then generates a complete proposal with 2 resort options." },
+        { icon: "✈️", title: "Family trip to Disney World", desc: "Collects travel dates, ages of children, hotel preference, park tickets, and dining plan — all step by step." },
+        { icon: "💰", title: "Budget-conscious couple", desc: "Suggests 3 tiers: Budget ($3k), Standard ($5k), and Premium ($8k) for Cancún all-inclusive." },
+      ],
+      activityLog: [
+        { time: "2 min ago", action: "Completed trip plan: Maldives honeymoon — $8,400", status: "success" },
+        { time: "30 min ago", action: "Generated 3-tier Cancún proposal for family of 4", status: "success" },
+      ],
+      stats: [{ label: "Trips planned", value: "142" }, { label: "Avg response", value: "<2s" }],
+      lastRun: "Real-time", nextRun: "Always on",
+      enabled: agentEnabled["travel_ai"] !== false,
+      uptime: "99.9%", tasksCompleted: 284, successRate: "98.5%",
+      logs: ["Trip plan: Maldives $8,400 ✅", "Cancún 3-tier proposal ✅", "All APIs responding <500ms"],
+    },
+    {
+      id: "agency_ai", name: "Zeniva Agency AI", emoji: "🤝",
+      status: "live", type: "B2B Agency Operations · AI",
+      schedule: "Real-time", color: "#6366f1",
+      description: "Dedicated AI for agency partners. Handles onboarding, agent management, billing, white-label setup, and integrations — step-by-step guidance for every agency operation.",
+      intro: "I'm Zeniva Agency AI, your B2B operations specialist. Whether you're onboarding a new agency, configuring white-label settings, managing agent permissions, or setting up integrations, I guide you through every step.",
+      features: ["Agency Onboarding", "Agent Management", "Billing & Usage", "White-label Setup", "Security & SSO", "Integration Guides"],
+      scenarios: [
+        { icon: "🏢", title: "New agency signs up", desc: "Agency AI guides the admin through setup: team onboarding, brand configuration, widget customization, and API key generation." },
+        { icon: "👥", title: "Managing agent permissions", desc: "Admin wants to set role-based access — Agency AI explains available roles and walks through permission configuration." },
+        { icon: "💳", title: "Billing question", desc: "Agency asks about tier upgrades — Agency AI explains pricing plans, usage limits, and handles the upgrade request." },
+      ],
+      activityLog: [
+        { time: "15 min ago", action: "Completed agency onboarding: Liberty Travel Network", status: "success" },
+        { time: "1h ago", action: "Guided agent permission setup for 5 users", status: "success" },
+      ],
+      stats: [{ label: "Agencies onboarded", value: "28" }, { label: "Active partners", value: "22" }],
+      lastRun: "Real-time", nextRun: "Always on",
+      enabled: agentEnabled["agency_ai"] !== false,
+      uptime: "99.8%", tasksCompleted: 156, successRate: "99.2%",
+      logs: ["Onboarding: Liberty Travel ✅", "Permissions: 5 users ✅", "Billing tier upgrade processed ✅"],
+    },
+    {
+      id: "zenipay_ai", name: "ZeniPay AI", emoji: "💳",
+      status: "live", type: "Payment & Financial Specialist · AI",
+      schedule: "Real-time", color: "#14b8a6",
+      description: "Dedicated AI for ZeniPay transactions. Handles payment inquiries, payout schedules, wallet balances, refund status, and compliance questions with financial-grade accuracy.",
+      intro: "I'm ZeniPay AI, your payment operations specialist. I handle everything about ZeniPay — transaction status, payouts, wallets, refunds, commissions, fraud alerts, and compliance. Financial-grade precision, real-time answers.",
+      features: ["Payment Status", "Payout Schedules", "Wallet Balances", "Refund Tracking", "Fraud Alerts", "Compliance"],
+      scenarios: [
+        { icon: "💸", title: "Agent asks about commission payout", desc: "ZeniPay AI checks the payment ledger and responds: 'Your February commission of $2,450 was paid on March 5th via direct deposit.'" },
+        { icon: "🔒", title: "High-value transaction flagged", desc: "A $15k booking triggers fraud review — ZeniPay AI explains the hold and next steps for manual verification." },
+        { icon: "📊", title: "Monthly reconciliation question", desc: "Agency needs to reconcile 47 transactions — ZeniPay AI guides through the export and matching process." },
+      ],
+      activityLog: [
+        { time: "5 min ago", action: "Payment inquiry: TXN-K9X2M status confirmed settled", status: "success" },
+        { time: "1h ago", action: "Commission payout schedule generated for March", status: "success" },
+      ],
+      stats: [{ label: "Transactions tracked", value: "3,847" }, { label: "Avg resolution", value: "<30s" }],
+      lastRun: "Real-time", nextRun: "Always on",
+      enabled: agentEnabled["zenipay_ai"] !== false,
+      uptime: "99.9%", tasksCompleted: 412, successRate: "99.5%",
+      logs: ["TXN-K9X2M settled ✅", "March payouts generated ✅", "0 fraud flags today"],
+    },
+    {
+      id: "dev_ai", name: "Zeniva Dev AI", emoji: "⚙️",
+      status: "live", type: "Developer & Technical Support · AI",
+      schedule: "Real-time", color: "#64748b",
+      description: "Dedicated AI for developers integrating with Zeniva APIs. Provides API documentation, webhook setup guides, code examples in TypeScript/Python, error debugging, and SDK references.",
+      intro: "I'm Zeniva Dev AI, your developer support specialist. Whether you're integrating with Duffel, Amadeus, ZeniPay, or Hotelbeds APIs — I provide code examples, error debugging, webhook guides, and best practices.",
+      features: ["API Docs", "Code Examples", "Webhook Guides", "Error Debugging", "SDK Reference", "Best Practices"],
+      scenarios: [
+        { icon: "🔌", title: "Integrating Duffel API", desc: "Dev AI provides a complete TypeScript example for flight search with authentication, error handling, and pagination." },
+        { icon: "🔔", title: "Setting up webhooks", desc: "Dev AI explains webhook endpoints, signature verification, retry logic, and event types with code samples." },
+        { icon: "🐛", title: "API error 429 rate limit", desc: "Dev AI explains rate limit headers, backoff strategy, and provides a production-grade retry implementation in TypeScript." },
+      ],
+      activityLog: [
+        { time: "10 min ago", action: "Provided Duffel API integration guide with TypeScript example", status: "success" },
+        { time: "2h ago", action: "Debugged webhook signature verification issue", status: "success" },
+      ],
+      stats: [{ label: "API endpoints", value: "6" }, { label: "Integration guides", value: "12" }],
+      lastRun: "Real-time", nextRun: "Always on",
+      enabled: agentEnabled["dev_ai"] !== false,
+      uptime: "100%", tasksCompleted: 98, successRate: "100%",
+      logs: ["Duffel guide provided ✅", "Webhook debug resolved ✅", "Rate limit example generated ✅"],
+    },
   ], [agentEnabled]);
 
   // ── Data fetch
@@ -1333,13 +1361,10 @@ export default function AIAgentsPageClient() {
     } catch { setApiHealth("offline"); setDbHealth("offline"); }
 
     try {
-      // Check Lina health via VPS /health — no message sent to Lina
+      // Check VPS health
       const r = await fetch("/api/agents-proxy?endpoint=health");
       const d = await r.json();
-      const ok = d?.status === "healthy" || d?.status === "online";
-      setLinaHealth(ok ? "online" : "offline");
-      linaStatusRef.current = ok ? "live" : "error";
-    } catch { setLinaHealth("offline"); linaStatusRef.current = "error"; }
+    } catch { }
 
     // Stats
     try {
@@ -1458,7 +1483,7 @@ export default function AIAgentsPageClient() {
 
   // Rebuild agents when key data changes
   useEffect(() => {
-    setAgents(buildAgents(linaStatusRef.current, totalLeads, totalMessages));
+    setAgents(buildAgents(totalLeads, totalMessages));
   }, [totalLeads, totalMessages, agentEnabled, buildAgents]);
 
   // ── Handlers
@@ -1559,7 +1584,7 @@ export default function AIAgentsPageClient() {
             try {
               const d = JSON.parse(xhr.responseText);
               if (d.ok) {
-                setUploadStatus("✅ Video uploaded! Add Lina\'s voice below.");
+                setUploadStatus("✅ Video uploaded! Add voiceover below.");
                 fetch("/api/agents-proxy?endpoint=video-queue", { cache: "no-store" })
                   .then(r => r.json())
                   .then(data => setUploadedVideos(data?.videos || []))
@@ -1609,7 +1634,6 @@ export default function AIAgentsPageClient() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-black text-gray-900 flex items-center gap-3">
-              <LinaAvatar size="sm" />
               <span>AI Command Center</span>
             </h1>
             <p className="text-gray-400 text-xs mt-1 flex items-center gap-3">
@@ -1646,7 +1670,7 @@ export default function AIAgentsPageClient() {
           {[
             { label: "API", status: apiHealth },
             { label: "Database", status: dbHealth },
-            { label: "Lina Webhook", status: linaHealth },
+            { label: "AI Webhook", status: apiHealth },
           ].map(s => (
             <div key={s.label} className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
               <div className={`h-2 w-2 rounded-full ${svcDot(s.status)}`} />
@@ -1951,7 +1975,7 @@ export default function AIAgentsPageClient() {
                 <span className="text-2xl">📤</span>
                 <div>
                   <div className="text-sm font-bold text-white">Upload Your Base Video</div>
-                  <div className="text-xs text-gray-400 mt-0.5">Upload → Lina adds her voice → You approve → Agent publishes</div>
+                  <div className="text-xs text-gray-400 mt-0.5">Upload → AI adds voice → You approve → Agent publishes</div>
                 </div>
               </div>
               <div className="px-5 py-5">
@@ -2078,8 +2102,8 @@ export default function AIAgentsPageClient() {
                           <div className="flex-1 space-y-4">
                             <div>
                               <label className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-2">
-                                🎤 Lina's Speech Script
-                                <span className="text-[10px] font-normal text-gray-400">(write exactly what Lina should say in English)</span>
+                                🎤 Speech Script
+                                <span className="text-[10px] font-normal text-gray-400">(write the script in English)</span>
                               </label>
                               <textarea
                                 value={script}
@@ -2095,7 +2119,7 @@ export default function AIAgentsPageClient() {
                             <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex items-center gap-3">
                               <span className="text-xl">🎙️</span>
                               <div className="flex-1">
-                                <div className="text-xs font-bold text-indigo-700">Lina's Voice — ElevenLabs</div>
+                                <div className="text-xs font-bold text-indigo-700">AI Voice — ElevenLabs</div>
                                 <div className="text-[10px] text-indigo-500 mt-0.5">Jessica · Playful, Bright, Warm · English</div>
                               </div>
                               <div className="text-[10px] text-indigo-400 font-mono">eleven_multilingual_v2</div>
@@ -2141,7 +2165,7 @@ export default function AIAgentsPageClient() {
                                     Generating voice...
                                   </>
                                 ) : (
-                                  <>🎤 Generate Lina's Voice</>
+                                  <>🎤 Generate Voice</>
                                 )}
                               </button>
                             </div>
@@ -2196,7 +2220,7 @@ export default function AIAgentsPageClient() {
                               : "bg-gray-200 text-gray-400 cursor-not-allowed"
                           }`}
                           disabled={!hasVoice}
-                          title={!hasVoice ? "Generate Lina\'s voice first" : "Approve & Publish"}
+                          title={!hasVoice ? "Generate voice first" : "Approve &amp; Publish"}
                         >
                           {hasVoice ? "✅ Approve & Publish" : "🔒 Add Voice First"}
                         </button>
@@ -2270,7 +2294,7 @@ export default function AIAgentsPageClient() {
                       <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3 bg-gray-50">
                         <div className="flex items-center gap-3">
                           <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${video.account === "zeniva" ? "bg-blue-100 text-blue-600 border-blue-200" : "bg-pink-100 text-pink-600 border-pink-200"}`}>
-                            {video.account === "zeniva" ? "🌍 Zeniva" : "👩 Lina"}
+                            {video.account === "zeniva" ? "🌍 Zeniva" : "👤 Agent"}
                           </span>
                           <span className="text-xs text-gray-400">{video.created}</span>
                         </div>
@@ -2413,7 +2437,7 @@ export default function AIAgentsPageClient() {
                       <div className={`h-2 w-2 rounded-full shrink-0 ${SOURCE_COLORS[src] || "bg-slate-500"}`} />
                       <div className="w-24 text-xs text-gray-500 capitalize">{src}</div>
                       <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.round((count / totalLeads) * 100)}%`, background: AGENT_COLORS.lina }} />
+                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.round((count / totalLeads) * 100)}%`, background: SOURCE_COLORS[src] || "#6366f1" }} />
                       </div>
                       <div className="text-xs font-bold text-gray-900 w-6 text-right">{count}</div>
                     </div>
@@ -2513,7 +2537,7 @@ export default function AIAgentsPageClient() {
                 {[
                   { label: "Main API (port 8000)", status: apiHealth, detail: "VPS 217.216.88.202:8000" },
                   { label: "Supabase Database", status: dbHealth, detail: "PostgreSQL via Supabase cloud" },
-                  { label: "Lina Webhook (n8n)", status: linaHealth, detail: "OpenAI GPT-4o integration" },
+                  { label: "AI Webhook (n8n)", status: apiHealth, detail: "OpenAI GPT-4o integration" },
                 ].map(s => (
                   <div key={s.label} className="flex items-center gap-4 px-5 py-3">
                     <div className={`h-3 w-3 rounded-full ${svcDot(s.status)}`} />

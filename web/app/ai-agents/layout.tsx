@@ -17,8 +17,8 @@ export default function AIAgentsLayout({ children }: { children: React.ReactNode
             <Link href="/agent" className="rounded-full border border-slate-300 bg-white/5 px-3 py-1.5 font-semibold hover:bg-slate-100 transition">
               ← Agent Portal
             </Link>
-            <Link href="/agent/lina" className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 font-semibold text-emerald-600 hover:bg-emerald-500/20 transition">
-              💬 Lina AI Desk
+            <Link href="/agent" className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 font-semibold text-emerald-600 hover:bg-emerald-500/20 transition">
+              🎯 Agent Desk
             </Link>
           </div>
         </div>

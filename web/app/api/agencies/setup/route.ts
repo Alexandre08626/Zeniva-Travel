@@ -115,20 +115,18 @@ export async function POST(req: NextRequest) {
     log.push(`\u2139\uFE0F Advisor accounts already exist or could not parse emails`);
   }
 
-  // 4. Configure Lina widget settings
-  const linaConfig = {
+  // 4. Configure AI widget settings
+  const aiConfig = {
     agency_id: agency.id,
     agency_name: agency.name,
     languages: onboarding.languages || ["English"],
     default_language: onboarding.defaultLanguage || "English",
-    welcome_message: onboarding.welcomeMessage || `Welcome! I'm Lina, your AI travel assistant at ${agency.name}. How can I help?`,
+    welcome_message: onboarding.welcomeMessage || `Welcome to ${agency.name}! How can we help?`,
     business_hours: {
       weekday: onboarding.weekdayHours || "9 AM - 5 PM",
       weekend: onboarding.weekendHours || "Closed",
     },
-    restrictions: onboarding.linaRestrictions || "",
     promotions: onboarding.promotions || "",
-    widget_placement: onboarding.widgetPlacement || ["All pages"],
     branding: {
       primary_color: agency.primary_color,
       secondary_color: agency.secondary_color,
@@ -138,19 +136,19 @@ export async function POST(req: NextRequest) {
     specialties: onboarding.specialties || [],
   };
 
-  // Store Lina config in agency config
+  // Store AI config in agency config
   const updatedConfig = {
     ...config,
-    lina_config: linaConfig,
+    zeniva_ai_config: aiConfig,
     setup_completed_at: new Date().toISOString(),
     setup_completed_by: session.email,
   };
 
-  log.push(`\u2705 Lina AI configured: ${(linaConfig.languages as string[]).join(", ")} | Widget: ${(linaConfig.widget_placement as string[]).join(", ")}`);
+  log.push(`\u2705 Zeniva AI configured: ${(aiConfig.languages as string[]).join(", ")}`);
 
   // 5. Generate widget embed code
-  const widgetCode = `<!-- Zeniva Lina Widget for ${agency.name} -->
-<script src="https://www.zenivatravel.com/widget/lina.js"
+  const widgetCode = `<!-- Zeniva AI Widget for ${agency.name} -->
+<script src="https://www.zenivatravel.com/widget/zeniva.js"
   data-agency="${agency.slug}"
   data-color="${agency.primary_color || '#0D9488'}"
   data-lang="${onboarding.defaultLanguage || 'en'}"
@@ -183,7 +181,6 @@ export async function POST(req: NextRequest) {
   log.push("");
   log.push(`\uD83C\uDF89 Setup complete for ${agency.name}!`);
   log.push(`\u2192 ${advisorsCreated + 1} accounts created`);
-  log.push(`\u2192 Lina configured in ${(linaConfig.languages as string[]).length} language(s)`);
   log.push(`\u2192 Widget code ready to install`);
   if (plan === "premium") log.push(`\u2192 Mobile app build queued`);
 

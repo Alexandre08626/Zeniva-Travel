@@ -1,48 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifySession, getSessionCookieName } from "@/src/lib/server/auth";
-import nodemailer from "nodemailer";
+import { sendEmail, getEmailConfig } from "@/src/lib/email/sender";
+import { sendSms, getSmsConfig } from "@/src/lib/sms/sender";
+import { sendWhatsApp, getWhatsAppConfig } from "@/src/lib/whatsapp/sender";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.SMTP_USER || "info@zeniva.ca",
-    pass: process.env.SMTP_PASS || "",
-  },
-});
-
-function getAuth(req: NextRequest) {
-  const ck = req.headers.get("cookie") || "";
-  const cn = getSessionCookieName();
-  const m = ck.match(new RegExp(cn + "=([^;]+)"));
-  const t = m?.[1];
-  if (!t) return null;
-  const s = verifySession(t);
-  return s?.email ? s : null;
-}
-
 export async function POST(req: NextRequest) {
-  const session = getAuth(req);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { html, subject, to } = await req.json();
-  if (!html || !subject || !to) {
-    return NextResponse.json({ error: "html, subject, and to are required" }, { status: 400 });
+  const auth = req.headers.get("authorization");
+  const CRON_SECRET = process.env.CRON_SECRET || "zeniva-cron-2026";
+  if (auth !== `Bearer ${CRON_SECRET}`) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  try {
-    await transporter.sendMail({
-      from: '"Alexandre Blais" <info@zeniva.ca>',
+  const { to, channels } = await req.json();
+  if (!to) return NextResponse.json({ error: "to required" }, { status: 400 });
+
+  const results: any = { to };
+
+  if (!channels || channels.includes("email")) {
+    results.email = await sendEmail({
       to,
-      subject: `[TEST] ${subject}`,
-      html,
+      subject: "🧪 Test de Zeniva Travel — Système d'envoi opérationnel",
+      html: `<h1>✅ Test réussi!</h1><p>Ceci est un email de test du système Zeniva Travel Outreach.</p><p>Expédié depuis: <b>${process.env.EMAIL_FROM || "info@zenivatravel.com"}</b></p><p>Date: ${new Date().toLocaleString()}</p>`,
     });
-    return NextResponse.json({ ok: true });
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message || "Failed to send" }, { status: 500 });
   }
+
+  if (!channels || channels.includes("sms")) {
+    results.sms = await sendSms({ to, body: "✅ Zeniva Travel SMS test — votre système d'envoi est opérationnel!" });
+  }
+
+  if (!channels || channels.includes("whatsapp")) {
+    results.whatsapp = await sendWhatsApp({ to, body: "✅ Zeniva Travel WhatsApp test — votre système est opérationnel! 🚀" });
+  }
+
+  return NextResponse.json({
+    ...results,
+    config: {
+      email: getEmailConfig(),
+      sms: getSmsConfig(),
+      whatsapp: getWhatsAppConfig(),
+    },
+  });
 }

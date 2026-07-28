@@ -23,7 +23,7 @@ export default function AiTermsPage() {
         <span className="legal-badge">Terms</span>
         <h1 className="legal-title">AI Terms of Use</h1>
         <p className="legal-subtitle">
-          These AI Terms apply to Lina AI and any automated assistance provided
+          These AI Terms apply to Zeniva AI and any automated assistance provided
           by Zeniva.
         </p>
         <div className="legal-meta">
@@ -58,7 +58,7 @@ export default function AiTermsPage() {
       <section id="scope" className="legal-section">
         <h2>Scope</h2>
         <p>
-          Lina AI provides informational travel assistance and draft proposals.
+          Zeniva AI provides informational travel assistance and draft proposals.
           AI outputs do not create a booking or binding offer.
         </p>
       </section>

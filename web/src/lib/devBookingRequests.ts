@@ -13,7 +13,7 @@ export type BookingRequest = {
   title: string;
   clientName: string;
   dossierId?: string;
-  source: "agent" | "lina" | "api" | "traveler";
+  source: "agent" | "api" | "traveler";
   provider: string;
   status: BookingRequestStatus;
   paymentStatus: BookingPaymentStatus;
@@ -43,21 +43,6 @@ export const bookingRequests: BookingRequest[] = [
     currency: "USD",
     createdAt: "2026-01-10T14:20:00Z",
     updatedAt: "2026-01-10T14:20:00Z",
-  },
-  {
-    id: "br-1002",
-    title: "Maldives resort booking",
-    clientName: "Dupuis",
-    dossierId: "TRIP-104",
-    source: "lina",
-    provider: "hotel_partner",
-    status: "needs_changes",
-    paymentStatus: "unknown",
-    requestedBy: "lina@zeniva.ai",
-    totalAmount: 9200,
-    currency: "USD",
-    createdAt: "2026-01-09T09:10:00Z",
-    updatedAt: "2026-01-10T08:45:00Z",
   },
   {
     id: "br-2001",

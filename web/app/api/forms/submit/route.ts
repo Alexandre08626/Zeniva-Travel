@@ -6,7 +6,7 @@ import { signSession } from "../../../../src/lib/server/auth";
 import { sendPushToHQ } from "../../../../src/lib/server/pushNotify";
 
 const DEFAULT_OWNER_EMAIL = "info@zenivatravel.com";
-const VPS_API_URL = process.env.LINA_API_URL || "https://vmi3097009.contaboserver.net";
+const VPS_API_URL = process.env.VPS_API_URL || "https://vmi3097009.contaboserver.net";
 
 // ── Twilio SMS helper ──────────────────────────────────────────────────────
 async function sendWelcomeSMS(phone: string, name: string, destination: string) {
@@ -90,7 +90,7 @@ async function notifyVpsNewLead(clientData: any, formFields: Record<string, any>
     const msg = `🆕 NEW LEAD from form: ${clientData.name || "Client"} (${clientData.email || ""}, ${clientData.phone || ""}). Destination: ${formFields.destination || "N/A"}. Budget: ${formFields.budget || "N/A"}. Travelers: ${formFields.pax || "N/A"}. Trip: ${formFields.tripType || "N/A"}. Dates: ${formFields.departureDate || "?"} → ${formFields.returnDate || "?"}${referredBy ? `. Referred by: ${referredBy}` : ""}.`;
 
     // Notify VPS webhook (for n8n / chat)
-    await fetch(`${VPS_API_URL}/webhook/zeniva-lina-chat`, {
+    await fetch(`${VPS_API_URL}/webhook/zeniva-chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: msg, sessionId: `form-${clientData.id}` }),

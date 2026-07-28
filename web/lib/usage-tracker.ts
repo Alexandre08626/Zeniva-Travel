@@ -3,7 +3,7 @@ import { getSupabaseAdminClient } from "@/src/lib/supabase/server";
 export interface UsageLogParams {
   agencyId?: string | null;
   agentId?: string | null;
-  service: "lina_ai" | "sms_twilio" | "whatsapp" | "email" | "api_search";
+  service: "sms_twilio" | "whatsapp" | "email" | "api_search";
   action: string;
   quantity?: number;
   metadata?: Record<string, unknown>;

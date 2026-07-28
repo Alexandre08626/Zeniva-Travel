@@ -97,13 +97,11 @@ export async function POST(req: NextRequest) {
       brand_tone: formData.brandTone || [],
       slogan: formData.slogan || null,
       social_links: formData.socialLinks || null,
-      lina_config: {
+      zeniva_ai_config: {
         welcome_message: formData.welcomeMessage || null,
         weekday_hours: formData.weekdayHours || null,
         weekend_hours: formData.weekendHours || null,
-        restrictions: formData.linaRestrictions || null,
         promotions: formData.promotions || null,
-        widget_placement: formData.widgetPlacement || [],
       },
       advisors: formData.advisorList || null,
       work_style: formData.workStyle || [],

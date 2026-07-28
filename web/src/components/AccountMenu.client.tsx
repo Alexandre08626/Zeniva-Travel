@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useAuthStore, logout, switchActiveSpace, setPreviewRole } from '@/src/lib/authStore';
 import { canPreviewRole, RBAC_ROLES, type RbacRole } from '@/src/lib/rbac';
-import LinaAvatar from './LinaAvatar';
+
 import { locales, localeLabels } from '../lib/i18n/config';
 import { useI18n } from '../lib/i18n/I18nProvider';
 

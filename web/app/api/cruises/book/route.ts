@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       bookingRef,
-      message: "Your cruise inquiry has been received. Lina will contact you within 2 hours.",
+      message: "Your cruise inquiry has been received. A Zeniva advisor will contact you within 2 hours.",
     });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });

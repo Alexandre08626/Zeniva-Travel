@@ -1,0 +1,20 @@
+{
+  "name": "Proposals AI - Auto-generate from Qualified Leads",
+  "nodes": [
+    {
+      "name": "CRON Trigger",
+      "type": "n8n-nodes-base.cron",
+      "parameters": { "triggerTimes": { "item": [{ "mode": "everyDay", "hour": 7 }, { "mode": "everyDay", "hour": 19 }] } }
+    },
+    {
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "method": "GET",
+        "url": "https://zeniva-dev-dashboard.vercel.app/api/automation/proposals?secret=zeniva-cron-2026",
+        "authentication": "none"
+      }
+    }
+  ],
+  "connections": { "CRON Trigger": { "main": [[ { "node": "HTTP Request", "type": "main", "index": 0 } ]] } }
+}

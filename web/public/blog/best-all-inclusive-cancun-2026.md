@@ -99,6 +99,6 @@ Don’t miss out on the opportunity to enjoy sun, sand, and luxury at one of the
 
 ### Ready to book?
 
-Chat with Lina, our AI travel concierge, and get a personalized quote in minutes → [zenivatravel.com](https://zenivatravel.com)
+Chat with Zeniva AI, our travel concierge, and get a personalized quote in minutes → [zenivatravel.com](https://zenivatravel.com)
 
 Let Zeniva Travel help you make your dream vacation a reality!
