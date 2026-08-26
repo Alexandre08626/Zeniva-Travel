@@ -1,19 +1,19 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "AI for Travel Agencies — 8 AI Agents Working 24/7 | Zeniva",
+  title: "AI Lina for Travel Agencies — assiste vos clients 24/7 | Zeniva",
   description:
-    "Transform your travel agency with 8 AI agents. Lina AI concierge, CRM, proposals, invoicing, commissions — zero commission on bookings. Starting at $1,999.",
+    "Transform your travel agency with AI. Lina AI concierge assists your clients on your agents' sites. Starting at $399 + $295/mo.",
   openGraph: {
-    title: "AI for Travel Agencies — 8 AI Agents Working 24/7",
+    title: "AI for Travel Agencies — Lina AI 24/7 | Zeniva",
     description:
-      "Transform your travel agency with 8 AI agents working 24/7. CRM, proposals, invoicing, commissions — 0% commission on bookings. Starting at $1,999.",
+      "AI Lina assists your clients on your agents' sites, 24/7. Starting at $399 + $295/mo.",
     url: "https://www.zenivatravel.com/for-agencies",
     siteName: "Zeniva",
     type: "website",
     images: [
       {
-        url: "https://www.zenivatravel.com/api/og?title=AI+for+Travel+Agencies&description=8+AI+Agents+Working+24/7+for+Your+Agency&type=agencies",
+        url: "https://www.zenivatravel.com/api/og?title=AI+for+Travel+Agencies&description=Lina+AI+24/7+for+Your+Agency&type=agencies",
         width: 1200,
         height: 630,
         alt: "Zeniva — AI for Travel Agencies",
@@ -22,11 +22,11 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "AI for Travel Agencies — 8 AI Agents | Zeniva",
+    title: "AI for Travel Agencies — Lina AI | Zeniva",
     description:
-      "8 AI agents for your travel agency. CRM, proposals, invoicing — 0% commission. Starting at $1,999.",
+      "Lina AI for your travel agency. Assistance client 24/7. Starting at $399 + $295/mo.",
     images: [
-      "https://www.zenivatravel.com/api/og?title=AI+for+Travel+Agencies&description=8+AI+Agents+Working+24/7+for+Your+Agency&type=agencies",
+      "https://www.zenivatravel.com/api/og?title=AI+for+Travel+Agencies&description=Lina+AI+24/7+for+Your+Agency&type=agencies",
     ],
   },
 };

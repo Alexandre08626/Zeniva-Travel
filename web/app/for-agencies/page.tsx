@@ -36,6 +36,13 @@ const howItWorks = [
 ];
 
 const standardFeatures = [
+  "AI Lina 24/7 sur le site de vos agents",
+  "Réponses instantanées aux voyageurs",
+  "Assistant pour assister les clients",
+  "Gestion de base des demandes",
+];
+
+const premiumFeatures = [
   "8 AI agents", "Lina widget", "Full agent dashboard", "CRM",
   "Proposals with payment", "Invoicing & commissions", "Document management", "Team training",
 ];
@@ -214,8 +221,8 @@ function OnboardingModal({ open, onClose, defaultPlan }: { open: boolean; onClos
             </div>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { key: "standard", label: "Standard", price: "$1,999 setup" },
-                { key: "premium", label: "Premium", price: "$9,999 setup" },
+                { key: "standard", label: "Standard — Lina AI", price: "$399 install + $295/mo" },
+                { key: "premium", label: "Premium", price: "$1,999 setup" },
               ].map((p) => (
                 <button key={p.key} type="button" onClick={() => set("selectedPlan", p.key)} className={`rounded-xl border-2 p-4 text-left transition-all ${form.selectedPlan === p.key ? "border-teal-500 bg-teal-50" : "border-gray-200 hover:border-gray-300"}`}>
                   <p className="font-bold text-sm text-gray-900">{p.label}</p>
@@ -532,14 +539,14 @@ export default function ForAgenciesPage() {
           <p className="mt-4 text-center text-lg text-gray-500">Simple, transparent pricing. Zero commission on bookings.</p>
 
           <div className="mt-12 grid grid-cols-1 gap-8 lg:grid-cols-2">
-            {/* Standard */}
+            {/* Standard (nouveau) — AI Lina */}
             <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm flex flex-col">
-              <h3 className="text-xl font-bold text-gray-900">Standard</h3>
+              <h3 className="text-xl font-bold text-gray-900">Standard — Lina AI</h3>
               <div className="mt-4">
-                <span className="text-4xl font-extrabold text-gray-900">$1,999</span>
-                <span className="ml-2 text-sm text-gray-500">one-time setup</span>
+                <span className="text-4xl font-extrabold text-gray-900">$399</span>
+                <span className="ml-2 text-sm text-gray-500">installation</span>
               </div>
-              <p className="mt-2 text-sm text-teal-700 font-medium">+ $399 per agent (one-time)</p>
+              <p className="mt-2 text-sm text-teal-700 font-medium">+ $295 / mois pour l'IA Lina</p>
               <ul className="mt-6 space-y-2.5 flex-1">
                 {standardFeatures.map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
@@ -553,18 +560,24 @@ export default function ForAgenciesPage() {
               <button onClick={() => openModal("standard")} className="mt-6 block w-full rounded-lg border-2 border-teal-600 py-3 text-center text-sm font-semibold text-teal-700 hover:bg-teal-50 transition-colors">Get Started</button>
             </div>
 
-            {/* Premium */}
+            {/* Premium (ancien Standard $1,999) */}
             <div className="relative rounded-2xl bg-gradient-to-br from-teal-600 to-violet-600 p-8 shadow-lg text-white flex flex-col">
               <div className="absolute top-4 right-4 rounded-full bg-white/20 backdrop-blur-sm px-3 py-1 text-xs font-bold uppercase tracking-wide">BEST VALUE</div>
               <h3 className="text-xl font-bold">Premium</h3>
               <div className="mt-4">
-                <span className="text-4xl font-extrabold">$9,999</span>
+                <span className="text-4xl font-extrabold">$1,999</span>
                 <span className="ml-2 text-sm text-white/70">one-time setup</span>
               </div>
               <p className="mt-2 text-sm font-medium text-white/80">+ $399 per agent (one-time)</p>
 
-              <p className="mt-6 text-sm font-semibold text-white/90">Everything in Standard, plus:</p>
+              <p className="mt-6 text-sm font-semibold text-white/90">Inclut l'assistant Lina, plus :</p>
               <ul className="mt-3 space-y-2.5 flex-1">
+                {premiumFeatures.map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm text-white/90">
+                    <svg className="mt-0.5 h-4 w-4 shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    {f}
+                  </li>
+                ))}
                 {premiumExtras.map((f) => (
                   <li key={f} className="flex items-start gap-2 text-sm text-white/90">
                     <svg className="mt-0.5 h-4 w-4 shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
