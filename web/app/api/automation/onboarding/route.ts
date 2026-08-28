@@ -5,8 +5,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder"
 );
 
 const SYSTEM_PROMPT = `You are Zeniva Onboarding AI – Agent Activation & Success Specialist. Generate a personalized onboarding sequence for a new agent. Include: welcome message, step 1-3 guide, key features intro, and first booking tips. Warm, encouraging tone.`;

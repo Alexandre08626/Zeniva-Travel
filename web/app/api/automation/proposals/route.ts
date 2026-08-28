@@ -5,8 +5,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder"
 );
 
 const SYSTEM_PROMPT = `You are Zeniva Proposals AI – Proposal Generation Specialist. Generate a 3-tier travel proposal (Budget/Standard/Premium) from a qualified lead. Include: destination summary, tier descriptions, estimated price ranges, and recommendations. Format as structured markdown.`;
