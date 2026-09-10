@@ -54,8 +54,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/forms/travel`, lastModified: NOW, changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE_URL}/forms/yacht`, lastModified: NOW, changeFrequency: "monthly", priority: 0.68 },
 
-    // ─── ABOUT ────────────────────────────────────────
+    // ─── ABOUT & LEADERSHIP ───────────────────────────
     { url: `${BASE_URL}/about`, lastModified: NOW, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE_URL}/alexandre-blais`, lastModified: NOW, changeFrequency: "monthly", priority: 0.86 },
 
     // ─── LEGAL ────────────────────────────────────────
     { url: `${BASE_URL}/privacy-policy`, lastModified: NOW, changeFrequency: "yearly", priority: 0.4 },
