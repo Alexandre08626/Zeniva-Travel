@@ -31,9 +31,9 @@ const ownershipCards = [
 ];
 
 const howItWorks = [
-  { step: "1", title: "Choisissez votre installation", desc: "Trois forfaits selon vos besoins. Les connexions métier sont validées avant la soumission." },
-  { step: "2", title: "Nous configurons votre agence", desc: "Personnalisation, configuration des fonctions convenues et formation de votre équipe." },
-  { step: "3", title: "Un abonnement clair", desc: "599 $ CA par mois pour l’agence, un conseiller inclus. Chaque conseiller supplémentaire : 49 $ CA par mois." },
+  { step: "1", title: "Choose your setup package", desc: "Three packages to match your needs. Business software integrations are validated before we provide a quote." },
+  { step: "2", title: "We set up your agency", desc: "Brand customization, configuration of the agreed features and training for your team." },
+  { step: "3", title: "One clear subscription", desc: "CAD $599 per month for your agency, including one advisor. Each additional advisor: CAD $49 per month." },
 ];
 
 /* ─── Onboarding Modal ──────────────────────────────────────────────── */
@@ -191,22 +191,22 @@ function OnboardingModal({ open, onClose, defaultPlan }: { open: boolean; onClos
           <div className={sectionCls}>
             <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-violet-500 flex items-center justify-center text-white font-bold text-sm">$</div>
-              <div><p className="font-bold text-gray-900">Forfait d’installation</p></div>
+              <div><p className="font-bold text-gray-900">Setup package</p></div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {installationPlans.map((p) => (
                 <button key={p.key} type="button" onClick={() => set("selectedPlan", p.key)} className={`rounded-xl border-2 p-4 text-left transition-all ${form.selectedPlan === p.key ? "border-teal-500 bg-teal-50" : "border-gray-200 hover:border-gray-300"}`}>
                   <p className="font-bold text-sm text-gray-900">{p.label}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{formatCAD(p.price)} — paiement unique</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{formatCAD(p.price)} — one-time payment</p>
                 </button>
               ))}
             </div>
           </div>
 
-          <div lang="fr-CA" className={sectionCls}>
-            <p className="font-bold text-gray-900">Votre abonnement : {formatCAD(agencyMonthlyTotal(Math.max(1, parseInt(form.totalAdvisors, 10) || 1)))} / mois</p>
-            <p className="mt-2 text-sm text-gray-600">599 $ CA/mois pour l’agence, un conseiller inclus, puis 49 $ CA/mois par conseiller supplémentaire. Installation facturée une seule fois. Montants avant taxes.</p>
-            <p className="mt-2 text-xs text-gray-500">Logiciels externes à la charge de l’agence. Volume d’IA et soutien définis au contrat. Le forfait Intégrée nécessite une validation technique; plusieurs connexions ou développements majeurs font l’objet d’une soumission particulière.</p>
+          <div lang="en-CA" className={sectionCls}>
+            <p className="font-bold text-gray-900">Your subscription: {formatCAD(agencyMonthlyTotal(Math.max(1, parseInt(form.totalAdvisors, 10) || 1)))} / month</p>
+            <p className="mt-2 text-sm text-gray-600">CAD $599/month for your agency, including one advisor, plus CAD $49/month per additional advisor. Setup is billed once. Prices exclude taxes.</p>
+            <p className="mt-2 text-xs text-gray-500">External software costs are paid by the agency. AI usage and support allowances are defined in the contract. The Integrated package requires technical validation; multiple integrations or major custom development require a separate quote.</p>
           </div>
 
           {/* Section 1 - Agency Identity */}
@@ -270,7 +270,7 @@ function OnboardingModal({ open, onClose, defaultPlan }: { open: boolean; onClos
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-violet-500 flex items-center justify-center text-white font-bold text-sm">3</div>
               <div><p className="font-bold text-gray-900">Team & Advisors</p><p className="text-xs text-gray-400">Each advisor gets a personal dashboard with 4 AI agents</p></div>
             </div>
-            <div className="bg-teal-50 border border-teal-200 rounded-xl p-3 text-xs text-teal-800 mb-4">Un conseiller inclus dans les 599 $ CA/mois de l’agence. Chaque conseiller de voyage supplémentaire : 49 $ CA/mois. Aucun frais d’installation par conseiller.</div>
+            <div className="bg-teal-50 border border-teal-200 rounded-xl p-3 text-xs text-teal-800 mb-4">One advisor is included in the agency subscription at CAD $599/month. Each additional travel advisor: CAD $49/month. No setup fee per advisor.</div>
             <div><label className={labelCls}>Total Number of Advisors <span className="text-red-500">*</span></label><input className={ic} value={form.totalAdvisors} onChange={(e) => set("totalAdvisors", e.target.value)} placeholder="e.g. 8" /></div>
             <div className="mt-4"><label className={labelCls}>Advisor List <span className="text-red-500">*</span></label><textarea className={ta} value={form.advisorList} onChange={(e) => set("advisorList", e.target.value)} placeholder={"Advisor 1: Marie Tremblay \u2014 marie@agency.com\nAdvisor 2: Jean Dupont \u2014 jean@agency.com"} /></div>
             <div className="mt-4"><label className={labelCls}>Work Style</label><CheckboxGroup options={["In-office", "Remote / Home-based", "Hybrid"]} selected={form.workStyle} onChange={(v) => setArr("workStyle", v)} /></div>
@@ -379,7 +379,7 @@ export default function ForAgenciesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div lang="en-CA" className="min-h-screen bg-white">
       <OnboardingModal open={modalOpen} onClose={() => setModalOpen(false)} defaultPlan={modalPlan} />
 
       {/* Hero */}
@@ -477,42 +477,42 @@ export default function ForAgenciesPage() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" lang="fr-CA" className="bg-white px-4 py-20">
+      <section id="pricing" lang="en-CA" className="bg-white px-4 py-20">
         <div className="mx-auto max-w-6xl">
-          <h2 className="text-center text-3xl font-bold text-gray-900 sm:text-4xl">Des forfaits clairs pour votre agence</h2>
-          <p className="mt-4 text-center text-lg text-gray-500">Une installation, un abonnement pour l’agence et un prix par conseiller supplémentaire.</p>
-          <p className="mt-2 text-center text-sm text-gray-500">Tous les montants sont en dollars canadiens, avant taxes.</p>
-          <h3 className="mt-12 text-2xl font-bold text-gray-900">1. Votre installation — paiement unique</h3>
+          <h2 className="text-center text-3xl font-bold text-gray-900 sm:text-4xl">Clear pricing for your agency</h2>
+          <p className="mt-4 text-center text-lg text-gray-500">One setup fee, one agency subscription and one price per additional advisor.</p>
+          <p className="mt-2 text-center text-sm text-gray-500">All prices are in Canadian dollars, before taxes.</p>
+          <h3 className="mt-12 text-2xl font-bold text-gray-900">1. Your setup — one-time payment</h3>
           <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
             {installationPlans.map((plan) => (
               <div key={plan.key} className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                 <h4 className="text-xl font-bold text-gray-900">{plan.label}</h4>
                 <p className="mt-4 text-4xl font-extrabold text-teal-700">{formatCAD(plan.price)}</p>
-                <p className="mt-1 text-sm text-gray-500">Paiement unique</p>
+                <p className="mt-1 text-sm text-gray-500">One-time payment</p>
                 <ul className="mt-6 flex-1 space-y-3">
                   {plan.features.map((feature) => <li key={feature} className="flex gap-2 text-sm text-gray-700"><span aria-hidden="true" className="font-bold text-teal-600">✓</span>{feature}</li>)}
                 </ul>
-                {plan.key === "integrated" && <p className="mt-5 text-xs leading-relaxed text-gray-600">Sous réserve de validation technique. Une connexion à un logiciel métier, dans le périmètre convenu. Plusieurs logiciels ou développements majeurs : soumission particulière.</p>}
-                <button onClick={() => openModal(plan.key)} className="mt-6 rounded-xl bg-teal-700 px-4 py-3 text-sm font-bold text-white hover:bg-teal-800">Choisir {plan.label}</button>
+                {plan.key === "integrated" && <p className="mt-5 text-xs leading-relaxed text-gray-600">Subject to technical validation. One business software integration within the agreed scope. Multiple systems or major custom development require a separate quote.</p>}
+                <button onClick={() => openModal(plan.key)} className="mt-6 rounded-xl bg-teal-700 px-4 py-3 text-sm font-bold text-white hover:bg-teal-800">Choose {plan.label}</button>
               </div>
             ))}
           </div>
           <div className="mt-12 rounded-2xl bg-gradient-to-br from-teal-700 to-violet-700 p-6 text-white sm:p-8">
-            <h3 className="text-2xl font-bold">2. Votre abonnement mensuel</h3>
+            <h3 className="text-2xl font-bold">2. Your monthly subscription</h3>
             <div className="mt-6 grid gap-8 sm:grid-cols-2">
-              <div><p className="text-sm text-white/80">Pour l’agence — un conseiller inclus</p><p className="mt-2 text-4xl font-extrabold">{formatCAD(AGENCY_MONTHLY_PRICE)}<span className="text-base font-medium"> / mois</span></p><p className="mt-3 text-sm text-white/90">Site Web, Lina, hébergement, maintenance et soutien.</p></div>
-              <div><p className="text-sm text-white/80">Par conseiller de voyage supplémentaire</p><p className="mt-2 text-4xl font-extrabold">{formatCAD(ADDITIONAL_ADVISOR_MONTHLY_PRICE)}<span className="text-base font-medium"> / mois</span></p><p className="mt-3 text-sm text-white/90">Un accès supplémentaire pour un conseiller humain de votre équipe.</p></div>
+              <div><p className="text-sm text-white/80">For your agency — one advisor included</p><p className="mt-2 text-4xl font-extrabold">{formatCAD(AGENCY_MONTHLY_PRICE)}<span className="text-base font-medium"> / month</span></p><p className="mt-3 text-sm text-white/90">Website, Lina, hosting, maintenance and support.</p></div>
+              <div><p className="text-sm text-white/80">Per additional travel advisor</p><p className="mt-2 text-4xl font-extrabold">{formatCAD(ADDITIONAL_ADVISOR_MONTHLY_PRICE)}<span className="text-base font-medium"> / month</span></p><p className="mt-3 text-sm text-white/90">An additional account for a human travel advisor on your team.</p></div>
             </div>
           </div>
           <div className="mt-8 overflow-x-auto rounded-xl border border-gray-200">
             <table className="w-full text-left text-sm">
-              <caption className="px-5 py-4 text-left font-bold text-gray-900">Exemples de mensualités pour votre agence</caption>
-              <thead className="bg-gray-50 text-gray-700"><tr><th scope="col" className="px-5 py-3">Nombre total de conseillers</th><th scope="col" className="px-5 py-3">Total mensuel</th></tr></thead>
-              <tbody>{[1, 3, 5, 10].map((count) => <tr key={count} className="border-t border-gray-100"><th scope="row" className="px-5 py-3 font-medium text-gray-700">{count}</th><td className="px-5 py-3 font-bold text-teal-700">{formatCAD(agencyMonthlyTotal(count))} / mois</td></tr>)}</tbody>
+              <caption className="px-5 py-4 text-left font-bold text-gray-900">Monthly pricing examples for your agency</caption>
+              <thead className="bg-gray-50 text-gray-700"><tr><th scope="col" className="px-5 py-3">Total number of advisors</th><th scope="col" className="px-5 py-3">Monthly total</th></tr></thead>
+              <tbody>{[1, 3, 5, 10].map((count) => <tr key={count} className="border-t border-gray-100"><th scope="row" className="px-5 py-3 font-medium text-gray-700">{count}</th><td className="px-5 py-3 font-bold text-teal-700">{formatCAD(agencyMonthlyTotal(count))} / month</td></tr>)}</tbody>
             </table>
           </div>
-          <p className="mt-6 rounded-xl bg-teal-50 p-5 text-sm font-semibold text-teal-900">Exemple : cinq conseillers avec l’installation Professionnelle — {formatCAD(3500)} une fois, puis {formatCAD(agencyMonthlyTotal(5))} par mois.</p>
-          <p className="mt-5 text-sm leading-relaxed text-gray-600">Les abonnements et frais des logiciels externes restent à la charge de l’agence. Le volume d’utilisation de l’IA et le soutien inclus sont précisés au contrat. Les fonctionnalités livrées correspondent au forfait et au périmètre convenus.</p>
+          <p className="mt-6 rounded-xl bg-teal-50 p-5 text-sm font-semibold text-teal-900">Example: five advisors with the Professional setup — {formatCAD(3500)} once, then {formatCAD(agencyMonthlyTotal(5))} per month.</p>
+          <p className="mt-5 text-sm leading-relaxed text-gray-600">External software subscriptions and fees remain the responsibility of the agency. Included AI usage and support are specified in the contract. Delivered features match the agreed package and scope.</p>
         </div>
       </section>
 
