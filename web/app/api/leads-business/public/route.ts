@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/src/lib/supabase/server";
 
+import { installationPlans, agencyMonthlyTotal } from "@/src/lib/agency-pricing";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -12,11 +14,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "contact_name is required" }, { status: 400 });
   }
 
-  const numberOfAgents = parseInt(body.number_of_agents, 10) || 1;
+  const numberOfAgents = Math.max(1, parseInt(body.number_of_agents, 10) || 1);
   const isOnboarding = body.source === "agency_onboarding";
   const plan = body.plan || "standard";
   const setupBase = plan === "premium" ? 9999 : 1999;
-  const estimatedSetupValue = setupBase + numberOfAgents * 399;
+  const selectedInstallation = installationPlans.find((item) => item.key === plan);
+  // Preserve legacy submissions while applying fixed setup fees to the new plans.
+  const estimatedSetupValue = selectedInstallation?.price ?? (setupBase + numberOfAgents * 399);
 
   const record: Record<string, unknown> = {
     type: "travel_agency",
@@ -40,7 +44,18 @@ export async function POST(req: NextRequest) {
       record.current_suppliers = fd.suppliers || null;
       record.city = fd.address || null;
       // Store full questionnaire JSON in notes
-      record.notes = JSON.stringify(fd);
+      record.notes = JSON.stringify(selectedInstallation ? {
+        ...fd,
+        selectedPlan: selectedInstallation.key,
+        pricing: {
+          currency: "CAD",
+          installation: selectedInstallation.price,
+          monthly: agencyMonthlyTotal(numberOfAgents),
+          advisors: numberOfAgents,
+          taxesIncluded: false,
+          integrationRequiresValidation: selectedInstallation.key === "integrated",
+        },
+      } : fd);
     } catch {
       // Keep notes as-is if parsing fails
     }
