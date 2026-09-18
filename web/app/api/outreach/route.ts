@@ -52,10 +52,15 @@ export async function GET(req: NextRequest) {
   const results: any[] = [];
   const errors: string[] = [];
 
-  const pending = await getLeads({ outreach_status: "pending", minEmailCount: 4 });
+  // ⚠️ Lina reste STRICTEMENT côté voyage : on ne contacte QUE les leads
+  // lead_type === "travel". Sinon les templates Zeniva Travel partaient vers
+  // des leads d'autres verticales (ex. ZeniCorp Époxy) — ce que Lina ne doit
+  // jamais faire pour le moment.
+  const pending = (await getLeads({ outreach_status: "pending", minEmailCount: 4, lead_type: "travel" }))
+    .filter((l: any) => l.lead_type === "travel");
 
   if (pending.length === 0) {
-    return NextResponse.json({ status: "ok", message: "no leads pending outreach", results: [] });
+    return NextResponse.json({ status: "ok", message: "no travel leads pending outreach", results: [] });
   }
 
   for (const lead of pending) {
