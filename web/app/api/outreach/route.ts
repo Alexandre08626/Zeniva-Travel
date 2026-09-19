@@ -69,8 +69,10 @@ export async function GET(req: NextRequest) {
     const leadErrors: string[] = [];
 
     if (type === "all" || type === "email") {
-      const emails = lead.emails || [];
-      for (const email of emails) {
+      // UN SEUL courriel par lead : le principal (sinon Lina envoyait le meme
+      // message a chacune des 4+ adresses enrichies du lead => "4 fois").
+      const email = (lead.emails && lead.emails[0]) || lead.email || "";
+      if (email) {
         const aiBody = await callOpenAI("", "");
         const body = aiBody || pick(EMAIL_TEMPLATES)(lead.name || "there", lead.destination || "travel");
         const subject = `${lead.name?.split(" ")[0] || "Hi"}, your next adventure starts here`;

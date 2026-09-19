@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { installationPlans, formatCAD, agencyMonthlyTotal, AGENCY_MONTHLY_PRICE, ADDITIONAL_ADVISOR_MONTHLY_PRICE } from "@/src/lib/agency-pricing";
 
 /* ─── Data ──────────────────────────────────────────────────────────── */
 
@@ -31,9 +30,36 @@ const ownershipCards = [
 ];
 
 const howItWorks = [
-  { step: "1", title: "Choose your setup package", desc: "Three packages to match your needs. Business software integrations are validated before we provide a quote." },
-  { step: "2", title: "We set up your agency", desc: "Brand customization, configuration of the agreed features and training for your team." },
-  { step: "3", title: "One clear subscription", desc: "CAD $599 per month for your agency, including one advisor. Each additional advisor: CAD $49 per month." },
+  { step: "1", title: "We integrate", desc: "Complete onboarding, paste the widget on your site. Takes under 30 minutes." },
+  { step: "2", title: "AI starts working", desc: "8 AI agents handle inquiries, build itineraries, search suppliers, and capture leads 24/7." },
+  { step: "3", title: "You pay for what you use", desc: "No monthly fees on Standard. You only pay for actual AI conversations, messages, and API calls." },
+];
+
+const standardFeatures = [
+  "AI Lina 24/7 sur le site de vos agents",
+  "Réponses instantanées aux voyageurs",
+  "Assistant pour assister les clients",
+  "Gestion de base des demandes",
+];
+
+const premiumFeatures = [
+  "8 AI agents", "Lina widget", "Full agent dashboard", "CRM",
+  "Proposals with payment", "Invoicing & commissions", "Document management", "Team training",
+];
+
+const premiumExtras = [
+  "White-label mobile app (your name, logo, colors in App Store & Google Play)",
+  "Push notifications to travelers",
+  "Mobile client portal",
+  "In-app chat with Lina and advisor",
+];
+
+const usageRows = [
+  { service: "Lina AI", price: "$0.25/conv" },
+  { service: "SMS", price: "$0.03/msg" },
+  { service: "WhatsApp", price: "$0.02/msg" },
+  { service: "Email", price: "$0.01/email" },
+  { service: "API Searches", price: "$0.10/search" },
 ];
 
 /* ─── Onboarding Modal ──────────────────────────────────────────────── */
@@ -64,7 +90,7 @@ function CheckboxGroup({ options, selected, onChange }: { options: string[]; sel
 }
 
 const initialForm = {
-  selectedPlan: "essential",
+  selectedPlan: "standard",
   legalName: "", tradeName: "", opcPermit: "", yearEstablished: "", address: "", website: "", locations: "",
   primaryName: "", primaryTitle: "", primaryEmail: "", primaryPhone: "",
   preferredComm: [] as string[],
@@ -103,7 +129,7 @@ const initialForm = {
 type FormData = typeof initialForm;
 
 function OnboardingModal({ open, onClose, defaultPlan }: { open: boolean; onClose: () => void; defaultPlan?: string }) {
-  const [form, setForm] = useState<FormData>({ ...initialForm, selectedPlan: defaultPlan || "essential" });
+  const [form, setForm] = useState<FormData>({ ...initialForm, selectedPlan: defaultPlan || "standard" });
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
@@ -191,22 +217,19 @@ function OnboardingModal({ open, onClose, defaultPlan }: { open: boolean; onClos
           <div className={sectionCls}>
             <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-violet-500 flex items-center justify-center text-white font-bold text-sm">$</div>
-              <div><p className="font-bold text-gray-900">Setup package</p></div>
+              <div><p className="font-bold text-gray-900">Selected Plan</p></div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {installationPlans.map((p) => (
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { key: "standard", label: "Standard — Lina AI", price: "$399 install + $295/mo" },
+                { key: "premium", label: "Premium", price: "$1,999 setup" },
+              ].map((p) => (
                 <button key={p.key} type="button" onClick={() => set("selectedPlan", p.key)} className={`rounded-xl border-2 p-4 text-left transition-all ${form.selectedPlan === p.key ? "border-teal-500 bg-teal-50" : "border-gray-200 hover:border-gray-300"}`}>
                   <p className="font-bold text-sm text-gray-900">{p.label}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{formatCAD(p.price)} — one-time payment</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{p.price}</p>
                 </button>
               ))}
             </div>
-          </div>
-
-          <div lang="en-CA" className={sectionCls}>
-            <p className="font-bold text-gray-900">Your subscription: {formatCAD(agencyMonthlyTotal(Math.max(1, parseInt(form.totalAdvisors, 10) || 1)))} / month</p>
-            <p className="mt-2 text-sm text-gray-600">CAD $599/month for your agency, including one advisor, plus CAD $49/month per additional advisor. Setup is billed once. Prices exclude taxes.</p>
-            <p className="mt-2 text-xs text-gray-500">External software costs are paid by the agency. AI usage and support allowances are defined in the contract. The Integrated package requires technical validation; multiple integrations or major custom development require a separate quote.</p>
           </div>
 
           {/* Section 1 - Agency Identity */}
@@ -270,7 +293,7 @@ function OnboardingModal({ open, onClose, defaultPlan }: { open: boolean; onClos
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-violet-500 flex items-center justify-center text-white font-bold text-sm">3</div>
               <div><p className="font-bold text-gray-900">Team & Advisors</p><p className="text-xs text-gray-400">Each advisor gets a personal dashboard with 4 AI agents</p></div>
             </div>
-            <div className="bg-teal-50 border border-teal-200 rounded-xl p-3 text-xs text-teal-800 mb-4">One advisor is included in the agency subscription at CAD $599/month. Each additional travel advisor: CAD $49/month. No setup fee per advisor.</div>
+            <div className="bg-teal-50 border border-teal-200 rounded-xl p-3 text-xs text-teal-800 mb-4">Each advisor receives their own login, personal dashboard, CRM, and 4 AI agents (Lina, Sofia, Luna, Rex). Setup fee: $399 per advisor.</div>
             <div><label className={labelCls}>Total Number of Advisors <span className="text-red-500">*</span></label><input className={ic} value={form.totalAdvisors} onChange={(e) => set("totalAdvisors", e.target.value)} placeholder="e.g. 8" /></div>
             <div className="mt-4"><label className={labelCls}>Advisor List <span className="text-red-500">*</span></label><textarea className={ta} value={form.advisorList} onChange={(e) => set("advisorList", e.target.value)} placeholder={"Advisor 1: Marie Tremblay \u2014 marie@agency.com\nAdvisor 2: Jean Dupont \u2014 jean@agency.com"} /></div>
             <div className="mt-4"><label className={labelCls}>Work Style</label><CheckboxGroup options={["In-office", "Remote / Home-based", "Hybrid"]} selected={form.workStyle} onChange={(v) => setArr("workStyle", v)} /></div>
@@ -340,10 +363,23 @@ function OnboardingModal({ open, onClose, defaultPlan }: { open: boolean; onClos
             <div className="mt-4"><label className={labelCls}>Accept Credit Card Payments?</label><CheckboxGroup options={["Yes \u2014 terminal", "Yes \u2014 online", "No \u2014 cash/cheque/e-transfer only"]} selected={form.paymentMethods} onChange={(v) => setArr("paymentMethods", v)} /></div>
           </div>
 
-          {/* Goals */}
+          {/* Section 8 - Mobile App (Premium) */}
+          {form.selectedPlan === "premium" && (
+            <div className={sectionCls}>
+              <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-violet-500 flex items-center justify-center text-white font-bold text-sm">8</div>
+                <div><p className="font-bold text-gray-900">Mobile Application (Premium Plan)</p><p className="text-xs text-gray-400">Your white-label app</p></div>
+              </div>
+              <div><label className={labelCls}>Desired App Name</label><input className={ic} value={form.appName} onChange={(e) => set("appName", e.target.value)} placeholder="How it appears in the App Store / Google Play" /></div>
+              <div className="mt-4"><label className={labelCls}>Developer Accounts</label><CheckboxGroup options={["Yes \u2014 Apple Developer ($99/yr)", "Yes \u2014 Google Play ($25 one-time)", "No \u2014 please help me set them up"]} selected={form.devAccounts} onChange={(v) => setArr("devAccounts", v)} /></div>
+              <div className="mt-4"><label className={labelCls}>App Icon</label><CheckboxGroup options={["I'll provide a custom icon", "Use my logo", "Design one for me"]} selected={form.appIcon} onChange={(v) => setArr("appIcon", v)} /></div>
+            </div>
+          )}
+
+          {/* Section 9 - Goals */}
           <div className={sectionCls}>
             <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-violet-500 flex items-center justify-center text-white font-bold text-sm">8</div>
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-violet-500 flex items-center justify-center text-white font-bold text-sm">{form.selectedPlan === "premium" ? "9" : "8"}</div>
               <div><p className="font-bold text-gray-900">Goals & Expectations</p><p className="text-xs text-gray-400">What success looks like for you</p></div>
             </div>
             <div><label className={labelCls}>{"What is your #1 reason for partnering with Zeniva?"} <span className="text-red-500">*</span></label><textarea className={ta} value={form.mainReason} onChange={(e) => set("mainReason", e.target.value)} placeholder="e.g. 'We want to capture leads 24/7 because we lose clients after hours'" /></div>
@@ -355,7 +391,7 @@ function OnboardingModal({ open, onClose, defaultPlan }: { open: boolean; onClos
           {/* Submit */}
           <div className="bg-gradient-to-r from-teal-600 to-violet-600 rounded-2xl p-6 text-center text-white">
             <h3 className="text-xl font-extrabold">Ready to Launch</h3>
-            <p className="text-sm text-white/80 mt-1">Our team will confirm the scope, technical feasibility and delivery schedule before work begins.</p>
+            <p className="text-sm text-white/80 mt-1">Once submitted, our team will review and configure your platform within 5-7 business days.</p>
             {error && <p className="mt-3 text-sm font-semibold text-red-200 bg-red-900/30 rounded-lg px-3 py-2">{error}</p>}
             <button onClick={handleSubmit} disabled={sending} className="mt-4 inline-block px-10 py-3 bg-white text-teal-700 font-bold rounded-xl hover:bg-teal-50 transition-colors disabled:opacity-50">
               {sending ? "Submitting..." : "Submit Application"}
@@ -367,11 +403,31 @@ function OnboardingModal({ open, onClose, defaultPlan }: { open: boolean; onClos
   );
 }
 
+/* ─── Usage Table Component ─────────────────────────────────────────── */
+
+function UsageTable() {
+  return (
+    <div className="mt-6 border-t border-gray-100 pt-4">
+      <p className="text-sm font-semibold text-gray-900">Usage-Based Monthly:</p>
+      <table className="mt-2 w-full text-sm">
+        <tbody>
+          {usageRows.map((r) => (
+            <tr key={r.service} className="border-b border-gray-50">
+              <td className="py-1.5 text-gray-600">{r.service}</td>
+              <td className="py-1.5 text-right font-medium text-gray-900">{r.price}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 /* ─── Page ──────────────────────────────────────────────────────────── */
 
 export default function ForAgenciesPage() {
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalPlan, setModalPlan] = useState("essential");
+  const [modalPlan, setModalPlan] = useState("standard");
 
   const openModal = (plan: string) => {
     setModalPlan(plan);
@@ -379,7 +435,7 @@ export default function ForAgenciesPage() {
   };
 
   return (
-    <div lang="en-CA" className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white">
       <OnboardingModal open={modalOpen} onClose={() => setModalOpen(false)} defaultPlan={modalPlan} />
 
       {/* Hero */}
@@ -388,7 +444,7 @@ export default function ForAgenciesPage() {
         <div className="relative mx-auto max-w-4xl">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">Transform Your Travel Agency with AI</h1>
           <p className="mt-6 text-lg text-white/80 sm:text-xl">8 AI agents that work 24/7</p>
-          <button onClick={() => openModal("essential")} className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-lg font-bold text-teal-700 shadow-lg hover:bg-teal-50 transition-colors">Get Started</button>
+          <button onClick={() => openModal("standard")} className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-lg font-bold text-teal-700 shadow-lg hover:bg-teal-50 transition-colors">Get Started</button>
           <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-4">
             {[
               { value: "8", label: "AI Agents" },
@@ -477,42 +533,74 @@ export default function ForAgenciesPage() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" lang="en-CA" className="bg-white px-4 py-20">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-center text-3xl font-bold text-gray-900 sm:text-4xl">Clear pricing for your agency</h2>
-          <p className="mt-4 text-center text-lg text-gray-500">One setup fee, one agency subscription and one price per additional advisor.</p>
-          <p className="mt-2 text-center text-sm text-gray-500">All prices are in Canadian dollars, before taxes.</p>
-          <h3 className="mt-12 text-2xl font-bold text-gray-900">1. Your setup — one-time payment</h3>
-          <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {installationPlans.map((plan) => (
-              <div key={plan.key} className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                <h4 className="text-xl font-bold text-gray-900">{plan.label}</h4>
-                <p className="mt-4 text-4xl font-extrabold text-teal-700">{formatCAD(plan.price)}</p>
-                <p className="mt-1 text-sm text-gray-500">One-time payment</p>
-                <ul className="mt-6 flex-1 space-y-3">
-                  {plan.features.map((feature) => <li key={feature} className="flex gap-2 text-sm text-gray-700"><span aria-hidden="true" className="font-bold text-teal-600">✓</span>{feature}</li>)}
-                </ul>
-                {plan.key === "integrated" && <p className="mt-5 text-xs leading-relaxed text-gray-600">Subject to technical validation. One business software integration within the agreed scope. Multiple systems or major custom development require a separate quote.</p>}
-                <button onClick={() => openModal(plan.key)} className="mt-6 rounded-xl bg-teal-700 px-4 py-3 text-sm font-bold text-white hover:bg-teal-800">Choose {plan.label}</button>
+      <section className="bg-white px-4 py-20">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="text-center text-3xl font-bold text-gray-900 sm:text-4xl">Pricing</h2>
+          <p className="mt-4 text-center text-lg text-gray-500">Simple, transparent pricing. Zero commission on bookings.</p>
+
+          <div className="mt-12 grid grid-cols-1 gap-8 lg:grid-cols-2">
+            {/* Standard — Lina AI (seulement Lina) */}
+            <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm flex flex-col">
+              <h3 className="text-xl font-bold text-gray-900">Standard — Lina AI</h3>
+              <div className="mt-4">
+                <span className="text-4xl font-extrabold text-gray-900">$399</span>
+                <span className="ml-2 text-sm text-gray-500">installation</span>
               </div>
-            ))}
-          </div>
-          <div className="mt-12 rounded-2xl bg-gradient-to-br from-teal-700 to-violet-700 p-6 text-white sm:p-8">
-            <h3 className="text-2xl font-bold">2. Your monthly subscription</h3>
-            <div className="mt-6 grid gap-8 sm:grid-cols-2">
-              <div><p className="text-sm text-white/80">For your agency — one advisor included</p><p className="mt-2 text-4xl font-extrabold">{formatCAD(AGENCY_MONTHLY_PRICE)}<span className="text-base font-medium"> / month</span></p><p className="mt-3 text-sm text-white/90">Website, Lina, hosting, maintenance and support.</p></div>
-              <div><p className="text-sm text-white/80">Per additional travel advisor</p><p className="mt-2 text-4xl font-extrabold">{formatCAD(ADDITIONAL_ADVISOR_MONTHLY_PRICE)}<span className="text-base font-medium"> / month</span></p><p className="mt-3 text-sm text-white/90">An additional account for a human travel advisor on your team.</p></div>
+              <p className="mt-2 text-sm text-teal-700 font-medium">+ $295 / mois pour l'IA Lina</p>
+              <p className="mt-4 text-sm text-gray-600 flex items-center gap-2">
+                <svg className="h-4 w-4 shrink-0 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                Lina répond aux visiteurs 24/7 sur le site de vos agents
+              </p>
+              <div className="flex-1"></div>
+              <button onClick={() => openModal("standard")} className="mt-6 block w-full rounded-lg border-2 border-teal-600 py-3 text-center text-sm font-semibold text-teal-700 hover:bg-teal-50 transition-colors">Get Started</button>
+            </div>
+
+            {/* Premium (ancien Standard $1,999) */}
+            <div className="relative rounded-2xl bg-gradient-to-br from-teal-600 to-violet-600 p-8 shadow-lg text-white flex flex-col">
+              <div className="absolute top-4 right-4 rounded-full bg-white/20 backdrop-blur-sm px-3 py-1 text-xs font-bold uppercase tracking-wide">BEST VALUE</div>
+              <h3 className="text-xl font-bold">Premium</h3>
+              <div className="mt-4">
+                <span className="text-4xl font-extrabold">$1,999</span>
+                <span className="ml-2 text-sm text-white/70">one-time setup</span>
+              </div>
+              <p className="mt-2 text-sm font-medium text-white/80">+ $399 per agent (one-time)</p>
+
+              <p className="mt-6 text-sm font-semibold text-white/90">Inclut l'assistant Lina, plus :</p>
+              <ul className="mt-3 space-y-2.5 flex-1">
+                {premiumFeatures.map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm text-white/90">
+                    <svg className="mt-0.5 h-4 w-4 shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    {f}
+                  </li>
+                ))}
+                {premiumExtras.map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm text-white/90">
+                    <svg className="mt-0.5 h-4 w-4 shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              {/* Same usage-based pricing */}
+              <div className="mt-6 border-t border-white/20 pt-4">
+                <p className="text-sm font-semibold text-white/90">Usage-Based Monthly:</p>
+                <table className="mt-2 w-full text-sm">
+                  <tbody>
+                    {usageRows.map((r) => (
+                      <tr key={r.service} className="border-b border-white/10">
+                        <td className="py-1.5 text-white/70">{r.service}</td>
+                        <td className="py-1.5 text-right font-medium text-white">{r.price}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <p className="mt-4 text-center text-sm font-bold text-white">0% commission on bookings - guaranteed</p>
+
+              <button onClick={() => openModal("premium")} className="mt-6 block w-full rounded-lg bg-white py-3 text-center text-sm font-semibold text-teal-700 hover:bg-teal-50 transition-colors">Get Started</button>
             </div>
           </div>
-          <div className="mt-8 overflow-x-auto rounded-xl border border-gray-200">
-            <table className="w-full text-left text-sm">
-              <caption className="px-5 py-4 text-left font-bold text-gray-900">Monthly pricing examples for your agency</caption>
-              <thead className="bg-gray-50 text-gray-700"><tr><th scope="col" className="px-5 py-3">Total number of advisors</th><th scope="col" className="px-5 py-3">Monthly total</th></tr></thead>
-              <tbody>{[1, 3, 5, 10].map((count) => <tr key={count} className="border-t border-gray-100"><th scope="row" className="px-5 py-3 font-medium text-gray-700">{count}</th><td className="px-5 py-3 font-bold text-teal-700">{formatCAD(agencyMonthlyTotal(count))} / month</td></tr>)}</tbody>
-            </table>
-          </div>
-          <p className="mt-6 rounded-xl bg-teal-50 p-5 text-sm font-semibold text-teal-900">Example: five advisors with the Professional setup — {formatCAD(3500)} once, then {formatCAD(agencyMonthlyTotal(5))} per month.</p>
-          <p className="mt-5 text-sm leading-relaxed text-gray-600">External software subscriptions and fees remain the responsibility of the agency. Included AI usage and support are specified in the contract. Delivered features match the agreed package and scope.</p>
         </div>
       </section>
 
@@ -521,7 +609,7 @@ export default function ForAgenciesPage() {
         <div className="mx-auto max-w-3xl">
           <h2 className="text-3xl font-extrabold sm:text-4xl">Ready to give your agency 8 AI employees?</h2>
           <p className="mt-4 text-lg text-white/80">Join the agencies already using Zeniva to capture more leads, build better itineraries, and close more deals.</p>
-          <button onClick={() => openModal("essential")} className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-lg font-bold text-teal-700 shadow-lg hover:bg-teal-50 transition-colors">Get Started</button>
+          <button onClick={() => openModal("standard")} className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-lg font-bold text-teal-700 shadow-lg hover:bg-teal-50 transition-colors">Get Started</button>
         </div>
       </section>
     </div>
