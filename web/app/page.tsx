@@ -32,7 +32,7 @@ const DESTINATIONS = [
   { name: "Santorini", country: "Greece", emoji: "🇬🇷", img: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=800&q=80", tag: "Romantic", color: "#0F6CF5" },
   { name: "Bali", country: "Indonesia", emoji: "🇮🇩", img: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=800&q=80", tag: "Adventure", color: "#10b981" },
   { name: "Dubai", country: "UAE", emoji: "🇦🇪", img: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80", tag: "Luxury", color: "#E6B85A" },
-  { name: "Cancún", country: "Mexico", emoji: "🇲🇽", img: "https://images.unsplash.com/photo-1533104816931-20fa691ff6ca?auto=format&fit=crop&w=800&q=80", tag: "Beach", color: "#06b6d4" },
+  { name: "Cancún", country: "Mexico", emoji: "🇲🇽", img: "https://images.unsplash.com/photo-1552074284-5e88ef1aef18?auto=format&fit=crop&w=800&q=80", tag: "Beach", color: "#06b6d4" },
   { name: "Tokyo", country: "Japan", emoji: "🇯🇵", img: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=800&q=80", tag: "Culture", color: "#ec4899" },
   { name: "Maldives", country: "Indian Ocean", emoji: "🏝️", img: "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=800&q=80", tag: "Paradise", color: "#8b5cf6" },
 ];
@@ -184,6 +184,16 @@ export default function HomePage() {
 
             <p className="text-center text-[10px] text-slate-400 font-medium mt-3 mb-6">🔒 Secure · No booking fees · Cancel anytime</p>
           </div>
+        </div>
+
+        {/* Mobile NYC deals — white */}
+        <div className="bg-white px-5 py-8 border-t border-slate-100">
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-xl font-black text-[#0B1B4D]">🔥 Top Trips from NYC</h2>
+            <Link href="/packages" className="text-xs font-bold text-blue-600 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100">View All →</Link>
+          </div>
+          <p className="text-xs text-slate-500 font-medium mb-4">Flight + hotel + transfers from JFK · per person</p>
+          <FeaturedTripsSection variant="carousel" />
         </div>
 
         {/* Mobile destinations — white */}
@@ -414,14 +424,48 @@ export default function HomePage() {
           <div className="max-w-[1400px] mx-auto">
             <div className="flex items-end justify-between mb-10">
               <div>
-                <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">🔥 Hot Deals</p>
-                <h2 className="text-4xl font-black text-slate-900"><AutoTranslate text="Featured Trips by Lina" className="inline" /></h2>
+                <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">🔥 Hot Deals · Departing from New York</p>
+                <h2 className="text-4xl font-black text-slate-900"><AutoTranslate text="Top Trips from NYC by Lina" className="inline" /></h2>
+                <p className="text-slate-500 mt-2"><AutoTranslate text="Flight + hotel + transfers from JFK, ready to book. Prices per person, based on 2 travelers." className="inline" /></p>
               </div>
               <Link href="/packages" className="text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">
                 View all <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
               </Link>
             </div>
             <FeaturedTripsSection />
+          </div>
+        </section>
+
+        {/* ── TOP DESTINATIONS (photo grid) ── */}
+        <section className="w-full px-8 xl:px-16 pb-20">
+          <div className="max-w-[1400px] mx-auto">
+            <div className="flex items-end justify-between mb-8">
+              <div>
+                <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">🌍 Where next?</p>
+                <h2 className="text-4xl font-black text-slate-900"><AutoTranslate text="Top Destinations" className="inline" /></h2>
+              </div>
+              <Link href="/destinations" className="text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                View all <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+              </Link>
+            </div>
+            <div className="grid grid-cols-6 gap-4">
+              {DESTINATIONS.map((d, i) => (
+                <Link
+                  key={d.name}
+                  href={`/chat?prompt=I want to go to ${d.name}`}
+                  className={`group relative col-span-2 rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 ${i < 3 ? "h-72" : "h-60"}`}
+                >
+                  <img src={d.img} alt={`${d.name}, ${d.country}`} loading="lazy" className="absolute inset-0 w-full object-cover group-hover:scale-105 transition-transform duration-500" style={{ height: "100%" }} />
+                  <div className="absolute inset-0" style={{ background: "linear-gradient(0deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.1) 55%, transparent 100%)" }} />
+                  <span className="absolute top-3 left-3 rounded-full px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur" style={{ backgroundColor: d.color + "B3" }}>{d.tag}</span>
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <div className="text-xs font-bold text-white/85">{d.emoji} {d.country}</div>
+                    <div className="text-xl font-black text-white leading-tight">{d.name}</div>
+                    <div className="mt-1 text-[11px] font-bold text-white/0 group-hover:text-white/90 transition-colors">Plan with Lina →</div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
 

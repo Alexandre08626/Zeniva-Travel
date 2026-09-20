@@ -1,0 +1,326 @@
+[
+  {
+    "id": "cancun-all-inclusive",
+    "title": "Cancun All-Inclusive Escape",
+    "description": "Direct flight from New York, beachfront 5-star resort, all meals & drinks, airport transfer included. Pure paradise.",
+    "destination": "Cancun, Mexico",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "November 12-17, 2026",
+    "price": 899,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1552074284-5e88ef1aef18?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Beach club",
+        "Catamaran sunset",
+        "Cenote tour"
+      ]
+    },
+    "priceUnit": "per_person",
+    "category": "beach",
+    "nights": 5,
+    "wasPrice": 1149
+  },
+  {
+    "id": "punta-cana-paradise",
+    "title": "Punta Cana Paradise",
+    "description": "Direct flight from JFK, oceanfront all-inclusive resort, white sand beaches, transfers and meals included.",
+    "destination": "Punta Cana, Dominican Republic",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "December 3-8, 2026",
+    "price": 929,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1705507972578-78537a2dda73?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Snorkeling",
+        "Saona Island day tour",
+        "Spa retreat"
+      ]
+    },
+    "priceUnit": "per_person",
+    "category": "beach",
+    "nights": 5,
+    "wasPrice": 1199
+  },
+  {
+    "id": "costa-rica-eco",
+    "title": "Costa Rica Eco-Adventure",
+    "description": "From New York to Liberia: rainforest lodges, volcano hike, hot springs and zip-lining. Flight + hotel + transfer.",
+    "destination": "Liberia, Costa Rica",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "January 14-20, 2027",
+    "price": 999,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1664532869454-53ac5942d959?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Arenal volcano hike",
+        "Zip-lining",
+        "Hot springs"
+      ]
+    },
+    "priceUnit": "per_person",
+    "category": "adventure",
+    "nights": 6,
+    "wasPrice": 1249
+  },
+  {
+    "id": "hawaii-waikiki",
+    "title": "Hawaii Waikiki Bliss",
+    "description": "JFK → Honolulu, beachfront Waikiki tower, Diamond Head sunrise, luau included. Transfers booked.",
+    "destination": "Honolulu, Hawaii",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "February 6-13, 2027",
+    "price": 1499,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1542259009477-d625272157b7?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Diamond Head sunrise",
+        "Luau night",
+        "North Shore tour"
+      ]
+    },
+    "priceUnit": "per_person",
+    "category": "beach",
+    "nights": 7,
+    "wasPrice": 1899
+  },
+  {
+    "id": "bahamas-nassau",
+    "title": "Bahamas Nassau Getaway",
+    "description": "Quick flight from New York, oceanfront resort on Cable Beach, swim with dolphins, all transfers included.",
+    "destination": "Nassau, Bahamas",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "November 20-24, 2026",
+    "price": 749,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Atlantis Aquaventure",
+        "Swim with dolphins",
+        "Pirate cruise"
+      ]
+    },
+    "priceUnit": "per_person",
+    "category": "beach",
+    "nights": 4,
+    "wasPrice": 949
+  },
+  {
+    "id": "aruba-one-happy-island",
+    "title": "Aruba One Happy Island",
+    "description": "JFK → Aruba: Caribbean sun, Palm Beach 5★ resort, snorkeling and sunset cruise. Flight, hotel, transfer.",
+    "destination": "Oranjestad, Aruba",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "January 23-29, 2027",
+    "price": 999,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1678449784319-423c621569b9?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Palm Beach",
+        "Snorkel reef",
+        "Sunset catamaran"
+      ]
+    },
+    "priceUnit": "per_person",
+    "category": "beach",
+    "nights": 6,
+    "wasPrice": 1299
+  },
+  {
+    "id": "cabo-san-lucas-luxe",
+    "title": "Cabo San Lucas Luxe",
+    "description": "JFK → Cabo: oceanfront 5★ resort overlooking the Arch, sunset whale watching, Land's End cruise. Flight, hotel, transfer.",
+    "destination": "Cabo San Lucas, Mexico",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "December 10-16, 2026",
+    "price": 1099,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1562095241-8c6714fd4178?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Land's End cruise",
+        "Whale watching",
+        "Beach club"
+      ]
+    },
+    "priceUnit": "per_person",
+    "category": "beach",
+    "nights": 6,
+    "wasPrice": 1399
+  },
+  {
+    "id": "paris-summer",
+    "title": "Paris Spring Romance",
+    "description": "Direct from JFK to CDG, 4★ hotel near Champs-Élysées, Seine cruise and Eiffel Tower dinner. Transfers included.",
+    "destination": "Paris, France",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "April 9-15, 2027",
+    "price": 1299,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Eiffel Tower dinner",
+        "Seine cruise",
+        "Louvre & Orsay"
+      ]
+    },
+    "priceUnit": "per_person",
+    "category": "europe",
+    "nights": 6,
+    "wasPrice": 1649
+  },
+  {
+    "id": "santorini-sunsets",
+    "title": "Santorini Sunsets",
+    "description": "JFK → Santorini, cliffside cave hotel in Oia, caldera sunset cruise and wine tour. Flight, hotel, transfer.",
+    "destination": "Santorini, Greece",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "May 7-13, 2027",
+    "price": 1599,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Sunset caldera cruise",
+        "Wine tasting",
+        "Oia & Fira tour"
+      ]
+    },
+    "priceUnit": "per_person",
+    "category": "europe",
+    "nights": 6,
+    "wasPrice": 1999
+  },
+  {
+    "id": "tokyo-discovery",
+    "title": "Tokyo Cherry Blossom",
+    "description": "JFK direct to Tokyo Haneda during sakura season, 4★ Shinjuku tower, Mt. Fuji day trip, sushi masterclass. All transfers included.",
+    "destination": "Tokyo, Japan",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "March 26-April 3, 2027",
+    "price": 2199,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Mt. Fuji day trip",
+        "Sushi masterclass",
+        "Shibuya & Asakusa"
+      ]
+    },
+    "priceUnit": "per_person",
+    "category": "asia",
+    "nights": 8,
+    "wasPrice": 2699
+  },
+  {
+    "id": "bali-bliss",
+    "title": "Bali Tropical Bliss",
+    "description": "From New York to Denpasar via SQ premium connect, private villa with pool in Ubud, beach dinners and rice terraces.",
+    "destination": "Bali, Indonesia",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "February 18-26, 2027",
+    "price": 2099,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Tegallalang rice terraces",
+        "Private temple tour",
+        "Beach dinner"
+      ]
+    },
+    "priceUnit": "per_person",
+    "category": "asia",
+    "nights": 8,
+    "wasPrice": 2599
+  },
+  {
+    "id": "iceland-northern-lights",
+    "title": "Iceland Northern Lights",
+    "description": "Direct from JFK to Reykjavik, Blue Lagoon spa, Golden Circle tour, aurora chase by night. Flight, hotel, transfer.",
+    "destination": "Reykjavik, Iceland",
+    "departureCity": "New York",
+    "departureAirport": "JFK",
+    "dates": "November 8-14, 2026",
+    "price": 1399,
+    "currency": "USD",
+    "image": "https://images.unsplash.com/photo-1589311836849-4cec35b363cb?auto=format&fit=crop&w=1600&q=90",
+    "partner": "Duffel",
+    "details": {
+      "flight": true,
+      "hotel": true,
+      "transfer": true,
+      "activities": [
+        "Blue Lagoon spa",
+        "Golden Circle tour",
+        "Aurora chase"
+      ]
+    },
+    "priceUnit": "per_person",
+    "category": "adventure",
+    "nights": 6,
+    "wasPrice": 1749
+  }
+]

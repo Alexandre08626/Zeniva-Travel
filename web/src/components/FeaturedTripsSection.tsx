@@ -2,6 +2,8 @@
 
 import FeaturedTripsByLina from "./FeaturedTripsByLina";
 
-export default function FeaturedTripsSection() {
-  return <FeaturedTripsByLina />;
+type Props = { variant?: "grid" | "carousel"; limit?: number };
+
+export default function FeaturedTripsSection(props: Props) {
+  return <FeaturedTripsByLina {...props} />;
 }
