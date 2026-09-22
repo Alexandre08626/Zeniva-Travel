@@ -216,6 +216,102 @@ export const GUIDES: GuideData[] = [
     cta: { label: "Plan a trip with Lina", href: "/chat" },
     aboutId: "https://www.zenivatravel.com/ai-travel-concierge#brand",
   },
+  {
+    slug: "all-inclusive-cancun-cost-family-of-four",
+    title: "How much does an all-inclusive Cancún vacation cost for a family of four in 2026?",
+    description:
+      "Real 2026 numbers for a 7-night all-inclusive Cancún trip for two adults and two kids: nightly resort rates by tier, flights, transfers, taxes and tips, what is actually included, and how to bring the total down without downgrading the resort.",
+    datePublished: "2026-09-22",
+    dateModified: "2026-09-22",
+    readingMinutes: 7,
+    tags: ["Cancun all-inclusive cost", "family of four Cancun price", "Cancun vacation budget 2026", "all-inclusive Mexico family", "Zeniva Travel"],
+    shortAnswer:
+      "In 2026 a 7-night all-inclusive Cancún vacation for a family of four typically costs $4,200 to $14,000 all-in. Mid-range family resorts run about $350–$550 per night for a family room (roughly $2,500–$4,000 for the week), luxury resorts $750–$1,500+ per night, plus $1,600–$3,200 in flights from most US cities, $100–$200 for private airport transfers, and $50–$100 per person in tourist and airport levies. A comfortable mid-range week lands around $6,000–$8,000; a luxury week $10,000–$14,000.",
+    keyTakeaways: [
+      "Cancún all-inclusive rates rose 10–15% from 2025 to 2026; the resort is now usually half the trip's total cost, flights a third.",
+      "\"All-inclusive\" covers rooms, meals, house drinks, pools and kids' clubs — not spa, premium restaurants at some resorts, excursions, tips or the airport-to-resort transfer.",
+      "Kids-stay-free promotions (typically under 12, sharing with two adults) are the single biggest lever for a family of four.",
+      "Shoulder season (late April–June, September–early December, outside hurricane peaks) is 20–35% cheaper than Christmas, spring break and February.",
+      "Budget $50–$100 per person for Quintana Roo tourist tax, airport fees and resort-area levies that are billed outside the package.",
+    ],
+    sections: [
+      {
+        h: "The 2026 budget, line by line",
+        paragraphs: [
+          "The figures below are 2026 market ranges compiled from published resort rates and travel-cost guides (sources at the end). They assume two adults and two children under 12 sharing one family room for 7 nights in a standard (non-holiday) week, flying from a major US airport.",
+        ],
+        table: {
+          caption: "7-night all-inclusive Cancún trip, family of four, 2026",
+          columns: ["Item", "Mid-range resort", "Luxury resort", "Notes"],
+          rows: [
+            ["Resort, 7 nights (family room, all-inclusive)", "$2,500 – $4,000", "$5,500 – $10,500", "$350–$550 vs $750–$1,500 per night"],
+            ["Round-trip flights, 4 people", "$1,600 – $3,200", "$1,600 – $3,200", "$400–$800 per person from most US hubs; more from the West Coast or at holidays"],
+            ["Private airport transfers", "$100 – $200", "$150 – $250", "Round trip; shared shuttles are cheaper"],
+            ["Tourist and airport levies", "$200 – $400", "$200 – $400", "$50–$100 per person, paid outside the package"],
+            ["Tips and extras (spa, excursions, premium dining)", "$300 – $800", "$800 – $2,000", "Chichén Itzá or Xcaret day trips run $100–$200 per person"],
+            ["Total for the week", "$4,700 – $8,600", "$8,250 – $16,350", "Most families land near $6,000–$8,000 mid-range, $10,000–$14,000 luxury"],
+          ],
+        },
+      },
+      {
+        h: "What all-inclusive actually includes",
+        paragraphs: [
+          "Included at nearly every Cancún all-inclusive: the room, buffet and à-la-carte restaurants (some limit reservations per stay), house-brand drinks, pools, beach, kids' club and evening entertainment. Usually included at family resorts: water parks, teen clubs, in-room minibar restocked daily.",
+          "Usually not included: airport transfers, spa treatments, motorized water sports, dolphin experiences, excursions, premium liquor at some resorts, a la carte 'signature' restaurants at some brands, and tips. Tipping is optional but customary — $1–$5 per service, which adds up to $100–$300 over a week.",
+        ],
+      },
+      {
+        h: "The levers that actually change the price",
+        paragraphs: [
+          "Kids-stay-free: most large family resorts (Moon Palace, Hyatt Ziva, Hard Rock, Iberostar, Royalton) run kids-under-12-free promotions on selected dates, which can cut the resort line by 20–35% for a family of four. Ask specifically; it is rarely automatic.",
+          "Dates: a February or Easter week can cost double a late-May or October week for the same room. If school allows, the second half of April, June before the 20th, and mid-September to early December are the best value.",
+          "Room type: a 'family suite' with a separate kids' area is often only $60–$120 more per night than two adjoining standard rooms, and much cheaper than booking two rooms.",
+          "Flights: book 6–10 weeks out for non-holiday travel; for Christmas and spring break, 4–6 months. Nonstops from Texas, Florida, Georgia and the Northeast are usually cheapest.",
+        ],
+      },
+      {
+        h: "How Lina prices a Cancún trip",
+        paragraphs: [
+          "Tell Lina, Zeniva Travel's AI concierge, who is going, your home airport, your dates (or 'flexible in May') and the kind of resort you want. She returns a complete proposal — resort, flights, private transfers, kids-stay-free applied where available, taxes shown separately — in seconds, and re-prices it when you move the dates. A human agent reviews group bookings and special requests before you pay.",
+          "Zeniva Travel serves travelers in all 50 US states and Canada. You pay the published price; Zeniva is paid by the resort and airline partners, not by booking fees.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: "How much is an all-inclusive Cancún trip for a family of four?",
+        a: "In 2026, typically $4,200–$14,000 for 7 nights including flights. Mid-range family resorts put most families at $6,000–$8,000 all-in; luxury resorts at $10,000–$14,000.",
+      },
+      {
+        q: "How much do Cancún all-inclusive resorts cost per night in 2026?",
+        a: "Mid-range family resorts run about $350–$550 per night for a family room; luxury resorts $750–$1,500 or more. Rates are 10–15% higher than in 2025.",
+      },
+      {
+        q: "When is the cheapest time to go to Cancún with kids?",
+        a: "Late April through June (before the 20th) and mid-September to early December, avoiding US school holidays. These weeks are typically 20–35% cheaper than Christmas, February and spring break.",
+      },
+      {
+        q: "Do kids stay free at Cancún all-inclusives?",
+        a: "Often, on selected dates: many large family resorts offer kids-under-12-free promotions when two children share a room with two adults. It is rarely automatic — ask for it when booking.",
+      },
+      {
+        q: "Are airport transfers included in all-inclusive packages?",
+        a: "Usually not. Budget $100–$250 round trip for a private transfer for four, or less for a shared shuttle. Zeniva includes private transfers in its proposals so the total is complete.",
+      },
+      {
+        q: "Does Zeniva Travel charge a booking fee for Cancún packages?",
+        a: "No. You pay the published price; Zeniva Travel is paid by resort and airline partners. Describe your trip to Lina at zenivatravel.com/chat for a priced proposal.",
+      },
+    ],
+    sources: [
+      { name: "The Cancun Sun — What an all-inclusive week in Cancun will cost your family in 2026", url: "https://thecancunsun.com/what-an-all-inclusive-week-in-cancun-will-cost-your-family-in-2026/" },
+      { name: "The Cancun Sun — How much resort prices have gone up in Cancun for 2026", url: "https://thecancunsun.com/here-is-how-much-resort-prices-have-gone-up-in-cancun-for-2026/" },
+      { name: "Cancun All Inclusive — Cancun travel budget guide 2026", url: "https://www.cancunallinclusive.com/cancun-travel-budget-guide-2026-how-much-does-it-really-cost/" },
+      { name: "Endless Travel Plans — All-inclusive resorts for families: 2026 costs and picks", url: "https://www.endlesstravelplans.com/guides/getting-started/all-inclusive-resorts-ultimate-family-guide" },
+    ],
+    cta: { label: "Price my Cancún trip with Lina", href: "/chat" },
+    aboutId: "https://www.zenivatravel.com/#organization",
+  },
 ];
 
 export function findGuide(slug: string): GuideData | null {
