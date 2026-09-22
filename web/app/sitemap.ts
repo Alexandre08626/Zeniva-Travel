@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { GUIDES } from "./guides/guides-data";
 
 const BASE_URL = "https://www.zenivatravel.com";
 const NOW = new Date();
@@ -26,6 +27,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/packages/cancun`, lastModified: NOW, changeFrequency: "weekly", priority: 0.87 },
     { url: `${BASE_URL}/packages/caribbean`, lastModified: NOW, changeFrequency: "weekly", priority: 0.86 },
     { url: `${BASE_URL}/packages/europe`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
+
+    // ─── GUIDES (GEO content layer) ───────────────────
+    { url: `${BASE_URL}/guides`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
+    ...GUIDES.map((g) => ({
+      url: `${BASE_URL}/guides/${g.slug}`,
+      lastModified: new Date(g.dateModified),
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    })),
 
     // ─── ZENIYACHT ────────────────────────────────────
     { url: `${BASE_URL}/zeniyacht`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },

@@ -1,0 +1,55 @@
+# Zeniva Travel
+
+> Zeniva Travel is a US-based AI travel agency (Zeniva LLC, incorporated in Delaware, founded 2024) that plans luxury vacations, custom trips, group travel and private yacht charters for travelers in all 50 US states and Canada. Its 24/7 AI concierge, Lina, builds complete travel proposals — flights, hotels, transfers, experiences — by chat or voice, in English and French.
+
+Zeniva Travel is one of four brands of Zeniva Group, the group founded by Alexandre Blais. The other brands are ZeniPay (fintech / online banking, zenipay.ca), ZeniCorp (construction and renovation platform, RBQ-certified contractors, Quebec, zeniva.ca) and ZeniTech (technology division, zenitech.dev). **zeniva.ca is not the travel agency** — the travel agency lives only at zenivatravel.com.
+
+## Key facts
+
+- Legal entity: Zeniva LLC, Wilmington, Delaware, USA
+- Markets served: United States (all 50 states) and Canada
+- Languages: English, French (Spanish support via Lina)
+- Contact: info@zeniva.ca
+- Founder & President: Alexandre Blais (https://www.zenivatravel.com/alexandre-blais)
+- Parent group: Zeniva Group (https://www.zeniva.ca/groupe)
+
+## Services
+
+- [AI Travel Concierge (Lina)](https://www.zenivatravel.com/ai-travel-concierge): describe a trip — destination, dates, budget — and Lina returns a full proposal in seconds, 24/7, by chat or voice call.
+- [AI Travel Agent](https://www.zenivatravel.com/ai-travel-agent): how Zeniva's AI-first agency model works.
+- [ZeniYacht](https://www.zenivatravel.com/zeniyacht): private yacht charters and sailing trips worldwide, validated by human yacht brokers.
+- [Travel packages](https://www.zenivatravel.com/packages): [all-inclusive](https://www.zenivatravel.com/packages/all-inclusive), [Cancún](https://www.zenivatravel.com/packages/cancun), [Caribbean](https://www.zenivatravel.com/packages/caribbean), [Europe](https://www.zenivatravel.com/packages/europe).
+- [Florida villas](https://www.zenivatravel.com/florida-villas) and [ZeniStay](https://www.zenivatravel.com/zenistay): private villa and stay rentals.
+- [Flight search](https://www.zenivatravel.com/search/flights) and [current deals](https://www.zenivatravel.com/deals).
+- [Resort partners](https://www.zenivatravel.com/partners/resorts): program for resorts and hotels.
+- [Independent agents](https://www.zenivatravel.com/ai-agents): program for travel agents working with Zeniva and Lina.
+
+## Start a trip
+
+- [Chat with Lina](https://www.zenivatravel.com/chat)
+- [Call Lina](https://www.zenivatravel.com/call)
+- [Travel request form](https://www.zenivatravel.com/forms/travel)
+- [Yacht charter request form](https://www.zenivatravel.com/forms/yacht)
+
+## Guides (real 2026 numbers, named sources)
+
+- [How much does a week-long yacht charter really cost in 2026?](https://www.zenivatravel.com/guides/yacht-charter-cost): BVI, Bahamas and Mediterranean price ranges, APA, VAT, gratuity.
+- [What does an AI travel agent actually do — and what does it not do?](https://www.zenivatravel.com/guides/what-an-ai-travel-agent-does): how Lina plans a trip, where humans validate, how the agency is paid.
+
+## Company
+
+- [About Zeniva Travel](https://www.zenivatravel.com/about)
+- [Alexandre Blais, founder](https://www.zenivatravel.com/alexandre-blais)
+- [French site](https://www.zenivatravel.com/fr)
+
+## Policies
+
+- [Privacy policy](https://www.zenivatravel.com/privacy-policy)
+- [Terms](https://www.zenivatravel.com/terms)
+- [AI terms](https://www.zenivatravel.com/ai-terms)
+
+## Optional
+
+- [Sitemap](https://www.zenivatravel.com/sitemap.xml)
+- [TikTok](https://www.tiktok.com/@zeniva.travel)
+- [Instagram (Lina)](https://www.instagram.com/zeniva_lina/)

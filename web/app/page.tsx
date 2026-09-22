@@ -11,6 +11,7 @@ import FeaturedTripsSection from "../src/components/FeaturedTripsSection";
 import AppHomeGate from "../src/components/AppHomeGate.client";
 import MobilePromoBadge from "../src/components/MobilePromoBadge.client";
 import HomeExtraSections, { HOME_FAQ } from "../src/components/HomeExtraSections";
+import { GUIDES } from "./guides/guides-data";
 
 export const metadata: Metadata = {
   title: "#1 AI Travel Concierge USA — Luxury Trips & Custom Vacations",
@@ -243,7 +244,7 @@ export default function HomePage() {
         </div>
 
         {/* Extended sections (shared with desktop) */}
-        <HomeExtraSections />
+        <HomeExtraSections guides={GUIDES} />
 
         {/* Mobile footer — white */}
         <div className="bg-white px-5 py-8 border-t border-slate-100">
@@ -657,7 +658,7 @@ export default function HomePage() {
         </section>
 
         {/* ── EXTENDED SECTIONS (moods, ask Lina, yacht/stay, comparison, guides, pros, FAQ) ── */}
-        <HomeExtraSections />
+        <HomeExtraSections guides={GUIDES} />
 
         {/* ── FINAL CTA ── */}
         <section className="w-full px-8 xl:px-16 py-24">

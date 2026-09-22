@@ -165,17 +165,55 @@ export default function RootLayout({
             fbq('track', 'PageView');
           `}} />
         )}
-        {/* JSON-LD Structured Data — TravelAgency + Organization + WebSite + FAQ */}
+        {/* JSON-LD Structured Data — Zeniva Group umbrella + TravelAgency/Organization + WebSite (site FAQ lives in app/page.tsx) */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify([
               {
+                // Umbrella entity — same @id is declared on zenipay.ca, zeniva.ca and zenitech.dev
+                // so AI engines resolve all brands to one parent instead of confusing them.
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "@id": "https://www.zeniva.ca/#group",
+                "name": "Zeniva Group",
+                "alternateName": ["Groupe Zeniva"],
+                "url": "https://www.zeniva.ca/groupe",
+                "description": "Zeniva Group (Groupe Zeniva) is the parent group founded by Alexandre Blais. It operates Zeniva Travel (AI travel agency, USA), ZeniPay (fintech / online banking, Canada & USA), ZeniCorp (construction and renovation platform with an RBQ-certified contractor network, Quebec) and ZeniTech (technology division).",
+                "founder": { "@id": "https://www.zenivatravel.com/alexandre-blais#person" },
+                "subOrganization": [
+                  { "@id": "https://www.zenivatravel.com/#organization" },
+                  { "@id": "https://zenipay.ca/#organization" },
+                  { "@id": "https://www.zeniva.ca/#organization" },
+                  { "@id": "https://zenitech.dev/#organization" }
+                ]
+              },
+              {
                 "@context": "https://schema.org",
                 "@type": ["TravelAgency", "Organization"],
-                "name": "Zeniva",
+                "@id": "https://www.zenivatravel.com/#organization",
+                "name": "Zeniva Travel",
+                "alternateName": ["Zeniva", "Zeniva Travel AI"],
                 "legalName": "Zeniva LLC",
                 "url": "https://www.zenivatravel.com",
+                "parentOrganization": { "@id": "https://www.zeniva.ca/#group" },
+                "founder": { "@id": "https://www.zenivatravel.com/alexandre-blais#person" },
+                "brand": [
+                  {
+                    "@type": "Brand",
+                    "@id": "https://www.zenivatravel.com/zeniyacht#brand",
+                    "name": "ZeniYacht",
+                    "url": "https://www.zenivatravel.com/zeniyacht",
+                    "description": "Zeniva Travel's private yacht charter and sailing division."
+                  },
+                  {
+                    "@type": "Brand",
+                    "@id": "https://www.zenivatravel.com/ai-travel-concierge#brand",
+                    "name": "Lina AI",
+                    "url": "https://www.zenivatravel.com/ai-travel-concierge",
+                    "description": "Zeniva Travel's 24/7 AI travel concierge that plans trips, builds proposals and answers by chat or voice."
+                  }
+                ],
                 "logo": {
                   "@type": "ImageObject",
                   "url": "https://www.zenivatravel.com/branding/logo.png",
@@ -215,10 +253,12 @@ export default function RootLayout({
                   "ZeniTransfers",
                   "Travel Packages"
                 ],
+                // Only external profiles of THIS brand. zeniva.ca is now ZeniCorp (construction) —
+                // listing it here made AI engines merge the travel agency with the contractor network.
                 "sameAs": [
                   "https://www.tiktok.com/@zeniva.travel",
-                  "https://zenivatravel.com",
-                  "https://zeniva.ca"
+                  "https://www.instagram.com/zeniva_lina/",
+                  "https://www.facebook.com/61557743041715"
                 ],
                 "contactPoint": [
                   {
@@ -239,8 +279,11 @@ export default function RootLayout({
               {
                 "@context": "https://schema.org",
                 "@type": "WebSite",
-                "name": "Zeniva",
+                "@id": "https://www.zenivatravel.com/#website",
+                "name": "Zeniva Travel",
                 "url": "https://www.zenivatravel.com",
+                "publisher": { "@id": "https://www.zenivatravel.com/#organization" },
+                "inLanguage": ["en-US", "fr-CA"],
                 "description": "AI-powered luxury travel agency — USA & Canada",
                 "potentialAction": {
                   "@type": "SearchAction",
@@ -250,52 +293,6 @@ export default function RootLayout({
                   },
                   "query-input": "required name=search_term_string"
                 }
-              },
-              {
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                "mainEntity": [
-                  {
-                    "@type": "Question",
-                    "name": "What is Zeniva?",
-                    "acceptedAnswer": {
-                      "@type": "Answer",
-                      "text": "Zeniva is a US-based AI travel agency incorporated in Delaware. We use Lina AI, our 24/7 artificial intelligence concierge, to plan luxury vacations, custom trips, group travel, and yacht charters for clients across all 50 US states and Canada."
-                    }
-                  },
-                  {
-                    "@type": "Question",
-                    "name": "How does Lina AI work?",
-                    "acceptedAnswer": {
-                      "@type": "Answer",
-                      "text": "Lina is Zeniva's AI travel concierge. You simply describe your trip — destination, dates, budget, preferences — and Lina instantly builds a complete travel proposal including flights, hotels, transfers, and experiences. Available 24/7 via chat or voice call."
-                    }
-                  },
-                  {
-                    "@type": "Question",
-                    "name": "Does Zeniva offer yacht charters?",
-                    "acceptedAnswer": {
-                      "@type": "Answer",
-                      "text": "Yes. Zeniva offers private yacht charters and sailing trips worldwide. Our expert yacht brokers validate every booking. Visit zenivatravel.com/yachts for more information."
-                    }
-                  },
-                  {
-                    "@type": "Question",
-                    "name": "What destinations does Zeniva serve?",
-                    "acceptedAnswer": {
-                      "@type": "Answer",
-                      "text": "Zeniva serves 200+ destinations worldwide including Cancún, Maldives, Bali, Dubai, Paris, Miami, Tokyo, Santorini, Caribbean, and more. We specialize in luxury vacations and all-inclusive packages for US and Canadian travelers."
-                    }
-                  },
-                  {
-                    "@type": "Question",
-                    "name": "Is Zeniva available in French?",
-                    "acceptedAnswer": {
-                      "@type": "Answer",
-                      "text": "Yes. Zeniva is fully bilingual. Lina AI and all our services are available in English and French. Visit zenivatravel.com/fr for the French version of our website."
-                    }
-                  }
-                ]
               }
             ])
           }}

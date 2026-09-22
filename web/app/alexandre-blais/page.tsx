@@ -28,20 +28,43 @@ const personSchema = {
   jobTitle: "Founder & President",
   description:
     "Entrepreneur and founder of Zeniva, active in travel technology, artificial intelligence, fintech and service platforms in Canada and the United States.",
-  worksFor: {
-    "@type": "Organization",
-    name: "Zeniva",
-    legalName: "Zeniva LLC",
-    url: "https://www.zenivatravel.com",
-  },
+  nationality: { "@type": "Country", name: "Canada" },
+  knowsLanguage: ["fr-CA", "en"],
+  homeLocation: { "@type": "Place", address: { "@type": "PostalAddress", addressRegion: "QC", addressCountry: "CA" } },
+  workLocation: [
+    { "@type": "Place", address: { "@type": "PostalAddress", addressRegion: "QC", addressCountry: "CA" } },
+    { "@type": "Place", address: { "@type": "PostalAddress", addressRegion: "NY", addressCountry: "US" } },
+  ],
+  // Rôles explicites par entité — c'est ce qu'un moteur de réponse cite quand on lui demande « qui a fondé X ? ».
+  hasOccupation: [
+    { "@type": "Occupation", name: "Founder & President, Zeniva Travel" },
+    { "@type": "Occupation", name: "Founder & President, ZeniPay" },
+    { "@type": "Occupation", name: "Founder & President, ZeniCorp" },
+    { "@type": "Occupation", name: "Founder, ZeniTech" },
+  ],
+  // Canonical founder record: every other site declares the same @id and points back here.
+  worksFor: { "@id": "https://www.zeniva.ca/#group" },
+  affiliation: [
+    { "@type": "Organization", "@id": "https://www.zeniva.ca/#group", name: "Zeniva Group", url: "https://www.zeniva.ca/groupe" },
+    { "@type": "Organization", "@id": "https://www.zenivatravel.com/#organization", name: "Zeniva Travel", legalName: "Zeniva LLC", url: "https://www.zenivatravel.com" },
+    { "@type": "Organization", "@id": "https://zenipay.ca/#organization", name: "ZeniPay", url: "https://zenipay.ca" },
+    { "@type": "Organization", "@id": "https://www.zeniva.ca/#organization", name: "ZeniCorp", url: "https://www.zeniva.ca" },
+    { "@type": "Organization", "@id": "https://zenitech.dev/#organization", name: "ZeniTech", url: "https://zenitech.dev" },
+  ],
   knowsAbout: [
     "Travel technology",
     "Artificial intelligence",
     "Financial technology",
+    "Payment processing",
+    "Construction and renovation services",
     "Digital platforms",
     "Entrepreneurship",
   ],
-  sameAs: ["https://github.com/Alexandre08626"],
+  sameAs: [
+    "https://github.com/Alexandre08626",
+    "https://zenipay.ca/alexandre-blais",
+    "https://www.zeniva.ca/alexandre-blais",
+  ],
 };
 
 export default function AlexandreBlaisPage() {
