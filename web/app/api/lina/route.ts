@@ -249,7 +249,31 @@ const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514
 const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
 const GROQ_KEY = process.env.GROQ_API_KEY;
-const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+const GROQ_DEFAULT_MODEL = "openai/gpt-oss-120b";
+const GROQ_MODEL = process.env.GROQ_MODEL || GROQ_DEFAULT_MODEL;
+
+/**
+ * Groq decommissions models (llama-3.3-70b-versatile is gone). If the configured
+ * model is rejected with model_not_found, retry once with the known-good default.
+ */
+async function groqChat(body: Record<string, unknown>, signal?: AbortSignal): Promise<Response> {
+  const call = (model: string) =>
+    fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${GROQ_KEY}` },
+      body: JSON.stringify({ ...body, model }),
+      signal,
+    });
+  let resp = await call(GROQ_MODEL);
+  if (!resp.ok && GROQ_MODEL !== GROQ_DEFAULT_MODEL) {
+    const err = await resp.clone().text().catch(() => "");
+    if (resp.status === 404 || /model_not_found|decommissioned/i.test(err)) {
+      console.warn(`[lina] Groq model ${GROQ_MODEL} unavailable, retrying with ${GROQ_DEFAULT_MODEL}`);
+      resp = await call(GROQ_DEFAULT_MODEL);
+    }
+  }
+  return resp;
+}
 const MODEL = (process.env.OPENAI_MODEL || "gpt-4o-mini").trim();
 const API_BASE = (process.env.OPENAI_API_BASE || "https://api.openai.com/v1").trim();
 const OPENAI_KEY =
@@ -386,15 +410,7 @@ async function callGroqFallback(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${GROQ_KEY}`,
-      },
-      body: JSON.stringify({ model: GROQ_MODEL, messages, temperature: 0.7 }),
-      signal: controller.signal,
-    });
+    const resp = await groqChat({ messages, temperature: 0.7 }, controller.signal);
     clearTimeout(timeout);
     if (!resp.ok) return null;
     const data = await resp.json();

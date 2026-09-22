@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 
 const GROQ_KEY = process.env.GROQ_API_KEY;
-const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+const GROQ_DEFAULT_MODEL = "openai/gpt-oss-120b";
+const GROQ_MODEL = process.env.GROQ_MODEL || GROQ_DEFAULT_MODEL;
 
 const VOICE_SYSTEM_PROMPT = `You are Lina, AI travel concierge at Zeniva (zenivatravel.com). This is a VOICE conversation — keep replies SHORT (1-2 sentences), natural, conversational.
 
@@ -123,19 +124,25 @@ export async function POST(req: NextRequest) {
     { role: "user", content: prompt },
   ];
 
-  const groqResp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${GROQ_KEY}`,
-    },
-    body: JSON.stringify({
-      model: GROQ_MODEL,
-      messages,
-      temperature: 0.7,
-      stream: true,
-    }),
-  });
+  const callGroq = (model: string) =>
+    fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${GROQ_KEY}`,
+      },
+      body: JSON.stringify({ model, messages, temperature: 0.7, stream: true }),
+    });
+
+  let groqResp = await callGroq(GROQ_MODEL);
+  // Groq decommissions models (llama-3.3-70b-versatile is gone) — retry with the known-good default
+  if (!groqResp.ok && GROQ_MODEL !== GROQ_DEFAULT_MODEL) {
+    const err = await groqResp.clone().text().catch(() => "");
+    if (groqResp.status === 404 || /model_not_found|decommissioned/i.test(err)) {
+      console.warn(`[lina-stream] Groq model ${GROQ_MODEL} unavailable, retrying with ${GROQ_DEFAULT_MODEL}`);
+      groqResp = await callGroq(GROQ_DEFAULT_MODEL);
+    }
+  }
 
   if (!groqResp.ok || !groqResp.body) {
     const err = await groqResp.text();
