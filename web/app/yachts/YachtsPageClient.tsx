@@ -452,6 +452,23 @@ export default function YachtsPageClient() {
             )}
           </>
         )}
+
+        <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-700">
+            {locale === "fr" ? "Guide · chiffres réels 2026" : "Guide · real 2026 numbers"}
+          </p>
+          <h2 className="mt-2 text-xl font-bold text-slate-900">
+            {locale === "fr" ? "Combien coûte vraiment un charter de yacht d'une semaine en 2026 ?" : "How much does a week-long yacht charter really cost in 2026?"}
+          </h2>
+          <p className="mt-2 text-sm text-slate-600">
+            {locale === "fr"
+              ? "BVI, Bahamas, Méditerranée — tout-inclus, APA, TVA, pourboire, ligne par ligne, avec sources."
+              : "BVI, Bahamas, Mediterranean — all-inclusive, APA, VAT, gratuity, line by line, with sources."}
+          </p>
+          <Link href="/guides/yacht-charter-cost" className="mt-3 inline-block text-sm font-bold text-blue-700 underline">
+            {locale === "fr" ? "Lire le guide →" : "Read the guide →"}
+          </Link>
+        </div>
       </div>
     </main>
     </AppDarkPageWrapper>

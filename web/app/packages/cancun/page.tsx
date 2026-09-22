@@ -117,6 +117,15 @@ export default function CancunPage() {
           </div>
         </section>
 
+        <section className="py-12 px-6 bg-gray-50">
+          <div className="max-w-3xl mx-auto rounded-3xl border border-blue-100 bg-white p-7">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-700">Guide · real 2026 numbers</p>
+            <h2 className="mt-2 text-2xl font-bold text-gray-900">How much does an all-inclusive Cancún week cost for a family of four?</h2>
+            <p className="mt-3 text-gray-600">Resort by tier, flights, transfers, taxes and tips — line by line, with sources. Most families land at $6,000–$8,000 mid-range.</p>
+            <Link href="/guides/all-inclusive-cancun-cost-family-of-four" className="mt-4 inline-block font-bold text-blue-700 underline">Read the guide →</Link>
+          </div>
+        </section>
+
         <section className="py-16 px-6 bg-blue-700 text-white text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Book Cancun?</h2>
           <p className="text-blue-100 text-lg mb-8 max-w-xl mx-auto">Talk to Lina — she'll build your perfect Cancun package in under 60 seconds. No fees, no commitment.</p>

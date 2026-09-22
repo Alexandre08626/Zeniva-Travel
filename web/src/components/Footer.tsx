@@ -20,6 +20,24 @@ export default function Footer() {
           <Link href="/chat" className="text-xs font-extrabold underline" style={{ color: PREMIUM_BLUE }}>
             <AutoTranslate text="Talk to Lina" className="inline" />
           </Link>
+          <span className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
+            ·
+          </span>
+          <Link href="/guides" className="text-xs font-extrabold underline" style={{ color: PREMIUM_BLUE }}>
+            <AutoTranslate text="Guides" className="inline" />
+          </Link>
+          <span className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
+            ·
+          </span>
+          <Link href="/news" className="text-xs font-extrabold underline" style={{ color: PREMIUM_BLUE }}>
+            <AutoTranslate text="News" className="inline" />
+          </Link>
+          <span className="text-xs font-semibold" style={{ color: MUTED_TEXT }}>
+            ·
+          </span>
+          <Link href="/alexandre-blais" className="text-xs font-extrabold underline" style={{ color: PREMIUM_BLUE }}>
+            <AutoTranslate text="Founder" className="inline" />
+          </Link>
         </div>
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2">
