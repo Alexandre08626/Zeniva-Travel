@@ -10,6 +10,7 @@ import AutoTranslate from "../src/components/AutoTranslate";
 import FeaturedTripsSection from "../src/components/FeaturedTripsSection";
 import AppHomeGate from "../src/components/AppHomeGate.client";
 import MobilePromoBadge from "../src/components/MobilePromoBadge.client";
+import HomeExtraSections, { HOME_FAQ } from "../src/components/HomeExtraSections";
 
 export const metadata: Metadata = {
   title: "#1 AI Travel Concierge USA — Luxury Trips & Custom Vacations",
@@ -57,14 +58,30 @@ const isLoggedIn = false;
 const userEmail = "user@email.com";
 
 export default function HomePage() {
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "TravelAgency",
-    name: "Zeniva",
-    url: "https://zenivatravel.com",
-    logo: "https://zenivatravel.com/branding/logo.png",
-    description: "AI-powered travel agency with Lina AI concierge",
-  };
+  // The Organization/TravelAgency entity is declared once in layout.tsx (@id .../#organization).
+  // The home page only references it — a second "TravelAgency" node here used to create a
+  // conflicting duplicate entity — and carries the site-level FAQ (one FAQPage per page).
+  const structuredData = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "@id": "https://www.zenivatravel.com/#webpage",
+      url: "https://www.zenivatravel.com",
+      name: "Zeniva Travel — AI Travel Concierge USA",
+      isPartOf: { "@id": "https://www.zenivatravel.com/#website" },
+      about: { "@id": "https://www.zenivatravel.com/#organization" },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      // Une seule source pour le JSON-LD et la FAQ visible en bas de page (HomeExtraSections).
+      mainEntity: HOME_FAQ.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    },
+  ];
 
   return (
     <AppHomeGate>
@@ -225,6 +242,9 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* Extended sections (shared with desktop) */}
+        <HomeExtraSections />
+
         {/* Mobile footer — white */}
         <div className="bg-white px-5 py-8 border-t border-slate-100">
           <div className="flex items-center gap-2 mb-4">
@@ -233,7 +253,7 @@ export default function HomePage() {
           </div>
           <div className="flex flex-wrap gap-4 text-slate-500 text-xs mb-4 font-semibold">
             <Link href="/about">About</Link>
-            <Link href="/privacy">Privacy</Link>
+            <Link href="/privacy-policy">Privacy</Link>
             <Link href="/terms">Terms</Link>
             <Link href="/agent">Agents</Link>
           </div>
@@ -635,6 +655,9 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* ── EXTENDED SECTIONS (moods, ask Lina, yacht/stay, comparison, guides, pros, FAQ) ── */}
+        <HomeExtraSections />
 
         {/* ── FINAL CTA ── */}
         <section className="w-full px-8 xl:px-16 py-24">
