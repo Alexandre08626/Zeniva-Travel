@@ -1,0 +1,77 @@
+# Axolotl config — full fine-tune of Qwen3-14B into "Lina" (Zeniva proprietary model).
+# Run on a rented 8×H100 80GB node (RunPod / Lambda), ~2-4 h for 5-10k samples.
+#   pip install axolotl[flash-attn,deepspeed]
+#   axolotl train axolotl-lina-qwen3-14b.yml
+# Output: ./out/lina-qwen3-14b  → merge is not needed (full FT) → convert to GGUF for Ollama
+# or serve directly with vLLM (see docs/LINA_SERVER_SPEC.md).
+
+base_model: Qwen/Qwen3-14B
+model_type: AutoModelForCausalLM
+tokenizer_type: AutoTokenizer
+trust_remote_code: true
+
+load_in_8bit: false
+load_in_4bit: false
+strict: false
+
+chat_template: qwen3
+datasets:
+  - path: out/train.jsonl
+    type: chat_template
+    field_messages: conversations
+    message_property_mappings:
+      role: from
+      content: value
+    roles:
+      system: ["system"]
+      user: ["human"]
+      assistant: ["gpt"]
+    roles_to_train: ["assistant"]   # only learn Lina's replies, not the client's words
+    train_on_eos: turn
+
+test_datasets:
+  - path: out/val.jsonl
+    type: chat_template
+    field_messages: conversations
+    message_property_mappings:
+      role: from
+      content: value
+    roles:
+      system: ["system"]
+      user: ["human"]
+      assistant: ["gpt"]
+    split: train
+
+dataset_prepared_path: ./prepared
+output_dir: ./out/lina-qwen3-14b
+
+sequence_len: 8192
+sample_packing: true
+pad_to_sequence_len: true
+
+# Full fine-tune (no LoRA) — the resulting weights are a new model that belongs to Zeniva.
+adapter:
+
+gradient_accumulation_steps: 4
+micro_batch_size: 2
+num_epochs: 3
+optimizer: adamw_torch_fused
+lr_scheduler: cosine
+learning_rate: 1.0e-5
+warmup_ratio: 0.05
+weight_decay: 0.01
+
+bf16: auto
+tf32: true
+gradient_checkpointing: true
+flash_attention: true
+deepspeed: deepspeed_configs/zero3_bf16.json
+
+logging_steps: 10
+eval_steps: 100
+save_steps: 200
+save_total_limit: 3
+
+special_tokens:
+  eos_token: "<|im_end|>"
+  pad_token: "<|endoftext|>"

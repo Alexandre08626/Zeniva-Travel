@@ -1,4 +1,7 @@
 import { NextRequest } from "next/server";
+import crypto from "node:crypto";
+import { recordLinaTurn } from "@/lib/lina-training-log";
+import { getAgencyContext } from "@/lib/agency-context";
 
 const GROQ_KEY = process.env.GROQ_API_KEY;
 const GROQ_DEFAULT_MODEL = "openai/gpt-oss-120b";
@@ -152,7 +155,43 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  return new Response(groqResp.body, {
+  // Tee the SSE stream: pass it through untouched to the client, and rebuild the
+  // full reply from the deltas so the exchange lands in lina_training_turns.
+  const sessionId = String(body?.sessionId || crypto.randomUUID());
+  const { agencyId, agentId } = await getAgencyContext(req);
+  const decoder = new TextDecoder();
+  let pending = "";
+  let reply = "";
+  const tee = new TransformStream<Uint8Array, Uint8Array>({
+    transform(chunk, controller) {
+      controller.enqueue(chunk);
+      pending += decoder.decode(chunk, { stream: true });
+      const lines = pending.split("\n");
+      pending = lines.pop() || "";
+      for (const line of lines) {
+        if (!line.startsWith("data: ") || line === "data: [DONE]") continue;
+        try {
+          reply += JSON.parse(line.slice(6))?.choices?.[0]?.delta?.content || "";
+        } catch { /* partial / keepalive */ }
+      }
+    },
+    flush() {
+      recordLinaTurn({
+        sessionId,
+        source: "lina-stream",
+        mode: "voice",
+        provider: "groq",
+        agencyId,
+        agentId,
+        systemPrompt: VOICE_SYSTEM_PROMPT,
+        history: messages.slice(1, -1),
+        prompt,
+        reply: reply.trim(),
+      });
+    },
+  });
+
+  return new Response(groqResp.body.pipeThrough(tee), {
     status: 200,
     headers: {
       "Content-Type": "text/event-stream",

@@ -75,6 +75,8 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<{ role: "user" | "assistant"; content: string }[]>([]);
+  // One id per call so every voice turn is grouped into a single conversation server-side
+  const sessionIdRef = useRef<string>(`voice-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
 
   // Audio I/O
   const streamRef = useRef<MediaStream | null>(null);
@@ -261,7 +263,7 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
         const resp = await fetch("/api/lina-stream", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: userInput, history: historyRef.current.slice(-20) }),
+          body: JSON.stringify({ prompt: userInput, history: historyRef.current.slice(-20), sessionId: sessionIdRef.current }),
         });
         if (!resp.ok || !resp.body) throw new Error(await resp.text().catch(() => "stream failed"));
 

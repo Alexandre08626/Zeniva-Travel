@@ -1,4 +1,5 @@
 import { logUsage } from "@/lib/usage-tracker";
+import { recordLinaTurn } from "@/lib/lina-training-log";
 import { getAgencyContext } from "@/lib/agency-context";
 import crypto from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
@@ -279,21 +280,6 @@ const API_BASE = (process.env.OPENAI_API_BASE || "https://api.openai.com/v1").tr
 const OPENAI_KEY =
   process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 
-const N8N_LINA_WEBHOOK_URL = process.env.N8N_LINA_WEBHOOK_URL;
-
-/**
- * Fire-and-forget webhook to n8n for lead capture / automation.
- * No-op when N8N_LINA_WEBHOOK_URL is not set.
- */
-function fireN8nWebhook(payload: Record<string, unknown>): void {
-  if (!N8N_LINA_WEBHOOK_URL) return;
-  fetch(N8N_LINA_WEBHOOK_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  }).catch(() => {});
-}
-
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -551,7 +537,7 @@ export async function POST(req: NextRequest) {
     const groqAgentReply = await callGroqFallback(prompt, history, sessionId, mode, null);
     if (groqAgentReply) {
       logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "groq-agent" } });
-      fireN8nWebhook({ sessionId, requestId, mode, provider: "groq-agent", agencyId, agentId, prompt, reply: groqAgentReply, timestamp: new Date().toISOString() });
+      recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider: "groq-agent", agencyId, agentId, systemPrompt: null, history, prompt, reply: groqAgentReply });
       return NextResponse.json({
         reply: groqAgentReply,
         prompt,
@@ -563,7 +549,7 @@ export async function POST(req: NextRequest) {
     const vpsPrimary = await callZenivaAPI(prompt, history, sessionId);
     if (vpsPrimary?.reply) {
       logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "zeniva-claude-agent" } });
-      fireN8nWebhook({ sessionId, requestId, mode, provider: "zeniva-claude-agent", agencyId, agentId, prompt, reply: vpsPrimary.reply, timestamp: new Date().toISOString() });
+      recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider: "zeniva-claude-agent", agencyId, agentId, systemPrompt: null, history, prompt, reply: vpsPrimary.reply });
       return NextResponse.json({
         reply: vpsPrimary.reply,
         prompt,
@@ -575,7 +561,7 @@ export async function POST(req: NextRequest) {
     const claudeReply = await callClaudeFallback(prompt, history, sessionId, mode, null);
     if (claudeReply) {
       logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "claude-api-agent" } });
-      fireN8nWebhook({ sessionId, requestId, mode, provider: "claude-api-agent", agencyId, agentId, prompt, reply: claudeReply, timestamp: new Date().toISOString() });
+      recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider: "claude-api-agent", agencyId, agentId, systemPrompt: null, history, prompt, reply: claudeReply });
       return NextResponse.json({
         reply: claudeReply,
         prompt,
@@ -587,7 +573,7 @@ export async function POST(req: NextRequest) {
     const geminiAgentReply = await callGeminiFallback(prompt, history, sessionId, mode, null);
     if (geminiAgentReply) {
       logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "gemini-agent" } });
-      fireN8nWebhook({ sessionId, requestId, mode, provider: "gemini-agent", agencyId, agentId, prompt, reply: geminiAgentReply, timestamp: new Date().toISOString() });
+      recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider: "gemini-agent", agencyId, agentId, systemPrompt: null, history, prompt, reply: geminiAgentReply });
       return NextResponse.json({
         reply: geminiAgentReply,
         prompt,
@@ -598,7 +584,7 @@ export async function POST(req: NextRequest) {
     // Fallback 4: OpenAI
     const agentReply = await callOpenAIFallback(prompt, history, sessionId, mode, null);
     logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "openai-agent" } });
-    fireN8nWebhook({ sessionId, requestId, mode, provider: "openai-agent", agencyId, agentId, prompt, reply: agentReply, timestamp: new Date().toISOString() });
+    recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider: "openai-agent", agencyId, agentId, systemPrompt: null, history, prompt, reply: agentReply });
     return NextResponse.json({
       reply: agentReply,
       prompt,
@@ -622,7 +608,7 @@ export async function POST(req: NextRequest) {
   const groqPrimary = await callGroqFallback(prompt, history, sessionId, mode, agencySystemPrompt);
   if (groqPrimary) {
     logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "groq" } });
-    fireN8nWebhook({ sessionId, requestId, mode, provider: "groq", agencyId, agentId, prompt, reply: groqPrimary, timestamp: new Date().toISOString() });
+    recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider: "groq", agencyId, agentId, systemPrompt: agencySystemPrompt, history, prompt, reply: groqPrimary });
     return NextResponse.json({
       reply: groqPrimary,
       prompt,
@@ -635,7 +621,7 @@ export async function POST(req: NextRequest) {
   const primary = agencySystemPrompt ? null : await callZenivaAPI(prompt, history, sessionId);
   if (primary?.reply) {
     logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "zeniva-claude" } });
-    fireN8nWebhook({ sessionId, requestId, mode, provider: "zeniva-claude", agencyId, agentId, prompt, reply: primary.reply, timestamp: new Date().toISOString() });
+    recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider: "zeniva-claude", agencyId, agentId, systemPrompt: agencySystemPrompt, history, prompt, reply: primary.reply });
     return NextResponse.json({
       reply: primary.reply,
       prompt,
@@ -649,7 +635,7 @@ export async function POST(req: NextRequest) {
   const claudeFallback = await callClaudeFallback(prompt, history, sessionId, mode, agencySystemPrompt);
   if (claudeFallback) {
     logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "claude-api-fallback" } });
-    fireN8nWebhook({ sessionId, requestId, mode, provider: "claude-api-fallback", agencyId, agentId, prompt, reply: claudeFallback, timestamp: new Date().toISOString() });
+    recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider: "claude-api-fallback", agencyId, agentId, systemPrompt: agencySystemPrompt, history, prompt, reply: claudeFallback });
     return NextResponse.json({
       reply: claudeFallback,
       prompt,
@@ -663,7 +649,7 @@ export async function POST(req: NextRequest) {
   const geminiFallback = await callGeminiFallback(prompt, history, sessionId, mode, agencySystemPrompt);
   if (geminiFallback) {
     logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "gemini-fallback" } });
-    fireN8nWebhook({ sessionId, requestId, mode, provider: "gemini-fallback", agencyId, agentId, prompt, reply: geminiFallback, timestamp: new Date().toISOString() });
+    recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider: "gemini-fallback", agencyId, agentId, systemPrompt: agencySystemPrompt, history, prompt, reply: geminiFallback });
     return NextResponse.json({
       reply: geminiFallback,
       prompt,
@@ -676,7 +662,7 @@ export async function POST(req: NextRequest) {
   console.warn(`[lina] ${sessionId} Gemini unavailable, falling back to OpenAI`);
   const fallbackReply = await callOpenAIFallback(prompt, history, sessionId, mode, agencySystemPrompt);
   logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "openai-fallback" } });
-  fireN8nWebhook({ sessionId, requestId, mode, provider: "openai-fallback", agencyId, agentId, prompt, reply: fallbackReply, timestamp: new Date().toISOString() });
+  recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider: "openai-fallback", agencyId, agentId, systemPrompt: agencySystemPrompt, history, prompt, reply: fallbackReply });
 
   return NextResponse.json({
     reply: fallbackReply,

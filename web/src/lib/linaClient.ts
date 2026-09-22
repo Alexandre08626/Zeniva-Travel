@@ -21,16 +21,17 @@ function buildMessages(conversation: { role?: string; text?: string }[]): { role
 }
 
 export async function sendMessageToLina(
-  conversation: { role?: string; text?: string }[],
-  opts?: { prompt?: string }
+  conversation: string | { role?: string; text?: string }[],
+  opts?: { prompt?: string; mode?: string }
 ): Promise<{ reply: string; tripPatch?: Record<string, unknown>; meta?: Record<string, unknown> }> {
   try {
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        prompt: opts?.prompt || "",
-        messages: buildMessages(conversation),
+        prompt: opts?.prompt || (typeof conversation === "string" ? conversation : ""),
+        messages: typeof conversation === "string" ? [] : buildMessages(conversation),
+        mode: opts?.mode || "agent",
       }),
     });
     if (res.ok) {
