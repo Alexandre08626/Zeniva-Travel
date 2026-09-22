@@ -268,13 +268,12 @@ export default function RootLayout({
                     "availableLanguage": ["English", "French", "Spanish"],
                     "areaServed": ["US", "CA"]
                   }
-                ],
-                "aggregateRating": {
-                  "@type": "AggregateRating",
-                  "ratingValue": "4.9",
-                  "reviewCount": "47",
-                  "bestRating": "5"
-                }
+                ]
+                // No aggregateRating here on purpose. Self-declared review markup with no
+                // verifiable reviews behind it is ignored by Google, flagged by AI answer
+                // engines as an unsupported claim, and counts as a deceptive review claim
+                // under US FTC rules. Re-add it only when it is generated from real reviews
+                // (Google Business, Trustpilot) — with individual Review nodes to match.
               },
               {
                 "@context": "https://schema.org",
