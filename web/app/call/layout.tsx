@@ -17,16 +17,16 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Zeniva | Concierge Video Call",
     description:
-      "Video concierge: intent discovery, smart itineraries, and human validation.",
+      "Video concierge with Lina AI: intent discovery, smart itineraries, and human validation.",
     url: "https://zenivatravel.com/call",
     siteName: "Zeniva",
     type: "website",
     images: [
       {
-        url: "/api/og?title=Concierge+Video+Call&description=Video+concierge+for+travel+planning&type=call",
+        url: "/branding/lina-avatar.png",
         width: 1200,
         height: 630,
-        alt: "Zeniva Concierge Call",
+        alt: "Lina AI",
       },
     ],
   },
@@ -34,8 +34,8 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Zeniva | Concierge Video Call",
     description:
-      "Video concierge: intent discovery, smart itineraries, and human validation.",
-    images: ["/api/og?title=Concierge+Video+Call&description=Video+concierge+for+travel+planning&type=call"],
+      "Video concierge with Lina AI: intent discovery, smart itineraries, and human validation.",
+    images: ["/branding/lina-avatar.png"],
   },
 };
 
