@@ -1,28 +1,26 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import GuideArticle from "../GuideArticle";
-import { GUIDES, findGuide } from "../guides-data";
-import { findGuideFr } from "../../fr/guides/guides-data.fr";
+import GuideArticle from "../../../guides/GuideArticle";
+import { GUIDES_FR, findGuideFr } from "../guides-data.fr";
 
 const BASE_URL = "https://www.zenivatravel.com";
 
 export function generateStaticParams() {
-  return GUIDES.map((g) => ({ slug: g.slug }));
+  return GUIDES_FR.map((g) => ({ slug: g.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const guide = findGuide(slug);
-  if (!guide) return { title: "Guide not found | Zeniva" };
-  const url = `${BASE_URL}/guides/${guide.slug}`;
-  const hasFr = Boolean(findGuideFr(guide.slug));
+  const guide = findGuideFr(slug);
+  if (!guide) return { title: "Guide introuvable | Zeniva" };
+  const url = `${BASE_URL}/fr/guides/${guide.slug}`;
   return {
     title: `${guide.title} | Zeniva Travel`,
     description: guide.description,
     keywords: guide.tags,
     alternates: {
       canonical: url,
-      ...(hasFr ? { languages: { "en-US": url, "fr-CA": `${BASE_URL}/fr/guides/${guide.slug}` } } : {}),
+      languages: { "fr-CA": url, "en-US": `${BASE_URL}/guides/${guide.slug}` },
     },
     openGraph: {
       title: guide.title,
@@ -30,6 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       url,
       siteName: "Zeniva Travel",
       type: "article",
+      locale: "fr_CA",
       publishedTime: guide.datePublished,
       modifiedTime: guide.dateModified,
       images: [{ url: `/api/og?title=${encodeURIComponent(guide.title)}&type=guide`, width: 1200, height: 630, alt: guide.title }],
@@ -38,17 +37,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function GuidePage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function GuidePageFr({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const guide = findGuide(slug);
+  const guide = findGuideFr(slug);
   if (!guide) notFound();
-  const fr = findGuideFr(guide.slug);
-  return (
-    <GuideArticle
-      guide={guide}
-      locale="en"
-      url={`${BASE_URL}/guides/${guide.slug}`}
-      alternateUrl={fr ? `${BASE_URL}/fr/guides/${guide.slug}` : undefined}
-    />
-  );
+  return <GuideArticle guide={guide} locale="fr" url={`${BASE_URL}/fr/guides/${guide.slug}`} alternateUrl={`${BASE_URL}/guides/${guide.slug}`} />;
 }
