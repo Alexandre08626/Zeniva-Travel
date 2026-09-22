@@ -202,7 +202,7 @@ export default function AgentRequestsPage() {
         return;
       }
       const d = await r.json();
-      // Hide approved/rejected agencies - approved ones are on /agent/agencies
+      // Hide approved/rejected agency requests (the agency workspace itself moved to Zenitech).
       const hidden = ["signed", "converted", "lost"];
       setAgencies((d?.leads || []).filter((l: AgencyOnboarding) => !hidden.includes(l.status)));
     } catch {}
