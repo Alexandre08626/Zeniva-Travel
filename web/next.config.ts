@@ -136,8 +136,8 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
-        source: "/residences/:path*",
-        destination: "/zenistay/:path*",
+        source: "/residences/:path([^.]*)",
+        destination: "/zenistay/:path",
         permanent: true,
       },
       {
@@ -146,8 +146,10 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
-        source: "/yachts/:path*",
-        destination: "/zeniyacht/:path*",
+        // Page routes only (no dot in the path) — NOT the static photos in public/yachts/**:
+        // a file path must keep serving the file, otherwise every yacht card falls back to Lina.
+        source: "/yachts/:path([^.]*)",
+        destination: "/zeniyacht/:path",
         permanent: true,
       },
     ];

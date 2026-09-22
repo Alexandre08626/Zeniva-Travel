@@ -57,7 +57,10 @@ function ResidencesContent() {
         rareFind: false,
         description: p.description || "",
         nights: 3,
-      }));
+      }))
+        // A listing without a single photo shows as an empty card — keep it out of the grid
+        // until its photos are restored (the 10 Florida villas whose .avif files were lost).
+        .filter((v) => v.photo);
       setCurated(mapped);
     } catch {
       setCurated([]);
