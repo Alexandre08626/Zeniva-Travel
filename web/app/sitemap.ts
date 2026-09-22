@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { GUIDES } from "./guides/guides-data";
+import { NEWS } from "./news/news-data";
 
 const BASE_URL = "https://www.zenivatravel.com";
 const NOW = new Date();
@@ -35,6 +36,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(g.dateModified),
       changeFrequency: "monthly" as const,
       priority: 0.8,
+    })),
+
+    // ─── NEWS ─────────────────────────────────────────
+    { url: `${BASE_URL}/news`, lastModified: NOW, changeFrequency: "weekly", priority: 0.7 },
+    ...NEWS.map((n) => ({
+      url: `${BASE_URL}/news/${n.slug}`,
+      lastModified: new Date(n.datePublished),
+      changeFrequency: "yearly" as const,
+      priority: 0.6,
     })),
 
     // ─── ZENIYACHT ────────────────────────────────────
