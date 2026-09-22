@@ -20,19 +20,12 @@ type AIAgent = {
   description: string; features: string[]; lastAction?: string;
 };
 
+// Portail agent : uniquement les agents IA liés au voyage et aux paiements.
+// Marco, Sofia, Mia, Luna, Atlas… (prospection, emails, réseaux sociaux, SMS) sont des
+// agents marketing — ils relèvent de Zenitech et ne sont plus exposés ici.
 const AI_AGENTS: AIAgent[] = [
   { id: "lina", name: "Lina", emoji: "🤖", avatar: "/agents/lina.png", status: "live", type: "AI Travel Concierge · GPT-4o", schedule: "24/7 Real-time", color: "#6366f1", description: "Polyglot AI travel concierge. Qualifies leads, quotes packages, saves to Supabase. Speaks every language your clients do.", features: ["GPT-4o", "Multi-language", "Lead extraction", "Supabase sync", "24/7"], lastAction: "Chat replied 2min ago" },
-  { id: "marco", name: "Marco", emoji: "🔥", avatar: "/agents/marco.png", status: "active", type: "Lead Hunter · 5-Engine Scraper", schedule: "Every 2h", color: "#ef4444", description: "5 scraping engines running 24/7: Reddit travel subs, competitor sites, social signals, SEO intent keywords, and deep web scraping.", features: ["Reddit", "Competitors", "Social", "SEO", "Deep web"], lastAction: "3 leads qualified" },
-  { id: "sofia", name: "Sofia", emoji: "📬", avatar: "/agents/sofia.png", status: "active", type: "Email Marketing · AI Writer", schedule: "Every 6h", color: "#ec4899", description: "Sends personalized AI-written invite emails to every new lead. Detects their language and writes in EN, FR, ES, or AR. Not templates — every email is unique.", features: ["AI emails", "EN/FR/ES/AR", "Smart timing", "Conversion tracking", "Unique copy"], lastAction: "39 emails sent" },
   { id: "noah", name: "Ben", emoji: "💳", avatar: "/agents/noah.png", status: "live", type: "ZeniPay AI Finance Agent", schedule: "Real-time", color: "#0F6CF5", description: "ZeniPay's internal AI finance agent. Monitors all payments in real-time, detects anomalies, generates financial reports, tracks commissions, and alerts on failed or suspicious transactions.", features: ["Payment monitoring", "Fraud detection", "Auto-accounting", "Commission calc", "Finance reports"], lastAction: "Finance dashboard active" },
-  { id: "luna", name: "Luna", emoji: "📞", avatar: "/agents/luna.png", status: "live", type: "Voice & SMS · Real-time", schedule: "24/7 Real-time", color: "#06b6d4", description: "Real-time phone and SMS powered by AI. Lina answers calls and texts, sends follow-up SMS, delivers quotes by text, and handles voice conversations naturally.", features: ["Inbound SMS", "Outbound SMS", "Voice calls", "AI responses", "Twilio"], lastAction: "4 SMS Sent" },
-  { id: "atlas", name: "Atlas", emoji: "🛡️", avatar: "/agents/atlas.png", status: "active", type: "Security Guardian · 24/7", schedule: "Every hour", color: "#64748b", description: "24/7 security watchdog. Monitors all services, SSL certificates, disk usage, RAM, SSH logins, and Docker containers. Auto-restarts any failures.", features: ["Services", "SSL certs", "SSH detect", "Disk/RAM", "Auto-restart"], lastAction: "Scan OK 14:00" },
-  { id: "mia", name: "Mia", emoji: "📱", avatar: "/agents/mia.png", status: "idle", type: "Social Media Manager · AI", schedule: "Daily", color: "#a855f7", description: "Generates 5 travel posts per day with AI captions and stunning visuals. Auto-posts to Instagram, TikTok, and Facebook — after your approval.", features: ["AI captions", "Visual creation", "Instagram", "TikTok", "Approval flow"], lastAction: "Awaiting TikTok" },
-  { id: "leo", name: "Leo", emoji: "📊", avatar: "/agents/leo.png", status: "active", type: "Analytics · Real-time", schedule: "Real-time", color: "#8b5cf6", description: "Analyzes conversions, pipeline velocity, agent ROI, and client LTV. Feeds insights back to all other agents for smarter decisions.", features: ["Conversions", "Pipeline", "Agent ROI", "Client LTV", "Real-time"], lastAction: "Report updated" },
-  { id: "rex", name: "Rex", emoji: "🛠️", avatar: "/agents/rex.png", status: "active", type: "AI Platform Engineer — Daily Maintenance & Monitoring", schedule: "Daily 8am + Real-time", color: "#059669", description: "Backend monitoring and auto-fix agent. Monitors all APIs, detects errors and bugs, sends daily health reports at 8am, alerts the team on critical issues, and suggests performance optimizations.", features: ["Bug Detection", "API Monitoring", "Performance", "Auto-Fix", "Daily Reports"], lastAction: "Health check OK" },
-  { id: "max", name: "Max", emoji: "📋", avatar: "/agents/max.png", status: "live", type: "Compliance & Risk Agent", schedule: "Every 30min", color: "#f59e0b", description: "Monitors ZeniPay transactions and flags risk before it becomes a problem. Detects fraud patterns, tracks chargeback ratios, and ensures AML compliance.", features: ["Risk Detection", "Chargeback Alerts", "Compliance", "AML Flags", "Auto-review"], lastAction: "Scan complete" },
-  { id: "jade", name: "Jade", emoji: "💰", avatar: "/agents/jade.png", status: "live", type: "Agent Success & Onboarding", schedule: "Daily + Events", color: "#10b981", description: "Activates new agents, coaches performance and reactivates dormant accounts. Sends automated onboarding sequences, performance reports, and personalized coaching tips.", features: ["Onboarding", "Performance", "Reactivation", "Coaching", "Leaderboards"], lastAction: "Welcome email sent" },
-  { id: "kai", name: "Kai", emoji: "💹", avatar: "/agents/kai.png", status: "live", type: "Revenue Intelligence Agent", schedule: "Daily 7am + Real-time", color: "#0ea5e9", description: "Analyzes margins, identifies top routes and optimizes pricing in real-time. Tracks profitability per booking, forecasts revenue, and alerts on low-margin deals.", features: ["Margin Analysis", "Route Intelligence", "Pricing", "Forecasting", "Alerts"], lastAction: "Daily report sent" },
 ];
 
 const STATUS_CFG: Record<AgentStatus, { label: string; dot: string; badge: string }> = {
@@ -51,22 +44,18 @@ const NAV_LINKS = [
   { label: "Bookings", href: "/agent/bookings", icon: "✈️" },
   { label: "Commissions", href: "/agent/commissions", icon: "💰" },
   { label: "Calendar", href: "/agent/calendar", icon: "📅" },
-  { label: "Chat with Lina", href: "/agent/lina", icon: "lina" },
+  { label: "Chat with Lina", href: "/agent/ai-dashboard", icon: "lina" },
   { label: "Settings", href: "/agent/settings", icon: "⚙️" },
 ];
 
 // HQ nav — visible to all HQ/admin users
 const HQ_LINKS = [
   { label: "Leads", href: "/agent/leads", icon: "🎯" },
-  { label: "Agencies", href: "/agent/agencies", icon: "🏢" },
   { label: "Chat Hub", href: "/agent/chat", icon: "💬" },
   { label: "Control Tower", href: "/agent/control-tower", icon: "🗼" },
   { label: "Partners", href: "/agent/partners", icon: "🤝" },
   { label: "Agent Command", href: "/agent/agents", icon: "👤" },
   { label: "Agent Requests", href: "/agent/requests", icon: "📨" },
-  { label: "Influencer", href: "/agent/influencer", icon: "⭐" },
-  { label: "AI Agents Hub", href: "/ai-agents", icon: "🤖" },
-  { label: "Sofia \u2014 Marketing", href: "/agent/outreach", icon: "📬" },
 ];
 
 // Zeniva HQ only (info@zeniva.ca) — extra admin items
@@ -226,8 +215,6 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
   const kpis = [
     { label: "Active Clients", value: dashStats?.active_clients ?? vpsStats?.total_clients ?? "—", icon: "👥", color: "bg-blue-50 border-blue-200", sub: `${dashStats?.open_dossiers ?? 0} dossiers`, key: "clients" },
     { label: "Total Leads", value: isHQorAdmin ? (vpsStats?.total_leads ?? "—") : (dashStats?.active_clients ?? 0), icon: "🎯", color: "bg-purple-50 border-purple-200", sub: isHQorAdmin ? `+${vpsStats?.leads_today ?? 0} today` : "Your pipeline", key: "leads" },
-    { label: "Emails Sent", value: isHQorAdmin ? (vpsStats?.emails_sent ?? "—") : "—", icon: "📧", color: "bg-emerald-50 border-emerald-200", sub: isHQorAdmin ? `+${vpsStats?.emails_today ?? 0} today` : "Coming soon", key: "emails" },
-    { label: "SMS Sent", value: isHQorAdmin ? (vpsStats?.sms_sent ?? "—") : "—", icon: "📱", color: "bg-amber-50 border-amber-200", sub: isHQorAdmin ? `+${vpsStats?.sms_today ?? 0} today` : "Coming soon", key: "sms" },
     { label: "Comm. Pipeline", value: dashStats ? `$${dashStats.commission_pipeline.toLocaleString()}` : "—", icon: "💰", color: "bg-rose-50 border-rose-200", sub: `${dashStats?.followups_due ?? 0} follow-ups`, key: "commissions" },
     { label: "Lina Chats", value: isHQorAdmin ? (vpsStats?.total_messages ?? "—") : "—", icon: "💬", color: "bg-indigo-50 border-indigo-200", sub: "Total conversations", key: "chats" },
   ];
@@ -421,12 +408,10 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
                     <p className="text-xs font-bold uppercase tracking-widest text-blue-200">Artificial Intelligence</p>
                     <h2 className="text-xl font-black text-white">Your AI Agent Team</h2>
                   </div>
-                  <button onClick={() => window.location.href = "/ai-agents"} className="rounded-full px-4 py-1.5 text-xs font-bold bg-white/20 text-white hover:bg-white/30 transition border border-white/30">
-                    Full view →
-                  </button>
+                  {/* Lien vers le hub IA complet retiré : il expose les agents marketing (Zenitech). */}
                 </div>
                 <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {(isHQorAdmin ? AI_AGENTS : AI_AGENTS.filter(a => ["lina","marco","sofia","luna"].includes(a.id))).map((agent) => {
+                  {AI_AGENTS.map((agent) => {
                     const cfg = STATUS_CFG[agent.status];
                     const isAlive = agent.status === "live" || agent.status === "active";
                     const accentColor = agent.color;
@@ -560,7 +545,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
                     { label: "New Client", href: "/agent/clients", icon: "👥", color: "bg-blue-600" },
                     { label: "New Dossier", href: "/agent/clients", icon: "📁", color: "bg-indigo-600" },
                     { label: "Proposal", href: "/agent/proposals", icon: "📋", color: "bg-purple-600" },
-                    { label: "Chat Lina", href: "/agent/lina", icon: "lina", color: "bg-emerald-600" },
+                    { label: "Chat Lina", href: "/agent/ai-dashboard", icon: "lina", color: "bg-emerald-600" },
                     { label: "Booking", href: "/agent/bookings", icon: "✈️", color: "bg-amber-600" },
                     { label: "Commissions", href: "/agent/commissions", icon: "💰", color: "bg-rose-600" },
                   ].map((a) => (
@@ -657,7 +642,6 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
                 <h2 className="font-black text-base mb-3" style={{ color: PREMIUM_BLUE }}>Agent Tools</h2>
                 <div className="space-y-1.5">
                   {[
-                    { label: "📊 AI Agents Dashboard", href: "/ai-agents" },
                     { label: "🗂️ Client Profiles", href: "/agent/clients" },
                     { label: "📋 Bookings Center", href: "/agent/bookings" },
                     { label: "💰 Commissions", href: "/agent/commissions" },
@@ -724,10 +708,10 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
 💳 View on zenipay.ca →
                   </Link>
                 ) : (
-                  <Link href="/ai-agents" onClick={() => setSelectedAgent(null)}
+                  <Link href="/agent/ai-dashboard" onClick={() => setSelectedAgent(null)}
                     className="flex-1 rounded-full py-2.5 text-sm font-bold text-white text-center"
                     style={{ background: selectedAgent.color }}>
-                    Voir détails →
+                    Parler à Lina →
                   </Link>
                 )}
                 <button onClick={() => setSelectedAgent(null)} className="rounded-full px-4 py-2.5 text-sm font-semibold border border-slate-200 text-slate-700">
