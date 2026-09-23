@@ -18,7 +18,10 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://zenivatravel.com"),
+  // www partout : le domaine nu redirige (307) vers www, donc une canonique non-www
+  // renvoyait Google vers une URL qui le redirige aussitot — canonique, sitemap,
+  // robots host et JSON-LD doivent pointer la meme forme.
+  metadataBase: new URL("https://www.zenivatravel.com"),
   title: {
     default: "Zeniva | AI Travel Concierge USA — Luxury Trips & Custom Vacations",
     template: "%s | Zeniva",
@@ -50,11 +53,11 @@ export const metadata: Metadata = {
     "international travel agency",
   ],
   alternates: {
-    canonical: "https://zenivatravel.com",
+    canonical: "https://www.zenivatravel.com",
     languages: {
-      "en-US": "https://zenivatravel.com",
-      "en-CA": "https://zenivatravel.com",
-      "fr-CA": "https://zenivatravel.com/fr",
+      "en-US": "https://www.zenivatravel.com",
+      "en-CA": "https://www.zenivatravel.com",
+      "fr-CA": "https://www.zenivatravel.com/fr",
     },
   },
   robots: {
@@ -70,7 +73,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    url: "https://zenivatravel.com",
+    url: "https://www.zenivatravel.com",
     title: "Zeniva | AI Travel Concierge USA — Luxury Trips & Custom Vacations",
     description:
       "US-based AI travel company. Lina AI plans your dream trip — luxury vacations, group travel, yacht charters. Serving all 50 states & Canada. Delaware incorporated, offices in New York & Virginia.",
@@ -106,7 +109,7 @@ export const metadata: Metadata = {
   },
   category: "travel",
   classification: "Travel Agency",
-  authors: [{ name: "Zeniva", url: "https://zenivatravel.com" }],
+  authors: [{ name: "Zeniva", url: "https://www.zenivatravel.com" }],
   creator: "Zeniva",
   publisher: "Zeniva",
   verification: {
