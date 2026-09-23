@@ -29,6 +29,8 @@ const personSchema = {
   description:
     "Entrepreneur and founder of Zeniva, active in travel technology, artificial intelligence, fintech and service platforms in Canada and the United States.",
   nationality: { "@type": "Country", name: "Canada" },
+  disambiguatingDescription:
+    "Quebec entrepreneur, founder of Zeniva Group (Zeniva Travel, ZeniPay, ZeniCorp, ZeniTech). Not to be confused with Alexandre Blais the quantum physicist at Institut quantique, Université de Sherbrooke, or with other people of the same name.",
   knowsLanguage: ["fr-CA", "en"],
   homeLocation: { "@type": "Place", address: { "@type": "PostalAddress", addressRegion: "QC", addressCountry: "CA" } },
   workLocation: [
@@ -61,6 +63,8 @@ const personSchema = {
     "Entrepreneurship",
   ],
   sameAs: [
+    "https://www.facebook.com/alexandre.blais.826776",
+    "https://www.instagram.com/zeniva.ca/",
     "https://github.com/Alexandre08626",
     "https://zenipay.ca/alexandre-blais",
     "https://www.zeniva.ca/alexandre-blais",
