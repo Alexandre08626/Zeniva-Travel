@@ -5,7 +5,7 @@ import { useAuthStore } from "../../../src/lib/authStore";
 import { TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../../src/design/tokens";
 
 const VPS = "https://vmi3097009.contaboserver.net";
-type Tab = "overview" | "leads" | "marketing" | "commissions" | "chat" | "yachts";
+type Tab = "overview" | "leads" | "commissions" | "chat" | "yachts";
 
 // ─── KPI Card ────────────────────────────────────────────────────
 function Kpi({ icon, label, value, sub, color }: { icon: string; label: string; value: string | number; sub?: string; color: string }) {
@@ -43,11 +43,6 @@ export default function AgentAIDashboard() {
   const chatRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Marketing
-  const [mktType, setMktType] = useState("social_post");
-  const [mktDetails, setMktDetails] = useState("");
-  const [mktResult, setMktResult] = useState("");
-  const [mktLoading, setMktLoading] = useState(false);
 
   const hdr = { Authorization: "Bearer zeniva-secret-2025", "Content-Type": "application/json" };
 
@@ -96,23 +91,6 @@ export default function AgentAIDashboard() {
     finally { setChatLoading(false); }
   };
 
-  // Marketing
-  const genMarketing = async () => {
-    setMktLoading(true); setMktResult("");
-    try {
-      const res = await fetch(`${VPS}/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: `Generate marketing content of type "${mktType}". Details: ${mktDetails || "general content for my business"}. Generate the content directly, no questions.`,
-          sessionId: `agent-mkt-${agentEmail}`, agentEmail, agentRole, source: "zenivatravel.com",
-        }),
-      });
-      const data = await res.json();
-      setMktResult(data.response || data.reply || "Erreur");
-    } catch { setMktResult("❌ Erreur"); }
-    finally { setMktLoading(false); }
-  };
 
   // ─── Stats ──────────────────────────────────────────────────────
   const openLeads = leads.filter(l => !l.deal_status || l.deal_status === "open").length;
@@ -126,7 +104,6 @@ export default function AgentAIDashboard() {
     { id: "overview", label: "🏠 Overview" },
     { id: "leads", label: `👥 Mes Clients (${leads.length})` },
     { id: "chat", label: "💬 Lina IA" },
-    { id: "marketing", label: "📣 Marketing" },
     { id: "commissions", label: `💰 Commissions (${commissions.length})` },
     ...(isYacht ? [{ id: "yachts" as Tab, label: `⛵ Mes Yachts (${yachts.length})` }] : []),
   ];
@@ -184,7 +161,7 @@ export default function AgentAIDashboard() {
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {[
                   { label: "Talk to Lina", icon: "💬", action: () => setTab("chat"), desc: "Personalized AI assistant" },
-                  { label: "Create content", icon: "📣", action: () => setTab("marketing"), desc: "Posts, emails, captions" },
+                  { label: "Nouvelle proposition", icon: "📋", action: () => { window.location.href = "/agent/proposals"; }, desc: "Itinéraire + prix" },
                   { label: "Voir mes clients", icon: "👥", action: () => setTab("leads"), desc: `${leads.length} clients` },
                   { label: "Mes commissions", icon: "💰", action: () => setTab("commissions"), desc: `$${totalComm.toLocaleString()} total` },
                 ].map(a => (
@@ -288,7 +265,7 @@ export default function AgentAIDashboard() {
               <div className="h-9 w-9 rounded-full bg-indigo-500 flex items-center justify-center text-lg">✈️</div>
               <div className="flex-1">
                 <div className="font-bold text-sm">Lina — {isYacht ? "Mode Yacht & Influenceur" : "Mode Agent Voyage"}</div>
-                <div className="text-xs text-indigo-200">Invoices, marketing, itineraries, client follow-up, lead scoring...</div>
+                <div className="text-xs text-indigo-200">Invoices, itineraries, client follow-up, lead scoring...</div>
               </div>
               <div className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
             </div>
@@ -297,7 +274,7 @@ export default function AgentAIDashboard() {
                 <div className="text-center text-slate-400 mt-12 space-y-3">
                   <div className="text-4xl">💬</div>
                   <div className="text-sm font-medium">Salut {agentName.split(" ")[0]}! Je suis Lina, ton assistante IA.</div>
-                  <div className="text-xs">Ask me to create an invoice, marketing post, itinerary, score a lead...</div>
+                  <div className="text-xs">Ask me to create an invoice, an itinerary, or to score a lead...</div>
                   <div className="flex flex-wrap gap-2 justify-center mt-4">
                     {(isYacht ? [
                       "Create an Instagram post for a yacht in the Bahamas",
@@ -354,47 +331,6 @@ export default function AgentAIDashboard() {
           </div>
         )}
 
-        {/* ═══ MARKETING ═══ */}
-        {tab === "marketing" && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-5">
-            <h2 className="text-lg font-bold" style={{ color: TITLE_TEXT }}>📣 Content Generator</h2>
-            <p className="text-sm" style={{ color: MUTED_TEXT }}>Lina generates marketing content tailored to your domain. Choose the type and describe what you want.</p>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-semibold text-slate-500 uppercase">Type</label>
-                <select value={mktType} onChange={e => setMktType(e.target.value)}
-                  className="mt-1 w-full px-4 py-3 border border-slate-200 rounded-xl text-sm">
-                  <option value="social_post">📱 Social media post</option>
-                  <option value="email_campaign">📧 Email marketing</option>
-                  <option value="listing_description">📝 Description de listing</option>
-                  <option value="follow_up">🔄 Email de relance</option>
-                  {(isYacht || isInfluencer) && <option value="influencer_caption">🎬 Caption influenceur (IG/TikTok)</option>}
-                  <option value="itinerary">🗺️ Travel itinerary</option>
-                  <option value="invoice">🧾 Facture</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-500 uppercase">Details</label>
-                <input value={mktDetails} onChange={e => setMktDetails(e.target.value)}
-                  placeholder={isYacht ? "Catamaran 50ft, Bahamas, 8 personnes..." : "All-inclusive Cancun, famille 4, budget $5000..."}
-                  className="mt-1 w-full px-4 py-3 border border-slate-200 rounded-xl text-sm" />
-              </div>
-            </div>
-            <button onClick={genMarketing} disabled={mktLoading}
-              className="px-6 py-3 rounded-xl text-white font-bold text-sm disabled:opacity-40" style={{ backgroundColor: PREMIUM_BLUE }}>
-              {mktLoading ? "⏳ Lina is working..." : "🚀 Generate"}
-            </button>
-            {mktResult && (
-              <div className="relative">
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 whitespace-pre-wrap text-sm leading-relaxed">{mktResult}</div>
-                <button onClick={() => { navigator.clipboard.writeText(mktResult); }}
-                  className="absolute top-3 right-3 px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-indigo-50">
-                  📋 Copy
-                </button>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* ═══ COMMISSIONS ═══ */}
         {tab === "commissions" && (
