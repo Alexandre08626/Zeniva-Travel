@@ -4,6 +4,7 @@ import { FORM_DEFINITIONS } from "../../../../src/lib/forms/catalog";
 import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../../src/lib/server/db";
 import { signSession } from "../../../../src/lib/server/auth";
 import { sendPushToHQ } from "../../../../src/lib/server/pushNotify";
+import { notifyAccountCreated } from "../../../../src/lib/notify/account-created";
 
 const DEFAULT_OWNER_EMAIL = "info@zenivatravel.com";
 const VPS_API_URL = process.env.VPS_API_URL || "https://vmi3097009.contaboserver.net";
@@ -170,17 +171,19 @@ function getFormConfig(formId: string) {
   return FORM_DEFINITIONS.find((f) => f.id === formId) || null;
 }
 
-async function ensureTravelerAccount(email: string, name: string, division: string) {
-  if (!email) return;
+// Retourne true seulement si un NOUVEAU compte a été créé.
+async function ensureTravelerAccount(email: string, name: string, division: string): Promise<boolean> {
+  if (!email) return false;
   const normalized = normalizeEmail(email);
   const existing = await dbQuery("SELECT id FROM accounts WHERE email = $1", [normalized]);
-  if (existing.rows.length) return;
+  if (existing.rows.length) return false;
   const id = `acct-${normalized.replace(/[^a-z0-9]/gi, "-")}`;
   await dbQuery(
     "INSERT INTO accounts (id, name, email, role, roles, divisions, status, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7, now())",
     [id, name || "Traveler", normalized, "traveler", JSON.stringify(["traveler"]), JSON.stringify([division]), "active"]
   );
   console.log(`ACCOUNT CREATED: id=${id} email=${normalized}`);
+  return true;
 }
 
 function buildNotesFromPayload(formId: string, payload: Record<string, any>) {
@@ -306,7 +309,11 @@ export async function POST(request: Request) {
       );
       const saved = mapClientRow(rows[0]);
       if (email) {
-        await ensureTravelerAccount(email, name || saved.name || "Traveler", form.division);
+        const accountCreated = await ensureTravelerAccount(email, name || saved.name || "Traveler", form.division);
+        if (accountCreated) {
+          // SMS déjà envoyé par sendWelcomeSMS — courriel de confirmation seulement
+          await notifyAccountCreated({ name: name || saved.name, email, channels: ["email"] });
+        }
         // Generate setup token for existing client too — lets them set/update password
         const setupExp = Math.floor(Date.now() / 1000) + 60 * 60 * 2;
         const setupToken = signSession({ email, roles: ["traveler"], exp: setupExp, type: "setup" } as any);
@@ -369,7 +376,11 @@ export async function POST(request: Request) {
     const saved = mapClientRow(rows[0]);
     console.log(`CLIENT CREATED: id=${saved.id} email=${saved.email || ""}`);
     if (email) {
-      await ensureTravelerAccount(email, saved.name, form.division);
+      const accountCreated = await ensureTravelerAccount(email, saved.name, form.division);
+      if (accountCreated) {
+        // SMS déjà envoyé par sendWelcomeSMS — courriel de confirmation seulement
+        await notifyAccountCreated({ name: saved.name, email, channels: ["email"] });
+      }
       // Send welcome email to new client (fire and forget)
       const HQ_ALL_EMAILS = ["info@zeniva.ca", "info@zenivatravel.com", "info@zeniva.com"];
       if (!HQ_ALL_EMAILS.includes(email.toLowerCase())) {

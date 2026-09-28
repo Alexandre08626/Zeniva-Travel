@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../src/lib/server/db";
 import { requireRbacPermission } from "../../../src/lib/server/rbac";
+import { notifyAccountCreated } from "../../../src/lib/notify/account-created";
 
 type AccountRecord = {
   id: string;
@@ -77,6 +78,18 @@ export async function POST(request: Request) {
     );
     const record = mapAccountRow(rows[0]);
     console.log(`ACCOUNT CREATED: id=${record.id} email=${record.email}`);
+    const allRoles = [role, ...(roles || [])].map((r: any) => String(r));
+    const accountLabel = allRoles.some((r) => r === "partner_owner" || r === "partner_staff")
+      ? "votre compte partenaire Zeniva Travel"
+      : allRoles.every((r) => r === "traveler")
+        ? "votre compte Zeniva Travel"
+        : "votre compte agent Zeniva Travel";
+    await notifyAccountCreated({
+      name: record.name,
+      email: record.email,
+      phone: body?.phone ? String(body.phone).trim() : undefined,
+      accountLabel,
+    });
     return NextResponse.json({ data: record }, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to save account" }, { status: 500 });

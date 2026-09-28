@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendPushToHQ } from "../../../../src/lib/server/pushNotify";
+import { notifyAccountCreated } from "../../../../src/lib/notify/account-created";
 
 import { assertBackendEnv, normalizeEmail, dbQuery } from "../../../../src/lib/server/db";
 import { normalizeRbacRole } from "../../../../src/lib/rbac";
@@ -369,12 +370,22 @@ export async function POST(request: Request) {
       tag: "new-account",
     }).catch(() => {});
 
-    // Send welcome email via VPS
-    fetch("http://217.216.88.202:8000/admin/send-welcome", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer zeniva-secret-2025" },
-      body: JSON.stringify({ email: account.email, name: account.name || "", language: "en" }),
-    }).catch(() => {});
+    // Courriel (+ SMS si téléphone fourni) de confirmation via le service central Zenitech
+    {
+      const isPartnerSignup = normalizedRoles.some((r: string) => r === "partner_owner" || r === "partner_staff");
+      const accountLabel = isPartnerSignup
+        ? "votre compte partenaire Zeniva Travel"
+        : isAgentRole
+          ? "votre compte agent Zeniva Travel"
+          : "votre compte Zeniva Travel";
+      const signupPhone = String(body?.phone || body?.companyPhone || body?.company_phone || "").trim();
+      await notifyAccountCreated({
+        name: account.name || name,
+        email: account.email,
+        phone: signupPhone || undefined,
+        accountLabel,
+      });
+    }
 
     // ---- Create session cookie (your custom token)
     const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30;

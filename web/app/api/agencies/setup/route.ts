@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/src/lib/supabase/server";
 import { verifySession, getSessionCookieName } from "@/src/lib/server/auth";
+import { notifyAccountCreated } from "@/src/lib/notify/account-created";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -68,6 +69,12 @@ export async function POST(req: NextRequest) {
 
       if (!accErr) {
         log.push(`\u2705 Agency admin account created: ${ownerEmail} (temp password: ${password})`);
+        await notifyAccountCreated({
+          name: ownerName,
+          email: ownerEmail,
+          phone: (agency.contact_phone as string) || (onboarding.primaryPhone as string) || undefined,
+          accountLabel: "votre compte administrateur d'agence Zeniva Travel",
+        });
       } else {
         log.push(`\u26A0\uFE0F Could not create admin account: ${accErr.message}`);
       }
@@ -96,7 +103,7 @@ export async function POST(req: NextRequest) {
 
       if (!existing) {
         const pw = generatePassword();
-        await client.from("accounts").insert({
+        const { error: advErr } = await client.from("accounts").insert({
           email,
           name,
           role: "travel_agent",
@@ -105,6 +112,13 @@ export async function POST(req: NextRequest) {
           is_active: true,
         });
         advisorsCreated++;
+        if (!advErr) {
+          await notifyAccountCreated({
+            name,
+            email,
+            accountLabel: "votre compte agent Zeniva Travel",
+          });
+        }
       }
     }
   }
