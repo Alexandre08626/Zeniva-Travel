@@ -376,11 +376,8 @@ export async function POST(request: Request) {
     const saved = mapClientRow(rows[0]);
     console.log(`CLIENT CREATED: id=${saved.id} email=${saved.email || ""}`);
     if (email) {
-      const accountCreated = await ensureTravelerAccount(email, saved.name, form.division);
-      if (accountCreated) {
-        // SMS déjà envoyé par sendWelcomeSMS — courriel de confirmation seulement
-        await notifyAccountCreated({ name: saved.name, email, channels: ["email"] });
-      }
+      // Nouveau client : sendWelcomeEmail (plus bas) et sendWelcomeSMS confirment déjà le compte.
+      await ensureTravelerAccount(email, saved.name, form.division);
       // Send welcome email to new client (fire and forget)
       const HQ_ALL_EMAILS = ["info@zeniva.ca", "info@zenivatravel.com", "info@zeniva.com"];
       if (!HQ_ALL_EMAILS.includes(email.toLowerCase())) {
