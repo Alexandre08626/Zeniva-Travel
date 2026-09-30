@@ -67,6 +67,11 @@ export default function Footer() {
       <div className="mt-4 text-[11px] font-semibold" style={{ color: MUTED_TEXT }}>
         ZeniStay is a curated collection of vacation rentals and private homes managed by Zeniva.
       </div>
+      <div className="mt-2 text-[11px]" style={{ color: MUTED_TEXT }}>
+        <a href="https://zenitech.dev/" style={{ color: MUTED_TEXT, textDecoration: "none" }}>
+          Website by Zenitech — web &amp; AI agency
+        </a>
+      </div>
     </footer>
   );
 }
