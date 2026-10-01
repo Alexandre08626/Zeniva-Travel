@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getInternalSecret } from "@/src/lib/server/internalSecret";
 
 const API_BASE = 'https://vmi3097009.contaboserver.net';
-const AUTH = 'zeniva-secret-2025';
+const AUTH = getInternalSecret();
 
 export async function GET(req: NextRequest) {
   try {

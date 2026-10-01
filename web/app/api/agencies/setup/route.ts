@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/src/lib/supabase/server";
-import { verifySession, getSessionCookieName } from "@/src/lib/server/auth";
+import { verifySession, getSessionCookieName, hashPassword } from "@/src/lib/server/auth";
+import crypto from "crypto";
 import { notifyAccountCreated } from "@/src/lib/notify/account-created";
 
 export const runtime = "nodejs";
@@ -20,7 +21,9 @@ function getAuth(req: NextRequest) {
 function generatePassword(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
   let pw = "";
-  for (let i = 0; i < 12; i++) pw += chars[Math.floor(Math.random() * chars.length)];
+  // Mot de passe temporaire aléatoire (crypto), jamais renvoyé ni journalisé :
+  // la personne choisit le sien via « Mot de passe oublié » / lien de configuration.
+  for (let i = 0; i < 16; i++) pw += chars[crypto.randomInt(chars.length)];
   return pw;
 }
 
@@ -63,12 +66,12 @@ export async function POST(req: NextRequest) {
         name: ownerName,
         role: "agency_admin",
         agency_id: agency.id,
-        password_hash: password, // In production, hash this
+        password_hash: hashPassword(password),
         is_active: true,
       });
 
       if (!accErr) {
-        log.push(`\u2705 Agency admin account created: ${ownerEmail} (temp password: ${password})`);
+        log.push(`\u2705 Agency admin account created: ${ownerEmail} (the owner sets their own password)`);
         await notifyAccountCreated({
           name: ownerName,
           email: ownerEmail,
@@ -108,7 +111,7 @@ export async function POST(req: NextRequest) {
           name,
           role: "travel_agent",
           agency_id: agency.id,
-          password_hash: pw,
+          password_hash: hashPassword(pw),
           is_active: true,
         });
         advisorsCreated++;

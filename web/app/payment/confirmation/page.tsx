@@ -4,8 +4,6 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
 
-const VPS = "http://217.216.88.202:8000";
-const AUTH = "Bearer zeniva-secret-2025";
 
 function ConfirmationContent() {
   const params = useSearchParams();
@@ -52,33 +50,7 @@ function ConfirmationContent() {
       }),
     }).catch(() => undefined);
 
-    // 1b — Create booking in VPS (agent dashboard)
-    fetch(`${VPS}/admin/bookings`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: AUTH },
-      body: JSON.stringify({
-        client_name: clientName || clientEmail,
-        client_email: clientEmail,
-        destination,
-        departure_date: departure || undefined,
-        return_date: returnDate || undefined,
-        travelers,
-        total_price: totalPrice,
-        status: "confirmed",
-        notes: `ZeniPay payment: ${orderId || ref} | ${description}`,
-      }),
-    }).catch(() => undefined);
-
-    // 2 — Push notification to HQ
-    fetch("/api/push/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: AUTH },
-      body: JSON.stringify({
-        title: "💳 New Booking Confirmed!",
-        body: `${clientName || clientEmail} — ${destination} · $${totalPrice.toLocaleString()}`,
-        url: "/agent/bookings",
-      }),
-    }).catch(() => undefined);
+    // 2 — L'alerte HQ est envoyée côté serveur par /api/my-bookings (jeton interne non exposé).
 
     // 3 — Clean up localStorage
     try { localStorage.removeItem("zeniva_pending_booking"); } catch { /* noop */ }

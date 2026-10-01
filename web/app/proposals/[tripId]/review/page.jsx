@@ -218,14 +218,21 @@ function ProposalReviewPageInner() {
       const res = await fetch("/api/zenipay/payments/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: total, currency: "USD", description: desc, customerName: "", customerEmail: "" }),
+        body: JSON.stringify({
+          amount: total, currency: "USD", description: desc,
+          customerName: tripDraft?.clientName || tripDraft?.name || proposal?.clientName || "",
+          customerEmail: tripDraft?.clientEmail || tripDraft?.email || proposal?.clientEmail || "",
+        }),
       });
       const data = await res.json();
       if (data.checkout_url) {
         window.location.href = data.checkout_url;
         return;
       }
-    } catch {}
+      alert(data.message || "Online payment is temporarily unavailable. Our team has been notified and will send you a secure payment link.");
+    } catch {
+      alert("Connection error. Please try again in a moment.");
+    }
     setPaying(false);
   };
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/proposals/${tripId}/review` : "";
@@ -487,7 +494,7 @@ function ProposalReviewPageInner() {
       try {
         const res = await fetch("https://vmi3097009.contaboserver.net/admin/send-proposal-email", {
           method: "POST",
-          headers: { "Content-Type": "application/json", "Authorization": "Bearer zeniva-secret-2025" },
+          headers: { "Content-Type": "application/json", "Authorization": "" },
           body: JSON.stringify({
             client_email: clientEmail,
             client_name: clientName,

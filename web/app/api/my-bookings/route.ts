@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getSessionCookieName, verifySession } from "../../../src/lib/server/auth";
+import { sendPushToHQ } from "../../../src/lib/server/pushNotify";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://rvlcgtlcjylozbihtpkr.supabase.co";
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
@@ -66,6 +67,13 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
+    // Alerte HQ (déplacée ici depuis le navigateur). À confirmer dans ZeniPay : la page de retour n'est pas une preuve de paiement.
+    await sendPushToHQ({
+      title: "Réservation payée à confirmer dans ZeniPay",
+      body: `${body.clientName || body.clientEmail || "Client"} — ${body.destination || ""} · $${Number(body.totalPrice || 0).toLocaleString()}`,
+      url: "/agent/bookings",
+      tag: "booking-confirmed",
+    });
     return NextResponse.json({ ok: true, id: data.id });
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e?.message }, { status: 500 });

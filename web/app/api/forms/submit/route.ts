@@ -5,9 +5,10 @@ import { assertBackendEnv, dbQuery, normalizeEmail } from "../../../../src/lib/s
 import { signSession } from "../../../../src/lib/server/auth";
 import { sendPushToHQ } from "../../../../src/lib/server/pushNotify";
 import { notifyAccountCreated } from "../../../../src/lib/notify/account-created";
+import { getVpsBase, internalAuthHeader } from "@/src/lib/server/internalSecret";
 
 const DEFAULT_OWNER_EMAIL = "info@zenivatravel.com";
-const VPS_API_URL = process.env.VPS_API_URL || "https://vmi3097009.contaboserver.net";
+const VPS_API_URL = process.env.VPS_API_URL || getVpsBase();
 
 // ── Twilio SMS helper ──────────────────────────────────────────────────────
 async function sendWelcomeSMS(phone: string, name: string, destination: string) {
@@ -101,7 +102,7 @@ async function notifyVpsNewLead(clientData: any, formFields: Record<string, any>
     // Send email notification to boss
     await fetch(`${VPS_API_URL}/notify-lead`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer zeniva-secret-2025" },
+      headers: { "Content-Type": "application/json", "Authorization": internalAuthHeader() },
       body: JSON.stringify({
         to: "info@zeniva.ca",
         name: clientData.name,

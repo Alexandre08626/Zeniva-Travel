@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import { getVpsBase, getInternalSecret } from "@/src/lib/server/internalSecret";
 
-const VPS_BASE = "http://217.216.88.202:8000";
-const VPS_SECRET = "zeniva-secret-2025";
+const VPS_BASE = getVpsBase();
+const VPS_SECRET = getInternalSecret();
 
 export async function POST(request: Request) {
   try {

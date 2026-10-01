@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getVpsBase, internalAuthHeader } from "@/src/lib/server/internalSecret";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const VPS_BASE = "http://217.216.88.202:8000";
-const AUTH = "Bearer zeniva-secret-2025";
+const VPS_BASE = getVpsBase();
+const AUTH = internalAuthHeader();
 
 type AutomationResult = { agent: string; status: string; message: string; error?: string };
 

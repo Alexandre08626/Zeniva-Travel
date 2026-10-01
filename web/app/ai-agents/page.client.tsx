@@ -298,7 +298,7 @@ function AgentCard({ agent, onSelect }: { agent: AgentDef; onSelect: (id: string
     try {
       const res = await fetch("/api/agents-proxy?endpoint=agent-command", {
         method: "POST",
-        headers: {"Content-Type":"application/json","Authorization":"Bearer zeniva-secret-2025"},
+        headers: {"Content-Type":"application/json","Authorization":""},
         body: JSON.stringify({agent_id: agent.id, agent_name: agent.name, message: userMsg, history: cmdMessages.slice(-10)}),
       });
       const d = await res.json();
@@ -415,7 +415,7 @@ function AgentDetailPanel({ agent, onClose, onToggle }: {
     try {
       const res = await fetch("/api/agents-proxy?endpoint=agent-command", {
         method: "POST",
-        headers: {"Content-Type":"application/json","Authorization":"Bearer zeniva-secret-2025"},
+        headers: {"Content-Type":"application/json","Authorization":""},
         body: JSON.stringify({agent_id: agent.id, agent_name: agent.name, message: userMsg, history: cmdMessages.slice(-10)}),
       });
       const d = await res.json();
@@ -1602,7 +1602,7 @@ export default function AIAgentsPageClient() {
         };
         xhr.onerror = () => reject(new Error("Network error — check connection"));
         xhr.open("POST", "https://vmi3097009.contaboserver.net/video-queue/upload");
-        xhr.setRequestHeader("Authorization", "Bearer zeniva-secret-2025");
+        xhr.setRequestHeader("Authorization", "");
         xhr.send(form);
       });
     } catch (err: any) {
@@ -2535,7 +2535,7 @@ export default function AIAgentsPageClient() {
               </div>
               <div className="divide-y divide-gray-200/50">
                 {[
-                  { label: "Main API (port 8000)", status: apiHealth, detail: "VPS 217.216.88.202:8000" },
+                  { label: "Main API (port 8000)", status: apiHealth, detail: "VPS hors ligne (retiré)" },
                   { label: "Supabase Database", status: dbHealth, detail: "PostgreSQL via Supabase cloud" },
                   { label: "AI Webhook (n8n)", status: apiHealth, detail: "OpenAI GPT-4o integration" },
                 ].map(s => (
@@ -2557,8 +2557,8 @@ export default function AIAgentsPageClient() {
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {[
                   { label: "Supabase Dashboard", icon: "🗄️", url: "https://supabase.com/dashboard", color: "border-emerald-500/30 hover:border-emerald-500/60 hover:bg-emerald-500/5" },
-                  { label: "n8n Workflows", icon: "🔄", url: `http://217.216.88.202:5678`, color: "border-blue-500/30 hover:border-blue-500/60 hover:bg-blue-500/5" },
-                  { label: "VPS Dashboard", icon: "🖥️", url: `http://217.216.88.202`, color: "border-gray-300/50 hover:border-slate-500/70 hover:bg-gray-50" },
+                  { label: "n8n Workflows", icon: "🔄", url: `#`, color: "border-blue-500/30 hover:border-blue-500/60 hover:bg-blue-500/5" },
+                  { label: "VPS Dashboard", icon: "🖥️", url: `#`, color: "border-gray-300/50 hover:border-slate-500/70 hover:bg-gray-50" },
                   { label: "Twilio Console", icon: "📞", url: "https://console.twilio.com", color: "border-red-500/30 hover:border-red-500/60 hover:bg-red-500/5" },
                 ].map(l => (
                   <a key={l.label} href={l.url} target="_blank" rel="noreferrer"

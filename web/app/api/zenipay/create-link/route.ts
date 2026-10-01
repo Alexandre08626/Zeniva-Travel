@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createZeniPayPayLink, alertPayLinkFailure, PAY_LINK_UNAVAILABLE_MESSAGE } from "@/src/lib/server/zenipayLink";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getSupabase(): any {
@@ -44,9 +45,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
     }
 
-    const id = `LINK-${Date.now().toString(36).toUpperCase()}`;
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://zenivatravel.com";
-    const url = `${baseUrl}/pay/${id}?amount=${amount}&currency=${currency}&desc=${encodeURIComponent(description || "")}`;
+    // Le lien doit exister sur zenipay.ca (l'ancienne URL zenivatravel.com/pay/… donnait une 404).
+    const zp = await createZeniPayPayLink({ amount, currency, description });
+    if (!zp) {
+      await alertPayLinkFailure({ amount, currency, description });
+      return NextResponse.json({ error: "PAYMENT_LINK_UNAVAILABLE", message: PAY_LINK_UNAVAILABLE_MESSAGE }, { status: 503 });
+    }
+    const id = zp.id;
+    const url = zp.url;
 
     const linkData: Record<string, any> = {
       id,

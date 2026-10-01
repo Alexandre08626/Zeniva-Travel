@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuthStore, isHQ } from "../../../src/lib/authStore";
 import { useRequireAnyPermission } from "../../../src/lib/roleGuards";
 
-const AUTH = "Bearer zeniva-secret-2025";
+const AUTH = "";
 
 type Client = {
   id: string;
@@ -91,7 +91,7 @@ export default function ClientsPage() {
     if (!confirm(`Delete client ${email}? This cannot be undone.`)) return;
     await fetch(`/api/agents-proxy?path=admin/clients/${encodeURIComponent(email)}`, {
       method: "DELETE",
-      headers: { Authorization: "Bearer zeniva-secret-2025" },
+      headers: { Authorization: "" },
     });
     setClients((prev) => prev.filter((c) => c.email !== email));
     setFiltered((prev) => prev.filter((c) => c.email !== email));

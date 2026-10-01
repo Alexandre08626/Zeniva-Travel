@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getVpsBase } from "@/src/lib/server/internalSecret";
 
-const VPS = "http://217.216.88.202:8000";
+const VPS = getVpsBase();
 
 export async function GET(req: NextRequest) {
   const ref = req.nextUrl.searchParams.get("ref");

@@ -67,7 +67,7 @@ export default function LeadsPage() {
     if (!confirm(`Delete lead ${email}? This cannot be undone.`)) return;
     await fetch(`/api/agents-proxy?path=admin/leads/${leadId}`, {
       method: "DELETE",
-      headers: { Authorization: "Bearer zeniva-secret-2025" },
+      headers: { Authorization: "" },
     });
     setLeads((prev) => prev.filter((l) => l.id !== leadId));
   };

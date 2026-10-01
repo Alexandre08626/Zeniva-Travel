@@ -1,10 +1,11 @@
+import { internalAuthHeader } from "@/src/lib/server/internalSecret";
 /**
  * Central push notification helper — call from any API route
  * Sends to info@zeniva.ca (HQ) by default, or any targetEmail
  */
 
 const HQ = "info@zeniva.ca";
-const SECRET = "Bearer zeniva-secret-2025";
+const SECRET = internalAuthHeader();
 
 interface PushPayload {
   title: string;

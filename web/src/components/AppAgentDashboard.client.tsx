@@ -99,7 +99,7 @@ export default function AppAgentDashboard() {
               try {
                 await fetch("/api/push/send", {
                   method: "POST",
-                  headers: { "Content-Type": "application/json", "Authorization": "Bearer zeniva-secret-2025" },
+                  headers: { "Content-Type": "application/json", "Authorization": "" },
                   body: JSON.stringify({ title: "🔔 Notifications actives!", body: "Tu vas recevoir toutes les alertes messages.", url: "/agent/chat", tag: "test" }),
                 });
               } catch {}

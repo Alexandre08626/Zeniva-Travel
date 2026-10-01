@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { internalAuthHeader, isInternalAuth } from "@/src/lib/server/internalSecret";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-const AUTH = "Bearer zeniva-secret-2025";
+const AUTH = internalAuthHeader();
 
 /**
  * Rex Dashboard Stats API
@@ -17,11 +18,11 @@ export async function GET(req: NextRequest) {
   const sessionCookie = req.cookies.get("zeniva_session")?.value || "";
   const rolesCookie = req.cookies.get("zeniva_roles")?.value || "";
 
-  const isInternalAuth = authHeader === AUTH;
+  const hasInternalAuth = isInternalAuth(authHeader);
   const hasAgentSession = sessionCookie.length > 10 &&
     (rolesCookie.includes("hq") || rolesCookie.includes("agent") || rolesCookie.includes("admin"));
 
-  if (!isInternalAuth && !hasAgentSession) {
+  if (!hasInternalAuth && !hasAgentSession) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

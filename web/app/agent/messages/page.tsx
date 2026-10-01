@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuthStore } from "../../../src/lib/authStore";
 
 const VPS = "https://vmi3097009.contaboserver.net";
-const HDR = { Authorization: "Bearer zeniva-secret-2025", "Content-Type": "application/json" };
+const HDR = { Authorization: "", "Content-Type": "application/json" };
 
 type Lead = {
   id: string;

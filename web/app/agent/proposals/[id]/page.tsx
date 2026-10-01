@@ -334,6 +334,11 @@ export default function ProposalFinalizePage() {
         }),
       });
       const linkData = await linkRes.json();
+      if (!linkRes.ok || !linkData?.url) {
+        // Ne jamais envoyer au client un courriel sans lien de paiement valide.
+        alert("Le lien de paiement ZeniPay n'a pas pu être créé. Rien n'a été envoyé au client.");
+        return;
+      }
       setPaymentLink(linkData.url);
 
       // 2. Send email

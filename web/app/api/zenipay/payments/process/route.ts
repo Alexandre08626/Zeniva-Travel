@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
  */
 
 import { createClient } from "@supabase/supabase-js";
+import { getVpsBase, internalAuthHeader } from "@/src/lib/server/internalSecret";
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -227,10 +228,10 @@ export async function POST(request: Request) {
 
       // Send confirmation email
       if (custEmail) {
-        const vpsBase = process.env.VPS_API_URL || "https://vmi3097009.contaboserver.net";
+        const vpsBase = process.env.VPS_API_URL || getVpsBase();
         fetch(`${vpsBase}/admin/send-payment-confirmation`, {
           method: "POST",
-          headers: { "Authorization": "Bearer zeniva-secret-2025", "Content-Type": "application/json" },
+          headers: { "Authorization": internalAuthHeader(), "Content-Type": "application/json" },
           body: JSON.stringify({
             client_email: custEmail,
             client_name: cardholder_name || meta.customer_name || "Client",

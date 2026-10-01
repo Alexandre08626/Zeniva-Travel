@@ -270,6 +270,7 @@ export async function signup(params: {
   divisions?: Division[];
   referralCode?: string;
   influencerId?: string;
+  phone?: string;
 }) {
   const {
     name,
@@ -282,6 +283,7 @@ export async function signup(params: {
     divisions,
     referralCode,
     influencerId,
+    phone,
   } = params;
   if (!email || !password) throw new Error("Email and password are required");
 
@@ -372,6 +374,7 @@ export async function signup(params: {
         inviteCode: baseAccount.inviteCode,
         agentLevel: baseAccount.agentLevel,
           travelerProfile: baseAccount.travelerProfile || undefined,
+        phone: phone?.trim() || undefined,
       }),
     });
     const payload = await res.json();

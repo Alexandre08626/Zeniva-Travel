@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import webpush from "web-push";
 import fs from "fs";
+import { isInternalAuth } from "@/src/lib/server/internalSecret";
 
 // Lazy — avoids module-level crash during build
 function getSupabase() {
@@ -30,7 +31,7 @@ function readFileSubs(): any[] {
 export async function POST(req: NextRequest) {
   try {
     const authHeader = req.headers.get("authorization");
-    if (authHeader !== "Bearer zeniva-secret-2025") {
+    if (!isInternalAuth(authHeader)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

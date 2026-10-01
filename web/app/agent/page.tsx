@@ -7,7 +7,7 @@ import { normalizeRbacRole } from "../../src/lib/rbac";
 import { toAgentWorkspaceId } from "../../src/lib/agent/agentWorkspace";
 import LinaAvatar from "../../src/components/LinaAvatar";
 
-const AUTH = "Bearer zeniva-secret-2025";
+const AUTH = "";
 const PREMIUM_BLUE = "#0B1B4D";
 const BRAND_BLUE = "#0F6CF5";
 const ACCENT_GOLD = "#E6B85A";
@@ -93,7 +93,7 @@ export function AgentDashboardPage({ agentId }: { agentId?: string }) {
       // Fetch dashboard stats to compute badges
       const agentParam = isHQorAdmin ? "" : `&agent_email=${encodeURIComponent(effectiveEmail)}`;
       const r = await fetch(`/api/agents-proxy?path=admin/dashboard-stats${agentParam}`, {
-        headers: { Authorization: "Bearer zeniva-secret-2025" },
+        headers: { Authorization: "" },
       });
       const badges: Record<string, number> = {};
       if (r.ok) {

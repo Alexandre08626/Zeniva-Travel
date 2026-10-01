@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { internalAuthHeader, isInternalAuth } from "@/src/lib/server/internalSecret";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-const AUTH = "Bearer zeniva-secret-2025";
+const AUTH = internalAuthHeader();
 
 /**
  * Rex Health Check API
@@ -13,7 +14,7 @@ const AUTH = "Bearer zeniva-secret-2025";
 export async function GET(req: NextRequest) {
   // Auth check
   const authHeader = req.headers.get("authorization");
-  if (authHeader !== AUTH) {
+  if (!isInternalAuth(authHeader)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

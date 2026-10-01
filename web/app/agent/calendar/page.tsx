@@ -38,7 +38,7 @@ import {
   addDays
 } from "date-fns";
 
-const AUTH = "Bearer zeniva-secret-2025";
+const AUTH = "";
 
 type BookingStatus = "confirmed" | "pending_payment" | "upcoming" | "past" | "cancelled";
 

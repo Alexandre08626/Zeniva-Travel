@@ -39,6 +39,7 @@ function SignupContent() {
   const [companyCurrency, setCompanyCurrency] = useState("");
   const [companyLanguage, setCompanyLanguage] = useState("en");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [agentStep, setAgentStep] = useState<"request" | "signup">("request");
@@ -89,12 +90,13 @@ function SignupContent() {
         divisions: agentDivisions,
         referralCode: referral?.referralCode,
         influencerId: referral?.influencerId,
+        phone: (isPartner ? companyPhone : phone).trim() || undefined,
       });
       if (isPartner) {
         updatePartnerProfile({ legalName: companyLegalName.trim() || undefined, displayName: companyDisplayName.trim() || undefined, phone: companyPhone.trim() || undefined, country: companyCountry.trim() || undefined, currency: companyCurrency.trim() || undefined, language: companyLanguage || undefined, kycStatus: "pending" });
       }
       if (mode === "traveler") {
-        const entry = addClient({ name: name.trim() || "Traveler", email: email.trim(), ownerEmail: "info@zeniva.ca", phone: "", primaryDivision: "TRAVEL", origin: "web_signup" });
+        const entry = addClient({ name: name.trim() || "Traveler", email: email.trim(), ownerEmail: "info@zeniva.ca", phone: phone.trim(), primaryDivision: "TRAVEL", origin: "web_signup" });
         try {
           await fetch("/api/clients", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: entry.id, name: entry.name, email: entry.email, ownerEmail: entry.ownerEmail, phone: entry.phone, origin: "web_signup", assignedAgents: [], primaryDivision: entry.primaryDivision }) });
         } catch (err) { console.error("Failed to sync client", err); }
@@ -264,6 +266,14 @@ function SignupContent() {
               <label style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 8 }}>Email</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="your@email.com" autoComplete="email" inputMode="email" style={inp()} />
             </div>
+
+            {/* Phone (optional) — confirmation par texto via le service central */}
+            {mode !== "partner" && (mode !== "agent" || agentStep === "signup") && (
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 8 }}>Phone (optional)</label>
+                <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 514 555 0123" autoComplete="tel" inputMode="tel" style={inp()} />
+              </div>
+            )}
 
             {/* Password */}
             {(mode !== "agent" || agentStep === "signup") && (

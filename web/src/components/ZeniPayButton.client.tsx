@@ -34,9 +34,12 @@ export default function ZeniPayButton({
         body: JSON.stringify({ amount, currency, description, customerName, customerEmail }),
       });
       const data = await res.json();
-      if (data.payment_id) {
+      if (data.payment_id && data.checkout_url) {
         window.location.href = data.checkout_url;
+        return;
       }
+      alert(data.message || "Online payment is temporarily unavailable. Our team has been notified and will send you a secure payment link.");
+      setLoading(false);
     } catch {
       setLoading(false);
     }

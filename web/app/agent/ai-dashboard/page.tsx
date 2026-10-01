@@ -44,7 +44,7 @@ export default function AgentAIDashboard() {
   const inputRef = useRef<HTMLInputElement>(null);
 
 
-  const hdr = { Authorization: "Bearer zeniva-secret-2025", "Content-Type": "application/json" };
+  const hdr = { Authorization: "", "Content-Type": "application/json" };
 
   // ─── Fetch data ──────────────────────────────────────────────────
   const fetchData = useCallback(async () => {

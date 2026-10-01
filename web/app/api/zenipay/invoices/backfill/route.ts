@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { getInternalSecret } from "@/src/lib/server/internalSecret";
 import { createClient } from "@supabase/supabase-js";
 
 function getSupabase() {
@@ -20,9 +21,9 @@ export async function POST(req: NextRequest) {
     // Auth check
     const auth = req.headers.get("authorization") || "";
     const secret = auth.replace("Bearer ", "").trim();
-    const expectedSecret = process.env.ZENIPAY_WEBHOOK_SECRET || "zeniva-secret-2025";
+    const expectedSecret = (process.env.ZENIPAY_WEBHOOK_SECRET || getInternalSecret()).trim();
 
-    if (secret !== expectedSecret) {
+    if (!expectedSecret || secret !== expectedSecret) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getVpsBase, internalAuthHeader } from "@/src/lib/server/internalSecret";
 
-const VPS_BASE = "https://vmi3097009.contaboserver.net";
-const AUTH = "Bearer zeniva-secret-2025";
+const VPS_BASE = getVpsBase();
+const AUTH = internalAuthHeader();
 
 export async function POST(req: NextRequest) {
   try {

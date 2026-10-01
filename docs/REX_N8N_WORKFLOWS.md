@@ -28,7 +28,7 @@
    - Method: `GET`
    - URL: `https://www.zenivatravel.com/api/rex/health-check`
    - Headers:
-     - `Authorization`: `Bearer zeniva-secret-2025`
+     - `Authorization`: `Bearer <ZENIVA_INTERNAL_SECRET>`
    - Output: Store as `healthReport`
 
 3. **Check for Issues**
@@ -66,7 +66,7 @@
    - Method: `GET`
    - URL: `https://www.zenivatravel.com/api/rex/dashboard-stats`
    - Headers:
-     - `Authorization`: `Bearer zeniva-secret-2025`
+     - `Authorization`: `Bearer <ZENIVA_INTERNAL_SECRET>`
    - Purpose: Trigger cache refresh
 
 6. **Check Failed n8n Workflows (last 24h)**
@@ -205,7 +205,7 @@
 ### Step 2: Configure Credentials
 - **Supabase**: Add Supabase credentials with service role key
 - **Slack**: Add webhook URL or bot token
-- **HTTP Request**: Set authorization header `Bearer zeniva-secret-2025`
+- **HTTP Request**: Set authorization header `Bearer <ZENIVA_INTERNAL_SECRET>`
 
 ### Step 3: Activate Workflows
 - Enable all 3 workflows
@@ -225,11 +225,11 @@ Test each workflow manually:
 
 ```bash
 # Test health check API
-curl -H "Authorization: Bearer zeniva-secret-2025" \
+curl -H "Authorization: Bearer <ZENIVA_INTERNAL_SECRET>" \
   https://www.zenivatravel.com/api/rex/health-check
 
 # Test dashboard stats API
-curl -H "Authorization: Bearer zeniva-secret-2025" \
+curl -H "Authorization: Bearer <ZENIVA_INTERNAL_SECRET>" \
   https://www.zenivatravel.com/api/rex/dashboard-stats
 ```
 
@@ -249,4 +249,4 @@ A: Check n8n execution history, verify schedule trigger is active
 A: Verify webhook URL is correct, check n8n workflow execution logs
 
 **Q: "Unauthorized" errors**
-A: Ensure `Authorization: Bearer zeniva-secret-2025` header is present
+A: Ensure `Authorization: Bearer <ZENIVA_INTERNAL_SECRET>` header is present

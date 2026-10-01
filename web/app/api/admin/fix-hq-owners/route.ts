@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { assertBackendEnv, dbQuery } from "../../../../src/lib/server/db";
+import { isInternalAuth } from "@/src/lib/server/internalSecret";
 
 /**
  * One-time migration: fix old owner_email values
  * POST /api/admin/fix-hq-owners
- * Authorization: Bearer zeniva-secret-2025
+ * Authorization: Bearer <jeton interne, voir src/lib/server/internalSecret.ts>
  */
 export async function POST(req: NextRequest) {
   try {
     const auth = req.headers.get("authorization");
-    if (auth !== "Bearer zeniva-secret-2025") {
+    if (!isInternalAuth(auth)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     assertBackendEnv();

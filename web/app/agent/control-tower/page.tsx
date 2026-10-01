@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuthStore, isHQ } from "@/src/lib/authStore";
 import { useRouter } from "next/navigation";
 
-const AUTH = "Bearer zeniva-secret-2025";
+const AUTH = "";
 
 interface ServiceHealth {
   status: "online" | "offline" | "degraded";
@@ -164,7 +164,7 @@ export default function ControlTowerPage() {
           <h3 className="font-black text-slate-900 mb-4">🖥️ System Info</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             {[
-              { label: "VPS IP", value: "217.216.88.202" },
+              { label: "VPS", value: "hors ligne (retiré)" },
               { label: "API Port", value: "8000" },
               { label: "Python Venv", value: "/root/zeniva-ai/venv" },
               { label: "n8n URL", value: "vmi3097009.contaboserver.net" },

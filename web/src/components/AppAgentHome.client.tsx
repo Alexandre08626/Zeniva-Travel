@@ -8,7 +8,7 @@ const GOLD  = "#E6B85A";
 const BLUE  = "#0F6CF5";
 const GREEN = "#10B981";
 const RED   = "#ef4444";
-const AUTH  = "Bearer zeniva-secret-2025";
+const AUTH  = "";
 
 /* ── Radar ping ── */
 function Radar() {

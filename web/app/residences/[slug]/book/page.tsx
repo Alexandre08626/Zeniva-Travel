@@ -4,8 +4,6 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import Image from "next/image";
 
-const VPS = "https://vmi3097009.contaboserver.net";
-
 function BookingForm() {
   const MAINTENANCE_MODE = false; // Change to true to show maintenance banner
 
@@ -40,20 +38,16 @@ function BookingForm() {
   const displayTotal = total || subtotal + CLEANING_FEE + CONCIERGE_FEE + taxes;
 
   const saveLead = async () => {
-    await fetch(`${VPS}/admin/leads`, {
+    // Lead enregistré dans Supabase + alerte HQ (l'ancien VPS est hors ligne).
+    await fetch("/api/lina-lead", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: "Bearer zeniva-secret-2025" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: name.trim(),
         email: email.trim(),
         phone: phone.trim() || undefined,
-        destination: property,
-        message: `ZeniStay Reservation\nProperty: ${property}\nCheck-in: ${checkin || "TBD"}\nCheck-out: ${checkout || "TBD"}\nNights: ${nights}\nGuests: ${guests}\nTotal: $${displayTotal.toLocaleString()}\n\n${message}`.trim(),
-        source: "ZeniStay",
-        budget: String(Math.round(displayTotal)),
-        travel_dates: checkin && checkout ? `${checkin} → ${checkout}` : undefined,
-        status: "new",
-        metadata: JSON.stringify({ property, slug, checkin, checkout, nights, guests, total: displayTotal, pricePerNight, confirmation: confNum }),
+        destination: `ZeniStay ${property} (${checkin || "TBD"} → ${checkout || "TBD"}, ${guests} guests, $${Math.round(displayTotal)})${message.trim() ? ` — ${message.trim().slice(0, 300)}` : ""}`,
+        tripId: confNum,
       }),
     }).catch(() => {});
   };

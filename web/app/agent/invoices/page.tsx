@@ -229,7 +229,7 @@ export default function InvoicesPage() {
     setScanningEmail(true);
     try {
       const res = await fetch("/api/invoices/scan-emails", { method: "POST",
-        headers: { Authorization: "Bearer zeniva-secret-2025", "Content-Type": "application/json" } });
+        headers: { Authorization: "", "Content-Type": "application/json" } });
       const d = await res.json();
       if (d.added > 0) fetchInvoices();
       alert(`Scan complete — ${d.added || 0} new invoice(s) found in your emails.`);
@@ -244,7 +244,7 @@ export default function InvoicesPage() {
       const res = await fetch("/api/zenipay/invoices/backfill", {
         method: "POST",
         headers: {
-          Authorization: "Bearer zeniva-secret-2025",
+          Authorization: "",
           "Content-Type": "application/json"
         }
       });

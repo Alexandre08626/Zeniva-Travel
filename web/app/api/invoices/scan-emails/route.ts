@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getVpsBase, internalAuthHeader, isInternalAuth } from "@/src/lib/server/internalSecret";
 
 export const runtime = "nodejs";
 
 // Calls the VPS Python scanner (reliable IMAP, no serverless timeout)
 export async function POST(req: NextRequest) {
   const auth = req.headers.get("authorization");
-  if (auth !== "Bearer zeniva-secret-2025") {
+  if (!isInternalAuth(auth)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     // Call VPS scanner endpoint
-    const vpsRes = await fetch("http://217.216.88.202:8000/admin/scan-invoices", {
+    const vpsRes = await fetch(`${getVpsBase()}/admin/scan-invoices`, {
       method: "POST",
       headers: {
-        "Authorization": "Bearer zeniva-secret-2025",
+        "Authorization": internalAuthHeader(),
         "Content-Type": "application/json",
       },
       signal: AbortSignal.timeout(60000),

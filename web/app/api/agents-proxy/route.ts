@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getVpsBase, internalAuthHeader, isInternalAuth } from "@/src/lib/server/internalSecret";
 
-const VPS_BASE = "http://217.216.88.202:8000";
-const AUTH = "Bearer zeniva-secret-2025";
+const VPS_BASE = getVpsBase();
+const AUTH = internalAuthHeader();
 
 export async function GET(req: NextRequest) {
+  if (!VPS_BASE) return NextResponse.json({ error: "VPS offline" }, { status: 503 });
   // Auth check — require agent session cookie or Bearer token
   const authHeader = req.headers.get("authorization") || "";
   const sessionCookie = req.cookies.get("zeniva_session")?.value || "";
   const rolesCookie = req.cookies.get("zeniva_roles")?.value || "";
-  const isInternalAuth = authHeader === AUTH;
+  const hasInternalAuth = isInternalAuth(authHeader);
   const hasAgentSession = sessionCookie.length > 10 && (rolesCookie.includes("hq") || rolesCookie.includes("agent") || rolesCookie.includes("admin") || rolesCookie.includes("broker"));
-  if (!isInternalAuth && !hasAgentSession) {
+  if (!hasInternalAuth && !hasAgentSession) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -86,6 +88,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!VPS_BASE) return NextResponse.json({ error: "VPS offline" }, { status: 503 });
   // Support ?path=admin/xxx for direct VPS passthrough
   const pathParam = req.nextUrl.searchParams.get("path");
   if (pathParam) {
@@ -157,10 +160,11 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (!VPS_BASE) return NextResponse.json({ error: "VPS offline" }, { status: 503 });
   const sessionCookie = req.cookies.get("zeniva_session")?.value || "";
   const rolesCookie = req.cookies.get("zeniva_roles")?.value || "";
   const bearerAuth = req.headers.get("Authorization") || "";
-  const isHQ = rolesCookie.includes("hq") || rolesCookie.includes("admin") || bearerAuth === "Bearer zeniva-secret-2025";
+  const isHQ = rolesCookie.includes("hq") || rolesCookie.includes("admin") || isInternalAuth(bearerAuth);
   if (!isHQ && sessionCookie.length < 10) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

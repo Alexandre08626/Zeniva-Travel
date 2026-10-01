@@ -58,7 +58,7 @@ export default function AgentCommandPage() {
     // 1. Delete from VPS
     await fetch(`/api/agents-proxy?path=admin/agents/${agentId}`, {
       method: "DELETE",
-      headers: { Authorization: "Bearer zeniva-secret-2025" },
+      headers: { Authorization: "" },
     });
     // 2. Delete from Supabase (agents + profiles tables)
     try {

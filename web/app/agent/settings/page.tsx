@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuthStore } from "../../../src/lib/authStore";
 import Link from "next/link";
 
-const AUTH = "Bearer zeniva-secret-2025";
+const AUTH = "";
 
 export default function AgentSettingsPage() {
   const user = useAuthStore((s) => s.user);

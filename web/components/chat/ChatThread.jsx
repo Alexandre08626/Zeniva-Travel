@@ -256,27 +256,13 @@ function ChatThread({ tripId, proposalMode = "" }) {
     if (!captureEmail.includes("@")) return;
     setCaptureEmailSaving(true);
     try {
-      // Save as lead on VPS
-      const trip = trips.find(t => t.id === tripId);
+      // Lead enregistré par /api/lina-lead (Supabase + alerte HQ) ; l'ancien VPS est hors ligne.
       const snap = snapshots[tripId] || {};
-      await fetch("http://217.216.88.202:8000/admin/leads", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer zeniva-secret-2025" },
-        body: JSON.stringify({
-          email: captureEmail,
-          first_name: captureName.split(" ")[0] || "",
-          last_name: captureName.split(" ").slice(1).join(" ") || "",
-          destination: snap.destination || trip?.title || "",
-          source: "chat-generate-proposal",
-          status: "new",
-          source_ref: tripId,
-        }),
-      }).catch(() => {});
-      // Also save via VPS API
+      // Enregistrement du lead
       await fetch("/api/lina-lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: captureEmail, destination: snap.destination || "", tripId }),
+        body: JSON.stringify({ email: captureEmail, name: captureName, destination: snap.destination || "", tripId }),
       }).catch(() => {});
     } catch {}
     setCaptureEmailSaving(false);
