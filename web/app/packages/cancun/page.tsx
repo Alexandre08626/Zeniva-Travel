@@ -5,44 +5,44 @@ import Header from "../../../src/components/Header";
 import Footer from "../../../src/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Cancun Vacation Packages 2025 — All-Inclusive Deals from $799 | Zeniva",
+  title: "Cancún All-Inclusive Vacation Packages 2026 — Flights, Resort, Transfers",
   description:
-    "Best Cancun all-inclusive vacation packages 2025. 7 nights from $799/person with flights & hotel. Planned by Lina AI — book the perfect Cancun getaway in minutes. USA & Canada travelers.",
-  alternates: { canonical: "https://zenivatravel.com/packages/cancun" },
+    "Cancún all-inclusive packages with flights, resort and transfers, priced for your exact dates by Lina, our 24/7 AI concierge. Real 2026 cost breakdown for a family of four in our guide.",
+  alternates: { canonical: "https://www.zenivatravel.com/packages/cancun" },
   keywords: [
-    "Cancun vacation packages 2025", "Cancun all-inclusive deals", "cheap Cancun vacations",
+    "Cancun vacation packages 2026", "Cancun all-inclusive deals", "cheap Cancun vacations",
     "best Cancun resorts", "Cancun packages from USA", "Cancun packages from Canada",
     "Cancun 7 nights all-inclusive", "Cancun travel deals", "Mexico vacation packages",
     "Cancun honeymoon packages", "Cancun family vacation"
   ],
   openGraph: {
-    title: "Cancun Vacation Packages 2025 — All-Inclusive from $799 | Zeniva",
+    title: "Cancún All-Inclusive Vacation Packages 2026 | Zeniva Travel",
     description: "Plan your perfect Cancun vacation with Lina AI. All-inclusive deals, luxury resorts, custom itineraries — for USA & Canada travelers.",
-    url: "https://zenivatravel.com/packages/cancun",
+    url: "https://www.zenivatravel.com/packages/cancun",
     type: "website",
     locale: "en_US",
   },
 };
 
 const deals = [
-  { title: "7 Nights Cancun All-Inclusive", price: "$799", per: "/person", resort: "4★ Hotel Zone Resort", includes: ["Round-trip flights", "All meals & drinks", "Pool & beach access", "Airport transfers"], badge: "Best Value" },
-  { title: "7 Nights Cancun Luxury", price: "$1,299", per: "/person", resort: "5★ Beachfront Resort", includes: ["Round-trip flights", "All-inclusive premium", "Spa credits $200", "Private check-in"], badge: "Most Popular" },
-  { title: "10 Nights Cancun Escape", price: "$1,599", per: "/person", resort: "5★ Playa Mujeres", includes: ["Round-trip flights", "All-inclusive", "Day trip to Isla Mujeres", "Cenote tour included"], badge: "Extended Stay" },
+  { title: "7 Nights Cancun All-Inclusive", price: "Priced for your dates", per: "", resort: "4★ Hotel Zone Resort", includes: ["Round-trip flights", "All meals & drinks", "Pool & beach access", "Airport transfers"], badge: "Best Value" },
+  { title: "7 Nights Cancun Luxury", price: "Priced for your dates", per: "", resort: "5★ Beachfront Resort", includes: ["Round-trip flights", "All-inclusive premium", "Spa options", "Private check-in"], badge: "Most Popular" },
+  { title: "10 Nights Cancun Escape", price: "Priced for your dates", per: "", resort: "5★ Playa Mujeres", includes: ["Round-trip flights", "All-inclusive", "Day trip to Isla Mujeres", "Cenote tour option"], badge: "Extended Stay" },
 ];
 
 export default function CancunPage() {
   const schema = {
     "@context": "https://schema.org",
     "@type": "TouristTrip",
-    "name": "Cancun All-Inclusive Vacation Package 2025",
-    "description": "All-inclusive Cancun vacation packages planned by Lina AI — flights + hotel + meals from $799/person for US and Canada travelers.",
-    "url": "https://zenivatravel.com/packages/cancun",
+    "name": "Cancun All-Inclusive Vacation Package 2026",
+    "description": "All-inclusive Cancun vacation packages planned by Lina AI — flights + hotel + meals, priced for your dates, for Canada and US travelers.",
+    "url": "https://www.zenivatravel.com/packages/cancun",
     "touristType": ["Beach", "Leisure", "Honeymoon", "Family"],
     "itinerary": { "@type": "ItemList", "name": "7-Night Cancun Itinerary" },
     "provider": {
       "@type": "TravelAgency",
       "name": "Zeniva",
-      "url": "https://zenivatravel.com"
+      "url": "https://www.zenivatravel.com"
     }
   };
 
@@ -54,8 +54,8 @@ export default function CancunPage() {
         <section className="bg-gradient-to-br from-cyan-700 via-blue-700 to-blue-900 text-white py-20 px-6 text-center">
           <div className="max-w-3xl mx-auto">
             <div className="text-6xl mb-4">🌴</div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Cancun Vacation Packages 2025</h1>
-            <p className="text-xl text-blue-100 mb-2">All-Inclusive Deals · Flights + Hotel · From $799/person</p>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Cancun Vacation Packages 2026</h1>
+            <p className="text-xl text-blue-100 mb-2">All-Inclusive · Flights + Hotel + Transfers · Priced for your dates</p>
             <p className="text-blue-200 mb-8">Tell Lina your dates & budget — she'll find the best Cancun deal in 60 seconds.</p>
             <Link href="/chat?q=Cancun+all-inclusive+vacation" className="inline-flex items-center gap-2 bg-white text-blue-700 font-bold px-8 py-4 rounded-2xl hover:bg-blue-50 transition-colors text-lg shadow-lg">
               💬 Get My Cancun Deal Now
@@ -99,7 +99,7 @@ export default function CancunPage() {
             <div className="grid md:grid-cols-2 gap-6">
               {[
                 { icon: "🤖", title: "Lina AI Plans in 60 Seconds", desc: "Tell Lina your dates, budget, and group size — she instantly finds the best Cancun deals for you." },
-                { icon: "💰", title: "Best Price Guarantee", desc: "We compare hundreds of resorts and flight combinations to find you the lowest all-inclusive price." },
+                { icon: "💰", title: "Compared for You", desc: "Lina compares resorts and flight combinations for your dates and budget before you decide." },
                 { icon: "🏖️", title: "Expert Resort Selection", desc: "From budget-friendly to ultra-luxury — Lina knows every resort in Cancun's Hotel Zone and Riviera Maya." },
                 { icon: "🇺🇸", title: "Serving USA & Canada", desc: "Flights from any US or Canadian city. Zeniva is incorporated in the USA (Delaware)." },
                 { icon: "📱", title: "24/7 AI Concierge", desc: "Questions at 2am? Lina is always available. No hold music, no wait times." },

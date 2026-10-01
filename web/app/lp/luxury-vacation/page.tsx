@@ -6,15 +6,15 @@ import type { Metadata } from "next";
 import LeadForm from "./LeadForm.client";
 
 export const metadata: Metadata = {
-  title: "Luxury Vacations Planned by AI in Minutes | Zeniva",
+  title: "Luxury Vacations Planned by AI in Minutes",
   description:
     "Tell Lina AI where you want to go — she builds a custom luxury itinerary, finds the best rates and books everything. Free, 24/7, serving all 50 states.",
   robots: { index: false, follow: true },
-  alternates: { canonical: "https://zenivatravel.com/lp/luxury-vacation" },
+  alternates: { canonical: "https://www.zenivatravel.com/lp/luxury-vacation" },
   openGraph: {
     title: "Luxury Vacations Planned by AI in Minutes | Zeniva",
     description: "Custom itineraries, best rates, concierge included. Chat with Lina AI — free.",
-    url: "https://zenivatravel.com/lp/luxury-vacation",
+    url: "https://www.zenivatravel.com/lp/luxury-vacation",
     images: [{ url: "/branding/lina-hero.png" }],
   },
 };

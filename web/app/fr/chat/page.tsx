@@ -7,17 +7,17 @@ export const metadata: Metadata = {
   description:
     "Discutez avec Lina AI pour concevoir un voyage sur mesure, puis finalisez avec un concierge humain.",
   alternates: {
-    canonical: "https://zenivatravel.com/fr/chat",
+    canonical: "https://www.zenivatravel.com/fr/chat",
     languages: {
-      "en-CA": "https://zenivatravel.com/chat",
-      "fr-CA": "https://zenivatravel.com/fr/chat",
+      "en-CA": "https://www.zenivatravel.com/chat",
+      "fr-CA": "https://www.zenivatravel.com/fr/chat",
     },
   },
   openGraph: {
     title: "Zeniva | Chat agent de voyage IA",
     description:
       "Lina AI vous aide à définir vos dates, budget et préférences pour un voyage personnalisé.",
-    url: "https://zenivatravel.com/fr/chat",
+    url: "https://www.zenivatravel.com/fr/chat",
     siteName: "Zeniva",
     type: "website",
     images: [
@@ -53,7 +53,7 @@ export default function ChatPageFr() {
           <Link href="/chat" className="rounded-full bg-slate-900 px-6 py-3 text-white font-semibold">
             Démarrer le chat
           </Link>
-          <Link href="/ai-travel-concierge" className="rounded-full border border-slate-300 px-6 py-3 text-slate-900 font-semibold">
+          <Link href="/fr/ai-travel-concierge" className="rounded-full border border-slate-300 px-6 py-3 text-slate-900 font-semibold">
             En savoir plus
           </Link>
         </div>

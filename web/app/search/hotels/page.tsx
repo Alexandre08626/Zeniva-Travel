@@ -127,7 +127,7 @@ function HotelsSearchContent() {
     address: process.env.NEXT_PUBLIC_BUSINESS_ADDRESS || "",
     support_email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "info@zenivatravel.com",
     support_phone: process.env.NEXT_PUBLIC_SUPPORT_PHONE || "",
-    terms_url: process.env.NEXT_PUBLIC_TERMS_URL || "https://zenivatravel.com/terms",
+    terms_url: process.env.NEXT_PUBLIC_TERMS_URL || "https://www.zenivatravel.com/terms",
   }), []);
 
   const formatAmount = (value: any, currency?: string) => {

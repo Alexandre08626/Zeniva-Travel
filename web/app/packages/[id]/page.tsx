@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import PACKAGES from "@/src/data/packages";
 import { getImagesForDestination } from "@/src/lib/images";
 
@@ -7,19 +8,8 @@ export default async function PackageDetail({ params }: { params: Promise<{ id: 
   const { id } = await params;
   const pkg = PACKAGES.find((p) => p.slug === id);
 
-  if (!pkg) {
-    return (
-      <main className="min-h-screen p-10 bg-slate-50">
-        <div className="max-w-3xl mx-auto bg-white p-6 rounded-2xl shadow">
-          <h1 className="text-2xl font-bold mb-4">Package not found</h1>
-          <p className="text-slate-600">We couldn't find the package "{id}".</p>
-          <div className="mt-4">
-            <Link href="/packages" className="inline-block rounded-full px-4 py-2 bg-slate-100 text-slate-800">Back to packages</Link>
-          </div>
-        </div>
-      </main>
-    );
-  }
+  // Vrai 404 (et non une page 200 « Package not found ») : Google classait ces URL en soft 404.
+  if (!pkg) notFound();
 
   const images = getImagesForDestination(pkg.destination);
 

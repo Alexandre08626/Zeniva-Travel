@@ -5,44 +5,35 @@ import Header from "../../src/components/Header";
 import Footer from "../../src/components/Footer";
 
 export const metadata: Metadata = {
-  title: "About Zeniva — US AI Travel Agency | Delaware, New York, Virginia",
+  title: "About Zeniva Travel — Who We Are, What We Book, How It Works",
   description:
-    "Zeniva is an AI-powered travel agency incorporated in Delaware, USA, with offices in New York and Virginia. We serve travelers across all 50 US states and Canada. Meet Lina AI, your 24/7 travel concierge.",
+    "Zeniva Travel is an online travel agency founded by Quebec entrepreneur Alexandre Blais (legal entity: Zeniva LLC, Delaware). All-inclusive vacations, cruises, group trips and yacht charters for Canada and the US, in English and French.",
   alternates: {
-    canonical: "https://zenivatravel.com/about",
+    canonical: "https://www.zenivatravel.com/about",
     languages: {
-      "en-US": "https://zenivatravel.com/about",
-      "en-CA": "https://zenivatravel.com/about",
+      "en-US": "https://www.zenivatravel.com/about",
+      "en-CA": "https://www.zenivatravel.com/about",
     },
   },
   openGraph: {
-    title: "About Zeniva — US AI Travel Agency",
+    title: "About Zeniva Travel",
     description:
-      "AI-powered travel agency based in the USA (Delaware, NY, Virginia). Serving all 50 states & Canada with luxury trip planning, custom vacations, and 24/7 AI concierge.",
-    url: "https://zenivatravel.com/about",
+      "Online travel agency founded by Alexandre Blais. All-inclusive vacations, cruises, group trips and yacht charters for Canada and the US, with a 24/7 AI concierge, Lina.",
+    url: "https://www.zenivatravel.com/about",
     type: "website",
     locale: "en_US",
   },
 };
 
+// L'entite complete (TravelAgency, @id #organization) est declaree dans layout.tsx ;
+// ici on la reference seulement pour eviter deux entites concurrentes.
 const schemaOrg = {
   "@context": "https://schema.org",
-  "@type": ["TravelAgency", "Organization"],
-  "name": "Zeniva",
-  "legalName": "Zeniva LLC",
-  "url": "https://zenivatravel.com",
-  "logo": "https://zenivatravel.com/branding/logo.png",
-  "description": "AI-powered travel agency incorporated in Delaware, USA. Offices in New York and Virginia. Serving all 50 US states and Canada.",
-  "foundingDate": "2024",
-  "address": {
-    "@type": "PostalAddress",
-    "addressCountry": "US",
-    "addressRegion": "DE"
-  },
-  "areaServed": [
-    { "@type": "Country", "name": "United States" },
-    { "@type": "Country", "name": "Canada" }
-  ]
+  "@type": "AboutPage",
+  "url": "https://www.zenivatravel.com/about",
+  "name": "About Zeniva Travel",
+  "about": { "@id": "https://www.zenivatravel.com/#organization" },
+  "mainEntity": { "@id": "https://www.zenivatravel.com/#organization" }
 };
 
 export default function AboutPage() {
@@ -58,13 +49,13 @@ export default function AboutPage() {
         <section className="bg-gradient-to-br from-blue-900 to-blue-700 text-white py-20 px-6">
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-2 text-sm font-semibold mb-6">
-              🇺🇸 Incorporated in Delaware, USA
+              🇨🇦 🇺🇸 Canada &amp; United States · English &amp; French
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-              America's AI Travel Agency
+              About Zeniva Travel
             </h1>
             <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-              Zeniva is a US-based travel technology company. We combine artificial intelligence with human expertise to plan the perfect trip — for every traveler, every destination, every budget.
+              Zeniva Travel is an online travel agency founded by Quebec entrepreneur Alexandre Blais. We combine an AI concierge, Lina, with human follow-up to plan all-inclusive vacations, cruises, group trips and custom travel.
             </p>
           </div>
         </section>
@@ -75,7 +66,7 @@ export default function AboutPage() {
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Who We Are</h2>
               <p className="text-gray-600 leading-relaxed mb-4">
-                Zeniva LLC is a travel technology company incorporated in the state of Delaware, United States. We operate nationally across all 50 US states and serve customers throughout Canada.
+                Zeniva Travel is operated by Zeniva LLC, a company incorporated in the state of Delaware, United States. It was founded in 2024 by <Link href="/alexandre-blais" className="text-blue-700 underline">Alexandre Blais</Link>, an entrepreneur from Quebec City, and serves travelers in Canada and the United States.
               </p>
               <p className="text-gray-600 leading-relaxed mb-4">
                 Our flagship product, <strong>Lina AI</strong>, is a 24/7 AI travel concierge that helps travelers plan luxury vacations, custom trips, ZeniGroup, and ZeniYacht — in minutes, not hours.
@@ -86,39 +77,25 @@ export default function AboutPage() {
             </div>
 
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Our Locations</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">How to reach us</h2>
 
               <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-2xl">🏢</span>
-                  <div>
-                    <div className="font-bold text-gray-900">Main Office</div>
-                    <div className="text-sm text-blue-600 font-semibold">Williamsburg, Virginia</div>
-                  </div>
-                </div>
-                <p className="text-gray-600 text-sm">114 Arden Dr, Williamsburg, VA 23185<br />📞 (332) 290-0021</p>
+                <div className="font-bold text-gray-900 mb-1">Online agency — no storefront</div>
+                <p className="text-gray-600 text-sm">We work remotely and by appointment, by phone, video call, chat and email, in English and French.</p>
               </div>
 
               <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-2xl">🏛️</span>
-                  <div>
-                    <div className="font-bold text-gray-900">Registered Office</div>
-                    <div className="text-sm text-blue-600 font-semibold">Dover, Delaware</div>
-                  </div>
-                </div>
-                <p className="text-gray-600 text-sm">8 The Green STE A, Dover, DE 19901<br />Incorporated in the State of Delaware.</p>
+                <div className="font-bold text-gray-900 mb-1">Contact</div>
+                <p className="text-gray-600 text-sm">
+                  📧 <a href="mailto:info@zeniva.ca" className="text-blue-700 underline">info@zeniva.ca</a><br />
+                  📞 <a href="tel:+15817487017" className="text-blue-700 underline">+1 581-748-7017</a><br />
+                  💬 <Link href="/chat" className="text-blue-700 underline">Chat with Lina, 24/7</Link>
+                </p>
               </div>
 
               <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-2xl">🗽</span>
-                  <div>
-                    <div className="font-bold text-gray-900">New York Office</div>
-                    <div className="text-sm text-blue-600 font-semibold">New York, USA</div>
-                  </div>
-                </div>
-                <p className="text-gray-600 text-sm">Operations and partnerships hub in New York — the world's travel capital.</p>
+                <div className="font-bold text-gray-900 mb-1">Legal entity</div>
+                <p className="text-gray-600 text-sm">Zeniva LLC — registered office: 8 The Green STE A, Dover, DE 19901, USA (Delaware registered agent address).</p>
               </div>
             </div>
           </div>

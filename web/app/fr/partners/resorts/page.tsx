@@ -7,17 +7,17 @@ export const metadata: Metadata = {
   description:
     "Découvrez les resorts partenaires de Zeniva, sélectionnés par Lina AI pour des voyages sur mesure.",
   alternates: {
-    canonical: "https://zenivatravel.com/fr/partners/resorts",
+    canonical: "https://www.zenivatravel.com/fr/partners/resorts",
     languages: {
-      "en-CA": "https://zenivatravel.com/partners/resorts",
-      "fr-CA": "https://zenivatravel.com/fr/partners/resorts",
+      "en-CA": "https://www.zenivatravel.com/partners/resorts",
+      "fr-CA": "https://www.zenivatravel.com/fr/partners/resorts",
     },
   },
   openGraph: {
     title: "Zeniva | Partenaires resorts",
     description:
       "Resorts sélectionnés par Lina AI avec validation concierge.",
-    url: "https://zenivatravel.com/fr/partners/resorts",
+    url: "https://www.zenivatravel.com/fr/partners/resorts",
     siteName: "Zeniva",
     type: "website",
     images: [

@@ -9,8 +9,17 @@ const NOW = new Date();
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     // ─── HOMEPAGE ─────────────────────────────────────
-    { url: `${BASE_URL}/`, lastModified: NOW, changeFrequency: "daily", priority: 1.0 },
-    { url: `${BASE_URL}/fr`, lastModified: NOW, changeFrequency: "daily", priority: 0.95 },
+    { url: `${BASE_URL}/`, lastModified: NOW, changeFrequency: "daily", priority: 1.0,
+      alternates: { languages: { "en-CA": `${BASE_URL}/`, "fr-CA": `${BASE_URL}/fr` } } },
+    { url: `${BASE_URL}/fr`, lastModified: NOW, changeFrequency: "daily", priority: 1.0,
+      alternates: { languages: { "en-CA": `${BASE_URL}/`, "fr-CA": `${BASE_URL}/fr` } } },
+
+    // ─── PAGES FRANÇAISES À FORTE INTENTION (Québec) ──
+    { url: `${BASE_URL}/fr/forfaits-tout-inclus`, lastModified: NOW, changeFrequency: "weekly", priority: 0.95,
+      alternates: { languages: { "fr-CA": `${BASE_URL}/fr/forfaits-tout-inclus`, "en-CA": `${BASE_URL}/packages/all-inclusive` } } },
+    { url: `${BASE_URL}/fr/voyage-de-groupe`, lastModified: NOW, changeFrequency: "weekly", priority: 0.95 },
+    { url: `${BASE_URL}/fr/croisieres`, lastModified: NOW, changeFrequency: "weekly", priority: 0.95 },
+    { url: `${BASE_URL}/fr/yachts`, lastModified: NOW, changeFrequency: "monthly", priority: 0.7 },
 
     // ─── MAIN SERVICES ────────────────────────────────
     { url: `${BASE_URL}/chat`, lastModified: NOW, changeFrequency: "weekly", priority: 0.95 },
@@ -19,16 +28,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/fr/call`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
 
     // ─── AI CONCIERGE ─────────────────────────────────
-    { url: `${BASE_URL}/ai-travel-concierge`, lastModified: NOW, changeFrequency: "weekly", priority: 0.95 },
     { url: `${BASE_URL}/fr/ai-travel-concierge`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${BASE_URL}/ai-agents`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
 
     // ─── PACKAGES ─────────────────────────────────────
     { url: `${BASE_URL}/packages`, lastModified: NOW, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${BASE_URL}/packages/all-inclusive`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88 },
+    { url: `${BASE_URL}/packages/all-inclusive`, lastModified: NOW, changeFrequency: "weekly", priority: 0.88,
+      alternates: { languages: { "en-CA": `${BASE_URL}/packages/all-inclusive`, "fr-CA": `${BASE_URL}/fr/forfaits-tout-inclus` } } },
     { url: `${BASE_URL}/packages/cancun`, lastModified: NOW, changeFrequency: "weekly", priority: 0.87 },
-    { url: `${BASE_URL}/packages/caribbean`, lastModified: NOW, changeFrequency: "weekly", priority: 0.86 },
-    { url: `${BASE_URL}/packages/europe`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
 
     // ─── GUIDES (GEO content layer) ───────────────────
     { url: `${BASE_URL}/guides`, lastModified: NOW, changeFrequency: "weekly", priority: 0.85 },
@@ -70,7 +76,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     // ─── SEO LANDING PAGES ────────────────────────────
     { url: `${BASE_URL}/florida-villas`, lastModified: NOW, changeFrequency: "weekly", priority: 0.92 },
-    { url: `${BASE_URL}/ai-travel-agent`, lastModified: NOW, changeFrequency: "weekly", priority: 0.92 },
 
     // ─── DEALS ────────────────────────────────────────
     { url: `${BASE_URL}/deals`, lastModified: NOW, changeFrequency: "daily", priority: 0.85 },

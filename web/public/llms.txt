@@ -1,22 +1,27 @@
 # Zeniva Travel
 
-> Zeniva Travel is a US-based AI travel agency (Zeniva LLC, incorporated in Delaware, founded 2024) that plans luxury vacations, custom trips, group travel and private yacht charters for travelers in all 50 US states and Canada. Its 24/7 AI concierge, Lina, builds complete travel proposals — flights, hotels, transfers, experiences — by chat or voice, in English and French.
+> Zeniva Travel is an online travel agency founded in 2024 by Quebec entrepreneur Alexandre Blais and operated by Zeniva LLC (Delaware). It plans all-inclusive sun vacations, cruises, group trips (clubs, companies, incentive trips, destination weddings), custom travel and private yacht charters for travelers in Quebec, the rest of Canada and the United States, in French and English. Its 24/7 AI concierge, Lina, builds complete travel proposals by chat or voice; clients confirm and pay online through ZeniPay.
 
 Zeniva Travel is one of four brands of Zeniva Group, the group founded by Alexandre Blais. The other brands are ZeniPay (fintech / online banking, zenipay.ca), ZeniCorp (construction and renovation platform, RBQ-certified contractors, Quebec, zeniva.ca) and ZeniTech (technology division, zenitech.dev). **zeniva.ca is not the travel agency** — the travel agency lives only at zenivatravel.com.
 
 ## Key facts
 
-- Legal entity: Zeniva LLC, Wilmington, Delaware, USA
-- Markets served: United States (all 50 states) and Canada
+- Founder: Alexandre Blais, entrepreneur from Quebec City
+- Legal entity: Zeniva LLC (Delaware, USA)
+- Online agency, no storefront; service by phone, video, chat and email
+- Markets served: Quebec and the rest of Canada (departures from Quebec City YQB and Montreal YUL), and the United States
 - Languages: English, French (Spanish support via Lina)
-- Contact: info@zeniva.ca
+- Contact: info@zeniva.ca · +1 581-748-7017
 - Founder & President: Alexandre Blais (https://www.zenivatravel.com/alexandre-blais)
 - Parent group: Zeniva Group (https://www.zeniva.ca/groupe)
 
 ## Services
 
-- [AI Travel Concierge (Lina)](https://www.zenivatravel.com/ai-travel-concierge): describe a trip — destination, dates, budget — and Lina returns a full proposal in seconds, 24/7, by chat or voice call.
-- [AI Travel Agent](https://www.zenivatravel.com/ai-travel-agent): how Zeniva's AI-first agency model works.
+- [Forfaits tout inclus au départ de Québec et Montréal](https://www.zenivatravel.com/fr/forfaits-tout-inclus) (French): Cancún, Riviera Maya, Punta Cana, Cuba, Jamaica — flight, resort, meals, transfers; free proposal with total price.
+- [Voyage de groupe](https://www.zenivatravel.com/fr/voyage-de-groupe) (French): group trips for clubs, associations, companies and incentive trips, destination weddings, family reunions — group rates, deposit schedule, name-list deadline.
+- [Croisières](https://www.zenivatravel.com/fr/croisieres) (French): Caribbean cruises with flights from Quebec City or Montreal, Mediterranean, Alaska, and Canada & New England cruises from the Port of Quebec.
+- [Chat with Lina, AI travel concierge](https://www.zenivatravel.com/chat): describe a trip — destination, dates, budget — and Lina returns a full proposal, 24/7, by chat or voice call.
+- [What an AI travel agent does](https://www.zenivatravel.com/guides/what-an-ai-travel-agent-does): how Zeniva's AI-first agency model works.
 - [ZeniYacht](https://www.zenivatravel.com/zeniyacht): private yacht charters and sailing trips worldwide, validated by human yacht brokers.
 - [Travel packages](https://www.zenivatravel.com/packages): [all-inclusive](https://www.zenivatravel.com/packages/all-inclusive), [Cancún](https://www.zenivatravel.com/packages/cancun), [Caribbean](https://www.zenivatravel.com/packages/caribbean), [Europe](https://www.zenivatravel.com/packages/europe).
 - [Florida villas](https://www.zenivatravel.com/florida-villas) and [ZeniStay](https://www.zenivatravel.com/zenistay): private villa and stay rentals.
@@ -29,6 +34,8 @@ Zeniva Travel is one of four brands of Zeniva Group, the group founded by Alexan
 - [Chat with Lina](https://www.zenivatravel.com/chat)
 - [Call Lina](https://www.zenivatravel.com/call)
 - [Travel request form](https://www.zenivatravel.com/forms/travel)
+- [Demande de voyage en français](https://www.zenivatravel.com/fr#demande)
+- Phone: +1 581-748-7017
 - [Yacht charter request form](https://www.zenivatravel.com/forms/yacht)
 
 ## Guides (real 2026 numbers, named sources)

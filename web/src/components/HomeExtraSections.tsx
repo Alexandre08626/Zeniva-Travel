@@ -16,7 +16,7 @@ const u = (id: string, w = 900) => `https://images.unsplash.com/photo-${id}?auto
 export const HOME_FAQ: { q: string; a: string }[] = [
   {
     q: "What is Zeniva?",
-    a: "Zeniva is a US-based AI travel agency incorporated in Delaware. We use Lina AI, our 24/7 artificial intelligence concierge, to plan luxury vacations, custom trips, group travel, and yacht charters for clients across all 50 US states and Canada.",
+    a: "Zeniva Travel is an online travel agency founded by Quebec entrepreneur Alexandre Blais (legal entity: Zeniva LLC). We plan all-inclusive vacations, cruises, group trips, custom travel and yacht charters for travelers in Canada and the United States. Lina, our 24/7 AI concierge, builds the proposal; you confirm it and pay securely through ZeniPay.",
   },
   {
     q: "How does Lina AI work?",
@@ -29,6 +29,10 @@ export const HOME_FAQ: { q: string; a: string }[] = [
   {
     q: "What destinations does Zeniva serve?",
     a: "Zeniva serves 200+ destinations worldwide including Cancún, Maldives, Bali, Dubai, Paris, Miami, Tokyo, Santorini, Caribbean, and more. We specialize in luxury vacations and all-inclusive packages for US and Canadian travelers.",
+  },
+  {
+    q: "Do you organize group trips?",
+    a: "Yes. Clubs, associations, companies (incentive and year-end trips), weddings and family reunions can send one request for the whole group: destination, dates, number of travelers and budget. We come back with group options and the supplier's deposit and payment schedule. Details: zenivatravel.com/fr/voyage-de-groupe (French).",
   },
   {
     q: "Is Zeniva available in French?",

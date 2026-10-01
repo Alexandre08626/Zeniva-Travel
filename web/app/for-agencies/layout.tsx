@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "AI Lina for Travel Agencies — supports your clients 24/7 | Zeniva",
+  title: "AI Lina for Travel Agencies — supports your clients 24/7",
   description:
     "Transform your travel agency with AI. Lina AI concierge assists your clients on your agents' sites. Installation from CAD $1,500. CAD $599/month includes one advisor; CAD $49/month per additional advisor. Before taxes.",
   openGraph: {

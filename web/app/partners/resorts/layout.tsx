@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Luxury Resort Partners — All-Inclusive Hotels & 5-Star Resorts | Zeniva USA",
+  title: "Luxury Resort Partners — All-Inclusive Hotels & 5-Star Resorts",
   description:
     "Discover Zeniva's curated collection of 5-star resorts and all-inclusive hotels worldwide. Exclusive rates on luxury properties in Cancún, Maldives, Bali, Dubai, Caribbean & more. Book with Lina AI.",
   keywords: [

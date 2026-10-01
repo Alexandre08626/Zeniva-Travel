@@ -14,17 +14,23 @@ import HomeExtraSections, { HOME_FAQ } from "../src/components/HomeExtraSections
 import { GUIDES } from "./guides/guides-data";
 
 export const metadata: Metadata = {
-  title: "#1 AI Travel Concierge USA — Luxury Trips & Custom Vacations",
-  description: "Zeniva — America's AI travel agency. Plan luxury vacations, custom trips & group travel with Lina AI, available 24/7. Incorporated in Delaware. Start planning in seconds.",
+  // Titre complet (absolute) : le gabarit « %s | Zeniva » doublait la marque.
+  title: { absolute: "Zeniva Travel — Travel Agency for Canada & the US | All-Inclusive, Cruises, Groups" },
+  description: "Plan an all-inclusive vacation, a cruise, a group trip or a custom getaway with Zeniva Travel. Lina, our 24/7 AI concierge, builds your full proposal in English or French; secure payment by ZeniPay.",
   alternates: {
-    canonical: "https://zenivatravel.com",
-    languages: { "en-US": "https://zenivatravel.com", "fr-CA": "https://zenivatravel.com/fr" },
+    canonical: "https://www.zenivatravel.com/",
+    languages: {
+      "en-CA": "https://www.zenivatravel.com/",
+      "en-US": "https://www.zenivatravel.com/",
+      "fr-CA": "https://www.zenivatravel.com/fr",
+      "x-default": "https://www.zenivatravel.com/",
+    },
   },
   openGraph: {
-    title: "AI Travel Concierge USA",
-    description: "America's AI travel agency. Luxury vacations, custom trips, yacht charters — planned by Lina AI in seconds.",
-    url: "https://zenivatravel.com",
-    siteName: "Zeniva",
+    title: "Zeniva Travel — All-Inclusive, Cruises & Group Trips",
+    description: "All-inclusive vacations, cruises, group trips and custom travel for Canada and the US — planned with Lina, our 24/7 AI concierge.",
+    url: "https://www.zenivatravel.com/",
+    siteName: "Zeniva Travel",
     type: "website",
     images: [{ url: "/branding/lina-avatar.png", width: 1200, height: 630 }],
   },
@@ -51,7 +57,7 @@ const SERVICES = [
 const STATS = [
   { value: "200+", label: "Destinations" },
   { value: "24/7", label: "AI Concierge" },
-  { value: "4.9★", label: "Client Rating" },
+  { value: "FR/EN", label: "Bilingual" },
   { value: "$0", label: "Booking Fees" },
 ];
 
@@ -68,7 +74,7 @@ export default function HomePage() {
       "@type": "WebPage",
       "@id": "https://www.zenivatravel.com/#webpage",
       url: "https://www.zenivatravel.com",
-      name: "Zeniva Travel — AI Travel Concierge USA",
+      name: "Zeniva Travel — Travel Agency for Canada & the US",
       isPartOf: { "@id": "https://www.zenivatravel.com/#website" },
       about: { "@id": "https://www.zenivatravel.com/#organization" },
     },
@@ -171,7 +177,7 @@ export default function HomePage() {
             </div>
 
             {/* Social proof */}
-            <p className="mt-4 text-center text-[11px] text-slate-500 font-semibold">✅ 500+ trips planned this month · Trusted by travelers worldwide</p>
+            <p className="mt-4 text-center text-[11px] text-slate-500 font-semibold">✅ English &amp; French · Secure payment by ZeniPay · <a href="/fr" className="underline">Version française</a></p>
 
             {/* Quick tags — Zeni brands */}
             <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -642,9 +648,9 @@ export default function HomePage() {
             <div className="grid grid-cols-4 gap-6">
               {[
                 { icon: "🏛️", title: "Delaware Incorporated", desc: "Officially registered US company", badge: "Verified" },
-                { icon: "🔒", title: "100% Secure", desc: "SSL encrypted, PCI compliant", badge: "Secure" },
+                { icon: "🔒", title: "Secure Payment", desc: "Encrypted checkout, payment handled by ZeniPay", badge: "Secure" },
                 { icon: "💰", title: "No Hidden Fees", desc: "What Lina quotes is what you pay", badge: "Transparent" },
-                { icon: "⭐", title: "4.9/5 Rating", desc: "From verified traveler reviews", badge: "Top Rated" },
+                { icon: "🇨🇦", title: "English & French", desc: "Lina and our advisors answer in both languages", badge: "Bilingual" },
               ].map((t) => (
                 <div key={t.title} className="bg-white rounded-3xl p-6 border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-200">
                   <div className="text-3xl mb-4">{t.icon}</div>

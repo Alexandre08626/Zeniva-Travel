@@ -5,23 +5,23 @@ import Header from "../../src/components/Header";
 import Footer from "../../src/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Travel Packages 2025 — Luxury Vacations, All-Inclusive Deals | Zeniva USA",
+  title: "Travel Packages 2026 — Luxury Vacations, All-Inclusive Deals",
   description:
-    "Discover the best travel packages for 2025. Luxury vacations, all-inclusive deals, Caribbean getaways, Europe tours, and more — planned by Lina AI in seconds. Serving USA & Canada.",
+    "Discover the best travel packages for 2026. Luxury vacations, all-inclusive deals, Caribbean getaways, Europe tours, and more — planned by Lina AI in seconds. Serving USA & Canada.",
   alternates: {
-    canonical: "https://zenivatravel.com/packages",
-    languages: { "en-US": "https://zenivatravel.com/packages" },
+    canonical: "https://www.zenivatravel.com/packages",
+    languages: { "en-US": "https://www.zenivatravel.com/packages" },
   },
   keywords: [
-    "travel packages 2025", "vacation packages USA", "all-inclusive vacation deals",
+    "travel packages 2026", "vacation packages USA", "all-inclusive vacation deals",
     "luxury vacation packages", "Caribbean vacation packages", "Cancun vacation packages",
     "Europe vacation packages", "cheap vacation packages", "best travel deals",
     "group vacation packages", "honeymoon packages", "beach vacation packages"
   ],
   openGraph: {
-    title: "Best Travel Packages 2025 | Zeniva — AI Concierge USA",
-    description: "Luxury vacations, all-inclusive deals, Caribbean & Europe packages. Planned by Lina AI — America's #1 AI travel concierge.",
-    url: "https://zenivatravel.com/packages",
+    title: "Best Travel Packages 2026 | Zeniva — AI Concierge USA",
+    description: "Luxury vacations, all-inclusive deals, Caribbean & Europe packages. Planned by Lina AI — Zeniva Travel's 24/7 AI concierge.",
+    url: "https://www.zenivatravel.com/packages",
     type: "website",
     locale: "en_US",
   },
@@ -38,7 +38,7 @@ const packages = [
     img: "🏖️",
   },
   {
-    href: "/packages/caribbean",
+    href: "/chat?prompt=Plan+an+all-inclusive+Caribbean+vacation",
     emoji: "🏝️",
     title: "Caribbean Getaways",
     subtitle: "5 nights from $1,199/person",
@@ -47,7 +47,7 @@ const packages = [
     img: "🌊",
   },
   {
-    href: "/packages/europe",
+    href: "/chat?prompt=Plan+a+trip+to+Europe",
     emoji: "🗼",
     title: "Europe Vacation Packages",
     subtitle: "8 nights from $1,899/person",
@@ -88,16 +88,16 @@ export default function PackagesPage() {
   const schema = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    "name": "Zeniva — Best Travel Packages 2025",
+    "name": "Zeniva — Best Travel Packages 2026",
     "description": "Luxury vacation packages, all-inclusive deals, and custom trips planned by Lina AI for travelers in USA and Canada",
-    "url": "https://zenivatravel.com/packages",
+    "url": "https://www.zenivatravel.com/packages",
     "numberOfItems": packages.length,
     "itemListElement": packages.map((p, i) => ({
       "@type": "ListItem",
       "position": i + 1,
       "name": p.title,
       "description": p.desc,
-      "url": `https://zenivatravel.com${p.href}`,
+      "url": `https://www.zenivatravel.com${p.href}`,
     }))
   };
 
@@ -112,7 +112,7 @@ export default function PackagesPage() {
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-2 text-sm font-semibold mb-6">
               ✨ Powered by Lina AI — Your 24/7 Travel Concierge
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Best Travel Packages 2025</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Best Travel Packages 2026</h1>
             <p className="text-xl text-blue-100 mb-8">Tell Lina where you want to go — she'll build the perfect trip proposal in under 60 seconds. All-inclusive deals, luxury vacations, ZeniGroup & more.</p>
             <Link href="/chat" className="inline-flex items-center gap-2 bg-white text-blue-700 font-bold px-8 py-4 rounded-2xl hover:bg-blue-50 transition-colors text-lg shadow-lg">
               💬 Ask Lina for a Custom Package

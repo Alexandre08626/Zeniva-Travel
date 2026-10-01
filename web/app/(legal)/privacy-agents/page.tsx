@@ -12,7 +12,7 @@ import {
 } from "../../../src/components/legal/legal-constants";
 
 export const metadata = createLegalMetadata({
-  title: "Privacy Policy – Agents | Zeniva",
+  title: "Privacy Policy – Agents",
   description:
     "Privacy policy for Zeniva Agent Mode, covering AI-powered travel agency data protection and US/Canada compliance.",
   path: "/privacy-agents",

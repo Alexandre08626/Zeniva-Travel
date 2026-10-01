@@ -7,7 +7,7 @@ import { GUIDES } from "./guides-data";
 const BASE_URL = "https://www.zenivatravel.com";
 
 export const metadata: Metadata = {
-  title: "Travel Guides — Real Prices, Straight Answers | Zeniva Travel",
+  title: "Travel Guides — Real Prices, Straight Answers",
   description:
     "Zeniva Travel's guides answer the questions travelers ask before they book: what a yacht charter really costs, how an AI travel agent works, what is included and what is not. Real 2026 numbers, named sources.",
   alternates: { canonical: `${BASE_URL}/guides` },

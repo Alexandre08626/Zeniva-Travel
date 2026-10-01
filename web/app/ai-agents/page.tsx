@@ -6,10 +6,10 @@ export const metadata: Metadata = {
   title: "Zeniva Agents",
   description: "Explore our AI agents on a clean white background.",
   alternates: {
-    canonical: "https://zenivatravel.com/ai-agents",
+    canonical: "https://www.zenivatravel.com/ai-agents",
     languages: {
-      "en-CA": "https://zenivatravel.com/ai-agents",
-      "fr-CA": "https://zenivatravel.com/fr/ai-agents",
+      "en-CA": "https://www.zenivatravel.com/ai-agents",
+      "fr-CA": "https://www.zenivatravel.com/fr/ai-agents",
     },
   },
 };

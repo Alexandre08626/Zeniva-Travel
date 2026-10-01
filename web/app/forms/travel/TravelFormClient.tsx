@@ -18,11 +18,7 @@ const DESTINATIONS = [
   { emoji: "🌅", label: "Santorini" },
 ];
 
-const REVIEWS = [
-  { name: "Sarah M.", city: "New York, NY", avatar: "S", color: "#0F6CF5", text: "Lina planned our Maldives trip in 48 hours. Stunning resort, perfect price. 10/10!" },
-  { name: "James T.", city: "Richmond, VA", avatar: "J", color: "#7c3aed", text: "The Miami villa was beyond our expectations. Zero fees, no surprises. Highly recommend." },
-  { name: "Emily R.", city: "Brooklyn, NY", avatar: "E", color: "#0891b2", text: "Got 15% off AND zero booking fees. Zeniva saved us over $800 on our Cancun trip." },
-];
+// Aucun temoignage invente ici : afficher seulement de vrais avis (Google) quand il y en aura.
 
 export default function TravelFormClient() {
   const searchParams = useSearchParams();
@@ -36,22 +32,6 @@ export default function TravelFormClient() {
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [error, setError] = useState("");
   const [focusedField, setFocusedField] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState({ h: 4, m: 23, s: 47 });
-
-  // Countdown timer for urgency
-  useEffect(() => {
-    const iv = setInterval(() => {
-      setCountdown(prev => {
-        let { h, m, s } = prev;
-        s--;
-        if (s < 0) { s = 59; m--; }
-        if (m < 0) { m = 59; h--; }
-        if (h < 0) { h = 0; m = 0; s = 0; }
-        return { h, m, s };
-      });
-    }, 1000);
-    return () => clearInterval(iv);
-  }, []);
 
   const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -102,7 +82,7 @@ export default function TravelFormClient() {
           <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.6, marginBottom: 28 }}>
             Lina is already preparing your <strong style={{ color: "white" }}>{destination}</strong> proposal.
           </p>
-          <a href="https://zenivatravel.com" style={{ display: "inline-block", background: `linear-gradient(135deg, ${BLUE}, #0851c4)`, color: "white", borderRadius: 50, padding: "14px 32px", fontWeight: 700, fontSize: 15, textDecoration: "none" }}>
+          <a href="https://www.zenivatravel.com/" style={{ display: "inline-block", background: `linear-gradient(135deg, ${BLUE}, #0851c4)`, color: "white", borderRadius: 50, padding: "14px 32px", fontWeight: 700, fontSize: 15, textDecoration: "none" }}>
             🌍 Explore destinations →
           </a>
         </div>
@@ -123,17 +103,6 @@ export default function TravelFormClient() {
 
       <div style={{ maxWidth: 420, margin: "0 auto" }}>
 
-        {/* ── URGENCY BAR ── */}
-        <div style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: 12, padding: "10px 16px", marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#ef4444", boxShadow: "0 0 8px #ef4444" }} />
-            <span style={{ color: "rgba(255,255,255,0.7)", fontSize: 13 }}>Offer expires in</span>
-          </div>
-          <span style={{ color: "#ef4444", fontWeight: 900, fontSize: 15, fontVariantNumeric: "tabular-nums" }}>
-            {pad(countdown.h)}:{pad(countdown.m)}:{pad(countdown.s)}
-          </span>
-        </div>
-
         {/* ── GOLD BANNER ── */}
         <div style={{ background: `linear-gradient(135deg, ${GOLD} 0%, #C9941F 100%)`, borderRadius: 18, padding: "16px 20px", marginBottom: 24, display: "flex", alignItems: "center", gap: 14, animation: "pulse 2s ease-in-out infinite" }}>
           <span style={{ fontSize: 36 }}>🎁</span>
@@ -142,7 +111,7 @@ export default function TravelFormClient() {
             <div style={{ color: "#0B1B4D", fontSize: 13, opacity: 0.75, marginTop: 2 }}>Answer 2 quick questions to claim it — free, no card</div>
           </div>
           <div style={{ marginLeft: "auto", background: "#0B1B4D", borderRadius: 10, padding: "5px 10px", flexShrink: 0, textAlign: "center" }}>
-            <div style={{ color: GOLD, fontSize: 10, fontWeight: 900 }}>LIMITED</div>
+            <div style={{ color: GOLD, fontSize: 10, fontWeight: 900 }}>WELCOME</div>
             <div style={{ color: "white", fontSize: 9, opacity: 0.6 }}>OFFER</div>
           </div>
         </div>
@@ -253,34 +222,10 @@ export default function TravelFormClient() {
           </div>
         )}
 
-        {/* ── SOCIAL PROOF (always visible) ── */}
-        <div style={{ marginTop: 36 }}>
-          <div style={{ textAlign: "center", color: "rgba(255,255,255,0.3)", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 16 }}>
-            ⭐⭐⭐⭐⭐ Trusted by travelers across the US
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {REVIEWS.map((r, i) => (
-              <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "14px 16px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 7 }}>
-                  <div style={{ width: 34, height: 34, borderRadius: "50%", background: r.color, display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 800, fontSize: 14, flexShrink: 0 }}>
-                    {r.avatar}
-                  </div>
-                  <div>
-                    <div style={{ color: "white", fontWeight: 700, fontSize: 13 }}>{r.name}</div>
-                    <div style={{ color: "#475569", fontSize: 11 }}>📍 {r.city}</div>
-                  </div>
-                  <div style={{ marginLeft: "auto", color: GOLD, fontSize: 12 }}>★★★★★</div>
-                </div>
-                <p style={{ color: "#94a3b8", fontSize: 13, lineHeight: 1.5, margin: 0, fontStyle: "italic" }}>"{r.text}"</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* ── FOOTER TRUST ── */}
         <div style={{ marginTop: 28, textAlign: "center" }}>
           <div style={{ display: "flex", justifyContent: "center", gap: 18, flexWrap: "wrap", marginBottom: 12 }}>
-            {[{ icon: "🏢", text: "Delaware Inc." }, { icon: "🤝", text: "No hidden fees" }, { icon: "📞", text: "24/7 AI support" }, { icon: "✈️", text: "400+ destinations" }].map(b => (
+            {[{ icon: "💳", text: "Secure payment by ZeniPay" }, { icon: "🤝", text: "No hidden fees" }, { icon: "📞", text: "24/7 AI support" }, { icon: "🇨🇦", text: "English & French" }].map(b => (
               <div key={b.text} style={{ display: "flex", alignItems: "center", gap: 5 }}>
                 <span style={{ fontSize: 14 }}>{b.icon}</span>
                 <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>{b.text}</span>
@@ -288,7 +233,7 @@ export default function TravelFormClient() {
             ))}
           </div>
           <p style={{ color: "rgba(255,255,255,0.1)", fontSize: 10, lineHeight: 1.6 }}>
-            Zeniva Inc. · Incorporated in Delaware, USA · Your info is protected under US privacy law
+            Zeniva Travel · Zeniva LLC · <a href="/privacy-policy" style={{ color: "inherit" }}>Privacy policy</a>
           </p>
         </div>
 

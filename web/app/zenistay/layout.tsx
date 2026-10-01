@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "ZeniStay — Luxury Villas & Vacation Rentals | Zeniva",
+  title: "ZeniStay — Luxury Villas & Vacation Rentals",
   description:
     "Book luxury ZeniStay villas, private homes, and premium vacation rentals worldwide through Zeniva. Curated properties in top destinations — planned by Zeniva AI.",
   keywords: [

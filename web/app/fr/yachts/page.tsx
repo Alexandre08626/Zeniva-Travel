@@ -8,17 +8,17 @@ export const metadata: Metadata = {
   description:
     "Zeniva propose une conciergerie yacht avec intelligence artificielle. Charters sur mesure, itinéraires intelligents et validation humaine.",
   alternates: {
-    canonical: "https://zenivatravel.com/fr/yachts",
+    canonical: "https://www.zenivatravel.com/fr/yachts",
     languages: {
-      "en-CA": "https://zenivatravel.com/yachts",
-      "fr-CA": "https://zenivatravel.com/fr/yachts",
+      "en-CA": "https://www.zenivatravel.com/yachts",
+      "fr-CA": "https://www.zenivatravel.com/fr/yachts",
     },
   },
   openGraph: {
     title: "Zeniva | Conciergerie yacht",
     description:
       "Charters de yachts avec intelligence artificielle : conception intelligente et finalisation par un concierge.",
-    url: "https://zenivatravel.com/fr/yachts",
+    url: "https://www.zenivatravel.com/fr/yachts",
     siteName: "Zeniva",
     type: "website",
     images: [

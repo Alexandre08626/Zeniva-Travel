@@ -120,6 +120,11 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // Anciennes URL (dans le sitemap, llms.txt et JSON-LD) qui renvoyaient un 404.
+      { source: "/ai-travel-concierge", destination: "/chat", permanent: true },
+      { source: "/ai-travel-agent", destination: "/guides/what-an-ai-travel-agent-does", permanent: true },
+      { source: "/packages/caribbean", destination: "/packages/all-inclusive", permanent: true },
+      { source: "/packages/europe", destination: "/packages", permanent: true },
       {
         source: "/airbnbs",
         destination: "/zenistay",

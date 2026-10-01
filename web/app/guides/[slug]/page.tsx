@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const url = `${BASE_URL}/guides/${guide.slug}`;
   const hasFr = Boolean(findGuideFr(guide.slug));
   return {
-    title: `${guide.title} | Zeniva Travel`,
+    title: `${guide.title}`,
     description: guide.description,
     keywords: guide.tags,
     alternates: {

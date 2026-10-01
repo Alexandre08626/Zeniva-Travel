@@ -3,12 +3,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Luxury Florida Villa Rentals — AI Travel Concierge | Zeniva",
+  title: "Luxury Florida Villa Rentals — AI Travel Concierge",
   description: "Rent luxury villas in Miami Beach, Naples, Fort Lauderdale & Orlando. Lina AI finds the perfect Florida villa with pool, private beach & concierge. Book in seconds.",
+  alternates: { canonical: "https://www.zenivatravel.com/florida-villas" },
   openGraph: {
     title: "Luxury Florida Villa Rentals — AI Planned by Lina",
     description: "Find & book the perfect Florida luxury villa. Pool, beachfront, private chef. Lina AI handles everything — 24/7 concierge included.",
-    url: "https://zenivatravel.com/florida-villas",
+    url: "https://www.zenivatravel.com/florida-villas",
     images: [{ url: "/branding/lina-hero.png" }],
   },
 };
@@ -60,7 +61,7 @@ export default function FloridaVillasPage() {
       {/* Trust bar */}
       <section style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0", padding: "18px 24px" }}>
         <div style={{ maxWidth: 900, margin: "0 auto", display: "flex", gap: 32, justifyContent: "center", flexWrap: "wrap", fontSize: 14, color: "#475569", fontWeight: 600 }}>
-          {["⭐ 4.9/5 Average Rating", "🏠 1,000+ Florida Villas", "🤖 AI Concierge 24/7", "🇺🇸 Incorporated in Delaware", "💳 Secure Payment"].map(t => (
+          {["🤖 AI Concierge 24/7", "🇨🇦🇺🇸 English & French", "💳 Secure Payment"].map(t => (
             <span key={t}>{t}</span>
           ))}
         </div>

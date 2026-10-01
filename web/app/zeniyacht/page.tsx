@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import YachtsPageClient from "../yachts/YachtsPageClient";
 
 export const metadata: Metadata = {
-  title: "ZeniYacht — Private Yacht Charters & Sailing Trips | Zeniva",
+  title: "ZeniYacht — Private Yacht Charters & Sailing Trips",
   description:
     "Book private yacht charters with ZeniYacht by Zeniva. Luxury sailing trips, mega-yacht rentals and ocean cruises worldwide — curated by Zeniva AI and validated by expert brokers. Serving all 50 states & Caribbean.",
   keywords: [

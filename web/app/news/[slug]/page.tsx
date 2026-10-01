@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!item) return { title: "Not found | Zeniva" };
   const url = `${BASE_URL}/news/${item.slug}`;
   return {
-    title: `${item.title} | Zeniva Travel`,
+    title: `${item.title}`,
     description: item.summary,
     alternates: { canonical: url },
     openGraph: { title: item.title, description: item.summary, url, siteName: "Zeniva Travel", type: "article", publishedTime: item.datePublished },

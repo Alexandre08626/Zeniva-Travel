@@ -7,7 +7,7 @@ import { GUIDES_FR } from "./guides-data.fr";
 const BASE_URL = "https://www.zenivatravel.com";
 
 export const metadata: Metadata = {
-  title: "Guides voyage — prix réels, réponses directes | Zeniva Travel",
+  title: "Guides voyage — prix réels, réponses directes",
   description:
     "Les guides de Zeniva Travel répondent aux questions qu'on se pose avant de réserver : ce que coûte vraiment un charter de yacht, une semaine tout-inclus à Cancún en famille, comment fonctionne un agent de voyage IA. Chiffres 2026 réels, sources nommées.",
   alternates: { canonical: `${BASE_URL}/fr/guides`, languages: { "fr-CA": `${BASE_URL}/fr/guides`, "en-US": `${BASE_URL}/guides` } },

@@ -12,7 +12,7 @@ import {
 } from "../../../src/components/legal/legal-constants";
 
 export const metadata = createLegalMetadata({
-  title: "Privacy Policy – Partners | Zeniva",
+  title: "Privacy Policy – Partners",
   description:
     "Privacy policy for Zeniva Partner Mode, covering supplier data protection and US/Canada compliance.",
   path: "/privacy-partners",

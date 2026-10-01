@@ -210,7 +210,7 @@ export const GUIDES: GuideData[] = [
       },
     ],
     sources: [
-      { name: "Zeniva Travel — AI travel concierge (Lina)", url: "https://www.zenivatravel.com/ai-travel-concierge" },
+      { name: "Zeniva Travel — AI travel concierge (Lina)", url: "https://www.zenivatravel.com/chat" },
       { name: "Zeniva Travel — Independent agent program", url: "https://www.zenivatravel.com/agents" },
     ],
     cta: { label: "Plan a trip with Lina", href: "/chat" },

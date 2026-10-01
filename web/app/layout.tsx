@@ -23,17 +23,14 @@ export const metadata: Metadata = {
   // robots host et JSON-LD doivent pointer la meme forme.
   metadataBase: new URL("https://www.zenivatravel.com"),
   title: {
-    default: "Zeniva | AI Travel Concierge USA — Luxury Trips & Custom Vacations",
-    template: "%s | Zeniva",
+    default: "Zeniva Travel — Travel Agency for Canada & the US | All-Inclusive, Cruises, Group Trips",
+    template: "%s | Zeniva Travel",
   },
   description:
-    "Zeniva is a US-based AI travel company (Delaware, New York, Virginia). Plan luxury trips, custom vacations, and group travel with Lina AI — your 24/7 AI travel concierge serving all 50 states and Canada.",
+    "Zeniva Travel plans all-inclusive vacations, cruises, group trips and custom travel for travelers in Canada and the US, in English and French. Ask Lina, our 24/7 AI travel concierge, for a full proposal.",
   keywords: [
     "Zeniva",
     "travel agency USA",
-    "travel agency New York",
-    "travel agency Delaware",
-    "travel agency Virginia",
     "luxury travel agency USA",
     "AI travel concierge",
     "AI travel planner USA",
@@ -43,7 +40,10 @@ export const metadata: Metadata = {
     "group travel USA",
     "yacht charter USA",
     "travel agency Canada",
-    "best travel agency USA",
+    "agence de voyage Québec",
+    "voyage de groupe",
+    "forfait tout inclus",
+    "croisière",
     "online travel agency",
     "plan a trip online",
     "Lina AI",
@@ -52,14 +52,10 @@ export const metadata: Metadata = {
     "vacation planning service",
     "international travel agency",
   ],
-  alternates: {
-    canonical: "https://www.zenivatravel.com",
-    languages: {
-      "en-US": "https://www.zenivatravel.com",
-      "en-CA": "https://www.zenivatravel.com",
-      "fr-CA": "https://www.zenivatravel.com/fr",
-    },
-  },
+  // Pas de canonical ici : un canonical dans le layout racine est herite par TOUTES les
+  // pages qui n'en declarent pas — /forms/travel, /florida-villas, /search/flights, etc.
+  // se declaraient alors doublons de l'accueil et sortaient de l'index Google.
+  // Chaque page declare sa propre canonique (alternates) ; l'accueil le fait dans app/page.tsx.
   robots: {
     index: true,
     follow: true,
@@ -74,9 +70,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "https://www.zenivatravel.com",
-    title: "Zeniva | AI Travel Concierge USA — Luxury Trips & Custom Vacations",
+    title: "Zeniva Travel — All-Inclusive, Cruises & Group Trips",
     description:
-      "US-based AI travel company. Lina AI plans your dream trip — luxury vacations, group travel, yacht charters. Serving all 50 states & Canada. Delaware incorporated, offices in New York & Virginia.",
+      "All-inclusive vacations, cruises, group trips and custom travel for Canada and the US. Lina, our 24/7 AI concierge, builds your full proposal; payment is secured by ZeniPay.",
     siteName: "Zeniva",
     locale: "en_US",
     images: [
@@ -90,9 +86,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zeniva | AI Travel Concierge USA",
+    title: "Zeniva Travel — All-Inclusive, Cruises & Group Trips",
     description:
-      "Plan luxury trips with Lina AI. US-based travel agency (Delaware, NY, Virginia) serving all 50 states & Canada.",
+      "Travel agency for Canada and the US, in English and French. Lina, our 24/7 AI concierge, builds your full trip proposal.",
     images: ["/api/og?title=Zeniva+%E2%80%94+AI+Travel+Concierge&description=Plan+luxury+trips+with+Lina+AI.+Serving+USA+%26+Canada+24/7."],
   },
   manifest: "/manifest.json",
@@ -125,6 +121,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Langue du document : le layout racine est partage, les pages /fr sont en francais.
+            Corrige lang avant le rendu pour les lecteurs d'ecran et les moteurs qui executent le JS. */}
+        <script dangerouslySetInnerHTML={{ __html: `if(location.pathname==='/fr'||location.pathname.indexOf('/fr/')===0){document.documentElement.lang='fr-CA'}` }} />
         {/* PWA Meta Tags */}
         <meta name="application-name" content="Zeniva" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -211,9 +210,9 @@ export default function RootLayout({
                   },
                   {
                     "@type": "Brand",
-                    "@id": "https://www.zenivatravel.com/ai-travel-concierge#brand",
+                    "@id": "https://www.zenivatravel.com/chat#brand",
                     "name": "Lina AI",
-                    "url": "https://www.zenivatravel.com/ai-travel-concierge",
+                    "url": "https://www.zenivatravel.com/chat",
                     "description": "Zeniva Travel's 24/7 AI travel concierge that plans trips, builds proposals and answers by chat or voice."
                   }
                 ],
@@ -224,7 +223,7 @@ export default function RootLayout({
                   "height": 60
                 },
                 "image": "https://www.zenivatravel.com/branding/lina-avatar.png",
-                "description": "Zeniva is a US-based AI travel company offering luxury trip planning, custom vacations, group travel, and yacht charters. Powered by Lina AI, our 24/7 AI concierge serves all 50 states and Canada.",
+                "description": "Zeniva Travel is an online travel agency founded by Alexandre Blais, a Quebec entrepreneur. It plans all-inclusive vacations, cruises, group trips, custom travel and yacht charters for travelers in Canada and the United States, in French and English. Its 24/7 AI concierge, Lina, builds trip proposals; payment is handled through ZeniPay.",
                 "foundingDate": "2024",
                 "foundingLocation": {
                   "@type": "Place",
@@ -267,6 +266,7 @@ export default function RootLayout({
                   {
                     "@type": "ContactPoint",
                     "email": "info@zeniva.ca",
+                    "telephone": "+1-581-748-7017",
                     "contactType": "customer service",
                     "availableLanguage": ["English", "French", "Spanish"],
                     "areaServed": ["US", "CA"]
@@ -286,7 +286,7 @@ export default function RootLayout({
                 "url": "https://www.zenivatravel.com",
                 "publisher": { "@id": "https://www.zenivatravel.com/#organization" },
                 "inLanguage": ["en-US", "fr-CA"],
-                "description": "AI-powered luxury travel agency — USA & Canada",
+                "description": "Travel agency for Canada and the US — all-inclusive vacations, cruises, group trips, custom travel",
                 "potentialAction": {
                   "@type": "SearchAction",
                   "target": {

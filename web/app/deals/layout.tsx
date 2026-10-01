@@ -2,31 +2,31 @@ export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Travel Deals 2025 — Cheap Flights, Hotel Discounts & Last-Minute Vacations | Zeniva",
+  title: "Travel Deals 2026 — Cheap Flights, Hotel Discounts & Last-Minute Vacations",
   description:
-    "Find the best travel deals of 2025. Cheap flights, discounted hotels, last-minute vacation packages and all-inclusive deals — curated by Lina AI for travelers in the USA and Canada.",
+    "Find the best travel deals of 2026. Cheap flights, discounted hotels, last-minute vacation packages and all-inclusive deals — curated by Lina AI for travelers in the USA and Canada.",
   keywords: [
-    "travel deals 2025",
+    "travel deals 2026",
     "cheap flights USA",
-    "best hotel deals 2025",
+    "best hotel deals 2026",
     "last-minute vacation deals",
     "all-inclusive deals USA",
     "flight deals from New York",
     "travel discounts Canada",
     "vacation deals AI",
     "Zeniva deals",
-    "luxury travel deals 2025",
+    "luxury travel deals 2026",
   ],
   alternates: {
     canonical: "https://www.zenivatravel.com/deals",
   },
   openGraph: {
-    title: "Travel Deals 2025 — Cheap Flights & Vacation Packages | Zeniva",
+    title: "Travel Deals 2026 — Cheap Flights & Vacation Packages | Zeniva",
     description: "Best travel deals curated by Lina AI — flights, hotels, all-inclusive packages. Updated daily.",
     url: "https://www.zenivatravel.com/deals",
     siteName: "Zeniva",
     type: "website",
-    images: [{ url: "/api/og?title=Travel+Deals+2025&description=Cheap+Flights%2C+Hotels+%26+Vacation+Packages&type=deals", width: 1200, height: 630, alt: "Zeniva Travel Deals" }],
+    images: [{ url: "/api/og?title=Travel+Deals+2026&description=Cheap+Flights%2C+Hotels+%26+Vacation+Packages&type=deals", width: 1200, height: 630, alt: "Zeniva Travel Deals" }],
   },
 };
 
