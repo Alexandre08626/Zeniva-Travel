@@ -3,7 +3,13 @@ import React from "react";
 import { PREMIUM_BLUE, MUTED_TEXT } from "../design/tokens";
 import AutoTranslate from "./AutoTranslate";
 
-export default function Footer() {
+const ZENITECH_AGENTS = {
+  en: { href: "https://zenitech.dev/en/ai-agents", label: "AI agents by industry — Zenitech" },
+  fr: { href: "https://zenitech.dev/agents-ia", label: "Agents IA par métier — Zenitech" },
+} as const;
+
+export default function Footer({ lang = "en" }: { lang?: "en" | "fr" } = {}) {
+  const agents = ZENITECH_AGENTS[lang];
   return (
     <footer className="mt-10 border-t border-slate-100 pt-6 pb-24">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -70,6 +76,10 @@ export default function Footer() {
       <div className="mt-2 text-[11px]" style={{ color: MUTED_TEXT }}>
         <a href="https://zenitech.dev/" style={{ color: MUTED_TEXT, textDecoration: "none" }}>
           Website by Zenitech — web &amp; AI agency
+        </a>
+        <span className="mx-2">·</span>
+        <a href={agents.href} style={{ color: MUTED_TEXT, textDecoration: "none" }}>
+          {agents.label}
         </a>
       </div>
     </footer>

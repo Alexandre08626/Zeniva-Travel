@@ -50,7 +50,7 @@ export default function GuidesIndexFr() {
           </div>
         </section>
       </main>
-      <Footer />
+      <Footer lang="fr" />
     </>
   );
 }

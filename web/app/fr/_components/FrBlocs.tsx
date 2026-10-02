@@ -153,6 +153,8 @@ export function PiedFr() {
       <p className="mx-auto mt-8 max-w-6xl text-xs text-slate-500">
         Zeniva Travel est exploitée par Zeniva LLC. Paiements sécurisés par ZeniPay.{" "}
         <a href="https://zenitech.dev/" className="underline">Site conçu par Zenitech — agence web et IA</a>
+        {" · "}
+        <a href="https://zenitech.dev/agents-ia" className="underline">Agents IA par métier — Zenitech</a>
       </p>
     </footer>
   );

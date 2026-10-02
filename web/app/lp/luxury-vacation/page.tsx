@@ -192,7 +192,8 @@ export default function LuxuryVacationLandingPage() {
 
       <footer style={{ padding: "22px 24px", textAlign: "center", fontSize: 12, color: "#94a3b8" }}>
         © {new Date().getFullYear()} Zeniva Travel LLC · Delaware, USA ·{" "}
-        <a href="/privacy-policy" style={{ color: "#94a3b8" }}>Privacy</a> · <a href="/terms" style={{ color: "#94a3b8" }}>Terms</a>
+        <a href="/privacy-policy" style={{ color: "#94a3b8" }}>Privacy</a> · <a href="/terms" style={{ color: "#94a3b8" }}>Terms</a> ·{" "}
+        <a href="https://zenitech.dev/en/ai-agents" style={{ color: "#94a3b8" }}>AI agents by industry — Zenitech</a>
       </footer>
     </main>
   );

@@ -217,7 +217,7 @@ export default function GuideArticle({ guide, locale, url, alternateUrl }: { gui
           </div>
         </article>
       </main>
-      <Footer />
+      <Footer lang={locale === "fr" ? "fr" : "en"} />
     </>
   );
 }

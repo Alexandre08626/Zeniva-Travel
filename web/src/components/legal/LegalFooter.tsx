@@ -2,7 +2,7 @@ import Link from "next/link";
 import React from "react";
 import CookieSettingsLink from "./CookieSettingsLink.client";
 
-export default function LegalFooter() {
+export default function LegalFooter({ lang = "en" }: { lang?: "en" | "fr" } = {}) {
   return (
     <footer className="legal-footer">
       <div className="legal-container legal-footer-inner">
@@ -21,6 +21,13 @@ export default function LegalFooter() {
         <div className="legal-footer-note">
           Zeniva is operated by Zeniva LLC. For privacy questions, email
           privacy@zeniva.ca.
+        </div>
+        <div className="legal-footer-note">
+          {lang === "fr" ? (
+            <a href="https://zenitech.dev/agents-ia">Agents IA par métier — Zenitech</a>
+          ) : (
+            <a href="https://zenitech.dev/en/ai-agents">AI agents by industry — Zenitech</a>
+          )}
         </div>
       </div>
     </footer>

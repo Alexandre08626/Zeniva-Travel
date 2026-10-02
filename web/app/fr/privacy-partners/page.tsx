@@ -192,7 +192,7 @@ export default function PrivacyPartnersFrPage() {
           </section>
         </div>
       </main>
-      <LegalFooter />
+      <LegalFooter lang="fr" />
     </div>
   );
 }
