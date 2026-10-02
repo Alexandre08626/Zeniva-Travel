@@ -14,6 +14,10 @@ export async function createZeniPayPayLink(opts: {
   amount: number | string;
   currency?: string;
   description?: string;
+  /** Sent back by ZeniPay in the signed payment.succeeded callback. */
+  metadata?: Record<string, string>;
+  /** Page the client lands on after paying. */
+  returnUrl?: string;
 }): Promise<ZeniPayLink | null> {
   const amount = parseFloat(String(opts.amount));
   if (!Number.isFinite(amount) || amount <= 0) return null;
@@ -35,6 +39,10 @@ export async function createZeniPayPayLink(opts: {
         description: opts.description || "Zeniva Travel",
         merchant: "Zeniva",
         api_key: apiKey,
+        ...(opts.metadata ? { metadata: opts.metadata } : {}),
+        ...(opts.returnUrl ? { return_url: opts.returnUrl } : {}),
+        // ZeniPay calls us back (signed with our API key) when the card payment succeeds.
+        notify_url: `${(process.env.NEXT_PUBLIC_SITE_URL || "https://www.zenivatravel.com").replace(/\/$/, "")}/api/webhooks/zenipay`,
       }),
       cache: "no-store",
       signal: AbortSignal.timeout(15000),

@@ -8,6 +8,7 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "node:crypto";
 import { getInternalSecret } from "@/src/lib/server/internalSecret";
 import { createClient } from "@supabase/supabase-js";
 import { internalHeaders } from "@/lib/internal-auth";
@@ -20,25 +21,37 @@ function getSupabase() {
 }
 
 export async function POST(req: NextRequest) {
-  // Verify webhook secret
+  // Two accepted proofs: (1) legacy Bearer secret, (2) ZeniPay pay-link callback signed with
+  // HMAC-SHA256(body) keyed by sha256(ZENIPAY_API_KEY) — header x-zenipay-signature.
+  const raw = await req.text();
   const auth = req.headers.get("authorization") || "";
-  const secret = auth.replace("Bearer ", "").trim();
-  const expectedSecret = (process.env.ZENIPAY_WEBHOOK_SECRET || getInternalSecret()).trim();
+  const bearer = auth.replace("Bearer ", "").trim();
+  const expectedSecret = (process.env.ZENIPAY_WEBHOOK_SECRET || getInternalSecret() || "").trim();
+  const bearerOk = Boolean(expectedSecret) && bearer === expectedSecret;
 
-  if (!expectedSecret || secret !== expectedSecret) {
+  let signatureOk = false;
+  const sig = (req.headers.get("x-zenipay-signature") || "").trim();
+  const apiKey = (process.env.ZENIPAY_API_KEY || "").trim();
+  if (sig && apiKey) {
+    const keyHash = crypto.createHash("sha256").update(apiKey).digest("hex");
+    const expected = crypto.createHmac("sha256", keyHash).update(raw).digest("hex");
+    signatureOk = sig.length === expected.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected));
+  }
+
+  if (!bearerOk && !signatureOk) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const data = await req.json();
+    const data = JSON.parse(raw || "{}");
     const {
       event,
       payment_id,
       transaction_id,
       amount,
       description,
-      customer_name,
-      customer_email,
+      customer_name: payerName,
+      customer_email: payerEmail,
       invoice_id,
       invoice_url,
       metadata = {},
@@ -46,6 +59,10 @@ export async function POST(req: NextRequest) {
     } = data;
 
     console.log(`[Zeniva Webhook] Event: ${event} | Payment: ${payment_id}`);
+
+    // The traveler's details captured on Zeniva win over what was typed on the card form.
+    const customer_email = String(metadata.customer_email || payerEmail || "").trim();
+    const customer_name = String(metadata.customer_name || payerName || "").trim();
 
     if (event !== "payment.succeeded") {
       return NextResponse.json({ received: true, skipped: true });

@@ -22,7 +22,17 @@ export async function POST(req: NextRequest) {
   const ref = [customerName, customerEmail, proposalId ? `#${proposalId}` : ""].filter(Boolean).join(" · ");
   const fullDescription = ref ? `${description} — ${ref}`.slice(0, 400) : description;
 
-  const link = await createZeniPayPayLink({ amount, currency, description: fullDescription });
+  const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.zenivatravel.com").replace(/\/$/, "");
+  const metadata: Record<string, string> = {};
+  if (proposalId) metadata.proposal_id = proposalId;
+  if (customerEmail) metadata.customer_email = customerEmail;
+  if (customerName) metadata.customer_name = customerName;
+  if (customerPhone) metadata.customer_phone = customerPhone;
+  if (booking_id) metadata.booking_id = clip(booking_id, 120);
+  const returnUrl = proposalId
+    ? `${site}/checkout/${encodeURIComponent(proposalId)}/confirmation`
+    : `${site}/payment/confirmation`;
+  const link = await createZeniPayPayLink({ amount, currency, description: fullDescription, metadata, returnUrl });
   if (link) {
     await recordPaymentIntent({ linkId: link.id, url: link.url, amount, currency, description: fullDescription, customerName, customerEmail, customerPhone, proposalId });
     return NextResponse.json({
