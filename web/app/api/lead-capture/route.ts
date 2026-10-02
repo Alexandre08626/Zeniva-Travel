@@ -1,3 +1,4 @@
+import { sendPushToHQ } from '@/src/lib/server/pushNotify';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
@@ -50,16 +51,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to save' }, { status: 500 });
     }
 
-    // Notify VPS API to trigger immediate outreach
-    try {
-      await fetch('https://vmi3097009.contaboserver.net/webhook/lead-update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lead_id: data.id, action: 'new_capture' }),
-      });
-    } catch (e) {
-      // Non-blocking
-    }
+    // Alert HQ (the old VPS outreach webhook is offline).
+    await sendPushToHQ({
+      title: 'Nouveau lead voyage (site)',
+      body: `${name || email}${destination ? ` → ${destination}` : ''}`,
+      url: '/agent/leads',
+      tag: 'lead-capture',
+    }).catch(() => {});
 
     return NextResponse.json({ 
       message: 'Thanks! Check your email for exclusive deals.',

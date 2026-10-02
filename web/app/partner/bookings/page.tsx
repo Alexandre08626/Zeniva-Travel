@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { BookOpen, Search, Eye, CheckCircle, XCircle, Calendar } from 'lucide-react';
 import PageHeader from '../../../src/components/partner/PageHeader';
-import { mockBookings } from '../../../src/lib/mockData';
+import type { mockBookings } from '../../../src/lib/mockData';
 import { ConfirmModal } from '../../../src/components/partner/Modal';
 
 type StatusFilter = 'all' | 'requested' | 'confirmed' | 'cancelled' | 'completed';
@@ -11,7 +11,7 @@ type StatusFilter = 'all' | 'requested' | 'confirmed' | 'cancelled' | 'completed
 export default function BookingsPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [bookings, setBookings] = useState(mockBookings);
+  const [bookings, setBookings] = useState<typeof mockBookings>([]) // no partner booking backend yet: honest empty state;
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; bookingId: string; action: 'confirm' | 'decline' | null }>({
     isOpen: false,
     bookingId: '',

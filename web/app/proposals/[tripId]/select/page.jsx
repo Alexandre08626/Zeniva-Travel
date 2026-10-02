@@ -330,7 +330,7 @@ function ProposalSelectPageInner() {
     const hasLocalData = draft.destination || draft.departureCity || draft.checkIn;
     if (hasLocalData) return; // Already have data locally
     
-    fetch(`/api/proposals?ownerEmail=voice-call@zenivatravel.com`)
+    fetch(`/api/proposals?id=${encodeURIComponent(tripId)}`)
       .then(r => r.json())
       .then(d => {
         const proposals = d?.data || [];
@@ -1919,7 +1919,8 @@ function ProposalSelectPageInner() {
                 {!loadingActivities && filteredActivities.length === 0 && !errorActivities && (
                   <div className="rounded-2xl border-2 border-dashed border-slate-200 p-6 text-center">
                     <div className="text-3xl mb-2">🗺️</div>
-                    <p className="text-sm text-slate-500">No activities for this destination</p>
+                    <p className="text-sm font-semibold text-slate-700">Activities not available online for this destination</p>
+                    <p className="text-xs text-slate-500 mt-1">An advisor will add activities to your trip. <a href="mailto:info@zeniva.ca?subject=Activities request" className="underline">info@zeniva.ca</a></p>
                   </div>
                 )}
               </div>
@@ -2009,6 +2010,12 @@ function ProposalSelectPageInner() {
               </div>
               <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[480px] overflow-y-auto">
                 {loadingCars && <div className="col-span-2 flex items-center gap-3 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3"><div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" /><span className="text-sm text-blue-700">Searching vehicles…</span></div>}
+                {!loadingCars && cars.length === 0 && (
+                  <div className="col-span-2 rounded-2xl border-2 border-dashed border-slate-200 p-6 text-center">
+                    <p className="text-sm font-semibold text-slate-700 mb-1">Car rental not available online for this destination</p>
+                    <p className="text-xs text-slate-500">An advisor will add a rental car to your trip. <a href="mailto:info@zeniva.ca?subject=Car rental request" className="underline">info@zeniva.ca</a></p>
+                  </div>
+                )}
                 {cars.map((car, i) => {
                   const carKey = car.id || `car-${i}`;
                   // Use local selectedCarKey state to avoid stale store comparisons
@@ -2092,8 +2099,8 @@ function ProposalSelectPageInner() {
                 {!loadingVillas && villas.length === 0 && (
                   <div className="text-center py-8">
                     <div className="text-4xl mb-3">🏠</div>
-                    <p className="text-sm font-semibold text-slate-600">No properties found for this destination</p>
-                    <p className="text-xs text-slate-400 mt-1">Try a different destination or contact us at info@zeniva.ca</p>
+                    <p className="text-sm font-semibold text-slate-600">Villas not available online for this destination</p>
+                    <p className="text-xs text-slate-400 mt-1">An advisor will add rental options to your trip. <a href="mailto:info@zeniva.ca?subject=Villa request" className="underline">info@zeniva.ca</a></p>
                   </div>
                 )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

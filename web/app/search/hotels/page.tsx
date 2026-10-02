@@ -3,9 +3,7 @@ import React, { useMemo, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuthStore } from "../../../src/lib/authStore";
-import { useTripsStore, createTrip } from "../../../lib/store/tripsStore";
-import { upsertDocuments, getDocumentsForUser, DocumentRecord } from "../../../src/lib/documentsStore";
-import BookingConfirmation from "../../../src/components/stays/BookingConfirmation";
+import { useTripsStore } from "../../../lib/store/tripsStore";
 import { applyHotelMarkupLabel } from "../../../src/lib/partnerMarkup";
 
 type Params = {
@@ -510,75 +508,43 @@ function HotelsSearchContent() {
     router.push(`/booking/hotels/review?${reviewParams.toString()}`);
   };
 
-  const buildLocalBooking = (bookingData: any) => ({
-    id: `local-booking-${Date.now()}`,
-    booking_reference: `ZNV-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
-    status: 'confirmed',
-    total_amount: quote?.total_amount || selectedRate?.total_amount,
-    total_currency: quote?.total_currency || selectedRate?.total_currency || 'USD',
-    guest: bookingData?.guests?.[0],
-    email: bookingData?.email,
-  });
-
-  const handleCreateBooking = async (bookingData: any, options?: { forceConfirm?: boolean }) => {
+  // No online card payment here (the old form collected card numbers and faked a confirmation,
+  // and Duffel bookings are now server-only). The traveler sends a request: an advisor confirms
+  // availability and sends a secure ZeniPay payment link.
+  const [requestSent, setRequestSent] = useState(false);
+  const submitHotelRequest = async (bookingData: any) => {
+    if (!bookingData?.email) return;
     setLoading(true);
     setError(null);
-
-    if (options?.forceConfirm) {
-      const localBooking = buildLocalBooking(bookingData);
-      setBooking(localBooking);
-      setBookingStep('booking');
-    }
-
     try {
-      const response = await fetch('/api/partners/duffel-stays/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bookingData),
+      const guest = bookingData?.guests?.[0] || {};
+      const hotelName = selectedSearchResult?.name || "Hotel";
+      const total = formatAmount(quote?.total_amount || selectedRate?.total_amount, quote?.total_currency || selectedRate?.total_currency);
+      const details = [
+        hotelName,
+        selectedSearchResult?.location || destination,
+        checkIn && checkOut ? `${checkIn} → ${checkOut}` : "",
+        `${guests} guest(s)`,
+        selectedRate?.room_type?.name || "",
+        total ? `total ${total}` : "",
+        bookingData?.accommodation_special_requests ? `requests: ${bookingData.accommodation_special_requests}` : "",
+      ].filter(Boolean).join(" · ");
+      const res = await fetch("/api/lina-lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: bookingData.email,
+          name: `${guest.given_name || ""} ${guest.family_name || ""}`.trim(),
+          phone: bookingData.phone_number || "",
+          destination: details.slice(0, 480),
+        }),
       });
-      const json = await response.json();
-
-      if (!response.ok || !json?.ok) {
-        throw new Error(json?.error || response.statusText);
-      }
-
-      setBookingStep('booking');
-      setBooking(json.booking || json);
-
-      if (typeof window !== "undefined") {
-        window.sessionStorage.removeItem(BOOKING_DRAFT_KEY);
-      }
-
-      // Persist a document record so the confirmation appears in My Travel Documents
-      try {
-        const booking = json.booking || json;
-        const docId = booking?.id || booking?.booking_reference || `booking-${Date.now()}`;
-        const tripId = trips[0]?.id || createTrip({ title: selectedSearchResult?.name || 'Hotel booking', destination: selectedSearchResult?.location || '', dates: `${checkIn} → ${checkOut}`, travelers: guests });
-        const existing = (getDocumentsForUser(userId) || {})[tripId] || [];
-        const now = new Date().toISOString();
-        const doc: DocumentRecord = {
-          id: String(docId),
-          tripId,
-          userId,
-          type: 'confirmation',
-          title: `Hotel confirmation (${selectedSearchResult?.name || 'Hotel'})`,
-          provider: booking?.provider || 'Duffel',
-          confirmationNumber: booking?.booking_reference || booking?.reference || booking?.id || '',
-          url: `/test/duffel-stays/confirmation?docId=${encodeURIComponent(String(docId))}`,
-          updatedAt: now,
-          details: booking ? JSON.stringify(booking) : undefined,
-        };
-        upsertDocuments(userId, tripId, [doc, ...existing]);
-      } catch (err) {
-        console.error('Failed to upsert confirmation document:', err);
-      }
-
-      // Handle successful booking - could redirect to confirmation page
-      alert('Booking created successfully!');
-    } catch (e: any) {
-      if (!options?.forceConfirm) {
-        setError(e?.message || "Failed to create booking");
-      }
+      if (!res.ok) throw new Error("request failed");
+      setRequestSent(true);
+      setBookingStep("booking");
+      if (typeof window !== "undefined") window.sessionStorage.removeItem(BOOKING_DRAFT_KEY);
+    } catch {
+      setError("We could not send your request. Please email info@zeniva.ca.");
     } finally {
       setLoading(false);
     }
@@ -760,8 +726,8 @@ function HotelsSearchContent() {
     { key: "search", icon: "🔍", label: "Search" },
     { key: "rates", icon: "🛏", label: "Choose room" },
     { key: "quote", icon: "📋", label: "Review" },
-    { key: "payment", icon: "💳", label: "Payment" },
-    { key: "booking", icon: "✅", label: "Confirmed" },
+    { key: "payment", icon: "✉️", label: "Request" },
+    { key: "booking", icon: "✅", label: "Sent" },
   ];
   const stepIdx = STEPS.findIndex(s => s.key === bookingStep);
 
@@ -777,8 +743,8 @@ function HotelsSearchContent() {
                 {bookingStep === "search" && (destination || "Find your hotel")}
                 {bookingStep === "rates" && (selectedSearchResult?.name || "Choose your room")}
                 {bookingStep === "quote" && "Review your booking"}
-                {bookingStep === "payment" && "Secure payment"}
-                {bookingStep === "booking" && "🎉 Booking confirmed!"}
+                {bookingStep === "payment" && "Request this hotel"}
+                {bookingStep === "booking" && "Request received"}
               </h1>
               <p className="text-blue-200 text-sm mt-0.5">{summary.stay} · {summary.guestLabel}{budget ? ` · Budget ${budget}` : ""}</p>
             </div>
@@ -933,7 +899,7 @@ function HotelsSearchContent() {
 
         {bookingStep === 'quote' && quote && (
           <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
-            {loading && <div className="rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-sm text-slate-700">Creating booking…</div>}
+            {loading && <div className="rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-sm text-slate-700">Sending…</div>}
             {error && <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">{error}</div>}
 
             <div className="space-y-4">
@@ -1027,7 +993,7 @@ function HotelsSearchContent() {
                   type="submit"
                   className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
                 >
-                  Continue to Payment
+                  Continue
                 </button>
               </form>
             </div>
@@ -1038,73 +1004,37 @@ function HotelsSearchContent() {
           <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold">Payment</h2>
-                <p className="text-sm text-slate-600">Pay to confirm your booking.</p>
+                <h2 className="text-xl font-semibold">Request this hotel</h2>
+                <p className="text-sm text-slate-600">No payment now. An advisor confirms availability and sends you a secure payment link.</p>
               </div>
               <div className="text-right text-sm text-slate-600">
                 <div>Total: {formatAmount(quote?.total_amount, quote?.total_currency)}</div>
                 <div>Taxes: {formatAmount(quote?.tax_amount || quote?.taxes_total || quote?.tax, quote?.total_currency)}</div>
               </div>
             </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (!pendingBooking) return;
-                handleCreateBooking(pendingBooking, { forceConfirm: true });
-              }}
-              className="space-y-4"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700">Cardholder Name</label>
-                  <input name="cardName" required className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700">Card Number</label>
-                  <input name="cardNumber" required className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700">Expiry</label>
-                  <input name="cardExpiry" placeholder="MM/YY" required className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700">CVC</label>
-                  <input name="cardCvc" required className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700">Billing ZIP</label>
-                  <input name="cardZip" required className="mt-1 block w-full rounded-md border-slate-300 shadow-sm" />
-                </div>
-              </div>
+            {pendingBooking ? (
               <button
-                type="submit"
-                className="w-full bg-emerald-600 text-white py-2 px-4 rounded-md hover:bg-emerald-700"
+                type="button"
+                disabled={loading}
+                onClick={() => submitHotelRequest(pendingBooking)}
+                className="w-full bg-emerald-600 text-white py-2 px-4 rounded-md hover:bg-emerald-700 disabled:opacity-60"
               >
-                Pay & Confirm Booking
+                {loading ? "Sending…" : "Send my request"}
               </button>
-            </form>
+            ) : (
+              <p className="text-sm text-slate-600">Please go back and enter the guest details first.</p>
+            )}
+            {error && <p className="text-sm text-red-600">{error}</p>}
           </section>
         )}
 
         {bookingStep === 'booking' && (
           <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
-            {booking ? (
-              <>
-                <BookingConfirmation booking={booking} businessInfo={businessInfo} />
-                <div className="pt-2 text-sm text-slate-600">
-                  View your confirmation in <Link className="underline" href="/documents">My Travel Documents</Link>.
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-8">
-                <h2 className="text-2xl font-bold text-green-600 mb-4">Booking Confirmed!</h2>
-                <p className="text-slate-600">Your accommodation booking has been successfully created.</p>
-                <div className="pt-2 text-sm text-slate-600">
-                  View your confirmation in <Link className="underline" href="/documents">My Travel Documents</Link>.
-                </div>
-              </div>
-            )}
+            <div className="text-center py-8">
+              <h2 className="text-2xl font-bold text-emerald-600 mb-4">{requestSent ? "Request received!" : "Request in progress"}</h2>
+              <p className="text-slate-600">An advisor is confirming availability for {selectedSearchResult?.name || "your hotel"} and will email you a secure payment link shortly.</p>
+              <p className="pt-2 text-sm text-slate-600">Questions? <a className="underline" href="mailto:info@zeniva.ca">info@zeniva.ca</a></p>
+            </div>
           </section>
         )}
       </div>

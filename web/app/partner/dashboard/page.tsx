@@ -48,7 +48,7 @@ const mockKpis = [
 
 const revenueChart = Array.from({length: 30}).map((_,i)=> ({ 
   day: i+1, 
-  revenue: Math.round(Math.random()*500),
+  revenue: 0, // no revenue data yet (was random demo values)
   label: `Day ${i+1}`
 }));
 
@@ -60,11 +60,7 @@ const mockTasks = [
 ];
 
 const mockBookings = [] as any[];
-const mockListings = [
-  { id: 'l_1', title: 'Cozy Beach House', status: 'Draft' },
-  { id: 'l_2', title: 'Yacht Charter', status: 'Published' },
-  { id: 'l_3', title: 'Mountain Villa Retreat', status: 'Paused' },
-];
+const mockListings = [] as { id: string; title: string; status: string }[];
 const mockThreads = [] as any[];
 
 export default function PartnerDashboardPage() {
@@ -156,7 +152,7 @@ export default function PartnerDashboardPage() {
           {/* Left Column: Main Content (8 cols) */}
           <div className="lg:col-span-8 space-y-6">
             {/* Action Center */}
-            <ActionCenter tasks={mockTasks} progress={35} loading={loading} />
+            <ActionCenter tasks={mockTasks} progress={0} loading={loading} />
 
             {/* Bookings Table */}
             <BookingsTable bookings={mockBookings} />
@@ -253,6 +249,9 @@ export default function PartnerDashboardPage() {
                   </div>
                 ) : (
                   <div className="space-y-4">
+                    {mockListings.length === 0 && (
+                      <p className="text-sm text-gray-500 text-center py-6">Aucune donnée pour l&apos;instant</p>
+                    )}
                     {mockListings.map((listing) => (
                       <ListingCard key={listing.id} listing={listing} />
                     ))}

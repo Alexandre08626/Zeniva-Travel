@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { applyHotelMarkupLabel } from "../../../../src/lib/partnerMarkup";
 
-// Amadeus test environment credentials
-const AMADEUS_API_KEY = "REDACTED_AMADEUS_KEY";
-const AMADEUS_API_SECRET = "REDACTED_AMADEUS_SECRET";
-const AMADEUS_BASE_URL = "https://test.api.amadeus.com";
+// Amadeus credentials come from the environment only (never hardcoded).
+const AMADEUS_API_KEY = process.env.AMADEUS_API_KEY || "";
+const AMADEUS_API_SECRET = process.env.AMADEUS_API_SECRET || "";
+const AMADEUS_BASE_URL = process.env.AMADEUS_BASE_URL || "https://test.api.amadeus.com";
 
 export async function GET(req: Request) {
   console.log('🚀 Amadeus API endpoint called!');
@@ -23,6 +23,10 @@ export async function GET(req: Request) {
       ok: false,
       error: "Missing required parameter: cityCode"
     }, { status: 400 });
+  }
+
+  if (!AMADEUS_API_KEY || !AMADEUS_API_SECRET) {
+    return NextResponse.json({ ok: false, offers: [], error: "Amadeus not configured" }, { status: 503 });
   }
 
   try {
@@ -158,33 +162,10 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error('Amadeus API error:', error);
 
-    // Fallback to mock data
-    const mockHotels = [
-      {
-        id: "mock-amadeus-1",
-        name: "Hotel " + cityCode,
-        location: cityCode,
-        price: applyHotelMarkupLabel("USD 150/night"),
-        room: "Standard Room",
-        rating: 4,
-        image: "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=900&q=80"
-      },
-      {
-        id: "mock-amadeus-2",
-        name: "Hotel " + cityCode,
-        location: cityCode,
-        price: applyHotelMarkupLabel("USD 200/night"),
-        room: "Deluxe Room",
-        rating: 4.5,
-        image: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=900&q=80"
-      }
-    ];
-
-    return NextResponse.json({
-      ok: true,
-      offers: mockHotels,
-      fallback: true,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    // Never present invented hotels as real offers.
+    return NextResponse.json(
+      { ok: false, offers: [], error: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 502 }
+    );
   }
 }

@@ -3,7 +3,10 @@ import React from 'react';
 import Link from 'next/link';
 import { Wallet, TrendingUp, Download, CheckCircle, Clock } from 'lucide-react';
 import PageHeader from '../../../src/components/partner/PageHeader';
-import { mockPayouts } from '../../../src/lib/mockData';
+import type { mockPayouts as MockPayouts } from '../../../src/lib/mockData';
+
+// No payout backend yet: show an honest empty state instead of demo figures.
+const payouts: typeof MockPayouts = [];
 
 export default function PayoutsPage() {
   return (
@@ -25,8 +28,8 @@ export default function PayoutsPage() {
             <span className="text-sm font-medium text-emerald-700">Available Balance</span>
             <Wallet className="w-5 h-5 text-emerald-600" />
           </div>
-          <div className="text-3xl font-bold text-gray-900 mb-2">USD 8,400</div>
-          <p className="text-sm text-gray-600">Ready for payout on Feb 1, 2026</p>
+          <div className="text-3xl font-bold text-gray-900 mb-2">USD 0</div>
+          <p className="text-sm text-gray-600">Aucune donnée pour l'instant</p>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -34,8 +37,8 @@ export default function PayoutsPage() {
             <span className="text-sm font-medium text-gray-700">This Month</span>
             <TrendingUp className="w-5 h-5 text-gray-600" />
           </div>
-          <div className="text-3xl font-bold text-gray-900 mb-2">USD 15,750</div>
-          <p className="text-sm text-emerald-600">↑ 23% vs last month</p>
+          <div className="text-3xl font-bold text-gray-900 mb-2">USD 0</div>
+          <p className="text-sm text-gray-600">Aucune donnée pour l'instant</p>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -43,7 +46,7 @@ export default function PayoutsPage() {
             <span className="text-sm font-medium text-gray-700">Total Earned</span>
             <CheckCircle className="w-5 h-5 text-gray-600" />
           </div>
-          <div className="text-3xl font-bold text-gray-900 mb-2">USD 46,250</div>
+          <div className="text-3xl font-bold text-gray-900 mb-2">USD 0</div>
           <p className="text-sm text-gray-600">All-time earnings</p>
         </div>
       </div>
@@ -58,12 +61,12 @@ export default function PayoutsPage() {
             </div>
             <div>
               <div className="font-semibold text-gray-900">Bank Transfer</div>
-              <div className="text-sm text-gray-600">Account ending in ••••4321</div>
+              <div className="text-sm text-gray-600">Not set up yet — contact info@zeniva.ca</div>
             </div>
           </div>
-          <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
-            Update Method
-          </button>
+          <a href="mailto:info@zeniva.ca?subject=Partner payout method" className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+            Set up payouts
+          </a>
         </div>
       </div>
 
@@ -84,7 +87,12 @@ export default function PayoutsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {mockPayouts.map((payout) => (
+              {payouts.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-6 py-10 text-center text-sm text-gray-500">Aucune donnée pour l&apos;instant</td>
+                </tr>
+              )}
+              {payouts.map((payout) => (
                 <tr key={payout.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="text-sm font-medium text-gray-900">{payout.date}</div>

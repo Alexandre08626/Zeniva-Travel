@@ -488,49 +488,24 @@ function ProposalReviewPageInner() {
     const travelDates = tripDraft?.checkIn && tripDraft?.checkOut ? `${tripDraft.checkIn} → ${tripDraft.checkOut}` : "";
     const totalPrice  = pricing?.grandTotal ? formatCurrency(pricing.grandTotal) : (proposal?.totalPrice || "");
 
-    // If we have the client's email, send via VPS email API
+    // Client email on file: copy the link and open a prefilled email in the agent's mail app
+    // (the old VPS email endpoint is offline).
     if (clientEmail && clientEmail.includes("@")) {
-      setShareStatus("Sending email…");
-      try {
-        const res = await fetch("https://vmi3097009.contaboserver.net/admin/send-proposal-email", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Authorization": "" },
-          body: JSON.stringify({
-            client_email: clientEmail,
-            client_name: clientName,
-            trip_id: tripId,
-            destination,
-            checkout_url: url,
-            total_price: totalPrice,
-            travel_dates: travelDates,
-            agent_name: "Zeniva Travel",
-            // Full trip details for rich email
-            departure_city: tripDraft?.departureCity || "",
-            check_in: tripDraft?.checkIn || "",
-            check_out: tripDraft?.checkOut || "",
-            adults: tripDraft?.adults || 1,
-            budget: tripDraft?.budget || "",
-            currency: tripDraft?.currency || "USD",
-            accommodation_type: tripDraft?.accommodationType || "Hotel",
-            transport_type: tripDraft?.transportationType || "Flights",
-            travel_style: tripDraft?.style || "",
-            hotel_name: tripDraft?.hotelName || "",
-            notes: tripDraft?.notes || "",
-            sections: proposal?.sections || [],
-          }),
-        });
-        const data = await res.json();
-        if (data.ok) {
-          setShareStatus(`✅ Email sent to ${clientEmail}`);
-        } else {
-          // Fallback: copy link
-          await navigator.clipboard.writeText(url).catch(() => {});
-          setShareStatus("⚠️ Email failed — link copied. Send manually.");
-        }
-      } catch {
-        await navigator.clipboard.writeText(url).catch(() => {});
-        setShareStatus("⚠️ Connection error — link copied. Send manually.");
-      }
+      await navigator.clipboard.writeText(url).catch(() => {});
+      const subject = `Votre proposition de voyage Zeniva — ${destination}`;
+      const lines = [
+        `Bonjour ${clientName},`,
+        "",
+        `Voici votre proposition personnalisée pour ${destination}${travelDates ? ` (${travelDates})` : ""}.`,
+        totalPrice ? `Total : ${totalPrice}` : "",
+        "",
+        `Consulter et réserver : ${url}`,
+        "",
+        "Au plaisir,",
+        "Zeniva Travel",
+      ].filter((l, i, arr) => l !== "" || arr[i - 1] !== "");
+      window.location.assign(`mailto:${encodeURIComponent(clientEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join(String.fromCharCode(10)))}`);
+      setShareStatus(`✉️ Courriel prêt pour ${clientEmail} — lien aussi copié.`);
     } else {
       // No email found — copy link + prompt to enter email
       try {

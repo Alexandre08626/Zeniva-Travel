@@ -46,7 +46,7 @@ export default function PartnerConnectPage() {
           <button type="button" onClick={async () => {
             setStatus('loading');
             try {
-              const res = await fetch('/api/auth/resend-invite', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+              const res = await fetch('/api/partner/connect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, resend: true }) });
               if (!res.ok) throw new Error('Network');
               setStatus('success');
             } catch {
@@ -54,7 +54,7 @@ export default function PartnerConnectPage() {
             }
           }} className="px-3 py-2 border rounded">Renvoyer le code</button>
 
-          {status === 'success' && <span className="text-green-600">Requête envoyée (simulation)</span>}
+          {status === 'success' && <span className="text-green-600">Demande transmise : l&apos;équipe Zeniva lie votre compte sous 1 jour ouvrable.</span>}
           {status === 'error' && <span className="text-red-600">Erreur, réessayez.</span>}
         </div>
       </form>

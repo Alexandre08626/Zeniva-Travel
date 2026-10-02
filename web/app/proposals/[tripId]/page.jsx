@@ -15,6 +15,23 @@ export default function ProposalPage() {
   const trip = trips.find((t) => t.id === tripId);
   const proposal = useMemo(() => getProposal(tripId), [tripId, trips]);
 
+  // Shared link opened on another device: the proposal is not in this browser's store.
+  const [dbProposal, setDbProposal] = useState(null);
+  useEffect(() => {
+    if (proposal || !tripId) return;
+    let alive = true;
+    fetch(`/api/proposals?id=${encodeURIComponent(tripId)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        const list = data?.data ?? data?.proposals ?? data?.proposal;
+        const row = Array.isArray(list) ? list[0] : list;
+        const prop = row?.payload?.proposal || row?.proposal || null;
+        if (alive && prop) setDbProposal(prop);
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [proposal, tripId]);
+
   const ensureProposal = () => {
     const p = proposal || generateProposal(tripId);
     router.refresh();

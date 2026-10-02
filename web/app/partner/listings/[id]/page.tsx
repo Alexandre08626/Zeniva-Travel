@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { mockListings } from "../../../../src/lib/mockData";
+import type { mockListings } from "../../../../src/lib/mockData";
 import { getListingRelations } from "../../../../src/lib/partnerRelations";
 import PageHeader from "../../../../src/components/partner/PageHeader";
 
@@ -11,7 +11,7 @@ export default function PartnerListingDetailPage() {
   const params = useParams();
   const id = typeof params?.id === "string" ? params.id : Array.isArray(params?.id) ? params.id[0] : "";
 
-  const listing = useMemo(() => mockListings.find((l) => l.id === id), [id]);
+  const listing = useMemo(() => ([] as typeof mockListings).find((l) => l.id === id), [id]);
   const relations = useMemo(() => getListingRelations(id), [id]);
   const [form, setForm] = useState(() => ({
     title: listing?.title || "",

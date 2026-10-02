@@ -1,12 +1,25 @@
 import { NextResponse } from 'next/server';
+import { sendPushToHQ } from '@/src/lib/server/pushNotify';
 
+/**
+ * Partner "connect my account" request. Codes are not verified automatically yet:
+ * the request is sent to HQ, who links the partner account by hand.
+ */
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { email, code } = body;
-    console.log(`[DEV] Partner connect attempt for: ${email} with code: ${code || '(none)'} `);
-    // Here you'd verify the code and attach partner role; for dev we just return success
-    return NextResponse.json({ ok: true, message: 'Partner connect request received (dev)' });
+    const body = await req.json().catch(() => ({}));
+    const email = String(body?.email || '').trim().toLowerCase();
+    const code = String(body?.code || '').trim().slice(0, 64);
+    if (!email.includes('@')) {
+      return NextResponse.json({ ok: false, error: 'Invalid email' }, { status: 400 });
+    }
+    await sendPushToHQ({
+      title: 'Partenaire : demande de liaison de compte',
+      body: `${email}${code ? ` (code ${code})` : ''}`,
+      url: '/agent/partners',
+      tag: 'partner-connect',
+    }).catch(() => {});
+    return NextResponse.json({ ok: true, manual: true });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ ok: false }, { status: 500 });

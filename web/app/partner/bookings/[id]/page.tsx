@@ -3,13 +3,13 @@ import { useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import PageHeader from "../../../../src/components/partner/PageHeader";
-import { mockBookings } from "../../../../src/lib/mockData";
+import type { mockBookings } from "../../../../src/lib/mockData";
 
 export default function PartnerBookingDetailPage() {
   const params = useParams();
   const id = typeof params?.id === "string" ? params.id : Array.isArray(params?.id) ? params.id[0] : "";
 
-  const booking = useMemo(() => mockBookings.find((b) => b.id === id), [id]);
+  const booking = useMemo(() => ([] as typeof mockBookings).find((b) => b.id === id), [id]);
 
   if (!id) {
     return (

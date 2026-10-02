@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Package, Plus, Grid, List, Search, Edit, Eye, Trash2, Copy, MoreVertical } from 'lucide-react';
-import { mockListings } from '../../../src/lib/mockData';
+import type { mockListings } from '../../../src/lib/mockData';
 import { ConfirmModal } from '../../../src/components/partner/Modal';
 import PageHeader from '../../../src/components/partner/PageHeader';
 
@@ -16,7 +16,7 @@ export default function PartnerListingsPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [listings, setListings] = useState(mockListings);
+  const [listings, setListings] = useState<typeof mockListings>([]) // no partner listing backend yet: honest empty state;
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; listingId: string }>({ isOpen: false, listingId: '' });
   
   const filteredListings = listings.filter(listing => {

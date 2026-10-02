@@ -452,7 +452,7 @@ export default function HotelReviewClient() {
                     boxShadow: acceptedTerms ? "0 4px 15px rgba(230,184,90,0.4)" : "none",
                   }}
                 >
-                  {isAirbnb ? (proposalTripId ? "✓ Confirm Airbnb & return to proposal →" : "✓ Request ZeniStay booking →") : (proposalTripId ? "✓ Confirm & return to proposal →" : "✓ Continue to payment →")}
+                  {isAirbnb ? (proposalTripId ? "✓ Confirm Airbnb & return to proposal →" : "✓ Request ZeniStay booking →") : (proposalTripId ? "✓ Confirm & return to proposal →" : "✓ Continue to request →")}
                 </button>
                 <p className="text-center text-slate-500 text-[10px] mt-2">🔒 Secure booking · No payment now</p>
               </div>

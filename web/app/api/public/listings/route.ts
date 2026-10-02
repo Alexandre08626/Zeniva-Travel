@@ -66,7 +66,10 @@ export async function GET(req: Request) {
     }
   }
 
-  // only published listings are public
+  // Production never serves the in-memory demo catalog (fake owners) as real listings.
+  if (process.env.NODE_ENV === "production") return NextResponse.json({ data: [] });
+
+  // Local dev only: published demo listings
   let results = listings.filter((l) => l.status === "published");
   if (type) results = results.filter((l) => l.type === type);
 
