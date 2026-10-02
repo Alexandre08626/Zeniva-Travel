@@ -122,6 +122,14 @@ export default function Croisieres() {
               la plage sans bouger d'hôtel ? Voyez les{" "}
               <Link href="/fr/forfaits-tout-inclus" className="font-semibold text-blue-700 underline">forfaits tout inclus</Link>.
             </p>
+            <p>
+              Vous voulez embarquer sans prendre l'avion ? Lisez notre guide{" "}
+              <Link href="/fr/guides/croisieres-depuis-montreal-et-quebec" className="font-semibold text-blue-700 underline">
+                Croisières au départ de Montréal et de Québec : itinéraires, saison et documents
+              </Link>
+              . Pour un voyage de noces, comparez{" "}
+              <Link href="/fr/guides/lune-de-miel-sud-ou-croisiere-budget" className="font-semibold text-blue-700 underline">lune de miel dans le sud ou en croisière</Link>.
+            </p>
             <p className="text-sm text-slate-500">
               Sources : Port de Québec,{" "}
               <a href="https://www.portquebec.ca/" className="underline" rel="noopener">portquebec.ca</a> ; exigences

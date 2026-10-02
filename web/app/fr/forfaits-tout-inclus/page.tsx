@@ -185,6 +185,10 @@ export default function ForfaitsToutInclus() {
               <Link href="/fr/guides/cuba-mexique-ou-republique-dominicaine-depuis-quebec" className="font-semibold text-blue-700 underline">Cuba, Mexique ou République dominicaine</Link>
               ; et pour les passeports et les enfants,{" "}
               <Link href="/fr/guides/documents-voyage-etranger-passeport-enfant" className="font-semibold text-blue-700 underline">les documents pour voyager à l'étranger</Link>
+              . Vous partez avec des enfants ? Voyez{" "}
+              <Link href="/fr/guides/voyage-tout-inclus-en-famille-quoi-verifier" className="font-semibold text-blue-700 underline">quoi vérifier pour un tout-inclus en famille</Link>
+              . En voyage de noces ? Comparez{" "}
+              <Link href="/fr/guides/lune-de-miel-sud-ou-croisiere-budget" className="font-semibold text-blue-700 underline">lune de miel dans le sud ou en croisière</Link>
               . Vous organisez un voyage pour 10 personnes ou plus ? Voyez nos{" "}
               <Link href="/fr/voyage-de-groupe" className="font-semibold text-blue-700 underline">voyages de groupe</Link>.
             </p>

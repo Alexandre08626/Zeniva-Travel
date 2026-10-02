@@ -7,6 +7,9 @@ import { GUIDE_FR_CUBA_MEXIQUE_RD } from "./content/cuba-mexique-ou-republique-d
 import { GUIDE_FR_QUAND_PARTIR_SUD } from "./content/quand-partir-dans-le-sud.fr";
 import { GUIDE_FR_DOCUMENTS_VOYAGE } from "./content/documents-voyage-etranger-passeport-enfant.fr";
 import { GUIDE_FR_VOYAGE_GROUPE_ENTREPRISE } from "./content/organiser-voyage-de-groupe-entreprise.fr";
+import { GUIDE_FR_FAMILLE_TOUT_INCLUS } from "./content/voyage-tout-inclus-en-famille-quoi-verifier.fr";
+import { GUIDE_FR_LUNE_DE_MIEL } from "./content/lune-de-miel-sud-ou-croisiere-budget.fr";
+import { GUIDE_FR_CROISIERES_QC_MTL } from "./content/croisieres-depuis-montreal-et-quebec.fr";
 
 export const GUIDES_FR: GuideData[] = [
   GUIDE_FR_QUAND_PARTIR_SUD,
@@ -14,6 +17,9 @@ export const GUIDES_FR: GuideData[] = [
   GUIDE_FR_DOCUMENTS_VOYAGE,
   GUIDE_FR_DESTINATION_WEDDING,
   GUIDE_FR_VOYAGE_GROUPE_ENTREPRISE,
+  GUIDE_FR_FAMILLE_TOUT_INCLUS,
+  GUIDE_FR_LUNE_DE_MIEL,
+  GUIDE_FR_CROISIERES_QC_MTL,
   {
     slug: "yacht-charter-cost",
     title: "Combien coûte vraiment un charter de yacht d'une semaine en 2026 ?",
