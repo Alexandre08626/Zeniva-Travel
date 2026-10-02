@@ -1,33 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getVpsBase, internalAuthHeader } from "@/src/lib/server/internalSecret";
-
-const VPS_BASE = getVpsBase();
-const AUTH = internalAuthHeader();
+import { saveTravelLead } from "@/lib/travel-lead";
 
 export async function POST(req: NextRequest) {
   try {
     const { firstName, email, destination, ref } = await req.json();
-    if (!email) return NextResponse.json({ ok: false, error: "Email required" }, { status: 400 });
-
-    // Save lead to VPS → Supabase with REAL email
-    const res = await fetch(`${VPS_BASE}/admin/leads`, {
-      method: "POST",
-      headers: { Authorization: AUTH, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        first_name: firstName || "Visitor",
-        email: email,
-        destination: destination || null,
-        source: ref === "marco" ? "marco-facebook" : `social-${ref}`,
-        source_ref: ref,
-        status: "new",
-        language: "en",
-        deal_value: 1500,
-      }),
+    const cleanEmail = String(email || "").trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes("@")) {
+      return NextResponse.json({ ok: false, error: "Email required" }, { status: 400 });
+    }
+    const refCode = String(ref || "").slice(0, 60);
+    const result = await saveTravelLead({
+      name: String(firstName || ""),
+      email: cleanEmail,
+      destination: String(destination || ""),
+      source: refCode === "marco" ? "marco-facebook" : `social-${refCode || "direct"}`,
     });
-
-    const data = await res.json();
-    return NextResponse.json({ ok: true, lead_id: data.id });
+    return NextResponse.json({ ok: true, ...result });
   } catch (err: any) {
-    return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: err?.message || "Failed" }, { status: 500 });
   }
 }

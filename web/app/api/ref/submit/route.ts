@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-import { getVpsBase, getInternalSecret } from "@/src/lib/server/internalSecret";
-
-const VPS_BASE = getVpsBase();
-const VPS_SECRET = getInternalSecret();
+import { saveTravelLead } from "@/lib/travel-lead";
 
 export async function POST(request: Request) {
   try {
@@ -23,28 +20,15 @@ export async function POST(request: Request) {
       notes ? `Notes: ${notes}` : "",
     ].filter(Boolean).join(" | ");
 
-    // Submit to VPS chat endpoint — which handles lead extraction + ref attribution
-    const res = await fetch(`${VPS_BASE}/chat`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${VPS_SECRET}`,
-      },
-      body: JSON.stringify({
-        message,
-        session_id: `ref-${refCode}-${Date.now()}`,
-        name,
-        email,
-        phone: phone || null,
-        ref: refCode,
-        source: "influencer_referral",
-      }),
+    // Lead + referral code saved in Supabase `leads` (the old VPS no longer answers).
+    await saveTravelLead({
+      name,
+      email,
+      phone,
+      destination,
+      source: `influencer_referral:${String(refCode || "").slice(0, 60)}`,
+      details: message,
     });
-
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(`VPS error: ${err}`);
-    }
 
     return NextResponse.json({ ok: true });
   } catch (err: unknown) {
