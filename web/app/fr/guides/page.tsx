@@ -9,7 +9,7 @@ const BASE_URL = "https://www.zenivatravel.com";
 export const metadata: Metadata = {
   title: "Guides voyage — prix réels, réponses directes",
   description:
-    "Les guides de Zeniva Travel répondent aux questions qu'on se pose avant de réserver : ce que coûte vraiment un charter de yacht, une semaine tout-inclus à Cancún en famille, comment fonctionne un agent de voyage IA. Chiffres 2026 réels, sources nommées.",
+    "Les guides de Zeniva Travel répondent aux questions qu'on se pose avant de partir du Québec : quand partir dans le sud, Mexique ou République dominicaine, passeport et lettre de consentement pour enfant, mariage à destination, voyage de groupe ou d'entreprise, prix d'un tout-inclus à Cancún ou d'un charter de yacht. Sources officielles nommées.",
   alternates: { canonical: `${BASE_URL}/fr/guides`, languages: { "fr-CA": `${BASE_URL}/fr/guides`, "en-US": `${BASE_URL}/guides` } },
   openGraph: { title: "Guides voyage — Zeniva Travel", description: "Prix réels 2026, sources nommées.", url: `${BASE_URL}/fr/guides`, siteName: "Zeniva Travel", type: "website", locale: "fr_CA" },
 };

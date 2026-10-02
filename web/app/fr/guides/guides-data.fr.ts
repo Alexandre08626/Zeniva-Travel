@@ -2,8 +2,18 @@
 // Les chiffres sont identiques aux versions anglaises — une seule source de vérité par guide.
 
 import type { GuideData } from "../../guides/guides-data";
+import { GUIDE_FR_DESTINATION_WEDDING } from "./content/destination-wedding-planning.fr";
+import { GUIDE_FR_CUBA_MEXIQUE_RD } from "./content/cuba-mexique-ou-republique-dominicaine-depuis-quebec.fr";
+import { GUIDE_FR_QUAND_PARTIR_SUD } from "./content/quand-partir-dans-le-sud.fr";
+import { GUIDE_FR_DOCUMENTS_VOYAGE } from "./content/documents-voyage-etranger-passeport-enfant.fr";
+import { GUIDE_FR_VOYAGE_GROUPE_ENTREPRISE } from "./content/organiser-voyage-de-groupe-entreprise.fr";
 
 export const GUIDES_FR: GuideData[] = [
+  GUIDE_FR_QUAND_PARTIR_SUD,
+  GUIDE_FR_CUBA_MEXIQUE_RD,
+  GUIDE_FR_DOCUMENTS_VOYAGE,
+  GUIDE_FR_DESTINATION_WEDDING,
+  GUIDE_FR_VOYAGE_GROUPE_ENTREPRISE,
   {
     slug: "yacht-charter-cost",
     title: "Combien coûte vraiment un charter de yacht d'une semaine en 2026 ?",

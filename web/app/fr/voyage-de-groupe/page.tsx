@@ -131,6 +131,12 @@ export default function VoyageDeGroupe() {
             pour l'hébergement, les repas et les déplacements) ou un{" "}
             <Link href="/fr/yachts" className="font-semibold text-blue-700 underline">yacht privé</Link> pour un petit groupe.
           </p>
+          <p className="mt-4 leading-relaxed text-slate-700">
+            Pour aller plus loin, lisez nos guides{" "}
+            <Link href="/fr/guides/organiser-voyage-de-groupe-entreprise" className="font-semibold text-blue-700 underline">organiser un voyage de groupe ou d'entreprise</Link>{" "}
+            (échéancier, budget, règles de l'ARC) et{" "}
+            <Link href="/fr/guides/destination-wedding-planning" className="font-semibold text-blue-700 underline">organiser un mariage à destination dans le sud</Link>.
+          </p>
         </section>
 
         <Faq items={FAQ} titre="Questions des organisateurs de groupe" />

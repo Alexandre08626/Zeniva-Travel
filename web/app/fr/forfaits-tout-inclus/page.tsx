@@ -5,7 +5,7 @@ import { BASE, BandeauAction, Faq, FilAriane, FrNav, PiedFr, TEL_AFFICHE, TEL_LI
 
 const URL = `${BASE}/fr/forfaits-tout-inclus`;
 const DESCRIPTION =
-  "Forfaits soleil tout inclus au départ de Québec et Montréal : Cancún, Riviera Maya, Punta Cana, Cuba, Jamaïque. Vol, hôtel, repas, boissons et transferts. Proposition gratuite en français, prix total pour vos dates.";
+  "Forfaits soleil tout inclus au départ de Québec et Montréal : Cancún, Riviera Maya, Punta Cana, Jamaïque. Vol, hôtel, repas, boissons et transferts. Proposition gratuite en français, prix total pour vos dates.";
 
 export const metadata: Metadata = {
   title: "Forfaits tout inclus au départ de Québec et Montréal",
@@ -45,9 +45,9 @@ const DESTINATIONS = [
   {
     nom: "Varadero, Cayo Coco, Cayo Santa María (Cuba)",
     vol: "environ 3 h 30 à 4 h de vol",
-    pour: "Petits budgets, plage avant tout",
+    pour: "Avis aux voyageurs en vigueur",
     texte:
-      "Souvent parmi les forfaits les moins chers de l'hiver. Les complexes sont plus simples qu'au Mexique : on choisit Cuba pour la plage et le prix. Les règles d'entrée et le formulaire en ligne évoluent ; vérifiez-les avant le départ.",
+      "Avis du gouvernement du Canada mis à jour le 28 septembre 2026 : évitez tout voyage non essentiel à Cuba ; les compagnies aériennes canadiennes y ont suspendu leurs vols jusqu'à nouvel ordre. Vérifiez voyage.gc.ca avant de planifier un séjour à Cuba.",
   },
   {
     nom: "Montego Bay et Negril (Jamaïque)",
@@ -179,6 +179,12 @@ export default function ForfaitsToutInclus() {
               <Link href="/fr/guides/all-inclusive-cancun-cost-family-of-four" className="font-semibold text-blue-700 underline">
                 Combien coûte une semaine tout inclus à Cancún pour une famille de quatre
               </Link>
+              . Pour choisir la semaine, lisez{" "}
+              <Link href="/fr/guides/quand-partir-dans-le-sud" className="font-semibold text-blue-700 underline">quand partir dans le sud</Link>
+              ; pour trancher entre les destinations,{" "}
+              <Link href="/fr/guides/cuba-mexique-ou-republique-dominicaine-depuis-quebec" className="font-semibold text-blue-700 underline">Cuba, Mexique ou République dominicaine</Link>
+              ; et pour les passeports et les enfants,{" "}
+              <Link href="/fr/guides/documents-voyage-etranger-passeport-enfant" className="font-semibold text-blue-700 underline">les documents pour voyager à l'étranger</Link>
               . Vous organisez un voyage pour 10 personnes ou plus ? Voyez nos{" "}
               <Link href="/fr/voyage-de-groupe" className="font-semibold text-blue-700 underline">voyages de groupe</Link>.
             </p>

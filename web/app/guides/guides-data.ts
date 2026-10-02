@@ -26,9 +26,14 @@ export interface GuideData {
   cta: { label: string; href: string };
   /** Brand entity this guide is about (links to the @id declared in layout.tsx). */
   aboutId?: string;
+  /** Optional footer note replacing the default price-range disclaimer (guides without prices). */
+  disclaimer?: string;
 }
 
+import { GUIDE_EN_DESTINATION_WEDDING } from "./content/destination-wedding-planning.en";
+
 export const GUIDES: GuideData[] = [
+  GUIDE_EN_DESTINATION_WEDDING,
   {
     slug: "yacht-charter-cost",
     title: "How much does a week-long yacht charter really cost in 2026?",

@@ -59,7 +59,7 @@ const FAQ: QR[] = [
 const VOYAGES = [
   {
     titre: "Forfaits soleil tout inclus",
-    texte: "Cancún, Riviera Maya, Punta Cana, Cuba, Jamaïque : vol, hôtel, repas, boissons et transferts, au départ de Québec ou Montréal.",
+    texte: "Cancún, Riviera Maya, Punta Cana, Jamaïque : vol, hôtel, repas, boissons et transferts, au départ de Québec ou Montréal.",
     href: "/fr/forfaits-tout-inclus",
     emoji: "🏝️",
   },
@@ -180,7 +180,18 @@ export default function AccueilFr() {
               <p className="font-black text-slate-900">Combien coûte vraiment un charter de yacht d'une semaine ?</p>
               <span className="mt-2 inline-block text-sm font-bold text-blue-700">Lire le guide →</span>
             </Link>
+            <Link href="/fr/guides/quand-partir-dans-le-sud" className="rounded-3xl border border-slate-200 p-6 hover:shadow-lg">
+              <p className="font-black text-slate-900">Quand partir dans le sud : le meilleur moment par destination</p>
+              <span className="mt-2 inline-block text-sm font-bold text-blue-700">Lire le guide →</span>
+            </Link>
+            <Link href="/fr/guides/cuba-mexique-ou-republique-dominicaine-depuis-quebec" className="rounded-3xl border border-slate-200 p-6 hover:shadow-lg">
+              <p className="font-black text-slate-900">Cuba, Mexique ou République dominicaine : quel tout-inclus choisir ?</p>
+              <span className="mt-2 inline-block text-sm font-bold text-blue-700">Lire le guide →</span>
+            </Link>
           </div>
+          <p className="mt-6 text-slate-600">
+            <Link href="/fr/guides" className="font-bold text-blue-700 underline">Tous nos guides</Link> : documents de voyage et passeport d'enfant, mariage à destination, voyage de groupe ou d'entreprise.
+          </p>
         </section>
 
         <Faq items={FAQ} />

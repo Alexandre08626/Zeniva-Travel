@@ -34,7 +34,7 @@ const destinations = [
   { emoji: "🌴", name: "Cancun, Mexico", price: "Priced for your dates", highlight: "Most Popular", desc: "Crystal-clear water, perfect beaches, vibrant nightlife. A favourite for couples and families." },
   { emoji: "🏝️", name: "Punta Cana, Dominican Republic", price: "Priced for your dates", highlight: "Best Beaches", desc: "Long white-sand beaches, warm turquoise water and a wide choice of resorts." },
   { emoji: "🌺", name: "Montego Bay, Jamaica", price: "Priced for your dates", highlight: "Best Vibes", desc: "Reggae, rum, and world-class resorts. Jamaica's all-inclusive scene is legendary." },
-  { emoji: "🦩", name: "Varadero, Cuba", price: "Priced for your dates", highlight: "Best Price", desc: "One of the Caribbean's best-kept secrets. Long beaches and some of the most affordable resorts in the region." },
+  { emoji: "🦩", name: "Varadero, Cuba", price: "Check travel advisory", highlight: "Advisory", desc: "As of September 28, 2026, the Government of Canada advises avoiding non-essential travel to Cuba, and Canadian airlines have suspended flights there until further notice. Check travel.gc.ca before planning a trip." },
   { emoji: "🌊", name: "Nassau, Bahamas", price: "Priced for your dates", highlight: "Short Flight", desc: "About an hour's flight from Miami. Luxury resorts, paradise beaches, and world-class casinos." },
   { emoji: "🏖️", name: "Riviera Maya, Mexico", price: "Priced for your dates", highlight: "Luxury Pick", desc: "Tulum, Playa del Carmen, cenotes, and the most luxurious boutique resorts in Mexico." },
 ];

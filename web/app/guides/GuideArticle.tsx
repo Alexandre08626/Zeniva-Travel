@@ -212,7 +212,7 @@ export default function GuideArticle({ guide, locale, url, alternateUrl }: { gui
                   </li>
                 ))}
               </ul>
-              <p className="mt-6 text-xs text-gray-500">{t.disclaimer(formatDate(guide.dateModified, t.dateLocale))}</p>
+              <p className="mt-6 text-xs text-gray-500">{guide.disclaimer ?? t.disclaimer(formatDate(guide.dateModified, t.dateLocale))}</p>
             </section>
           </div>
         </article>
