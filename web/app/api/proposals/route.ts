@@ -82,8 +82,19 @@ export async function POST(request: Request) {
 
     const { client } = getSupabaseAdminClient();
     // Check if trip_id exists, update if so
-    const { data: existing } = await client.from(TABLE).select("id").eq("trip_id", body.id).limit(1);
+    const { data: existing } = await client.from(TABLE).select("id, payload").eq("trip_id", body.id).limit(1);
     let error;
+    // merge: add keys to the stored payload (checkout saves passengers) without touching owner/status.
+    if ((body as any).merge && existing && existing.length > 0) {
+      // Only traveler data can be merged anonymously — never prices or selections.
+      const incoming = (body.payload || {}) as Record<string, unknown>;
+      const allowed: Record<string, unknown> = {};
+      for (const k of ["passengers", "hotelGuests", "contact"]) if (k in incoming) allowed[k] = incoming[k];
+      const merged = { ...((existing[0] as any).payload || {}), ...allowed };
+      ({ error } = await client.from(TABLE).update({ payload: merged, updated_at: now }).eq("trip_id", body.id));
+      if (error) throw error;
+      return NextResponse.json({ data: { trip_id: body.id, merged: true } }, { status: 200 });
+    }
     if (existing && existing.length > 0) {
       ({ error } = await client.from(TABLE).update(record).eq("trip_id", body.id));
     } else {

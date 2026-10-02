@@ -74,6 +74,41 @@ function CheckoutPageInner() {
     requests: "",
   });
 
+  // One entry per traveler when a flight is booked (Duffel needs name, date of birth, gender).
+  const flightSelected = Boolean(selection?.flight);
+  const travelerCount = Math.max(1, (Number(tripDraft?.adults) || 1) + (Number(tripDraft?.children) || 0));
+  const [extraPassengers, setExtraPassengers] = useState([]);
+  const [leadDetails, setLeadDetails] = useState({ dob: "", gender: "" });
+  useEffect(() => {
+    setExtraPassengers((prev) => Array.from({ length: travelerCount - 1 }, (_, i) => prev[i] || { firstName: "", lastName: "", dob: "", gender: "" }));
+  }, [travelerCount]);
+  const passengers = [
+    { firstName: travelerForm.firstName.trim(), lastName: travelerForm.lastName.trim(), dob: leadDetails.dob, gender: leadDetails.gender, email: travelerForm.email.trim(), phone: travelerForm.phone.trim() },
+    ...extraPassengers.map((p) => ({ ...p, firstName: p.firstName.trim(), lastName: p.lastName.trim(), email: travelerForm.email.trim(), phone: travelerForm.phone.trim() })),
+  ];
+  const passengersReady = !flightSelected || passengers.every((p) => p.firstName && p.lastName && /^\d{4}-\d{2}-\d{2}$/.test(p.dob) && p.gender);
+  const phoneE164 = /^\+\d{8,15}$/.test(travelerForm.phone.replace(/[\s().-]/g, ""));
+
+  // Saved on the proposal so the paid-booking pipeline (ZeniPay webhook → execute) can book.
+  useEffect(() => {
+    if (!proposalId || !travelerForm.email.includes("@") || !travelerForm.firstName.trim()) return;
+    const t = setTimeout(() => {
+      const clean = passengers.map((p) => ({ ...p, phone: p.phone.replace(/[\s().-]/g, "") }));
+      fetch("/api/proposals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: proposalId,
+          ownerEmail: travelerForm.email.trim(),
+          merge: true,
+          payload: { passengers: clean, hotelGuests: clean.slice(0, 1), contact: { email: travelerForm.email.trim(), phone: clean[0].phone, name: `${clean[0].firstName} ${clean[0].lastName}`.trim() } },
+        }),
+      }).catch(() => {});
+    }, 1200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [proposalId, JSON.stringify(passengers)]);
+
   const hero = useMemo(() => { if (!tripDraft?.destination && !selection?.hotel) return "https://images.unsplash.com/photo-1502920917128-1aa500764b5d?auto=format&fit=crop&w=900&q=80";
     // Use selected accommodation image if available, otherwise fallback to destination images
     if (selection?.hotel?.image) {
@@ -114,7 +149,9 @@ function CheckoutPageInner() {
     Boolean(travelerForm.firstName.trim()) &&
     Boolean(travelerForm.lastName.trim()) &&
     /\S+@\S+\.\S+/.test(travelerForm.email.trim()) &&
-    Boolean(travelerForm.phone.trim());
+    Boolean(travelerForm.phone.trim()) &&
+    (!flightSelected || phoneE164) &&
+    passengersReady;
   const payDescription = `Zeniva Travel - ${tripDraft?.destination || "Trip"}${tripDraft?.checkIn && tripDraft?.checkOut ? ` (${tripDraft.checkIn} to ${tripDraft.checkOut})` : ""}`;
 
   if (dbLoading) {
@@ -247,6 +284,39 @@ function CheckoutPageInner() {
                   </label>
                 ))}
               </div>
+              {flightSelected && (
+                <div className="space-y-3 border-t border-slate-100 pt-4">
+                  <div className="text-xs font-semibold" style={{ color: TITLE_TEXT }}>
+                    Passengers (as on passport) — the airline needs these to issue tickets
+                  </div>
+                  {!phoneE164 && travelerForm.phone.trim() && (
+                    <div className="text-[11px] text-amber-700">Phone must include the country code, e.g. +1 514 555 0123.</div>
+                  )}
+                  {[0, ...extraPassengers.map((_, i) => i + 1)].map((idx) => {
+                    const p = idx === 0 ? { firstName: travelerForm.firstName, lastName: travelerForm.lastName, ...leadDetails } : extraPassengers[idx - 1];
+                    const set = (field, value) => {
+                      if (idx === 0) {
+                        if (field === "dob" || field === "gender") setLeadDetails((prev) => ({ ...prev, [field]: value }));
+                        else setTravelerForm((prev) => ({ ...prev, [field]: value }));
+                      } else {
+                        setExtraPassengers((prev) => prev.map((x, k) => (k === idx - 1 ? { ...x, [field]: value } : x)));
+                      }
+                    };
+                    return (
+                      <div key={idx} className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        <input className="rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder={`Passenger ${idx + 1} first name`} value={p.firstName} onChange={(e) => set("firstName", e.target.value)} disabled={idx === 0} />
+                        <input className="rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Last name" value={p.lastName} onChange={(e) => set("lastName", e.target.value)} disabled={idx === 0} />
+                        <input className="rounded-lg border border-slate-200 px-3 py-2 text-sm" type="date" aria-label="Date of birth" value={p.dob} onChange={(e) => set("dob", e.target.value)} />
+                        <select className="rounded-lg border border-slate-200 px-3 py-2 text-sm" aria-label="Gender" value={p.gender} onChange={(e) => set("gender", e.target.value)}>
+                          <option value="">Gender</option>
+                          <option value="female">Female</option>
+                          <option value="male">Male</option>
+                        </select>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </section>
 
             <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 space-y-4">
@@ -331,7 +401,7 @@ function CheckoutPageInner() {
                 customerPhone={travelerForm.phone.trim()}
                 proposalId={proposalId}
                 disabled={!travelerReady}
-                disabledLabel="Fill in your traveler details first"
+                disabledLabel={flightSelected ? "Fill in every passenger (date of birth, gender) and a phone with country code" : "Fill in your traveler details first"}
               />
             )}
             <div className="rounded-xl border border-slate-200 bg-white p-3 text-xs" style={{ color: MUTED_TEXT }}>

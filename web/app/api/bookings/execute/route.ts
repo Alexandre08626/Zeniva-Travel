@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { liteApiFetchJson, liteApiIsConfigured } from "@/src/lib/liteapiClient";
 import { createFlightOrder } from "../../../../src/lib/duffelClient";
 import { isInternalOrStaff, forbidden, internalHeaders } from "@/lib/internal-auth";
 
@@ -48,6 +49,33 @@ function toDuffelPassenger(p: Passenger) {
   const g = gender.startsWith("f") ? "f" : gender.startsWith("m") ? "m" : "";
   if (!given || !family || !/^\d{4}-\d{2}-\d{2}$/.test(born) || !g || !email.includes("@") || !/^\+\d{7,15}$/.test(phone)) return null;
   return { given_name: given, family_name: family, born_on: born, gender: g, title: g === "f" ? "ms" : "mr", email, phone_number: phone };
+}
+
+/** Cheapest current LiteAPI offer for one hotel, if its selling price is still within the shown total. */
+async function freshLiteApiOffer(o: { hotelId: string; checkin: string; checkout: string; adults: number; shownTotal: number }): Promise<{ offerId: string | null; note: string | null }> {
+  if (!liteApiIsConfigured()) return { offerId: null, note: "LiteAPI not configured" };
+  try {
+    const r = await liteApiFetchJson<any>({
+      path: "/hotels/rates",
+      method: "POST",
+      query: { rm: true },
+      body: { hotelIds: [o.hotelId], occupancies: [{ adults: o.adults, children: [] }], guestNationality: "CA", currency: "USD", checkin: o.checkin, checkout: o.checkout, maxRatesPerHotel: 10 },
+      timeoutMs: 30000,
+    });
+    const rooms: any[] = (r.data?.data || []).flatMap((h: any) => (Array.isArray(h?.roomTypes) ? h.roomTypes : []));
+    const priced = rooms
+      .map((rt) => ({ id: rt?.offerId, sell: Number((rt?.suggestedSellingPrice || rt?.offerRetailRate)?.amount) }))
+      .filter((x) => x.id && Number.isFinite(x.sell))
+      .sort((a, b) => a.sell - b.sell);
+    if (!priced.length) return { offerId: null, note: "no availability at LiteAPI for these dates anymore" };
+    const best = priced[0];
+    if (o.shownTotal > 0 && best.sell > o.shownTotal * 1.03) {
+      return { offerId: null, note: `price changed: now ${best.sell.toFixed(2)} USD vs ${o.shownTotal.toFixed(2)} shown — confirm with the client` };
+    }
+    return { offerId: String(best.id), note: null };
+  } catch (e: any) {
+    return { offerId: null, note: `LiteAPI rates error: ${e?.message || e}` };
+  }
 }
 
 export async function POST(request: Request) {
@@ -106,7 +134,21 @@ export async function POST(request: Request) {
     // 2. Hotel via LiteAPI — only with a real offerId (search results carry a hotelId, not an offer).
     const hotel = selections?.hotel;
     if (hotel) {
-      const offerId = hotel.offerId || hotel.rateOfferId;
+      let offerId: string | null = hotel.offerId || hotel.rateOfferId || null;
+      let offerNote: string | null = null;
+      // Search results only carry the hotelId: fetch a fresh bookable offer for the trip dates,
+      // refusing it if it costs more than what the client was shown (3 % tolerance).
+      if (!offerId && hotel.provider === "liteapi" && hotel.id && tripDraft?.checkIn && tripDraft?.checkOut) {
+        const fresh = await freshLiteApiOffer({
+          hotelId: String(hotel.id),
+          checkin: String(tripDraft.checkIn),
+          checkout: String(tripDraft.checkOut),
+          adults: Math.max(1, Number(tripDraft.adults) || travelers.length || 2),
+          shownTotal: parseFloat(String(hotel.price || "").replace(/[^0-9.]/g, "")) || 0,
+        });
+        offerId = fresh.offerId;
+        offerNote = fresh.note;
+      }
       const guests = (Array.isArray(hotelGuests) && hotelGuests.length ? hotelGuests : travelers)
         .map((g: Passenger) => ({ firstName: String(g.firstName || g.given_name || "").trim(), lastName: String(g.lastName || g.family_name || "").trim(), email: String(g.email || "").trim() }))
         .filter((g: { firstName: string; lastName: string; email: string }) => g.firstName && g.lastName && g.email.includes("@"));
@@ -114,7 +156,7 @@ export async function POST(request: Request) {
       if (hotel.provider !== "liteapi" || !offerId) {
         confirmations.hotel = {
           status: "needs_agent",
-          reason: "no LiteAPI offer id — book with the supplier for the selected dates",
+          reason: offerNote || "no LiteAPI offer id — book with the supplier for the selected dates",
           hotelId: hotel.id || null,
           name: hotel.name || null,
           checkIn: tripDraft?.checkIn || null,
