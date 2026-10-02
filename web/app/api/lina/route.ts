@@ -253,6 +253,37 @@ function todayLine() {
   return `\n\nTODAY'S DATE: ${d}. Use it to turn relative dates ("in February", "next weekend") into exact future YYYY-MM-DD dates — never a date in the past.`;
 }
 
+const PATCH_FIELDS = ["destination", "departureCity", "checkIn", "checkOut", "adults", "children", "budget", "currency", "accommodationType", "transportationType", "style", "service"];
+
+/** Structured trip brief from the conversation (JSON only), or null. */
+async function extractTripPatch(convo: LinaMsg[]): Promise<Record<string, unknown> | null> {
+  const transcript = convo
+    .slice(-12)
+    .map((m) => `${m.role === "user" ? "CLIENT" : "LINA"}: ${m.content.replace(/TRIP_PATCH_START[\s\S]*?TRIP_PATCH_END/g, "")}`)
+    .join(String.fromCharCode(10));
+  const sys = `You extract a travel brief from a conversation. Output ONLY one JSON object, no prose, no code fence.
+Keys (include only those the CLIENT clearly stated): destination (city name only), departureCity (city or IATA), checkIn, checkOut (YYYY-MM-DD, future dates), adults (integer), children (integer), budget (integer, no currency sign), currency (USD or CAD), accommodationType (Hotel|Resort|Villa|ZeniStay|Yacht), transportationType (Flights|No Flights), style.${todayLine()}
+If nothing is known, output {}.`;
+  const out = await linaComplete(sys, [{ role: "user", content: transcript }], { maxTokens: 250, temperature: 0 });
+  if (!out?.text) return null;
+  const m = out.text.match(/\{[\s\S]*\}/);
+  if (!m) return null;
+  try {
+    const raw = JSON.parse(m[0]) as Record<string, unknown>;
+    const patch: Record<string, unknown> = {};
+    for (const k of PATCH_FIELDS) {
+      const v = raw[k];
+      if (v === null || v === undefined || v === "") continue;
+      if ((k === "checkIn" || k === "checkOut") && !/^\d{4}-\d{2}-\d{2}$/.test(String(v))) continue;
+      if ((k === "adults" || k === "children" || k === "budget") && !Number.isFinite(Number(v))) continue;
+      patch[k] = k === "adults" || k === "children" || k === "budget" ? Number(v) : v;
+    }
+    return Object.keys(patch).length ? patch : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function POST(req: NextRequest) {
   const requestId = crypto.randomUUID();
 
@@ -291,10 +322,25 @@ export async function POST(req: NextRequest) {
       (mode === "agent" ? SYSTEM_PROMPT_AGENT : mode === "messenger" ? SYSTEM_PROMPT_CLIENT + MESSENGER_ADDENDUM : SYSTEM_PROMPT_CLIENT)) +
     todayLine();
 
-  const answer = await linaComplete(system, [...history, { role: "user", content: prompt }], { maxTokens: 900, temperature: 0.6 });
+  const convo: LinaMsg[] = [...history, { role: "user", content: prompt }];
+  // Orvel often skips the TRIP_PATCH block: a dedicated extraction runs in parallel
+  // (no extra wait) and fills the Trip Details panel when the reply has none.
+  const [answer, extracted] = await Promise.all([
+    linaComplete(system, convo, { maxTokens: 900, temperature: 0.6 }),
+    agencySystemPrompt ? Promise.resolve(null) : extractTripPatch(convo),
+  ]);
   const provider = answer?.provider || "none";
-  const reply = answer?.text || LINA_UNAVAILABLE;
-  const { text, tripPatch } = splitTripPatch(reply);
+  let reply = answer?.text || LINA_UNAVAILABLE;
+  let { text, tripPatch } = splitTripPatch(reply);
+  if (answer && !tripPatch && extracted) {
+    tripPatch = { patch: extracted, confidence: 0.8, source: "extraction" };
+    // Web clients read TRIP_PATCH from `reply`: give them the same block Lina would have written.
+    reply = `${text}
+
+TRIP_PATCH_START
+${JSON.stringify(tripPatch)}
+TRIP_PATCH_END`;
+  }
 
   logUsage({
     agencyId,
