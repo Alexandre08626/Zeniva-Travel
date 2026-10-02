@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { sessionFromRequest, isStaffSession, isInternalOrStaff, forbidden } from "@/lib/internal-auth";
 import { getSupabaseAdminClient } from "../../../src/lib/supabase/server";
 
 const TABLE = "documents";
@@ -23,8 +24,13 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
     }
     const { searchParams } = new URL(request.url);
-    const ownerEmail = searchParams.get("ownerEmail");
     const tripId = searchParams.get("tripId");
+    // Travel documents are personal: the signed-in owner sees theirs, staff can filter by owner.
+    const session = sessionFromRequest(request);
+    if (!session) return NextResponse.json({ data: [] }, { status: 401 });
+    const ownerEmail = isStaffSession(session)
+      ? searchParams.get("ownerEmail")
+      : String(session.email || "");
 
     const { client } = getSupabaseAdminClient();
     let query = client
@@ -48,11 +54,14 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const session = sessionFromRequest(request);
+  if (!session) return forbidden();
   try {
     if (!hasSupabaseEnv()) {
       return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
     }
     const body = (await request.json()) as DocumentPayload;
+    if (!isStaffSession(session)) body.ownerEmail = session.email;
     if (!body?.id || !body?.ownerEmail) {
       return NextResponse.json({ error: "Missing id or ownerEmail" }, { status: 400 });
     }
@@ -77,6 +86,7 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  if (!isInternalOrStaff(request)) return forbidden();
   try {
     if (!hasSupabaseEnv()) {
       return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });

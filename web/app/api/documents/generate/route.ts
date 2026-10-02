@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { sessionFromRequest } from "@/lib/internal-auth";
 
 // ─── Document Templates ───────────────────────────────────────────────────────
 
@@ -639,20 +640,30 @@ function generateExcursionDoc(params: URLSearchParams) {
 }
 
 // ─── Route Handler ────────────────────────────────────────────────────────────
+const escapeHtml = (v: string) =>
+  v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
 export async function GET(req: NextRequest) {
+  // Branded tickets/invoices: signed-in users only (no anonymous forgeries on our domain).
+  if (!sessionFromRequest(req)) {
+    return NextResponse.json({ ok: false, error: "Please sign in to open your documents." }, { status: 401 });
+  }
   const url = new URL(req.url);
-  const type = url.searchParams.get("type") || "invoice";
-  const download = url.searchParams.get("download") === "1";
-  const ref = url.searchParams.get("ref") || "ZNV0001";
+  // Every value is HTML-escaped before it reaches the templates (they interpolate raw).
+  const params = new URLSearchParams();
+  url.searchParams.forEach((v, k) => params.append(k, escapeHtml(v)));
+  const type = params.get("type") || "invoice";
+  const download = params.get("download") === "1";
+  const ref = (params.get("ref") || "ZNV0001").replace(/[^A-Za-z0-9_-]/g, "");
 
   let html = "";
   switch (type) {
-    case "flight":    html = generateFlightDoc(url.searchParams);    break;
-    case "hotel":     html = generateHotelDoc(url.searchParams);     break;
-    case "transfer":  html = generateTransferDoc(url.searchParams);  break;
-    case "excursion": html = generateExcursionDoc(url.searchParams); break;
+    case "flight":    html = generateFlightDoc(params);    break;
+    case "hotel":     html = generateHotelDoc(params);     break;
+    case "transfer":  html = generateTransferDoc(params);  break;
+    case "excursion": html = generateExcursionDoc(params); break;
     case "invoice":
-    default:          html = generateInvoiceDoc(url.searchParams);   break;
+    default:          html = generateInvoiceDoc(params);   break;
   }
 
   const headers: HeadersInit = { "Content-Type": "text/html; charset=utf-8" };

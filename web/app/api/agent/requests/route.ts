@@ -134,14 +134,6 @@ function requireAgentSession(request: Request) {
     return { ok: false as const, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
   let roles = normalizeRbacRoles(session.roles || []);
-  // Check zeniva_roles cookie as lightweight upgrade signal
-  const rolesCookie = getCookieValue(cookies, "zeniva_roles");
-  if (rolesCookie) {
-    try {
-      const cookieRoles = normalizeRbacRoles(JSON.parse(decodeURIComponent(rolesCookie)));
-      if (cookieRoles.includes("hq") || cookieRoles.includes("admin")) roles = cookieRoles;
-    } catch { /* ignore */ }
-  }
   if (!roles.length) {
     return { ok: false as const, error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }

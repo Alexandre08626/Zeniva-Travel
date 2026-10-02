@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { RBAC_ROLES, normalizeRbacRole } from "./src/lib/rbac";
+import { verifySession } from "./src/lib/server/auth";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
@@ -71,21 +72,19 @@ export default function proxy(req: NextRequest) {
     }
   }
 
-  const rolesCookie = req.cookies.get("zeniva_roles")?.value;
+  // Roles come from the signed session (zeniva_session, HMAC) — never from the
+  // client-writable zeniva_roles cookie, which anyone can forge.
   let roles: string[] = [];
-  if (rolesCookie) {
+  const sessionToken = req.cookies.get("zeniva_session")?.value;
+  if (sessionToken) {
     try {
-      const decoded = decodeURIComponent(rolesCookie);
-      const parsed = JSON.parse(decoded);
-      roles = Array.isArray(parsed) ? parsed.map(String) : [];
+      roles = (verifySession(decodeURIComponent(sessionToken))?.roles || []).map(String);
     } catch {
       roles = [];
     }
   }
-  const previewRole = req.cookies.get("zeniva_effective_role")?.value || "";
-  const normalizedPreview = normalizeRbacRole(previewRole);
   const agentRoles = new Set(RBAC_ROLES);
-  const isAgent = Boolean(normalizedPreview) || roles.some((role) => {
+  const isAgent = roles.some((role) => {
     const normalized = normalizeRbacRole(role);
     return normalized ? agentRoles.has(normalized) : false;
   });
@@ -93,22 +92,20 @@ export default function proxy(req: NextRequest) {
 
   // Restrict /ai-agents to info@zeniva.ca only
   if (pathname === "/ai-agents" || pathname.startsWith("/ai-agents/")) {
-    const sessionToken = req.cookies.get("zeniva_session")?.value;
     if (!sessionToken) {
       const loginUrl = new URL("/login", req.url);
       loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);
     }
     try {
-      const [data] = sessionToken.split(".");
-      if (!data) throw new Error("Invalid token");
-      const payload = JSON.parse(Buffer.from(data, "base64url").toString("utf-8"));
-      const email = (payload?.email || "").trim().toLowerCase();
-      if (payload?.exp && payload.exp * 1000 < Date.now()) {
+      // Signature checked: a hand-made token with email info@zeniva.ca must not pass.
+      const payload = verifySession(decodeURIComponent(sessionToken));
+      if (!payload) {
         const loginUrl = new URL("/login", req.url);
         loginUrl.searchParams.set("redirect", pathname);
         return NextResponse.redirect(loginUrl);
       }
+      const email = (payload.email || "").trim().toLowerCase();
       if (email !== "info@zeniva.ca") {
         return NextResponse.redirect(new URL("/", req.url));
       }

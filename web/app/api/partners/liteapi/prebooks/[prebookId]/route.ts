@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { isInternalOrStaff, forbidden } from "@/lib/internal-auth";
 import { liteApiFetchJson, liteApiIsConfigured } from "../../../../../../src/lib/liteapiClient";
 
 const paramsSchema = z.object({
@@ -7,6 +8,8 @@ const paramsSchema = z.object({
 });
 
 export async function GET(req: Request, context: { params: Promise<{ prebookId?: string }> | { prebookId?: string } }) {
+  // Real supplier booking (money): only from the paid-booking pipeline or staff.
+  if (!isInternalOrStaff(req)) return forbidden();
   if (!liteApiIsConfigured()) {
     return NextResponse.json(
       {

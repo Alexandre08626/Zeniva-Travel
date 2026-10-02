@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { isInternalOrStaff, forbidden } from "@/lib/internal-auth";
 import { liteApiFetchJson, liteApiIsConfigured } from "../../../../../../src/lib/liteapiClient";
 
 const schema = z.object({
@@ -11,6 +12,8 @@ const schema = z.object({
 });
 
 export async function POST(req: Request) {
+  // Real supplier booking (money): only from the paid-booking pipeline or staff.
+  if (!isInternalOrStaff(req)) return forbidden();
   if (!liteApiIsConfigured()) {
     return NextResponse.json(
       {

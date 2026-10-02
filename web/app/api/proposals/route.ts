@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "../../../src/lib/supabase/server";
+import { sessionFromRequest, isStaffSession, isInternalOrStaff, forbidden } from "@/lib/internal-auth";
 
 const TABLE = "proposals";
 
@@ -23,20 +24,31 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
     }
     const { searchParams } = new URL(request.url);
-    const ownerEmail = searchParams.get("ownerEmail");
+    const ownerEmail = (searchParams.get("ownerEmail") || "").toLowerCase();
+    const id = searchParams.get("id");
+
+    // One trip by its (random) id: open, it's the shareable link. Lists: only the
+    // signed-in owner or staff — never the whole table.
+    const session = sessionFromRequest(request);
+    const staff = isStaffSession(session);
+    if (!id) {
+      if (!session) return NextResponse.json({ data: [] }, { status: 401 });
+      if (!staff && ownerEmail !== String(session.email || "").toLowerCase()) {
+        return NextResponse.json({ data: [] }, { status: 403 });
+      }
+    }
 
     const { client } = getSupabaseAdminClient();
     let query = client
       .from(TABLE)
-      .select("id, trip_id, owner_email, status, created_at, updated_at, payload, destination, title, content")
-      .order("updated_at", { ascending: false });
+      .select("id, trip_id, owner_email, status, created_at, updated_at, payload, destination, title")
+      .order("updated_at", { ascending: false })
+      .limit(200);
 
-    const id = searchParams.get("id");
     if (id) {
-      query = query.eq("trip_id", id);
-    }
-    if (ownerEmail) {
-      query = query.eq("owner_email", ownerEmail.toLowerCase());
+      query = query.eq("trip_id", id).limit(1);
+    } else if (ownerEmail) {
+      query = query.eq("owner_email", ownerEmail);
     }
 
     const { data, error } = await query;
@@ -64,7 +76,6 @@ export async function POST(request: Request) {
       status: body.status || "Draft",
       destination: (body.payload as any)?.tripDraft?.destination || "",
       title: (body.payload as any)?.trip?.title || (body.payload as any)?.proposal?.title || "Trip",
-      content: (body.payload as any)?.proposal || {},
       payload: body.payload || {},
       updated_at: body.updatedAt || now,
     };
@@ -87,6 +98,7 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  if (!isInternalOrStaff(request)) return forbidden();
   try {
     if (!hasSupabaseEnv()) {
       return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
@@ -98,7 +110,7 @@ export async function DELETE(request: Request) {
     }
 
     const { client } = getSupabaseAdminClient();
-    const { error } = await client.from(TABLE).delete().eq("id", id);
+    const { error } = await client.from(TABLE).delete().eq("trip_id", id);
     if (error) throw error;
 
     return NextResponse.json({ data: { removed: 1 } });

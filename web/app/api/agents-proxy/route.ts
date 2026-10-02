@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { sessionFromRequest, isStaffSession } from "@/lib/internal-auth";
 import { getVpsBase, internalAuthHeader, isInternalAuth } from "@/src/lib/server/internalSecret";
 
 const VPS_BASE = getVpsBase();
@@ -8,10 +9,8 @@ export async function GET(req: NextRequest) {
   if (!VPS_BASE) return NextResponse.json({ error: "VPS offline" }, { status: 503 });
   // Auth check — require agent session cookie or Bearer token
   const authHeader = req.headers.get("authorization") || "";
-  const sessionCookie = req.cookies.get("zeniva_session")?.value || "";
-  const rolesCookie = req.cookies.get("zeniva_roles")?.value || "";
   const hasInternalAuth = isInternalAuth(authHeader);
-  const hasAgentSession = sessionCookie.length > 10 && (rolesCookie.includes("hq") || rolesCookie.includes("agent") || rolesCookie.includes("admin") || rolesCookie.includes("broker"));
+  const hasAgentSession = isStaffSession(sessionFromRequest(req));
   if (!hasInternalAuth && !hasAgentSession) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -161,11 +160,10 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   if (!VPS_BASE) return NextResponse.json({ error: "VPS offline" }, { status: 503 });
-  const sessionCookie = req.cookies.get("zeniva_session")?.value || "";
-  const rolesCookie = req.cookies.get("zeniva_roles")?.value || "";
   const bearerAuth = req.headers.get("Authorization") || "";
-  const isHQ = rolesCookie.includes("hq") || rolesCookie.includes("admin") || isInternalAuth(bearerAuth);
-  if (!isHQ && sessionCookie.length < 10) {
+  const sessRoles = (sessionFromRequest(req)?.roles || []).map(String);
+  const isHQ = sessRoles.includes("hq") || sessRoles.includes("admin") || isInternalAuth(bearerAuth);
+  if (!isHQ) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const pathParam = req.nextUrl.searchParams.get("path");

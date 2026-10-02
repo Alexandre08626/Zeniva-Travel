@@ -226,10 +226,10 @@ export default function LinaVideoCall({ tripId }: { tripId: string }) {
       if (args.transportationType) snapPatch.transportationType = args.transportationType;
       if (Object.keys(snapPatch).length > 0) updateSnapshot(tripId, snapPatch);
 
-      fetch(`/api/proposals?ownerEmail=voice-call@zenivatravel.com`)
+      fetch(`/api/proposals?id=${encodeURIComponent(tripId)}`)
         .then((r) => r.json())
         .then((d) => {
-          const existing = (d?.data || []).find((p: any) => p.id === tripId);
+          const existing = (d?.data || []).find((p: any) => p.trip_id === tripId || p.id === tripId);
           const prevDraft = existing?.payload?.tripDraft || {};
           const prevSnap = existing?.payload?.snapshot || {};
           return fetch("/api/proposals", {

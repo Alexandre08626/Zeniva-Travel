@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { sessionFromRequest, isStaffSession } from "@/lib/internal-auth";
 import { createClient } from "@supabase/supabase-js";
 import { internalAuthHeader, isInternalAuth } from "@/src/lib/server/internalSecret";
 
@@ -11,11 +12,8 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
-  const sessionCookie = req.cookies.get("zeniva_session")?.value || "";
-  const rolesCookie = req.cookies.get("zeniva_roles")?.value || "";
   const hasInternalAuth = isInternalAuth(authHeader);
-  const hasAgentSession = sessionCookie.length > 10 &&
-    (rolesCookie.includes("hq") || rolesCookie.includes("agent") || rolesCookie.includes("admin"));
+  const hasAgentSession = isStaffSession(sessionFromRequest(req));
   if (!hasInternalAuth && !hasAgentSession) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

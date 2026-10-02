@@ -33,7 +33,7 @@ export function verifySession(token: string): SessionPayload | null {
   const [data, sig] = token.split(".");
   if (!data || !sig) return null;
   const expected = crypto.createHmac("sha256", getSecret()).update(data).digest("base64url");
-  if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
+  if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
   try {
     const payload = JSON.parse(base64urlDecode(data)) as SessionPayload;
     if (!payload?.email || !payload?.exp) return null;
