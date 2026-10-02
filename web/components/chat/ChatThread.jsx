@@ -373,7 +373,7 @@ function ChatThread({ tripId, proposalMode = "" }) {
     setInput("");
     setLoading(true);
     try {
-      const { reply, tripPatch } = await sendMessageToLina(conversation);
+      const { reply, tripPatch } = await sendMessageToLina(conversation, { mode: "client", sessionId: tripId });
       addMessage(tripId, "assistant", reply || "");
       if (accountChannelId && reply) {
         await saveChatMessage({
@@ -386,14 +386,14 @@ function ChatThread({ tripId, proposalMode = "" }) {
           propertyName: snapshot.destination || "Trip",
         });
       }
-      if (tripPatch?.patch) {
-        applyTripPatch(tripId, tripPatch.patch);
-      }
-      // Auto-extract trip info from full conversation and fill Trip Snapshot
+      // Auto-extract trip info from full conversation and fill Trip Snapshot.
+      // Lina's own TRIP_PATCH is applied last so it wins over the regex guesses.
       const allMsgs = [...history, { role: "user", content: trimmed }, { role: "assistant", content: reply || "" }];
-      const extracted = extractTripInfoFromConversation(allMsgs);
+      const regexGuess = extractTripInfoFromConversation(allMsgs);
+      if (regexGuess) applyTripPatch(tripId, regexGuess);
+      if (tripPatch?.patch) applyTripPatch(tripId, tripPatch.patch);
+      const extracted = tripPatch?.patch?.destination ? { ...(regexGuess || {}), destination: tripPatch.patch.destination } : regexGuess;
       if (extracted) {
-        applyTripPatch(tripId, extracted);
         // Auto-set trip title from destination — only if it looks like a real place name
         if (extracted.destination) {
           const dest = String(extracted.destination).trim();

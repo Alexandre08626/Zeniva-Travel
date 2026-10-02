@@ -3,9 +3,7 @@ import crypto from "node:crypto";
 import { recordLinaTurn } from "@/lib/lina-training-log";
 import { getAgencyContext } from "@/lib/agency-context";
 
-const GROQ_KEY = process.env.GROQ_API_KEY;
-const GROQ_DEFAULT_MODEL = "openai/gpt-oss-120b";
-const GROQ_MODEL = process.env.GROQ_MODEL || GROQ_DEFAULT_MODEL;
+import { linaStream } from "@/lib/lina-llm";
 
 const VOICE_SYSTEM_PROMPT = `You are Lina, AI travel concierge at Zeniva (zenivatravel.com). This is a VOICE conversation — keep replies SHORT (1-2 sentences), natural, conversational.
 
@@ -92,13 +90,6 @@ ES: cabaña, casa de vacaciones, villa, alquiler vacacional, casa de playa
 Only include fields you are confident about. Omit unknown fields. NEVER omit the TRIP_PATCH block when the user gave you new info.`;
 
 export async function POST(req: NextRequest) {
-  if (!GROQ_KEY) {
-    return new Response(JSON.stringify({ error: "GROQ_API_KEY missing" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
   let body: any;
   try {
     body = await req.json();
@@ -127,30 +118,16 @@ export async function POST(req: NextRequest) {
     { role: "user", content: prompt },
   ];
 
-  const callGroq = (model: string) =>
-    fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${GROQ_KEY}`,
-      },
-      body: JSON.stringify({ model, messages, temperature: 0.7, stream: true }),
-    });
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Toronto" });
+  messages[0] = { role: "system", content: `${VOICE_SYSTEM_PROMPT}
 
-  let groqResp = await callGroq(GROQ_MODEL);
-  // Groq decommissions models (llama-3.3-70b-versatile is gone) — retry with the known-good default
-  if (!groqResp.ok && GROQ_MODEL !== GROQ_DEFAULT_MODEL) {
-    const err = await groqResp.clone().text().catch(() => "");
-    if (groqResp.status === 404 || /model_not_found|decommissioned/i.test(err)) {
-      console.warn(`[lina-stream] Groq model ${GROQ_MODEL} unavailable, retrying with ${GROQ_DEFAULT_MODEL}`);
-      groqResp = await callGroq(GROQ_DEFAULT_MODEL);
-    }
-  }
+TODAY'S DATE: ${today}. Turn relative dates into exact future YYYY-MM-DD dates.` };
 
-  if (!groqResp.ok || !groqResp.body) {
-    const err = await groqResp.text();
-    return new Response(JSON.stringify({ error: err || "Groq stream failed" }), {
-      status: groqResp.status || 500,
+  // Orvel first (zenitech.dev relay), Groq as backup — both stream OpenAI-format SSE.
+  const upstream = await linaStream(messages[0].content, messages.slice(1) as any, { maxTokens: 400, temperature: 0.7 });
+  if (!upstream) {
+    return new Response(JSON.stringify({ error: "Lina unavailable" }), {
+      status: 503,
       headers: { "Content-Type": "application/json" },
     });
   }
@@ -180,7 +157,7 @@ export async function POST(req: NextRequest) {
         sessionId,
         source: "lina-stream",
         mode: "voice",
-        provider: "groq",
+        provider: upstream.provider,
         agencyId,
         agentId,
         systemPrompt: VOICE_SYSTEM_PROMPT,
@@ -191,7 +168,7 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return new Response(groqResp.body.pipeThrough(tee), {
+  return new Response(upstream.body.pipeThrough(tee), {
     status: 200,
     headers: {
       "Content-Type": "text/event-stream",
@@ -203,3 +180,4 @@ export async function POST(req: NextRequest) {
 }
 
 export const runtime = "nodejs";
+export const maxDuration = 60;

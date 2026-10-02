@@ -1,3 +1,4 @@
+import { linaComplete, splitTripPatch, LINA_UNAVAILABLE, type LinaMsg } from "@/lib/lina-llm";
 import { logUsage } from "@/lib/usage-tracker";
 import { recordLinaTurn } from "@/lib/lina-training-log";
 import { getAgencyContext } from "@/lib/agency-context";
@@ -61,15 +62,10 @@ Signature: "- Lina, ${agencyName || "l'agence"}"
 `;
 }
 
-/**
- * Lina AI API Route
- * Primary: Routes through Zeniva VPS API (Claude Sonnet)
- * Fallback: Direct OpenAI call if VPS is unreachable
- */
 
-const ZENIVA_API_URL =
-  process.env.ZENIVA_API_URL ||
-  "https://vmi3097009.contaboserver.net/chat";
+/**
+ * Lina AI API Route — brain = Orvel (via zenitech.dev relay), backups in lib/lina-llm.ts.
+ */
 
 const SYSTEM_PROMPT_CLIENT = `
 You are Lina, AI travel concierge at Zeniva (zenivatravel.com).
@@ -230,270 +226,31 @@ Give ONE short confirmation line, then:
 Sign-off: "– Lina, Zeniva"
 `;
 
+const MESSENGER_ADDENDUM = `
+
+CHANNEL: Facebook Messenger. There is NO gold button and NO Trip Details panel here.
+- Plain text only: no markdown, no asterisks, no bold.
+- When the brief is complete, give ONE short recap (no prices), then ask for their email address (or phone number) so a Zeniva advisor sends the personalized proposal with live prices. They can also continue at https://www.zenivatravel.com/chat
+- Never mention a "Generate Proposal" button.`;
+
 const requestSchema = z.object({
   prompt: z.string().trim().min(1).max(4000).optional(),
-  sessionId: z.string().optional(),
-  mode: z.enum(["client", "agent"]).optional().default("client"),
+  sessionId: z.string().max(200).optional(),
+  mode: z.enum(["client", "agent", "messenger"]).optional().default("client"),
   history: z
     .array(
       z.object({
         role: z.enum(["user", "assistant", "system"]),
-        content: z.string().min(1).max(4000),
+        content: z.string().min(1).max(8000),
       })
     )
+    .max(60)
     .optional(),
 });
 
-const TIMEOUT_MS = Number(process.env.LINA_TIMEOUT_MS || 30000);
-const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
-const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
-const GEMINI_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
-const GROQ_KEY = process.env.GROQ_API_KEY;
-const GROQ_DEFAULT_MODEL = "openai/gpt-oss-120b";
-const GROQ_MODEL = process.env.GROQ_MODEL || GROQ_DEFAULT_MODEL;
-
-/**
- * Groq decommissions models (llama-3.3-70b-versatile is gone). If the configured
- * model is rejected with model_not_found, retry once with the known-good default.
- */
-async function groqChat(body: Record<string, unknown>, signal?: AbortSignal): Promise<Response> {
-  const call = (model: string) =>
-    fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${GROQ_KEY}` },
-      body: JSON.stringify({ ...body, model }),
-      signal,
-    });
-  let resp = await call(GROQ_MODEL);
-  if (!resp.ok && GROQ_MODEL !== GROQ_DEFAULT_MODEL) {
-    const err = await resp.clone().text().catch(() => "");
-    if (resp.status === 404 || /model_not_found|decommissioned/i.test(err)) {
-      console.warn(`[lina] Groq model ${GROQ_MODEL} unavailable, retrying with ${GROQ_DEFAULT_MODEL}`);
-      resp = await call(GROQ_DEFAULT_MODEL);
-    }
-  }
-  return resp;
-}
-const MODEL = (process.env.OPENAI_MODEL || "gpt-4o-mini").trim();
-const API_BASE = (process.env.OPENAI_API_BASE || "https://api.openai.com/v1").trim();
-const OPENAI_KEY =
-  process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
-
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-/**
- * Primary path: call Zeniva VPS API (Claude Sonnet via our Python backend)
- */
-async function callZenivaAPI(
-  prompt: string,
-  history: { role: string; content: string }[],
-  requestId: string
-): Promise<{ reply: string; sessionId?: string } | null> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  try {
-    const resp = await fetch(ZENIVA_API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: prompt,
-        sessionId: requestId,
-        source: "zenivatravel.com",
-        language: "fr",
-        history: history.slice(-20).map((m) => ({
-          role: m.role === "assistant" ? "assistant" : m.role,
-          content: m.content,
-        })),
-      }),
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-    if (!resp.ok) return null;
-    const data = await resp.json();
-    const reply = data?.response || data?.reply || "";
-    if (!reply) return null;
-    // Detect VPS error messages — treat as failure so we fallback to Claude API
-    if (/probl[eè]me technique|temporarily unavailable|erreur|indisponible/i.test(reply)) {
-      console.warn(`[lina] VPS returned error message: ${reply.slice(0, 80)}`);
-      return null;
-    }
-    return { reply, sessionId: data?.sessionId };
-  } catch {
-    clearTimeout(timeout);
-    return null;
-  }
-}
-
-/**
- * Fallback 1: direct Anthropic Claude API call (preferred — same model as VPS)
- */
-async function callClaudeFallback(
-  prompt: string,
-  history: { role: string; content: string }[],
-  requestId: string,
-  mode: "client" | "agent" = "client",
-  agencySystemPrompt?: string | null
-): Promise<string | null> {
-  if (!ANTHROPIC_KEY) return null;
-
-  const systemPrompt = agencySystemPrompt || (mode === "agent" ? SYSTEM_PROMPT_AGENT : SYSTEM_PROMPT_CLIENT);
-  const messages = [
-    ...history.map((m) => ({ role: m.role === "system" ? "user" as const : m.role as "user" | "assistant", content: m.content })),
-    { role: "user" as const, content: prompt },
-  ];
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  try {
-    const resp = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: ANTHROPIC_MODEL,
-        max_tokens: 1024,
-        system: systemPrompt,
-        messages,
-      }),
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-    if (!resp.ok) return null;
-    const data = await resp.json();
-    const text = data?.content?.[0]?.text?.trim();
-    return text || null;
-  } catch {
-    clearTimeout(timeout);
-    return null;
-  }
-}
-
-/**
- * Fallback 2: Groq (free tier — Llama 3.3 70B, 14400 req/day)
- */
-async function callGroqFallback(
-  prompt: string,
-  history: { role: string; content: string }[],
-  requestId: string,
-  mode: "client" | "agent" = "client",
-  agencySystemPrompt?: string | null
-): Promise<string | null> {
-  if (!GROQ_KEY) return null;
-
-  const systemPrompt = agencySystemPrompt || (mode === "agent" ? SYSTEM_PROMPT_AGENT : SYSTEM_PROMPT_CLIENT);
-  const messages = [
-    { role: "system", content: systemPrompt },
-    ...history,
-    { role: "user", content: prompt },
-  ];
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  try {
-    const resp = await groqChat({ messages, temperature: 0.7 }, controller.signal);
-    clearTimeout(timeout);
-    if (!resp.ok) return null;
-    const data = await resp.json();
-    return data?.choices?.[0]?.message?.content?.trim() || null;
-  } catch {
-    clearTimeout(timeout);
-    return null;
-  }
-}
-
-/**
- * Fallback 3: Google Gemini (free tier — 15 RPM)
- */
-async function callGeminiFallback(
-  prompt: string,
-  history: { role: string; content: string }[],
-  requestId: string,
-  mode: "client" | "agent" = "client",
-  agencySystemPrompt?: string | null
-): Promise<string | null> {
-  if (!GEMINI_KEY) return null;
-
-  const systemPrompt = agencySystemPrompt || (mode === "agent" ? SYSTEM_PROMPT_AGENT : SYSTEM_PROMPT_CLIENT);
-  const contents = [
-    ...history.map((m) => ({
-      role: m.role === "assistant" ? "model" : "user",
-      parts: [{ text: m.content }],
-    })),
-    { role: "user", parts: [{ text: prompt }] },
-  ];
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  try {
-    const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: systemPrompt }] },
-          contents,
-          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
-        }),
-        signal: controller.signal,
-      }
-    );
-    clearTimeout(timeout);
-    if (!resp.ok) return null;
-    const data = await resp.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-    return text || null;
-  } catch {
-    clearTimeout(timeout);
-    return null;
-  }
-}
-
-/**
- * Fallback 3: direct OpenAI call (last resort)
- */
-async function callOpenAIFallback(
-  prompt: string,
-  history: { role: string; content: string }[],
-  requestId: string,
-  mode: "client" | "agent" = "client",
-  agencySystemPrompt?: string | null
-): Promise<string> {
-  if (!OPENAI_KEY) return "Lina is temporarily unavailable. Please contact info@zeniva.ca";
-
-  const systemPrompt = agencySystemPrompt || (mode === "agent" ? SYSTEM_PROMPT_AGENT : SYSTEM_PROMPT_CLIENT);
-  const messages = [
-    { role: "system", content: systemPrompt },
-    ...history,
-    { role: "user", content: prompt },
-  ];
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  try {
-    const resp = await fetch(`${API_BASE}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_KEY}`,
-      },
-      body: JSON.stringify({ model: MODEL, messages, temperature: 0.7 }),
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-    if (!resp.ok) return "Lina is temporarily unavailable. Please contact info@zeniva.ca";
-    const data = await resp.json();
-    return data?.choices?.[0]?.message?.content?.trim() || "";
-  } catch {
-    clearTimeout(timeout);
-    return "Lina is temporarily unavailable. Please contact info@zeniva.ca";
-  }
+function todayLine() {
+  const d = new Date().toLocaleDateString("en-CA", { timeZone: "America/Toronto" });
+  return `\n\nTODAY'S DATE: ${d}. Use it to turn relative dates ("in February", "next weekend") into exact future YYYY-MM-DD dates — never a date in the past.`;
 }
 
 export async function POST(req: NextRequest) {
@@ -503,173 +260,64 @@ export async function POST(req: NextRequest) {
   try {
     json = await req.json();
   } catch {
-    return NextResponse.json(
-      { error: "Invalid JSON body", requestId },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid JSON body", requestId }, { status: 400 });
   }
 
   const parsed = requestSchema.safeParse(json);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid request", issues: parsed.error.issues, requestId },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid request", issues: parsed.error.issues, requestId }, { status: 400 });
   }
 
-  const prompt =
-    parsed.data.prompt?.trim() ||
-    "Hello, can you introduce yourself?";
-  const history = (parsed.data.history || []).map((m) => ({
-    role: m.role,
-    content: m.content,
-  }));
+  const prompt = parsed.data.prompt?.trim() || "Hello, can you introduce yourself?";
+  const history: LinaMsg[] = (parsed.data.history || [])
+    .filter((m) => m.role !== "system")
+    .slice(-30)
+    .map((m) => ({ role: m.role, content: m.content }));
   const mode = parsed.data.mode || "client";
-
   const sessionId = parsed.data.sessionId || requestId;
 
-  // B2B: extract agency context for multi-tenant tracking
-  const { agencyId, agentId } = await getAgencyContext(req);
-
-  // Agent mode: try Groq first (free/fast), then VPS, Claude, Gemini, OpenAI
-  if (mode === "agent") {
-    // Primary: Groq (Llama 3.3 — free tier, 14400 req/day)
-    const groqAgentReply = await callGroqFallback(prompt, history, sessionId, mode, null);
-    if (groqAgentReply) {
-      logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "groq-agent" } });
-      recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider: "groq-agent", agencyId, agentId, systemPrompt: null, history, prompt, reply: groqAgentReply });
-      return NextResponse.json({
-        reply: groqAgentReply,
-        prompt,
-        requestId,
-        meta: { provider: "groq-agent", sessionId, mode },
-      });
-    }
-    // Fallback 1: VPS (Claude Sonnet)
-    const vpsPrimary = await callZenivaAPI(prompt, history, sessionId);
-    if (vpsPrimary?.reply) {
-      logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "zeniva-claude-agent" } });
-      recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider: "zeniva-claude-agent", agencyId, agentId, systemPrompt: null, history, prompt, reply: vpsPrimary.reply });
-      return NextResponse.json({
-        reply: vpsPrimary.reply,
-        prompt,
-        requestId,
-        meta: { provider: "zeniva-claude-agent", sessionId: vpsPrimary.sessionId, mode },
-      });
-    }
-    // Fallback 2: Claude API direct
-    const claudeReply = await callClaudeFallback(prompt, history, sessionId, mode, null);
-    if (claudeReply) {
-      logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "claude-api-agent" } });
-      recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider: "claude-api-agent", agencyId, agentId, systemPrompt: null, history, prompt, reply: claudeReply });
-      return NextResponse.json({
-        reply: claudeReply,
-        prompt,
-        requestId,
-        meta: { provider: "claude-api-agent", sessionId, mode },
-      });
-    }
-    // Fallback 3: Gemini
-    const geminiAgentReply = await callGeminiFallback(prompt, history, sessionId, mode, null);
-    if (geminiAgentReply) {
-      logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "gemini-agent" } });
-      recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider: "gemini-agent", agencyId, agentId, systemPrompt: null, history, prompt, reply: geminiAgentReply });
-      return NextResponse.json({
-        reply: geminiAgentReply,
-        prompt,
-        requestId,
-        meta: { provider: "gemini-agent", sessionId, mode },
-      });
-    }
-    // Fallback 4: OpenAI
-    const agentReply = await callOpenAIFallback(prompt, history, sessionId, mode, null);
-    logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation_agent", metadata: { sessionId, mode, provider: "openai-agent" } });
-    recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider: "openai-agent", agencyId, agentId, systemPrompt: null, history, prompt, reply: agentReply });
-    return NextResponse.json({
-      reply: agentReply,
-      prompt,
-      requestId,
-      meta: { provider: "openai-agent", sessionId, mode },
-    });
-  }
-
-  // B2B: build agency-specific system prompt if agency context exists
-  const { agencyConfig } = await getAgencyContext(req);
-  let agencyName: string | undefined;
-  if (agencyId) {
+  // B2B: agency context (multi-tenant tracking + agency-specific Lina)
+  const { agencyId, agentId, agencyConfig } = await getAgencyContext(req);
+  let agencySystemPrompt: string | null = null;
+  if (mode === "client" && agencyId) {
     const { getSupabaseAdminClient } = await import("@/src/lib/supabase/server");
     const { client } = getSupabaseAdminClient();
     const { data: agency } = await client.from("agencies").select("name").eq("id", agencyId).single();
-    agencyName = agency?.name;
-  }
-  const agencySystemPrompt = buildAgencySystemPrompt(agencyConfig, agencyName);
-
-  // Primary: Groq (Llama 3.3 — free/fast)
-  const groqPrimary = await callGroqFallback(prompt, history, sessionId, mode, agencySystemPrompt);
-  if (groqPrimary) {
-    logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "groq" } });
-    recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider: "groq", agencyId, agentId, systemPrompt: agencySystemPrompt, history, prompt, reply: groqPrimary });
-    return NextResponse.json({
-      reply: groqPrimary,
-      prompt,
-      requestId,
-      meta: { provider: "groq", model: GROQ_MODEL },
-    });
+    agencySystemPrompt = buildAgencySystemPrompt(agencyConfig, agency?.name);
   }
 
-  // Fallback 1: Zeniva VPS (Claude) — skip if agency override active
-  const primary = agencySystemPrompt ? null : await callZenivaAPI(prompt, history, sessionId);
-  if (primary?.reply) {
-    logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "zeniva-claude" } });
-    recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider: "zeniva-claude", agencyId, agentId, systemPrompt: agencySystemPrompt, history, prompt, reply: primary.reply });
-    return NextResponse.json({
-      reply: primary.reply,
-      prompt,
-      requestId,
-      meta: { provider: "zeniva-claude", sessionId: primary.sessionId, mode },
-    });
-  }
+  const system =
+    (agencySystemPrompt ||
+      (mode === "agent" ? SYSTEM_PROMPT_AGENT : mode === "messenger" ? SYSTEM_PROMPT_CLIENT + MESSENGER_ADDENDUM : SYSTEM_PROMPT_CLIENT)) +
+    todayLine();
 
-  // Fallback 2: Claude API direct
-  console.warn(`[lina] ${sessionId} Groq+VPS unavailable, trying Claude API direct`);
-  const claudeFallback = await callClaudeFallback(prompt, history, sessionId, mode, agencySystemPrompt);
-  if (claudeFallback) {
-    logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "claude-api-fallback" } });
-    recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider: "claude-api-fallback", agencyId, agentId, systemPrompt: agencySystemPrompt, history, prompt, reply: claudeFallback });
-    return NextResponse.json({
-      reply: claudeFallback,
-      prompt,
-      requestId,
-      meta: { provider: "claude-api-fallback", model: ANTHROPIC_MODEL },
-    });
-  }
+  const answer = await linaComplete(system, [...history, { role: "user", content: prompt }], { maxTokens: 900, temperature: 0.6 });
+  const provider = answer?.provider || "none";
+  const reply = answer?.text || LINA_UNAVAILABLE;
+  const { text, tripPatch } = splitTripPatch(reply);
 
-  // Fallback 3: Gemini
-  console.warn(`[lina] ${sessionId} Claude API unavailable, trying Gemini`);
-  const geminiFallback = await callGeminiFallback(prompt, history, sessionId, mode, agencySystemPrompt);
-  if (geminiFallback) {
-    logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "gemini-fallback" } });
-    recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider: "gemini-fallback", agencyId, agentId, systemPrompt: agencySystemPrompt, history, prompt, reply: geminiFallback });
-    return NextResponse.json({
-      reply: geminiFallback,
-      prompt,
-      requestId,
-      meta: { provider: "gemini-fallback", model: GEMINI_MODEL },
-    });
+  logUsage({
+    agencyId,
+    agentId,
+    service: "lina_ai",
+    action: mode === "agent" ? "conversation_agent" : "conversation",
+    metadata: { sessionId, mode, provider },
+  });
+  if (answer) {
+    recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider, agencyId, agentId, systemPrompt: agencySystemPrompt, history, prompt, reply });
   }
-
-  // Fallback 4: OpenAI direct
-  console.warn(`[lina] ${sessionId} Gemini unavailable, falling back to OpenAI`);
-  const fallbackReply = await callOpenAIFallback(prompt, history, sessionId, mode, agencySystemPrompt);
-  logUsage({ agencyId, agentId, service: "lina_ai", action: "conversation", metadata: { sessionId, mode, provider: "openai-fallback" } });
-  recordLinaTurn({ sessionId, requestId, source: "lina", mode, provider: "openai-fallback", agencyId, agentId, systemPrompt: agencySystemPrompt, history, prompt, reply: fallbackReply });
 
   return NextResponse.json({
-    reply: fallbackReply,
+    // Messenger gets clean text; web clients parse TRIP_PATCH themselves from `reply`.
+    reply: mode === "messenger" ? text : reply,
+    text,
+    tripPatch: tripPatch || null,
+    unavailable: !answer,
     prompt,
     requestId,
-    meta: { provider: "openai-fallback", model: MODEL },
+    meta: { provider, sessionId, mode },
   });
 }
 
 export const runtime = "nodejs";
+export const maxDuration = 60;

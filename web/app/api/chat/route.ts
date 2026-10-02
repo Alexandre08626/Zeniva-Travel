@@ -2,6 +2,7 @@ import { logUsage } from "@/lib/usage-tracker";
 import { getAgencyContext } from "@/lib/agency-context";
 import { recordLinaTurn } from "@/lib/lina-training-log";
 import crypto from "node:crypto";
+import { linaComplete, LINA_UNAVAILABLE } from "@/lib/lina-llm";
 
 const SYSTEM_PROMPT_TRAVEL = `
 You are Zeniva AI – Executive AI Travel Assistant at Zeniva LLC (zenivatravel.com).
@@ -140,16 +141,6 @@ type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
  * Shared handler for GET (single prompt) and POST (full conversation from linaClient).
  */
 async function runChat(request: Request, opts: { prompt: string; messages?: ChatMessage[]; mode: string | null }) {
-  const apiKey = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
-  if (!apiKey) {
-    return new Response(
-      JSON.stringify({ error: "Missing OPENAI_API_KEY (or NEXT_PUBLIC_OPENAI_API_KEY) on the server." }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
-  }
-
-  const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
-  const apiBase = process.env.OPENAI_API_BASE || "https://api.openai.com/v1";
   const systemPrompt = getSystemPrompt(opts.mode);
 
   // Conversation = prior user/assistant turns (client-side system messages are ignored) + current prompt
@@ -157,51 +148,29 @@ async function runChat(request: Request, opts: { prompt: string; messages?: Chat
   const prompt = opts.prompt || history.filter((m) => m.role === "user").at(-1)?.content || "";
   if (!opts.prompt && history.at(-1)?.role === "user") history.pop();
 
-  const body = {
-    model,
-    messages: [{ role: "system", content: systemPrompt }, ...history, { role: "user", content: prompt }],
-    temperature: 0.7,
-  };
-
-  const resp = await fetch(`${apiBase}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!resp.ok) {
-    const text = await resp.text();
-    return new Response(JSON.stringify({ error: text || resp.statusText }), {
-      status: resp.status,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  const data = await resp.json();
-  const reply = data?.choices?.[0]?.message?.content?.trim?.() || "";
+  const answer = await linaComplete(systemPrompt, [...history, { role: "user", content: prompt }], { maxTokens: 900, temperature: 0.7 });
+  const reply = answer?.text || LINA_UNAVAILABLE;
 
   // B2B usage tracking + training dataset
   const { agencyId, agentId } = await getAgencyContext(request);
-  logUsage({ agencyId, agentId, service: "zeniva_ai", action: "chat_message", metadata: { mode: opts.mode, model: data?.model } });
-  recordLinaTurn({
-    sessionId: request.headers.get("x-session-id") || crypto.randomUUID(),
-    source: "chat",
-    mode: opts.mode,
-    provider: "openai",
-    agencyId,
-    agentId,
-    systemPrompt,
-    history,
-    prompt,
-    reply,
-    metadata: { model: data?.model },
-  });
+  logUsage({ agencyId, agentId, service: "zeniva_ai", action: "chat_message", metadata: { mode: opts.mode, provider: answer?.provider || "none" } });
+  if (answer) {
+    recordLinaTurn({
+      sessionId: request.headers.get("x-session-id") || crypto.randomUUID(),
+      source: "chat",
+      mode: opts.mode,
+      provider: answer.provider,
+      agencyId,
+      agentId,
+      systemPrompt,
+      history,
+      prompt,
+      reply,
+    });
+  }
 
   return new Response(
-    JSON.stringify({ prompt, reply, meta: { source: "openai", model: data?.model, created: data?.created } }),
+    JSON.stringify({ prompt, reply, unavailable: !answer, meta: { source: answer?.provider || "none" } }),
     { status: 200, headers: { "Content-Type": "application/json" } }
   );
 }
@@ -249,3 +218,5 @@ export async function POST(request: Request) {
     return errorResponse(err);
   }
 }
+
+export const maxDuration = 60;
