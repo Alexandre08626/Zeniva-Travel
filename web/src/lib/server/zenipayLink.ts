@@ -67,3 +67,62 @@ export async function alertPayLinkFailure(info: {
 
 export const PAY_LINK_UNAVAILABLE_MESSAGE =
   "Online payment is temporarily unavailable. Your request has been sent to our team and an advisor will send you a secure payment link shortly.";
+
+/**
+ * zenipay.ca's create-link only takes amount/currency/description: no metadata, no return URL,
+ * and it does not call Zeniva back after payment. So we keep the who/what on our side:
+ * a pending payment intent (Supabase, best effort) + an HQ push, so the team can match the
+ * ZeniPay payment to the trip and confirm the booking.
+ */
+export async function recordPaymentIntent(info: {
+  linkId: string;
+  url: string;
+  amount: number | string;
+  currency?: string;
+  description?: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  proposalId?: string;
+}) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const now = new Date().toISOString();
+  if (url && key) {
+    try {
+      const { createClient } = await import("@supabase/supabase-js");
+      const supabase = createClient(url, key);
+      const row: Record<string, unknown> = {
+        id: info.linkId,
+        url: info.url,
+        amount: parseFloat(String(info.amount)),
+        currency: String(info.currency || "USD").toUpperCase(),
+        description: info.description || "",
+        status: "pending",
+        uses: 0,
+        created_at: now,
+        updated_at: now,
+      };
+      const metadata = {
+        proposal_id: info.proposalId || null,
+        customer_name: info.customerName || null,
+        customer_email: info.customerEmail || null,
+        customer_phone: info.customerPhone || null,
+        source: "zenivatravel.com",
+      };
+      let { error } = await supabase.from("zenipay_pay_links").upsert({ ...row, metadata }, { onConflict: "id" });
+      // Older table without a metadata column: keep the who/what in the description.
+      if (error) ({ error } = await supabase.from("zenipay_pay_links").upsert({ ...row, description: `${row.description} | ${JSON.stringify(metadata)}`.slice(0, 1000) }, { onConflict: "id" }));
+      if (error) console.error("[zenipay-link] intent not saved:", error.message);
+    } catch (err: any) {
+      console.error("[zenipay-link] intent error", err?.message || err);
+    }
+  }
+  const who = [info.customerName, info.customerEmail, info.customerPhone].filter(Boolean).join(" · ") || "client";
+  await sendPushToHQ({
+    title: "Paiement ZeniPay lancé — à confirmer",
+    body: `${who} — ${info.amount} ${info.currency || "USD"} — ${info.description || ""}${info.proposalId ? ` — proposition ${info.proposalId}` : ""} — lien ${info.linkId}`.slice(0, 240),
+    url: "/agent/finance",
+    tag: "zenipay-intent",
+  }).catch(() => undefined);
+}

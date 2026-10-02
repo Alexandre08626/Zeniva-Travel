@@ -255,6 +255,8 @@ function ChatThread({ tripId, proposalMode = "" }) {
   const handleEmailCapture = async () => {
     if (!captureEmail.includes("@")) return;
     setCaptureEmailSaving(true);
+    // Keep the contact on the trip so checkout / payment link carry the client's email and name.
+    applyTripPatch(tripId, { clientEmail: captureEmail.trim(), ...(captureName.trim() ? { clientName: captureName.trim() } : {}) });
     try {
       // Lead enregistré par /api/lina-lead (Supabase + alerte HQ) ; l'ancien VPS est hors ligne.
       const snap = snapshots[tripId] || {};

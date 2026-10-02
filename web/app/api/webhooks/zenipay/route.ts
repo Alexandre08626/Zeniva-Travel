@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { getInternalSecret } from "@/src/lib/server/internalSecret";
 import { createClient } from "@supabase/supabase-js";
+import { internalHeaders } from "@/lib/internal-auth";
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -110,11 +111,17 @@ export async function POST(req: NextRequest) {
     if (proposalId) {
       try {
         // Load proposal from Supabase
-        const { data: proposals } = await supabase
+        // Proposals are keyed by trip_id (newer schema) or id: try both.
+        let proposalKey: "trip_id" | "id" = "trip_id";
+        let { data: proposals, error: propErr } = await supabase
           .from("proposals")
           .select("payload")
           .eq("trip_id", proposalId)
           .limit(1);
+        if (propErr || !proposals?.length) {
+          proposalKey = "id";
+          ({ data: proposals } = await supabase.from("proposals").select("payload").eq("id", proposalId).limit(1));
+        }
 
         const proposal = proposals?.[0];
         if (proposal?.payload) {
@@ -124,7 +131,7 @@ export async function POST(req: NextRequest) {
           const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.zenivatravel.com";
           const execRes = await fetch(`${baseUrl}/api/bookings/execute`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", ...internalHeaders() },
             body: JSON.stringify({ proposalId, selections, passengers, hotelGuests, tripDraft }),
           });
           const execData = await execRes.json();
@@ -134,12 +141,12 @@ export async function POST(req: NextRequest) {
             status: "Booked",
             payload: { ...proposal.payload, bookingConfirmations: execData.confirmations },
             updated_at: new Date().toISOString(),
-          }).eq("trip_id", proposalId);
+          }).eq(proposalKey, proposalId);
 
           // Send confirmation email to client
-          await fetch(`${baseUrl}/api/bookings/confirmation-email`, {
+          if (customer_email) await fetch(`${baseUrl}/api/bookings/confirmation-email`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", ...internalHeaders() },
             body: JSON.stringify({
               clientEmail: customer_email,
               clientName: customer_name,

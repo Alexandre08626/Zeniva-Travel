@@ -1,14 +1,14 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
 import ZeniPayButton from "../../../src/components/ZeniPayButton.client";
 import { useTripsStore } from "../../../lib/store/tripsStore";
 import { useAuthStore } from "../../../src/lib/authStore";
-import { getImagesForDestination } from "../../../src/lib/images";
-import { computePrice, parseMoney, formatCurrency } from "../../../src/lib/pricing";
-import { MUTED_TEXT, TITLE_TEXT } from "../../../src/design/tokens";
+import { getImagesForDestination, getPartnerHotelImages } from "../../../src/lib/images";
+import { computePrice, computeTripTotal, formatCurrency } from "../../../src/lib/pricing";
+import { BRAND_BLUE, LIGHT_BG, MUTED_TEXT, TITLE_TEXT } from "../../../src/design/tokens";
+import SelectedSummary from "../../../src/components/SelectedSummary";
 
 
 import React from "react";
@@ -64,22 +64,14 @@ function CheckoutPageInner() {
   const trips = storeData.trips;
   const user = useAuthStore((s) => s.user);
   const userId = user?.email || "";
-  const [paymentStatus, setPaymentStatus] = useState("idle");
-  const [confirmationId, setConfirmationId] = useState("");
   const [travelerForm, setTravelerForm] = useState({
     firstName: "",
     lastName: "",
-    email: user?.email || "",
+    email: user?.email || tripDraft?.clientEmail || "",
     phone: "",
     country: "",
     loyaltyNumber: "",
     requests: "",
-  });
-  const [paymentForm, setPaymentForm] = useState({
-    cardNumber: "",
-    cardName: "",
-    expiry: "",
-    cvc: "",
   });
 
   const hero = useMemo(() => { if (!tripDraft?.destination && !selection?.hotel) return "https://images.unsplash.com/photo-1502920917128-1aa500764b5d?auto=format&fit=crop&w=900&q=80";
@@ -98,10 +90,10 @@ function CheckoutPageInner() {
   const flightSelection = selection?.flight;
   const flightOutbound = flightSelection?.outbound || flightSelection;
   const flightInbound = flightSelection?.inbound || null;
-  const flight = flightOutbound || { airline: "Airline", route: "YUL → CUN", times: "19:20 – 08:45", fare: "Business", bags: "2 checked" };
-  const flightRouteLabel = flightInbound?.route ? `${flight.route} / ${flightInbound.route}` : flight.route;
-  const flightTimesLabel = flightInbound?.times ? `${flight.times} / ${flightInbound.times}` : flight.times;
-  const hotel = selection?.hotel || extraHotels[0] || { name: "Hotel Playa", room: "Junior Suite", location: "Beachfront", rating: 4.6 };
+  const flight = flightOutbound || null;
+  const flightRouteLabel = flight ? (flightInbound?.route ? `${flight.route} / ${flightInbound.route}` : flight.route) : "";
+  const flightTimesLabel = flight ? (flightInbound?.times ? `${flight.times} / ${flightInbound.times}` : flight.times) : "";
+  const hotel = selection?.hotel || extraHotels[0] || null;
   const activity = selection?.activity || null;
   const transfer = selection?.transfer || null;
 
@@ -112,194 +104,18 @@ function CheckoutPageInner() {
     extraTransfers,
   });
 
-  // Compute TRUE total including villa/car/shortterm (same logic as SelectedSummary)
-  const trueTotal = useMemo(() => { if (!selection?.flight && !selection?.hotel && !tripDraft?.destination) return 0;
-    // Flight total
-    let flightTotal = 0;
-    const fl = selection?.flight;
-    if (fl?.outbound && fl?.inbound) {
-      flightTotal = (parseMoney(fl.outbound.price) ?? 0) + (parseMoney(fl.inbound.price) ?? 0);
-    } else if (fl) {
-      flightTotal = parseMoney(fl.price) ?? 0;
-    }
-    // Hotel total
-    const hotelTotal = (() => {
-      const h = selection?.hotel;
-      if (!h) return 0;
-      const nightly = parseMoney(h.price) ?? 0;
-      const nights = parseMoney(h.nights) ?? parseMoney(tripDraft?.nights) ?? 5;
-      return nightly > 0 ? nightly * nights : 0;
-    })();
-    // Villa/ZeniStay total (price = priceTotal already)
-    const villaTotal = parseMoney(selection?.villa?.price) ?? parseMoney(selection?.shortterm?.price) ?? 0;
-    // Activity
-    const activityTotal = parseMoney(selection?.activity?.price) ?? 0;
-    // Transfer
-    const transferTotal = parseMoney(selection?.transfer?.price) ?? 0;
-    // Car
-    const carTotal = parseMoney(selection?.car?.price) ?? 0;
-
-    const subtotal = flightTotal + hotelTotal + villaTotal + activityTotal + transferTotal + carTotal;
-    if (subtotal === 0) return pricing.total || 0; // fallback to computePrice
-    const fee = Math.round(subtotal * 0.06 * 100) / 100;
-    return Math.round((subtotal + fee) * 100) / 100;
-  }, [selection, tripDraft, pricing]);
+  // Amount charged = the review page's Total (hotel ×nights only when priced per night,
+  // flight = offer total for all passengers). 0 → price on request, no payment button.
+  const trueTotal = useMemo(() => computeTripTotal(selection, tripDraft), [selection, tripDraft]);
 
   if (!proposalId) return null;
 
-  const canSubmitPayment =
+  const travelerReady =
     Boolean(travelerForm.firstName.trim()) &&
     Boolean(travelerForm.lastName.trim()) &&
-    Boolean(travelerForm.email.trim()) &&
-    Boolean(travelerForm.phone.trim()) &&
-    Boolean(paymentForm.cardNumber.trim()) &&
-    Boolean(paymentForm.cardName.trim()) &&
-    Boolean(paymentForm.expiry.trim()) &&
-    Boolean(paymentForm.cvc.trim());
-
-  const handlePayNow = async () => {
-    if (paymentStatus !== "idle") return;
-    if (!canSubmitPayment) return;
-    setPaymentStatus("processing");
-
-    const now = new Date().toISOString();
-    const bookingId = `checkout-${Date.now()}`;
-    const confirmationNumber = `ZNV-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
-    const invoiceId = `${bookingId}-invoice`;
-    const existingTrip = trips.find((t) => t.id === proposalId);
-    const tripId = existingTrip
-      ? proposalId
-      : createTrip({
-          title: tripDraft?.destination ? `${tripDraft.destination} Checkout` : "Hotel booking",
-          destination: tripDraft?.destination || "",
-          dates: tripDraft?.checkIn && tripDraft?.checkOut ? `${tripDraft.checkIn} to ${tripDraft.checkOut}` : "",
-          travelers: tripDraft?.adults ? String(tripDraft.adults) : "",
-        });
-
-    const confirmationPath = `/checkout/${proposalId}/confirmation?bookingId=${encodeURIComponent(bookingId)}&invoiceId=${encodeURIComponent(invoiceId)}&tripId=${encodeURIComponent(tripId)}&confirmationNumber=${encodeURIComponent(confirmationNumber)}`;
-
-    const confirmationDoc = {
-      id: bookingId,
-      tripId,
-      userId,
-      type: "confirmation",
-      title: `Payment confirmation (${tripDraft?.destination || "Trip"})`,
-      provider: "Zeniva",
-      confirmationNumber,
-      url: confirmationPath,
-      updatedAt: now,
-      details: JSON.stringify({
-        booking_reference: confirmationNumber,
-        status: "confirmed",
-        destination: tripDraft?.destination || "",
-        travelers: tripDraft?.adults || pricing.travelers,
-        paymentContact: {
-          firstName: travelerForm.firstName,
-          lastName: travelerForm.lastName,
-          email: travelerForm.email,
-          phone: travelerForm.phone,
-          country: travelerForm.country,
-        },
-      }),
-    };
-
-    const invoiceDoc = {
-      id: invoiceId,
-      tripId,
-      userId,
-      type: "invoice",
-      title: `Invoice (${tripDraft?.destination || "Trip"})`,
-      provider: "Zeniva",
-      confirmationNumber: `INV-${confirmationNumber}`,
-      url: `/api/partners/duffel-stays/bookings/mock-pdf?docId=${encodeURIComponent(invoiceId)}`,
-      updatedAt: now,
-      details: JSON.stringify({
-        booking_reference: confirmationNumber,
-        subtotal: pricing.hasAnyPrice ? pricing.subtotal : null,
-        fees: pricing.hasAnyPrice ? pricing.fees : null,
-        total: pricing.hasAnyPrice ? pricing.total : null,
-        currency: "USD",
-      }),
-    };
-
-    const confirmationPayload = {
-      bookingId,
-      invoiceId,
-      confirmationNumber,
-      proposalId,
-      tripId,
-      createdAt: now,
-      traveler: travelerForm,
-      payment: {
-        cardName: paymentForm.cardName,
-        cardLast4: paymentForm.cardNumber.replace(/\s+/g, "").slice(-4),
-      },
-      itinerary: {
-        departureCity: tripDraft?.departureCity || "",
-        destination: tripDraft?.destination || "",
-        checkIn: tripDraft?.checkIn || "",
-        checkOut: tripDraft?.checkOut || "",
-        travelers: tripDraft?.adults || pricing.travelers,
-      },
-      totalLabel: pricing.hasAnyPrice ? formatCurrency(pricing.total) : "On request",
-      links: {
-        confirmationPath,
-        invoicePath: invoiceDoc.url,
-      },
-    };
-
-    if (typeof window !== "undefined") {
-      window.sessionStorage.setItem(`checkout_confirmation_${bookingId}`, JSON.stringify(confirmationPayload));
-    }
-
-    if (userId) {
-      const existing = (getDocumentsForUser(userId) || {})[tripId] || [];
-      upsertDocuments(userId, tripId, [confirmationDoc, invoiceDoc, ...existing]);
-
-      await Promise.allSettled([
-        fetch("/api/documents", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            id: confirmationDoc.id,
-            ownerEmail: userId,
-            tripId,
-            updatedAt: now,
-            payload: confirmationDoc,
-          }),
-        }),
-        fetch("/api/documents", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            id: invoiceDoc.id,
-            ownerEmail: userId,
-            tripId,
-            updatedAt: now,
-            payload: invoiceDoc,
-          }),
-        }),
-        fetch("/api/bookings", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            id: bookingId,
-            ownerEmail: userId,
-            status: "Invoiced",
-            createdAt: now,
-            updatedAt: now,
-            payload: confirmationPayload,
-          }),
-        }),
-      ]);
-    }
-
-    setConfirmationId(confirmationNumber);
-    setPaymentStatus("confirmation");
-    setTimeout(() => {
-      router.push(confirmationPath);
-    }, 700);
-  };
+    /\S+@\S+\.\S+/.test(travelerForm.email.trim()) &&
+    Boolean(travelerForm.phone.trim());
+  const payDescription = `Zeniva Travel - ${tripDraft?.destination || "Trip"}${tripDraft?.checkIn && tripDraft?.checkOut ? ` (${tripDraft.checkIn} to ${tripDraft.checkOut})` : ""}`;
 
   if (dbLoading) {
     return (
@@ -363,23 +179,6 @@ function CheckoutPageInner() {
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr,1fr] items-start">
           <div className="space-y-4">
-            {paymentStatus === "confirmed" && (
-              <section className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 text-sm">
-                <div className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>Payment received</div>
-                <div className="mt-1" style={{ color: MUTED_TEXT }}>
-                  Your booking is confirmed. You can find the confirmation in My Travel Documents.
-                </div>
-                <div className="mt-3">
-                  <Link
-                    href="/documents"
-                    className="inline-flex rounded-full px-4 py-2 text-xs font-bold text-white"
-                    style={{ backgroundColor: BRAND_BLUE }}
-                  >
-                    Open My Travel Documents
-                  </Link>
-                </div>
-              </section>
-            )}
             <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>Traveler details</div>
@@ -453,10 +252,10 @@ function CheckoutPageInner() {
             <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="text-sm font-semibold" style={{ color: TITLE_TEXT }}>Payment</div>
-                <span className="text-[11px] font-bold text-emerald-600">🔒 Paiement Sécurisé</span>
+                <span className="text-[11px] font-bold text-emerald-600">🔒 Secure payment</span>
               </div>
               <p className="text-sm text-slate-600">
-                Fill in your traveler details above, then click the button below to proceed to our secure payment page.
+                Fill in your traveler details above, then click the payment button to continue on our secure ZeniPay page.
               </p>
               <div className="flex flex-wrap gap-3 text-xs text-slate-500">
                 <span>✅ Visa</span><span>✅ Mastercard</span><span>✅ Amex</span><span>✅ Apple Pay</span>
@@ -476,17 +275,20 @@ function CheckoutPageInner() {
               tripDraft={tripDraft}
             />
 
-            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">
-              <div className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>Flight</div>
-              <div className="text-sm" style={{ color: TITLE_TEXT }}>{flight.airline} • {flightRouteLabel}</div>
-              <div className="text-xs" style={{ color: MUTED_TEXT }}>{flightTimesLabel} • {flight.fare} • {flight.bags}</div>
-            </div>
+            {flight && (
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">
+                <div className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>Flight</div>
+                <div className="text-sm" style={{ color: TITLE_TEXT }}>{flight.airline} • {flightRouteLabel}</div>
+                <div className="text-xs" style={{ color: MUTED_TEXT }}>{[flightTimesLabel, flight.fare, flight.bags].filter(Boolean).join(" • ")}</div>
+              </div>
+            )}
 
+            {hotel && (
             <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">
               <div className="text-sm font-semibold" style={{ color: MUTED_TEXT }}>{tripDraft?.accommodationType === 'Hotel' ? 'Hotel' : tripDraft?.accommodationType === 'Yacht' ? 'Yacht' : (tripDraft?.accommodationType === 'ZeniStay' || tripDraft?.accommodationType === 'Residence') ? 'ZeniStay' : 'Accommodation'}</div>
-              <div className="text-sm" style={{ color: TITLE_TEXT }}>{hotel.name} • {hotel.location || "Central"}</div>
+              <div className="text-sm" style={{ color: TITLE_TEXT }}>{[hotel.name, hotel.location].filter(Boolean).join(" • ")}</div>
               <div className="text-xs" style={{ color: MUTED_TEXT }}>
-                {tripDraft?.accommodationType === 'Yacht' ? `Specs: ${hotel.specs || "Yacht specs"}` : `Room: ${hotel.room || "Deluxe"} • Rating: ${hotel.rating || "4.5"}`}
+                {tripDraft?.accommodationType === 'Yacht' ? (hotel.specs || "") : [hotel.room ? `Room: ${hotel.room}` : "", hotel.rating ? `Rating: ${hotel.rating}` : ""].filter(Boolean).join(" • ")}
               </div>
               <div className="flex gap-2 overflow-x-auto pt-2">
                 {(hotel.image ? [hotel.image] : getPartnerHotelImages(tripDraft?.destination || hotel.location || hotel.name).slice(0,2)).map((src, i) => (
@@ -496,6 +298,7 @@ function CheckoutPageInner() {
                 ))}
               </div>
             </div>
+            )}
 
             {(activity || extraActivities.length > 0) && (
               <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 space-y-2">
@@ -513,20 +316,26 @@ function CheckoutPageInner() {
               </div>
             )}
 
-            {/* Helcim Payment Button */}
-            {!pricing.hasAnyPrice && (
+            {!(trueTotal > 0) && (
               <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 mb-3">
                 💡 <strong>Price on request</strong> — Our team will confirm exact pricing within 24h and send you a payment link.
               </div>
             )}
-            <ZeniPayButton
-              amount={trueTotal > 0 ? trueTotal : (pricing.hasAnyPrice ? pricing.total : 500)}
-              currency="USD"
-              disabled={!travelerForm.firstName.trim() || !travelerForm.email.trim()}
-            />
+            {trueTotal > 0 && (
+              <ZeniPayButton
+                amount={trueTotal}
+                currency="USD"
+                description={payDescription}
+                customerName={`${travelerForm.firstName} ${travelerForm.lastName}`.trim()}
+                customerEmail={travelerForm.email.trim()}
+                customerPhone={travelerForm.phone.trim()}
+                proposalId={proposalId}
+                disabled={!travelerReady}
+                disabledLabel="Fill in your traveler details first"
+              />
+            )}
             <div className="rounded-xl border border-slate-200 bg-white p-3 text-xs" style={{ color: MUTED_TEXT }}>
-              After payment, your concierge will confirm ticketing and send e-tickets via email.
-              {confirmationId ? ` Ref: ${confirmationId}` : ""}
+              After payment, your Zeniva advisor confirms availability with our partners and emails your confirmation and e-tickets.
             </div>
           </aside>
         </div>

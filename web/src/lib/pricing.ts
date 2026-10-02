@@ -75,6 +75,7 @@ export function computePrice(selection: any, tripDraft: any, options?: { strict?
     tripDraft?.dates || (tripDraft?.checkIn && tripDraft?.checkOut ? `${tripDraft.checkIn} - ${tripDraft.checkOut}` : undefined)
   );
 
+  // Duffel's total_amount already covers every passenger (one-way legs are summed in .price).
   const flightBaseParsed = parseMoney(selection?.flight?.price);
   const flightBase = flightBaseParsed ?? (strict ? 0 : 1850);
 
@@ -100,7 +101,7 @@ export function computePrice(selection: any, tripDraft: any, options?: { strict?
   const hasTransferPrice = transferItems.some((item: any) => parseMoney(item?.price) !== null);
   const hasAnyPrice = hasFlightPrice || hasHotelPrice || hasActivityPrice || hasTransferPrice;
 
-  const flightTotal = flightBase * travelers;
+  const flightTotal = flightBase;
   const subtotal = flightTotal + hotelTotal + activityTotal + transferTotal;
   const fees = hasAnyPrice || !strict ? Math.round(subtotal * serviceFeePct * 100) / 100 : 0;
   const total = subtotal + fees;
@@ -124,4 +125,26 @@ export function computePrice(selection: any, tripDraft: any, options?: { strict?
     hasTransferPrice,
     hasAnyPrice,
   };
+}
+
+/**
+ * Amount actually charged for a selection — same rules as the review page's Total:
+ * flight = offer total (all passengers), hotel ×nights only when priced per night,
+ * villa/ZeniStay = full-stay total, plus the 6 % service fee. 0 = price on request.
+ */
+export function computeTripTotal(selection: any, tripDraft: any): number {
+  const pm = (v: unknown) => parseMoney(v) ?? 0;
+  const fl = selection?.flight;
+  const flightTotal = fl?.outbound && fl?.inbound ? pm(fl.outbound.price) + pm(fl.inbound.price) : fl ? pm(fl.price) : 0;
+  const h = selection?.hotel;
+  let hotelTotal = 0;
+  if (h && pm(h.price) > 0) {
+    const perNight = /night|nuit/i.test(String(h.price || ""));
+    const nights = pm(h.nights) || pm(tripDraft?.nights) ||
+      parseNights(tripDraft?.checkIn && tripDraft?.checkOut ? `${tripDraft.checkIn} - ${tripDraft.checkOut}` : undefined);
+    hotelTotal = perNight ? pm(h.price) * nights : pm(h.price);
+  }
+  const villaTotal = pm(selection?.villa?.price) || pm(selection?.shortterm?.price);
+  const sub = flightTotal + hotelTotal + villaTotal + pm(selection?.activity?.price) + pm(selection?.transfer?.price) + pm(selection?.car?.price);
+  return sub > 0 ? Math.round(sub * 1.06 * 100) / 100 : 0;
 }

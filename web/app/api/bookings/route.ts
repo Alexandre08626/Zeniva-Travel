@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "../../../src/lib/supabase/server";
+import { isInternalOrStaff, forbidden } from "@/lib/internal-auth";
+
+// HQ / agents (or internal calls) only: these routes read, write and delete every booking.
+// The real table keys the client by client_email (there is no owner_email / payload column).
 
 const TABLE = "bookings";
 
@@ -18,6 +22,7 @@ type BookingPayload = {
 };
 
 export async function GET(request: Request) {
+  if (!isInternalOrStaff(request)) return forbidden();
   try {
     if (!hasSupabaseEnv()) {
       return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
@@ -28,11 +33,12 @@ export async function GET(request: Request) {
     const { client } = getSupabaseAdminClient();
     let query = client
       .from(TABLE)
-      .select("id, owner_email, status, created_at, updated_at, payload")
-      .order("updated_at", { ascending: false });
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(500);
 
     if (ownerEmail) {
-      query = query.eq("owner_email", ownerEmail.toLowerCase());
+      query = query.eq("client_email", ownerEmail.toLowerCase());
     }
 
     const { data, error } = await query;
@@ -44,6 +50,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  if (!isInternalOrStaff(request)) return forbidden();
   try {
     if (!hasSupabaseEnv()) {
       return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
@@ -55,11 +62,11 @@ export async function POST(request: Request) {
     const now = new Date().toISOString();
     const record = {
       id: body.id,
-      owner_email: body.ownerEmail.toLowerCase(),
+      client_email: body.ownerEmail.toLowerCase(),
       status: body.status || "Confirmed",
       created_at: body.createdAt || now,
       updated_at: body.updatedAt || now,
-      payload: body.payload || {},
+      notes: body.payload ? JSON.stringify(body.payload).slice(0, 4000) : "",
     };
 
     const { client } = getSupabaseAdminClient();
@@ -73,6 +80,7 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  if (!isInternalOrStaff(request)) return forbidden();
   try {
     if (!hasSupabaseEnv()) {
       return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });

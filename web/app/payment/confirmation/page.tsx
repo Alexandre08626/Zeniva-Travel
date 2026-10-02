@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -8,53 +8,12 @@ import { Suspense } from "react";
 function ConfirmationContent() {
   const params = useSearchParams();
   const orderId = params.get("order_id") || params.get("orderId") || "";
-  const notified = useRef(false);
-  const [bookingRef, setBookingRef] = useState<string>("");
 
+  // This page is not proof of payment: the booking is created server-side once ZeniPay
+  // confirms the payment. Here we only clear the pending draft saved before the redirect.
   useEffect(() => {
-    if (notified.current) return;
-    notified.current = true;
-
-    // Read pending booking from localStorage (saved by payment page before redirect)
-    let pending: Record<string, string> = {};
-    try {
-      const raw = localStorage.getItem("zeniva_pending_booking");
-      if (raw) pending = JSON.parse(raw);
-    } catch { /* noop */ }
-
-    const clientEmail  = pending.clientEmail  || "";
-    const clientName   = pending.clientName   || "";
-    const destination  = pending.destination  || "Unknown destination";
-    const totalPrice   = parseFloat(pending.totalPrice || "0");
-    const travelers    = parseInt(pending.travelers || "1", 10);
-    const departure    = pending.departure    || "";
-    const returnDate   = pending.returnDate   || "";
-    const description  = pending.description  || destination;
-
-    const ref = `ZNV-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
-    setBookingRef(ref);
-
-    // 1a — Create booking in Supabase (traveler dashboard)
-    fetch("/api/my-bookings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        clientEmail: clientEmail,
-        clientName: clientName || clientEmail,
-        destination,
-        departure,
-        returnDate,
-        travelers,
-        totalPrice,
-        notes: `ZeniPay payment: ${orderId || ref} | ${description}`,
-      }),
-    }).catch(() => undefined);
-
-    // 2 — L'alerte HQ est envoyée côté serveur par /api/my-bookings (jeton interne non exposé).
-
-    // 3 — Clean up localStorage
     try { localStorage.removeItem("zeniva_pending_booking"); } catch { /* noop */ }
-  }, [orderId]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0B1B4D] to-[#0F6CF5] flex items-center justify-center p-6">
@@ -66,18 +25,15 @@ function ConfirmationContent() {
           </svg>
         </div>
 
-        <h1 className="text-3xl font-bold text-[#0B1B4D] mb-2">Booking Confirmed! ✈️</h1>
+        <h1 className="text-3xl font-bold text-[#0B1B4D] mb-2">Thank you! ✈️</h1>
         <p className="text-gray-500 mb-6">
-          Your trip is booked. Lina will send your travel documents and confirmations to your email shortly.
+          Your payment is being confirmed. A Zeniva advisor verifies availability with our partners and emails your confirmation, usually within 24 hours.
         </p>
 
-        {(orderId || bookingRef) && (
+        {orderId && (
           <div className="bg-slate-50 rounded-xl p-4 mb-6 space-y-1">
-            <p className="text-xs text-gray-400 uppercase tracking-wider">Booking Reference</p>
-            <p className="font-mono text-lg font-black text-[#0B1B4D]">{bookingRef || orderId}</p>
-            {orderId && bookingRef && (
-              <p className="text-xs text-gray-400">ZeniPay payment: {orderId}</p>
-            )}
+            <p className="text-xs text-gray-400 uppercase tracking-wider">ZeniPay payment</p>
+            <p className="font-mono text-lg font-black text-[#0B1B4D]">{orderId}</p>
           </div>
         )}
 
@@ -85,10 +41,10 @@ function ConfirmationContent() {
         <div className="bg-blue-50 rounded-xl p-4 mb-6 text-left space-y-2">
           <p className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-1">What happens next</p>
           {[
-            "📧 Confirmation email sent to your inbox",
-            "📄 Your documents will appear in My Documents",
+            "🧑‍💼 A Zeniva advisor confirms your booking with our partners",
+            "📧 You receive your confirmation by email",
+            "🧳 Your booking appears in My Trips once confirmed",
             "💬 Chat with Lina if you need anything",
-            "🧑‍💼 A Zeniva expert is notified and ready",
           ].map(s => (
             <div key={s} className="flex items-center gap-2 text-sm text-blue-800">
               <div className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />
@@ -98,10 +54,10 @@ function ConfirmationContent() {
         </div>
 
         <div className="space-y-3">
-          <Link href="/documents"
+          <Link href="/trips"
             className="block w-full py-3 px-6 rounded-xl font-black text-white"
             style={{ background: "linear-gradient(135deg, #E6B85A, #C9941F)", color: "#0B1B4D" }}>
-            📄 View My Documents →
+            🧳 View My Trips →
           </Link>
           <Link href="/chat"
             className="block w-full bg-[#0F6CF5] hover:bg-[#0B5FD8] text-white font-semibold py-3 px-6 rounded-xl transition-colors">

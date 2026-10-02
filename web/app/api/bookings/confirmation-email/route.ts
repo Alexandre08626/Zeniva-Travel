@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { isInternalOrStaff, forbidden } from "@/lib/internal-auth";
 
 /**
  * POST /api/bookings/confirmation-email
  * Sends a booking confirmation email to the client after successful payment & booking.
  */
 export async function POST(request: Request) {
+  // Sends mail from info@zeniva.ca: internal (ZeniPay webhook) or HQ/agents only — never an open relay.
+  if (!isInternalOrStaff(request)) return forbidden();
   try {
     const { clientEmail, clientName, destination, dates, totalPrice, confirmations, bookingId } =
       await request.json();

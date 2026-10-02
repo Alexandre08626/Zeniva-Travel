@@ -2,27 +2,31 @@
 import React, { Suspense, useState } from "react";
 import Header from "../../src/components/Header";
 import Footer from "../../src/components/Footer";
-import { LIGHT_BG, TITLE_TEXT, MUTED_TEXT, PREMIUM_BLUE } from "../../src/design/tokens";
+import { LIGHT_BG, TITLE_TEXT, MUTED_TEXT } from "../../src/design/tokens";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuthStore } from "../../src/lib/authStore";
-import { getDocumentsForUser, upsertDocuments } from "../../src/lib/documentsStore";
-import { useTripsStore, createTrip } from "../../lib/store/tripsStore";
-import { getStoredReferral } from "../../src/lib/influencer";
 import ZeniPayButton from "../../src/components/ZeniPayButton.client";
+
+// "USD 492.50", "$1,234", "2345.28" → number (NaN when there is no price).
+const parseAmount = (v: string | null) => {
+  const n = parseFloat(String(v || "").replace(/[^0-9.]/g, ""));
+  return Number.isFinite(n) && n > 0 ? n : NaN;
+};
 
 function PaymentContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const mode = searchParams.get("type");
   const isFlight = mode === "flight";
-  const isResidence = mode === "residence";
-  const residenceName = searchParams.get("residence") || "ZeniStay Property";
+  // /rentals/[id] sends type=villa: same summary as a ZeniStay residence.
+  const isResidence = mode === "residence" || mode === "villa";
+  const residenceName = searchParams.get("residence") || searchParams.get("name") || "ZeniStay Property";
   const residenceNights = parseInt(searchParams.get("nights") || "7", 10);
-  const residenceTotal = parseFloat(searchParams.get("total") || "0");
+  const residenceTotal = parseAmount(searchParams.get("total"));
   const residenceCheckin = searchParams.get("checkin") || "";
   const residenceCheckout = searchParams.get("checkout") || "";
-  const residencePricePerNight = parseFloat(searchParams.get("price") || "0");
+  const residencePricePerNight = parseAmount(searchParams.get("price"));
   const yachtParam = searchParams.get("yacht") || "Yacht charter";
   const hoursParam = searchParams.get("hours");
   const priceParam = searchParams.get("price");
@@ -46,21 +50,20 @@ function PaymentContent() {
   const flightDates = flightReturnDate ? `${flightDepartDate || "Date"} → ${flightReturnDate}` : flightDepartDate || "Date";
 
   const hours = hoursParam ? Number.parseInt(hoursParam, 10) : NaN;
-  const price = priceParam ? Number.parseInt(priceParam, 10) : NaN;
-  const hasCustomPrice = Number.isFinite(price);
-
-  const baseRate = isResidence ? residenceTotal : (hasCustomPrice ? (price as number) : 1700);
-  const gratuity = (isResidence || hasCustomPrice) ? 0 : 255;
-  const taxes = (isResidence || hasCustomPrice) ? 0 : 68;
-  const rawTotal = isResidence ? residenceTotal : (hasCustomPrice ? baseRate : baseRate + gratuity + taxes);
+  // No invented default (it used to charge 1 700 $ + 255 $ + 68 $ when the price was missing or unparsable).
+  const rawTotal = isResidence ? residenceTotal : isFlight ? parseAmount(flightPrice) : parseAmount(priceParam);
+  const hasPrice = Number.isFinite(rawTotal) && rawTotal > 0;
+  const baseRate = hasPrice ? rawTotal : 0;
+  const residenceStay = isResidence && Number.isFinite(residencePricePerNight) ? residenceNights * residencePricePerNight : 0;
+  const residenceFees = hasPrice && residenceStay > 0 && rawTotal > residenceStay ? rawTotal - residenceStay : 0;
 
   // ── Promo code ──────────────────────────────────────────────────────────
   const [promoCode, setPromoCode] = useState("");
   const [promoApplied, setPromoApplied] = useState(false);
   const [promoError, setPromoError] = useState("");
   const VALID_PROMOS: Record<string, number> = { "WELCOME15": 0.15, "ZENIVA15": 0.15, "LINA15": 0.15 };
-  const discount = promoApplied && VALID_PROMOS[promoCode.toUpperCase()] ? rawTotal * VALID_PROMOS[promoCode.toUpperCase()] : 0;
-  const totalDue = rawTotal - discount;
+  const discount = hasPrice && promoApplied && VALID_PROMOS[promoCode.toUpperCase()] ? rawTotal * VALID_PROMOS[promoCode.toUpperCase()] : 0;
+  const totalDue = hasPrice ? Math.round((rawTotal - discount) * 100) / 100 : 0;
 
   const applyPromo = () => {
     const code = promoCode.trim().toUpperCase();
@@ -68,12 +71,10 @@ function PaymentContent() {
       setPromoApplied(true);
       setPromoError("");
     } else {
-      setPromoError("Invalid promo code. Try WELCOME15.");
+      setPromoError("Invalid promo code.");
       setPromoApplied(false);
     }
   };
-
-  const bookingType = isFlight ? "zeniva_managed" : isResidence ? "residence" : "yacht";
 
   const formatMoney = (value: number) => new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -81,54 +82,15 @@ function PaymentContent() {
   }).format(value);
 
   const user = useAuthStore((s) => s.user);
-  const userId = user?.email || "";
-  const { trips } = useTripsStore((s) => ({ trips: s.trips }));
+  const [traveler, setTraveler] = useState({ firstName: "", lastName: "", email: user?.email || "", phone: "" });
+  const travelerName = `${traveler.firstName} ${traveler.lastName}`.trim();
+  const travelerReady = Boolean(traveler.firstName.trim() && traveler.lastName.trim() && /\S+@\S+\.\S+/.test(traveler.email));
 
-  const handlePayment = () => {
-    const now = new Date().toISOString();
-    const docId = `payment-${Date.now()}`;
-    const confirmationNumber = `ZNV-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
-    const tripId = trips[0]?.id || createTrip({
-      title: isFlight ? "Flight booking" : "Booking",
-      destination: flightTo || "",
-      dates: flightDates || "",
-      travelers: flightPassengers || "",
-    });
-
-    if (userId) {
-      const existing = (getDocumentsForUser(userId) || {})[tripId] || [];
-      upsertDocuments(userId, tripId, [{
-        id: docId,
-        tripId,
-        userId,
-        type: "confirmation",
-        title: isFlight ? `Flight confirmation (${flightCarrier} ${flightCode})` : "Payment confirmation",
-        provider: "Duffel",
-        confirmationNumber,
-        url: `/test/duffel-stays/confirmation?docId=${encodeURIComponent(docId)}`,
-        updatedAt: now,
-        details: JSON.stringify({ booking_reference: confirmationNumber, status: "confirmed" }),
-      }, ...existing]);
-    }
-
-    const referral = getStoredReferral();
-    if (referral && userId) {
-      fetch("/api/influencer/commissions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          bookingId: tripId,
-          travelerEmail: userId,
-          amount: totalDue,
-          currency: "USD",
-          bookingDate: new Date().toISOString(),
-          bookingType,
-        }),
-      }).catch(() => undefined);
-    }
-
-    router.push(`/test/duffel-stays/confirmation?docId=${encodeURIComponent(docId)}`);
-  };
+  const payDescription = isFlight
+    ? `Zeniva flight · ${flightCarrier} ${flightCode} · ${flightRoute} · ${flightDates}`
+    : isResidence
+    ? `ZeniStay · ${residenceName} · ${residenceCheckin && residenceCheckout ? `${residenceCheckin} → ${residenceCheckout}` : `${residenceNights} nights`}`
+    : `ZeniYacht · ${yachtParam}${Number.isFinite(hours) ? ` · ${hours}h` : ""}`;
 
   return (
     <div className="rounded-[20px] border border-slate-100 bg-white p-6 shadow-sm">
@@ -144,10 +106,10 @@ function PaymentContent() {
           <div className="rounded-xl border border-slate-200 p-4">
             <h2 className="text-sm font-semibold text-slate-700">Traveler details</h2>
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input className="w-full rounded-md border px-3 py-2 text-sm" placeholder="First name" />
-              <input className="w-full rounded-md border px-3 py-2 text-sm" placeholder="Last name" />
-              <input className="w-full rounded-md border px-3 py-2 text-sm" placeholder="Email" />
-              <input className="w-full rounded-md border px-3 py-2 text-sm" placeholder="Phone" />
+              <input className="w-full rounded-md border px-3 py-2 text-sm" placeholder="First name" autoComplete="given-name" value={traveler.firstName} onChange={(e) => setTraveler((t) => ({ ...t, firstName: e.target.value }))} />
+              <input className="w-full rounded-md border px-3 py-2 text-sm" placeholder="Last name" autoComplete="family-name" value={traveler.lastName} onChange={(e) => setTraveler((t) => ({ ...t, lastName: e.target.value }))} />
+              <input className="w-full rounded-md border px-3 py-2 text-sm" placeholder="Email" type="email" autoComplete="email" value={traveler.email} onChange={(e) => setTraveler((t) => ({ ...t, email: e.target.value }))} />
+              <input className="w-full rounded-md border px-3 py-2 text-sm" placeholder="Phone" type="tel" autoComplete="tel" value={traveler.phone} onChange={(e) => setTraveler((t) => ({ ...t, phone: e.target.value }))} />
             </div>
           </div>
 
@@ -159,7 +121,20 @@ function PaymentContent() {
             <p className="text-sm text-slate-600">
               Click below to proceed to our secure payment page. You can pay by Visa, Mastercard, Amex, or Apple Pay.
             </p>
-            <ZeniPayButton amount={totalDue} />
+            {hasPrice ? (
+              <ZeniPayButton
+                amount={totalDue}
+                description={payDescription}
+                customerName={travelerName}
+                customerEmail={traveler.email.trim()}
+                customerPhone={traveler.phone.trim()}
+                disabled={!travelerReady}
+              />
+            ) : (
+              <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
+                Price on request — contact our concierge at <a className="underline" href="mailto:info@zeniva.ca">info@zeniva.ca</a> and we will send you a secure payment link.
+              </div>
+            )}
             <p className="text-xs text-slate-400 text-center">
               After payment, you will receive an email confirmation with your booking details.
             </p>
@@ -179,23 +154,23 @@ function PaymentContent() {
               </div>
               <div className="rounded-lg bg-white border border-slate-200 p-3 text-sm text-slate-700 space-y-1 mt-3">
                 <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-2">ZeniStay · Zeniva</div>
-                {residencePricePerNight > 0 && (
-                  <div className="flex justify-between"><span>{residenceNights} nights × ${residencePricePerNight.toLocaleString()}/night</span><span>${(residenceNights * residencePricePerNight).toLocaleString()}</span></div>
+                {residenceStay > 0 && (
+                  <div className="flex justify-between"><span>{residenceNights} nights × {formatMoney(residencePricePerNight)}/night</span><span>{formatMoney(residenceStay)}</span></div>
                 )}
-                <div className="flex justify-between"><span>Cleaning fee</span><span>$285</span></div>
-                <div className="flex justify-between"><span>Zeniva concierge</span><span>$120</span></div>
-                <div className="flex justify-between"><span>Taxes (6%)</span><span>${Math.round(residenceNights * residencePricePerNight * 0.06).toLocaleString()}</span></div>
+                {residenceFees > 0 && (
+                  <div className="flex justify-between"><span>Cleaning & service fees</span><span>{formatMoney(residenceFees)}</span></div>
+                )}
               </div>
               <div className="border-t border-slate-200 pt-3 space-y-2 text-sm text-slate-700 mt-2">
                 {discount > 0 && <div className="flex justify-between font-semibold" style={{ color: "#10b981" }}><span>🎁 Promo ({promoCode.toUpperCase()})</span><span>-{formatMoney(discount)}</span></div>}
-                <div className="flex justify-between font-bold text-slate-900 text-base"><span>Total due</span><span>{formatMoney(totalDue)}</span></div>
+                <div className="flex justify-between font-bold text-slate-900 text-base"><span>Total due</span><span>{hasPrice ? formatMoney(totalDue) : "On request"}</span></div>
               </div>
               {/* Promo code */}
               <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px dashed #e2e8f0" }}>
                 {!promoApplied ? (
                   <div style={{ display: "flex", gap: 8 }}>
                     <input type="text" value={promoCode} onChange={e => { setPromoCode(e.target.value); setPromoError(""); }}
-                      placeholder="Promo code (ex: WELCOME15)"
+                      placeholder="Promo code"
                       style={{ flex: 1, border: "1.5px solid #e2e8f0", borderRadius: 10, padding: "8px 12px", fontSize: 13, outline: "none", color: "#0B1B4D" }} />
                     <button onClick={applyPromo}
                       style={{ background: "#0F6CF5", color: "white", border: "none", borderRadius: 10, padding: "8px 14px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
@@ -222,8 +197,8 @@ function PaymentContent() {
                 <div>{flightDuration}{flightStops ? ` · ${flightStops}` : ""}</div>
               </div>
               <div className="border-t border-slate-200 pt-3 space-y-2 text-sm text-slate-700">
-                <div className="flex justify-between"><span>Fare</span><span>{flightPrice}</span></div>
-                <div className="flex justify-between font-bold text-slate-900"><span>Total due</span><span>{flightPrice}</span></div>
+                <div className="flex justify-between"><span>Fare (all passengers)</span><span>{flightPrice}</span></div>
+                <div className="flex justify-between font-bold text-slate-900"><span>Total due</span><span>{hasPrice ? formatMoney(totalDue) : "On request"}</span></div>
               </div>
             </>
           ) : (
@@ -234,17 +209,15 @@ function PaymentContent() {
                 {noteParam ? ` · ${noteParam}` : ""}
               </div>
               <div className="border-t border-slate-200 pt-3 space-y-2 text-sm text-slate-700">
-                <div className="flex justify-between"><span>Base rate</span><span>{formatMoney(baseRate)}</span></div>
-                <div className="flex justify-between"><span>Gratuity</span><span>{formatMoney(gratuity)}</span></div>
-                <div className="flex justify-between"><span>Taxes & fees</span><span>{formatMoney(taxes)}</span></div>
+                <div className="flex justify-between"><span>Charter rate</span><span>{hasPrice ? formatMoney(baseRate) : "On request"}</span></div>
                 {discount > 0 && <div className="flex justify-between font-semibold" style={{ color: "#10b981" }}><span>🎁 Promo ({promoCode.toUpperCase()})</span><span>-{formatMoney(discount)}</span></div>}
-                <div className="flex justify-between font-bold text-slate-900"><span>Total due</span><span>{formatMoney(totalDue)}</span></div>
+                <div className="flex justify-between font-bold text-slate-900"><span>Total due</span><span>{hasPrice ? formatMoney(totalDue) : "On request"}</span></div>
                 {/* Promo code field */}
                 <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px dashed #e2e8f0" }}>
                   {!promoApplied ? (
                     <div style={{ display: "flex", gap: 8 }}>
                       <input type="text" value={promoCode} onChange={e => { setPromoCode(e.target.value); setPromoError(""); }}
-                        placeholder="Promo code (ex: WELCOME15)"
+                        placeholder="Promo code"
                         style={{ flex: 1, border: "1.5px solid #e2e8f0", borderRadius: 10, padding: "8px 12px", fontSize: 13, outline: "none", color: "#0B1B4D" }} />
                       <button onClick={applyPromo}
                         style={{ background: "#0F6CF5", color: "white", border: "none", borderRadius: 10, padding: "8px 14px", fontWeight: 700, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>
@@ -284,10 +257,12 @@ function PaymentContent() {
           >
             Back to flights
           </Link>
+        ) : isResidence ? (
+          <button type="button" onClick={() => router.back()} className="underline">Back</button>
         ) : (
           <Link href="/zeniyacht" className="underline">Back to yachts</Link>
         )}
-        <span>Payments secured by your provider (Stripe recommended).</span>
+        <span>Payments secured by ZeniPay.</span>
       </div>
     </div>
   );

@@ -95,7 +95,7 @@ function RentalDetailContent() {
       currency: "USD",
       description: `ZeniStay · ${name} · ${nights} night${nights > 1 ? "s" : ""} · ${checkin} → ${checkout}`,
     }));
-    router.push(`/payment?type=villa&name=${encodeURIComponent(name)}&total=${total}&nights=${nights}&checkin=${encodeURIComponent(checkin)}&checkout=${encodeURIComponent(checkout)}`);
+    router.push(`/payment?type=villa&name=${encodeURIComponent(name)}&price=${priceNum}&total=${total}&nights=${nights}&checkin=${encodeURIComponent(checkin)}&checkout=${encodeURIComponent(checkout)}`);
   };
 
   const chatWithLina = () => {
