@@ -24,31 +24,31 @@
   ],
   "crons": [
     {
-      "path": "/api/automation?agent=all&secret=zeniva-cron-2026",
+      "path": "/api/automation?agent=all",
       "schedule": "0 * * * *"
     },
     {
-      "path": "/api/automation/travel?secret=zeniva-cron-2026",
+      "path": "/api/automation/travel",
       "schedule": "0 */3 * * *"
     },
     {
-      "path": "/api/automation/agency?secret=zeniva-cron-2026",
+      "path": "/api/automation/agency",
       "schedule": "0 */4 * * *"
     },
     {
-      "path": "/api/automation/zenipay?secret=zeniva-cron-2026",
+      "path": "/api/automation/zenipay",
       "schedule": "0 * * * *"
     },
     {
-      "path": "/api/automation/dev?secret=zeniva-cron-2026",
+      "path": "/api/automation/dev",
       "schedule": "0 */6 * * *"
     },
     {
-      "path": "/api/automation/proposals?secret=zeniva-cron-2026",
+      "path": "/api/automation/proposals",
       "schedule": "0 */4 * * *"
     },
     {
-      "path": "/api/automation/onboarding?secret=zeniva-cron-2026",
+      "path": "/api/automation/onboarding",
       "schedule": "0 */2 * * *"
     }
   ]

@@ -11,7 +11,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "parameters": {
         "method": "GET",
-        "url": "https://zeniva-dev-dashboard.vercel.app/api/automation/travel?secret=zeniva-cron-2026",
+        "url": "https://zeniva-dev-dashboard.vercel.app/api/automation/travel?secret={{CRON_SECRET}}",
         "authentication": "none"
       }
     }

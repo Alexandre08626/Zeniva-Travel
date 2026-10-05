@@ -13,8 +13,8 @@ const SYSTEM_PROMPT = `You are Zeniva Onboarding AI – Agent Activation & Succe
 
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization") || req.nextUrl.searchParams.get("secret") || "";
-  const CRON_SECRET = process.env.CRON_SECRET || "zeniva-cron-2026";
-  if (auth !== CRON_SECRET && auth !== `Bearer ${CRON_SECRET}`) {
+  const CRON_SECRET = process.env.CRON_SECRET || "";
+  if (!CRON_SECRET || (auth !== CRON_SECRET && auth !== `Bearer ${CRON_SECRET}`)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

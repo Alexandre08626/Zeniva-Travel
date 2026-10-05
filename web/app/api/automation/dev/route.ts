@@ -5,7 +5,7 @@ import { generateDevLeads } from "@/src/lib/local-leads";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const CRON_SECRET = process.env.CRON_SECRET || "zeniva-cron-2026";
+const CRON_SECRET = process.env.CRON_SECRET || "";
 const API_KEY = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 
 async function callAI(system: string, user: string): Promise<string | null> {
@@ -29,7 +29,7 @@ async function callAI(system: string, user: string): Promise<string | null> {
 
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization") || req.nextUrl.searchParams.get("secret") || "";
-  if (auth !== CRON_SECRET && auth !== `Bearer ${CRON_SECRET}`) {
+  if (!CRON_SECRET || (auth !== CRON_SECRET && auth !== `Bearer ${CRON_SECRET}`)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

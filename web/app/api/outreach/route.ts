@@ -6,7 +6,7 @@ import { sendWhatsApp } from "@/src/lib/whatsapp/sender";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-const CRON_SECRET = process.env.CRON_SECRET || "zeniva-cron-2026";
+const CRON_SECRET = process.env.CRON_SECRET || "";
 function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
 const EMAIL_TEMPLATES = [
@@ -44,7 +44,7 @@ async function callOpenAI(_system: string, _user: string): Promise<string | null
 
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization") || req.nextUrl.searchParams.get("secret") || "";
-  if (auth !== CRON_SECRET && auth !== `Bearer ${CRON_SECRET}`) {
+  if (!CRON_SECRET || (auth !== CRON_SECRET && auth !== `Bearer ${CRON_SECRET}`)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

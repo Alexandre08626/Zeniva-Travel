@@ -2,11 +2,13 @@ import { NextResponse } from "next/server";
 import { getEmailConfig } from "@/src/lib/email/sender";
 import { getSmsConfig } from "@/src/lib/sms/sender";
 import { getWhatsAppConfig } from "@/src/lib/whatsapp/sender";
+import { isInternalOrStaff, forbidden } from "@/lib/internal-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: Request) {
+  if (!isInternalOrStaff(req)) return forbidden();
   const email = getEmailConfig();
   const sms = getSmsConfig();
   const whatsapp = getWhatsAppConfig();
@@ -66,7 +68,7 @@ export async function GET() {
     infrastructure: {
       supabase: { connected: supabaseConnected, error: supabaseError },
       openai: { configured: openAiConfigured },
-      cron: { secretSet: cronConfigured, secret: process.env.CRON_SECRET || "zeniva-cron-2026" },
+      cron: { secretSet: cronConfigured },
     },
     allConfigured: email.smtpConfigured && sms.configured && whatsapp.configured && supabaseConnected && openAiConfigured,
     setupGuide: {
