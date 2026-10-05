@@ -1,10 +1,13 @@
+import { isInternalOrStaff, forbidden } from "@/lib/internal-auth";
+
 export const dynamic = "force-dynamic";
 /**
  * GET  /api/unit/cards — list all virtual cards
  * POST /api/unit/cards — create a new virtual debit card
  */
 
-export async function GET() {
+export async function GET(req: Request) {
+  if (!isInternalOrStaff(req)) return forbidden();
   try {
     const { listCards } = await import("../../../../modules/zenipay/gateways/unit");
     const cards = await listCards();
@@ -16,6 +19,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!isInternalOrStaff(request)) return forbidden();
   try {
     const body = await request.json();
     const { account_id, full_name, limits } = body;

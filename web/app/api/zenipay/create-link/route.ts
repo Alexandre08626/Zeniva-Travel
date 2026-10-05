@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
  * POST — create a new pay link
  */
 
+import { isInternalOrStaff, forbidden } from "@/lib/internal-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createZeniPayPayLink, alertPayLinkFailure, PAY_LINK_UNAVAILABLE_MESSAGE } from "@/src/lib/server/zenipayLink";
@@ -18,7 +19,8 @@ function getSupabase(): any {
   return createClient(url, key);
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  if (!isInternalOrStaff(req)) return forbidden();
   try {
     const supabase = getSupabase();
     if (!supabase) return NextResponse.json({ links: [] });

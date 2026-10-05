@@ -6,10 +6,12 @@ export const dynamic = "force-dynamic";
  * POST — register a bank account for payouts
  */
 
+import { isInternalOrStaff, forbidden } from "@/lib/internal-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { getWalletBalances } from "../../../../modules/zenipay/services/ledger";
 
-export async function GET() {
+export async function GET(req: Request) {
+  if (!isInternalOrStaff(req)) return forbidden();
   try {
     // Attempt to get balances from ledger service (which reads from VIEW or computes from ledger)
     const wallets = await getWalletBalances();
@@ -58,6 +60,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (!isInternalOrStaff(req)) return forbidden();
   const { entity_type, entity_id, bank_name, account_number_last4, routing_number, account_holder_name, payout_method } = await req.json();
 
   const walletId = `WAL-${(entity_type || "GEN").slice(0, 3).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;

@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
  * Body: { payment_id, amount?, reason }
  */
 
+import { isInternalOrStaff, forbidden } from "@/lib/internal-auth";
 import { createClient } from "@supabase/supabase-js";
 import { createReversal } from "../../../../../modules/zenipay/gateways/finix";
 import { writeAuditLog } from "../../../../../modules/zenipay/services/ledger";
@@ -19,6 +20,7 @@ function getSupabase(): any {
 }
 
 export async function POST(request: Request) {
+  if (!isInternalOrStaff(request)) return forbidden();
   try {
     const body = await request.json();
     const { payment_id, amount, reason } = body;

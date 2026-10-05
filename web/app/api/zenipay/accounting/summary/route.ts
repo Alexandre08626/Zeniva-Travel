@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
  * GET /api/zenipay/accounting/summary
  */
 
+import { isInternalOrStaff, forbidden } from "@/lib/internal-auth";
 import { createClient } from "@supabase/supabase-js";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -31,7 +32,8 @@ const EMPTY_RESPONSE = {
   ],
 };
 
-export async function GET() {
+export async function GET(req: Request) {
+  if (!isInternalOrStaff(req)) return forbidden();
   try {
     const supabase = getSupabase();
     if (!supabase) return Response.json(EMPTY_RESPONSE);

@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
  * POST — execute a payout (validates balance, creates ledger entry, records in DB)
  */
 
+import { isInternalOrStaff, forbidden } from "@/lib/internal-auth";
 import { createClient } from "@supabase/supabase-js";
 import { getWalletBalances, recordPayoutExecution, writeAuditLog, checkIdempotency, saveIdempotency } from "../../../../modules/zenipay/services/ledger";
 import type { WalletType } from "../../../../modules/zenipay/database/schema";
@@ -20,7 +21,8 @@ function getSupabase(): any {
 }
 
 // ── GET: list payouts ──────────────────────────────────────────────────────
-export async function GET() {
+export async function GET(req: Request) {
+  if (!isInternalOrStaff(req)) return forbidden();
   const supabase = getSupabase();
   if (!supabase) return Response.json({ payouts: [] });
 
@@ -36,6 +38,7 @@ export async function GET() {
 
 // ── POST: execute a payout ─────────────────────────────────────────────────
 export async function POST(request: Request) {
+  if (!isInternalOrStaff(request)) return forbidden();
   try {
     const body = await request.json();
     const {

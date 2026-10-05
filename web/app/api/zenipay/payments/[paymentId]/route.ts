@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
  * GET /api/zenipay/payments/[paymentId]
  */
 
+import { isInternalOrStaff, forbidden } from "@/lib/internal-auth";
 import { createClient } from "@supabase/supabase-js";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -16,9 +17,10 @@ function getSupabase(): any {
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ paymentId: string }> }
 ) {
+  if (!isInternalOrStaff(request)) return forbidden();
   try {
     const { paymentId } = await params;
 

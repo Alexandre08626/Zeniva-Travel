@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import { isInternalOrStaff, forbidden } from "@/lib/internal-auth";
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
@@ -11,7 +12,8 @@ function getSupabase(): any {
   return createClient(url, key);
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  if (!isInternalOrStaff(req)) return forbidden();
   const supabase = getSupabase();
   if (!supabase) return NextResponse.json({ transactions: [] });
 

@@ -1,10 +1,13 @@
+import { isInternalOrStaff, forbidden } from "@/lib/internal-auth";
+
 export const dynamic = "force-dynamic";
 /**
  * GET  /api/unit/accounts — list all Unit bank accounts + balances
  * POST /api/unit/accounts — create a new deposit account
  */
 
-export async function GET() {
+export async function GET(req: Request) {
+  if (!isInternalOrStaff(req)) return forbidden();
   try {
     const { getAccountsSummary } = await import("../../../../modules/zenipay/gateways/unit");
     const accounts = await getAccountsSummary();
@@ -17,6 +20,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!isInternalOrStaff(request)) return forbidden();
   try {
     const body = await request.json();
     const { customer_id, name } = body;

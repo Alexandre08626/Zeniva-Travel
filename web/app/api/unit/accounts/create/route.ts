@@ -1,9 +1,11 @@
+import { isInternalOrStaff, forbidden } from "@/lib/internal-auth";
 import { NextResponse } from "next/server";
 
 const UNIT_API = process.env.UNIT_API_URL || "https://api.s.unit.co";
 const UNIT_TOKEN = process.env.UNIT_API_TOKEN;
 
 export async function POST(req: Request) {
+  if (!isInternalOrStaff(req)) return forbidden();
   if (!UNIT_TOKEN) return NextResponse.json({ error: "Unit not configured" }, { status: 500 });
 
   try {

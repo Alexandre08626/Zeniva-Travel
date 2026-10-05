@@ -1,9 +1,12 @@
+import { isInternalOrStaff, forbidden } from "@/lib/internal-auth";
+
 export const dynamic = "force-dynamic";
 /**
  * GET /api/unit/transactions?accountId=xxx — list Unit bank transactions
  */
 
 export async function GET(request: Request) {
+  if (!isInternalOrStaff(request)) return forbidden();
   try {
     const url = new URL(request.url);
     const accountId = url.searchParams.get("accountId") || undefined;

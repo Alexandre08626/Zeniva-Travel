@@ -1,3 +1,4 @@
+import { isInternalOrStaff, forbidden } from "@/lib/internal-auth";
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
@@ -13,6 +14,7 @@ const smtpTransporter = nodemailer.createTransport({
 });
 
 export async function POST(req: NextRequest) {
+  if (!isInternalOrStaff(req)) return forbidden();
   try {
     const { email, type } = await req.json();
     const toEmail = email || "info@zeniva.ca";

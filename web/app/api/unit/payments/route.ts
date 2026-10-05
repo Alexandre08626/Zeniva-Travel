@@ -1,3 +1,5 @@
+import { isInternalOrStaff, forbidden } from "@/lib/internal-auth";
+
 export const dynamic = "force-dynamic";
 /**
  * POST /api/unit/payments — execute ACH payment or book transfer
@@ -5,6 +7,7 @@ export const dynamic = "force-dynamic";
  */
 
 export async function POST(request: Request) {
+  if (!isInternalOrStaff(request)) return forbidden();
   try {
     const body = await request.json();
     const { type, from_account_id, amount_cents, description } = body;

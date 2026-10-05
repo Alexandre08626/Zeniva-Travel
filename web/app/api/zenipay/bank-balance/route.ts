@@ -1,3 +1,5 @@
+import { isInternalOrStaff, forbidden } from "@/lib/internal-auth";
+
 export const dynamic = "force-dynamic";
 
 const UNIT_URL = () => process.env.UNIT_API_URL || "https://api.s.unit.sh";
@@ -25,7 +27,8 @@ async function unitGet(path: string) {
   try { return JSON.parse(text); } catch { return null; }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  if (!isInternalOrStaff(req)) return forbidden();
   try {
     const token = UNIT_TOKEN();
     if (!token) {
