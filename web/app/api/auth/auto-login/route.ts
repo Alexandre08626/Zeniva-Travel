@@ -13,7 +13,15 @@ import { dbQuery } from "../../../../src/lib/server/db";
  */
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
-  const redirect = req.nextUrl.searchParams.get("redirect") || "/";
+  // Same-site paths only: "//evil.com" or "/\evil.com" would send the freshly logged-in user off-site.
+  const rawRedirect = req.nextUrl.searchParams.get("redirect") || "/";
+  const redirect =
+    rawRedirect.startsWith("/") &&
+    !rawRedirect.startsWith("//") &&
+    !rawRedirect.startsWith("/\\") &&
+    !/[\u0000-\u001f\u007f]/.test(rawRedirect) // the URL parser drops tabs/newlines: "/\t/evil.com" → "//evil.com"
+      ? rawRedirect
+      : "/";
 
   if (!token) {
     return NextResponse.redirect(new URL("/login", req.url));
@@ -60,7 +68,8 @@ export async function GET(req: NextRequest) {
     ...(cookieDomain ? { domain: cookieDomain } : {}),
   };
 
-  const destination = new URL(redirect, req.url);
+  let destination = new URL(redirect, req.url);
+  if (destination.origin !== new URL(req.url).origin) destination = new URL("/", req.url);
   const res = NextResponse.redirect(destination);
   res.cookies.set(getSessionCookieName(), sessionToken, cookieOpts);
   res.cookies.set("zeniva_email", account.email, { ...cookieOpts, httpOnly: false });

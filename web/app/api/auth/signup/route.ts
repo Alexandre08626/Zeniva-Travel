@@ -3,7 +3,7 @@ import { sendPushToHQ } from "../../../../src/lib/server/pushNotify";
 import { notifyAccountCreated } from "../../../../src/lib/notify/account-created";
 
 import { assertBackendEnv, normalizeEmail, dbQuery } from "../../../../src/lib/server/db";
-import { normalizeRbacRole } from "../../../../src/lib/rbac";
+import { normalizeRbacRole, RBAC_ROLES } from "../../../../src/lib/rbac";
 import { getCookieDomain, getSessionCookieName, signSession, hashPassword } from "../../../../src/lib/server/auth";
 import { getSupabaseAdminClient, getSupabaseAnonClient } from "../../../../src/lib/supabase/server";
 
@@ -111,9 +111,13 @@ export async function POST(request: Request) {
         ? String(body.agentLevel)
         : null;
 
-    const isAgentRole = normalizedRoles.some((r: string) =>
-      ["hq", "admin", "travel_agent", "yacht_broker", "influencer"].includes(r)
+    // Only these roles can be self-assigned at signup. Every other role (travel_agent, hq, admin,
+    // super_admin, any unknown string…) requires an HQ-approved invite for that exact role.
+    const SELF_SIGNUP_ROLES = new Set(["traveler", "partner_owner", "partner_staff"]);
+    const privilegedRoles = Array.from(new Set([normalizedRole, ...normalizedRoles])).filter(
+      (r: string) => !SELF_SIGNUP_ROLES.has(r)
     );
+    const isAgentRole = privilegedRoles.length > 0;
 
     // ---- Validate
     const missing: string[] = [];
@@ -137,6 +141,15 @@ export async function POST(request: Request) {
       }
       const requestedRole = normalizeRbacRole(check.rows[0].role) || check.rows[0].role;
       if (requestedRole && requestedRole !== normalizedRole) {
+        return NextResponse.json({ ok: false, message: "Agent role mismatch" }, { status: 400 });
+      }
+      // The invite covers its own role; an HQ/admin invite also covers the agent roles HQ accounts carry.
+      // Nothing in roles[] may go beyond what HQ approved (e.g. a travel_agent invite + roles:["super_admin"]).
+      const allowedByInvite = new Set<string>([String(requestedRole || "")]);
+      if (requestedRole === "hq" || requestedRole === "admin" || requestedRole === "super_admin") {
+        RBAC_ROLES.forEach((r) => allowedByInvite.add(r));
+      }
+      if (privilegedRoles.some((r: string) => !allowedByInvite.has(r))) {
         return NextResponse.json({ ok: false, message: "Agent role mismatch" }, { status: 400 });
       }
     }
@@ -284,38 +297,12 @@ export async function POST(request: Request) {
       const code = (insertError as any)?.code || null;
       const isDuplicate = code === "23505" || /duplicate|already exists/i.test(insertError.message || "");
       if (isDuplicate) {
-        const { data: updated, error: updateError } = await supabaseAdminClient
-          .from("accounts")
-          .update({
-            name,
-            role: normalizedRole,
-            roles: normalizedRoles,
-            divisions,
-            status: "active",
-            agent_level: agentLevel,
-            invite_code: inviteCode || null,
-            traveler_profile: travelerProfile || null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("email", email)
-          .select("id, name, email, role, roles, divisions, status, agent_level, invite_code, partner_id, partner_company, traveler_profile")
-          .maybeSingle();
-
-        if (!updateError && updated) {
-          const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30;
-          const token = signSession({ email: updated.email, roles: updated.roles || [updated.role || "traveler"], exp });
-          const response = NextResponse.json({ user: updated }, { status: 200 });
-          const cookieDomain = getCookieDomain();
-          response.cookies.set(getSessionCookieName(), token, {
-            httpOnly: true,
-            sameSite: "lax",
-            secure: true,
-            path: "/",
-            ...(cookieDomain ? { domain: cookieDomain } : {}),
-            maxAge: 60 * 60 * 24 * 30,
-          });
-          return response;
-        }
+        // Never update an existing account (roles, status…) nor open a session from signup:
+        // whoever knows an e-mail could otherwise take over that account. Existing users log in.
+        return NextResponse.json(
+          { ok: false, stage: "accounts_insert_error", error: "Un compte existe déjà, connecte-toi", message: "Un compte existe déjà, connecte-toi", details: { requestId, code: "account_exists" } },
+          { status: 409 }
+        );
       }
 
       return errorResponse("accounts_insert_error", "Accounts insert failed", 500, {
