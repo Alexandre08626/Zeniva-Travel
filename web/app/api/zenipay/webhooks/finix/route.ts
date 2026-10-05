@@ -42,15 +42,15 @@ export async function POST(request: Request) {
   const webhookSecret = process.env.FINIX_WEBHOOK_SECRET || "";
 
   // ── Signature verification ─────────────────────────────────────────────
-  if (webhookSecret) {
-    const valid = verifyFinixSignature(rawBody, signature, webhookSecret);
-    if (!valid) {
-      console.warn("[ZeniPay Webhook] Invalid signature — rejected");
-      return Response.json({ error: "Invalid signature" }, { status: 401 });
-    }
-  } else {
-    // Webhook secret not yet configured — log warning but continue in sandbox
-    console.warn("[ZeniPay Webhook] FINIX_WEBHOOK_SECRET not set — skipping signature check (sandbox only)");
+  // No secret configured = no way to prove the event comes from Finix → refuse it
+  // (an unsigned event could otherwise mark payments as paid and write ledger entries).
+  if (!webhookSecret) {
+    console.warn("[ZeniPay Webhook] FINIX_WEBHOOK_SECRET not set — event rejected");
+    return Response.json({ error: "Webhook not configured" }, { status: 401 });
+  }
+  if (!verifyFinixSignature(rawBody, signature, webhookSecret)) {
+    console.warn("[ZeniPay Webhook] Invalid signature — rejected");
+    return Response.json({ error: "Invalid signature" }, { status: 401 });
   }
 
   let payload: Record<string, unknown>;

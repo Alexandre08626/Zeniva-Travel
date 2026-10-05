@@ -74,7 +74,10 @@ export async function POST(req: NextRequest) {
     }
 
     // ── AUTO-CREATE BOOKING ───────────────────────────────────────────────
-    const bookingId = metadata.booking_id || `BK-${payment_id}`;
+    // Always derived from the payment itself: metadata.booking_id comes from whoever created the
+    // pay link, and using it as the upsert key would let a cheap payment overwrite another booking.
+    const bookingId = `BK-${payment_id || transaction_id || crypto.randomUUID()}`;
+    const linkRef = metadata.booking_id ? ` | Réf. lien: ${String(metadata.booking_id).slice(0, 120)}` : "";
     const { error } = await supabase.from("bookings").upsert({
       id: bookingId,
       client_name: customer_name || "Client",
@@ -85,7 +88,7 @@ export async function POST(req: NextRequest) {
       travelers: metadata.guests || metadata.travelers || 1,
       total_price: amount,
       status: "confirmed",
-      notes: `ZeniPay: ${payment_id} | Finix: ${transaction_id} | Invoice: ${invoice_id}`,
+      notes: `ZeniPay: ${payment_id} | Finix: ${transaction_id} | Invoice: ${invoice_id}${linkRef}`,
       created_at: paid_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }, { onConflict: "id" });
@@ -132,16 +135,22 @@ export async function POST(req: NextRequest) {
         let proposalKey: "trip_id" | "id" = "trip_id";
         let { data: proposals, error: propErr } = await supabase
           .from("proposals")
-          .select("payload")
+          .select("payload, status")
           .eq("trip_id", proposalId)
           .limit(1);
         if (propErr || !proposals?.length) {
           proposalKey = "id";
-          ({ data: proposals } = await supabase.from("proposals").select("payload").eq("id", proposalId).limit(1));
+          ({ data: proposals } = await supabase.from("proposals").select("payload, status").eq("id", proposalId).limit(1));
         }
 
-        const proposal = proposals?.[0];
-        if (proposal?.payload) {
+        const proposal = proposals?.[0] as { payload?: any; status?: string | null } | undefined;
+        // Already booked (status or stored supplier confirmations) → never buy flights/hotels twice.
+        const alreadyBooked =
+          /^(booked|ticketed|completed)$/i.test(String(proposal?.status || "").trim()) ||
+          Boolean(proposal?.payload?.bookingConfirmations);
+        if (alreadyBooked) {
+          console.warn(`[Zeniva Webhook] Proposal ${proposalId} already booked — supplier booking skipped (payment ${payment_id})`);
+        } else if (proposal?.payload) {
           const { selections, passengers, hotelGuests, tripDraft } = proposal.payload;
 
           // Execute bookings with partners (Duffel flights + LiteAPI hotel)
