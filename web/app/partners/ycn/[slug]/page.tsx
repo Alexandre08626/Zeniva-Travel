@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 import { getYcnPackages } from '@/src/data/partners/ycn';
 import { getImagesForDestination } from '@/src/lib/images';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import YachtGalleryLightbox from '@/src/components/yachts/YachtGalleryLightbox.client';
 import YachtRatePicker from '@/src/components/yachts/YachtRatePicker.client';
@@ -43,13 +44,8 @@ export default async function YcnPartnerPage({
   const data = getYcnPackages();
   const item = data.find((p: any) => slugify(p.title) === slug);
 
-  if (!item) {
-    return (
-      <main className="min-h-screen p-10 bg-slate-50">
-        <div className="max-w-4xl mx-auto bg-white p-6 rounded-2xl shadow">Partner listing not found.</div>
-      </main>
-    );
-  }
+  // Bateau retiré du catalogue (ou adresse inconnue) : vrai 404, pour que Google l'oublie aussi.
+  if (!item) notFound();
 
   const destinationKey = item.destination || item.title || 'yacht';
   const partnerImages = (item.images && item.images.length ? item.images : []).filter(Boolean);
